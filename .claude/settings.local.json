@@ -80,7 +80,9 @@
       "Bash(xargs cat:*)",
       "Bash(pnpm --filter @pairux/shared-types build:*)",
       "Bash(pnpm lint:fix:*)",
-      "Bash(pnpm test)"
+      "Bash(pnpm test)",
+      "Bash(node scripts/setup-env.mjs:*)",
+      "Bash(xxd:*)"
     ],
     "deny": [
       "Bash(npm *)",

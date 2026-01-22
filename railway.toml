@@ -7,7 +7,7 @@
 
 [build]
 # Use Dockerfile for build
-builder = "dockerfile"
+builder = "DOCKERFILE"
 dockerfilePath = "apps/web/Dockerfile"
 
 # Build context is the repo root

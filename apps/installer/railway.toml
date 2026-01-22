@@ -1,0 +1,17 @@
+# ===========================================
+# PairUX Installer Service - Railway Configuration
+# ===========================================
+# Deploy this as a separate Railway service
+# for installer.pairux.com
+# ===========================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+numReplicas = 1
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { RotatingText } from '@/components/RotatingText';
 
 // Custom GitHub icon SVG component (brand icons deprecated in lucide)
 function GitHubIcon({ className }: { className?: string }) {
@@ -97,7 +98,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-                Pair programming,{' '}
+                Pair <RotatingText />,{' '}
                 <span className="gradient-text">reimagined</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl">
@@ -206,10 +207,10 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Loved by developers
+                Loved by developers and executives
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                See what others are saying about PairUX.
+                ...and everyone in between. See what others are saying about PairUX.
               </p>
             </div>
 

@@ -98,6 +98,22 @@ export default tseslint.config(
     },
   },
 
+  // Relax strict type-checking for test files
+  {
+    files: ['**/*.test.{ts,tsx}', '**/test/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+    },
+  },
+
   // General TypeScript rules adjustments
   {
     rules: {

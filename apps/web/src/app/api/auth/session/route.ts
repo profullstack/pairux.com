@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
 import { createClient } from '@/lib/supabase/server';
 import { successResponse, handleApiError } from '@/lib/api';
 
@@ -29,7 +28,7 @@ export async function GET() {
         id: user.id,
         email: user.email,
       },
-      profile: profile || null,
+      profile,
     });
   } catch (error) {
     return handleApiError(error);

@@ -107,7 +107,7 @@ describe('DELETE /api/sessions/[sessionId]', () => {
       method: 'DELETE',
     });
     const response = await DELETE(request, createParams('test-session-id'));
-    const body = await response.json();
+    await response.json(); // consume response body
 
     expect(response.status).toBe(200);
     expect(mockSupabase.rpc).toHaveBeenCalledWith('end_session', {

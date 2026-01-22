@@ -26,7 +26,15 @@ export const mockSession = {
   ended_at: null,
 };
 
-export function createMockSupabaseClient(overrides: Record<string, unknown> = {}) {
+interface MockOverrides {
+  auth?: Record<string, unknown>;
+  from?: unknown;
+  rpc?: unknown;
+  [key: string]: unknown;
+}
+
+export function createMockSupabaseClient(overrides: MockOverrides = {}) {
+  const authOverrides = overrides.auth ?? {};
   const defaultAuth = {
     signInWithPassword: vi.fn().mockResolvedValue({
       data: { user: mockUser, session: { access_token: 'test-token' } },
@@ -46,7 +54,7 @@ export function createMockSupabaseClient(overrides: Record<string, unknown> = {}
       error: null,
     }),
     resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
-    ...overrides.auth,
+    ...authOverrides,
   };
 
   const defaultFrom = vi.fn().mockReturnValue({
@@ -65,7 +73,7 @@ export function createMockSupabaseClient(overrides: Record<string, unknown> = {}
   return {
     auth: defaultAuth,
     from: overrides.from ?? defaultFrom,
-    rpc: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+    rpc: overrides.rpc ?? vi.fn().mockResolvedValue({ data: mockSession, error: null }),
     ...overrides,
   };
 }

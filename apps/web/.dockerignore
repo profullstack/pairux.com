@@ -1,0 +1,54 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs (we build in Docker)
+.next
+out
+dist
+build
+
+# Development
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Tests
+coverage
+.nyc_output
+**/*.test.ts
+**/*.spec.ts
+__tests__
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Desktop app (not needed for web)
+apps/desktop
+
+# Turbo cache
+.turbo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo

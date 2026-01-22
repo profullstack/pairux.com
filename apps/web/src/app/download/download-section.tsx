@@ -10,10 +10,21 @@ import {
   Copy,
   Check,
   ExternalLink,
+  ChevronDown,
+  Shield,
 } from 'lucide-react';
 import { detectOS, type OS, type Arch } from '@/lib/utils';
 
 const VERSION = '0.1.0';
+
+// Placeholder checksums - will be generated during release build
+const CHECKSUMS: Record<string, string> = {
+  [`PairUX-${VERSION}-arm64.dmg`]: 'sha256-placeholder-arm64-dmg',
+  [`PairUX-${VERSION}-x64.dmg`]: 'sha256-placeholder-x64-dmg',
+  [`PairUX-${VERSION}-arm64.msi`]: 'sha256-placeholder-arm64-msi',
+  [`PairUX-${VERSION}-x64.msi`]: 'sha256-placeholder-x64-msi',
+  [`PairUX-${VERSION}-x86_64.AppImage`]: 'sha256-placeholder-appimage',
+};
 
 interface DownloadOption {
   command?: string;
@@ -147,6 +158,7 @@ function getPlatformInfo(os: OS, arch: Arch): PlatformInfo {
 
 export function DownloadSection() {
   const [detected, setDetected] = useState<{ os: OS; arch: Arch } | null>(null);
+  const [showChecksums, setShowChecksums] = useState(false);
 
   useEffect(() => {
     setDetected(detectOS());
@@ -378,6 +390,54 @@ export function DownloadSection() {
             View all releases on GitHub
             <ExternalLink className="h-4 w-4" />
           </Link>
+        </div>
+
+        {/* SHA256 Checksums */}
+        <div className="mt-12 border-t border-gray-200 pt-8">
+          <button
+            onClick={() => { setShowChecksums(!showChecksums); }}
+            className="mx-auto flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          >
+            <Shield className="h-4 w-4" />
+            <span>Verify downloads (SHA256 checksums)</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${showChecksums ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showChecksums && (
+            <div className="mt-6 mx-auto max-w-2xl">
+              <p className="mb-4 text-center text-sm text-gray-600">
+                Verify your download by comparing the SHA256 checksum.
+              </p>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="pb-2 text-left font-medium text-gray-700">File</th>
+                      <th className="pb-2 text-left font-medium text-gray-700">SHA256</th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-mono text-xs">
+                    {Object.entries(CHECKSUMS).map(([filename, hash]) => (
+                      <tr key={filename} className="border-b border-gray-100 last:border-0">
+                        <td className="py-2 pr-4 text-gray-700">{filename}</td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-2">
+                            <code className="text-gray-500 truncate max-w-[200px] sm:max-w-none">
+                              {hash}
+                            </code>
+                            <CopyButton text={hash} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-4 text-center text-xs text-gray-500">
+                Checksums will be available after the first release.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

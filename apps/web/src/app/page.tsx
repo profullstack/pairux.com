@@ -10,6 +10,7 @@ import {
   Zap,
   Shield,
   RefreshCw,
+  Quote,
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -200,8 +201,65 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Security Section */}
+        {/* Social Proof / Testimonials */}
         <section className="bg-white py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Loved by developers
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+                See what others are saying about PairUX.
+              </p>
+            </div>
+
+            <div className="mt-16 grid gap-8 md:grid-cols-3">
+              {/* Testimonial placeholders */}
+              {[
+                {
+                  quote: 'Finally, a Screenhero replacement that actually works. The simultaneous control feature is game-changing for pair programming.',
+                  author: 'Coming Soon',
+                  role: 'Software Engineer',
+                },
+                {
+                  quote: 'The fact that viewers can join from any browser without installing anything makes this perfect for quick collaboration sessions.',
+                  author: 'Coming Soon',
+                  role: 'Tech Lead',
+                },
+                {
+                  quote: 'Open source, end-to-end encrypted, and it just works. This is exactly what the developer community needed.',
+                  author: 'Coming Soon',
+                  role: 'Open Source Contributor',
+                },
+              ].map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="relative rounded-2xl border border-gray-200 bg-gray-50 p-8"
+                >
+                  <Quote className="absolute top-6 right-6 h-8 w-8 text-primary-200" />
+                  <p className="text-gray-700 italic">&ldquo;{testimonial.quote}&rdquo;</p>
+                  <div className="mt-6 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary-200" />
+                    <div>
+                      <p className="font-semibold text-gray-900">{testimonial.author}</p>
+                      <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-8 text-center text-sm text-gray-500">
+              Want to share your experience?{' '}
+              <Link href="https://github.com/pairux/pairux/discussions" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                Join the discussion on GitHub
+              </Link>
+            </p>
+          </div>
+        </section>
+
+        {/* Security Section */}
+        <section className="bg-gray-50 py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>

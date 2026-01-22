@@ -96,3 +96,20 @@
 .animate-shimmer {
   animation: shimmer 2s ease-in-out infinite;
 }
+
+/* Typewriter cursor styling */
+.type-animation-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  @apply text-primary-600 ml-0.5;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

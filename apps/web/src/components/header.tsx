@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, X, Monitor } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { Menu, X, Monitor, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-// Simple GitHub icon SVG component (avoids deprecated lucide icon)
 function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -27,7 +29,67 @@ const navigation = [
 ];
 
 export function Header() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    // Get initial session
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    void getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setDropdownOpen(false);
+    router.push('/');
+    router.refresh();
+  };
+
+  const metadata = user?.user_metadata as { first_name?: string; last_name?: string } | undefined;
+  const firstName = metadata?.first_name ?? '';
+  const lastName = metadata?.last_name ?? '';
+
+  const userInitials = firstName && lastName
+    ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() ?? 'U';
+
+  const userName = firstName && lastName
+    ? `${firstName} ${lastName}`
+    : user?.email ?? 'User';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-lg">
@@ -56,20 +118,80 @@ export function Header() {
         {/* Desktop CTA */}
         <div className="hidden md:flex md:items-center md:gap-4">
           <Link
-            href="https://github.com/pairux/pairux"
+            href="https://github.com/profullstack/pairux.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <GitHubIcon className="h-5 w-5" />
-            <span>GitHub</span>
           </Link>
-          <Link
-            href="/download"
-            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-          >
-            Download
-          </Link>
+
+          {loading ? (
+            <div className="h-9 w-20 animate-pulse rounded-lg bg-gray-200" />
+          ) : user ? (
+            // Logged in state
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => { setDropdownOpen(!dropdownOpen); }}
+                className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-semibold text-white">
+                  {userInitials}
+                </div>
+                <ChevronDown className={cn('h-4 w-4 transition-transform', dropdownOpen && 'rotate-180')} />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                  <div className="border-b border-gray-100 px-4 py-3">
+                    <p className="text-sm font-medium text-gray-900">{userName}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => { setDropdownOpen(false); }}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => { setDropdownOpen(false); }}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                  <div className="border-t border-gray-100">
+                    <button
+                      onClick={() => { void handleLogout(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Logged out state
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -106,7 +228,7 @@ export function Header() {
             </Link>
           ))}
           <Link
-            href="https://github.com/pairux/pairux"
+            href="https://github.com/profullstack/pairux.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -115,13 +237,68 @@ export function Header() {
             <GitHubIcon className="h-5 w-5" />
             <span>GitHub</span>
           </Link>
-          <Link
-            href="/download"
-            className="block rounded-lg bg-primary-600 px-3 py-2 text-center text-base font-semibold text-white hover:bg-primary-700"
-            onClick={() => { setMobileMenuOpen(false); }}
-          >
-            Download
-          </Link>
+
+          {/* Mobile auth section */}
+          {!loading && (
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 px-3 py-2 mb-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-sm font-semibold text-white">
+                      {userInitials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{userName}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    onClick={() => { setMobileMenuOpen(false); }}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    onClick={() => { setMobileMenuOpen(false); }}
+                  >
+                    <Settings className="h-5 w-5" />
+                    Settings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      void handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    onClick={() => { setMobileMenuOpen(false); }}
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="block rounded-lg bg-primary-600 px-3 py-2 text-center text-base font-semibold text-white hover:bg-primary-700"
+                    onClick={() => { setMobileMenuOpen(false); }}
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

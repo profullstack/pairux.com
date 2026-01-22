@@ -1,0 +1,41 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
+import { createClient } from '@/lib/supabase/server';
+import { signupSchema } from '@/lib/validations';
+import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { email, password, displayName } = signupSchema.parse(body);
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          display_name: displayName,
+        },
+      },
+    });
+
+    if (error) {
+      return errorResponse(error.message, 400);
+    }
+
+    if (!data.user) {
+      return errorResponse('Failed to create user', 500);
+    }
+
+    return successResponse({
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
+      message: 'Check your email to confirm your account',
+    }, 201);
+  } catch (error) {
+    return handleApiError(error);
+  }
+}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
 import { createClient } from '@/lib/supabase/server';
 import { createSessionSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -6,7 +5,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 // POST /api/sessions - Create a new session
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const body: unknown = await request.json().catch(() => ({}));
     const settings = createSessionSchema.parse(body);
 
     const supabase = await createClient();
@@ -19,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     // Create session using RPC function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.rpc as any)('create_session', {
       p_settings: {
         quality: 'medium',
@@ -30,6 +29,7 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Create session error:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
     }
 

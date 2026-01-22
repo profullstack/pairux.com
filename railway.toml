@@ -10,10 +10,8 @@
 builder = "dockerfile"
 dockerfilePath = "apps/web/Dockerfile"
 
-# Build arguments (set these in Railway dashboard as variables)
-# NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
-# NEXT_PUBLIC_APP_URL
+# Build context is the repo root
+watchPatterns = ["apps/web/**", "packages/**", "pnpm-lock.yaml"]
 
 [deploy]
 # Number of replicas
@@ -27,10 +25,5 @@ healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
-# Resource limits (adjust based on plan)
-# memory = "512Mi"
-# cpu = "0.5"
-
-[deploy.startCommand]
-# Start command (defined in Dockerfile, but can override here)
-# command = "node apps/web/server.js"
+# Start command (defined in Dockerfile CMD, but explicit here)
+startCommand = "node apps/web/server.js"

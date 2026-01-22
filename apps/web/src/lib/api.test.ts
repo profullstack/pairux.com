@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { successResponse, errorResponse, handleApiError } from './api';
-import { ZodError, z } from 'zod';
+import { z } from 'zod';
 
 describe('api utilities', () => {
   describe('successResponse', () => {

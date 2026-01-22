@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
+  // Standalone output for Docker deployment
+  output: 'standalone',
+
   // Transpile shared packages
   transpilePackages: ['@pairux/shared-types'],
 

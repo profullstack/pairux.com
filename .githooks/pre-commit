@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # PairUX Pre-commit Hook
-# Validates build, tests, and linting before allowing commits
+# Runs lint, test, and build before allowing commits
 #
 # To install: git config core.hooksPath .githooks
 # Or run: pnpm setup:hooks
@@ -15,7 +15,6 @@ echo ""
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Track if any check fails
@@ -25,11 +24,11 @@ FAILED=0
 run_check() {
     local name="$1"
     local cmd="$2"
-    
+
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📋 $name"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     if eval "$cmd"; then
         echo "${GREEN}✅ $name passed${NC}"
         echo ""
@@ -49,27 +48,14 @@ if [ -z "$STAGED_FILES" ]; then
     exit 0
 fi
 
-# Check if there are any TypeScript/JavaScript files
-TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx|mjs)$' || true)
+# 1. Linting
+run_check "ESLint" "pnpm lint"
 
-if [ -n "$TS_FILES" ]; then
-    # 1. Type checking
-    run_check "TypeScript Type Check" "pnpm typecheck 2>/dev/null || echo 'Skipping typecheck (no tsconfig found)'"
-    
-    # 2. Linting
-    run_check "ESLint" "pnpm lint 2>/dev/null || echo 'Skipping lint (no eslint config found)'"
-    
-    # 3. Format check
-    run_check "Prettier Format Check" "pnpm format:check 2>/dev/null || echo 'Skipping format check'"
-fi
+# 2. Run tests
+run_check "Tests" "pnpm test"
 
-# 4. Run tests (only if test files exist)
-if [ -d "apps" ] || [ -d "packages" ]; then
-    run_check "Vitest Tests" "pnpm test --run 2>/dev/null || echo 'Skipping tests (no test files found)'"
-fi
-
-# 5. Build check (ensure it compiles)
-run_check "Build Check" "pnpm build 2>/dev/null || echo 'Skipping build (no build targets found)'"
+# 3. Build check
+run_check "Build" "pnpm build"
 
 # Final result
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

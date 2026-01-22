@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
 import { createClient } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 
@@ -47,13 +46,14 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     }
 
     // End session using RPC function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.rpc as any)('end_session', {
       p_session_id: sessionId,
     });
 
     if (error) {
       console.error('End session error:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
     }
 

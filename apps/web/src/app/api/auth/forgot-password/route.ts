@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
 import { createClient } from '@/lib/supabase/server';
 import { forgotPasswordSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -6,12 +5,12 @@ import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body: unknown = await request.json();
     const { email } = forgotPasswordSchema.parse(body);
 
     const supabase = await createClient();
     const headersList = await headers();
-    const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_APP_URL;
+    const origin = headersList.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/reset-password`,

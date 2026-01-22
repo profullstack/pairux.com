@@ -3,11 +3,9 @@ import {
   QUALITY_PRESETS,
   type MouseEvent,
   type KeyboardEvent,
-  type InputEvent,
   type InputMessage,
   type CaptureSource,
   type CaptureSettings,
-  type QualityPreset,
 } from './input';
 
 describe('Input Types', () => {

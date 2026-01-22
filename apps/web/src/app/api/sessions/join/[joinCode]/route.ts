@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions */
 import { createClient } from '@/lib/supabase/server';
 import { guestJoinSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -41,7 +40,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     return successResponse({
       ...sessionData,
-      participant_count: count || 0,
+      participant_count: count ?? 0,
     });
   } catch (error) {
     return handleApiError(error);
@@ -52,7 +51,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { joinCode } = await params;
-    const body = await request.json().catch(() => ({}));
+    const body = await request.json().catch(() => ({})) as { displayName?: string };
 
     const supabase = await createClient();
 
@@ -69,11 +68,11 @@ export async function POST(request: Request, { params }: RouteParams) {
       displayName = parsed.data.displayName;
     } else {
       // Authenticated user can optionally provide display name
-      displayName = body.displayName || undefined;
+      displayName = body.displayName ?? undefined;
     }
 
     // Join session using RPC function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.rpc as any)('join_session', {
       p_join_code: joinCode.toUpperCase(),
       p_display_name: displayName,
@@ -81,6 +80,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     if (error) {
       console.error('Join session error:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
     }
 

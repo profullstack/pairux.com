@@ -1,38 +1,201 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-
-// Custom GitHub icon SVG component (brand icons deprecated in lucide)
-function GitHubIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-    </svg>
-  );
-}
 
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'PairUX is free and open source. No premium tiers, no feature limits, no strings attached.',
+    'Transparent, usage-based pricing. Pay only for what you use. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
 };
 
-const features = [
-  'Unlimited screen sharing sessions',
-  'Full remote control capabilities',
-  'Cross-platform desktop apps',
-  'Browser-based viewer (no install)',
-  'End-to-end encryption',
-  'Simultaneous input control',
-  'All future updates',
-  'Community support',
+const pricingTiers = [
+  {
+    name: 'Free Tier',
+    description: 'Perfect for personal use and small teams',
+    price: '$0',
+    priceDetail: 'forever',
+    features: [
+      'Up to 2 participants',
+      'P2P connections',
+      'Screen sharing',
+      'Remote control',
+      'End-to-end encryption',
+      'Community support',
+    ],
+    cta: 'Get Started',
+    ctaHref: '/download',
+    highlighted: false,
+  },
+  {
+    name: 'Usage-Based',
+    description: 'For webinars, broadcasts, and large audiences',
+    price: '$0.08',
+    priceDetail: 'per viewer-hour (720p)',
+    features: [
+      'Unlimited viewers',
+      'SFU relay servers',
+      'Screen sharing',
+      'Remote control',
+      'Real-time cost tracking',
+      'Priority support',
+    ],
+    cta: 'Start Free',
+    ctaHref: '/signup',
+    highlighted: true,
+  },
+  {
+    name: 'Enterprise',
+    description: 'Volume discounts and dedicated infrastructure',
+    price: 'Custom',
+    priceDetail: 'contact us',
+    features: [
+      'Volume discounts (down to $0.06)',
+      'Dedicated SFU clusters',
+      'SLA guarantees',
+      'Custom integrations',
+      'On-premise option',
+      'Dedicated support',
+    ],
+    cta: 'Contact Sales',
+    ctaHref: 'mailto:sales@pairux.com',
+    highlighted: false,
+  },
+];
+
+const comparisonData = [
+  {
+    viewers: '1,000',
+    duration: '1 hour',
+    pairux: '$80',
+    competitors: '$150–$300',
+  },
+  {
+    viewers: '10,000',
+    duration: '1 hour',
+    pairux: '$800',
+    competitors: '$1,500–$3,000',
+  },
+  {
+    viewers: '50,000',
+    duration: '1 hour',
+    pairux: '$4,000',
+    competitors: '$7,500–$15,000',
+  },
+  {
+    viewers: '100,000',
+    duration: '1 hour',
+    pairux: '$8,000',
+    competitors: '$15,000–$30,000',
+  },
+];
+
+const competitorComparison = [
+  {
+    feature: 'Transparent pricing',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: false,
+    jitsi: true,
+  },
+  {
+    feature: 'No seat-based fees',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: false,
+    jitsi: true,
+  },
+  {
+    feature: 'No annual contracts',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: true,
+    jitsi: true,
+  },
+  {
+    feature: 'Pay-as-you-go',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: true,
+    jitsi: true,
+  },
+  {
+    feature: 'Open source',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: false,
+    jitsi: true,
+  },
+  {
+    feature: 'Self-hostable',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: false,
+    jitsi: true,
+  },
+  {
+    feature: 'Remote control',
+    pairux: true,
+    zoom: true,
+    teams: false,
+    webex: true,
+    meet: false,
+    jitsi: false,
+  },
+  {
+    feature: 'Multi-cursor support',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: false,
+    jitsi: false,
+  },
+  {
+    feature: 'No account required (viewers)',
+    pairux: true,
+    zoom: false,
+    teams: false,
+    webex: false,
+    meet: true,
+    jitsi: true,
+  },
+];
+
+const advantages = [
+  {
+    icon: DollarSign,
+    title: 'Transparent Pricing',
+    description: 'No hidden fees, no seat licenses. You see exactly what you pay for in real-time.',
+  },
+  {
+    icon: Zap,
+    title: 'No Lock-in',
+    description: 'No annual contracts or commitments. Scale up or down instantly.',
+  },
+  {
+    icon: Shield,
+    title: 'Open Source',
+    description: 'Audit the code, self-host, or customize. Your data, your rules.',
+  },
+  {
+    icon: Users,
+    title: 'Developer-Friendly',
+    description: 'CLI install, API access, and automation-ready from day one.',
+  },
 ];
 
 export default function PricingPage() {
@@ -46,63 +209,208 @@ export default function PricingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Free Forever
+                40–70% Cheaper Than the Big Guys
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                PairUX is open source software. No premium tiers, no feature
-                limits, no strings attached.
+                Transparent, usage-based pricing. No seat licenses, no annual contracts,
+                no enterprise sales calls.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Pricing Card */}
+        {/* Pricing Cards */}
         <section className="py-20">
-          <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border-2 border-primary-600 bg-white p-8 shadow-xl">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900">Open Source</h2>
-                <div className="mt-4">
-                  <span className="text-5xl font-bold text-gray-900">$0</span>
-                  <span className="text-gray-600">/forever</span>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-8 lg:grid-cols-3">
+              {pricingTiers.map((tier) => (
+                <div
+                  key={tier.name}
+                  className={`rounded-2xl border-2 bg-white p-8 shadow-sm ${
+                    tier.highlighted
+                      ? 'border-primary-600 ring-2 ring-primary-600 ring-offset-2'
+                      : 'border-gray-200'
+                  }`}
+                >
+                  {tier.highlighted && (
+                    <span className="mb-4 inline-block rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700">
+                      Most Popular
+                    </span>
+                  )}
+                  <h2 className="text-2xl font-bold text-gray-900">{tier.name}</h2>
+                  <p className="mt-2 text-sm text-gray-600">{tier.description}</p>
+                  <div className="mt-6">
+                    <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
+                    <span className="text-gray-600">/{tier.priceDetail}</span>
+                  </div>
+
+                  <ul className="mt-8 space-y-4">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 flex-shrink-0 text-accent-600" />
+                        <span className="text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={tier.ctaHref}
+                    className={`mt-8 block w-full rounded-lg px-4 py-3 text-center font-semibold transition-colors ${
+                      tier.highlighted
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    {tier.cta}
+                  </Link>
                 </div>
-                <p className="mt-4 text-gray-600">
-                  Everything you need for collaborative screen sharing
-                </p>
-              </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-              <ul className="mt-8 space-y-4">
-                {features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-accent-600" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+        {/* Cost Comparison Table */}
+        <section className="bg-gray-50 py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-center text-3xl font-bold text-gray-900">
+              Real Cost Comparison
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
+              Compare our pricing to typical Zoom Webinars and Microsoft Teams costs
+            </p>
 
-              <div className="mt-8 space-y-3">
-                <Link
-                  href="/download"
-                  className="block w-full rounded-lg bg-primary-600 px-4 py-3 text-center font-semibold text-white transition-colors hover:bg-primary-700"
-                >
-                  Download Now
-                </Link>
-                <Link
-                  href="https://github.com/pairux/pairux"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
-                >
-                  <GitHubIcon className="h-5 w-5" />
-                  View Source Code
-                </Link>
-              </div>
+            <div className="mt-10 overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Viewers</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Duration</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-primary-600">PairUX</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500">Zoom / Teams</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonData.map((row, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      <td className="px-4 py-4 text-sm text-gray-700">{row.viewers}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{row.duration}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-primary-600">{row.pairux}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{row.competitors}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="mt-6 text-center text-sm text-gray-500">
+              * Competitor pricing based on typical enterprise plan costs. Actual prices vary.
+            </p>
+          </div>
+        </section>
+
+        {/* Feature Comparison */}
+        <section className="py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-center text-3xl font-bold text-gray-900">
+              Feature Comparison
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
+              See how PairUX stacks up against Zoom, Teams, Webex, Google Meet, and Jitsi
+            </p>
+
+            <div className="mt-10 overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Feature</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-primary-600">PairUX</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-500">Zoom</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-500">Teams</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-500">Webex</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-500">Meet</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-500">Jitsi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {competitorComparison.map((row, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      <td className="px-4 py-3 text-sm text-gray-700">{row.feature}</td>
+                      <td className="px-4 py-3 text-center">
+                        {row.pairux ? (
+                          <Check className="mx-auto h-5 w-5 text-accent-600" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {row.zoom ? (
+                          <Check className="mx-auto h-5 w-5 text-gray-400" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {row.teams ? (
+                          <Check className="mx-auto h-5 w-5 text-gray-400" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {row.webex ? (
+                          <Check className="mx-auto h-5 w-5 text-gray-400" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {row.meet ? (
+                          <Check className="mx-auto h-5 w-5 text-gray-400" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {row.jitsi ? (
+                          <Check className="mx-auto h-5 w-5 text-gray-400" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Why We're Different */}
+        <section className="bg-gray-50 py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-center text-3xl font-bold text-gray-900">
+              Why PairUX is Different
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
+              Enterprise tools can&apos;t copy this without breaking their pricing models
+            </p>
+
+            <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {advantages.map((advantage) => (
+                <div key={advantage.title} className="rounded-xl bg-white p-6 shadow-sm">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100">
+                    <advantage.icon className="h-6 w-6 text-primary-600" />
+                  </div>
+                  <h3 className="mt-4 font-semibold text-gray-900">{advantage.title}</h3>
+                  <p className="mt-2 text-sm text-gray-600">{advantage.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* FAQ */}
-        <section className="bg-gray-50 py-20">
+        <section className="py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <h2 className="text-center text-2xl font-bold text-gray-900">
               Frequently Asked Questions
@@ -111,49 +419,83 @@ export default function PricingPage() {
             <div className="mt-10 space-y-6">
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  Why is PairUX free?
+                  How does usage-based pricing work?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  We believe collaborative tools should be accessible to
-                  everyone. PairUX is open source under the MIT license, funded
-                  by community contributions and sponsored by companies who use
-                  it.
+                  You pay $0.08 per viewer-hour at 720p resolution. If you have 1,000 viewers
+                  watching for 1 hour, that&apos;s $80. Simple math, no surprises. You can track
+                  costs in real-time from your dashboard.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  Will there ever be a paid version?
+                  What about 1080p or 4K streams?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  The core product will always be free. We may offer optional
-                  managed services (like TURN servers) for teams who want a
-                  turnkey solution, but all features will remain in the open
-                  source version.
+                  Higher resolutions cost more due to increased bandwidth. 1080p is approximately
+                  25-50% more than 720p. Contact us for 4K pricing as it requires dedicated infrastructure.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  How can I support the project?
+                  Is the free tier really free?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  You can support PairUX by contributing code, reporting bugs,
-                  improving documentation, or sponsoring the project on GitHub.
-                  Every contribution helps!
+                  Yes! P2P connections between 2 participants are completely free, forever.
+                  We only charge when you use our SFU relay servers for larger audiences.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  Can I use PairUX for my business?
+                  Can I self-host to avoid costs?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  Yes! PairUX is MIT licensed, which means you can use it for
-                  personal, commercial, and enterprise purposes without any
-                  restrictions.
+                  Absolutely. PairUX is open source under the MIT license. You can run your own
+                  SFU infrastructure if you prefer. We estimate infrastructure costs around $40
+                  per 1,000 viewer-hours.
                 </p>
               </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  Why are you so much cheaper than Zoom?
+                </h3>
+                <p className="mt-2 text-gray-600">
+                  We don&apos;t have seat-based licensing, annual contracts, or enterprise sales teams.
+                  Our pricing reflects actual infrastructure costs plus a margin. No subsidizing
+                  features you don&apos;t use.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="bg-primary-600 py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold text-white">
+              Ready to save on video infrastructure?
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-primary-100">
+              Start with the free tier for P2P sessions, or try usage-based pricing
+              for your next webinar.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/download"
+                className="rounded-lg bg-white px-8 py-3 font-semibold text-primary-600 transition-colors hover:bg-primary-50"
+              >
+                Download Free
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg border-2 border-white px-8 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
+              >
+                Create Account
+              </Link>
             </div>
           </div>
         </section>

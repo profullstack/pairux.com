@@ -15,7 +15,8 @@ describe('signupSchema', () => {
       email: 'test@example.com',
       password: 'Password1',
       confirmPassword: 'Password1',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(true);
   });
@@ -25,7 +26,8 @@ describe('signupSchema', () => {
       email: 'invalid-email',
       password: 'Password1',
       confirmPassword: 'Password1',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(false);
   });
@@ -35,7 +37,8 @@ describe('signupSchema', () => {
       email: 'test@example.com',
       password: 'password1',
       confirmPassword: 'password1',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -48,7 +51,8 @@ describe('signupSchema', () => {
       email: 'test@example.com',
       password: 'Password',
       confirmPassword: 'Password',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -61,7 +65,8 @@ describe('signupSchema', () => {
       email: 'test@example.com',
       password: 'Pass1',
       confirmPassword: 'Pass1',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -74,7 +79,8 @@ describe('signupSchema', () => {
       email: 'test@example.com',
       password: 'Password1',
       confirmPassword: 'Password2',
-      displayName: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -82,12 +88,24 @@ describe('signupSchema', () => {
     }
   });
 
-  it('rejects display name too short', () => {
+  it('rejects missing first name', () => {
     const result = signupSchema.safeParse({
       email: 'test@example.com',
       password: 'Password1',
       confirmPassword: 'Password1',
-      displayName: 'T',
+      firstName: '',
+      lastName: 'User',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects missing last name', () => {
+    const result = signupSchema.safeParse({
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+      firstName: 'Test',
+      lastName: '',
     });
     expect(result.success).toBe(false);
   });

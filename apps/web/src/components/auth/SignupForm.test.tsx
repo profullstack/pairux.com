@@ -19,7 +19,8 @@ describe('SignupForm', () => {
   it('renders signup form with all fields', () => {
     render(<SignupForm />);
 
-    expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
@@ -36,7 +37,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');
@@ -50,7 +52,8 @@ describe('SignupForm', () => {
           email: 'test@example.com',
           password: 'Password123',
           confirmPassword: 'Password123',
-          displayName: 'Test User',
+          firstName: 'Test',
+          lastName: 'User',
         }),
       });
     });
@@ -65,7 +68,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');
@@ -86,7 +90,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'existing@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');
@@ -107,7 +112,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');
@@ -147,7 +153,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');
@@ -180,7 +187,8 @@ describe('SignupForm', () => {
 
     render(<SignupForm />);
 
-    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.type(screen.getByLabelText(/first name/i), 'Test');
+    await user.type(screen.getByLabelText(/last name/i), 'User');
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'Password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'Password123');

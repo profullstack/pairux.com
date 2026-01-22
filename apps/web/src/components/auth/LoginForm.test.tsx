@@ -27,7 +27,7 @@ describe('LoginForm', () => {
 
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
     expect(screen.getByText(/forgot password/i)).toBeInTheDocument();
     expect(screen.getByText(/sign up/i)).toBeInTheDocument();
   });
@@ -43,7 +43,7 @@ describe('LoginForm', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByPlaceholderText(/enter your password/i), 'Password123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/auth/login', {
@@ -70,7 +70,7 @@ describe('LoginForm', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByPlaceholderText(/enter your password/i), 'wrongpassword');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('LoginForm', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByPlaceholderText(/enter your password/i), 'Password123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }));
 
     expect(screen.getByText(/signing in/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled();
@@ -126,7 +126,7 @@ describe('LoginForm', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
     await user.type(screen.getByPlaceholderText(/enter your password/i), 'Password123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/an unexpected error occurred/i)).toBeInTheDocument();

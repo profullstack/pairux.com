@@ -53,12 +53,12 @@ const footerLinks = {
 const socialLinks = [
   {
     name: 'GitHub',
-    href: 'https://github.com/pairux/pairux',
+    href: 'https://github.com/profullstack/pairux.com',
     icon: GitHubIcon,
   },
   {
-    name: 'Twitter',
-    href: 'https://twitter.com/pairux',
+    name: 'X',
+    href: 'https://x.com/profullstackin',
     icon: TwitterIcon,
   },
 ];
@@ -151,8 +151,11 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} PairUX. Open source under MIT
-            License.
+            &copy; {new Date().getFullYear()}{' '}
+            <a href="https://profullstack.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
+              Profullstack, Inc.
+            </a>
+            {' '}Open source under MIT License.
           </p>
         </div>
       </div>

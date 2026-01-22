@@ -5,7 +5,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json();
-    const { email, password, displayName } = signupSchema.parse(body);
+    const { email, password, firstName, lastName } = signupSchema.parse(body);
 
     const supabase = await createClient();
 
@@ -14,7 +14,9 @@ export async function POST(request: Request) {
       password,
       options: {
         data: {
-          display_name: displayName,
+          first_name: firstName,
+          last_name: lastName,
+          display_name: `${firstName} ${lastName}`,
         },
       },
     });

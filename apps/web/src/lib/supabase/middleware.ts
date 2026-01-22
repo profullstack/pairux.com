@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-deprecated */
+/* eslint-disable @typescript-eslint/no-deprecated */
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 

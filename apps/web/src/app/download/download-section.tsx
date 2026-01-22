@@ -48,7 +48,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
         command: 'brew install --cask pairux',
       },
       secondary: {
-        directUrl: `https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.dmg`,
+        directUrl: `https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.dmg`,
         directLabel: 'Download DMG (arm64)',
       },
     },
@@ -59,7 +59,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
         command: 'brew install --cask pairux',
       },
       secondary: {
-        directUrl: `https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x64.dmg`,
+        directUrl: `https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.dmg`,
         directLabel: 'Download DMG (x64)',
       },
     },
@@ -79,7 +79,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
         command: 'winget install PairUX.PairUX',
       },
       secondary: {
-        directUrl: `https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi`,
+        directUrl: `https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi`,
         directLabel: 'Download MSI (arm64)',
       },
     },
@@ -90,7 +90,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
         command: 'winget install PairUX.PairUX',
       },
       secondary: {
-        directUrl: `https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi`,
+        directUrl: `https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi`,
         directLabel: 'Download MSI (x64)',
       },
     },
@@ -109,7 +109,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
       command: 'sudo apt install pairux',
     },
     secondary: {
-      directUrl: `https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x86_64.AppImage`,
+      directUrl: `https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x86_64.AppImage`,
       directLabel: 'Download AppImage',
     },
   },
@@ -117,7 +117,7 @@ const DOWNLOADS: Record<OS, Record<Arch, PlatformInfo> | PlatformInfo> = {
     name: 'Desktop App',
     icon: Monitor,
     primary: {
-      directUrl: `https://github.com/pairux/pairux/releases/tag/v${VERSION}`,
+      directUrl: `https://github.com/profullstack/pairux.com/releases/tag/v${VERSION}`,
       directLabel: 'View All Downloads',
     },
   },
@@ -168,10 +168,41 @@ export function DownloadSection() {
     ? getPlatformInfo(detected.os, detected.arch)
     : null;
 
+  const shellInstallCommand = 'curl -fsSL https://installer.pairux.com/install.sh | bash';
+
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Primary Download */}
+        {/* Quick Install - Shell Script */}
+        <div className="mb-16">
+          <div className="mx-auto max-w-2xl rounded-2xl border-2 border-accent-500 bg-accent-50 p-8">
+            <div className="flex items-center justify-center gap-3">
+              <Terminal className="h-8 w-8 text-accent-600" />
+              <h2 className="text-2xl font-bold text-gray-900">
+                Quick Install
+              </h2>
+            </div>
+            <p className="mt-2 text-center text-gray-600">
+              The fastest way to get started. Works on macOS and Linux.
+            </p>
+
+            <div className="mt-6">
+              <div className="flex items-center gap-2 rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100">
+                <span className="text-gray-500">$</span>
+                <code className="flex-1 overflow-x-auto">
+                  {shellInstallCommand}
+                </code>
+                <CopyButton text={shellInstallCommand} />
+              </div>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-gray-500">
+              Installs to ~/.pairux and adds to your PATH automatically
+            </p>
+          </div>
+        </div>
+
+        {/* Platform-Specific Download */}
         {currentPlatform && detected && detected.os !== 'unknown' && (
           <div className="mb-16">
             <div className="mx-auto max-w-2xl rounded-2xl border border-primary-200 bg-primary-50 p-8">
@@ -263,14 +294,14 @@ export function DownloadSection() {
 
                 <div className="flex flex-col gap-2">
                   <Link
-                    href={`https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.dmg`}
+                    href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.dmg`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
                   >
                     <span>DMG (Apple Silicon)</span>
                     <Download className="h-4 w-4 text-gray-500" />
                   </Link>
                   <Link
-                    href={`https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x64.dmg`}
+                    href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.dmg`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
                   >
                     <span>DMG (Intel)</span>
@@ -305,14 +336,14 @@ export function DownloadSection() {
 
                 <div className="flex flex-col gap-2">
                   <Link
-                    href={`https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi`}
+                    href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
                   >
                     <span>MSI Installer (x64)</span>
                     <Download className="h-4 w-4 text-gray-500" />
                   </Link>
                   <Link
-                    href={`https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi`}
+                    href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
                   >
                     <span>MSI Installer (ARM64)</span>
@@ -368,7 +399,7 @@ export function DownloadSection() {
                 </div>
 
                 <Link
-                  href={`https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x86_64.AppImage`}
+                  href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x86_64.AppImage`}
                   className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
                 >
                   <span>AppImage (Universal)</span>
@@ -382,7 +413,7 @@ export function DownloadSection() {
         {/* All Releases Link */}
         <div className="mt-12 text-center">
           <Link
-            href="https://github.com/pairux/pairux/releases"
+            href="https://github.com/profullstack/pairux.com/releases"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"

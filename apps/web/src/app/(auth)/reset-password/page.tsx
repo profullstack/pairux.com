@@ -16,6 +16,12 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   const code = params.code;
   const error = params.error;
 
+  // If there's a code, redirect to the route handler to exchange it
+  // This ensures cookies are properly set
+  if (code) {
+    redirect(`/auth/reset-password?code=${code}`);
+  }
+
   // If there's an error from the callback
   if (error) {
     return (
@@ -42,27 +48,6 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   }
 
   const supabase = await createClient();
-
-  // If there's a code, exchange it for a session
-  if (code) {
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (exchangeError) {
-      console.error('Code exchange error:', exchangeError);
-      redirect('/reset-password?error=invalid_code');
-    }
-
-    // Code exchanged successfully - show the form directly without redirect
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
-          <p className="mt-2 text-sm text-gray-600">Enter your new password below</p>
-        </div>
-        <ResetPasswordForm />
-      </div>
-    );
-  }
 
   // Check if user has an active session (required to update password)
   const { data: { user } } = await supabase.auth.getUser();

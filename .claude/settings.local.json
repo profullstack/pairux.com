@@ -82,7 +82,10 @@
       "Bash(pnpm lint:fix:*)",
       "Bash(pnpm test)",
       "Bash(node scripts/setup-env.mjs:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(git config:*)",
+      "Bash(./.githooks/pre-commit:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [
       "Bash(npm *)",

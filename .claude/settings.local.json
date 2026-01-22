@@ -85,7 +85,8 @@
       "Bash(xxd:*)",
       "Bash(git config:*)",
       "Bash(./.githooks/pre-commit:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(curl:*)"
     ],
     "deny": [
       "Bash(npm *)",

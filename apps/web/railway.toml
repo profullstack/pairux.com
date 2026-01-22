@@ -1,0 +1,36 @@
+# ===========================================
+# PairUX Web App - Railway Configuration
+# ===========================================
+# Railway will use this config for deployment
+# Docs: https://docs.railway.app/reference/config-as-code
+# ===========================================
+
+[build]
+# Use Dockerfile for build
+builder = "dockerfile"
+dockerfilePath = "apps/web/Dockerfile"
+
+# Build arguments (set these in Railway dashboard as variables)
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
+# NEXT_PUBLIC_APP_URL
+
+[deploy]
+# Number of replicas
+numReplicas = 1
+
+# Health check endpoint
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Resource limits (adjust based on plan)
+# memory = "512Mi"
+# cpu = "0.5"
+
+[deploy.startCommand]
+# Start command (defined in Dockerfile, but can override here)
+# command = "node apps/web/server.js"

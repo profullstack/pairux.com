@@ -1,0 +1,181 @@
+# ===========================================
+# PairUX .gitignore
+# ===========================================
+
+# ===========================================
+# Environment files (NEVER commit secrets!)
+# ===========================================
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+.env.development.local
+.env.production.local
+!.env.example
+
+# ===========================================
+# Dependencies
+# ===========================================
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+
+# ===========================================
+# Build outputs
+# ===========================================
+dist/
+.next/
+out/
+build/
+.output/
+.vercel/
+.netlify/
+
+# ===========================================
+# Electron / Desktop App
+# ===========================================
+apps/desktop/dist/
+apps/desktop/release/
+apps/desktop/out/
+*.dmg
+*.pkg
+*.msi
+*.exe
+*.deb
+*.rpm
+*.AppImage
+*.snap
+*.tar.gz
+*.zip
+
+# ===========================================
+# IDE / Editor
+# ===========================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ===========================================
+# OS Generated
+# ===========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ===========================================
+# Logs
+# ===========================================
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===========================================
+# Testing
+# ===========================================
+coverage/
+.nyc_output/
+*.lcov
+.vitest/
+
+# ===========================================
+# Turbo
+# ===========================================
+.turbo/
+
+# ===========================================
+# TypeScript
+# ===========================================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ===========================================
+# Certificates & Secrets (NEVER commit!)
+# ===========================================
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+certificate.*
+secrets/
+.secrets/
+
+# ===========================================
+# Temporary files
+# ===========================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ===========================================
+# Supabase
+# ===========================================
+supabase/.branches/
+supabase/.temp/
+
+# ===========================================
+# Docker
+# ===========================================
+.docker/
+
+# ===========================================
+# Misc
+# ===========================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.pid
+*.seed
+*.pid.lock
+
+# ===========================================
+# PWA / Service Worker
+# ===========================================
+sw.js
+workbox-*.js
+public/sw.js
+public/workbox-*.js
+
+# ===========================================
+# Storybook
+# ===========================================
+storybook-static/
+
+# ===========================================
+# Playwright / E2E
+# ===========================================
+playwright-report/
+playwright/.cache/
+test-results/
+
+# ===========================================
+# Debug
+# ===========================================
+.debug/
+debug.log
+
+# ===========================================
+# Local development overrides
+# ===========================================
+*.local
+local/
+.local/

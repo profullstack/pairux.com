@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+out
+build
+coverage
+
+# Package manager
+pnpm-lock.yaml
+
+# Generated
+*.generated.*
+*.d.ts
+
+# Turbo
+.turbo

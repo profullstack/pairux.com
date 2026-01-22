@@ -134,6 +134,14 @@ export interface Database {
         };
         Returns: SessionParticipant;
       };
+      request_control: {
+        Args: { p_session_id: string };
+        Returns: SessionParticipant;
+      };
+      leave_session: {
+        Args: { p_session_id: string };
+        Returns: SessionParticipant;
+      };
     };
   };
 }

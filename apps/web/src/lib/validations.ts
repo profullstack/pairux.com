@@ -1,0 +1,83 @@
+import { z } from 'zod';
+
+// Password must be at least 8 characters with at least one uppercase letter and one number
+const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number');
+
+export const signupSchema = z
+  .object({
+    email: z.string().email('Please enter a valid email address'),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    displayName: z
+      .string()
+      .min(2, 'Display name must be at least 2 characters')
+      .max(50, 'Display name must be less than 50 characters'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+export const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+// Join code is 6 alphanumeric characters (case-insensitive, stored uppercase)
+export const joinSessionSchema = z.object({
+  joinCode: z
+    .string()
+    .length(6, 'Join code must be 6 characters')
+    .regex(/^[A-Za-z0-9]+$/, 'Join code must be letters and numbers only')
+    .transform((val) => val.toUpperCase()),
+  displayName: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters')
+    .max(50, 'Display name must be less than 50 characters'),
+});
+
+// For joining via link (display name only, code comes from URL)
+export const guestJoinSchema = z.object({
+  displayName: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters')
+    .max(50, 'Display name must be less than 50 characters'),
+});
+
+// Session creation settings
+export const createSessionSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Session name is required')
+    .max(100, 'Session name must be less than 100 characters')
+    .optional(),
+  allowGuestControl: z.boolean().default(false),
+  maxParticipants: z.number().min(1).max(10).default(5),
+});
+
+// Type exports
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type JoinSessionInput = z.infer<typeof joinSessionSchema>;
+export type GuestJoinInput = z.infer<typeof guestJoinSchema>;
+export type CreateSessionInput = z.infer<typeof createSessionSchema>;

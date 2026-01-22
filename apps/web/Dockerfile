@@ -49,7 +49,10 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Build the application
+# Build shared-types first (dependency of web)
+RUN pnpm --filter @pairux/shared-types build
+
+# Build the web application
 RUN pnpm --filter @pairux/web build
 
 # Stage 3: Runner

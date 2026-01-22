@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT ?? 3001;
+const PORT = process.env.PORT ?? 8080;
 
 // Configuration
 const RELEASES_DIR = process.env.RELEASES_DIR ?? join(__dirname, '../releases');

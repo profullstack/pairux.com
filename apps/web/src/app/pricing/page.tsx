@@ -17,7 +17,7 @@ const pricingTiers = [
     price: '$0',
     priceDetail: 'forever',
     features: [
-      'Up to 2 participants',
+      '2 participants + 5 viewers',
       'P2P connections',
       'Screen sharing',
       'Remote control',

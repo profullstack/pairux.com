@@ -15,6 +15,8 @@ import {
   Pointer,
   Shield,
   Check,
+  MessageSquare,
+  CircleDot,
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -98,6 +100,32 @@ const mainFeatures = [
       'Direct download available',
     ],
   },
+  {
+    icon: CircleDot,
+    title: 'Screen Recording',
+    description:
+      'Record your sessions locally for later review. Perfect for tutorials, documentation, and keeping a record of pair programming sessions.',
+    details: [
+      'Record to WebM/MP4 locally',
+      'System audio + microphone capture',
+      'Quality presets (720p/1080p/4K)',
+      'Pause/resume recording',
+    ],
+    comingSoon: true,
+  },
+  {
+    icon: MessageSquare,
+    title: 'Text Chat',
+    description:
+      'Built-in text chat for when you need to share links, code snippets, or communicate without voice.',
+    details: [
+      'Real-time messaging',
+      'System notifications (join/leave)',
+      'Works alongside screen sharing',
+      'Message history per session',
+    ],
+    comingSoon: true,
+  },
 ];
 
 const technicalFeatures = [
@@ -137,6 +165,8 @@ const comparisonFeatures = [
   { feature: 'Screen sharing', pairux: true, others: true },
   { feature: 'Remote control', pairux: true, others: true },
   { feature: 'Simultaneous control', pairux: true, others: false },
+  { feature: 'Screen recording (local)', pairux: 'soon', others: 'partial' },
+  { feature: 'Text chat', pairux: 'soon', others: true },
   { feature: 'No account for viewers', pairux: true, others: false },
   { feature: 'Open source', pairux: true, others: false },
   { feature: 'Self-hostable', pairux: true, others: false },
@@ -179,8 +209,15 @@ export default function FeaturesPage() {
                   }`}
                 >
                   <div className={index % 2 === 1 ? 'lg:order-2' : ''}>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
-                      <feature.icon className="h-7 w-7" />
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                        <feature.icon className="h-7 w-7" />
+                      </div>
+                      {'comingSoon' in feature && feature.comingSoon && (
+                        <span className="rounded-full bg-accent-100 px-3 py-1 text-xs font-medium text-accent-700">
+                          Coming Soon
+                        </span>
+                      )}
                     </div>
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">
                       {feature.title}

@@ -13,7 +13,213 @@ This document details the WebRTC implementation for PairUX, including signaling,
 | Role | Application | Responsibilities |
 |------|-------------|------------------|
 | **Host** | Desktop App | Captures screen, sends video, receives input |
-| **Viewer** | Web Browser | Receives video, sends input events |
+| **Controller** | Web Browser | Receives video, sends input events, can control |
+| **Viewer** | Web Browser | Receives video only, view-only mode |
+
+---
+
+## SFU Configuration (Host-Controlled)
+
+The host MUST be able to choose whether a screen sharing session uses **direct peer-to-peer (P2P)** connections or a **Selective Forwarding Unit (SFU)** for media distribution.
+
+### Configuration Option
+
+- The host SHALL have a session-level toggle:
+  - `P2P (Direct)` - Default mode
+  - `SFU (Broadcast / Scale Mode)`
+- The selected mode applies for the lifetime of the session.
+- The mode MUST be visible to the host at session start and during the session.
+
+### Mode Selection UI
+
+```typescript
+type SessionMode = 'p2p' | 'sfu';
+
+interface SessionConfig {
+  mode: SessionMode;
+  maxControllers: number;  // Limit controllers in both modes
+  maxViewers: number;      // Soft limit for P2P, higher for SFU
+}
+
+// Default configuration
+const defaultConfig: SessionConfig = {
+  mode: 'p2p',
+  maxControllers: 3,
+  maxViewers: 15
+};
+```
+
+### P2P Mode (Default)
+
+- Host streams directly to each participant.
+- Optimized for:
+  - Low latency
+  - Small groups
+  - Pairing and collaborative control
+- Recommended limits:
+  - 1 host
+  - Up to 3 controllers
+  - Up to 15–25 viewers depending on quality settings
+
+```mermaid
+graph TD
+    subgraph P2P Mode
+        Host[Host Desktop]
+        C1[Controller 1]
+        C2[Controller 2]
+        V1[Viewer 1]
+        V2[Viewer 2]
+        V3[Viewer 3]
+    end
+    
+    Host -->|Stream| C1
+    Host -->|Stream| C2
+    Host -->|Stream| V1
+    Host -->|Stream| V2
+    Host -->|Stream| V3
+    
+    C1 -.->|Input| Host
+    C2 -.->|Input| Host
+```
+
+### SFU Mode (Scale / Broadcast)
+
+- Host sends a single media stream to an SFU.
+- SFU forwards the stream to all viewers.
+- Optimized for:
+  - Large audiences
+  - Stable host performance
+  - Predictable scaling
+- Host workload remains roughly constant regardless of viewer count.
+
+```mermaid
+graph TD
+    subgraph SFU Mode
+        Host[Host Desktop]
+        SFU[SFU Server]
+        C1[Controller 1]
+        C2[Controller 2]
+        V1[Viewer 1]
+        V2[Viewer 2]
+        VN[Viewer N...]
+    end
+    
+    Host -->|Single Stream| SFU
+    SFU -->|Forward| C1
+    SFU -->|Forward| C2
+    SFU -->|Forward| V1
+    SFU -->|Forward| V2
+    SFU -->|Forward| VN
+    
+    C1 -.->|Input via DataChannel| Host
+    C2 -.->|Input via DataChannel| Host
+```
+
+### Controller vs Viewer Behavior
+
+| Aspect | Controller | Viewer |
+|--------|------------|--------|
+| Media Reception | Via P2P or SFU | Via P2P or SFU |
+| Input Capability | Can send mouse/keyboard | View-only |
+| Priority | Higher quality layers | Standard quality |
+| Limit | Max 3 per session | Unlimited in SFU mode |
+| Data Channel | Required for input | Optional for chat |
+
+### Mode Comparison
+
+| Aspect | P2P Mode | SFU Mode |
+|--------|----------|----------|
+| Latency | Lowest | Slightly higher |
+| Host CPU | Scales with viewers | Constant |
+| Host Bandwidth | Scales with viewers | Constant |
+| Max Viewers | ~15-25 | 100+ |
+| Best For | Pair programming | Demos, presentations |
+| Encryption | E2E | E2E (SFU forwards encrypted) |
+
+### Automatic Safeguards (Optional)
+
+```typescript
+interface SafeguardConfig {
+  p2pViewerWarningThreshold: number;  // Warn when exceeded
+  p2pViewerHardLimit: number;         // Block new joins
+  suggestSfuThreshold: number;        // Suggest switching
+}
+
+const safeguards: SafeguardConfig = {
+  p2pViewerWarningThreshold: 10,
+  p2pViewerHardLimit: 25,
+  suggestSfuThreshold: 15
+};
+
+function checkViewerLimit(currentViewers: number, mode: SessionMode): SafeguardAction {
+  if (mode === 'p2p') {
+    if (currentViewers >= safeguards.p2pViewerHardLimit) {
+      return { action: 'block', message: 'P2P limit reached. Switch to SFU mode.' };
+    }
+    if (currentViewers >= safeguards.suggestSfuThreshold) {
+      return { action: 'suggest', message: 'Consider switching to SFU mode for better performance.' };
+    }
+    if (currentViewers >= safeguards.p2pViewerWarningThreshold) {
+      return { action: 'warn', message: 'Approaching P2P viewer limit.' };
+    }
+  }
+  return { action: 'allow' };
+}
+```
+
+- The system MAY warn the host when viewer count exceeds safe limits in P2P mode.
+- The system MAY recommend switching to SFU mode when thresholds are exceeded.
+- Automatic switching is NOT required for v1.
+
+### Security & Privacy
+
+- Media MUST remain end-to-end encrypted in both modes.
+- SFU MUST forward encrypted packets without re-encoding.
+- No media is stored server-side in either mode.
+- SFU has no access to decrypted media content.
+
+### UX Requirements
+
+- Clear explanation of each mode at selection time.
+- Visual indicator of active mode during the session.
+- Mode selection MUST be explicit and never implicit.
+- Mode cannot be changed mid-session (requires new session).
+
+### Session Creation with Mode
+
+```typescript
+interface CreateSessionRequest {
+  hostUserId: string;
+  mode: SessionMode;
+  config: Partial<SessionConfig>;
+}
+
+// API: POST /api/sessions
+async function createSession(request: CreateSessionRequest): Promise<Session> {
+  const session = await supabase
+    .from('sessions')
+    .insert({
+      host_user_id: request.hostUserId,
+      mode: request.mode,
+      max_controllers: request.config.maxControllers ?? 3,
+      max_viewers: request.mode === 'sfu' ? 100 : 25,
+      status: 'waiting'
+    })
+    .select()
+    .single();
+    
+  return session.data;
+}
+```
+
+### Success Criteria
+
+- Host can reliably choose between low-latency collaboration (P2P) and high-scale viewing (SFU).
+- Switching modes changes scaling behavior without altering session semantics.
+- Host performance remains stable in SFU mode with large viewer counts.
+- Controllers always have direct data channel to host for input.
+
+---
 
 ### Connection Topology
 

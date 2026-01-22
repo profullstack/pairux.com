@@ -21,6 +21,232 @@ This document details the distribution strategy for PairUX across all supported 
 
 ---
 
+## Shell Installers (Quick Install)
+
+For users who prefer a one-liner installation, PairUX provides shell installers that automatically detect the platform and install the appropriate version.
+
+### macOS / Linux
+
+```sh
+curl -LsSf https://install.pairux.sh | sh
+```
+
+This script will:
+1. Detect the operating system and architecture
+2. Download the appropriate installer
+3. Install PairUX to the standard location
+4. Add to PATH if necessary
+
+### Windows (Preferred)
+
+```powershell
+winget install PairUX
+```
+
+### Windows (Fallback)
+
+For systems without WinGet or for automated deployments:
+
+```powershell
+irm https://install.pairux.sh/windows | iex
+```
+
+This PowerShell script will:
+1. Download the latest MSI installer
+2. Verify the checksum
+3. Run the installer silently
+4. Clean up temporary files
+
+### Shell Installer Implementation
+
+The shell installer is hosted at `install.pairux.sh` and should:
+
+**Unix Script (`install.sh`)**:
+```bash
+#!/bin/sh
+set -e
+
+# Detect OS and architecture
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+case "$OS" in
+  Darwin)
+    PLATFORM="macos"
+    ;;
+  Linux)
+    PLATFORM="linux"
+    ;;
+  *)
+    echo "Unsupported OS: $OS"
+    exit 1
+    ;;
+esac
+
+case "$ARCH" in
+  x86_64|amd64)
+    ARCH="x64"
+    ;;
+  arm64|aarch64)
+    ARCH="arm64"
+    ;;
+  *)
+    echo "Unsupported architecture: $ARCH"
+    exit 1
+    ;;
+esac
+
+VERSION="${PAIRUX_VERSION:-latest}"
+BASE_URL="https://github.com/pairux/pairux/releases"
+
+if [ "$VERSION" = "latest" ]; then
+  DOWNLOAD_URL="$BASE_URL/latest/download"
+else
+  DOWNLOAD_URL="$BASE_URL/download/v$VERSION"
+fi
+
+echo "Installing PairUX for $PLATFORM ($ARCH)..."
+
+if [ "$PLATFORM" = "macos" ]; then
+  # Download and mount DMG
+  TEMP_DMG=$(mktemp).dmg
+  curl -LsSf "$DOWNLOAD_URL/PairUX-$ARCH.dmg" -o "$TEMP_DMG"
+  
+  # Mount, copy, unmount
+  MOUNT_POINT=$(hdiutil attach "$TEMP_DMG" -nobrowse | tail -1 | awk '{print $3}')
+  cp -R "$MOUNT_POINT/PairUX.app" /Applications/
+  hdiutil detach "$MOUNT_POINT" -quiet
+  rm "$TEMP_DMG"
+  
+  echo "PairUX installed to /Applications/PairUX.app"
+  
+elif [ "$PLATFORM" = "linux" ]; then
+  # Detect package manager
+  if command -v apt-get >/dev/null 2>&1; then
+    # Debian/Ubuntu - add repo and install
+    curl -fsSL https://pairux.com/apt/pairux.gpg | sudo gpg --dearmor -o /usr/share/keyrings/pairux.gpg
+    echo "deb [signed-by=/usr/share/keyrings/pairux.gpg] https://pairux.com/apt stable main" | sudo tee /etc/apt/sources.list.d/pairux.list
+    sudo apt-get update
+    sudo apt-get install -y pairux
+  elif command -v dnf >/dev/null 2>&1; then
+    # Fedora/RHEL
+    sudo dnf config-manager --add-repo https://pairux.com/rpm/pairux.repo
+    sudo dnf install -y pairux
+  elif command -v pacman >/dev/null 2>&1; then
+    # Arch - use AUR helper if available
+    if command -v yay >/dev/null 2>&1; then
+      yay -S --noconfirm pairux-bin
+    elif command -v paru >/dev/null 2>&1; then
+      paru -S --noconfirm pairux-bin
+    else
+      echo "Please install pairux-bin from AUR manually"
+      exit 1
+    fi
+  else
+    # Fallback to AppImage
+    INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/pairux"
+    mkdir -p "$INSTALL_DIR"
+    curl -LsSf "$DOWNLOAD_URL/PairUX-x86_64.AppImage" -o "$INSTALL_DIR/PairUX.AppImage"
+    chmod +x "$INSTALL_DIR/PairUX.AppImage"
+    
+    # Create symlink
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$INSTALL_DIR/PairUX.AppImage" "$HOME/.local/bin/pairux"
+    
+    echo "PairUX installed to $INSTALL_DIR"
+    echo "Make sure $HOME/.local/bin is in your PATH"
+  fi
+fi
+
+echo "Installation complete!"
+```
+
+**Windows Script (`install.ps1`)**:
+```powershell
+#Requires -Version 5.1
+$ErrorActionPreference = 'Stop'
+
+$Version = $env:PAIRUX_VERSION
+if (-not $Version) { $Version = 'latest' }
+
+$Arch = if ([Environment]::Is64BitOperatingSystem) {
+    if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
+} else {
+    Write-Error "32-bit systems are not supported"
+    exit 1
+}
+
+$BaseUrl = "https://github.com/pairux/pairux/releases"
+$DownloadUrl = if ($Version -eq 'latest') {
+    "$BaseUrl/latest/download/PairUX-$Arch.msi"
+} else {
+    "$BaseUrl/download/v$Version/PairUX-$Arch.msi"
+}
+
+Write-Host "Installing PairUX for Windows ($Arch)..."
+
+$TempMsi = Join-Path $env:TEMP "PairUX-$Arch.msi"
+
+try {
+    # Download MSI
+    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempMsi -UseBasicParsing
+    
+    # Install silently
+    $process = Start-Process msiexec.exe -ArgumentList "/i `"$TempMsi`" /qn /norestart" -Wait -PassThru
+    
+    if ($process.ExitCode -ne 0) {
+        Write-Error "Installation failed with exit code $($process.ExitCode)"
+        exit 1
+    }
+    
+    Write-Host "PairUX installed successfully!"
+}
+finally {
+    # Cleanup
+    if (Test-Path $TempMsi) {
+        Remove-Item $TempMsi -Force
+    }
+}
+```
+
+### Hosting the Installer
+
+The installer scripts should be hosted on a CDN or static hosting:
+
+1. **Primary**: `https://install.pairux.sh` (redirects to raw script)
+2. **Windows**: `https://install.pairux.sh/windows` (PowerShell script)
+3. **Versioned**: `https://install.pairux.sh/v1.0.0` (specific version)
+
+**Cloudflare Workers Example**:
+```typescript
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    
+    if (path === '/' || path === '/sh') {
+      // Unix installer
+      const script = await fetch('https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.sh');
+      return new Response(script.body, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+    
+    if (path === '/windows' || path === '/ps1') {
+      // Windows installer
+      const script = await fetch('https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.ps1');
+      return new Response(script.body, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+    
+    return new Response('Not Found', { status: 404 });
+  }
+};
+```
+
+---
+
 ## macOS Distribution
 
 ### Homebrew Cask

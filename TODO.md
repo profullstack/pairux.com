@@ -29,14 +29,14 @@
   - [x] Hero section with value proposition
   - [x] Feature highlights
   - [x] How it works (3-step flow)
-  - [ ] Social proof / testimonials placeholder
+  - [x] Social proof / testimonials placeholder
   - [x] CTA buttons (Download, Try Now)
 
 - [x] **Features Page**
   - [x] Screen sharing capabilities
   - [x] Remote control features
-  - [ ] Screen recording (local)
-  - [ ] Text chat integration
+  - [x] Screen recording (local)
+  - [x] Text chat integration
   - [x] Security highlights
 
 - [x] **Download Page**
@@ -45,7 +45,7 @@
   - [x] Windows: WinGet command
   - [x] Linux: apt/dnf/AUR commands
   - [x] Direct download links (GitHub Releases)
-  - [ ] SHA256 checksums display
+  - [x] SHA256 checksums display
 
 - [x] **Pricing Page** (placeholder)
   - [x] Free tier details
@@ -173,6 +173,7 @@
 ### Session Management
 - [ ] **Host Controls**
   - [ ] Start new session
+  - [ ] P2P vs SFU mode selection at session start
   - [ ] Generate shareable link
   - [ ] Copy link to clipboard
   - [ ] View participant list
@@ -279,6 +280,12 @@
   - [ ] WinGet manifest
   - [ ] APT repository
   - [ ] AUR PKGBUILD
+
+- [ ] **Shell Installers**
+  - [ ] Unix installer script (install.sh)
+  - [ ] Windows installer script (install.ps1)
+  - [ ] Host at install.pairux.sh
+  - [ ] Cloudflare Workers routing
 
 - [ ] **Release Automation**
   - [ ] GitHub Releases

@@ -29,7 +29,10 @@ erDiagram
         uuid id PK
         uuid host_user_id FK
         string status
+        string mode
         string join_code
+        int max_controllers
+        int max_viewers
         jsonb settings
         timestamp created_at
         timestamp ended_at
@@ -97,7 +100,10 @@ CREATE TABLE public.sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   host_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'active', 'paused', 'ended')),
+  mode TEXT NOT NULL DEFAULT 'p2p' CHECK (mode IN ('p2p', 'sfu')),
   join_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(4), 'hex'),
+  max_controllers INTEGER NOT NULL DEFAULT 3,
+  max_viewers INTEGER NOT NULL DEFAULT 25,
   settings JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   ended_at TIMESTAMPTZ
@@ -106,6 +112,7 @@ CREATE TABLE public.sessions (
 -- Indexes
 CREATE INDEX idx_sessions_host ON public.sessions(host_user_id);
 CREATE INDEX idx_sessions_status ON public.sessions(status);
+CREATE INDEX idx_sessions_mode ON public.sessions(mode);
 CREATE INDEX idx_sessions_join_code ON public.sessions(join_code);
 
 -- Enable RLS
@@ -186,15 +193,26 @@ CREATE POLICY "Users can update own participation"
 
 ```sql
 CREATE OR REPLACE FUNCTION public.create_session(
+  p_mode TEXT DEFAULT 'p2p',
+  p_max_controllers INTEGER DEFAULT 3,
+  p_max_viewers INTEGER DEFAULT NULL,
   p_settings JSONB DEFAULT '{}'
 )
 RETURNS public.sessions AS $$
 DECLARE
   v_session public.sessions;
+  v_max_viewers INTEGER;
 BEGIN
+  -- Set max_viewers based on mode if not provided
+  IF p_max_viewers IS NULL THEN
+    v_max_viewers := CASE WHEN p_mode = 'sfu' THEN 100 ELSE 25 END;
+  ELSE
+    v_max_viewers := p_max_viewers;
+  END IF;
+
   -- Create session
-  INSERT INTO public.sessions (host_user_id, settings)
-  VALUES (auth.uid(), p_settings)
+  INSERT INTO public.sessions (host_user_id, mode, max_controllers, max_viewers, settings)
+  VALUES (auth.uid(), p_mode, p_max_controllers, v_max_viewers, p_settings)
   RETURNING * INTO v_session;
   
   -- Add host as participant
@@ -366,6 +384,9 @@ const { data, error } = await supabase.auth.signInWithOAuth({
 // POST /rest/v1/rpc/create_session
 const { data: session, error } = await supabase
   .rpc('create_session', {
+    p_mode: 'p2p',  // or 'sfu' for broadcast mode
+    p_max_controllers: 3,
+    p_max_viewers: 25,  // defaults to 100 for SFU mode
     p_settings: {
       quality: 'high',
       allowControl: true
@@ -377,7 +398,10 @@ const { data: session, error } = await supabase
   "id": "uuid",
   "host_user_id": "uuid",
   "status": "created",
+  "mode": "p2p",
   "join_code": "a1b2c3d4",
+  "max_controllers": 3,
+  "max_viewers": 25,
   "settings": { "quality": "high", "allowControl": true },
   "created_at": "2024-01-01T00:00:00Z",
   "ended_at": null
@@ -693,7 +717,12 @@ export interface Database {
     };
     Functions: {
       create_session: {
-        Args: { p_settings?: SessionSettings };
+        Args: {
+          p_mode?: SessionMode;
+          p_max_controllers?: number;
+          p_max_viewers?: number;
+          p_settings?: SessionSettings;
+        };
         Returns: Session;
       };
       join_session: {
@@ -728,7 +757,10 @@ export interface Session {
   id: string;
   host_user_id: string;
   status: SessionStatus;
+  mode: SessionMode;
   join_code: string;
+  max_controllers: number;
+  max_viewers: number;
   settings: SessionSettings;
   created_at: string;
   ended_at: string | null;
@@ -746,6 +778,7 @@ export interface SessionParticipant {
 }
 
 export type SessionStatus = 'created' | 'active' | 'paused' | 'ended';
+export type SessionMode = 'p2p' | 'sfu';
 export type ParticipantRole = 'host' | 'viewer';
 export type ControlState = 'view-only' | 'requested' | 'granted';
 
@@ -936,8 +969,11 @@ CREATE TABLE public.profiles (
 CREATE TABLE public.sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   host_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'created',
+  status TEXT NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'active', 'paused', 'ended')),
+  mode TEXT NOT NULL DEFAULT 'p2p' CHECK (mode IN ('p2p', 'sfu')),
   join_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(4), 'hex'),
+  max_controllers INTEGER NOT NULL DEFAULT 3,
+  max_viewers INTEGER NOT NULL DEFAULT 25,
   settings JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   ended_at TIMESTAMPTZ
@@ -959,6 +995,7 @@ CREATE TABLE public.session_participants (
 -- Create indexes
 CREATE INDEX idx_sessions_host ON public.sessions(host_user_id);
 CREATE INDEX idx_sessions_status ON public.sessions(status);
+CREATE INDEX idx_sessions_mode ON public.sessions(mode);
 CREATE INDEX idx_sessions_join_code ON public.sessions(join_code);
 CREATE INDEX idx_participants_session ON public.session_participants(session_id);
 CREATE INDEX idx_participants_user ON public.session_participants(user_id);

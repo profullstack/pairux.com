@@ -12,10 +12,14 @@ export const signupSchema = z
     email: z.string().email('Please enter a valid email address'),
     password: passwordSchema,
     confirmPassword: z.string(),
-    displayName: z
+    firstName: z
       .string()
-      .min(2, 'Display name must be at least 2 characters')
-      .max(50, 'Display name must be less than 50 characters'),
+      .min(1, 'First name is required')
+      .max(50, 'First name must be less than 50 characters'),
+    lastName: z
+      .string()
+      .min(1, 'Last name is required')
+      .max(50, 'Last name must be less than 50 characters'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',

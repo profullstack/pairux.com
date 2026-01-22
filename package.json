@@ -62,13 +62,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pairux/pairux.git"
+    "url": "https://github.com/profullstack/pairux.com.git"
   },
   "author": "PairUX Team",
   "license": "MIT",
   "homepage": "https://pairux.com",
   "bugs": {
-    "url": "https://github.com/pairux/pairux/issues"
+    "url": "https://github.com/profullstack/pairux.com/issues"
   },
   "keywords": [
     "screen-sharing",

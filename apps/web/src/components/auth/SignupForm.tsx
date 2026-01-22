@@ -9,7 +9,8 @@ export function SignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -24,7 +25,7 @@ export function SignupForm() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, confirmPassword, displayName }),
+        body: JSON.stringify({ email, password, confirmPassword, firstName, lastName }),
       });
 
       const data = await res.json();
@@ -72,24 +73,44 @@ export function SignupForm() {
         </div>
       )}
 
-      <div>
-        <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
-          Display name
-        </label>
-        <div className="relative mt-1">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <User className="h-5 w-5 text-gray-400" />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+            First name
+          </label>
+          <div className="relative mt-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <User className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => { setFirstName(e.target.value); }}
+              required
+              autoComplete="given-name"
+              className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              placeholder="First"
+            />
           </div>
-          <input
-            id="displayName"
-            type="text"
-            value={displayName}
-            onChange={(e) => { setDisplayName(e.target.value); }}
-            required
-            autoComplete="name"
-            className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            placeholder="Your name"
-          />
+        </div>
+
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+            Last name
+          </label>
+          <div className="relative mt-1">
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => { setLastName(e.target.value); }}
+              required
+              autoComplete="family-name"
+              className="block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              placeholder="Last"
+            />
+          </div>
         </div>
       </div>
 

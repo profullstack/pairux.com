@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Key } from 'lucide-react';
 
 export function LoginForm() {
   const router = useRouter();
@@ -118,6 +118,28 @@ export function LoginForm() {
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         {loading ? 'Signing in...' : 'Sign in'}
+      </button>
+
+      {/* Passkey Coming Soon */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-2 text-gray-500">or</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        disabled
+        className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-400"
+      >
+        <Key className="h-4 w-4" />
+        Sign in with Passkey
+        <span className="ml-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500">
+          Coming soon
+        </span>
       </button>
 
       <p className="text-center text-sm text-gray-600">

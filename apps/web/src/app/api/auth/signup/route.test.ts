@@ -24,7 +24,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'Password123',
         confirmPassword: 'Password123',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -47,7 +48,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'Password123',
         confirmPassword: 'DifferentPassword123',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -66,7 +68,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'password123',
         confirmPassword: 'password123',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -85,7 +88,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'PasswordABC',
         confirmPassword: 'PasswordABC',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -104,7 +108,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'Pass1',
         confirmPassword: 'Pass1',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -123,7 +128,8 @@ describe('POST /api/auth/signup', () => {
         email: 'not-an-email',
         password: 'Password123',
         confirmPassword: 'Password123',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 
@@ -134,7 +140,7 @@ describe('POST /api/auth/signup', () => {
     expect(body.error).toContain('email');
   });
 
-  it('returns 400 on short display name', async () => {
+  it('returns 400 on missing first name', async () => {
     const request = new Request('http://localhost/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -142,7 +148,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'Password123',
         confirmPassword: 'Password123',
-        displayName: 'X',
+        firstName: '',
+        lastName: 'User',
       }),
     });
 
@@ -150,7 +157,7 @@ describe('POST /api/auth/signup', () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.error).toContain('2 characters');
+    expect(body.error).toContain('First name is required');
   });
 
   it('returns 400 when supabase returns error', async () => {
@@ -171,7 +178,8 @@ describe('POST /api/auth/signup', () => {
         email: 'existing@example.com',
         password: 'Password123',
         confirmPassword: 'Password123',
-        displayName: 'Existing User',
+        firstName: 'Existing',
+        lastName: 'User',
       }),
     });
 
@@ -200,7 +208,8 @@ describe('POST /api/auth/signup', () => {
         email: 'newuser@example.com',
         password: 'Password123',
         confirmPassword: 'Password123',
-        displayName: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       }),
     });
 

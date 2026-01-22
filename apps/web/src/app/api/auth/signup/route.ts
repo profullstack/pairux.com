@@ -18,10 +18,18 @@ export async function POST(request: Request) {
           last_name: lastName,
           display_name: `${firstName} ${lastName}`,
         },
+        // Skip email confirmation for now - remove this line once SMTP is working
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/auth/callback`,
       },
     });
 
     if (error) {
+      console.error('Supabase signup error:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        name: error.name,
+      });
       return errorResponse(error.message, 400);
     }
 
@@ -29,14 +37,21 @@ export async function POST(request: Request) {
       return errorResponse('Failed to create user', 500);
     }
 
+    // Check if user needs email confirmation or is already confirmed
+    const needsConfirmation = !data.user.confirmed_at && !data.session;
+
     return successResponse({
       user: {
         id: data.user.id,
         email: data.user.email,
       },
-      message: 'Check your email to confirm your account',
+      message: needsConfirmation
+        ? 'Check your email to confirm your account'
+        : 'Account created successfully',
+      needsConfirmation,
     }, 201);
   } catch (error) {
+    console.error('Signup route error:', error);
     return handleApiError(error);
   }
 }

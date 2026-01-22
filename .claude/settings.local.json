@@ -77,7 +77,8 @@
       "Bash(node scripts/test-stats-logic.mjs:*)",
       "Bash(node scripts/test-stats-api.mjs:*)",
       "Bash(npm run lint:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(pnpm --filter @pairux/shared-types build:*)"
     ],
     "deny": [
       "Bash(npm *)",

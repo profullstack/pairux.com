@@ -7,55 +7,55 @@
 
 ## 🏗️ Infrastructure & Setup
 
-- [ ] **Monorepo Foundation**
-  - [ ] pnpm workspace configuration
-  - [ ] Turborepo build pipeline
-  - [ ] Shared TypeScript config
-  - [ ] ESLint + Prettier setup
-  - [ ] Vitest test framework
+- [x] **Monorepo Foundation**
+  - [x] pnpm workspace configuration
+  - [x] Turborepo build pipeline
+  - [x] Shared TypeScript config
+  - [x] ESLint + Prettier setup
+  - [x] Vitest test framework
 
-- [ ] **Environment & Deployment**
-  - [ ] Environment variable management (.env symlinks)
-  - [ ] Railway Docker deployment (web)
-  - [ ] GitHub Actions CI/CD
-  - [ ] Pre-commit hooks (lint, test, build)
+- [x] **Environment & Deployment**
+  - [x] Environment variable management (.env symlinks)
+  - [x] Railway Docker deployment (web)
+  - [x] GitHub Actions CI/CD
+  - [x] Pre-commit hooks (lint, test, build)
 
 ---
 
 ## 🌐 Web App (Next.js PWA)
 
 ### Marketing Site
-- [ ] **Landing Page**
-  - [ ] Hero section with value proposition
-  - [ ] Feature highlights
-  - [ ] How it works (3-step flow)
+- [x] **Landing Page**
+  - [x] Hero section with value proposition
+  - [x] Feature highlights
+  - [x] How it works (3-step flow)
   - [ ] Social proof / testimonials placeholder
-  - [ ] CTA buttons (Download, Try Now)
+  - [x] CTA buttons (Download, Try Now)
 
-- [ ] **Features Page**
-  - [ ] Screen sharing capabilities
-  - [ ] Remote control features
+- [x] **Features Page**
+  - [x] Screen sharing capabilities
+  - [x] Remote control features
   - [ ] Screen recording (local)
   - [ ] Text chat integration
-  - [ ] Security highlights
+  - [x] Security highlights
 
-- [ ] **Download Page**
-  - [ ] OS detection (auto-recommend)
-  - [ ] macOS: Homebrew cask command
-  - [ ] Windows: WinGet command
-  - [ ] Linux: apt/dnf/AUR commands
-  - [ ] Direct download links (GitHub Releases)
+- [x] **Download Page**
+  - [x] OS detection (auto-recommend)
+  - [x] macOS: Homebrew cask command
+  - [x] Windows: WinGet command
+  - [x] Linux: apt/dnf/AUR commands
+  - [x] Direct download links (GitHub Releases)
   - [ ] SHA256 checksums display
 
-- [ ] **Pricing Page** (placeholder)
-  - [ ] Free tier details
-  - [ ] Future paid plans placeholder
+- [x] **Pricing Page** (placeholder)
+  - [x] Free tier details
+  - [x] Future paid plans placeholder
 
-- [ ] **Docs/FAQ Page**
-  - [ ] Getting started guide
-  - [ ] System requirements
-  - [ ] Troubleshooting common issues
-  - [ ] Privacy & security FAQ
+- [x] **Docs/FAQ Page**
+  - [x] Getting started guide
+  - [x] System requirements
+  - [x] Troubleshooting common issues
+  - [x] Privacy & security FAQ
 
 ### PWA Viewer (Join Session)
 - [ ] **Session Join Flow**
@@ -290,8 +290,8 @@
 
 ## 🧪 Testing
 
-- [ ] **Unit Tests**
-  - [ ] Utility functions
+- [x] **Unit Tests**
+  - [x] Utility functions
   - [ ] State management
   - [ ] API route handlers
 

@@ -65,11 +65,11 @@
   - [x] Optional: Sign in for persistent identity
   - [x] Session code entry fallback
 
-- [ ] **Video Viewer**
-  - [ ] WebRTC video stream display
-  - [ ] Adaptive quality indicator
-  - [ ] Fullscreen toggle
-  - [ ] Connection status indicator
+- [x] **Video Viewer**
+  - [x] WebRTC video stream display
+  - [x] Adaptive quality indicator
+  - [x] Fullscreen toggle
+  - [x] Connection status indicator
 
 - [ ] **Remote Control (Viewer)**
   - [ ] Request control button

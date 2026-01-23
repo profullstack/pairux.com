@@ -104,7 +104,10 @@
       "Bash(env)",
       "Bash(unset:*)",
       "Bash(pnpm --filter @pairux/desktop lint:*)",
-      "Bash(pnpm --filter @pairux/desktop lint:fix:*)"
+      "Bash(pnpm --filter @pairux/desktop lint:fix:*)",
+      "Bash(pnpm --filter @pairux/installer lint:*)",
+      "Bash(pnpm --filter @pairux/installer build:*)",
+      "Bash(pnpm --filter @pairux/installer typecheck:*)"
     ],
     "deny": [
       "Bash(npm *)",

@@ -148,23 +148,24 @@ export function registerAuthHandlers(): void {
             refresh_token: stored.refreshToken,
           });
 
-          if (error || !data.session) {
+          if (error || !data.session || !data.user) {
             console.log('[Auth] Session refresh failed:', error?.message);
             clearStoredAuth();
             return { valid: false, user: null };
           }
 
+          const refreshedUser = data.user;
           storeAuth({
             accessToken: data.session.access_token,
             refreshToken: data.session.refresh_token,
             expiresAt: data.session.expires_at
               ? data.session.expires_at * 1000
               : Date.now() + 3600000,
-            user: { id: data.user.id, email: data.user.email ?? '' },
+            user: { id: refreshedUser.id, email: refreshedUser.email ?? '' },
           });
 
-          console.log('[Auth] Session refreshed for user:', data.user.email);
-          return { valid: true, user: { id: data.user.id, email: data.user.email ?? '' } };
+          console.log('[Auth] Session refreshed for user:', refreshedUser.email);
+          return { valid: true, user: { id: refreshedUser.id, email: refreshedUser.email ?? '' } };
         } catch (error) {
           console.error('[Auth] Session refresh error:', error);
           clearStoredAuth();

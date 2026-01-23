@@ -14,14 +14,14 @@ This document outlines PairUX's scaling strategy, inspired by Jitsi's battle-tes
 
 ### When to Use What
 
-| Scenario | Recommended Mode | Why |
-|----------|------------------|-----|
-| 1:1 pair programming | P2P | Lowest latency, zero infrastructure cost |
-| Small team review (2-5) | P2P | Still manageable, direct connections |
-| Demo to team (5-15) | P2P or SFU | SFU reduces host load |
-| Presentation (15-50) | SFU | Host can't handle 50 direct streams |
-| Large event (50-500) | Multi-SFU | Single SFU becomes bottleneck |
-| Enterprise broadcast (500+) | Cascaded SFUs | Regional distribution required |
+| Scenario                    | Recommended Mode | Why                                      |
+| --------------------------- | ---------------- | ---------------------------------------- |
+| 1:1 pair programming        | P2P              | Lowest latency, zero infrastructure cost |
+| Small team review (2-5)     | P2P              | Still manageable, direct connections     |
+| Demo to team (5-15)         | P2P or SFU       | SFU reduces host load                    |
+| Presentation (15-50)        | SFU              | Host can't handle 50 direct streams      |
+| Large event (50-500)        | Multi-SFU        | Single SFU becomes bottleneck            |
+| Enterprise broadcast (500+) | Cascaded SFUs    | Regional distribution required           |
 
 ---
 
@@ -101,14 +101,14 @@ graph TB
 
 ### Component Mapping
 
-| Component | MVP | Scaled |
-|-----------|-----|--------|
-| Signaling | Supabase Realtime | Supabase Realtime |
-| Room State | Supabase DB | Dedicated State Service |
-| Topology Decision | Client-side | Session Focus Service |
-| Media Routing | P2P / Single SFU | Regional SFU Pools |
-| SFU Selection | Manual toggle | Automatic assignment |
-| Encryption | DTLS/SRTP | Optional E2EE layer |
+| Component         | MVP               | Scaled                  |
+| ----------------- | ----------------- | ----------------------- |
+| Signaling         | Supabase Realtime | Supabase Realtime       |
+| Room State        | Supabase DB       | Dedicated State Service |
+| Topology Decision | Client-side       | Session Focus Service   |
+| Media Routing     | P2P / Single SFU  | Regional SFU Pools      |
+| SFU Selection     | Manual toggle     | Automatic assignment    |
+| Encryption        | DTLS/SRTP         | Optional E2EE layer     |
 
 ---
 
@@ -130,11 +130,13 @@ graph TB
 ### MVP Implementation
 
 **Media Plane:**
+
 - P2P direct connections (default)
 - Single SFU instance for larger sessions
 - Self-hosted TURN for NAT traversal
 
 **Control Plane:**
+
 - Supabase Realtime for signaling (offer/answer/ICE)
 - Supabase DB for room state (participants, roles, settings)
 - Client-side logic decides P2P vs SFU
@@ -152,6 +154,7 @@ channel.on('broadcast', { event: 'signal' }, handleSignal);
 ```
 
 **What you get:**
+
 - Simple deployment (Supabase + optional SFU)
 - No custom backend services
 - Works for 90% of use cases
@@ -159,11 +162,13 @@ channel.on('broadcast', { event: 'signal' }, handleSignal);
 ### Scaled Implementation
 
 **Media Plane:**
+
 - Regional SFU pools (LiveKit Cloud or self-hosted)
 - Load balancer distributes sessions across SFUs
 - Bridge cascading for cross-region sessions
 
 **Control Plane:**
+
 - Supabase Realtime still handles signaling
 - Dedicated "Room State Service" for complex state
 - Session Focus service assigns SFUs
@@ -193,6 +198,7 @@ async function assignSFU(sessionId: string, participantRegion: string): Promise<
 ### Migration Triggers
 
 Move from MVP to Scaled when:
+
 - [ ] Single SFU CPU consistently >70%
 - [ ] Users in multiple geographic regions complain about latency
 - [ ] Need >100 concurrent sessions
@@ -214,6 +220,7 @@ Move from MVP to Scaled when:
 ### MVP Implementation
 
 **Client-Side Decisions:**
+
 - Host chooses P2P or SFU mode at session start
 - Mode is fixed for session lifetime
 - No automatic switching
@@ -236,6 +243,7 @@ function validateJoin(session: Session, currentCount: number): boolean {
 ```
 
 **What you get:**
+
 - No additional backend services
 - Predictable behavior
 - Host has full control
@@ -243,6 +251,7 @@ function validateJoin(session: Session, currentCount: number): boolean {
 ### Scaled Implementation
 
 **Session Focus Service:**
+
 - Server-side service that manages all active sessions
 - Assigns SFUs based on load, region, and session requirements
 - Handles SFU failover and rebalancing
@@ -260,9 +269,13 @@ interface SessionFocus {
 class SessionFocusService {
   private sessions: Map<string, SessionFocus> = new Map();
 
-  async onParticipantJoin(sessionId: string, participantId: string, region: string): Promise<JoinResponse> {
+  async onParticipantJoin(
+    sessionId: string,
+    participantId: string,
+    region: string
+  ): Promise<JoinResponse> {
     const session = this.sessions.get(sessionId);
-    
+
     // Decide if we need to upgrade to SFU
     if (session.mode === 'p2p' && session.participants.size >= 10) {
       await this.upgradeToSFU(sessionId);
@@ -270,7 +283,7 @@ class SessionFocusService {
 
     // Assign participant to best SFU
     const assignment = await this.assignParticipant(session, participantId, region);
-    
+
     return {
       sfuEndpoint: assignment.endpoint,
       token: assignment.token,
@@ -290,6 +303,7 @@ class SessionFocusService {
 ### Migration Triggers
 
 Move from MVP to Scaled when:
+
 - [ ] Need automatic P2P → SFU upgrades
 - [ ] Need SFU failover without user intervention
 - [ ] Need cross-region optimization
@@ -311,6 +325,7 @@ Move from MVP to Scaled when:
 ### MVP Implementation
 
 **Single SFU Pool:**
+
 - One SFU instance (or small cluster)
 - Manual region selection if needed
 - Soft limits prevent overload
@@ -340,6 +355,7 @@ async function canAcceptSession(): Promise<boolean> {
 ### Scaled Implementation
 
 **Multi-Region SFU Pools:**
+
 - SFU clusters in each major region
 - Load balancer per region
 - Bridge cascading for cross-region sessions
@@ -365,11 +381,9 @@ class SFUManager {
 
   async selectSFU(region: string, sessionSize: number): Promise<SFUInstance> {
     const pool = this.pools.get(region) ?? this.pools.get('default');
-    
+
     // Filter healthy instances with capacity
-    const available = pool.instances.filter(
-      sfu => sfu.healthy && sfu.currentLoad < 80
-    );
+    const available = pool.instances.filter((sfu) => sfu.healthy && sfu.currentLoad < 80);
 
     // Select least loaded
     return available.sort((a, b) => a.currentLoad - b.currentLoad)[0];
@@ -383,6 +397,7 @@ class SFUManager {
 ```
 
 **Bridge Cascading:**
+
 ```mermaid
 graph LR
     subgraph US-West
@@ -402,6 +417,7 @@ graph LR
 ### Migration Triggers
 
 Move from MVP to Scaled when:
+
 - [ ] Single SFU CPU consistently >60%
 - [ ] Users in 2+ geographic regions
 - [ ] Need >100 viewers per session
@@ -423,6 +439,7 @@ Move from MVP to Scaled when:
 ### MVP Implementation
 
 **Transport Encryption Only:**
+
 - DTLS/SRTP encrypts all WebRTC traffic
 - SFU can see media (required for routing)
 - Sufficient for most use cases
@@ -439,11 +456,13 @@ const peerConnection = new RTCPeerConnection({
 ```
 
 **What you get:**
+
 - Zero additional complexity
 - Full SFU feature support (simulcast, bandwidth estimation)
 - Works in all browsers
 
 **When this is enough:**
+
 - Internal team collaboration
 - Non-sensitive content
 - Trust your infrastructure
@@ -451,6 +470,7 @@ const peerConnection = new RTCPeerConnection({
 ### Scaled Implementation
 
 **Insertable Streams E2EE:**
+
 - Encrypt media frames before sending to SFU
 - SFU forwards encrypted packets without decryption
 - Only participants with key can decrypt
@@ -472,11 +492,10 @@ class E2EEManager {
     }
 
     // Generate encryption key
-    this.encryptionKey = await crypto.subtle.generateKey(
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
-    );
+    this.encryptionKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+      'encrypt',
+      'decrypt',
+    ]);
 
     // Set up transform stream
     const senderStreams = (sender as any).createEncodedStreams();
@@ -487,9 +506,7 @@ class E2EEManager {
       },
     });
 
-    senderStreams.readable
-      .pipeThrough(transformStream)
-      .pipeTo(senderStreams.writable);
+    senderStreams.readable.pipeThrough(transformStream).pipeTo(senderStreams.writable);
   }
 
   private async encryptFrame(frame: RTCEncodedVideoFrame): Promise<RTCEncodedVideoFrame> {
@@ -499,12 +516,12 @@ class E2EEManager {
       this.encryptionKey!,
       frame.data
     );
-    
+
     // Prepend IV to encrypted data
     const newData = new Uint8Array(iv.length + encrypted.byteLength);
     newData.set(iv);
     newData.set(new Uint8Array(encrypted), iv.length);
-    
+
     frame.data = newData.buffer;
     return frame;
   }
@@ -513,16 +530,17 @@ class E2EEManager {
 
 **Browser Support Matrix:**
 
-| Browser | Insertable Streams | Status |
-|---------|-------------------|--------|
-| Chrome 86+ | ✅ | Full support |
-| Edge 86+ | ✅ | Full support |
-| Firefox | ❌ | Not supported |
-| Safari 15.4+ | ✅ | Full support |
+| Browser      | Insertable Streams | Status        |
+| ------------ | ------------------ | ------------- |
+| Chrome 86+   | ✅                 | Full support  |
+| Edge 86+     | ✅                 | Full support  |
+| Firefox      | ❌                 | Not supported |
+| Safari 15.4+ | ✅                 | Full support  |
 
 ### Migration Triggers
 
 Add E2EE when:
+
 - [ ] Handling sensitive/confidential content
 - [ ] Enterprise customers require it
 - [ ] Compliance requirements (HIPAA, etc.)
@@ -547,11 +565,11 @@ Add E2EE when:
 
 **Three Simple Roles:**
 
-| Role | Capabilities | Limits |
-|------|--------------|--------|
-| Host | Screen share, grant control | 1 per session |
+| Role       | Capabilities                  | Limits            |
+| ---------- | ----------------------------- | ----------------- |
+| Host       | Screen share, grant control   | 1 per session     |
 | Controller | View, request/receive control | Max 3 per session |
-| Viewer | View only | ~25 P2P, 100+ SFU |
+| Viewer     | View only                     | ~25 P2P, 100+ SFU |
 
 ```typescript
 // MVP: Simple role model
@@ -576,6 +594,7 @@ function canPerformAction(participant: Participant, action: string): boolean {
 ```
 
 **What you get:**
+
 - Clear permission boundaries
 - Simple UI (role determines what you see)
 - Predictable resource usage
@@ -618,7 +637,7 @@ const roleConfigs: Record<ParticipantRole, ParticipantConfig> = {
 class BandwidthAllocator {
   allocate(participants: Participant[], availableBandwidth: number): Map<string, number> {
     const allocations = new Map<string, number>();
-    
+
     // Sort by priority
     const sorted = [...participants].sort(
       (a, b) => roleConfigs[a.role].priority - roleConfigs[b.role].priority
@@ -638,12 +657,13 @@ class BandwidthAllocator {
 ```
 
 **Host Transfer:**
+
 ```typescript
 // Scaled: Dynamic host transfer
 async function transferHost(sessionId: string, newHostId: string): Promise<void> {
   const session = await getSession(sessionId);
-  const currentHost = session.participants.find(p => p.role === 'host');
-  const newHost = session.participants.find(p => p.id === newHostId);
+  const currentHost = session.participants.find((p) => p.role === 'host');
+  const newHost = session.participants.find((p) => p.id === newHostId);
 
   if (!newHost || newHost.role === 'viewer') {
     throw new Error('New host must be a controller');
@@ -667,6 +687,7 @@ async function transferHost(sessionId: string, newHostId: string): Promise<void>
 ### Migration Triggers
 
 Move from MVP to Scaled when:
+
 - [ ] Need dynamic host transfer
 - [ ] Need quality differentiation by role
 - [ ] Need bandwidth allocation policies
@@ -680,24 +701,27 @@ Move from MVP to Scaled when:
 
 **Monthly Cost: ~$50-150**
 
-| Component | Service | Cost |
-|-----------|---------|------|
-| Control Plane | Supabase Pro | $25/month |
-| TURN Server | DigitalOcean Droplet | $24/month |
-| Web Hosting | Railway/Vercel | $0-20/month |
-| Domain + SSL | Cloudflare | $10/year |
+| Component     | Service              | Cost        |
+| ------------- | -------------------- | ----------- |
+| Control Plane | Supabase Pro         | $25/month   |
+| TURN Server   | DigitalOcean Droplet | $24/month   |
+| Web Hosting   | Railway/Vercel       | $0-20/month |
+| Domain + SSL  | Cloudflare           | $10/year    |
 
 **What you're paying for:**
+
 - Supabase handles auth, DB, and realtime signaling
 - TURN server for NAT traversal (only used when P2P fails)
 - No SFU costs - media goes directly between peers
 
 **Best for:**
+
 - <1,000 monthly active users
 - <50 concurrent sessions
 - Sessions with <10 participants each
 
 **What you can skip:**
+
 - SFU infrastructure
 - Multi-region deployment
 - Dedicated orchestrator
@@ -708,32 +732,35 @@ Move from MVP to Scaled when:
 
 **Monthly Cost: ~$200-600**
 
-| Component | Service | Cost |
-|-----------|---------|------|
-| Control Plane | Supabase Pro | $25/month |
-| SFU | LiveKit Cloud or self-hosted | $100-400/month |
-| TURN Server | DigitalOcean Droplet | $24/month |
-| Web Hosting | Railway | $20/month |
+| Component     | Service                      | Cost           |
+| ------------- | ---------------------------- | -------------- |
+| Control Plane | Supabase Pro                 | $25/month      |
+| SFU           | LiveKit Cloud or self-hosted | $100-400/month |
+| TURN Server   | DigitalOcean Droplet         | $24/month      |
+| Web Hosting   | Railway                      | $20/month      |
 
 **SFU Cost Breakdown:**
 
-| Option | Pricing Model | Estimated Cost |
-|--------|---------------|----------------|
-| LiveKit Cloud | Per participant-minute | ~$0.004/min |
-| Self-hosted LiveKit | Server cost | $100-200/month (4 vCPU) |
-| mediasoup (self-hosted) | Server cost | $100-200/month |
+| Option                  | Pricing Model          | Estimated Cost          |
+| ----------------------- | ---------------------- | ----------------------- |
+| LiveKit Cloud           | Per participant-minute | ~$0.004/min             |
+| Self-hosted LiveKit     | Server cost            | $100-200/month (4 vCPU) |
+| mediasoup (self-hosted) | Server cost            | $100-200/month          |
 
 **What you're paying for:**
+
 - SFU offloads host bandwidth
 - Supports larger sessions (50-100 viewers)
 - Better quality consistency
 
 **Best for:**
+
 - 1,000-10,000 monthly active users
 - <200 concurrent sessions
 - Sessions with 10-100 participants
 
 **What you can skip:**
+
 - Multi-region SFUs
 - Bridge cascading
 - Dedicated orchestrator
@@ -744,26 +771,29 @@ Move from MVP to Scaled when:
 
 **Monthly Cost: ~$1,000-3,000**
 
-| Component | Service | Cost |
-|-----------|---------|------|
-| Control Plane | Supabase Pro + Edge Functions | $50-100/month |
-| SFU Pools | 2-3 regions × 2 instances | $600-1,500/month |
-| Session Focus | Railway service | $50-100/month |
-| TURN Servers | 2-3 regions | $75-150/month |
-| Monitoring | Datadog/Grafana | $100-200/month |
+| Component     | Service                       | Cost             |
+| ------------- | ----------------------------- | ---------------- |
+| Control Plane | Supabase Pro + Edge Functions | $50-100/month    |
+| SFU Pools     | 2-3 regions × 2 instances     | $600-1,500/month |
+| Session Focus | Railway service               | $50-100/month    |
+| TURN Servers  | 2-3 regions                   | $75-150/month    |
+| Monitoring    | Datadog/Grafana               | $100-200/month   |
 
 **What you're paying for:**
+
 - Low latency for global users
 - Automatic failover
 - Server-side orchestration
 - Professional monitoring
 
 **Best for:**
+
 - 10,000-100,000 monthly active users
 - Global user base
 - 99.9% uptime requirements
 
 **What you can skip:**
+
 - Bridge cascading (unless single sessions span regions)
 - E2EE (unless required)
 - Custom SFU modifications
@@ -774,22 +804,24 @@ Move from MVP to Scaled when:
 
 **Monthly Cost: $5,000+**
 
-| Component | Service | Cost |
-|-----------|---------|------|
-| Control Plane | Dedicated infrastructure | $500+/month |
-| SFU Pools | 5+ regions, auto-scaling | $2,000+/month |
-| Bridge Cascading | Cross-region mesh | $500+/month |
-| E2EE Infrastructure | Key management | $200+/month |
-| 24/7 Monitoring | Full observability stack | $500+/month |
-| Support | On-call engineering | Variable |
+| Component           | Service                  | Cost          |
+| ------------------- | ------------------------ | ------------- |
+| Control Plane       | Dedicated infrastructure | $500+/month   |
+| SFU Pools           | 5+ regions, auto-scaling | $2,000+/month |
+| Bridge Cascading    | Cross-region mesh        | $500+/month   |
+| E2EE Infrastructure | Key management           | $200+/month   |
+| 24/7 Monitoring     | Full observability stack | $500+/month   |
+| Support             | On-call engineering      | Variable      |
 
 **What you're paying for:**
+
 - Massive scale (1000+ concurrent sessions)
 - Enterprise SLAs
 - E2EE for compliance
 - Dedicated support
 
 **Best for:**
+
 - 100,000+ monthly active users
 - Enterprise customers
 - Compliance requirements (HIPAA, SOC2)
@@ -812,16 +844,19 @@ Move from MVP to Scaled when:
 ### Phase 1: MVP (Current)
 
 **Architecture:**
+
 - P2P default, SFU toggle
 - Supabase for everything
 - Single TURN server
 
 **Capabilities:**
+
 - 1 host + up to 25 viewers (P2P)
 - 1 host + up to 100 viewers (SFU)
 - Manual mode selection
 
 **Focus:**
+
 - Get core functionality working
 - Validate product-market fit
 - Keep infrastructure simple
@@ -833,11 +868,13 @@ Move from MVP to Scaled when:
 **Trigger:** Consistent demand for >10 viewer sessions
 
 **Changes:**
+
 - Deploy dedicated SFU (LiveKit recommended)
 - Add SFU health monitoring
 - Implement automatic P2P → SFU suggestion
 
 **New Capabilities:**
+
 - Reliable 100+ viewer sessions
 - Better quality consistency
 - Basic analytics
@@ -849,11 +886,13 @@ Move from MVP to Scaled when:
 **Trigger:** Users in multiple continents, latency complaints
 
 **Changes:**
+
 - Deploy SFU in 2-3 regions
 - Add Session Focus service
 - Implement automatic region selection
 
 **New Capabilities:**
+
 - <100ms latency globally
 - Automatic failover
 - Region-aware routing
@@ -865,11 +904,13 @@ Move from MVP to Scaled when:
 **Trigger:** Enterprise customers, compliance requirements
 
 **Changes:**
+
 - Implement Insertable Streams encryption
 - Add key exchange protocol
 - Create E2EE toggle in UI
 
 **New Capabilities:**
+
 - True end-to-end encryption
 - Compliance-ready
 - Privacy-focused option
@@ -881,11 +922,13 @@ Move from MVP to Scaled when:
 **Trigger:** Demand for 500+ viewer sessions
 
 **Changes:**
+
 - Implement bridge cascading
 - Add dynamic scaling
 - Optimize for broadcast scenarios
 
 **New Capabilities:**
+
 - 1000+ viewer sessions
 - Cross-region single sessions
 - Broadcast mode
@@ -894,14 +937,14 @@ Move from MVP to Scaled when:
 
 ## What NOT to Build Until Needed
 
-| Feature | Build When | Not Before |
-|---------|------------|------------|
-| Multi-region SFU | Users in 2+ continents | Single region works |
-| Session Focus service | >50 concurrent sessions | Manual works |
-| Bridge cascading | >500 viewers per session | Single SFU works |
-| E2EE | Enterprise/compliance demand | Transport encryption works |
-| Custom SFU | Unique requirements | LiveKit/mediasoup work |
-| Auto-scaling | Unpredictable load spikes | Fixed capacity works |
+| Feature               | Build When                   | Not Before                 |
+| --------------------- | ---------------------------- | -------------------------- |
+| Multi-region SFU      | Users in 2+ continents       | Single region works        |
+| Session Focus service | >50 concurrent sessions      | Manual works               |
+| Bridge cascading      | >500 viewers per session     | Single SFU works           |
+| E2EE                  | Enterprise/compliance demand | Transport encryption works |
+| Custom SFU            | Unique requirements          | LiveKit/mediasoup work     |
+| Auto-scaling          | Unpredictable load spikes    | Fixed capacity works       |
 
 ---
 
@@ -910,12 +953,14 @@ Move from MVP to Scaled when:
 ### LiveKit
 
 **Pros:**
+
 - Modern, well-documented
 - Cloud offering available
 - Good TypeScript SDK
 - Active development
 
 **Cons:**
+
 - Newer, smaller community
 - Cloud pricing can add up
 
@@ -924,12 +969,14 @@ Move from MVP to Scaled when:
 ### mediasoup
 
 **Pros:**
+
 - Lightweight, flexible
 - Large community
 - Battle-tested
 - No licensing costs
 
 **Cons:**
+
 - More DIY required
 - Node.js only (C++ addon)
 - Steeper learning curve
@@ -939,11 +986,13 @@ Move from MVP to Scaled when:
 ### Janus
 
 **Pros:**
+
 - Very mature
 - Plugin architecture
 - Supports many protocols
 
 **Cons:**
+
 - C codebase
 - Complex configuration
 - Heavier weight

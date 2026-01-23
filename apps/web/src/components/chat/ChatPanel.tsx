@@ -57,7 +57,7 @@ export function ChatPanel({
       >
         <MessageSquare className="h-5 w-5 text-gray-600" />
         {unreadCount > 0 && (
-          <span className="mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-500 px-1 text-xs font-medium text-white">
+          <span className="bg-primary-500 mt-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

@@ -186,9 +186,7 @@ export function CapturePreview({ stream, source, onStop, currentUserId }: Captur
           {/* Live indicator */}
           <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5">
             <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <span className="text-xs font-medium text-white">
-              {session ? 'LIVE' : 'PREVIEW'}
-            </span>
+            <span className="text-xs font-medium text-white">{session ? 'LIVE' : 'PREVIEW'}</span>
           </div>
         </div>
       </div>

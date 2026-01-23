@@ -93,7 +93,7 @@ export function ChatMessageInput({
             disabled={disabled || isSending}
             placeholder="Type a message..."
             rows={1}
-            className="block w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
             data-testid="chat-input"
           />
 
@@ -112,14 +112,10 @@ export function ChatMessageInput({
         <button
           type="submit"
           disabled={!content.trim() || isOverLimit || isSending || disabled}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white transition-colors hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-white transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           data-testid="chat-send-button"
         >
-          {isSending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Send className="h-5 w-5" />
-          )}
+          {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
         </button>
       </div>
 

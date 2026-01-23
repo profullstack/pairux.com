@@ -3,7 +3,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useSession } from './useSession';
 
 // Get the mock API from setup
-const mockElectronAPI = (window as unknown as { electronAPI: { invoke: ReturnType<typeof vi.fn> } }).electronAPI;
+const mockElectronAPI = (window as unknown as { electronAPI: { invoke: ReturnType<typeof vi.fn> } })
+  .electronAPI;
 
 describe('useSession', () => {
   beforeEach(() => {

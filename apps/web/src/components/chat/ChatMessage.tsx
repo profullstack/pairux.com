@@ -67,7 +67,7 @@ export const ChatMessage = memo(function ChatMessage({ message, isOwnMessage }: 
             isOwnMessage ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-900'
           }`}
         >
-          <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
+          <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
         </div>
       </div>
     </div>

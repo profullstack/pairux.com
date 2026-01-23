@@ -57,7 +57,8 @@ export function useChat({ sessionId, autoConnect = true }: UseChatOptions): UseC
 
       // Track the latest message time for polling
       if (result.messages.length > 0) {
-        lastMessageTimeRef.current = result.messages[result.messages.length - 1]?.created_at ?? null;
+        lastMessageTimeRef.current =
+          result.messages[result.messages.length - 1]?.created_at ?? null;
       }
 
       setIsConnected(true);

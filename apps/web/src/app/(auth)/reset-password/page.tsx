@@ -16,10 +16,10 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   const code = params.code;
   const error = params.error;
 
-  // If there's a code, redirect to the route handler to exchange it
-  // This ensures cookies are properly set
+  // If there's a code, redirect to the auth callback to exchange it
+  // This ensures cookies are properly set via the route handler
   if (code) {
-    redirect(`/auth/reset-password?code=${code}`);
+    redirect(`/auth/callback?code=${code}&next=/reset-password`);
   }
 
   // If there's an error from the callback

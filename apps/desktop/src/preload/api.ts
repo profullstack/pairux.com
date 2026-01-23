@@ -1,4 +1,4 @@
-import type { CaptureSource } from '@pairux/shared-types';
+import type { CaptureSource, Profile } from '@pairux/shared-types';
 
 /**
  * IPC Channel definitions for type-safe communication between
@@ -6,6 +6,11 @@ import type { CaptureSource } from '@pairux/shared-types';
  */
 
 export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+}
 
 // Request/response channels (invoke pattern)
 export interface IPCChannels {
@@ -25,6 +30,32 @@ export interface IPCChannels {
       displayServer: DisplayServer;
       isWayland: boolean;
     };
+  };
+
+  // Auth channels
+  'auth:login': {
+    args: { email: string; password: string };
+    return: { success: true; user: AuthUser } | { success: false; error: string };
+  };
+
+  'auth:logout': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  'auth:getSession': {
+    args: undefined;
+    return: { user: AuthUser | null; profile: Profile | null };
+  };
+
+  'auth:validateSession': {
+    args: undefined;
+    return: { valid: boolean; user: AuthUser | null };
+  };
+
+  'auth:openExternal': {
+    args: string;
+    return: Promise<void>;
   };
 }
 

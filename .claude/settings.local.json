@@ -136,9 +136,13 @@
       "Bash(/tmp/test-electron/node_modules/.bin/electron:*)",
       "Bash(/tmp/test-electron/node_modules/electron/dist/electron:*)",
       "Bash(node --version:*)",
-      "Bash(source ~/.nvm/nvm.sh nvm list)"
+      "Bash(source ~/.nvm/nvm.sh nvm list)",
+      "Bash(git push)"
     ],
-    "deny": ["Bash(npm *)", "Bash(npx *)"],
+    "deny": [
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

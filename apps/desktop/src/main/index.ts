@@ -1,6 +1,16 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { app, BrowserWindow } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
+
+// Load environment variables from .env file
+// In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
+// In prod: app.getAppPath() points to the app resources
+const envPath = app.isPackaged
+  ? resolve(app.getAppPath(), '.env')
+  : resolve(__dirname, '../../.env');
+config({ path: envPath });
 
 // Detect display server (X11 vs Wayland)
 const isWayland =

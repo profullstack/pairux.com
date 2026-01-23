@@ -52,7 +52,8 @@ describe('GET /api/chat/history', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: reversedMessages, error: null }),
+      limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockResolvedValue({ data: reversedMessages, error: null }),
     });
 
     const mockSupabase = createMockSupabaseClient({
@@ -92,7 +93,8 @@ describe('GET /api/chat/history', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: reversedMessages, error: null }),
+      limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockResolvedValue({ data: reversedMessages, error: null }),
     });
 
     const mockSupabase = createMockSupabaseClient({
@@ -125,6 +127,7 @@ describe('GET /api/chat/history', () => {
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
       lt: vi.fn().mockResolvedValue({ data: [mockMessages[0]], error: null }),
     });
 
@@ -157,7 +160,8 @@ describe('GET /api/chat/history', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: mockMessages.slice(0, 2), error: null }),
+      limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockResolvedValue({ data: mockMessages.slice(0, 2), error: null }),
     });
 
     const mockSupabase = createMockSupabaseClient({
@@ -240,7 +244,8 @@ describe('GET /api/chat/history', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
 
     const mockSupabase = createMockSupabaseClient({
@@ -270,7 +275,8 @@ describe('GET /api/chat/history', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockReturnThis(),
+      is: vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Database error' },
       }),

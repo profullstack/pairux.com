@@ -85,6 +85,7 @@ export const sendChatMessageSchema = z.object({
     .min(1, 'Message cannot be empty')
     .max(500, 'Message must be less than 500 characters'),
   participantId: z.string().uuid('Invalid participant ID').optional(),
+  recipientId: z.string().uuid('Invalid recipient ID').optional(), // For DMs
 });
 
 // Chat history query schema

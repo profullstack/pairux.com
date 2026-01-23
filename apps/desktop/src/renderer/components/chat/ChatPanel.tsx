@@ -12,7 +12,9 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { ChatMessage } from './ChatMessage';
+import { ParticipantList } from './ParticipantList';
 import { useChat } from './useChat';
+import { useParticipants } from './useParticipants';
 import type { ChatMessage as ChatMessageType } from '@pairux/shared-types';
 
 interface ChatPanelProps {
@@ -40,6 +42,10 @@ export function ChatPanel({
       sessionId,
       participantId,
     });
+
+  const { participants, isLoading: participantsLoading } = useParticipants({
+    sessionId,
+  });
 
   // Message input state
   const [inputValue, setInputValue] = useState('');
@@ -161,6 +167,14 @@ export function ChatPanel({
           </button>
         </div>
       )}
+
+      {/* Participant list */}
+      <ParticipantList
+        participants={participants}
+        currentUserId={currentUserId}
+        currentParticipantId={participantId}
+        isLoading={participantsLoading}
+      />
 
       {/* Message list */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">

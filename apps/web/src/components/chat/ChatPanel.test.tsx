@@ -10,7 +10,13 @@ vi.mock('./useChat', () => ({
   useChat: vi.fn(),
 }));
 
+// Mock the useParticipants hook
+vi.mock('./useParticipants', () => ({
+  useParticipants: vi.fn(),
+}));
+
 import { useChat } from './useChat';
+import { useParticipants } from './useParticipants';
 
 const mockMessages = [
   {
@@ -50,6 +56,13 @@ describe('ChatPanel', () => {
       sendMessage: mockSendMessage,
       loadMore: mockLoadMore,
       reconnect: mockReconnect,
+    });
+
+    vi.mocked(useParticipants).mockReturnValue({
+      participants: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
     });
   });
 

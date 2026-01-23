@@ -105,6 +105,7 @@ export interface ChatMessage {
   content: string;
   message_type: MessageType;
   created_at: string;
+  recipient_id: string | null; // For DMs - when set, message is only visible to sender and recipient
 }
 
 export interface ChatMessageInsert {
@@ -113,6 +114,7 @@ export interface ChatMessageInsert {
   display_name: string;
   content: string;
   message_type?: MessageType;
+  recipient_id?: string | null;
 }
 
 // Session with messages (joined query)
@@ -179,6 +181,7 @@ export interface Database {
           p_session_id: string;
           p_content: string;
           p_participant_id?: string;
+          p_recipient_id?: string;
         };
         Returns: ChatMessage;
       };

@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, Monitor, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { Menu, X, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from './Logo';
 import type { UserData } from './header';
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -81,12 +82,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-lg">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600">
-            <Monitor className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-gray-900">PairUX</span>
-        </Link>
+        <Logo />
 
         {/* Desktop navigation */}
         <div className="hidden md:flex md:items-center md:gap-8">

@@ -19,6 +19,8 @@
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.47.0",
     "clsx": "^2.1.0",
+    "linkify-react": "^4.3.2",
+    "linkifyjs": "^4.3.2",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

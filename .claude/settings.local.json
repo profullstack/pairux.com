@@ -144,7 +144,9 @@
       "Bash(git log:*)",
       "Bash(pnpm --filter @pairux/web lint:*)",
       "Bash(pnpm --filter @pairux/web typecheck:*)",
-      "Bash(pnpm prettier:*)"
+      "Bash(pnpm prettier:*)",
+      "Bash(./.githooks/pre-commit)",
+      "Bash(pnpm run lint:*)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

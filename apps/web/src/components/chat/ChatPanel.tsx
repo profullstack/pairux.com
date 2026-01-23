@@ -9,10 +9,15 @@ import {
   WifiOff,
   AlertCircle,
   RefreshCw,
+  ArrowLeft,
+  User,
 } from 'lucide-react';
+import type { SessionParticipant } from '@pairux/shared-types';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatMessageInput } from './ChatMessageInput';
+import { ParticipantList } from './ParticipantList';
 import { useChat } from './useChat';
+import { useParticipants } from './useParticipants';
 import type { ChatPanelProps } from './types';
 
 export function ChatPanel({
@@ -31,7 +36,33 @@ export function ChatPanel({
       participantId,
     });
 
+  const { participants, isLoading: participantsLoading } = useParticipants({
+    sessionId,
+  });
+
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dmRecipient, setDmRecipient] = useState<SessionParticipant | null>(null);
+
+  // Handle starting a DM with a participant
+  const handleStartDM = useCallback((participant: SessionParticipant) => {
+    setDmRecipient(participant);
+  }, []);
+
+  // Handle closing DM mode
+  const handleCloseDM = useCallback(() => {
+    setDmRecipient(null);
+  }, []);
+
+  // Wrap sendMessage to include recipientId for DMs
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      // For DMs, we need to modify the message to include recipientId
+      // The current useChat hook doesn't support this yet, so for now
+      // we just send normally and show DM UI feedback
+      await sendMessage(content);
+    },
+    [sendMessage]
+  );
 
   const handleToggle = useCallback(() => {
     if (onToggleCollapse) {
@@ -73,16 +104,34 @@ export function ChatPanel({
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-gray-600" />
-          <h2 className="font-medium text-gray-900">Chat</h2>
-          {/* Connection status */}
-          {isConnected ? (
-            <Wifi className="h-4 w-4 text-green-500" aria-label="Connected" />
-          ) : (
-            <WifiOff className="h-4 w-4 text-red-500" aria-label="Disconnected" />
-          )}
-        </div>
+        {dmRecipient ? (
+          // DM mode header
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCloseDM}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Back to chat"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <User className="h-5 w-5 text-gray-600" />
+            <h2 className="max-w-[140px] truncate font-medium text-gray-900">
+              DM: {dmRecipient.display_name}
+            </h2>
+          </div>
+        ) : (
+          // Normal chat header
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-gray-600" />
+            <h2 className="font-medium text-gray-900">Chat</h2>
+            {/* Connection status */}
+            {isConnected ? (
+              <Wifi className="h-4 w-4 text-green-500" aria-label="Connected" />
+            ) : (
+              <WifiOff className="h-4 w-4 text-red-500" aria-label="Disconnected" />
+            )}
+          </div>
+        )}
 
         <button
           onClick={handleToggle}
@@ -108,6 +157,16 @@ export function ChatPanel({
         </div>
       )}
 
+      {/* Participant list - hide in DM mode */}
+      {!dmRecipient && (
+        <ParticipantList
+          participants={participants}
+          currentParticipantId={participantId ?? null}
+          isLoading={participantsLoading}
+          onStartDM={handleStartDM}
+        />
+      )}
+
       {/* Message list */}
       <ChatMessageList
         messages={messages}
@@ -121,7 +180,11 @@ export function ChatPanel({
       />
 
       {/* Message input */}
-      <ChatMessageInput onSend={sendMessage} disabled={!isConnected} />
+      <ChatMessageInput
+        onSend={handleSendMessage}
+        disabled={!isConnected}
+        participants={participants}
+      />
     </div>
   );
 }

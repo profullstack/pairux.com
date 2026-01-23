@@ -7,6 +7,7 @@ const querySchema = z.object({
   sessionId: z.string().uuid('Invalid session ID'),
   limit: z.coerce.number().min(1).max(100).default(100),
   before: z.string().datetime().optional(),
+  recipientId: z.string().uuid().optional(), // For DM threads - filter to messages with this recipient
 });
 
 // GET /api/chat/history - Get chat history for a session
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
       sessionId: searchParams.get('sessionId'),
       limit: searchParams.get('limit') ?? 100,
       before: searchParams.get('before') ?? undefined,
+      recipientId: searchParams.get('recipientId') ?? undefined,
     });
 
     const supabase = await createClient();
@@ -33,6 +35,20 @@ export async function GET(request: Request) {
       .eq('session_id', params.sessionId)
       .order('created_at', { ascending: false })
       .limit(params.limit);
+
+    // Filter for DM threads
+    if (params.recipientId && user) {
+      // Get messages between current user and recipient
+      // This includes messages where:
+      // - Current user sent to recipient, OR
+      // - Recipient sent to current user
+      query = query.or(
+        `and(user_id.eq.${user.id},recipient_id.eq.${params.recipientId}),and(user_id.eq.${params.recipientId},recipient_id.eq.${user.id})`
+      );
+    } else if (!params.recipientId) {
+      // For public chat, only show messages without a recipient
+      query = query.is('recipient_id', null);
+    }
 
     // Pagination: get messages before a certain timestamp
     if (params.before) {

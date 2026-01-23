@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@pairux/shared-types';
+import type { ChatMessage, SessionParticipant } from '@pairux/shared-types';
 
 export interface ChatState {
   messages: ChatMessage[];
@@ -19,6 +19,7 @@ export interface ChatPanelProps {
 export interface ChatMessageProps {
   message: ChatMessage;
   isOwnMessage: boolean;
+  currentUserDisplayName?: string;
 }
 
 export interface ChatMessageListProps {
@@ -34,4 +35,20 @@ export interface ChatMessageInputProps {
   onSend: (content: string) => Promise<void>;
   disabled?: boolean;
   maxLength?: number;
+  participants?: SessionParticipant[];
+}
+
+export interface ParticipantListProps {
+  participants: SessionParticipant[];
+  currentUserId?: string | null;
+  currentParticipantId?: string | null;
+  isLoading?: boolean;
+  onStartDM?: (participant: SessionParticipant) => void;
+  defaultExpanded?: boolean;
+}
+
+export interface ParticipantItemProps {
+  participant: SessionParticipant;
+  isCurrentUser: boolean;
+  onStartDM?: (participant: SessionParticipant) => void;
 }

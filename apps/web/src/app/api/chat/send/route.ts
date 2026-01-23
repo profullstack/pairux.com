@@ -28,7 +28,7 @@ function checkRateLimit(key: string): boolean {
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json().catch(() => ({}));
-    const { sessionId, content, participantId } = sendChatMessageSchema.parse(body);
+    const { sessionId, content, participantId, recipientId } = sendChatMessageSchema.parse(body);
 
     const supabase = await createClient();
 
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       p_session_id: sessionId,
       p_content: content,
       p_participant_id: participantId ?? null,
+      p_recipient_id: recipientId ?? null,
     });
 
     if (error) {

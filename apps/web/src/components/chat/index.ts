@@ -3,9 +3,13 @@ export { ChatPanel } from './ChatPanel';
 export { ChatMessage } from './ChatMessage';
 export { ChatMessageList } from './ChatMessageList';
 export { ChatMessageInput } from './ChatMessageInput';
+export { ParticipantList } from './ParticipantList';
+export { ParticipantItem } from './ParticipantItem';
+export { MentionAutocomplete } from './MentionAutocomplete';
 
-// Hook
+// Hooks
 export { useChat } from './useChat';
+export { useParticipants } from './useParticipants';
 
 // Types
 export type {
@@ -14,4 +18,6 @@ export type {
   ChatMessageProps,
   ChatMessageListProps,
   ChatMessageInputProps,
+  ParticipantListProps,
+  ParticipantItemProps,
 } from './types';

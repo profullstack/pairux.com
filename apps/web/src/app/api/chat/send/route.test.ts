@@ -54,6 +54,7 @@ describe('POST /api/chat/send', () => {
       p_session_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       p_content: 'Hello, world!',
       p_participant_id: null,
+      p_recipient_id: null,
     });
   });
 
@@ -89,6 +90,7 @@ describe('POST /api/chat/send', () => {
       p_session_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       p_content: 'Hello from guest!',
       p_participant_id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+      p_recipient_id: null,
     });
   });
 

@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
+import type { SessionParticipant } from '@pairux/shared-types';
+import { MentionAutocomplete } from './MentionAutocomplete';
+import { getMentionQuery } from '@/lib/parseMentions';
 import type { ChatMessageInputProps } from './types';
 
 const DEFAULT_MAX_LENGTH = 500;
@@ -10,10 +13,15 @@ export function ChatMessageInput({
   onSend,
   disabled = false,
   maxLength = DEFAULT_MAX_LENGTH,
+  participants = [],
 }: ChatMessageInputProps) {
   const [content, setContent] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartIndex, setMentionStartIndex] = useState(0);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
@@ -26,6 +34,53 @@ export function ChatMessageInput({
     // Set to scrollHeight, but cap at 120px (about 5 lines)
     textarea.style.height = `${String(Math.min(textarea.scrollHeight, 120))}px`;
   }, [content]);
+
+  // Handle text change and mention detection
+  const handleContentChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newContent = e.target.value;
+      const cursorPos = e.target.selectionStart;
+      setContent(newContent);
+
+      // Check for mention query
+      if (participants.length > 0) {
+        const mentionInfo = getMentionQuery(newContent, cursorPos);
+        if (mentionInfo) {
+          setShowMentions(true);
+          setMentionQuery(mentionInfo.query);
+          setMentionStartIndex(mentionInfo.startIndex);
+          setSelectedMentionIndex(0);
+        } else {
+          setShowMentions(false);
+        }
+      }
+    },
+    [participants]
+  );
+
+  // Handle mention selection
+  const handleMentionSelect = useCallback(
+    (participant: SessionParticipant) => {
+      const before = content.slice(0, mentionStartIndex);
+      const after = content.slice(mentionStartIndex + 1 + mentionQuery.length);
+      const newContent = `${before}@${participant.display_name} ${after}`;
+      setContent(newContent);
+      setShowMentions(false);
+
+      // Focus back on textarea
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newCursorPos = mentionStartIndex + participant.display_name.length + 2;
+        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    },
+    [content, mentionStartIndex, mentionQuery]
+  );
+
+  // Close mention autocomplete
+  const handleMentionClose = useCallback(() => {
+    setShowMentions(false);
+  }, []);
 
   const handleSubmit = useCallback(
     async (e?: React.FormEvent) => {
@@ -53,15 +108,51 @@ export function ChatMessageInput({
     [content, isSending, disabled, onSend]
   );
 
+  // Get filtered participants for autocomplete
+  const filteredParticipants = participants.filter((p) =>
+    p.display_name.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Handle mention autocomplete navigation
+      if (showMentions && filteredParticipants.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSelectedMentionIndex((prev) =>
+            prev < filteredParticipants.length - 1 ? prev + 1 : 0
+          );
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSelectedMentionIndex((prev) =>
+            prev > 0 ? prev - 1 : filteredParticipants.length - 1
+          );
+          return;
+        }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          const selected = filteredParticipants[selectedMentionIndex];
+          if (selected) {
+            handleMentionSelect(selected);
+          }
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setShowMentions(false);
+          return;
+        }
+      }
+
       // Enter to send, Shift+Enter for newline
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         void handleSubmit();
       }
     },
-    [handleSubmit]
+    [handleSubmit, showMentions, filteredParticipants, selectedMentionIndex, handleMentionSelect]
   );
 
   const handleFormSubmit = useCallback(
@@ -86,16 +177,26 @@ export function ChatMessageInput({
           <textarea
             ref={textareaRef}
             value={content}
-            onChange={(e) => {
-              setContent(e.target.value);
-            }}
+            onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             disabled={disabled || isSending}
-            placeholder="Type a message..."
+            placeholder="Type a message... (use @ to mention)"
             rows={1}
             className="focus:border-primary-500 focus:ring-primary-500 block w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
             data-testid="chat-input"
           />
+
+          {/* Mention autocomplete */}
+          {showMentions && participants.length > 0 && (
+            <MentionAutocomplete
+              participants={participants}
+              query={mentionQuery}
+              onSelect={handleMentionSelect}
+              onClose={handleMentionClose}
+              selectedIndex={selectedMentionIndex}
+              onSelectedIndexChange={setSelectedMentionIndex}
+            />
+          )}
 
           {/* Character count */}
           {showCharCount && (

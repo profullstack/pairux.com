@@ -5,8 +5,7 @@ import type { CaptureSource } from '@pairux/shared-types';
 // Detect display server
 const isWayland =
   process.platform === 'linux' &&
-  (process.env.XDG_SESSION_TYPE === 'wayland' ||
-    process.env.WAYLAND_DISPLAY !== undefined);
+  (process.env.XDG_SESSION_TYPE === 'wayland' || process.env.WAYLAND_DISPLAY !== undefined);
 
 export function registerIpcHandlers(): void {
   console.log('[IPC] Registering IPC handlers');
@@ -14,10 +13,7 @@ export function registerIpcHandlers(): void {
   // Capture handlers
   ipcMain.handle(
     'capture:getSources',
-    async (
-      _event,
-      args: { types: ('screen' | 'window')[] }
-    ): Promise<CaptureSource[]> => {
+    async (_event, args: { types: ('screen' | 'window')[] }): Promise<CaptureSource[]> => {
       console.log('[IPC] capture:getSources called with types:', args.types);
       return getCaptureSources(args.types);
     }

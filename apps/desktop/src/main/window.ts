@@ -57,26 +57,24 @@ export async function createMainWindow(): Promise<BrowserWindow> {
   });
 
   // Handle permission requests
-  session.defaultSession.setPermissionRequestHandler(
-    (_webContents, permission, callback) => {
-      const allowedPermissions = [
-        'media',
-        'display-capture',
-        'mediaKeySystem',
-        'geolocation',
-        'notifications',
-        'fullscreen',
-      ];
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    const allowedPermissions = [
+      'media',
+      'display-capture',
+      'mediaKeySystem',
+      'geolocation',
+      'notifications',
+      'fullscreen',
+    ];
 
-      if (allowedPermissions.includes(permission)) {
-        console.log('[Main] Permission granted:', permission);
-        callback(true);
-      } else {
-        console.log('[Main] Permission denied:', permission);
-        callback(false);
-      }
+    if (allowedPermissions.includes(permission)) {
+      console.log('[Main] Permission granted:', permission);
+      callback(true);
+    } else {
+      console.log('[Main] Permission denied:', permission);
+      callback(false);
     }
-  );
+  });
 
   // Show window when ready to prevent visual flash
   mainWindow.on('ready-to-show', () => {

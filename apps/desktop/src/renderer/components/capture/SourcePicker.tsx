@@ -48,7 +48,9 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
       <div className="flex items-center gap-2">
         <div className="flex rounded-lg bg-muted p-1">
           <button
-            onClick={() => { setActiveTab('screen'); }}
+            onClick={() => {
+              setActiveTab('screen');
+            }}
             className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'screen'
                 ? 'bg-background text-foreground shadow-sm'
@@ -59,7 +61,9 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
             Screens ({screens.length})
           </button>
           <button
-            onClick={() => { setActiveTab('window'); }}
+            onClick={() => {
+              setActiveTab('window');
+            }}
             className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'window'
                 ? 'bg-background text-foreground shadow-sm'
@@ -74,7 +78,9 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
         <div className="flex-1" />
 
         <button
-          onClick={() => { void loadSources(); }}
+          onClick={() => {
+            void loadSources();
+          }}
           disabled={loading}
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
         >
@@ -84,11 +90,7 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
       </div>
 
       {/* Error state */}
-      {error && (
-        <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-lg bg-destructive/10 p-4 text-destructive">{error}</div>}
 
       {/* Loading state */}
       {loading && !sources.length && (

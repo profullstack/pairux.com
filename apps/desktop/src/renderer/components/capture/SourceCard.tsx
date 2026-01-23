@@ -11,7 +11,9 @@ export function SourceCard({ source, onSelect }: SourceCardProps) {
 
   return (
     <button
-      onClick={() => { onSelect(source); }}
+      onClick={() => {
+        onSelect(source);
+      }}
       className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary hover:ring-2 hover:ring-primary/20"
     >
       {/* Thumbnail */}

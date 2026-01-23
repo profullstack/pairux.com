@@ -37,9 +37,7 @@ export function CapturePreview({ stream, source, onStop }: CapturePreviewProps) 
             <AppWindow className="h-5 w-5 text-primary" />
           )}
           <div>
-            <h2 className="text-lg font-semibold">
-              {source?.name ?? 'Capturing'}
-            </h2>
+            <h2 className="text-lg font-semibold">{source?.name ?? 'Capturing'}</h2>
             <p className="text-sm text-muted-foreground">
               {isScreen ? 'Screen' : 'Window'} capture active
             </p>
@@ -57,13 +55,7 @@ export function CapturePreview({ stream, source, onStop }: CapturePreviewProps) 
 
       {/* Video preview */}
       <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="h-full w-full object-contain"
-        />
+        <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-contain" />
 
         {/* Live indicator */}
         <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5">

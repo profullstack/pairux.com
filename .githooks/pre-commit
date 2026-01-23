@@ -48,6 +48,27 @@ if [ -z "$STAGED_FILES" ]; then
     exit 0
 fi
 
+# 0. Format staged files (auto-fix)
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📋 Formatting staged files"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Get staged files that Prettier can format
+PRETTIER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx|json|md|css|scss|html|yaml|yml)$' || true)
+
+if [ -n "$PRETTIER_FILES" ]; then
+    # Format the files
+    echo "$PRETTIER_FILES" | xargs pnpm prettier --write
+    
+    # Re-stage the formatted files
+    echo "$PRETTIER_FILES" | xargs git add
+    
+    echo "${GREEN}✅ Formatting complete${NC}"
+else
+    echo "No formattable files staged."
+fi
+echo ""
+
 # 1. Linting
 run_check "ESLint" "pnpm lint"
 

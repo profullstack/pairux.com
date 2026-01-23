@@ -172,9 +172,7 @@ describe('GET /api/chat/history', () => {
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
 
     const sessionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-    const request = new Request(
-      `http://localhost/api/chat/history?sessionId=${sessionId}&limit=2`
-    );
+    const request = new Request(`http://localhost/api/chat/history?sessionId=${sessionId}&limit=2`);
 
     const response = await GET(request);
     const body = await response.json();

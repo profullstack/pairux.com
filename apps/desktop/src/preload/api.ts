@@ -83,11 +83,13 @@ export interface IPCChannels {
 
   'session:get': {
     args: { sessionId: string };
-    return: {
-      success: true;
-      session: Session;
-      participants: SessionParticipant[];
-    } | { success: false; error: string };
+    return:
+      | {
+          success: true;
+          session: Session;
+          participants: SessionParticipant[];
+        }
+      | { success: false; error: string };
   };
 
   // Chat channels
@@ -98,11 +100,13 @@ export interface IPCChannels {
 
   'chat:getHistory': {
     args: { sessionId: string; limit?: number; before?: string };
-    return: {
-      success: true;
-      messages: ChatMessage[];
-      hasMore: boolean;
-    } | { success: false; error: string };
+    return:
+      | {
+          success: true;
+          messages: ChatMessage[];
+          hasMore: boolean;
+        }
+      | { success: false; error: string };
   };
 }
 

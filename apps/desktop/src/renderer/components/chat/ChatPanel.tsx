@@ -192,7 +192,11 @@ export function ChatPanel({
             )}
 
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} isOwnMessage={isOwnMessage(message)} />
+              <ChatMessage
+                key={message.id}
+                message={message}
+                isOwnMessage={isOwnMessage(message)}
+              />
             ))}
 
             <div ref={messagesEndRef} />
@@ -219,14 +223,14 @@ export function ChatPanel({
               disabled={!isConnected || isSending}
               placeholder="Type a message..."
               rows={1}
-              className="block w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="block w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
               style={{ minHeight: '40px', maxHeight: '120px' }}
             />
 
             {/* Character count */}
             {inputValue.length > MAX_MESSAGE_LENGTH * 0.8 && (
               <span
-                className={`absolute right-2 bottom-2 text-xs ${
+                className={`absolute bottom-2 right-2 text-xs ${
                   inputValue.length > MAX_MESSAGE_LENGTH
                     ? 'text-destructive'
                     : 'text-muted-foreground'
@@ -245,9 +249,13 @@ export function ChatPanel({
               isSending ||
               !isConnected
             }
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            {isSending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
           </button>
         </div>
 

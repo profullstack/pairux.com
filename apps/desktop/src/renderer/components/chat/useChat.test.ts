@@ -3,7 +3,8 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChat } from './useChat';
 
 // Get the mock API from setup
-const mockElectronAPI = (window as unknown as { electronAPI: { invoke: ReturnType<typeof vi.fn> } }).electronAPI;
+const mockElectronAPI = (window as unknown as { electronAPI: { invoke: ReturnType<typeof vi.fn> } })
+  .electronAPI;
 
 describe('useChat', () => {
   beforeEach(() => {

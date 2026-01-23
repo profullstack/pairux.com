@@ -87,8 +87,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      setUser: (user) => { set({ user }); },
-      setProfile: (profile) => { set({ profile }); },
+      setUser: (user) => {
+        set({ user });
+      },
+      setProfile: (profile) => {
+        set({ profile });
+      },
     }),
     {
       name: 'pairux-auth',

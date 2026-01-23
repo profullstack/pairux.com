@@ -1,11 +1,6 @@
 import { ipcMain, shell } from 'electron';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import {
-  storeAuth,
-  getStoredAuth,
-  clearStoredAuth,
-  isAuthExpired,
-} from '../auth/secure-storage';
+import { storeAuth, getStoredAuth, clearStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
 
 let supabaseClient: SupabaseClient | null = null;
@@ -71,7 +66,9 @@ export function registerAuthHandlers(): void {
         storeAuth({
           accessToken: data.session.access_token,
           refreshToken: data.session.refresh_token,
-          expiresAt: data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600000,
+          expiresAt: data.session.expires_at
+            ? data.session.expires_at * 1000
+            : Date.now() + 3600000,
           user: { id: data.user.id, email: data.user.email ?? '' },
         });
 

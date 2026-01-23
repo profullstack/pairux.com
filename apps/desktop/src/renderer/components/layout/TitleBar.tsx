@@ -32,7 +32,9 @@ export function TitleBar() {
       {user && (
         <div className="no-drag relative">
           <button
-            onClick={() => { setShowMenu(!showMenu); }}
+            onClick={() => {
+              setShowMenu(!showMenu);
+            }}
             className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <User className="h-3.5 w-3.5" />
@@ -43,7 +45,12 @@ export function TitleBar() {
           {showMenu && (
             <>
               {/* Backdrop to close menu */}
-              <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); }} />
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => {
+                  setShowMenu(false);
+                }}
+              />
 
               {/* Dropdown menu */}
               <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-border bg-card py-1 shadow-lg">

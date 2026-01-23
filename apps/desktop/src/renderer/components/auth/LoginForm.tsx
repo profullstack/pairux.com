@@ -87,7 +87,9 @@ export function LoginForm() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); }}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
                 placeholder="you@example.com"
                 className="pl-10"
                 autoComplete="email"
@@ -114,7 +116,9 @@ export function LoginForm() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
                 placeholder="Enter your password"
                 className="pl-10 pr-10"
                 autoComplete="current-password"
@@ -122,7 +126,9 @@ export function LoginForm() {
               />
               <button
                 type="button"
-                onClick={() => { setShowPassword(!showPassword); }}
+                onClick={() => {
+                  setShowPassword(!showPassword);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -7,12 +7,12 @@ import { Footer } from '@/components/footer';
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Transparent, usage-based pricing. Pay only for what you use. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
+    'Simple flat-rate pricing. No per-seat fees. $12/mo for Pro, $49/mo for Team. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
 };
 
 const pricingTiers = [
   {
-    name: 'Free Tier',
+    name: 'Free',
     description: 'Perfect for personal use and small teams',
     price: '$0',
     priceDetail: 'forever',
@@ -29,65 +29,65 @@ const pricingTiers = [
     highlighted: false,
   },
   {
-    name: 'Usage-Based',
-    description: 'For webinars, broadcasts, and large audiences',
-    price: '$0.08',
-    priceDetail: 'per viewer-hour (720p)',
+    name: 'Pro',
+    description: 'For professionals and growing teams',
+    price: '$12',
+    priceDetail: 'month',
     features: [
-      'Unlimited viewers',
+      '10 participants + 50 viewers',
+      '100 viewer-hours/month included',
+      '$0.08/hour overage (720p)',
       'SFU relay servers',
-      'Screen sharing',
-      'Remote control',
-      'Real-time cost tracking',
+      'HD screen sharing (1080p)',
       'Priority support',
     ],
-    cta: 'Start Free',
+    cta: 'Start Free Trial',
     ctaHref: '/signup',
     highlighted: true,
   },
   {
-    name: 'Enterprise',
-    description: 'Volume discounts and dedicated infrastructure',
-    price: 'Custom',
-    priceDetail: 'contact us',
+    name: 'Team',
+    description: 'For teams and organizations',
+    price: '$49',
+    priceDetail: 'month',
     features: [
-      'Volume discounts (down to $0.06)',
-      'Dedicated SFU clusters',
-      'SLA guarantees',
-      'Custom integrations',
-      'On-premise option',
-      'Dedicated support',
+      'Unlimited participants',
+      '500 viewer-hours/month included',
+      '$0.08/hour overage (720p)',
+      'Dedicated SFU servers',
+      '4K screen sharing',
+      'Admin controls',
     ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:sales@pairux.com',
+    cta: 'Start Free Trial',
+    ctaHref: '/signup',
     highlighted: false,
   },
 ];
 
 const comparisonData = [
   {
-    viewers: '1,000',
-    duration: '1 hour',
-    pairux: '$80',
-    competitors: '$150–$300',
+    plan: 'Free',
+    pairux: '$0',
+    zoom: '$0 (40 min limit)',
+    teams: '$0 (60 min limit)',
   },
   {
-    viewers: '10,000',
-    duration: '1 hour',
-    pairux: '$800',
-    competitors: '$1,500–$3,000',
+    plan: 'Pro / Small Team',
+    pairux: '$12/mo',
+    zoom: '$16/mo/host',
+    teams: '$12.50/mo/user',
   },
   {
-    viewers: '50,000',
-    duration: '1 hour',
-    pairux: '$4,000',
-    competitors: '$7,500–$15,000',
+    plan: 'Team / Business',
+    pairux: '$49/mo',
+    zoom: '$22/mo/host',
+    teams: '$22/mo/user',
   },
   {
-    viewers: '100,000',
-    duration: '1 hour',
-    pairux: '$8,000',
-    competitors: '$15,000–$30,000',
+    plan: '10-person team',
+    pairux: '$49/mo total',
+    zoom: '$220/mo',
+    teams: '$220/mo',
   },
 ];
 
@@ -120,7 +120,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'Pay-as-you-go',
+    feature: 'Simple flat-rate plans',
     pairux: true,
     zoom: false,
     teams: false,
@@ -178,13 +178,13 @@ const competitorComparison = [
 const advantages = [
   {
     icon: DollarSign,
-    title: 'Transparent Pricing',
-    description: 'No hidden fees, no seat licenses. You see exactly what you pay for in real-time.',
+    title: 'No Per-Seat Fees',
+    description: 'One price for your whole team. Add users without adding cost.',
   },
   {
     icon: Zap,
     title: 'No Lock-in',
-    description: 'No annual contracts or commitments. Scale up or down instantly.',
+    description: 'No annual contracts or commitments. Cancel anytime.',
   },
   {
     icon: Shield,
@@ -212,7 +212,7 @@ export default function PricingPage() {
                 40–70% Cheaper Than the Big Guys
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Transparent, usage-based pricing. No seat licenses, no annual contracts,
+                Simple flat-rate pricing. No per-seat fees, no annual contracts,
                 no enterprise sales calls.
               </p>
             </div>
@@ -283,19 +283,19 @@ export default function PricingPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b-2 border-gray-200">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Viewers</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Duration</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Plan</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-primary-600">PairUX</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500">Zoom / Teams</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500">Zoom</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500">Teams</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisonData.map((row, i) => (
                     <tr key={i} className="border-b border-gray-100">
-                      <td className="px-4 py-4 text-sm text-gray-700">{row.viewers}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{row.duration}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{row.plan}</td>
                       <td className="px-4 py-4 text-sm font-semibold text-primary-600">{row.pairux}</td>
-                      <td className="px-4 py-4 text-sm text-gray-500">{row.competitors}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{row.zoom}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{row.teams}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -303,7 +303,7 @@ export default function PricingPage() {
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-500">
-              * Competitor pricing based on typical enterprise plan costs. Actual prices vary.
+              * PairUX charges per team, not per user. No seat-based licensing.
             </p>
           </div>
         </section>
@@ -419,22 +419,22 @@ export default function PricingPage() {
             <div className="mt-10 space-y-6">
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  How does usage-based pricing work?
+                  What&apos;s included in viewer-hours?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  You pay $0.08 per viewer-hour at 720p resolution. If you have 1,000 viewers
-                  watching for 1 hour, that&apos;s $80. Simple math, no surprises. You can track
-                  costs in real-time from your dashboard.
+                  Viewer-hours measure the total time viewers spend watching your streams via our
+                  SFU relay servers. Pro includes 100 hours/month, Team includes 500 hours/month.
+                  Most users never exceed their allotment.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  What about 1080p or 4K streams?
+                  What happens if I exceed my viewer-hours?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  Higher resolutions cost more due to increased bandwidth. 1080p is approximately
-                  25-50% more than 720p. Contact us for 4K pricing as it requires dedicated infrastructure.
+                  We&apos;ll notify you when you&apos;re approaching your limit. Additional hours are billed
+                  at $0.08/viewer-hour (720p) or $0.12/hour (1080p). We&apos;ll never cut off your stream mid-session.
                 </p>
               </div>
 
@@ -443,8 +443,8 @@ export default function PricingPage() {
                   Is the free tier really free?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  Yes! P2P connections between 2 participants are completely free, forever.
-                  We only charge when you use our SFU relay servers for larger audiences.
+                  Yes! P2P connections between 2 participants + up to 5 viewers are completely free, forever.
+                  No time limits, no credit card required. Great for pair programming and small demos.
                 </p>
               </div>
 
@@ -454,19 +454,17 @@ export default function PricingPage() {
                 </h3>
                 <p className="mt-2 text-gray-600">
                   Absolutely. PairUX is open source under the MIT license. You can run your own
-                  SFU infrastructure if you prefer. We estimate infrastructure costs around $40
-                  per 1,000 viewer-hours.
+                  SFU infrastructure if you prefer. Great for enterprises with specific security requirements.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  Why are you so much cheaper than Zoom?
+                  Why are you cheaper than Zoom and Teams?
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  We don&apos;t have seat-based licensing, annual contracts, or enterprise sales teams.
-                  Our pricing reflects actual infrastructure costs plus a margin. No subsidizing
-                  features you don&apos;t use.
+                  We charge per team, not per seat. A 10-person team pays $49/month total with PairUX,
+                  vs $220/month with Zoom or Teams. No enterprise sales teams means lower overhead for you.
                 </p>
               </div>
             </div>
@@ -480,8 +478,8 @@ export default function PricingPage() {
               Ready to save on video infrastructure?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-primary-100">
-              Start with the free tier for P2P sessions, or try usage-based pricing
-              for your next webinar.
+              Start free with P2P sessions, or upgrade to Pro for just $12/month.
+              No per-seat fees ever.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link

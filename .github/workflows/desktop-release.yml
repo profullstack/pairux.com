@@ -97,6 +97,11 @@ jobs:
       - name: Build desktop app
         run: pnpm --filter @pairux/desktop build
         env:
+          # TURN server configuration
+          TURN_SERVER_URL: ${{ secrets.TURN_SERVER_URL }}
+          TURN_SERVER_USERNAME: ${{ secrets.TURN_SERVER_USERNAME }}
+          TURN_SERVER_CREDENTIAL: ${{ secrets.TURN_SERVER_CREDENTIAL }}
+          TURNS_SERVER_URL: ${{ secrets.TURNS_SERVER_URL }}
           # macOS signing
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}

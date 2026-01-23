@@ -77,6 +77,23 @@ export const createSessionSchema = z.object({
   maxParticipants: z.number().min(1).max(10).default(5),
 });
 
+// Chat message schema
+export const sendChatMessageSchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID'),
+  content: z
+    .string()
+    .min(1, 'Message cannot be empty')
+    .max(500, 'Message must be less than 500 characters'),
+  participantId: z.string().uuid('Invalid participant ID').optional(),
+});
+
+// Chat history query schema
+export const chatHistorySchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID'),
+  limit: z.coerce.number().min(1).max(100).default(100),
+  before: z.string().datetime().optional(), // For pagination - get messages before this timestamp
+});
+
 // Type exports
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -85,3 +102,5 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type JoinSessionInput = z.infer<typeof joinSessionSchema>;
 export type GuestJoinInput = z.infer<typeof guestJoinSchema>;
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
+export type SendChatMessageInput = z.infer<typeof sendChatMessageSchema>;
+export type ChatHistoryInput = z.infer<typeof chatHistorySchema>;

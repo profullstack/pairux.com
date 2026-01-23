@@ -137,9 +137,18 @@
       "Bash(/tmp/test-electron/node_modules/electron/dist/electron:*)",
       "Bash(node --version:*)",
       "Bash(source ~/.nvm/nvm.sh nvm list)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(pnpm --filter web test -- --run src/app/api/chat)",
+      "Bash(pnpm --filter web test:*)",
+      "Bash(pnpm:*)",
+      "Bash(git log:*)",
+      "Bash(pnpm --filter @pairux/web lint:*)",
+      "Bash(pnpm --filter @pairux/web typecheck:*)"
     ],
-    "deny": ["Bash(npm *)", "Bash(npx *)"],
+    "deny": [
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

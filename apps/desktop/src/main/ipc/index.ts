@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron';
 import { getCaptureSources } from '../capture/sources';
 import { registerAuthHandlers } from './auth';
+import { registerSessionHandlers } from './session';
+import { registerChatHandlers } from './chat';
 import type { CaptureSource } from '@pairux/shared-types';
 
 // Detect display server
@@ -13,6 +15,12 @@ export function registerIpcHandlers(): void {
 
   // Register auth handlers
   registerAuthHandlers();
+
+  // Register session handlers
+  registerSessionHandlers();
+
+  // Register chat handlers
+  registerChatHandlers();
 
   // Capture handlers
   ipcMain.handle(

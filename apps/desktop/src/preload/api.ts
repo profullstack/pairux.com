@@ -1,4 +1,10 @@
-import type { CaptureSource, Profile } from '@pairux/shared-types';
+import type {
+  CaptureSource,
+  Profile,
+  Session,
+  SessionParticipant,
+  ChatMessage,
+} from '@pairux/shared-types';
 
 /**
  * IPC Channel definitions for type-safe communication between
@@ -10,6 +16,12 @@ export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos';
 export interface AuthUser {
   id: string;
   email: string;
+}
+
+// Session settings for creation
+export interface CreateSessionSettings {
+  allowGuestControl?: boolean;
+  maxParticipants?: number;
 }
 
 // Request/response channels (invoke pattern)
@@ -56,6 +68,41 @@ export interface IPCChannels {
   'auth:openExternal': {
     args: string;
     return: Promise<void>;
+  };
+
+  // Session channels
+  'session:create': {
+    args: CreateSessionSettings | undefined;
+    return: { success: true; session: Session } | { success: false; error: string };
+  };
+
+  'session:end': {
+    args: { sessionId: string };
+    return: { success: true } | { success: false; error: string };
+  };
+
+  'session:get': {
+    args: { sessionId: string };
+    return: {
+      success: true;
+      session: Session;
+      participants: SessionParticipant[];
+    } | { success: false; error: string };
+  };
+
+  // Chat channels
+  'chat:send': {
+    args: { sessionId: string; content: string };
+    return: { success: true; message: ChatMessage } | { success: false; error: string };
+  };
+
+  'chat:getHistory': {
+    args: { sessionId: string; limit?: number; before?: string };
+    return: {
+      success: true;
+      messages: ChatMessage[];
+      hasMore: boolean;
+    } | { success: false; error: string };
   };
 }
 

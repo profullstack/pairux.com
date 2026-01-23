@@ -14,10 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Set version from tag or manual input
-  VERSION: ${{ github.event.inputs.version || github.ref_name }}
-
 jobs:
   build:
     strategy:
@@ -33,12 +29,12 @@ jobs:
           - os: windows-latest
             platform: win
             arch: x64
-          - os: windows-latest
-            platform: win
-            arch: arm64
           - os: ubuntu-latest
             platform: linux
             arch: x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: arm64
 
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.platform }}-${{ matrix.arch }}
@@ -107,13 +103,10 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Windows signing
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-          # Build config
-          ELECTRON_BUILDER_ARCH: ${{ matrix.arch }}
 
       - name: Package desktop app
-        run: pnpm --filter @pairux/desktop package:${{ matrix.platform }}
+        run: pnpm --filter @pairux/desktop package:${{ matrix.platform }} -- --${{ matrix.arch }}
         env:
-          ELECTRON_BUILDER_ARCH: ${{ matrix.arch }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
@@ -121,13 +114,13 @@ jobs:
         with:
           name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            apps/desktop/dist/*.dmg
-            apps/desktop/dist/*.zip
-            apps/desktop/dist/*.msi
-            apps/desktop/dist/*.exe
-            apps/desktop/dist/*.AppImage
-            apps/desktop/dist/*.deb
-            apps/desktop/dist/*.rpm
+            apps/desktop/out/*.dmg
+            apps/desktop/out/*.zip
+            apps/desktop/out/*.msi
+            apps/desktop/out/*.exe
+            apps/desktop/out/*.AppImage
+            apps/desktop/out/*.deb
+            apps/desktop/out/*.rpm
           retention-days: 7
 
   release:
@@ -140,12 +133,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          # Strip 'v' prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: desktop-*
           merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la dist/
 
       - name: Generate checksums
         run: |
@@ -156,7 +165,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: PairUX ${{ env.VERSION }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: PairUX ${{ steps.version.outputs.version }}
           draft: true
           generate_release_notes: true
           files: |

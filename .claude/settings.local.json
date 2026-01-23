@@ -107,7 +107,8 @@
       "Bash(pnpm --filter @pairux/desktop lint:fix:*)",
       "Bash(pnpm --filter @pairux/installer lint:*)",
       "Bash(pnpm --filter @pairux/installer build:*)",
-      "Bash(pnpm --filter @pairux/installer typecheck:*)"
+      "Bash(pnpm --filter @pairux/installer typecheck:*)",
+      "Bash(bash -n:*)"
     ],
     "deny": [
       "Bash(npm *)",

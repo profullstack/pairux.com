@@ -10,6 +10,7 @@
 $ErrorActionPreference = 'Stop'
 
 # Configuration
+$GitHubRepo = 'profullstack/pairux.com'
 $InstallerUrl = if ($env:PAIRUX_INSTALLER_URL) { $env:PAIRUX_INSTALLER_URL } else { 'https://installer.pairux.com' }
 $InstallDir = if ($env:PAIRUX_INSTALL_DIR) { $env:PAIRUX_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'PairUX' }
 $BinDir = if ($env:PAIRUX_BIN_DIR) { $env:PAIRUX_BIN_DIR } else { Join-Path $InstallDir 'bin' }
@@ -52,15 +53,35 @@ function Get-Platform {
     }
 }
 
-# Get latest version
+# Get latest version from GitHub releases
 function Get-LatestVersion {
     try {
-        $version = Invoke-RestMethod -Uri "$InstallerUrl/api/version" -UseBasicParsing
-        return $version.Trim()
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$GitHubRepo/releases/latest" -UseBasicParsing
+        $version = $release.tag_name -replace '^v', ''
+        return $version
     }
     catch {
-        Write-Error "Failed to fetch latest version. Check your internet connection. Error: $_"
+        # Fallback to installer service
+        try {
+            $version = Invoke-RestMethod -Uri "$InstallerUrl/api/version" -UseBasicParsing
+            return $version.Trim()
+        }
+        catch {
+            Write-Error "Failed to fetch latest version. Check your internet connection. Error: $_"
+        }
     }
+}
+
+# Get download URL for platform
+function Get-DownloadUrl {
+    param(
+        [string]$Platform,
+        [string]$Version
+    )
+
+    # Windows uses NSIS installer
+    $filename = "PairUX-Setup-$Version.exe"
+    return "https://github.com/$GitHubRepo/releases/download/v$Version/$filename"
 }
 
 # Download file
@@ -92,29 +113,18 @@ function Install-PairUX {
     try {
         Write-Info "Downloading PairUX $Version for $Platform..."
 
-        $downloadUrl = "$InstallerUrl/download/$Version/$Platform"
-        $archivePath = Join-Path $tempDir 'pairux.zip'
+        $downloadUrl = Get-DownloadUrl -Platform $Platform -Version $Version
+        $installerPath = Join-Path $tempDir 'PairUX-Setup.exe'
 
-        Get-Download -Url $downloadUrl -OutFile $archivePath
+        Get-Download -Url $downloadUrl -OutFile $installerPath
 
-        Write-Info 'Extracting...'
+        Write-Info 'Running installer...'
 
-        # Create install directory
-        if (-not (Test-Path $InstallDir)) {
-            New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-        }
+        # Run the NSIS installer silently
+        $process = Start-Process -FilePath $installerPath -ArgumentList '/S', "/D=$InstallDir" -Wait -PassThru
 
-        # Extract archive
-        Expand-Archive -Path $archivePath -DestinationPath $InstallDir -Force
-
-        # Create bin directory and copy executable
-        if (-not (Test-Path $BinDir)) {
-            New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
-        }
-
-        $exePath = Join-Path $InstallDir 'pairux.exe'
-        if (Test-Path $exePath) {
-            Copy-Item -Path $exePath -Destination (Join-Path $BinDir 'pairux.exe') -Force
+        if ($process.ExitCode -ne 0) {
+            Write-Error "Installer failed with exit code: $($process.ExitCode)"
         }
 
         Write-Success "PairUX $Version installed successfully!"

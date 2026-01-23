@@ -10,10 +10,66 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Configuration
 const PORT = parseInt(process.env.PORT ?? '8080', 10);
-const RELEASES_DIR = process.env.RELEASES_DIR ?? join(__dirname, '../releases');
 const SCRIPTS_DIR = process.env.SCRIPTS_DIR ?? join(__dirname, '../scripts');
-const LATEST_VERSION = process.env.LATEST_VERSION ?? '0.1.0';
 const BASE_URL = process.env.BASE_URL ?? 'https://installer.pairux.com';
+const GITHUB_REPO = process.env.GITHUB_REPO ?? 'profullstack/pairux.com';
+const FALLBACK_VERSION = process.env.LATEST_VERSION ?? '0.1.0';
+
+// Cache for GitHub version
+let cachedVersion: { version: string; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Fetch latest version from GitHub releases
+async function getLatestVersion(): Promise<string> {
+  // Check cache
+  if (cachedVersion && Date.now() - cachedVersion.timestamp < CACHE_TTL) {
+    return cachedVersion.version;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
+      {
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'PairUX-Installer',
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = (await response.json()) as { tag_name: string };
+      const version = data.tag_name.replace(/^v/, '');
+      cachedVersion = { version, timestamp: Date.now() };
+      return version;
+    }
+  } catch (error) {
+    console.error('Failed to fetch version from GitHub:', error);
+  }
+
+  return FALLBACK_VERSION;
+}
+
+// Get GitHub download URL for platform
+function getGitHubDownloadUrl(version: string, platform: string): string {
+  const baseUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${version}`;
+
+  // Map platform to electron-builder output filenames
+  switch (platform) {
+    case 'darwin-x64':
+      return `${baseUrl}/PairUX-${version}-mac-x64.zip`;
+    case 'darwin-arm64':
+      return `${baseUrl}/PairUX-${version}-mac-arm64.zip`;
+    case 'linux-x64':
+      return `${baseUrl}/PairUX-${version}.AppImage`;
+    case 'linux-arm64':
+      return `${baseUrl}/PairUX-${version}-arm64.AppImage`;
+    case 'windows-x64':
+      return `${baseUrl}/PairUX-Setup-${version}.exe`;
+    default:
+      return '';
+  }
+}
 
 // Supported platforms
 const PLATFORMS = [
@@ -33,20 +89,22 @@ app.use('*', logger());
 app.use('*', cors());
 
 // Health check
-app.get('/health', (c) => {
+app.get('/health', async (c) => {
+  const version = await getLatestVersion();
   return c.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: LATEST_VERSION,
+    version,
   });
 });
 
 // Root - service info
-app.get('/', (c) => {
+app.get('/', async (c) => {
+  const latestVersion = await getLatestVersion();
   return c.json({
     name: 'PairUX Installer Service',
     version: '0.1.0',
-    latestRelease: LATEST_VERSION,
+    latestRelease: latestVersion,
     install: {
       unix: `curl -fsSL ${BASE_URL}/install.sh | bash`,
       windows: `irm ${BASE_URL}/install.ps1 | iex`,
@@ -59,27 +117,31 @@ app.get('/', (c) => {
       version: '/api/version',
       releases: '/api/releases',
       download: '/download/:version/:platform',
-      checksums: '/checksums/:version',
     },
+    github: `https://github.com/${GITHUB_REPO}/releases`,
   });
 });
 
 // Get latest version (plain text)
-app.get('/api/version', (c) => {
-  return c.text(LATEST_VERSION);
+app.get('/api/version', async (c) => {
+  const version = await getLatestVersion();
+  return c.text(version);
 });
 
 // Get release info
-app.get('/api/releases', (c) => {
+app.get('/api/releases', async (c) => {
+  const latestVersion = await getLatestVersion();
   const downloads: Record<string, string> = {};
+
   for (const platform of PLATFORMS) {
-    downloads[platform] = `/download/${LATEST_VERSION}/${platform}`;
+    downloads[platform] = getGitHubDownloadUrl(latestVersion, platform);
   }
 
   return c.json({
-    latest: LATEST_VERSION,
+    latest: latestVersion,
     platforms: PLATFORMS,
     downloads,
+    github: `https://github.com/${GITHUB_REPO}/releases/tag/v${latestVersion}`,
   });
 });
 
@@ -87,14 +149,16 @@ app.get('/api/releases', (c) => {
 app.get('/api/releases/:version', (c) => {
   const version = c.req.param('version');
   const downloads: Record<string, string> = {};
+
   for (const platform of PLATFORMS) {
-    downloads[platform] = `/download/${version}/${platform}`;
+    downloads[platform] = getGitHubDownloadUrl(version, platform);
   }
 
   return c.json({
     version,
     platforms: PLATFORMS,
     downloads,
+    github: `https://github.com/${GITHUB_REPO}/releases/tag/v${version}`,
   });
 });
 
@@ -128,7 +192,7 @@ app.get('/install.ps1', (c) => {
   });
 });
 
-// Download binary
+// Redirect to GitHub releases for downloads
 app.get('/download/:version/:platform', (c) => {
   const version = c.req.param('version');
   const platform = c.req.param('platform') as Platform;
@@ -143,52 +207,25 @@ app.get('/download/:version/:platform', (c) => {
     );
   }
 
-  // Determine file extension based on platform
-  const ext = platform.startsWith('windows') ? 'zip' : 'tar.gz';
-  const filename = `pairux-${version}-${platform}.${ext}`;
-  const filePath = join(RELEASES_DIR, version, filename);
+  const downloadUrl = getGitHubDownloadUrl(version, platform);
 
-  if (!existsSync(filePath)) {
+  if (!downloadUrl) {
     return c.json(
       {
-        error: `Release not found: ${filename}`,
-        hint: 'This version may not be available yet. Check /api/releases for available versions.',
+        error: `No download available for platform: ${platform}`,
       },
       404
     );
   }
 
-  const content = readFileSync(filePath);
-  const contentType = platform.startsWith('windows')
-    ? 'application/zip'
-    : 'application/gzip';
-
-  return c.body(content, 200, {
-    'Content-Type': contentType,
-    'Content-Disposition': `attachment; filename="${filename}"`,
-    'Content-Length': content.length.toString(),
-  });
+  return c.redirect(downloadUrl);
 });
 
 // Download latest for platform
-app.get('/download/latest/:platform', (c) => {
+app.get('/download/latest/:platform', async (c) => {
   const platform = c.req.param('platform');
-  return c.redirect(`/download/${LATEST_VERSION}/${platform}`);
-});
-
-// Checksums
-app.get('/checksums/:version', (c) => {
-  const version = c.req.param('version');
-  const checksumPath = join(RELEASES_DIR, version, 'checksums.txt');
-
-  if (!existsSync(checksumPath)) {
-    return c.json({ error: 'Checksums not found for this version' }, 404);
-  }
-
-  const content = readFileSync(checksumPath, 'utf-8');
-  return c.text(content, 200, {
-    'Content-Type': 'text/plain; charset=utf-8',
-  });
+  const latestVersion = await getLatestVersion();
+  return c.redirect(`/download/${latestVersion}/${platform}`);
 });
 
 // 404 handler
@@ -205,8 +242,8 @@ app.onError((err, c) => {
 // Start server
 console.log('PairUX Installer Service starting...');
 console.log(`  Port: ${String(PORT)}`);
-console.log(`  Latest version: ${LATEST_VERSION}`);
-console.log(`  Releases directory: ${RELEASES_DIR}`);
+console.log(`  GitHub repo: ${GITHUB_REPO}`);
+console.log(`  Fallback version: ${FALLBACK_VERSION}`);
 console.log(`  Scripts directory: ${SCRIPTS_DIR}`);
 
 serve({

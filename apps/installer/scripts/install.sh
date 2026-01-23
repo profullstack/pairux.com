@@ -15,9 +15,11 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
+GITHUB_REPO="profullstack/pairux.com"
 INSTALLER_URL="${PAIRUX_INSTALLER_URL:-https://installer.pairux.com}"
 INSTALL_DIR="${PAIRUX_INSTALL_DIR:-$HOME/.pairux}"
 BIN_DIR="${PAIRUX_BIN_DIR:-$HOME/.local/bin}"
+APPLICATIONS_DIR="/Applications"
 
 # Print banner
 print_banner() {
@@ -100,10 +102,15 @@ download() {
     fi
 }
 
-# Get latest version
+# Get latest version from GitHub releases
 get_latest_version() {
     local version
-    version=$(download "${INSTALLER_URL}/api/version" - 2>/dev/null || echo "")
+    version=$(download "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" - 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+
+    if [ -z "$version" ]; then
+        # Fallback to installer service
+        version=$(download "${INSTALLER_URL}/api/version" - 2>/dev/null || echo "")
+    fi
 
     if [ -z "$version" ]; then
         error "Failed to fetch latest version. Check your internet connection."
@@ -112,31 +119,114 @@ get_latest_version() {
     echo "$version"
 }
 
-# Download and install
-install_pairux() {
+# Get download URL for platform
+get_download_url() {
     local platform="$1"
     local version="$2"
+    local os arch filename
+
+    os=$(echo "$platform" | cut -d'-' -f1)
+    arch=$(echo "$platform" | cut -d'-' -f2)
+
+    case "$os" in
+        darwin)
+            # macOS uses zip files
+            filename="PairUX-${version}-mac-${arch}.zip"
+            ;;
+        linux)
+            # Linux uses AppImage
+            filename="PairUX-${version}.AppImage"
+            ;;
+        *)
+            error "Unsupported platform: $platform"
+            ;;
+    esac
+
+    echo "https://github.com/${GITHUB_REPO}/releases/download/v${version}/${filename}"
+}
+
+# Install on macOS
+install_macos() {
+    local version="$1"
+    local arch="$2"
     local temp_dir
 
     temp_dir=$(mktemp -d)
     trap "rm -rf $temp_dir" EXIT
 
-    info "Downloading PairUX ${version} for ${platform}..."
+    local download_url
+    download_url=$(get_download_url "darwin-${arch}" "$version")
 
-    local download_url="${INSTALLER_URL}/download/${version}/${platform}"
-    local archive_path="${temp_dir}/pairux.tar.gz"
+    info "Downloading PairUX ${version} for macOS ${arch}..."
+    local archive_path="${temp_dir}/PairUX.zip"
 
     download "$download_url" "$archive_path" || error "Failed to download PairUX"
 
     info "Extracting..."
+    unzip -q "$archive_path" -d "$temp_dir"
+
+    # Move to Applications
+    if [ -d "${APPLICATIONS_DIR}/PairUX.app" ]; then
+        info "Removing existing installation..."
+        rm -rf "${APPLICATIONS_DIR}/PairUX.app"
+    fi
+
+    mv "${temp_dir}/PairUX.app" "${APPLICATIONS_DIR}/"
+
+    # Create CLI symlink
+    mkdir -p "$BIN_DIR"
+    ln -sf "${APPLICATIONS_DIR}/PairUX.app/Contents/MacOS/PairUX" "$BIN_DIR/pairux"
+
+    success "PairUX ${version} installed to ${APPLICATIONS_DIR}/PairUX.app"
+}
+
+# Install on Linux
+install_linux() {
+    local version="$1"
+    local arch="$2"
+    local temp_dir
+
+    temp_dir=$(mktemp -d)
+    trap "rm -rf $temp_dir" EXIT
+
+    local download_url
+    download_url=$(get_download_url "linux-${arch}" "$version")
+
+    info "Downloading PairUX ${version} for Linux..."
+    local appimage_path="${INSTALL_DIR}/PairUX.AppImage"
+
     mkdir -p "$INSTALL_DIR"
-    tar -xzf "$archive_path" -C "$INSTALL_DIR"
+    download "$download_url" "$appimage_path" || error "Failed to download PairUX"
+
+    chmod +x "$appimage_path"
 
     # Create symlink in bin directory
     mkdir -p "$BIN_DIR"
-    ln -sf "$INSTALL_DIR/pairux" "$BIN_DIR/pairux"
+    ln -sf "$appimage_path" "$BIN_DIR/pairux"
 
-    success "PairUX ${version} installed successfully!"
+    success "PairUX ${version} installed to ${INSTALL_DIR}"
+}
+
+# Download and install
+install_pairux() {
+    local platform="$1"
+    local version="$2"
+    local os arch
+
+    os=$(echo "$platform" | cut -d'-' -f1)
+    arch=$(echo "$platform" | cut -d'-' -f2)
+
+    case "$os" in
+        darwin)
+            install_macos "$version" "$arch"
+            ;;
+        linux)
+            install_linux "$version" "$arch"
+            ;;
+        *)
+            error "Unsupported operating system: $os"
+            ;;
+    esac
 }
 
 # Add to PATH if needed

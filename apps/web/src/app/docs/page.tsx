@@ -413,14 +413,14 @@ export default function DocsPage() {
                         If you can&apos;t find what you&apos;re looking for,
                         check out our{' '}
                         <Link
-                          href="https://github.com/pairux/pairux/discussions"
+                          href="https://github.com/profullstack/pairux.com/discussions"
                           className="text-primary-600 hover:underline"
                         >
                           GitHub Discussions
                         </Link>{' '}
                         or{' '}
                         <Link
-                          href="https://github.com/pairux/pairux/issues"
+                          href="https://github.com/profullstack/pairux.com/issues"
                           className="text-primary-600 hover:underline"
                         >
                           open an issue

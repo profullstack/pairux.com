@@ -114,7 +114,7 @@ export default function HomePage() {
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
-                  href="https://github.com/pairux/pairux"
+                  href="https://github.com/profullstack/pairux.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-900 shadow transition-all hover:border-gray-400 hover:shadow-md"
@@ -252,7 +252,7 @@ export default function HomePage() {
 
             <p className="mt-8 text-center text-sm text-gray-500">
               Want to share your experience?{' '}
-              <Link href="https://github.com/pairux/pairux/discussions" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+              <Link href="https://github.com/profullstack/pairux.com/discussions" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                 Join the discussion on GitHub
               </Link>
             </p>

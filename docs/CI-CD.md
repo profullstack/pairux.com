@@ -629,12 +629,12 @@ jobs:
             
             on_arm do
               sha256 "$ARM64_SHA"
-              url "https://github.com/pairux/pairux/releases/download/v#{version}/PairUX-#{version}-arm64.dmg"
+              url "https://github.com/profullstack/pairux.com/releases/download/v#{version}/PairUX-#{version}-arm64.dmg"
             end
             
             on_intel do
               sha256 "$X64_SHA"
-              url "https://github.com/pairux/pairux/releases/download/v#{version}/PairUX-#{version}-x64.dmg"
+              url "https://github.com/profullstack/pairux.com/releases/download/v#{version}/PairUX-#{version}-x64.dmg"
             end
             
             name "PairUX"
@@ -710,10 +710,10 @@ jobs:
             - silentWithProgress
           Installers:
             - Architecture: x64
-              InstallerUrl: https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi
+              InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi
               InstallerSha256: $X64_SHA
             - Architecture: arm64
-              InstallerUrl: https://github.com/pairux/pairux/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi
+              InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi
               InstallerSha256: $ARM64_SHA
           ManifestType: installer
           ManifestVersion: 1.4.0
@@ -765,7 +765,7 @@ jobs:
         run: |
           VERSION=${{ needs.get-release-info.outputs.version }}
           mkdir -p apt-repo/pool/main/p/pairux
-          curl -sL "https://github.com/pairux/pairux/releases/download/v${VERSION}/pairux_${VERSION}_amd64.deb" \
+          curl -sL "https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/pairux_${VERSION}_amd64.deb" \
             -o "apt-repo/pool/main/p/pairux/pairux_${VERSION}_amd64.deb"
 
       - name: Import GPG key
@@ -814,7 +814,7 @@ jobs:
         run: |
           VERSION=${{ needs.get-release-info.outputs.version }}
           mkdir -p rpm-repo/Packages
-          curl -sL "https://github.com/pairux/pairux/releases/download/v${VERSION}/pairux-${VERSION}-1.x86_64.rpm" \
+          curl -sL "https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/pairux-${VERSION}-1.x86_64.rpm" \
             -o "rpm-repo/Packages/pairux-${VERSION}-1.x86_64.rpm"
 
       - name: Import GPG key
@@ -874,7 +874,7 @@ jobs:
           depends=('gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'util-linux-libs')
           provides=('pairux')
           conflicts=('pairux')
-          source=("https://github.com/pairux/pairux/releases/download/v\${pkgver}/pairux-\${pkgver}-linux-x64.tar.gz")
+          source=("https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/pairux-\${pkgver}-linux-x64.tar.gz")
           sha256sums=('$X64_SHA')
           
           package() {

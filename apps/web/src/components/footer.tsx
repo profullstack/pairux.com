@@ -58,7 +58,7 @@ const socialLinks = [
   },
   {
     name: 'X',
-    href: 'https://x.com/profullstackin',
+    href: 'https://x.com/profullstackinc',
     icon: TwitterIcon,
   },
 ];

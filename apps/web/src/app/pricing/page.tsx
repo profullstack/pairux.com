@@ -36,7 +36,7 @@ const pricingTiers = [
     features: [
       '10 participants + 50 viewers',
       '100 viewer-hours/month included',
-      '$0.08/hour overage (720p)',
+      'Overage: $0.08/hr (720p), $0.12/hr (1080p)',
       'SFU relay servers',
       'HD screen sharing (1080p)',
       'Priority support',
@@ -53,7 +53,7 @@ const pricingTiers = [
     features: [
       'Unlimited participants',
       '500 viewer-hours/month included',
-      '$0.08/hour overage (720p)',
+      'Overage: $0.08 / $0.12 / $0.20 (4K)',
       'Dedicated SFU servers',
       '4K screen sharing',
       'Admin controls',
@@ -434,7 +434,7 @@ export default function PricingPage() {
                 </h3>
                 <p className="mt-2 text-gray-600">
                   We&apos;ll notify you when you&apos;re approaching your limit. Additional hours are billed
-                  at $0.08/viewer-hour (720p) or $0.12/hour (1080p). We&apos;ll never cut off your stream mid-session.
+                  at $0.08/hr (720p), $0.12/hr (1080p), or $0.20/hr (4K). We&apos;ll never cut off your stream mid-session.
                 </p>
               </div>
 

@@ -23,7 +23,7 @@ const plans = [
     price: '$12',
     period: '/month',
     description: 'For professionals & growing teams',
-    features: ['10 participants + 50 viewers', '100 viewer-hours included', '+$0.08/hr overage', 'HD 1080p'],
+    features: ['10 participants + 50 viewers', '100 viewer-hours included', '+$0.08–$0.12/hr overage', 'HD 1080p'],
     current: false,
   },
   {
@@ -31,7 +31,7 @@ const plans = [
     price: '$49',
     period: '/month',
     description: 'For teams & organizations',
-    features: ['Unlimited participants', '500 viewer-hours included', '+$0.08/hr overage', '4K streaming'],
+    features: ['Unlimited participants', '500 viewer-hours included', '+$0.08–$0.20/hr overage', '4K streaming'],
     current: false,
   },
 ];

@@ -86,7 +86,8 @@
       "Bash(git config:*)",
       "Bash(./.githooks/pre-commit:*)",
       "Bash(git reset:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm --filter web test -- --run src/app/api/auth/reset-password/route.test.ts)"
     ],
     "deny": [
       "Bash(npm *)",

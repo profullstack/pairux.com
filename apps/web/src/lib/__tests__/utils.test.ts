@@ -30,15 +30,9 @@ describe('cn (className merge)', () => {
   });
 
   it('should handle complex combinations', () => {
-    expect(
-      cn(
-        'base-class',
-        { conditional: true },
-        ['array', 'classes'],
-        undefined,
-        'final'
-      )
-    ).toBe('base-class conditional array classes final');
+    expect(cn('base-class', { conditional: true }, ['array', 'classes'], undefined, 'final')).toBe(
+      'base-class conditional array classes final'
+    );
   });
 });
 

@@ -68,10 +68,12 @@ export function LoginForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); }}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
             required
             autoComplete="email"
-            className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
             placeholder="you@example.com"
           />
         </div>
@@ -84,7 +86,7 @@ export function LoginForm() {
           </label>
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-primary-600 hover:text-primary-500"
+            className="text-primary-600 hover:text-primary-500 text-sm font-medium"
           >
             Forgot password?
           </Link>
@@ -97,15 +99,19 @@ export function LoginForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => { setPassword(e.target.value); }}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
             required
             autoComplete="current-password"
-            className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-10 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
             placeholder="Enter your password"
           />
           <button
             type="button"
-            onClick={() => { setShowPassword(!showPassword); }}
+            onClick={() => {
+              setShowPassword(!showPassword);
+            }}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -116,7 +122,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow transition-all hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         {loading ? 'Signing in...' : 'Sign in'}
@@ -146,7 +152,7 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-gray-600">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-medium text-primary-600 hover:text-primary-500">
+        <Link href="/signup" className="text-primary-600 hover:text-primary-500 font-medium">
           Sign up
         </Link>
       </p>

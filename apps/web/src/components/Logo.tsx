@@ -31,12 +31,15 @@ export function Logo({ size = 'md', showText = true, className }: LogoProps) {
 
   return (
     <Link href="/" className={cn('flex items-center gap-2', className)}>
-      <div className={cn('flex items-center justify-center rounded-lg bg-primary-600', sizeConfig.container)}>
+      <div
+        className={cn(
+          'bg-primary-600 flex items-center justify-center rounded-lg',
+          sizeConfig.container
+        )}
+      >
         <Monitor className={cn('text-white', sizeConfig.icon)} />
       </div>
-      {showText && (
-        <span className={cn('font-bold text-gray-900', sizeConfig.text)}>PairUX</span>
-      )}
+      {showText && <span className={cn('font-bold text-gray-900', sizeConfig.text)}>PairUX</span>}
     </Link>
   );
 }

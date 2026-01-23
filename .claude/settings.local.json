@@ -90,12 +90,10 @@
       "Bash(pnpm --filter web test -- --run src/app/api/auth/reset-password/route.test.ts)",
       "Bash(SUPABASE_PROJECT_REF=yuwjbjskkghlyrdkhexu SUPABASE_ACCESS_TOKEN=sbp_4da30ff35e42decb69c30efab313c745a150dc22 pnpm:*)",
       "Bash(pnpm build:web:*)",
-      "Bash(pnpm format:check:*)"
+      "Bash(pnpm format:check:*)",
+      "Bash(pnpm format:*)"
     ],
-    "deny": [
-      "Bash(npm *)",
-      "Bash(npx *)"
-    ],
+    "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

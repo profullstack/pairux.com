@@ -31,15 +31,15 @@ export default function TermsPage() {
             <div className="prose prose-lg max-w-none">
               <h2>1. Acceptance of Terms</h2>
               <p>
-                By accessing or using PairUX, you agree to be bound by these Terms of Service.
-                If you do not agree to these terms, please do not use our services.
+                By accessing or using PairUX, you agree to be bound by these Terms of Service. If
+                you do not agree to these terms, please do not use our services.
               </p>
 
               <h2>2. Description of Service</h2>
               <p>
-                PairUX provides collaborative screen sharing software with remote control capabilities.
-                Our services include desktop applications, web-based viewers, and cloud infrastructure
-                for relay connections.
+                PairUX provides collaborative screen sharing software with remote control
+                capabilities. Our services include desktop applications, web-based viewers, and
+                cloud infrastructure for relay connections.
               </p>
 
               <h2>3. User Accounts</h2>
@@ -81,15 +81,15 @@ export default function TermsPage() {
 
               <h2>8. Disclaimer of Warranties</h2>
               <p>
-                PairUX is provided &quot;as is&quot; without warranties of any kind. We do not guarantee that
-                the service will be uninterrupted, secure, or error-free.
+                PairUX is provided &quot;as is&quot; without warranties of any kind. We do not
+                guarantee that the service will be uninterrupted, secure, or error-free.
               </p>
 
               <h2>9. Limitation of Liability</h2>
               <p>
                 To the maximum extent permitted by law, PairUX shall not be liable for any indirect,
-                incidental, special, consequential, or punitive damages arising from your use of
-                our services.
+                incidental, special, consequential, or punitive damages arising from your use of our
+                services.
               </p>
 
               <h2>10. Changes to Terms</h2>

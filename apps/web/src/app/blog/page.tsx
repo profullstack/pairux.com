@@ -16,9 +16,7 @@ export default function BlogPage() {
         <section className="gradient-bg py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Blog
-              </h1>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Blog</h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
                 News, updates, and tutorials from the PairUX team
               </p>
@@ -31,8 +29,8 @@ export default function BlogPage() {
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-12 text-center">
               <h2 className="text-xl font-semibold text-gray-900">Coming Soon</h2>
               <p className="mt-2 text-gray-600">
-                We&apos;re working on our first blog posts. Check back soon for tutorials,
-                product updates, and behind-the-scenes looks at building PairUX.
+                We&apos;re working on our first blog posts. Check back soon for tutorials, product
+                updates, and behind-the-scenes looks at building PairUX.
               </p>
             </div>
           </div>

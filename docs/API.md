@@ -15,7 +15,7 @@ erDiagram
     users ||--o{ sessions : hosts
     users ||--o{ session_participants : joins
     sessions ||--o{ session_participants : has
-    
+
     users {
         uuid id PK
         string email
@@ -24,7 +24,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     sessions {
         uuid id PK
         uuid host_user_id FK
@@ -37,7 +37,7 @@ erDiagram
         timestamp created_at
         timestamp ended_at
     }
-    
+
     session_participants {
         uuid id PK
         uuid session_id FK
@@ -150,7 +150,7 @@ CREATE TABLE public.session_participants (
   control_state TEXT NOT NULL DEFAULT 'view-only' CHECK (control_state IN ('view-only', 'requested', 'granted')),
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   left_at TIMESTAMPTZ,
-  
+
   UNIQUE(session_id, user_id)
 );
 
@@ -214,13 +214,13 @@ BEGIN
   INSERT INTO public.sessions (host_user_id, mode, max_controllers, max_viewers, settings)
   VALUES (auth.uid(), p_mode, p_max_controllers, v_max_viewers, p_settings)
   RETURNING * INTO v_session;
-  
+
   -- Add host as participant
   INSERT INTO public.session_participants (session_id, user_id, display_name, role)
   SELECT v_session.id, auth.uid(), p.display_name, 'host'
   FROM public.profiles p
   WHERE p.id = auth.uid();
-  
+
   RETURN v_session;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -244,11 +244,11 @@ BEGIN
   FROM public.sessions
   WHERE join_code = p_join_code
   AND status IN ('created', 'active', 'paused');
-  
+
   IF v_session IS NULL THEN
     RAISE EXCEPTION 'Session not found or not joinable';
   END IF;
-  
+
   -- Get display name
   IF p_display_name IS NOT NULL THEN
     v_display_name := p_display_name;
@@ -259,16 +259,16 @@ BEGIN
   ELSE
     v_display_name := 'Guest';
   END IF;
-  
+
   -- Create or update participant
   INSERT INTO public.session_participants (session_id, user_id, display_name, role)
   VALUES (v_session.id, auth.uid(), v_display_name, 'viewer')
-  ON CONFLICT (session_id, user_id) 
-  DO UPDATE SET 
+  ON CONFLICT (session_id, user_id)
+  DO UPDATE SET
     left_at = NULL,
     joined_at = NOW()
   RETURNING * INTO v_participant;
-  
+
   RETURN v_participant;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -289,23 +289,23 @@ BEGIN
   FROM public.sessions
   WHERE id = p_session_id
   AND host_user_id = auth.uid();
-  
+
   IF v_session IS NULL THEN
     RAISE EXCEPTION 'Session not found or not authorized';
   END IF;
-  
+
   -- Update session
   UPDATE public.sessions
   SET status = 'ended', ended_at = NOW()
   WHERE id = p_session_id
   RETURNING * INTO v_session;
-  
+
   -- Mark all participants as left
   UPDATE public.session_participants
   SET left_at = NOW()
   WHERE session_id = p_session_id
   AND left_at IS NULL;
-  
+
   RETURN v_session;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -331,14 +331,14 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Not authorized';
   END IF;
-  
+
   -- Update control state
   UPDATE public.session_participants
   SET control_state = p_control_state
   WHERE id = p_participant_id
   AND session_id = p_session_id
   RETURNING * INTO v_participant;
-  
+
   RETURN v_participant;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -358,7 +358,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Sign in
 const { data, error } = await supabase.auth.signInWithPassword({
   email: 'user@example.com',
-  password: 'password'
+  password: 'password',
 });
 
 // Sign up
@@ -366,13 +366,13 @@ const { data, error } = await supabase.auth.signUp({
   email: 'user@example.com',
   password: 'password',
   options: {
-    data: { display_name: 'John Doe' }
-  }
+    data: { display_name: 'John Doe' },
+  },
 });
 
 // OAuth
 const { data, error } = await supabase.auth.signInWithOAuth({
-  provider: 'google'
+  provider: 'google',
 });
 ```
 
@@ -458,22 +458,20 @@ const { data, error } = await supabase
 
 ```typescript
 // POST /rest/v1/rpc/end_session
-const { data: session, error } = await supabase
-  .rpc('end_session', {
-    p_session_id: sessionId
-  });
+const { data: session, error } = await supabase.rpc('end_session', {
+  p_session_id: sessionId,
+});
 ```
 
 #### Update Control State
 
 ```typescript
 // POST /rest/v1/rpc/update_control_state
-const { data: participant, error } = await supabase
-  .rpc('update_control_state', {
-    p_session_id: sessionId,
-    p_participant_id: participantId,
-    p_control_state: 'granted'
-  });
+const { data: participant, error } = await supabase.rpc('update_control_state', {
+  p_session_id: sessionId,
+  p_participant_id: participantId,
+  p_control_state: 'granted',
+});
 ```
 
 ### Profiles API
@@ -497,7 +495,7 @@ const { data, error } = await supabase
   .from('profiles')
   .update({
     display_name: 'New Name',
-    avatar_url: 'https://...'
+    avatar_url: 'https://...',
   })
   .eq('id', userId)
   .select()
@@ -510,9 +508,9 @@ const { data, error } = await supabase
 
 ### Channel Naming Convention
 
-| Channel | Purpose | Subscribers |
-|---------|---------|-------------|
-| `session:{session_id}` | WebRTC signaling | Host + Viewers |
+| Channel                 | Purpose              | Subscribers    |
+| ----------------------- | -------------------- | -------------- |
+| `session:{session_id}`  | WebRTC signaling     | Host + Viewers |
 | `presence:{session_id}` | Participant presence | Host + Viewers |
 
 ### Session Channel
@@ -523,14 +521,14 @@ Used for WebRTC signaling and control messages.
 // Subscribe to session channel
 const channel = supabase.channel(`session:${sessionId}`, {
   config: {
-    broadcast: { self: false }
-  }
+    broadcast: { self: false },
+  },
 });
 
 // Listen for signaling messages
 channel.on('broadcast', { event: 'signal' }, (payload) => {
   const { type, data, senderId } = payload.payload;
-  
+
   switch (type) {
     case 'offer':
       handleOffer(data.sdp, senderId);
@@ -547,7 +545,7 @@ channel.on('broadcast', { event: 'signal' }, (payload) => {
 // Listen for control messages
 channel.on('broadcast', { event: 'control' }, (payload) => {
   const { type, participantId } = payload.payload;
-  
+
   switch (type) {
     case 'request':
       handleControlRequest(participantId);
@@ -625,8 +623,8 @@ await channel.send({
   payload: {
     type: 'offer',
     senderId: myUserId,
-    data: { sdp: offer.sdp }
-  }
+    data: { sdp: offer.sdp },
+  },
 });
 
 // Send answer
@@ -636,8 +634,8 @@ await channel.send({
   payload: {
     type: 'answer',
     senderId: myUserId,
-    data: { sdp: answer.sdp }
-  }
+    data: { sdp: answer.sdp },
+  },
 });
 
 // Send ICE candidate
@@ -647,8 +645,8 @@ await channel.send({
   payload: {
     type: 'ice-candidate',
     senderId: myUserId,
-    data: { candidate: candidate.toJSON() }
-  }
+    data: { candidate: candidate.toJSON() },
+  },
 });
 ```
 
@@ -667,7 +665,7 @@ presenceChannel.subscribe(async (status) => {
       id: myUserId,
       displayName: myDisplayName,
       role: myRole,
-      online_at: new Date().toISOString()
+      online_at: new Date().toISOString(),
     });
   }
 });
@@ -794,10 +792,7 @@ export interface SessionSettings {
 ```typescript
 // packages/shared-types/src/signaling.ts
 
-export type SignalMessage =
-  | OfferMessage
-  | AnswerMessage
-  | IceCandidateMessage;
+export type SignalMessage = OfferMessage | AnswerMessage | IceCandidateMessage;
 
 export interface OfferMessage {
   type: 'offer';
@@ -823,10 +818,7 @@ export interface IceCandidateMessage {
   };
 }
 
-export type ControlMessage =
-  | ControlRequestMessage
-  | ControlGrantMessage
-  | ControlRevokeMessage;
+export type ControlMessage = ControlRequestMessage | ControlGrantMessage | ControlRevokeMessage;
 
 export interface ControlRequestMessage {
   type: 'control-request';
@@ -850,14 +842,14 @@ export interface ControlRevokeMessage {
 
 ### Error Codes
 
-| Code | Description | HTTP Status |
-|------|-------------|-------------|
-| `session_not_found` | Session does not exist | 404 |
-| `session_ended` | Session has ended | 410 |
-| `not_authorized` | User not authorized | 403 |
-| `already_joined` | User already in session | 409 |
-| `invalid_join_code` | Join code invalid | 400 |
-| `control_denied` | Control request denied | 403 |
+| Code                | Description             | HTTP Status |
+| ------------------- | ----------------------- | ----------- |
+| `session_not_found` | Session does not exist  | 404         |
+| `session_ended`     | Session has ended       | 410         |
+| `not_authorized`    | User not authorized     | 403         |
+| `already_joined`    | User already in session | 409         |
+| `invalid_join_code` | Join code invalid       | 400         |
+| `control_denied`    | Control request denied  | 403         |
 
 ### Error Response Format
 
@@ -893,12 +885,12 @@ if (error) {
 
 ### Supabase Rate Limits
 
-| Endpoint | Limit |
-|----------|-------|
-| Auth endpoints | 30 req/min |
-| REST API | 1000 req/min |
+| Endpoint             | Limit          |
+| -------------------- | -------------- |
+| Auth endpoints       | 30 req/min     |
+| REST API             | 1000 req/min   |
 | Realtime connections | 200 concurrent |
-| Realtime messages | 100 msg/sec |
+| Realtime messages    | 100 msg/sec    |
 
 ### Application-Level Limits
 
@@ -908,21 +900,21 @@ class RateLimiter {
   private timestamps: number[] = [];
   private readonly maxRequests: number;
   private readonly windowMs: number;
-  
+
   constructor(maxRequests: number, windowMs: number) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;
   }
-  
+
   canMakeRequest(): boolean {
     const now = Date.now();
-    this.timestamps = this.timestamps.filter(t => now - t < this.windowMs);
-    
+    this.timestamps = this.timestamps.filter((t) => now - t < this.windowMs);
+
     if (this.timestamps.length < this.maxRequests) {
       this.timestamps.push(now);
       return true;
     }
-    
+
     return false;
   }
 }
@@ -935,11 +927,11 @@ async function sendSignal(message: SignalMessage) {
     console.warn('Rate limited');
     return;
   }
-  
+
   await channel.send({
     type: 'broadcast',
     event: 'signal',
-    payload: message
+    payload: message,
   });
 }
 ```

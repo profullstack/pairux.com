@@ -21,22 +21,22 @@ This document details the security architecture, threat model, and security cont
 
 ### Assets to Protect
 
-| Asset | Sensitivity | Protection Priority |
-|-------|-------------|---------------------|
-| Screen content | High | Critical |
-| Keyboard input | High | Critical |
-| User credentials | High | Critical |
-| Session metadata | Medium | High |
-| User identity | Medium | High |
+| Asset            | Sensitivity | Protection Priority |
+| ---------------- | ----------- | ------------------- |
+| Screen content   | High        | Critical            |
+| Keyboard input   | High        | Critical            |
+| User credentials | High        | Critical            |
+| Session metadata | Medium      | High                |
+| User identity    | Medium      | High                |
 
 ### Threat Actors
 
-| Actor | Capability | Motivation |
-|-------|------------|------------|
-| Malicious viewer | Has join link | Unauthorized access/control |
-| Network attacker | MITM position | Eavesdropping, injection |
-| Compromised server | Backend access | Data exfiltration |
-| Malicious host | Runs desktop app | Social engineering |
+| Actor              | Capability       | Motivation                  |
+| ------------------ | ---------------- | --------------------------- |
+| Malicious viewer   | Has join link    | Unauthorized access/control |
+| Network attacker   | MITM position    | Eavesdropping, injection    |
+| Compromised server | Backend access   | Data exfiltration           |
+| Malicious host     | Runs desktop app | Social engineering          |
 
 ### Attack Vectors
 
@@ -50,7 +50,7 @@ graph TD
         A5[Credential theft]
         A6[Denial of service]
     end
-    
+
     subgraph Mitigations
         M1[Short-lived sessions]
         M2[Auth required]
@@ -59,7 +59,7 @@ graph TD
         M5[Secure storage]
         M6[Rate limiting]
     end
-    
+
     A1 --> M1
     A2 --> M2
     A3 --> M3
@@ -81,11 +81,11 @@ const authConfig = {
   passwordMinLength: 8,
   passwordRequireUppercase: true,
   passwordRequireNumber: true,
-  
+
   // Session settings
   sessionExpirySeconds: 3600, // 1 hour
   refreshTokenRotation: true,
-  
+
   // Rate limiting
   maxLoginAttempts: 5,
   lockoutDurationMinutes: 15,
@@ -95,30 +95,31 @@ const authConfig = {
 ### Token Storage
 
 **Desktop App (Electron)**:
+
 ```typescript
 import { safeStorage } from 'electron';
 
 class SecureTokenStorage {
   private readonly KEY = 'pairux_auth_token';
-  
+
   async store(token: string): Promise<void> {
     if (!safeStorage.isEncryptionAvailable()) {
       throw new Error('Secure storage not available');
     }
-    
+
     const encrypted = safeStorage.encryptString(token);
     // Store encrypted buffer in electron-store or similar
     await this.storage.set(this.KEY, encrypted.toString('base64'));
   }
-  
+
   async retrieve(): Promise<string | null> {
     const encrypted = await this.storage.get(this.KEY);
     if (!encrypted) return null;
-    
+
     const buffer = Buffer.from(encrypted, 'base64');
     return safeStorage.decryptString(buffer);
   }
-  
+
   async clear(): Promise<void> {
     await this.storage.delete(this.KEY);
   }
@@ -126,6 +127,7 @@ class SecureTokenStorage {
 ```
 
 **Web App**:
+
 ```typescript
 // Use httpOnly cookies set by Supabase
 // Never store tokens in localStorage for sensitive apps
@@ -143,19 +145,19 @@ class SessionValidator {
       .eq('id', sessionId)
       .eq('status', 'active')
       .single();
-    
+
     if (!session) return false;
-    
+
     // Check user is host or authorized participant
     if (session.host_user_id === userId) return true;
-    
+
     const { data: participant } = await supabase
       .from('session_participants')
       .select('*')
       .eq('session_id', sessionId)
       .eq('user_id', userId)
       .single();
-    
+
     return !!participant;
   }
 }
@@ -207,7 +209,7 @@ For high-security scenarios, verify DTLS fingerprints:
 function getLocalFingerprint(pc: RTCPeerConnection): string | null {
   const sdp = pc.localDescription?.sdp;
   if (!sdp) return null;
-  
+
   const match = sdp.match(/a=fingerprint:sha-256 ([A-F0-9:]+)/i);
   return match ? match[1] : null;
 }
@@ -259,11 +261,11 @@ function generateTurnCredentials(
 ): { username: string; credential: string } {
   const timestamp = Math.floor(Date.now() / 1000) + ttlSeconds;
   const turnUsername = `${timestamp}:${username}`;
-  
+
   const hmac = crypto.createHmac('sha1', secret);
   hmac.update(turnUsername);
   const credential = hmac.digest('base64');
-  
+
   return { username: turnUsername, credential };
 }
 ```
@@ -278,47 +280,47 @@ function generateTurnCredentials(
 class SecureControlManager {
   private controlState: ControlState = 'view-only';
   private inputInjector: InputInjector;
-  
+
   constructor(inputInjector: InputInjector) {
     this.inputInjector = inputInjector;
     // Ensure injector starts disabled
     this.inputInjector.disable();
   }
-  
+
   grantControl(): void {
     this.controlState = 'granted';
     this.inputInjector.enable();
     this.logSecurityEvent('control_granted');
   }
-  
+
   revokeControl(): void {
     this.controlState = 'view-only';
     this.inputInjector.disable();
     this.logSecurityEvent('control_revoked');
   }
-  
+
   handleInputEvent(event: InputEvent): void {
     // Double-check state before processing
     if (this.controlState !== 'granted') {
       this.logSecurityEvent('unauthorized_input_attempt', event);
       return;
     }
-    
+
     // Validate event
     if (!this.validateEvent(event)) {
       this.logSecurityEvent('invalid_input_event', event);
       return;
     }
-    
+
     // Rate limit
     if (!this.rateLimiter.allow()) {
       this.logSecurityEvent('rate_limit_exceeded');
       return;
     }
-    
+
     this.inputInjector.handleEvent(event);
   }
-  
+
   private validateEvent(event: InputEvent): boolean {
     // Coordinate bounds check
     if (event.type === 'mouse') {
@@ -326,17 +328,17 @@ class SecureControlManager {
         return false;
       }
     }
-    
+
     // Block dangerous key combinations
     if (event.type === 'keyboard') {
       if (this.isDangerousKeyCombination(event)) {
         return false;
       }
     }
-    
+
     return true;
   }
-  
+
   private isDangerousKeyCombination(event: KeyboardEvent): boolean {
     // Block Ctrl+Alt+Delete, Win+L, etc.
     const dangerous = [
@@ -344,15 +346,16 @@ class SecureControlManager {
       { meta: true, key: 'l' },
       { ctrl: true, alt: true, key: 'F4' },
     ];
-    
-    return dangerous.some(combo => 
-      event.modifiers.ctrl === (combo.ctrl || false) &&
-      event.modifiers.alt === (combo.alt || false) &&
-      event.modifiers.meta === (combo.meta || false) &&
-      event.key.toLowerCase() === combo.key.toLowerCase()
+
+    return dangerous.some(
+      (combo) =>
+        event.modifiers.ctrl === (combo.ctrl || false) &&
+        event.modifiers.alt === (combo.alt || false) &&
+        event.modifiers.meta === (combo.meta || false) &&
+        event.key.toLowerCase() === combo.key.toLowerCase()
     );
   }
-  
+
   private logSecurityEvent(type: string, data?: any): void {
     console.log(`[SECURITY] ${type}`, data);
     // In production, send to logging service
@@ -366,38 +369,38 @@ class SecureControlManager {
 class EmergencyRevokeSystem {
   private readonly HOTKEY = 'CommandOrControl+Shift+Escape';
   private controlManager: SecureControlManager;
-  
+
   register(): void {
     // Register global hotkey that cannot be overridden
     globalShortcut.register(this.HOTKEY, () => {
       this.emergencyRevoke();
     });
-    
+
     // Also listen for physical panic button if available
     this.setupHardwarePanicButton();
   }
-  
+
   private emergencyRevoke(): void {
     // Immediately disable all input
     this.controlManager.revokeControl();
-    
+
     // Close data channel to prevent further input
     this.dataChannel?.close();
-    
+
     // Show prominent notification
     this.showEmergencyNotification();
-    
+
     // Log security event
     this.logSecurityEvent('emergency_revoke');
   }
-  
+
   private showEmergencyNotification(): void {
     // Show system notification
     new Notification('PairUX', {
       body: 'Remote control has been revoked',
-      urgency: 'critical'
+      urgency: 'critical',
     });
-    
+
     // Also show in-app notification
     this.emit('emergency-revoke');
   }
@@ -420,25 +423,25 @@ class MacOSPermissions {
       accessibility: this.checkAccessibility(),
     };
   }
-  
+
   private async checkScreenRecording(): Promise<boolean> {
     const status = systemPreferences.getMediaAccessStatus('screen');
     return status === 'granted';
   }
-  
+
   private checkAccessibility(): boolean {
     return systemPreferences.isTrustedAccessibilityClient(false);
   }
-  
+
   async requestPermissions(): Promise<void> {
     // Screen recording - must be granted in System Preferences
-    if (!await this.checkScreenRecording()) {
+    if (!(await this.checkScreenRecording())) {
       // Open System Preferences
       shell.openExternal(
         'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
       );
     }
-    
+
     // Accessibility - can prompt
     if (!this.checkAccessibility()) {
       systemPreferences.isTrustedAccessibilityClient(true);
@@ -465,7 +468,7 @@ class WindowsSecurity {
       return false;
     }
   }
-  
+
   // Windows Defender may flag the app
   async checkDefenderExclusion(): Promise<boolean> {
     // Check if app is excluded from Windows Defender
@@ -486,7 +489,7 @@ class LinuxSecurity {
     if (process.env.DISPLAY) return 'x11';
     return 'unknown';
   }
-  
+
   checkWaylandSupport(): boolean {
     // Wayland has stricter security - may limit functionality
     const displayServer = this.getDisplayServer();
@@ -508,12 +511,12 @@ class LinuxSecurity {
 ```mermaid
 graph LR
     Host[Host Desktop] <-->|Encrypted P2P| Viewer[Viewer Browser]
-    
+
     Host -.->|Auth + Signaling only| Supabase[Supabase]
     Viewer -.->|Auth + Signaling only| Supabase
-    
+
     style Supabase fill:#f9f,stroke:#333
-    
+
     Note[No screen data passes through servers]
 ```
 
@@ -536,7 +539,7 @@ CREATE TABLE sessions (
 CREATE OR REPLACE FUNCTION cleanup_old_sessions()
 RETURNS void AS $$
 BEGIN
-  DELETE FROM sessions 
+  DELETE FROM sessions
   WHERE ended_at < NOW() - INTERVAL '30 days';
 END;
 $$ LANGUAGE plpgsql;
@@ -553,16 +556,16 @@ class SecureLogger {
     'credential',
     'sdp', // Contains ICE credentials
   ];
-  
+
   log(level: string, message: string, data?: any): void {
     const sanitized = this.sanitize(data);
     console.log(`[${level}] ${message}`, sanitized);
   }
-  
+
   private sanitize(data: any): any {
     if (!data) return data;
     if (typeof data !== 'object') return data;
-    
+
     const result = { ...data };
     for (const field of this.REDACTED_FIELDS) {
       if (field in result) {
@@ -584,7 +587,7 @@ class SecureLogger {
 // Always show clear visual indicator when control is active
 class SecurityIndicator {
   private indicator: BrowserWindow | null = null;
-  
+
   showControlActive(): void {
     // Create always-on-top indicator
     this.indicator = new BrowserWindow({
@@ -598,7 +601,7 @@ class SecurityIndicator {
       transparent: true,
       focusable: false,
     });
-    
+
     this.indicator.loadURL(`data:text/html,
       <div style="
         background: #EF4444;
@@ -612,7 +615,7 @@ class SecurityIndicator {
       </div>
     `);
   }
-  
+
   hideControlActive(): void {
     this.indicator?.close();
     this.indicator = null;
@@ -622,11 +625,11 @@ class SecurityIndicator {
 
 ### Tray Icon States
 
-| State | Icon | Tooltip |
-|-------|------|---------|
-| Idle | Default | PairUX - No active session |
-| Session active | Blue dot | PairUX - Sharing screen |
-| Control granted | Red dot | PairUX - Remote control active |
+| State           | Icon     | Tooltip                        |
+| --------------- | -------- | ------------------------------ |
+| Idle            | Default  | PairUX - No active session     |
+| Session active  | Blue dot | PairUX - Sharing screen        |
+| Control granted | Red dot  | PairUX - Remote control active |
 
 ---
 
@@ -651,15 +654,12 @@ class SecurityIndicator {
 1. **Authentication bypass**
    - Session token theft
    - Join link enumeration
-   
 2. **Control bypass**
    - Input injection without grant
    - State machine manipulation
-   
 3. **Data interception**
    - WebRTC traffic analysis
    - Signaling message tampering
-   
 4. **Denial of service**
    - Input flooding
    - Connection exhaustion
@@ -670,12 +670,12 @@ class SecurityIndicator {
 
 ### Security Event Types
 
-| Event | Severity | Response |
-|-------|----------|----------|
-| Unauthorized input attempt | Medium | Log, alert host |
-| Rate limit exceeded | Low | Temporary block |
-| Invalid session access | High | Terminate session |
-| Emergency revoke triggered | Info | Log for audit |
+| Event                      | Severity | Response          |
+| -------------------------- | -------- | ----------------- |
+| Unauthorized input attempt | Medium   | Log, alert host   |
+| Rate limit exceeded        | Low      | Temporary block   |
+| Invalid session access     | High     | Terminate session |
+| Emergency revoke triggered | Info     | Log for audit     |
 
 ### Incident Handling
 
@@ -684,7 +684,7 @@ class IncidentHandler {
   async handleSecurityIncident(incident: SecurityIncident): Promise<void> {
     // Log incident
     await this.logIncident(incident);
-    
+
     // Take immediate action based on severity
     switch (incident.severity) {
       case 'critical':

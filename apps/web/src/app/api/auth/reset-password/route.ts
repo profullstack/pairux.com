@@ -36,7 +36,10 @@ export async function POST(request: Request) {
     const supabase = getSupabaseAdmin();
 
     // Verify the access token and get user
-    const { data: { user }, error: verifyError } = await supabase.auth.getUser(accessToken);
+    const {
+      data: { user },
+      error: verifyError,
+    } = await supabase.auth.getUser(accessToken);
 
     if (verifyError || !user) {
       console.error('Token verification error:', verifyError);
@@ -44,10 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Update the user's password using admin API
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      user.id,
-      { password }
-    );
+    const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, { password });
 
     if (updateError) {
       console.error('Password update error:', updateError);

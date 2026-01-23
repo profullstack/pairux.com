@@ -13,7 +13,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
         <p className="mt-2 text-sm text-gray-600">Sign in to your account to continue</p>
       </div>
-      <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded-lg" />}>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-gray-100" />}>
         <LoginForm />
       </Suspense>
     </div>

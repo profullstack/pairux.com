@@ -118,7 +118,7 @@ function ResetPasswordForm() {
   if (isChecking) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+        <Loader2 className="text-primary-600 h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-block text-sm font-medium text-primary-600 hover:text-primary-500"
+            className="text-primary-600 hover:text-primary-500 mt-6 inline-block text-sm font-medium"
           >
             Sign in now
           </Link>
@@ -158,7 +158,7 @@ function ResetPasswordForm() {
           </p>
           <a
             href="/forgot-password"
-            className="mt-6 inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+            className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white"
           >
             Request new link
           </a>
@@ -197,7 +197,7 @@ function ResetPasswordForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
-              className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-10 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
               placeholder="Min 8 chars, 1 uppercase, 1 number"
             />
             <button
@@ -228,7 +228,7 @@ function ResetPasswordForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               autoComplete="new-password"
-              className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
               placeholder="Confirm your new password"
             />
           </div>
@@ -237,7 +237,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow transition-all hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Resetting...' : 'Reset password'}
@@ -250,7 +250,7 @@ function ResetPasswordForm() {
 function ResetPasswordLoading() {
   return (
     <div className="flex items-center justify-center py-12">
-      <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      <Loader2 className="text-primary-600 h-8 w-8 animate-spin" />
     </div>
   );
 }

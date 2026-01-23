@@ -71,7 +71,13 @@ describe('GET /api/sessions/join/[joinCode]', () => {
             return {
               neq: vi.fn().mockReturnThis(),
               single: vi.fn().mockResolvedValue({
-                data: { id: 'test', join_code: 'ABC123', status: 'active', settings: {}, created_at: '' },
+                data: {
+                  id: 'test',
+                  join_code: 'ABC123',
+                  status: 'active',
+                  settings: {},
+                  created_at: '',
+                },
                 error: null,
               }),
             };

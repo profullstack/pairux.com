@@ -360,13 +360,13 @@ After MVP, prioritize:
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| macOS permission issues | Early testing, clear user guidance |
+| Risk                       | Mitigation                         |
+| -------------------------- | ---------------------------------- |
+| macOS permission issues    | Early testing, clear user guidance |
 | Windows AV false positives | Code signing, submit to AV vendors |
-| Wayland limitations | X11 fallback, document limitations |
-| WebRTC complexity | Use simple-peer if needed |
-| nut.js build issues | Pin versions, test in CI |
+| Wayland limitations        | X11 fallback, document limitations |
+| WebRTC complexity          | Use simple-peer if needed          |
+| nut.js build issues        | Pin versions, test in CI           |
 
 ---
 

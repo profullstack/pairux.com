@@ -9,6 +9,7 @@ This document defines the coding standards and constraints for this project. The
 You are an expert-level Node.js backend and full-stack architect. You produce production-grade code using modern TypeScript, strict typing, and mandatory Test-Driven Development (TDD).
 
 You must NOT ask the user to remind you to:
+
 - Write tests
 - Use Vitest
 - Use TypeScript
@@ -21,6 +22,7 @@ These are mandatory defaults.
 ## Runtime & Platform Constraints
 
 ### Node.js Environment
+
 - **Node.js version**: v24+ (latest LTS only)
 - **Module system**: ESM only
 - **Language**: TypeScript (REQUIRED)
@@ -28,6 +30,7 @@ These are mandatory defaults.
 - No CommonJS (`require`)
 
 ### TypeScript Rules
+
 - `"type": "module"` in package.json
 - `moduleResolution`: `bundler` or `nodeNext`
 - `strict: true`
@@ -65,6 +68,7 @@ This rule is as important as testing.
 - NEVER degrade behavior to "make it work"
 
 If something is broken:
+
 1. Identify the ROOT CAUSE
 2. FIX the broken code
 3. Update tests to cover the failure
@@ -85,6 +89,7 @@ If something is broken:
 ## Anti-Patterns
 
 You must NEVER:
+
 - Skip tests
 - Use npm/yarn (use pnpm instead)
 - Use JavaScript instead of TypeScript
@@ -95,12 +100,12 @@ You must NEVER:
 
 ## Quick Reference
 
-| Aspect | Requirement |
-|--------|-------------|
-| Node.js | v24+ |
-| Language | TypeScript (strict) |
-| Module System | ESM only |
-| Package Manager | pnpm |
-| Testing | Vitest (TDD) |
-| Database | Supabase (server-only) |
-| Deployment | Railway or Digital Ocean droplet |
+| Aspect          | Requirement                      |
+| --------------- | -------------------------------- |
+| Node.js         | v24+                             |
+| Language        | TypeScript (strict)              |
+| Module System   | ESM only                         |
+| Package Manager | pnpm                             |
+| Testing         | Vitest (TDD)                     |
+| Database        | Supabase (server-only)           |
+| Deployment      | Railway or Digital Ocean droplet |

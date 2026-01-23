@@ -38,9 +38,7 @@ export const metadata: Metadata = {
     email: false,
     telephone: false,
   },
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -94,11 +92,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

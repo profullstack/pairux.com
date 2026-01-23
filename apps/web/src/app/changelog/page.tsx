@@ -46,9 +46,9 @@ export default function ChangelogPage() {
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="space-y-12">
               {releases.map((release) => (
-                <div key={release.version} className="border-l-2 border-primary-500 pl-6">
+                <div key={release.version} className="border-primary-500 border-l-2 pl-6">
                   <div className="flex items-center gap-3">
-                    <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-semibold text-primary-700">
+                    <span className="bg-primary-100 text-primary-700 rounded-full px-3 py-1 text-sm font-semibold">
                       v{release.version}
                     </span>
                     <span className="text-sm text-gray-500">{release.date}</span>

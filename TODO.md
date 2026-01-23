@@ -25,6 +25,7 @@
 ## 🌐 Web App (Next.js PWA)
 
 ### Marketing Site
+
 - [x] **Landing Page**
   - [x] Hero section with value proposition
   - [x] Feature highlights
@@ -58,6 +59,7 @@
   - [x] Privacy & security FAQ
 
 ### PWA Viewer (Join Session)
+
 - [ ] **Session Join Flow**
   - [ ] Join via link (no account required)
   - [ ] Optional: Sign in for persistent identity
@@ -87,6 +89,7 @@
 ## 💬 Text Chat System (SSE/POST)
 
 ### API Endpoints (Server-Side)
+
 - [ ] **POST /api/chat/send**
   - [ ] Validate session membership
   - [ ] Store message in Supabase
@@ -105,6 +108,7 @@
   - [ ] Session-scoped access
 
 ### Chat UI Components
+
 - [ ] **Chat Panel**
   - [ ] Collapsible sidebar/drawer
   - [ ] Message list with auto-scroll
@@ -124,6 +128,7 @@
   - [ ] Emoji support (native)
 
 ### Data Model
+
 - [ ] **chat_messages table**
   - [ ] id (uuid)
   - [ ] session_id (fk)
@@ -138,6 +143,7 @@
 ## 🖥️ Desktop App (Electron)
 
 ### Core Functionality
+
 - [ ] **Screen Capture**
   - [ ] Screen/window picker dialog
   - [ ] Capture via Electron desktopCapturer
@@ -190,6 +196,7 @@
   - [ ] Special key handling (modifiers, function keys)
 
 ### Session Management
+
 - [ ] **Host Controls**
   - [ ] Start new session
   - [ ] P2P vs SFU mode selection at session start
@@ -212,6 +219,7 @@
   - [ ] Control request notifications
 
 ### UI/UX
+
 - [ ] **System Tray**
   - [ ] Tray icon with status
   - [ ] Quick actions menu
@@ -230,6 +238,7 @@
   - [ ] Recording/sharing indicator
 
 ### Platform-Specific
+
 - [ ] **macOS**
   - [ ] Accessibility permission request
   - [ ] Screen Recording permission request

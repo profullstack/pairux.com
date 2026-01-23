@@ -23,8 +23,7 @@ export default function DownloadPage() {
                 Download PairUX
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Get the desktop app to host sessions. Viewers can join from any
-                browser.
+                Get the desktop app to host sessions. Viewers can join from any browser.
               </p>
             </div>
           </div>

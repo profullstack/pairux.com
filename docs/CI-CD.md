@@ -8,12 +8,12 @@ This document details the GitHub Actions workflows for PairUX, covering PR check
 
 ## Workflow Summary
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| PR Checks | Pull request | Lint, build, test |
-| Web Deploy | Push to main, release tag | Deploy marketing site |
-| Desktop Release | Release tag (v*) | Build, sign, publish desktop app |
-| Package Managers | After desktop release | Update Homebrew, WinGet, APT, etc. |
+| Workflow         | Trigger                   | Purpose                            |
+| ---------------- | ------------------------- | ---------------------------------- |
+| PR Checks        | Pull request              | Lint, build, test                  |
+| Web Deploy       | Push to main, release tag | Deploy marketing site              |
+| Desktop Release  | Release tag (v\*)         | Build, sign, publish desktop app   |
+| Package Managers | After desktop release     | Update Homebrew, WinGet, APT, etc. |
 
 ---
 
@@ -256,7 +256,7 @@ jobs:
 
 **File**: `.github/workflows/desktop-release.yml`
 
-```yaml
+````yaml
 name: Desktop Release
 
 on:
@@ -446,7 +446,7 @@ jobs:
         run: |
           # Sign .deb
           dpkg-sig -k ${{ secrets.GPG_KEY_ID }} --sign builder apps/desktop/dist/*.deb
-          
+
           # Sign .rpm
           rpm --addsign apps/desktop/dist/*.rpm
         env:
@@ -505,36 +505,36 @@ jobs:
           files: release/*
           body: |
             ## PairUX v${{ needs.validate.outputs.version }}
-            
+
             ### Installation
-            
+
             **macOS (Homebrew)**
             ```bash
             brew install --cask pairux
             ```
-            
+
             **Windows (WinGet)**
             ```powershell
             winget install PairUX.PairUX
             ```
-            
+
             **Linux (Debian/Ubuntu)**
             ```bash
             sudo apt install pairux
             ```
-            
+
             **Linux (Fedora)**
             ```bash
             sudo dnf install pairux
             ```
-            
+
             **Linux (Arch)**
             ```bash
             yay -S pairux-bin
             ```
-            
+
             ### Checksums
-            
+
             See `SHA256SUMS.txt` for file checksums.
             Verify signature: `gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt`
         env:
@@ -557,7 +557,7 @@ jobs:
         run: |
           echo "Release failed!"
           # Add Slack/Discord notification here
-```
+````
 
 ---
 
@@ -594,7 +594,7 @@ jobs:
             VERSION="${GITHUB_REF#refs/tags/v}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           # Download checksums
           curl -sL "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/SHA256SUMS.txt" -o checksums.txt
           echo "checksums<<EOF" >> $GITHUB_OUTPUT
@@ -617,11 +617,11 @@ jobs:
         run: |
           VERSION=${{ needs.get-release-info.outputs.version }}
           CHECKSUMS="${{ needs.get-release-info.outputs.checksums }}"
-          
+
           # Extract checksums
           ARM64_SHA=$(echo "$CHECKSUMS" | grep "arm64.dmg" | awk '{print $1}')
           X64_SHA=$(echo "$CHECKSUMS" | grep "x64.dmg" | awk '{print $1}')
-          
+
           # Update cask
           cat > homebrew-tap/Casks/pairux.rb << EOF
           cask "pairux" do
@@ -680,12 +680,12 @@ jobs:
         run: |
           VERSION=${{ needs.get-release-info.outputs.version }}
           CHECKSUMS="${{ needs.get-release-info.outputs.checksums }}"
-          
+
           X64_SHA=$(echo "$CHECKSUMS" | grep "x64.msi" | awk '{print $1}')
           ARM64_SHA=$(echo "$CHECKSUMS" | grep "arm64.msi" | awk '{print $1}')
-          
+
           mkdir -p winget-manifests
-          
+
           # Version manifest
           cat > winget-manifests/PairUX.PairUX.yaml << EOF
           PackageIdentifier: PairUX.PairUX
@@ -694,7 +694,7 @@ jobs:
           ManifestType: version
           ManifestVersion: 1.4.0
           EOF
-          
+
           # Installer manifest
           cat > winget-manifests/PairUX.PairUX.installer.yaml << EOF
           PackageIdentifier: PairUX.PairUX
@@ -718,7 +718,7 @@ jobs:
           ManifestType: installer
           ManifestVersion: 1.4.0
           EOF
-          
+
           # Locale manifest
           cat > winget-manifests/PairUX.PairUX.locale.en-US.yaml << EOF
           PackageIdentifier: PairUX.PairUX
@@ -740,12 +740,12 @@ jobs:
           token: ${{ secrets.WINGET_GITHUB_TOKEN }}
           repository: microsoft/winget-pkgs
           branch: pairux-${{ needs.get-release-info.outputs.version }}
-          title: "PairUX version ${{ needs.get-release-info.outputs.version }}"
+          title: 'PairUX version ${{ needs.get-release-info.outputs.version }}'
           body: |
             ## PairUX ${{ needs.get-release-info.outputs.version }}
-            
+
             Automated update from release workflow.
-          commit-message: "Add PairUX version ${{ needs.get-release-info.outputs.version }}"
+          commit-message: 'Add PairUX version ${{ needs.get-release-info.outputs.version }}'
           add-paths: |
             manifests/p/PairUX/PairUX/${{ needs.get-release-info.outputs.version }}/*
 
@@ -776,15 +776,15 @@ jobs:
       - name: Update repository
         run: |
           cd apt-repo
-          
+
           # Generate Packages
           dpkg-scanpackages pool/main /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -k -f dists/stable/main/binary-amd64/Packages
-          
+
           # Generate Release
           cd dists/stable
           apt-ftparchive release . > Release
-          
+
           # Sign
           gpg --default-key ${{ secrets.GPG_KEY_ID }} -abs -o Release.gpg Release
           gpg --default-key ${{ secrets.GPG_KEY_ID }} --clearsign -o InRelease Release
@@ -825,13 +825,13 @@ jobs:
       - name: Update repository
         run: |
           cd rpm-repo
-          
+
           # Sign RPM
           rpm --addsign Packages/*.rpm
-          
+
           # Create repo metadata
           createrepo_c .
-          
+
           # Sign metadata
           gpg --default-key ${{ secrets.GPG_KEY_ID }} --detach-sign --armor repodata/repomd.xml
 
@@ -859,9 +859,9 @@ jobs:
         run: |
           VERSION=${{ needs.get-release-info.outputs.version }}
           CHECKSUMS="${{ needs.get-release-info.outputs.checksums }}"
-          
+
           X64_SHA=$(echo "$CHECKSUMS" | grep "linux-x64.tar.gz" | awk '{print $1}')
-          
+
           cat > aur-package/PKGBUILD << EOF
           # Maintainer: PairUX <support@pairux.com>
           pkgname=pairux-bin
@@ -876,7 +876,7 @@ jobs:
           conflicts=('pairux')
           source=("https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/pairux-\${pkgver}-linux-x64.tar.gz")
           sha256sums=('$X64_SHA')
-          
+
           package() {
               cd "\$srcdir"
               install -dm755 "\$pkgdir/opt/pairux"
@@ -911,32 +911,32 @@ jobs:
 
 ### Required GitHub Secrets
 
-| Secret | Purpose | Where to Get |
-|--------|---------|--------------|
-| `VERCEL_TOKEN` | Vercel deployment | Vercel dashboard |
-| `VERCEL_ORG_ID` | Vercel organization | Vercel dashboard |
-| `VERCEL_PROJECT_ID` | Vercel project | Vercel dashboard |
-| `MACOS_CERTIFICATE` | Code signing base64 | Apple Developer |
-| `MACOS_CERTIFICATE_PWD` | Certificate password | Your password |
-| `KEYCHAIN_PASSWORD` | Temp keychain | Generate random |
-| `APPLE_ID` | Notarization | Apple ID email |
-| `APPLE_APP_SPECIFIC_PASSWORD` | Notarization | appleid.apple.com |
-| `APPLE_TEAM_ID` | Notarization | Apple Developer |
-| `AZURE_KEY_VAULT_URI` | Windows signing | Azure Portal |
-| `AZURE_CLIENT_ID` | Windows signing | Azure Portal |
-| `AZURE_CLIENT_SECRET` | Windows signing | Azure Portal |
-| `AZURE_CERT_NAME` | Windows signing | Azure Portal |
-| `AZURE_TENANT_ID` | Windows signing | Azure Portal |
-| `GPG_PRIVATE_KEY` | Linux signing | gpg export |
-| `GPG_PASSPHRASE` | GPG passphrase | Your passphrase |
-| `GPG_KEY_ID` | GPG key ID | gpg list-keys |
-| `TAP_GITHUB_TOKEN` | Homebrew tap | GitHub PAT |
-| `WINGET_GITHUB_TOKEN` | WinGet PR | GitHub PAT |
-| `APT_REPO_TOKEN` | APT repo | GitHub PAT |
-| `RPM_REPO_TOKEN` | RPM repo | GitHub PAT |
-| `AUR_SSH_KEY` | AUR push | SSH key |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL | Supabase dashboard |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase key | Supabase dashboard |
+| Secret                          | Purpose              | Where to Get       |
+| ------------------------------- | -------------------- | ------------------ |
+| `VERCEL_TOKEN`                  | Vercel deployment    | Vercel dashboard   |
+| `VERCEL_ORG_ID`                 | Vercel organization  | Vercel dashboard   |
+| `VERCEL_PROJECT_ID`             | Vercel project       | Vercel dashboard   |
+| `MACOS_CERTIFICATE`             | Code signing base64  | Apple Developer    |
+| `MACOS_CERTIFICATE_PWD`         | Certificate password | Your password      |
+| `KEYCHAIN_PASSWORD`             | Temp keychain        | Generate random    |
+| `APPLE_ID`                      | Notarization         | Apple ID email     |
+| `APPLE_APP_SPECIFIC_PASSWORD`   | Notarization         | appleid.apple.com  |
+| `APPLE_TEAM_ID`                 | Notarization         | Apple Developer    |
+| `AZURE_KEY_VAULT_URI`           | Windows signing      | Azure Portal       |
+| `AZURE_CLIENT_ID`               | Windows signing      | Azure Portal       |
+| `AZURE_CLIENT_SECRET`           | Windows signing      | Azure Portal       |
+| `AZURE_CERT_NAME`               | Windows signing      | Azure Portal       |
+| `AZURE_TENANT_ID`               | Windows signing      | Azure Portal       |
+| `GPG_PRIVATE_KEY`               | Linux signing        | gpg export         |
+| `GPG_PASSPHRASE`                | GPG passphrase       | Your passphrase    |
+| `GPG_KEY_ID`                    | GPG key ID           | gpg list-keys      |
+| `TAP_GITHUB_TOKEN`              | Homebrew tap         | GitHub PAT         |
+| `WINGET_GITHUB_TOKEN`           | WinGet PR            | GitHub PAT         |
+| `APT_REPO_TOKEN`                | APT repo             | GitHub PAT         |
+| `RPM_REPO_TOKEN`                | RPM repo             | GitHub PAT         |
+| `AUR_SSH_KEY`                   | AUR push             | SSH key            |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase URL         | Supabase dashboard |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase key         | Supabase dashboard |
 
 ---
 
@@ -949,18 +949,18 @@ graph TD
         Push[Push to main]
         Tag[Release Tag v*]
     end
-    
+
     subgraph PR_Checks [PR Checks]
         Lint[Lint and Typecheck]
         BuildWeb[Build Web]
         BuildDesktop[Build Desktop]
         Test[Run Tests]
     end
-    
+
     subgraph Web_Deploy [Web Deploy]
         DeployVercel[Deploy to Vercel]
     end
-    
+
     subgraph Desktop_Release [Desktop Release]
         Validate[Validate Version]
         BuildMac[Build macOS]
@@ -968,7 +968,7 @@ graph TD
         BuildLinux[Build Linux]
         CreateRelease[Create GitHub Release]
     end
-    
+
     subgraph Package_Managers [Package Managers]
         UpdateHomebrew[Update Homebrew]
         UpdateWinget[Update WinGet]
@@ -976,14 +976,14 @@ graph TD
         UpdateRpm[Update RPM]
         UpdateAur[Update AUR]
     end
-    
+
     PR --> Lint
     PR --> BuildWeb
     PR --> BuildDesktop
     PR --> Test
-    
+
     Push --> DeployVercel
-    
+
     Tag --> Validate
     Validate --> BuildMac
     Validate --> BuildWin
@@ -991,7 +991,7 @@ graph TD
     BuildMac --> CreateRelease
     BuildWin --> CreateRelease
     BuildLinux --> CreateRelease
-    
+
     CreateRelease --> UpdateHomebrew
     CreateRelease --> UpdateWinget
     CreateRelease --> UpdateApt
@@ -1070,13 +1070,13 @@ git push origin main --tags
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| macOS signing fails | Certificate expired | Renew in Apple Developer |
-| Windows signing fails | Azure access | Check service principal |
-| Linux build fails | Missing deps | Add to apt-get install |
-| Notarization fails | Hardened runtime | Check entitlements |
-| AUR push fails | SSH key | Regenerate and update |
+| Issue                 | Cause               | Solution                 |
+| --------------------- | ------------------- | ------------------------ |
+| macOS signing fails   | Certificate expired | Renew in Apple Developer |
+| Windows signing fails | Azure access        | Check service principal  |
+| Linux build fails     | Missing deps        | Add to apt-get install   |
+| Notarization fails    | Hardened runtime    | Check entitlements       |
+| AUR push fails        | SSH key             | Regenerate and update    |
 
 ### Debug Commands
 

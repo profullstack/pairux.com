@@ -47,9 +47,7 @@ export function trackSignup(data?: {
 /**
  * Track successful login
  */
-export function trackLogin(data?: {
-  method?: 'email' | 'google' | 'github';
-}): void {
+export function trackLogin(data?: { method?: 'email' | 'google' | 'github' }): void {
   trackGoal('login', data);
 }
 
@@ -66,38 +64,28 @@ export function trackDownload(data: {
 /**
  * Track session start (host)
  */
-export function trackSessionStart(data?: {
-  mode?: 'p2p' | 'sfu';
-}): void {
+export function trackSessionStart(data?: { mode?: 'p2p' | 'sfu' }): void {
   trackGoal('session_start', data);
 }
 
 /**
  * Track session join (viewer)
  */
-export function trackSessionJoin(data?: {
-  as_guest?: boolean;
-}): void {
+export function trackSessionJoin(data?: { as_guest?: boolean }): void {
   trackGoal('session_join', data);
 }
 
 /**
  * Track feature page view
  */
-export function trackPageView(data?: {
-  page?: string;
-  referrer?: string;
-}): void {
+export function trackPageView(data?: { page?: string; referrer?: string }): void {
   trackGoal('page_view', data);
 }
 
 /**
  * Track CTA button click
  */
-export function trackCTAClick(data: {
-  button: string;
-  location: string;
-}): void {
+export function trackCTAClick(data: { button: string; location: string }): void {
   trackGoal('cta_click', data);
 }
 
@@ -114,10 +102,7 @@ export function trackUpgradeStart(data: {
 /**
  * Track successful plan upgrade
  */
-export function trackUpgradeComplete(data: {
-  plan: 'pro' | 'team';
-  price: number;
-}): void {
+export function trackUpgradeComplete(data: { plan: 'pro' | 'team'; price: number }): void {
   trackGoal('upgrade_complete', data);
 }
 
@@ -140,8 +125,6 @@ export function trackPasswordReset(): void {
 /**
  * Track contact/support form submission
  */
-export function trackContact(data?: {
-  type?: 'support' | 'sales' | 'feedback';
-}): void {
+export function trackContact(data?: { type?: 'support' | 'sales' | 'feedback' }): void {
   trackGoal('contact', data);
 }

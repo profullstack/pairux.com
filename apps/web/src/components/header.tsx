@@ -13,10 +13,14 @@ export async function Header() {
 
   try {
     const supabase = await createClient();
-    const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
 
     if (supabaseUser) {
-      const metadata = supabaseUser.user_metadata as { first_name?: string; last_name?: string } | undefined;
+      const metadata = supabaseUser.user_metadata as
+        | { first_name?: string; last_name?: string }
+        | undefined;
       user = {
         id: supabaseUser.id,
         email: supabaseUser.email ?? '',

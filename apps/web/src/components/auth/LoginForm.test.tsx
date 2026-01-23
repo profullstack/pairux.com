@@ -109,7 +109,7 @@ describe('LoginForm', () => {
 
     // Find the toggle button by its position (button without name next to password input)
     const toggleButtons = screen.getAllByRole('button');
-    const toggleButton = toggleButtons.find(btn => btn.getAttribute('type') === 'button');
+    const toggleButton = toggleButtons.find((btn) => btn.getAttribute('type') === 'button');
     await user.click(toggleButton!);
 
     expect(passwordInput).toHaveAttribute('type', 'text');

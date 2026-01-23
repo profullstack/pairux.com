@@ -18,18 +18,19 @@ export default function SignupPage() {
           <div>
             <h3 className="font-semibold text-amber-900">Early Adopter Bonus</h3>
             <p className="mt-1 text-sm text-amber-700">
-              Sign up now and get <span className="font-bold">20% extra credits</span> on any deposit!
+              Sign up now and get <span className="font-bold">20% extra credits</span> on any
+              deposit!
             </p>
           </div>
         </div>
       </div>
 
       {/* Waitlist Deposit Card */}
-      <div className="rounded-xl border-2 border-primary-200 bg-gradient-to-br from-primary-50 to-white p-6 shadow-sm">
+      <div className="border-primary-200 from-primary-50 rounded-xl border-2 bg-gradient-to-br to-white p-6 shadow-sm">
         <div className="flex items-center gap-2">
-          <Gift className="h-5 w-5 text-primary-600" />
+          <Gift className="text-primary-600 h-5 w-5" />
           <h2 className="text-lg font-bold text-gray-900">Join the Waitlist</h2>
-          <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
+          <span className="bg-primary-100 text-primary-700 rounded-full px-2 py-0.5 text-xs font-medium">
             Recommended
           </span>
         </div>
@@ -41,7 +42,9 @@ export default function SignupPage() {
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <Check className="h-4 w-4 text-green-500" />
-            <span>$100 deposit = <span className="font-semibold">$120 in credits</span> (20% bonus)</span>
+            <span>
+              $100 deposit = <span className="font-semibold">$120 in credits</span> (20% bonus)
+            </span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <Check className="h-4 w-4 text-green-500" />

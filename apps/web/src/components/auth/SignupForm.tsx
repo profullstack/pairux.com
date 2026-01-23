@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, User, CheckCircle } from 'lucide-react';
+import { trackSignup } from '@/lib/analytics';
 
 export function SignupForm() {
   const [email, setEmail] = useState('');
@@ -35,6 +36,7 @@ export function SignupForm() {
         return;
       }
 
+      trackSignup({ method: 'email', plan: 'free' });
       setSuccess(true);
     } catch {
       setError('An unexpected error occurred');

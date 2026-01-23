@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Loader2, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { trackPasswordReset } from '@/lib/analytics';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
@@ -30,6 +31,7 @@ export function ForgotPasswordForm() {
         return;
       }
 
+      trackPasswordReset();
       setSuccess(true);
     } catch {
       setError('An unexpected error occurred');

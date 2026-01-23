@@ -1,18 +1,12 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
-import {
-  Monitor,
-  Users,
-  MessageSquare,
-  Settings,
-  LogOut,
-  Loader2,
-  AlertCircle,
-  Wifi,
-  WifiOff,
-} from 'lucide-react';
+import { Users, MessageSquare, Settings, LogOut, Loader2, AlertCircle } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import type { ConnectionState } from '@pairux/shared-types';
+import { VideoViewer } from '@/components/video';
+import { useWebRTC } from '@/hooks/useWebRTC';
 
 interface Participant {
   id: string;
@@ -42,9 +36,23 @@ interface ApiResponse<T> {
 
 export default function SessionViewerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
+  const participantId = useId(); // Temporary participant ID for WebRTC
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Initialize WebRTC connection
+  const {
+    connectionState,
+    remoteStream,
+    qualityMetrics,
+    networkQuality,
+    error: webrtcError,
+    reconnect,
+  } = useWebRTC({
+    sessionId,
+    participantId,
+  });
 
   useEffect(() => {
     async function fetchSession() {
@@ -117,7 +125,6 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
   }
 
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
-  const isActive = session.status === 'active';
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
@@ -141,14 +148,7 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-center gap-3">
-              <div
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  isActive ? 'bg-green-900/50 text-green-400' : 'bg-yellow-900/50 text-yellow-400'
-                }`}
-              >
-                {isActive ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-                {isActive ? 'Connected' : session.status}
-              </div>
+              <ConnectionStatusBadge connectionState={connectionState} />
               <Link
                 href="/"
                 className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
@@ -165,22 +165,15 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
       <div className="flex flex-1 overflow-hidden">
         {/* Video area */}
         <main className="flex flex-1 flex-col">
-          <div className="flex flex-1 items-center justify-center bg-black p-4">
-            <div className="flex flex-col items-center text-center">
-              <div className="rounded-full bg-gray-800 p-6">
-                <Monitor className="h-16 w-16 text-gray-600" />
-              </div>
-              <h2 className="mt-6 text-xl font-semibold text-white">Waiting for screen share</h2>
-              <p className="mt-2 max-w-md text-sm text-gray-400">
-                The host hasn&apos;t started sharing their screen yet. You&apos;ll see their screen
-                here once they begin.
-              </p>
-              <div className="mt-6 flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-300">
-                <Users className="h-4 w-4" />
-                <span>{activeParticipants.length} participant(s) in session</span>
-              </div>
-            </div>
-          </div>
+          <VideoViewer
+            stream={remoteStream}
+            connectionState={connectionState}
+            qualityMetrics={qualityMetrics}
+            networkQuality={networkQuality}
+            error={webrtcError}
+            onReconnect={reconnect}
+            className="flex-1"
+          />
 
           {/* Control bar */}
           <div className="flex items-center justify-center gap-4 border-t border-gray-800 bg-gray-900 px-4 py-3">
@@ -229,6 +222,47 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
           </div>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function ConnectionStatusBadge({ connectionState }: { connectionState: ConnectionState }) {
+  const config: Record<
+    ConnectionState,
+    { bg: string; text: string; icon: typeof Wifi; label: string }
+  > = {
+    idle: { bg: 'bg-gray-700/50', text: 'text-gray-400', icon: WifiOff, label: 'Waiting' },
+    connecting: {
+      bg: 'bg-blue-900/50',
+      text: 'text-blue-400',
+      icon: RefreshCw,
+      label: 'Connecting',
+    },
+    connected: { bg: 'bg-green-900/50', text: 'text-green-400', icon: Wifi, label: 'Connected' },
+    reconnecting: {
+      bg: 'bg-yellow-900/50',
+      text: 'text-yellow-400',
+      icon: RefreshCw,
+      label: 'Reconnecting',
+    },
+    failed: { bg: 'bg-red-900/50', text: 'text-red-400', icon: WifiOff, label: 'Failed' },
+    disconnected: {
+      bg: 'bg-gray-700/50',
+      text: 'text-gray-400',
+      icon: WifiOff,
+      label: 'Disconnected',
+    },
+  };
+
+  const { bg, text, icon: Icon, label } = config[connectionState];
+  const isAnimating = connectionState === 'connecting' || connectionState === 'reconnecting';
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${bg} ${text}`}
+    >
+      <Icon className={`h-3 w-3 ${isAnimating ? 'animate-spin' : ''}`} />
+      {label}
     </div>
   );
 }

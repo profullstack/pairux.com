@@ -3,6 +3,19 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import { Suspense } from 'react';
 import SessionViewerPage from './page';
 
+// Mock the useWebRTC hook
+vi.mock('@/hooks/useWebRTC', () => ({
+  useWebRTC: () => ({
+    connectionState: 'idle',
+    remoteStream: null,
+    qualityMetrics: null,
+    networkQuality: 'good',
+    error: null,
+    reconnect: vi.fn(),
+    disconnect: vi.fn(),
+  }),
+}));
+
 // Create a stable promise that resolves immediately
 function createResolvedParams(id: string) {
   return Promise.resolve({ id });
@@ -99,15 +112,16 @@ describe('SessionViewerPage', () => {
       });
     });
 
-    it('shows connected status for active sessions', async () => {
+    it('shows connection status badge', async () => {
       const params = createResolvedParams('session-123');
 
       await act(async () => {
         renderWithSuspense(<SessionViewerPage params={params} />);
       });
 
+      // When WebRTC is in idle state, it shows "Waiting"
       await waitFor(() => {
-        expect(screen.getByText('Connected')).toBeInTheDocument();
+        expect(screen.getByText('Waiting')).toBeInTheDocument();
       });
     });
 
@@ -126,7 +140,7 @@ describe('SessionViewerPage', () => {
       ).toBeInTheDocument();
     });
 
-    it('displays participant count', async () => {
+    it('displays participant count in sidebar', async () => {
       const params = createResolvedParams('session-123');
 
       await act(async () => {
@@ -134,7 +148,7 @@ describe('SessionViewerPage', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('2 participant(s) in session')).toBeInTheDocument();
+        expect(screen.getByText('Participants (2)')).toBeInTheDocument();
       });
     });
 
@@ -146,9 +160,8 @@ describe('SessionViewerPage', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Participants (2)')).toBeInTheDocument();
+        expect(screen.getByText('Host User')).toBeInTheDocument();
       });
-      expect(screen.getByText('Host User')).toBeInTheDocument();
       expect(screen.getByText('Viewer One')).toBeInTheDocument();
     });
 
@@ -193,7 +206,7 @@ describe('SessionViewerPage', () => {
   });
 
   describe('Non-active session status', () => {
-    it('shows session status when not active', async () => {
+    it('shows WebRTC connection status badge regardless of session status', async () => {
       const mockSessionData = {
         id: 'session-123',
         join_code: 'ABC123',
@@ -214,8 +227,9 @@ describe('SessionViewerPage', () => {
         renderWithSuspense(<SessionViewerPage params={params} />);
       });
 
+      // The badge now shows WebRTC connection state, not session status
       await waitFor(() => {
-        expect(screen.getByText('paused')).toBeInTheDocument();
+        expect(screen.getByText('Waiting')).toBeInTheDocument();
       });
     });
   });
@@ -260,7 +274,6 @@ describe('SessionViewerPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Participants (1)')).toBeInTheDocument();
       });
-      expect(screen.getByText('1 participant(s) in session')).toBeInTheDocument();
       expect(screen.getByText('Active User')).toBeInTheDocument();
       expect(screen.queryByText('Left User')).not.toBeInTheDocument();
     });

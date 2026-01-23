@@ -97,7 +97,7 @@ case "$ARCH" in
 esac
 
 VERSION="${PAIRUX_VERSION:-latest}"
-BASE_URL="https://github.com/pairux/pairux/releases"
+BASE_URL="https://github.com/profullstack/pairux.com/releases"
 
 if [ "$VERSION" = "latest" ]; then
   DOWNLOAD_URL="$BASE_URL/latest/download"
@@ -176,7 +176,7 @@ $Arch = if ([Environment]::Is64BitOperatingSystem) {
     exit 1
 }
 
-$BaseUrl = "https://github.com/pairux/pairux/releases"
+$BaseUrl = "https://github.com/profullstack/pairux.com/releases"
 $DownloadUrl = if ($Version -eq 'latest') {
     "$BaseUrl/latest/download/PairUX-$Arch.msi"
 } else {
@@ -265,7 +265,7 @@ cask "pairux" do
   version "1.0.0"
   sha256 "CHECKSUM_HERE"
 
-  url "https://github.com/pairux/pairux/releases/download/v#{version}/PairUX-#{version}-arm64.dmg",
+  url "https://github.com/profullstack/pairux.com/releases/download/v#{version}/PairUX-#{version}-arm64.dmg",
       verified: "github.com/pairux/pairux/"
   name "PairUX"
   desc "Collaborative screen sharing with remote control"
@@ -415,11 +415,11 @@ InstallModes:
   - silentWithProgress
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/pairux/pairux/releases/download/v1.0.0/PairUX-1.0.0-x64.msi
+    InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v1.0.0/PairUX-1.0.0-x64.msi
     InstallerSha256: CHECKSUM_HERE
     ProductCode: '{GUID-HERE}'
   - Architecture: arm64
-    InstallerUrl: https://github.com/pairux/pairux/releases/download/v1.0.0/PairUX-1.0.0-arm64.msi
+    InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v1.0.0/PairUX-1.0.0-arm64.msi
     InstallerSha256: CHECKSUM_HERE
     ProductCode: '{GUID-HERE}'
 ManifestType: installer
@@ -438,7 +438,7 @@ PrivacyUrl: https://pairux.com/privacy
 PackageName: PairUX
 PackageUrl: https://pairux.com
 License: MIT
-LicenseUrl: https://github.com/pairux/pairux/blob/main/LICENSE
+LicenseUrl: https://github.com/profullstack/pairux.com/blob/main/LICENSE
 ShortDescription: Collaborative screen sharing with remote control
 Description: PairUX enables real-time screen sharing with simultaneous local and remote mouse/keyboard control.
 Tags:
@@ -684,7 +684,7 @@ license=('MIT')
 depends=('gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'util-linux-libs')
 provides=('pairux')
 conflicts=('pairux')
-source=("https://github.com/pairux/pairux/releases/download/v${pkgver}/pairux-${pkgver}-linux-x64.tar.gz")
+source=("https://github.com/profullstack/pairux.com/releases/download/v${pkgver}/pairux-${pkgver}-linux-x64.tar.gz")
 sha256sums=('CHECKSUM_HERE')
 
 package() {
@@ -743,7 +743,7 @@ appImage:
 **Installation**:
 ```bash
 # Download
-wget https://github.com/pairux/pairux/releases/download/v1.0.0/PairUX-1.0.0-x86_64.AppImage
+wget https://github.com/profullstack/pairux.com/releases/download/v1.0.0/PairUX-1.0.0-x86_64.AppImage
 
 # Make executable
 chmod +x PairUX-1.0.0-x86_64.AppImage
@@ -928,21 +928,21 @@ const DOWNLOADS = {
   macos: {
     x64: {
       primary: 'brew install --cask pairux',
-      direct: 'https://github.com/pairux/pairux/releases/latest/download/PairUX-x64.dmg',
+      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x64.dmg',
     },
     arm64: {
       primary: 'brew install --cask pairux',
-      direct: 'https://github.com/pairux/pairux/releases/latest/download/PairUX-arm64.dmg',
+      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.dmg',
     },
   },
   windows: {
     x64: {
       primary: 'winget install PairUX.PairUX',
-      direct: 'https://github.com/pairux/pairux/releases/latest/download/PairUX-x64.msi',
+      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x64.msi',
     },
     arm64: {
       primary: 'winget install PairUX.PairUX',
-      direct: 'https://github.com/pairux/pairux/releases/latest/download/PairUX-arm64.msi',
+      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.msi',
     },
   },
   linux: {
@@ -950,7 +950,7 @@ const DOWNLOADS = {
       debian: 'sudo apt install pairux',
       fedora: 'sudo dnf install pairux',
       arch: 'yay -S pairux-bin',
-      direct: 'https://github.com/pairux/pairux/releases/latest/download/PairUX-x86_64.AppImage',
+      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x86_64.AppImage',
     },
   },
 };

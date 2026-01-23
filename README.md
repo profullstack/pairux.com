@@ -159,7 +159,7 @@ pairux/
 
 ```bash
 # Clone the repo
-git clone https://github.com/pairux/pairux.git
+git clone https://github.com/profullstack/pairux.com.git
 cd pairux
 
 # Install dependencies

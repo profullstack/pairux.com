@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/github',
-        destination: 'https://github.com/pairux/pairux',
+        destination: 'https://github.com/profullstack/pairux.com',
         permanent: false,
       },
     ];

@@ -87,8 +87,7 @@ describe('api utilities', () => {
     });
 
     it('handles generic Error in development', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      vi.stubEnv('NODE_ENV', 'development');
 
       const error = new Error('Database connection failed');
       const response = handleApiError(error);
@@ -97,12 +96,11 @@ describe('api utilities', () => {
       const body = await response.json();
       expect(body.error).toBe('Database connection failed');
 
-      process.env.NODE_ENV = originalEnv;
+      vi.unstubAllEnvs();
     });
 
     it('hides error details in production', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      vi.stubEnv('NODE_ENV', 'production');
 
       const error = new Error('Sensitive database info');
       const response = handleApiError(error);
@@ -111,7 +109,7 @@ describe('api utilities', () => {
       const body = await response.json();
       expect(body.error).toBe('An unexpected error occurred');
 
-      process.env.NODE_ENV = originalEnv;
+      vi.unstubAllEnvs();
     });
 
     it('handles non-Error objects', async () => {

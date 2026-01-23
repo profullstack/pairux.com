@@ -1,12 +1,18 @@
 'use client';
 
-import { useState, useEffect, use, useId } from 'react';
+import { useState, useEffect, use, useId, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Users, MessageSquare, Settings, LogOut, Loader2, AlertCircle } from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import type { ConnectionState } from '@pairux/shared-types';
+import type { ConnectionState, CursorPositionMessage } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
 import { useWebRTC } from '@/hooks/useWebRTC';
+import {
+  ControlRequestButton,
+  ControlStatusIndicator,
+  InputCapture,
+  CursorOverlay,
+} from '@/components/control';
 
 interface Participant {
   id: string;
@@ -40,6 +46,21 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle cursor updates from other participants
+  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
+    setRemoteCursors((prev) => {
+      const next = new Map(prev);
+      if (cursor.visible) {
+        next.set(cursor.participantId, cursor);
+      } else {
+        next.delete(cursor.participantId);
+      }
+      return next;
+    });
+  }, []);
 
   // Initialize WebRTC connection
   const {
@@ -49,10 +70,21 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
     networkQuality,
     error: webrtcError,
     reconnect,
+    // Remote control
+    controlState,
+    dataChannelReady,
+    requestControl,
+    releaseControl,
+    sendInput,
+    sendCursorPosition,
   } = useWebRTC({
     sessionId,
     participantId,
+    onCursorUpdate: handleCursorUpdate,
   });
+
+  // Check if control is allowed for this session
+  const allowControl = session?.settings.allowControl ?? false;
 
   useEffect(() => {
     async function fetchSession() {
@@ -149,6 +181,7 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
 
             <div className="flex items-center gap-3">
               <ConnectionStatusBadge connectionState={connectionState} />
+              {allowControl && <ControlStatusIndicator controlState={controlState} />}
               <Link
                 href="/"
                 className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
@@ -165,18 +198,37 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
       <div className="flex flex-1 overflow-hidden">
         {/* Video area */}
         <main className="flex flex-1 flex-col">
-          <VideoViewer
-            stream={remoteStream}
-            connectionState={connectionState}
-            qualityMetrics={qualityMetrics}
-            networkQuality={networkQuality}
-            error={webrtcError}
-            onReconnect={reconnect}
-            className="flex-1"
-          />
+          <div ref={videoContainerRef} className="relative flex-1">
+            <InputCapture
+              enabled={allowControl}
+              controlState={controlState}
+              onInputEvent={sendInput}
+              onCursorMove={sendCursorPosition}
+              className="h-full"
+            >
+              <VideoViewer
+                stream={remoteStream}
+                connectionState={connectionState}
+                qualityMetrics={qualityMetrics}
+                networkQuality={networkQuality}
+                error={webrtcError}
+                onReconnect={reconnect}
+                className="h-full"
+              />
+            </InputCapture>
+            <CursorOverlay cursors={remoteCursors} />
+          </div>
 
           {/* Control bar */}
           <div className="flex items-center justify-center gap-4 border-t border-gray-800 bg-gray-900 px-4 py-3">
+            {allowControl && (
+              <ControlRequestButton
+                controlState={controlState}
+                dataChannelReady={dataChannelReady}
+                onRequestControl={requestControl}
+                onReleaseControl={releaseControl}
+              />
+            )}
             <button
               type="button"
               className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"

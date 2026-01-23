@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 /* Custom theme configuration */
 @theme {
@@ -114,4 +115,56 @@
   50% {
     opacity: 0;
   }
+}
+
+/* Prose styling for content pages */
+.prose {
+  --tw-prose-body: theme(colors.gray.700);
+  --tw-prose-headings: theme(colors.gray.900);
+  --tw-prose-lead: theme(colors.gray.600);
+  --tw-prose-links: theme(colors.primary.600);
+  --tw-prose-bold: theme(colors.gray.900);
+  --tw-prose-counters: theme(colors.gray.500);
+  --tw-prose-bullets: theme(colors.gray.400);
+  --tw-prose-hr: theme(colors.gray.200);
+  --tw-prose-quotes: theme(colors.gray.900);
+  --tw-prose-quote-borders: theme(colors.primary.500);
+  --tw-prose-captions: theme(colors.gray.500);
+  --tw-prose-code: theme(colors.primary.700);
+  --tw-prose-pre-code: theme(colors.gray.200);
+  --tw-prose-pre-bg: theme(colors.gray.900);
+  --tw-prose-th-borders: theme(colors.gray.300);
+  --tw-prose-td-borders: theme(colors.gray.200);
+}
+
+.prose h2 {
+  @apply mt-12 mb-6 text-2xl font-bold text-gray-900 border-b border-gray-200 pb-3;
+}
+
+.prose h3 {
+  @apply mt-8 mb-4 text-xl font-semibold text-gray-900;
+}
+
+.prose p {
+  @apply mb-6 leading-relaxed text-gray-700;
+}
+
+.prose ul {
+  @apply my-6 ml-6 list-disc space-y-2;
+}
+
+.prose li {
+  @apply text-gray-700 leading-relaxed;
+}
+
+.prose a {
+  @apply text-primary-600 font-medium hover:text-primary-700 hover:underline transition-colors;
+}
+
+.prose strong {
+  @apply font-semibold text-gray-900;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary-500 pl-6 my-6 italic text-gray-700 bg-gray-50 py-4 pr-4 rounded-r-lg;
 }

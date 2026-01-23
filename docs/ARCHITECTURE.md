@@ -283,6 +283,7 @@ See the following documents for detailed specifications:
 - [FEATURES.md](./FEATURES.md) - Feature specifications
 - [TECH-STACK.md](./TECH-STACK.md) - Technology choices
 - [WEBRTC-FLOW.md](./WEBRTC-FLOW.md) - WebRTC implementation details
+- [SCALING-ARCHITECTURE.md](./SCALING-ARCHITECTURE.md) - Scaling strategy and cost implications
 - [REMOTE-CONTROL.md](./REMOTE-CONTROL.md) - Input injection system
 - [SECURITY.md](./SECURITY.md) - Security model
 - [DISTRIBUTION.md](./DISTRIBUTION.md) - Package distribution

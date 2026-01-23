@@ -15,6 +15,7 @@ erDiagram
     users ||--o{ sessions : hosts
     users ||--o{ session_participants : joins
     sessions ||--o{ session_participants : has
+    sessions ||--o{ media_sessions : contains
 
     users {
         uuid id PK
@@ -28,6 +29,7 @@ erDiagram
     sessions {
         uuid id PK
         uuid host_user_id FK
+        uuid current_host_id FK
         string status
         string mode
         string join_code
@@ -36,6 +38,8 @@ erDiagram
         jsonb settings
         timestamp created_at
         timestamp ended_at
+        timestamp host_last_seen_at
+        uuid backup_host_id FK
     }
 
     session_participants {
@@ -47,6 +51,17 @@ erDiagram
         string control_state
         timestamp joined_at
         timestamp left_at
+        timestamp last_seen_at
+    }
+
+    media_sessions {
+        uuid id PK
+        uuid session_id FK
+        uuid publisher_id FK
+        string mode
+        string status
+        timestamp started_at
+        timestamp ended_at
     }
 ```
 
@@ -99,6 +114,8 @@ CREATE TRIGGER on_auth_user_created
 CREATE TABLE public.sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   host_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- Current active host (may differ from creator if transferred)
+  current_host_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   status TEXT NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'active', 'paused', 'ended')),
   mode TEXT NOT NULL DEFAULT 'p2p' CHECK (mode IN ('p2p', 'sfu')),
   join_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(4), 'hex'),
@@ -106,14 +123,25 @@ CREATE TABLE public.sessions (
   max_viewers INTEGER NOT NULL DEFAULT 25,
   settings JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  ended_at TIMESTAMPTZ
+  ended_at TIMESTAMPTZ,
+  -- Host disconnection tracking
+  host_last_seen_at TIMESTAMPTZ DEFAULT NOW(),
+  host_status TEXT DEFAULT 'online' CHECK (host_status IN ('online', 'reconnecting', 'offline', 'transferred')),
+  backup_host_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  host_transferred_at TIMESTAMPTZ,
+  -- Grace period configuration (stored in settings, defaults shown here)
+  -- settings.gracePeriodMs: 300000 (5 minutes)
+  -- settings.allowControllerPromotion: true
+  -- settings.autoCloseOnHostTimeout: false
 );
 
 -- Indexes
 CREATE INDEX idx_sessions_host ON public.sessions(host_user_id);
+CREATE INDEX idx_sessions_current_host ON public.sessions(current_host_id);
 CREATE INDEX idx_sessions_status ON public.sessions(status);
 CREATE INDEX idx_sessions_mode ON public.sessions(mode);
 CREATE INDEX idx_sessions_join_code ON public.sessions(join_code);
+CREATE INDEX idx_sessions_host_status ON public.sessions(host_status);
 
 -- Enable RLS
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
@@ -121,7 +149,7 @@ ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 -- Policies
 CREATE POLICY "Hosts can manage own sessions"
   ON public.sessions FOR ALL
-  USING (auth.uid() = host_user_id);
+  USING (auth.uid() = host_user_id OR auth.uid() = current_host_id);
 
 CREATE POLICY "Participants can view joined sessions"
   ON public.sessions FOR SELECT
@@ -185,6 +213,50 @@ CREATE POLICY "Participants can view co-participants"
 CREATE POLICY "Users can update own participation"
   ON public.session_participants FOR UPDATE
   USING (user_id = auth.uid());
+```
+
+#### media_sessions
+
+Media sessions are ephemeral and track active screen sharing. They are separate from the room (session) to allow rooms to persist when media stops.
+
+```sql
+CREATE TABLE public.media_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.sessions(id) ON DELETE CASCADE,
+  publisher_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  mode TEXT NOT NULL DEFAULT 'p2p' CHECK (mode IN ('p2p', 'sfu')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'ended')),
+  started_at TIMESTAMPTZ DEFAULT NOW(),
+  ended_at TIMESTAMPTZ,
+  -- Metadata
+  video_codec TEXT DEFAULT 'H264',
+  max_bitrate INTEGER DEFAULT 4000000,
+  resolution TEXT DEFAULT '1920x1080',
+  frame_rate INTEGER DEFAULT 30
+);
+
+-- Indexes
+CREATE INDEX idx_media_sessions_session ON public.media_sessions(session_id);
+CREATE INDEX idx_media_sessions_publisher ON public.media_sessions(publisher_id);
+CREATE INDEX idx_media_sessions_status ON public.media_sessions(status);
+
+-- Enable RLS
+ALTER TABLE public.media_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Publisher can manage own media sessions"
+  ON public.media_sessions FOR ALL
+  USING (auth.uid() = publisher_id);
+
+CREATE POLICY "Participants can view media sessions"
+  ON public.media_sessions FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.session_participants
+      WHERE session_id = media_sessions.session_id
+      AND user_id = auth.uid()
+    )
+  );
 ```
 
 ### Database Functions
@@ -344,6 +416,221 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
+#### Update Host Heartbeat
+
+Called periodically by the host to indicate they're still connected.
+
+```sql
+CREATE OR REPLACE FUNCTION public.update_host_heartbeat(
+  p_session_id UUID
+)
+RETURNS public.sessions AS $$
+DECLARE
+  v_session public.sessions;
+BEGIN
+  -- Verify current host
+  UPDATE public.sessions
+  SET
+    host_last_seen_at = NOW(),
+    host_status = 'online'
+  WHERE id = p_session_id
+  AND (current_host_id = auth.uid() OR host_user_id = auth.uid())
+  RETURNING * INTO v_session;
+
+  IF v_session IS NULL THEN
+    RAISE EXCEPTION 'Session not found or not authorized';
+  END IF;
+
+  RETURN v_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Mark Host Offline
+
+Called when host disconnection is detected (e.g., by another participant or server-side job).
+
+```sql
+CREATE OR REPLACE FUNCTION public.mark_host_offline(
+  p_session_id UUID
+)
+RETURNS public.sessions AS $$
+DECLARE
+  v_session public.sessions;
+BEGIN
+  UPDATE public.sessions
+  SET host_status = 'reconnecting'
+  WHERE id = p_session_id
+  AND status IN ('created', 'active', 'paused')
+  RETURNING * INTO v_session;
+
+  -- End active media session
+  UPDATE public.media_sessions
+  SET status = 'paused', ended_at = NOW()
+  WHERE session_id = p_session_id
+  AND status = 'active';
+
+  RETURN v_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Transfer Host
+
+Transfer host role to another participant.
+
+```sql
+CREATE OR REPLACE FUNCTION public.transfer_host(
+  p_session_id UUID,
+  p_new_host_id UUID
+)
+RETURNS public.sessions AS $$
+DECLARE
+  v_session public.sessions;
+  v_participant public.session_participants;
+BEGIN
+  -- Verify caller is current host
+  SELECT * INTO v_session
+  FROM public.sessions
+  WHERE id = p_session_id
+  AND (current_host_id = auth.uid() OR host_user_id = auth.uid());
+
+  IF v_session IS NULL THEN
+    RAISE EXCEPTION 'Not authorized to transfer host';
+  END IF;
+
+  -- Verify new host is a participant
+  SELECT * INTO v_participant
+  FROM public.session_participants
+  WHERE session_id = p_session_id
+  AND user_id = p_new_host_id
+  AND left_at IS NULL;
+
+  IF v_participant IS NULL THEN
+    RAISE EXCEPTION 'New host must be an active participant';
+  END IF;
+
+  -- Update session
+  UPDATE public.sessions
+  SET
+    current_host_id = p_new_host_id,
+    host_status = 'transferred',
+    host_transferred_at = NOW()
+  WHERE id = p_session_id
+  RETURNING * INTO v_session;
+
+  -- Update participant roles
+  UPDATE public.session_participants
+  SET role = 'viewer'
+  WHERE session_id = p_session_id
+  AND role = 'host';
+
+  UPDATE public.session_participants
+  SET role = 'host'
+  WHERE session_id = p_session_id
+  AND user_id = p_new_host_id;
+
+  RETURN v_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Set Backup Host
+
+Designate a backup host for automatic failover.
+
+```sql
+CREATE OR REPLACE FUNCTION public.set_backup_host(
+  p_session_id UUID,
+  p_backup_host_id UUID
+)
+RETURNS public.sessions AS $$
+DECLARE
+  v_session public.sessions;
+BEGIN
+  -- Verify caller is current host
+  UPDATE public.sessions
+  SET backup_host_id = p_backup_host_id
+  WHERE id = p_session_id
+  AND (current_host_id = auth.uid() OR host_user_id = auth.uid())
+  RETURNING * INTO v_session;
+
+  IF v_session IS NULL THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+
+  RETURN v_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Start Media Session
+
+Create a new media session when host starts sharing.
+
+```sql
+CREATE OR REPLACE FUNCTION public.start_media_session(
+  p_session_id UUID,
+  p_mode TEXT DEFAULT 'p2p'
+)
+RETURNS public.media_sessions AS $$
+DECLARE
+  v_media_session public.media_sessions;
+BEGIN
+  -- End any existing active media session
+  UPDATE public.media_sessions
+  SET status = 'ended', ended_at = NOW()
+  WHERE session_id = p_session_id
+  AND status = 'active';
+
+  -- Create new media session
+  INSERT INTO public.media_sessions (session_id, publisher_id, mode)
+  VALUES (p_session_id, auth.uid(), p_mode)
+  RETURNING * INTO v_media_session;
+
+  -- Update session status
+  UPDATE public.sessions
+  SET
+    status = 'active',
+    host_status = 'online',
+    host_last_seen_at = NOW()
+  WHERE id = p_session_id;
+
+  RETURN v_media_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### End Media Session
+
+End the current media session (room stays open).
+
+```sql
+CREATE OR REPLACE FUNCTION public.end_media_session(
+  p_media_session_id UUID
+)
+RETURNS public.media_sessions AS $$
+DECLARE
+  v_media_session public.media_sessions;
+BEGIN
+  UPDATE public.media_sessions
+  SET status = 'ended', ended_at = NOW()
+  WHERE id = p_media_session_id
+  AND publisher_id = auth.uid()
+  RETURNING * INTO v_media_session;
+
+  -- Update session to paused (not ended - room stays open)
+  IF v_media_session IS NOT NULL THEN
+    UPDATE public.sessions
+    SET status = 'paused'
+    WHERE id = v_media_session.session_id;
+  END IF;
+
+  RETURN v_media_session;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
 ---
 
 ## REST API
@@ -471,6 +758,75 @@ const { data: participant, error } = await supabase.rpc('update_control_state', 
   p_session_id: sessionId,
   p_participant_id: participantId,
   p_control_state: 'granted',
+});
+```
+
+#### Host Heartbeat
+
+Called periodically (every 30s) by the host to indicate they're still connected.
+
+```typescript
+// POST /rest/v1/rpc/update_host_heartbeat
+const { data: session, error } = await supabase.rpc('update_host_heartbeat', {
+  p_session_id: sessionId,
+});
+```
+
+#### Transfer Host
+
+Transfer host role to another participant.
+
+```typescript
+// POST /rest/v1/rpc/transfer_host
+const { data: session, error } = await supabase.rpc('transfer_host', {
+  p_session_id: sessionId,
+  p_new_host_id: newHostUserId,
+});
+```
+
+#### Set Backup Host
+
+Designate a backup host for automatic failover.
+
+```typescript
+// POST /rest/v1/rpc/set_backup_host
+const { data: session, error } = await supabase.rpc('set_backup_host', {
+  p_session_id: sessionId,
+  p_backup_host_id: backupHostUserId,
+});
+```
+
+#### Start Media Session
+
+Create a new media session when host starts sharing.
+
+```typescript
+// POST /rest/v1/rpc/start_media_session
+const { data: mediaSession, error } = await supabase.rpc('start_media_session', {
+  p_session_id: sessionId,
+  p_mode: 'p2p', // or 'sfu'
+});
+
+// Response
+{
+  "id": "uuid",
+  "session_id": "uuid",
+  "publisher_id": "uuid",
+  "mode": "p2p",
+  "status": "active",
+  "started_at": "2024-01-01T00:00:00Z",
+  "ended_at": null
+}
+```
+
+#### End Media Session
+
+End the current media session (room stays open).
+
+```typescript
+// POST /rest/v1/rpc/end_media_session
+const { data: mediaSession, error } = await supabase.rpc('end_media_session', {
+  p_media_session_id: mediaSessionId,
 });
 ```
 
@@ -712,6 +1068,11 @@ export interface Database {
         Insert: SessionParticipantInsert;
         Update: SessionParticipantUpdate;
       };
+      media_sessions: {
+        Row: MediaSession;
+        Insert: MediaSessionInsert;
+        Update: MediaSessionUpdate;
+      };
     };
     Functions: {
       create_session: {
@@ -739,6 +1100,30 @@ export interface Database {
         };
         Returns: SessionParticipant;
       };
+      update_host_heartbeat: {
+        Args: { p_session_id: string };
+        Returns: Session;
+      };
+      mark_host_offline: {
+        Args: { p_session_id: string };
+        Returns: Session;
+      };
+      transfer_host: {
+        Args: { p_session_id: string; p_new_host_id: string };
+        Returns: Session;
+      };
+      set_backup_host: {
+        Args: { p_session_id: string; p_backup_host_id: string };
+        Returns: Session;
+      };
+      start_media_session: {
+        Args: { p_session_id: string; p_mode?: SessionMode };
+        Returns: MediaSession;
+      };
+      end_media_session: {
+        Args: { p_media_session_id: string };
+        Returns: MediaSession;
+      };
     };
   };
 }
@@ -754,6 +1139,7 @@ export interface Profile {
 export interface Session {
   id: string;
   host_user_id: string;
+  current_host_id: string | null;
   status: SessionStatus;
   mode: SessionMode;
   join_code: string;
@@ -762,6 +1148,25 @@ export interface Session {
   settings: SessionSettings;
   created_at: string;
   ended_at: string | null;
+  // Host disconnection tracking
+  host_last_seen_at: string;
+  host_status: HostStatus;
+  backup_host_id: string | null;
+  host_transferred_at: string | null;
+}
+
+export interface MediaSession {
+  id: string;
+  session_id: string;
+  publisher_id: string;
+  mode: SessionMode;
+  status: MediaSessionStatus;
+  started_at: string;
+  ended_at: string | null;
+  video_codec?: string;
+  max_bitrate?: number;
+  resolution?: string;
+  frame_rate?: number;
 }
 
 export interface SessionParticipant {
@@ -779,11 +1184,17 @@ export type SessionStatus = 'created' | 'active' | 'paused' | 'ended';
 export type SessionMode = 'p2p' | 'sfu';
 export type ParticipantRole = 'host' | 'viewer';
 export type ControlState = 'view-only' | 'requested' | 'granted';
+export type HostStatus = 'online' | 'reconnecting' | 'offline' | 'transferred';
+export type MediaSessionStatus = 'active' | 'paused' | 'ended';
 
 export interface SessionSettings {
   quality?: 'low' | 'medium' | 'high';
   allowControl?: boolean;
   maxParticipants?: number;
+  // Host disconnection settings
+  gracePeriodMs?: number; // Default: 300000 (5 minutes)
+  allowControllerPromotion?: boolean; // Default: true
+  autoCloseOnHostTimeout?: boolean; // Default: false
 }
 ```
 

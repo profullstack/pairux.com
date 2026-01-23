@@ -31,11 +31,12 @@ doctl compute droplet create pairux-turn \
 ### 2. Deploy
 
 ```bash
-cd apps/turn
-./deploy-droplet.sh <DROPLET_IP> <TURN_PASSWORD>
+# SSH to droplet and run setup script
+ssh root@<DROPLET_IP> "curl -fsSL https://raw.githubusercontent.com/profullstack/pairux.com/master/apps/turn/setup-turn-server.sh | bash -s -- 'YOUR_PASSWORD'"
 
-# Example:
-./deploy-droplet.sh 164.92.105.42 'super-secure-password-123'
+# Or copy and run locally
+scp apps/turn/setup-turn-server.sh root@<DROPLET_IP>:/root/
+ssh root@<DROPLET_IP> "./setup-turn-server.sh 'YOUR_PASSWORD'"
 ```
 
 ### 3. Add DNS
@@ -46,10 +47,44 @@ Add an A record: `turn.pairux.com` → `<droplet-ip>`
 
 ```bash
 # From anywhere
-turnutils_uclient -t -u pairux -w YOUR_PASSWORD turn.pairux.com
+turnutils_uclient -t -u ubuntu -w YOUR_PASSWORD turn.pairux.com
 ```
 
 **Cost:** ~$6/month (1 vCPU, 1GB RAM)
+
+---
+
+## GitHub Actions Deployment
+
+The TURN server can be automatically deployed via GitHub Actions when changes are pushed to `apps/turn/`.
+
+### Required GitHub Secrets
+
+| Secret                   | Description                                 |
+| ------------------------ | ------------------------------------------- |
+| `DROPLET_HOST`           | Droplet IP address (e.g., `143.198.96.161`) |
+| `DROPLET_PORT`           | SSH port (default: `22`)                    |
+| `DROPLET_USER`           | SSH user (e.g., `root` or `ubuntu`)         |
+| `DROPLET_SSH_KEY`        | Private SSH key (base64 encoded)            |
+| `TURN_SERVER_CREDENTIAL` | TURN password                               |
+
+### Add Secrets
+
+```bash
+# Encode your SSH private key
+cat ~/.ssh/id_rsa | base64 -w 0
+
+# Add to GitHub:
+# Settings → Secrets and variables → Actions → New repository secret
+```
+
+### Manual Trigger
+
+You can also trigger deployment manually:
+
+```bash
+gh workflow run deploy-turn.yml
+```
 
 ---
 
@@ -85,12 +120,12 @@ const config = {
     // TURN fallback (when direct connections fail)
     {
       urls: 'turn:turn.pairux.com:3478',
-      username: 'pairux',
+      username: 'ubuntu',
       credential: process.env.TURN_PASSWORD,
     },
     {
       urls: 'turns:turn.pairux.com:5349',
-      username: 'pairux',
+      username: 'ubuntu',
       credential: process.env.TURN_PASSWORD,
     },
   ],
@@ -119,7 +154,7 @@ If you prefer not to self-host:
 
 1. Go to https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
 2. Add server: `turn:turn.pairux.com:3478`
-3. Enter username: `pairux`
+3. Enter username: `ubuntu`
 4. Enter password: `<your-password>`
 5. Click "Gather candidates"
 6. Look for `relay` candidates
@@ -134,7 +169,7 @@ apt install coturn-utils
 turnutils_uclient -p 3478 turn.pairux.com
 
 # Test TURN
-turnutils_uclient -t -u pairux -w YOUR_PASSWORD turn.pairux.com
+turnutils_uclient -t -u ubuntu -w YOUR_PASSWORD turn.pairux.com
 ```
 
 ---
@@ -143,13 +178,14 @@ turnutils_uclient -t -u pairux -w YOUR_PASSWORD turn.pairux.com
 
 ```bash
 # Check status
-ssh root@<droplet-ip> "docker compose -f /opt/pairux-turn/docker-compose.yml ps"
+ssh root@<droplet-ip> "systemctl status coturn"
 
 # View logs
-ssh root@<droplet-ip> "docker compose -f /opt/pairux-turn/docker-compose.yml logs -f"
+ssh root@<droplet-ip> "tail -f /var/log/turnserver.log"
+ssh root@<droplet-ip> "journalctl -u coturn -f"
 
 # Restart
-ssh root@<droplet-ip> "docker compose -f /opt/pairux-turn/docker-compose.yml restart"
+ssh root@<droplet-ip> "systemctl restart coturn"
 ```
 
 ---

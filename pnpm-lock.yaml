@@ -143,6 +143,8 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  apps/turn: {}
+
   apps/web:
     dependencies:
       '@supabase/ssr':

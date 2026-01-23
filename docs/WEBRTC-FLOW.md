@@ -777,6 +777,7 @@ class ConnectionManager {
 > **A room is a durable object. A host is just a role.**
 
 If the host drops:
+
 - The **room stays alive**
 - Participants stay connected (UI, chat, presence)
 - The session can recover, pause, or transfer ownership
@@ -806,13 +807,13 @@ graph TB
 
 ### Room vs Media Session
 
-| Aspect | Room | Media Session |
-|--------|------|---------------|
-| Lifecycle | Persistent | Ephemeral |
-| Survives host disconnect | ✅ Yes | ❌ No (pauses/ends) |
-| Created by | Explicit action | Host starts sharing |
-| Ended by | Explicit close or TTL | Host stops/disconnects |
-| Contains | Participants, chat, settings | Streams, publisher info |
+| Aspect                   | Room                         | Media Session           |
+| ------------------------ | ---------------------------- | ----------------------- |
+| Lifecycle                | Persistent                   | Ephemeral               |
+| Survives host disconnect | ✅ Yes                       | ❌ No (pauses/ends)     |
+| Created by               | Explicit action              | Host starts sharing     |
+| Ended by                 | Explicit close or TTL        | Host stops/disconnects  |
+| Contains                 | Participants, chat, settings | Streams, publisher info |
 
 ### Disconnection State Machine
 
@@ -947,7 +948,10 @@ class HostReconnectionManager {
 #### ICE Restart on Reconnect
 
 ```typescript
-async function restartIceForPeer(pc: RTCPeerConnection, signaling: SignalingChannel): Promise<void> {
+async function restartIceForPeer(
+  pc: RTCPeerConnection,
+  signaling: SignalingChannel
+): Promise<void> {
   // Create new offer with ICE restart flag
   const offer = await pc.createOffer({ iceRestart: true });
   await pc.setLocalDescription(offer);
@@ -976,15 +980,22 @@ interface SessionSettings {
 
 async function transferToBackupHost(sessionId: string, backupHostId: string): Promise<void> {
   // Update session
-  await supabase.from('sessions').update({
-    current_host_id: backupHostId,
-    host_transferred_at: new Date().toISOString(),
-  }).eq('id', sessionId);
+  await supabase
+    .from('sessions')
+    .update({
+      current_host_id: backupHostId,
+      host_transferred_at: new Date().toISOString(),
+    })
+    .eq('id', sessionId);
 
   // Update participant roles
-  await supabase.from('session_participants').update({
-    role: 'host',
-  }).eq('session_id', sessionId).eq('user_id', backupHostId);
+  await supabase
+    .from('session_participants')
+    .update({
+      role: 'host',
+    })
+    .eq('session_id', sessionId)
+    .eq('user_id', backupHostId);
 
   // Notify all participants
   channel.send({
@@ -1047,6 +1058,7 @@ sequenceDiagram
 ```
 
 **P2P Behavior:**
+
 - Media streams drop immediately
 - Room stays alive for chat/presence
 - Reconnect requires full SDP renegotiation
@@ -1087,6 +1099,7 @@ sequenceDiagram
 ```
 
 **SFU Advantages:**
+
 - Viewer connections remain stable
 - No ICE restart needed for viewers
 - Seamless publisher handoff possible

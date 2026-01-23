@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-misused-promises, @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-misused-promises, @typescript-eslint/no-confusing-void-expression, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-floating-promises */
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
+import { createBrowserClient } from '@supabase/ssr';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -20,15 +21,47 @@ function ResetPasswordForm() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for access_token in URL (from Supabase implicit flow)
-    const token = searchParams.get('access_token');
-    const type = searchParams.get('type');
+    async function verifyToken() {
+      const type = searchParams.get('type');
 
-    if (token && type === 'recovery') {
-      setAccessToken(token);
-      setHasToken(true);
+      // Check for access_token (from middleware code exchange)
+      const token = searchParams.get('access_token');
+      if (token && type === 'recovery') {
+        setAccessToken(token);
+        setHasToken(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // Check for token_hash (from direct email link)
+      const tokenHash = searchParams.get('token_hash');
+      if (tokenHash && type === 'recovery') {
+        try {
+          const supabase = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          );
+
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+
+          if (!error && data.session) {
+            setAccessToken(data.session.access_token);
+            setHasToken(true);
+          }
+        } catch {
+          // Token verification failed
+        }
+        setIsChecking(false);
+        return;
+      }
+
+      setIsChecking(false);
     }
-    setIsChecking(false);
+
+    verifyToken();
   }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {

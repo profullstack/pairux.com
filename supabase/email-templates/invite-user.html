@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're invited to PairUX!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f3f4f6;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding: 40px 40px 24px 40px;">
+              <a href="https://pairux.com" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <span style="font-size: 24px; font-weight: 700; color: #111827;">PairUX</span>
+              </a>
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding: 0 40px 16px 40px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">You're invited to PairUX!</h1>
+            </td>
+          </tr>
+
+          <!-- Body Text -->
+          <tr>
+            <td align="center" style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #6b7280;">
+                You've been invited to join PairUX for real-time UX collaboration. Click the button below to accept the invitation and set up your account.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Button -->
+          <tr>
+            <td align="center" style="padding: 0 40px 32px 40px;">
+              <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="background-color: #4f46e5; border-radius: 8px;">
+                    <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite" style="display: inline-block; padding: 16px 32px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none;">
+                      Accept Invitation
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Link fallback -->
+          <tr>
+            <td align="center" style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+                Or copy and paste this link into your browser:
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #4f46e5; word-break: break-all;">
+                {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="border-top: 1px solid #e5e7eb;"></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 32px 40px 40px 40px;">
+              <p style="margin: 0 0 16px 0; font-size: 13px; color: #9ca3af;">
+                If you weren't expecting this invitation, you can safely ignore this email.
+              </p>
+              <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+                <a href="https://pairux.com" style="color: #4f46e5; text-decoration: none;">PairUX</a> - Real-time UX collaboration
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

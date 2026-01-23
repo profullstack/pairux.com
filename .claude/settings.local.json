@@ -108,7 +108,8 @@
       "Bash(pnpm --filter @pairux/installer lint:*)",
       "Bash(pnpm --filter @pairux/installer build:*)",
       "Bash(pnpm --filter @pairux/installer typecheck:*)",
-      "Bash(bash -n:*)"
+      "Bash(bash -n:*)",
+      "Bash(pnpm --filter @pairux/web build:*)"
     ],
     "deny": [
       "Bash(npm *)",

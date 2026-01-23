@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { getElectronAPI } from '@/lib/ipc';
+import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 
 export function HomePage() {
+  const user = useAuthStore((state) => state.user);
   const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -166,7 +168,12 @@ export function HomePage() {
           />
         </>
       ) : (
-        <CapturePreview stream={stream} source={selectedSource} onStop={handleStopCapture} />
+        <CapturePreview
+          stream={stream}
+          source={selectedSource}
+          onStop={handleStopCapture}
+          currentUserId={user?.id}
+        />
       )}
     </div>
   );

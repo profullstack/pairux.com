@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test": "echo 'No tests yet'",
+    "test": "vitest run",
     "test:watch": "vitest",
     "package": "electron-builder",
     "package:mac": "pnpm build && electron-builder --mac",
@@ -30,6 +30,8 @@
   },
   "devDependencies": {
     "@pairux/shared-types": "workspace:*",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

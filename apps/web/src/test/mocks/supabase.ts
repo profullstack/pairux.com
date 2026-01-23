@@ -70,10 +70,20 @@ export function createMockSupabaseClient(overrides: MockOverrides = {}) {
     then: vi.fn().mockResolvedValue({ data: [], error: null }),
   });
 
+  const defaultChannel = vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockImplementation((callback) => {
+      if (callback) callback('SUBSCRIBED');
+      return { unsubscribe: vi.fn() };
+    }),
+  });
+
   return {
     auth: defaultAuth,
     from: overrides.from ?? defaultFrom,
     rpc: overrides.rpc ?? vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+    channel: overrides.channel ?? defaultChannel,
+    removeChannel: overrides.removeChannel ?? vi.fn().mockResolvedValue('ok'),
     ...overrides,
   };
 }

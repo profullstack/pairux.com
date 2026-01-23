@@ -20,6 +20,10 @@ export type {
   SessionParticipantInsert,
   SessionParticipantUpdate,
   SessionWithParticipants,
+  MessageType,
+  ChatMessage,
+  ChatMessageInsert,
+  SessionWithMessages,
   Database,
 } from './database.js';
 

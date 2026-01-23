@@ -65,6 +65,8 @@ export async function createMainWindow(): Promise<BrowserWindow> {
       'geolocation',
       'notifications',
       'fullscreen',
+      'clipboard-sanitized-write',
+      'clipboard-read',
     ];
 
     if (allowedPermissions.includes(permission)) {

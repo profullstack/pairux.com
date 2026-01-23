@@ -93,6 +93,33 @@ export interface SessionWithParticipants extends Session {
   session_participants: SessionParticipant[];
 }
 
+// Message types
+export type MessageType = 'text' | 'system';
+
+// Chat message table
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  user_id: string | null;
+  display_name: string;
+  content: string;
+  message_type: MessageType;
+  created_at: string;
+}
+
+export interface ChatMessageInsert {
+  session_id: string;
+  user_id?: string | null;
+  display_name: string;
+  content: string;
+  message_type?: MessageType;
+}
+
+// Session with messages (joined query)
+export interface SessionWithMessages extends Session {
+  chat_messages: ChatMessage[];
+}
+
 // Database schema type for Supabase client
 export interface Database {
   public: {
@@ -111,6 +138,11 @@ export interface Database {
         Row: SessionParticipant;
         Insert: SessionParticipantInsert;
         Update: SessionParticipantUpdate;
+      };
+      chat_messages: {
+        Row: ChatMessage;
+        Insert: ChatMessageInsert;
+        Update: never; // Messages are immutable
       };
     };
     Functions: {
@@ -141,6 +173,22 @@ export interface Database {
       leave_session: {
         Args: { p_session_id: string };
         Returns: SessionParticipant;
+      };
+      send_chat_message: {
+        Args: {
+          p_session_id: string;
+          p_content: string;
+          p_participant_id?: string;
+        };
+        Returns: ChatMessage;
+      };
+      send_system_message: {
+        Args: {
+          p_session_id: string;
+          p_content: string;
+          p_display_name?: string;
+        };
+        Returns: ChatMessage;
       };
     };
   };

@@ -159,7 +159,9 @@
       "Bash(pnpm --filter web build:*)",
       "Bash(pnpm --filter web test -- --run src/app/join/[joinCode]/page.test.tsx src/app/session/[id]/page.test.tsx)",
       "Bash(pnpm --filter web test)",
-      "Bash(pnpm --filter web lint:*)"
+      "Bash(pnpm --filter web lint:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && wc -l {}')",
+      "Bash(node scripts/generate-pwa-icons.mjs:*)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

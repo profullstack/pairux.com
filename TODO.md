@@ -71,17 +71,17 @@
   - [x] Fullscreen toggle
   - [x] Connection status indicator
 
-- [ ] **Remote Control (Viewer)**
-  - [ ] Request control button
-  - [ ] Control status indicator (view-only/granted)
-  - [ ] Mouse input capture & transmission
-  - [ ] Keyboard input capture & transmission
-  - [ ] Multi-cursor overlay (see other participants)
+- [x] **Remote Control (Viewer)**
+  - [x] Request control button
+  - [x] Control status indicator (view-only/granted)
+  - [x] Mouse input capture & transmission
+  - [x] Keyboard input capture & transmission
+  - [x] Multi-cursor overlay (see other participants)
 
-- [ ] **PWA Features**
-  - [ ] Service worker for offline shell
-  - [ ] Web app manifest
-  - [ ] Install prompt
+- [x] **PWA Features**
+  - [x] Service worker for offline shell
+  - [x] Web app manifest
+  - [x] Install prompt
   - [ ] Push notification support (future)
 
 ---
@@ -90,53 +90,53 @@
 
 ### API Endpoints (Server-Side)
 
-- [ ] **POST /api/chat/send**
-  - [ ] Validate session membership
-  - [ ] Store message in Supabase
-  - [ ] Broadcast via Supabase Realtime
-  - [ ] Rate limiting (10 msg/min)
+- [x] **POST /api/chat/send**
+  - [x] Validate session membership
+  - [x] Store message in Supabase
+  - [x] Broadcast via Supabase Realtime
+  - [x] Rate limiting (10 msg/min)
 
-- [ ] **GET /api/chat/stream (SSE)**
-  - [ ] Server-Sent Events connection
-  - [ ] Real-time message delivery
-  - [ ] Heartbeat/keepalive
-  - [ ] Reconnection handling
+- [x] **GET /api/chat/stream (SSE)**
+  - [x] Server-Sent Events connection
+  - [x] Real-time message delivery
+  - [x] Heartbeat/keepalive
+  - [x] Reconnection handling
 
-- [ ] **GET /api/chat/history**
-  - [ ] Fetch last 100 messages
-  - [ ] Pagination support
-  - [ ] Session-scoped access
+- [x] **GET /api/chat/history**
+  - [x] Fetch last 100 messages
+  - [x] Pagination support
+  - [x] Session-scoped access
 
 ### Chat UI Components
 
-- [ ] **Chat Panel**
-  - [ ] Collapsible sidebar/drawer
-  - [ ] Message list with auto-scroll
-  - [ ] Participant avatars/colors
-  - [ ] Timestamp display
-  - [ ] Unread message indicator
+- [x] **Chat Panel**
+  - [x] Collapsible sidebar/drawer
+  - [x] Message list with auto-scroll
+  - [x] Participant avatars/colors
+  - [x] Timestamp display
+  - [x] Unread message indicator
 
-- [ ] **Message Input**
-  - [ ] Text input with send button
-  - [ ] Enter to send, Shift+Enter for newline
-  - [ ] Character limit (500)
+- [x] **Message Input**
+  - [x] Text input with send button
+  - [x] Enter to send, Shift+Enter for newline
+  - [x] Character limit (500)
   - [ ] Typing indicator (optional)
 
-- [ ] **Message Types**
-  - [ ] Text messages
-  - [ ] System messages (join/leave/control)
-  - [ ] Emoji support (native)
+- [x] **Message Types**
+  - [x] Text messages
+  - [x] System messages (join/leave/control)
+  - [x] Emoji support (native)
 
 ### Data Model
 
-- [ ] **chat_messages table**
-  - [ ] id (uuid)
-  - [ ] session_id (fk)
-  - [ ] user_id (fk, nullable for guests)
-  - [ ] display_name (string)
-  - [ ] content (text)
-  - [ ] message_type (text/system)
-  - [ ] created_at (timestamp)
+- [x] **chat_messages table**
+  - [x] id (uuid)
+  - [x] session_id (fk)
+  - [x] user_id (fk, nullable for guests)
+  - [x] display_name (string)
+  - [x] content (text)
+  - [x] message_type (text/system)
+  - [x] created_at (timestamp)
 
 ---
 

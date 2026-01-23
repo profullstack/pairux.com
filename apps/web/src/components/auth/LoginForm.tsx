@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Key } from 'lucide-react';
+import { trackLogin } from '@/lib/analytics';
 
 export function LoginForm() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export function LoginForm() {
         return;
       }
 
+      trackLogin({ method: 'email' });
       router.push(redirect);
       router.refresh();
     } catch {

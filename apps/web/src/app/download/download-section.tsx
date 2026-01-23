@@ -14,6 +14,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { detectOS, type OS, type Arch } from '@/lib/utils';
+import { trackDownload } from '@/lib/analytics';
 
 const VERSION = '0.1.0';
 
@@ -296,6 +297,7 @@ export function DownloadSection() {
                   <Link
                     href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.dmg`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                    onClick={() => { trackDownload({ platform: 'macos', method: 'direct' }); }}
                   >
                     <span>DMG (Apple Silicon)</span>
                     <Download className="h-4 w-4 text-gray-500" />
@@ -303,6 +305,7 @@ export function DownloadSection() {
                   <Link
                     href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.dmg`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                    onClick={() => { trackDownload({ platform: 'macos', method: 'direct' }); }}
                   >
                     <span>DMG (Intel)</span>
                     <Download className="h-4 w-4 text-gray-500" />
@@ -338,6 +341,7 @@ export function DownloadSection() {
                   <Link
                     href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x64.msi`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                    onClick={() => { trackDownload({ platform: 'windows', method: 'direct' }); }}
                   >
                     <span>MSI Installer (x64)</span>
                     <Download className="h-4 w-4 text-gray-500" />
@@ -345,6 +349,7 @@ export function DownloadSection() {
                   <Link
                     href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-arm64.msi`}
                     className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                    onClick={() => { trackDownload({ platform: 'windows', method: 'direct' }); }}
                   >
                     <span>MSI Installer (ARM64)</span>
                     <Download className="h-4 w-4 text-gray-500" />
@@ -401,6 +406,7 @@ export function DownloadSection() {
                 <Link
                   href={`https://github.com/profullstack/pairux.com/releases/download/v${VERSION}/PairUX-${VERSION}-x86_64.AppImage`}
                   className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+                  onClick={() => { trackDownload({ platform: 'linux', method: 'direct' }); }}
                 >
                   <span>AppImage (Universal)</span>
                   <Download className="h-4 w-4 text-gray-500" />

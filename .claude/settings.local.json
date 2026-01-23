@@ -109,9 +109,23 @@
       "Bash(pnpm --filter @pairux/installer build:*)",
       "Bash(pnpm --filter @pairux/installer typecheck:*)",
       "Bash(bash -n:*)",
-      "Bash(pnpm --filter @pairux/web build:*)"
+      "Bash(pnpm --filter @pairux/web build:*)",
+      "Bash(pnpm exec electron:*)",
+      "Bash(pnpm exec which:*)",
+      "Bash(/home/ettinger/src/pairux.com/apps/desktop/node_modules/electron/dist/electron:*)",
+      "Bash(timeout 20 pnpm dev:*)",
+      "Bash(ELECTRON_RENDERER_URL=http://localhost:5173 NODE_ENV=development /home/ettinger/src/pairux.com/apps/desktop/node_modules/electron/dist/electron:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(pnpm run format:*)",
+      "Bash(pnpm -w run format)",
+      "Bash(scp:*)",
+      "Bash(ssh:*)",
+      "Bash(git push:*)"
     ],
-    "deny": ["Bash(npm *)", "Bash(npx *)"],
+    "deny": [
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

@@ -1,0 +1,64 @@
+appId: com.pairux.desktop
+productName: PairUX
+copyright: Copyright 2024 PairUX Team
+
+directories:
+  output: out
+  buildResources: resources
+
+files:
+  - dist/**/*
+  - resources/**/*
+  - "!**/*.map"
+  - "!**/node_modules/**/{CHANGELOG.md,README.md,LICENSE*}"
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+    - target: msi
+      arch:
+        - x64
+  signingHashAlgorithms:
+    - sha256
+
+linux:
+  target:
+    - AppImage
+    - deb
+    - rpm
+  category: Network
+  maintainer: PairUX Team
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+publish:
+  provider: github
+  owner: profullstack
+  repo: pairux.com

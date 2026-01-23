@@ -91,9 +91,25 @@
       "Bash(SUPABASE_PROJECT_REF=yuwjbjskkghlyrdkhexu SUPABASE_ACCESS_TOKEN=sbp_4da30ff35e42decb69c30efab313c745a150dc22 pnpm:*)",
       "Bash(pnpm build:web:*)",
       "Bash(pnpm format:check:*)",
-      "Bash(pnpm format:*)"
+      "Bash(pnpm format:*)",
+      "Bash(pnpm --filter @pairux/desktop typecheck:*)",
+      "Bash(timeout 15 pnpm dev:desktop:*)",
+      "Bash(timeout 20 pnpm dev:desktop:*)",
+      "Bash(timeout 10 npx electron:*)",
+      "Bash(npx electron:*)",
+      "Bash(pnpx electron:*)",
+      "Bash(node install.js:*)",
+      "Bash(/home/ettinger/src/pairux.com/node_modules/.pnpm/electron@40.0.0/node_modules/electron/dist/electron:*)",
+      "Bash(node:*)",
+      "Bash(env)",
+      "Bash(unset:*)",
+      "Bash(pnpm --filter @pairux/desktop lint:*)",
+      "Bash(pnpm --filter @pairux/desktop lint:fix:*)"
     ],
-    "deny": ["Bash(npm *)", "Bash(npx *)"],
+    "deny": [
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

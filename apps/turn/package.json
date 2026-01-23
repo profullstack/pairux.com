@@ -1,0 +1,11 @@
+{
+  "name": "@pairux/turn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PairUX TURN/STUN Server (coturn)",
+  "scripts": {
+    "start": "echo 'TURN server runs via Docker'",
+    "docker:build": "docker build -t pairux-turn .",
+    "docker:run": "docker run -d --name pairux-turn -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 49152-49252:49152-49252/udp pairux-turn"
+  }
+}

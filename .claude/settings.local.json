@@ -111,10 +111,7 @@
       "Bash(bash -n:*)",
       "Bash(pnpm --filter @pairux/web build:*)"
     ],
-    "deny": [
-      "Bash(npm *)",
-      "Bash(npx *)"
-    ],
+    "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

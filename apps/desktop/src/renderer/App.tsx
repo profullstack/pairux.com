@@ -7,9 +7,7 @@ import type { CaptureSource } from '@pairux/shared-types';
 import type { DisplayServer } from '../preload/api';
 
 function App() {
-  const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(
-    null
-  );
+  const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [displayServer, setDisplayServer] = useState<DisplayServer>('x11');
@@ -32,7 +30,9 @@ function App() {
     try {
       // Stop existing stream
       if (stream) {
-        stream.getTracks().forEach((track) => { track.stop(); });
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       }
 
       console.log('[Renderer] Starting capture for source:', source.id);
@@ -81,7 +81,9 @@ function App() {
 
     try {
       if (stream) {
-        stream.getTracks().forEach((track) => { track.stop(); });
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       }
 
       console.log('[Renderer] Starting Wayland capture with system picker');
@@ -113,7 +115,9 @@ function App() {
 
   const handleStopCapture = () => {
     if (stream) {
-      stream.getTracks().forEach((track) => { track.stop(); });
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
       setStream(null);
       setSelectedSource(null);
     }
@@ -127,7 +131,9 @@ function App() {
           <div className="mb-4 rounded-lg bg-destructive/10 p-4 text-destructive">
             {error}
             <button
-              onClick={() => { setError(null); }}
+              onClick={() => {
+                setError(null);
+              }}
               className="ml-4 text-sm underline"
             >
               Dismiss
@@ -137,18 +143,18 @@ function App() {
 
         {!stream ? (
           <>
-            <h1 className="mb-6 text-2xl font-semibold">
-              Select a screen or window to share
-            </h1>
+            <h1 className="mb-6 text-2xl font-semibold">Select a screen or window to share</h1>
 
             {isWayland && (
               <div className="mb-6 rounded-lg bg-muted p-4">
                 <p className="mb-3 text-sm text-muted-foreground">
-                  You&apos;re using Wayland. Click below to open the system screen
-                  picker, or select a source from the list.
+                  You&apos;re using Wayland. Click below to open the system screen picker, or select
+                  a source from the list.
                 </p>
                 <button
-                  onClick={() => { void handleWaylandCapture(); }}
+                  onClick={() => {
+                    void handleWaylandCapture();
+                  }}
                   className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   Open System Screen Picker
@@ -156,14 +162,14 @@ function App() {
               </div>
             )}
 
-            <SourcePicker onSelect={(source) => { void handleSourceSelect(source); }} />
+            <SourcePicker
+              onSelect={(source) => {
+                void handleSourceSelect(source);
+              }}
+            />
           </>
         ) : (
-          <CapturePreview
-            stream={stream}
-            source={selectedSource}
-            onStop={handleStopCapture}
-          />
+          <CapturePreview stream={stream} source={selectedSource} onStop={handleStopCapture} />
         )}
       </main>
     </div>

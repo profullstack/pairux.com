@@ -138,7 +138,7 @@
 }
 
 .prose h2 {
-  @apply mt-12 mb-6 text-2xl font-bold text-gray-900 border-b border-gray-200 pb-3;
+  @apply mt-12 mb-6 border-b border-gray-200 pb-3 text-2xl font-bold text-gray-900;
 }
 
 .prose h3 {
@@ -154,11 +154,11 @@
 }
 
 .prose li {
-  @apply text-gray-700 leading-relaxed;
+  @apply leading-relaxed text-gray-700;
 }
 
 .prose a {
-  @apply text-primary-600 font-medium hover:text-primary-700 hover:underline transition-colors;
+  @apply text-primary-600 hover:text-primary-700 font-medium transition-colors hover:underline;
 }
 
 .prose strong {
@@ -166,5 +166,5 @@
 }
 
 .prose blockquote {
-  @apply border-l-4 border-primary-500 pl-6 my-6 italic text-gray-700 bg-gray-50 py-4 pr-4 rounded-r-lg;
+  @apply border-primary-500 my-6 rounded-r-lg border-l-4 bg-gray-50 py-4 pr-4 pl-6 text-gray-700 italic;
 }

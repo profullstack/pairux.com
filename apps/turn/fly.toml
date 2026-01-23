@@ -1,0 +1,67 @@
+# ===========================================
+# PairUX TURN Server - Fly.io Configuration
+# ===========================================
+# Fly.io supports UDP ports required for TURN
+#
+# SETUP INSTRUCTIONS:
+# 1. Install flyctl: curl -L https://fly.io/install.sh | sh
+# 2. Login: fly auth login
+# 3. Create app: fly apps create pairux-turn
+# 4. Set secrets:
+#    fly secrets set TURN_PASSWORD="your-strong-password"
+# 5. Deploy: fly deploy
+# 6. Allocate IP: fly ips allocate-v4
+# 7. Add DNS: turn.pairux.com -> allocated IP
+#
+# Cost: ~$5/month for shared-cpu-1x with 256MB RAM
+# ===========================================
+
+app = "pairux-turn"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  REALM = "turn.pairux.com"
+
+[http_service]
+  internal_port = 3478
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+# STUN/TURN UDP (primary)
+[[services]]
+  protocol = "udp"
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+# STUN/TURN TCP fallback
+[[services]]
+  protocol = "tcp"
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+# TURN over TLS
+[[services]]
+  protocol = "tcp"
+  internal_port = 5349
+  [[services.ports]]
+    port = 5349
+
+# Relay port range (UDP) - Fly.io supports ranges!
+[[services]]
+  protocol = "udp"
+  internal_port = 49152
+  [[services.ports]]
+    port = 49152
+    end_port = 49252
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

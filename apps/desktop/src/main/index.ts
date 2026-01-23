@@ -5,8 +5,7 @@ import { registerIpcHandlers } from './ipc';
 // Detect display server (X11 vs Wayland)
 const isWayland =
   process.platform === 'linux' &&
-  (process.env.XDG_SESSION_TYPE === 'wayland' ||
-    process.env.WAYLAND_DISPLAY !== undefined);
+  (process.env.XDG_SESSION_TYPE === 'wayland' || process.env.WAYLAND_DISPLAY !== undefined);
 
 console.log(
   `[Main] Display server: ${isWayland ? 'Wayland' : process.platform === 'linux' ? 'X11' : 'N/A'}`

@@ -1,9 +1,7 @@
 import { desktopCapturer, screen } from 'electron';
 import type { CaptureSource } from '@pairux/shared-types';
 
-export async function getCaptureSources(
-  types: ('screen' | 'window')[]
-): Promise<CaptureSource[]> {
+export async function getCaptureSources(types: ('screen' | 'window')[]): Promise<CaptureSource[]> {
   try {
     const sources = await desktopCapturer.getSources({
       types,

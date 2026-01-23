@@ -39,6 +39,7 @@
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
     "db:studio": "turbo run db:studio",
+    "supabase:update-emails": "npx tsx scripts/supabase-update-emails.ts",
     "setup:env": "node scripts/setup-env.mjs",
     "setup:hooks": "git config core.hooksPath .githooks && echo '✅ Git hooks configured'",
     "setup": "pnpm setup:env && pnpm setup:hooks",

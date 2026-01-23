@@ -156,6 +156,25 @@
   - [ ] Recording duration display
   - [ ] Storage space warning
 
+- [ ] **RTMP Live Streaming**
+  - [ ] Add/edit/remove RTMP destinations
+  - [ ] Multiple simultaneous streams (YouTube, Twitch, Facebook, custom)
+  - [ ] Stream key secure storage (Electron safeStorage)
+  - [ ] Platform presets (YouTube, Twitch, Facebook)
+  - [ ] Encoder settings (H.264/AAC)
+    - [ ] Video bitrate (2500-6000 kbps)
+    - [ ] Resolution (720p/1080p)
+    - [ ] Framerate (30/60 fps)
+    - [ ] Keyframe interval (2 sec default)
+    - [ ] Audio bitrate (128-320 kbps)
+  - [ ] Start/stop individual streams
+  - [ ] Start/stop all streams
+  - [ ] Stream status indicators (connecting/live/error)
+  - [ ] Stream duration display
+  - [ ] Bitrate monitoring
+  - [ ] Auto-reconnect on disconnect (3 attempts)
+  - [ ] Error handling (auth failed, bandwidth, disconnected)
+
 - [ ] **WebRTC Streaming**
   - [ ] Peer connection management
   - [ ] ICE candidate handling
@@ -342,5 +361,6 @@
 4. **Phase 4:** WebRTC streaming (host → viewer)
 5. **Phase 5:** Text chat (SSE/POST)
 6. **Phase 6:** Remote control (input injection)
-7. **Phase 7:** Distribution + packaging
-8. **Phase 8:** Polish + launch prep
+7. **Phase 7:** RTMP live streaming (optional output)
+8. **Phase 8:** Distribution + packaging
+9. **Phase 9:** Polish + launch prep

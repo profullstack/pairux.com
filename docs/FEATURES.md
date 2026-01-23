@@ -245,6 +245,120 @@ stateDiagram-v2
 | Medium | 1080p | 2-4 Mbps | Standard |
 | High | 1080p | 4-8 Mbps | Good connection |
 
+### 4.4 RTMP Live Streaming (Desktop App)
+
+**Purpose**: Optional live streaming to external platforms (YouTube, Twitch, Facebook, custom RTMP servers)
+
+**Features**:
+- Stream to one or more RTMP destinations simultaneously
+- Continue WebRTC session while streaming (parallel output)
+- Standard RTMP settings for broad compatibility
+
+**RTMP Destination Configuration**:
+```typescript
+interface RTMPDestination {
+  id: string;
+  name: string;              // e.g., "YouTube Live", "Twitch"
+  enabled: boolean;
+  url: string;               // RTMP ingest URL
+  streamKey: string;         // Stream key (stored securely)
+}
+
+interface RTMPSettings {
+  destinations: RTMPDestination[];
+  encoder: RTMPEncoderSettings;
+}
+
+interface RTMPEncoderSettings {
+  // Video
+  videoCodec: 'h264';        // H.264 (AVC) for maximum compatibility
+  videoBitrate: number;      // Default: 4500 kbps (4500-6000 for 1080p)
+  resolution: '1080p' | '720p' | '480p';
+  framerate: 30 | 60;        // Default: 30 fps
+  keyframeInterval: number;  // Default: 2 seconds (GOP)
+
+  // Audio
+  audioCodec: 'aac';         // AAC for maximum compatibility
+  audioBitrate: number;      // Default: 160 kbps (128-320)
+  audioSampleRate: 44100 | 48000;
+  audioChannels: 1 | 2;      // Default: 2 (stereo)
+}
+```
+
+**Default RTMP Settings** (optimized for most platforms):
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Video Codec | H.264 (x264) | Baseline/Main profile for compatibility |
+| Video Bitrate | 4500 kbps | 2500-6000 recommended range |
+| Resolution | 1080p | Match source or downscale |
+| Framerate | 30 fps | 60 fps for gaming content |
+| Keyframe Interval | 2 seconds | Required by most platforms |
+| Audio Codec | AAC | LC profile |
+| Audio Bitrate | 160 kbps | 128-320 range |
+| Audio Sample Rate | 48000 Hz | Standard for streaming |
+
+**Popular Platform Presets**:
+| Platform | Ingest URL Pattern | Max Bitrate | Notes |
+|----------|-------------------|-------------|-------|
+| YouTube | rtmp://a.rtmp.youtube.com/live2 | 51 Mbps | Supports 4K |
+| Twitch | rtmp://live.twitch.tv/app | 6000 kbps | 1080p60 max |
+| Facebook | rtmps://live-api-s.facebook.com:443/rtmp | 4000 kbps | Use RTMPS |
+| Custom | User-provided | Varies | Full control |
+
+**UI - RTMP Settings Panel**:
+```
+┌─────────────────────────────────────────────────────┐
+│  Live Streaming Settings                            │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Destinations                          [+ Add New] │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ ☑️ YouTube Live                              │   │
+│  │   rtmp://a.rtmp.youtube.com/live2           │   │
+│  │   Stream Key: ●●●●●●●●●●●●      [Edit] [🗑️]  │   │
+│  └─────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ ☐ Twitch                                    │   │
+│  │   rtmp://live.twitch.tv/app                 │   │
+│  │   Stream Key: ●●●●●●●●●●●●      [Edit] [🗑️]  │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                     │
+│  Encoder Settings                                   │
+│  ├─ Resolution:     [1080p ▼]                      │
+│  ├─ Framerate:      [30 fps ▼]                     │
+│  ├─ Video Bitrate:  [4500 kbps    ]                │
+│  ├─ Audio Bitrate:  [160 kbps ▼]                   │
+│  └─ Keyframe Int:   [2 seconds ▼]                  │
+│                                                     │
+│  [Reset to Defaults]                               │
+└─────────────────────────────────────────────────────┘
+```
+
+**Active Session - RTMP Controls**:
+```
+┌─────────────────────────────────────────────────────┐
+│  Live Streaming                        [⚙️ Settings] │
+├─────────────────────────────────────────────────────┤
+│  ☑️ YouTube Live      🔴 LIVE  00:45:23            │
+│  ☐ Twitch            ⚫ Ready                       │
+├─────────────────────────────────────────────────────┤
+│  [Start All]  [Stop All]               Bitrate: 4.5M│
+└─────────────────────────────────────────────────────┘
+```
+
+**Security**:
+- Stream keys stored in system keychain (Electron safeStorage)
+- Keys never logged or transmitted except to RTMP server
+- Option to require re-entry of stream key each session
+
+**Error Handling**:
+| Error | User Message | Action |
+|-------|--------------|--------|
+| Connection failed | "Cannot connect to streaming server" | Retry with backoff |
+| Auth failed | "Invalid stream key" | Prompt to re-enter |
+| Bandwidth exceeded | "Network too slow for live stream" | Suggest lower bitrate |
+| Server disconnected | "Stream interrupted, reconnecting..." | Auto-reconnect (3 attempts) |
+
 ---
 
 ## 5. Remote Control
@@ -514,6 +628,13 @@ stateDiagram-v2
 - Include cursor
 - Include system audio
 
+**RTMP Streaming**:
+- Manage destinations (add/edit/remove)
+- Stream keys (securely stored)
+- Encoder settings (bitrate, resolution, fps)
+- Keyframe interval
+- Auto-start streaming with session
+
 **Control**:
 - Emergency revoke hotkey
 - Require approval for control
@@ -537,26 +658,35 @@ stateDiagram-v2
 
 ## 10. Future Features (Post-MVP)
 
-### 10.1 Version 2
+### 10.1 Version 1.x (Near-term)
+
+- [ ] RTMP live streaming to external platforms (YouTube, Twitch, etc.)
+- [ ] Multiple simultaneous RTMP destinations
+- [ ] Stream key management with secure storage
+
+### 10.2 Version 2
 
 - [ ] Multi-viewer support (up to 5)
 - [ ] Session recording
 - [ ] Chat/annotations
 - [ ] Password-protected sessions
 - [ ] Scheduled sessions
+- [ ] RTMP recording to file
 
-### 10.2 Version 3
+### 10.3 Version 3
 
 - [ ] File transfer
 - [ ] Clipboard sync
 - [ ] Voice chat
 - [ ] Session templates
 - [ ] Team workspaces
+- [ ] SRT/RIST streaming protocols
 
-### 10.3 Enterprise
+### 10.4 Enterprise
 
 - [ ] SSO integration
 - [ ] Admin dashboard
 - [ ] Audit logs
 - [ ] Custom branding
 - [ ] On-premise deployment
+- [ ] Custom RTMP ingest server

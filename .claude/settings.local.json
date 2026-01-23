@@ -146,7 +146,11 @@
       "Bash(pnpm --filter @pairux/web typecheck:*)",
       "Bash(pnpm prettier:*)",
       "Bash(./.githooks/pre-commit)",
-      "Bash(pnpm run lint:*)"
+      "Bash(pnpm run lint:*)",
+      "Bash(xargs ls:*)",
+      "Bash(pnpm --filter desktop build:*)",
+      "Bash(pnpm --filter desktop lint:*)",
+      "Bash(pnpm --filter desktop typecheck:*)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

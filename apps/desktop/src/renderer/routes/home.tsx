@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { getElectronAPI } from '@/lib/ipc';
@@ -7,6 +9,7 @@ import type { CaptureSource } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 
 export function HomePage() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -142,7 +145,16 @@ export function HomePage() {
 
       {!stream ? (
         <>
-          <h1 className="mb-6 text-2xl font-semibold">Select a screen or window to share</h1>
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold">Select a screen or window to share</h1>
+            <button
+              onClick={() => void navigate('/join')}
+              className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+            >
+              <Users className="h-4 w-4" />
+              Join a Session
+            </button>
+          </div>
 
           {isWayland && (
             <div className="mb-6 rounded-lg bg-muted p-4">

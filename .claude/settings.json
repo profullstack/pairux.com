@@ -1,7 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(pnpm --filter @pairux/desktop typecheck:*)"
-    ]
+    "allow": ["Bash(pnpm --filter @pairux/desktop typecheck:*)"]
   }
 }

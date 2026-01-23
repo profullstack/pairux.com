@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Users, Link2 } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
+import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { getElectronAPI } from '@/lib/ipc';
 import { useAuthStore } from '@/stores/auth';
-import type { CaptureSource } from '@pairux/shared-types';
+import type { CaptureSource, Session } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 
 export function HomePage() {
@@ -16,6 +17,8 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [displayServer, setDisplayServer] = useState<DisplayServer>('x11');
   const [isWayland, setIsWayland] = useState(false);
+  const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
+  const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
 
   // Get platform info on mount
   useEffect(() => {
@@ -147,13 +150,24 @@ export function HomePage() {
         <>
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Select a screen or window to share</h1>
-            <button
-              onClick={() => void navigate('/join')}
-              className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
-            >
-              <Users className="h-4 w-4" />
-              Join a Session
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setShowCreateLinkModal(true);
+                }}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Link2 className="h-4 w-4" />
+                Create Link
+              </button>
+              <button
+                onClick={() => void navigate('/join')}
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+              >
+                <Users className="h-4 w-4" />
+                Join a Session
+              </button>
+            </div>
           </div>
 
           {isWayland && (
@@ -185,8 +199,20 @@ export function HomePage() {
           source={selectedSource}
           onStop={handleStopCapture}
           currentUserId={user?.id}
+          initialSession={preCreatedSession}
         />
       )}
+
+      <CreateLinkModal
+        isOpen={showCreateLinkModal}
+        onClose={() => {
+          setShowCreateLinkModal(false);
+        }}
+        onStartSharing={(session) => {
+          setPreCreatedSession(session);
+          setShowCreateLinkModal(false);
+        }}
+      />
     </div>
   );
 }

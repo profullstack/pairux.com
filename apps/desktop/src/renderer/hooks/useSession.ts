@@ -18,6 +18,7 @@ interface UseSessionReturn extends SessionState {
   endSession: () => Promise<void>;
   refreshSession: () => Promise<void>;
   clearError: () => void;
+  setSession: (session: Session | null) => void;
 }
 
 export function useSession(): UseSessionReturn {
@@ -110,5 +111,6 @@ export function useSession(): UseSessionReturn {
     endSession,
     refreshSession,
     clearError,
+    setSession,
   };
 }

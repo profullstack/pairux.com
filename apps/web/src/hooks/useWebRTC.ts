@@ -6,6 +6,11 @@ import type {
   QualityMetrics,
   NetworkQuality,
   SignalMessage,
+  InputMessage,
+  InputEvent,
+  ControlMessage,
+  ControlStateUI,
+  CursorPositionMessage,
 } from '@pairux/shared-types';
 
 // ICE server configuration
@@ -32,6 +37,8 @@ interface UseWebRTCOptions {
   participantId: string;
   onStreamReady?: (stream: MediaStream) => void;
   onStreamEnded?: () => void;
+  onControlStateChange?: (state: ControlStateUI) => void;
+  onCursorUpdate?: (cursor: CursorPositionMessage) => void;
 }
 
 interface UseWebRTCReturn {
@@ -42,6 +49,13 @@ interface UseWebRTCReturn {
   error: string | null;
   reconnect: () => void;
   disconnect: () => void;
+  // Remote control
+  controlState: ControlStateUI;
+  dataChannelReady: boolean;
+  requestControl: () => void;
+  releaseControl: () => void;
+  sendInput: (event: InputEvent) => void;
+  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
 }
 
 export function useWebRTC({
@@ -49,21 +63,33 @@ export function useWebRTC({
   participantId,
   onStreamReady,
   onStreamEnded,
+  onControlStateChange,
+  onCursorUpdate,
 }: UseWebRTCOptions): UseWebRTCReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics | null>(null);
   const [networkQuality, setNetworkQuality] = useState<NetworkQuality>('good');
   const [error, setError] = useState<string | null>(null);
+  const [controlState, setControlState] = useState<ControlStateUI>('view-only');
+  const [dataChannelReady, setDataChannelReady] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const inputSequenceRef = useRef(0);
   const maxReconnectAttempts = 3;
 
   // Use refs to avoid circular dependencies in callbacks
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const onControlStateChangeRef = useRef(onControlStateChange);
+  const onCursorUpdateRef = useRef(onCursorUpdate);
+
+  // Keep refs updated
+  onControlStateChangeRef.current = onControlStateChange;
+  onCursorUpdateRef.current = onCursorUpdate;
 
   // Calculate network quality from metrics
   const calculateNetworkQuality = useCallback((metrics: QualityMetrics): NetworkQuality => {
@@ -78,6 +104,126 @@ export function useWebRTC({
     }
     return 'bad';
   }, []);
+
+  // Handle incoming data channel messages
+  const handleDataChannelMessage = useCallback((event: MessageEvent<string>) => {
+    try {
+      const message = JSON.parse(event.data) as ControlMessage | CursorPositionMessage;
+
+      if ('type' in message) {
+        switch (message.type) {
+          case 'control-grant':
+            setControlState('granted');
+            onControlStateChangeRef.current?.('granted');
+            break;
+          case 'control-revoke':
+            setControlState('view-only');
+            onControlStateChangeRef.current?.('view-only');
+            break;
+          case 'cursor':
+            onCursorUpdateRef.current?.(message);
+            break;
+        }
+      }
+    } catch {
+      // Invalid message format - ignore
+    }
+  }, []);
+
+  // Setup data channel
+  const setupDataChannel = useCallback(
+    (channel: RTCDataChannel) => {
+      dataChannelRef.current = channel;
+
+      channel.onopen = () => {
+        setDataChannelReady(true);
+      };
+
+      channel.onclose = () => {
+        setDataChannelReady(false);
+        setControlState('view-only');
+      };
+
+      channel.onerror = (err) => {
+        console.error('Data channel error:', err);
+        setDataChannelReady(false);
+      };
+
+      channel.onmessage = handleDataChannelMessage;
+    },
+    [handleDataChannelMessage]
+  );
+
+  // Request control from host
+  const requestControl = useCallback(() => {
+    const dc = dataChannelRef.current;
+    if (dc?.readyState !== 'open') return;
+
+    setControlState('requested');
+    onControlStateChangeRef.current?.('requested');
+
+    const message: ControlMessage = {
+      type: 'control-request',
+      participantId,
+      timestamp: Date.now(),
+    };
+
+    dc.send(JSON.stringify(message));
+  }, [participantId]);
+
+  // Release control back to host
+  const releaseControl = useCallback(() => {
+    const dc = dataChannelRef.current;
+    if (dc?.readyState !== 'open') return;
+
+    setControlState('view-only');
+    onControlStateChangeRef.current?.('view-only');
+
+    const message: ControlMessage = {
+      type: 'control-revoke',
+      participantId,
+      timestamp: Date.now(),
+    };
+
+    dc.send(JSON.stringify(message));
+  }, [participantId]);
+
+  // Send input event to host
+  const sendInput = useCallback(
+    (event: InputEvent) => {
+      const dc = dataChannelRef.current;
+      if (dc?.readyState !== 'open' || controlState !== 'granted') return;
+
+      const message: InputMessage = {
+        type: 'input',
+        timestamp: Date.now(),
+        sequence: inputSequenceRef.current++,
+        event,
+      };
+
+      dc.send(JSON.stringify(message));
+    },
+    [controlState]
+  );
+
+  // Send cursor position to host
+  const sendCursorPosition = useCallback(
+    (x: number, y: number, visible: boolean) => {
+      const dc = dataChannelRef.current;
+      if (dc?.readyState !== 'open') return;
+
+      const message: CursorPositionMessage = {
+        type: 'cursor',
+        participantId,
+        x,
+        y,
+        visible,
+      };
+
+      dc.send(JSON.stringify(message));
+    },
+    [participantId]
+  );
 
   // Collect WebRTC stats
   const collectStats = useCallback(async () => {
@@ -290,8 +436,13 @@ export function useWebRTC({
       }
     };
 
+    // Handle incoming data channel from host
+    pc.ondatachannel = (event) => {
+      setupDataChannel(event.channel);
+    };
+
     return pc;
-  }, [participantId, onStreamReady, onStreamEnded]);
+  }, [participantId, onStreamReady, onStreamEnded, setupDataChannel]);
 
   // Disconnect
   const disconnect = useCallback(() => {
@@ -299,6 +450,12 @@ export function useWebRTC({
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
+    }
+
+    // Close data channel
+    if (dataChannelRef.current) {
+      dataChannelRef.current.close();
+      dataChannelRef.current = null;
     }
 
     // Close peer connection
@@ -316,6 +473,8 @@ export function useWebRTC({
     setRemoteStream(null);
     setConnectionState('disconnected');
     setQualityMetrics(null);
+    setDataChannelReady(false);
+    setControlState('view-only');
   }, []);
 
   // Initialize connection
@@ -386,5 +545,12 @@ export function useWebRTC({
     error,
     reconnect,
     disconnect,
+    // Remote control
+    controlState,
+    dataChannelReady,
+    requestControl,
+    releaseControl,
+    sendInput,
+    sendCursorPosition,
   };
 }

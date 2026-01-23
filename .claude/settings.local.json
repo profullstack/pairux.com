@@ -150,7 +150,10 @@
       "Bash(xargs ls:*)",
       "Bash(pnpm --filter desktop build:*)",
       "Bash(pnpm --filter desktop lint:*)",
-      "Bash(pnpm --filter desktop typecheck:*)"
+      "Bash(pnpm --filter desktop typecheck:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npx next lint:*)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

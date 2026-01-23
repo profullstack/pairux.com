@@ -10,7 +10,7 @@ import {
   Loader2,
   MessageSquare,
 } from 'lucide-react';
-import type { CaptureSource } from '@pairux/shared-types';
+import type { CaptureSource, Session } from '@pairux/shared-types';
 import { ChatPanel } from '@/components/chat';
 import { useSession } from '@/hooks/useSession';
 
@@ -19,15 +19,33 @@ interface CapturePreviewProps {
   source: CaptureSource | null;
   onStop: () => void;
   currentUserId?: string;
+  initialSession?: Session | null;
 }
 
-export function CapturePreview({ stream, source, onStop, currentUserId }: CapturePreviewProps) {
+export function CapturePreview({
+  stream,
+  source,
+  onStop,
+  currentUserId,
+  initialSession,
+}: CapturePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
 
-  const { session, participants, isCreating, isEnding, error, createSession, endSession } =
-    useSession();
+  const {
+    session: createdSession,
+    participants,
+    isCreating,
+    isEnding,
+    error,
+    createSession,
+    endSession,
+    setSession,
+  } = useSession();
+
+  // Use initialSession if provided, otherwise use created session
+  const session = initialSession ?? createdSession;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -42,12 +60,19 @@ export function CapturePreview({ stream, source, onStop, currentUserId }: Captur
     };
   }, [stream]);
 
-  // Auto-create session when capture starts
+  // Set initial session if provided
   useEffect(() => {
-    if (!session && !isCreating) {
+    if (initialSession) {
+      setSession(initialSession);
+    }
+  }, [initialSession, setSession]);
+
+  // Auto-create session when capture starts (only if no initial session)
+  useEffect(() => {
+    if (!initialSession && !createdSession && !isCreating) {
       void createSession({ allowGuestControl: false, maxParticipants: 5 });
     }
-  }, [session, isCreating, createSession]);
+  }, [initialSession, createdSession, isCreating, createSession]);
 
   const handleStop = useCallback(async () => {
     if (session) {

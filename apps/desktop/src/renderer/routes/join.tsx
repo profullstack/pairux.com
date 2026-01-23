@@ -1,6 +1,27 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Monitor, User, Loader2, AlertCircle, Users, ArrowLeft } from 'lucide-react';
+
+/**
+ * Parse a join code from user input. Handles both raw codes and full URLs.
+ * Examples:
+ *   "ABC123" -> "ABC123"
+ *   "https://pairux.com/join/abc123" -> "ABC123"
+ *   "pairux.com/join/XYZ789" -> "XYZ789"
+ */
+function parseJoinInput(input: string): string {
+  const trimmed = input.trim();
+  // Try to extract code from URL pattern
+  const urlMatch = /\/join\/([A-Z0-9]{6})/i.exec(trimmed);
+  if (urlMatch) {
+    return urlMatch[1].toUpperCase();
+  }
+  // Otherwise treat as raw code - strip non-alphanumeric and uppercase
+  return trimmed
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 6);
+}
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -120,7 +141,7 @@ export function JoinPage() {
             <CardDescription>
               {session
                 ? "You're about to join a screen sharing session"
-                : 'Enter the 6-character code shared by the host'}
+                : 'Enter a join code or paste a link'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -134,20 +155,22 @@ export function JoinPage() {
             {!session ? (
               <form onSubmit={(e) => void handleLookup(e)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="joinCode">Join Code</Label>
+                  <Label htmlFor="joinCode">Join Code or Link</Label>
                   <Input
                     id="joinCode"
                     type="text"
                     value={joinCode}
                     onChange={(e) => {
-                      setJoinCode(e.target.value.toUpperCase());
+                      setJoinCode(parseJoinInput(e.target.value));
                     }}
-                    placeholder="ABC123"
-                    className="text-center font-mono text-lg tracking-widest"
-                    maxLength={6}
+                    placeholder="ABC123 or paste link"
+                    className="text-center font-mono text-lg"
                     autoFocus
                     required
                   />
+                  <p className="text-center text-xs text-muted-foreground">
+                    Enter the 6-character code or paste a join link
+                  </p>
                 </div>
 
                 <div className="flex gap-2">

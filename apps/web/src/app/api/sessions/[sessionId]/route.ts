@@ -39,7 +39,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     const supabase = await createClient();
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return errorResponse('Authentication required', 401);

@@ -4,17 +4,17 @@ Welcome to the PairUX documentation. This folder contains comprehensive technica
 
 ## Documentation Index
 
-| Document | Description |
-|----------|-------------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System architecture overview with diagrams |
-| [FEATURES.md](./FEATURES.md) | Detailed feature specifications |
-| [TECH-STACK.md](./TECH-STACK.md) | Technology choices and rationale |
-| [WEBRTC-FLOW.md](./WEBRTC-FLOW.md) | WebRTC signaling and media flow |
-| [REMOTE-CONTROL.md](./REMOTE-CONTROL.md) | Input injection and control state machine |
-| [SECURITY.md](./SECURITY.md) | Security model and permissions |
-| [DISTRIBUTION.md](./DISTRIBUTION.md) | Package manager publishing guide |
-| [CI-CD.md](./CI-CD.md) | GitHub Actions workflow specifications |
-| [API.md](./API.md) | Supabase schema and API contracts |
+| Document                                 | Description                                |
+| ---------------------------------------- | ------------------------------------------ |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)     | System architecture overview with diagrams |
+| [FEATURES.md](./FEATURES.md)             | Detailed feature specifications            |
+| [TECH-STACK.md](./TECH-STACK.md)         | Technology choices and rationale           |
+| [WEBRTC-FLOW.md](./WEBRTC-FLOW.md)       | WebRTC signaling and media flow            |
+| [REMOTE-CONTROL.md](./REMOTE-CONTROL.md) | Input injection and control state machine  |
+| [SECURITY.md](./SECURITY.md)             | Security model and permissions             |
+| [DISTRIBUTION.md](./DISTRIBUTION.md)     | Package manager publishing guide           |
+| [CI-CD.md](./CI-CD.md)                   | GitHub Actions workflow specifications     |
+| [API.md](./API.md)                       | Supabase schema and API contracts          |
 
 ## Quick Links
 

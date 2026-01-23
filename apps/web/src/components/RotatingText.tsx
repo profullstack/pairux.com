@@ -33,7 +33,7 @@ export function RotatingText() {
       speed={50}
       deletionSpeed={40}
       repeat={Infinity}
-      className="bg-gradient-to-r from-primary-600 via-accent-500 to-primary-600 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x"
+      className="from-primary-600 via-accent-500 to-primary-600 animate-gradient-x bg-gradient-to-r bg-[length:200%_auto] bg-clip-text text-transparent"
       cursor={true}
     />
   );

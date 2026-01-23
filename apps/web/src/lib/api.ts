@@ -24,9 +24,8 @@ export function handleApiError(error: unknown): NextResponse<ApiResponse> {
 
   if (error instanceof Error) {
     // Don't expose internal error messages in production
-    const message = process.env.NODE_ENV === 'development'
-      ? error.message
-      : 'An unexpected error occurred';
+    const message =
+      process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred';
     return errorResponse(message, 500);
   }
 

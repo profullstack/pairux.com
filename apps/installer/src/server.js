@@ -14,13 +14,7 @@ const RELEASES_DIR = process.env.RELEASES_DIR ?? join(__dirname, '../releases');
 const LATEST_VERSION = process.env.LATEST_VERSION ?? '0.1.0';
 
 // Supported platforms
-const PLATFORMS = [
-  'linux-x64',
-  'linux-arm64',
-  'darwin-x64',
-  'darwin-arm64',
-  'windows-x64',
-];
+const PLATFORMS = ['linux-x64', 'linux-arm64', 'darwin-x64', 'darwin-arm64', 'windows-x64'];
 
 // Health check
 app.get('/health', (_req, res) => {

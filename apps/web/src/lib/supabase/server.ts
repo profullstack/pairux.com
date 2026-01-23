@@ -13,28 +13,24 @@ export async function createClient() {
 
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(
-    url,
-    key,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              if (options) {
-                cookieStore.set({ name, value, ...options });
-              } else {
-                cookieStore.set(name, value);
-              }
-            });
-          } catch {
-            // Called from Server Component - middleware handles this
-          }
-        },
+  return createServerClient<Database>(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            if (options) {
+              cookieStore.set({ name, value, ...options });
+            } else {
+              cookieStore.set(name, value);
+            }
+          });
+        } catch {
+          // Called from Server Component - middleware handles this
+        }
+      },
+    },
+  });
 }

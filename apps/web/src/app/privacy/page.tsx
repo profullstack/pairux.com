@@ -39,19 +39,22 @@ export default function PrivacyPage() {
               <h3>Account Information</h3>
               <p>
                 When you create an account, we collect your email address, name, and password
-                (securely hashed). This information is used to authenticate you and provide our services.
+                (securely hashed). This information is used to authenticate you and provide our
+                services.
               </p>
 
               <h3>Usage Data</h3>
               <p>
-                We collect anonymized usage data to improve our services, including session duration,
-                feature usage, and error reports. This data cannot be used to identify you personally.
+                We collect anonymized usage data to improve our services, including session
+                duration, feature usage, and error reports. This data cannot be used to identify you
+                personally.
               </p>
 
               <h3>Screen Sharing Sessions</h3>
               <p>
-                Screen sharing data is transmitted in real-time using WebRTC and is end-to-end encrypted.
-                We do not record, store, or have access to the content of your screen sharing sessions.
+                Screen sharing data is transmitted in real-time using WebRTC and is end-to-end
+                encrypted. We do not record, store, or have access to the content of your screen
+                sharing sessions.
               </p>
 
               <h2>How We Use Your Data</h2>
@@ -76,8 +79,9 @@ export default function PrivacyPage() {
 
               <h2>Third-Party Services</h2>
               <p>
-                We may use third-party services for authentication, payment processing, and analytics.
-                These services have their own privacy policies governing the use of your information.
+                We may use third-party services for authentication, payment processing, and
+                analytics. These services have their own privacy policies governing the use of your
+                information.
               </p>
 
               <h2>Your Rights</h2>

@@ -12,7 +12,7 @@
   --color-primary-600: oklch(0.48 0.18 250);
   --color-primary-700: oklch(0.42 0.16 250);
   --color-primary-800: oklch(0.36 0.12 250);
-  --color-primary-900: oklch(0.30 0.08 250);
+  --color-primary-900: oklch(0.3 0.08 250);
   --color-primary-950: oklch(0.22 0.06 250);
 
   /* Accent green */
@@ -24,8 +24,8 @@
   --color-accent-500: oklch(0.55 0.18 160);
   --color-accent-600: oklch(0.48 0.16 160);
   --color-accent-700: oklch(0.42 0.14 160);
-  --color-accent-800: oklch(0.36 0.10 160);
-  --color-accent-900: oklch(0.30 0.08 160);
+  --color-accent-800: oklch(0.36 0.1 160);
+  --color-accent-900: oklch(0.3 0.08 160);
 
   /* Fonts */
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -40,12 +40,14 @@
 
   body {
     @apply bg-white text-gray-900 antialiased;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 
   /* Focus styles */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply outline-primary-500 outline-2 outline-offset-2;
   }
 
   /* Selection */
@@ -61,11 +63,11 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-600 to-accent-500 bg-clip-text text-transparent;
+    @apply from-primary-600 to-accent-500 bg-gradient-to-r bg-clip-text text-transparent;
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-br from-primary-50 via-white to-accent-50;
+    @apply from-primary-50 to-accent-50 bg-gradient-to-br via-white;
   }
 }
 

@@ -59,10 +59,7 @@ export interface ControlRevokeMessage {
 }
 
 // Union type for control messages
-export type ControlMessage =
-  | ControlRequestMessage
-  | ControlGrantMessage
-  | ControlRevokeMessage;
+export type ControlMessage = ControlRequestMessage | ControlGrantMessage | ControlRevokeMessage;
 
 // Cursor position message (for multi-cursor overlay)
 export interface CursorPositionMessage {

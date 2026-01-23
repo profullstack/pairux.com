@@ -40,16 +40,19 @@ export async function POST(request: Request) {
     // Check if user needs email confirmation or is already confirmed
     const needsConfirmation = !data.user.confirmed_at && !data.session;
 
-    return successResponse({
-      user: {
-        id: data.user.id,
-        email: data.user.email,
+    return successResponse(
+      {
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
+        message: needsConfirmation
+          ? 'Check your email to confirm your account'
+          : 'Account created successfully',
+        needsConfirmation,
       },
-      message: needsConfirmation
-        ? 'Check your email to confirm your account'
-        : 'Account created successfully',
-      needsConfirmation,
-    }, 201);
+      201
+    );
   } catch (error) {
     console.error('Signup route error:', error);
     return handleApiError(error);

@@ -8,9 +8,11 @@ vi.mock('@/lib/supabase/server', () => ({
 
 // Override the global headers mock for this test file
 vi.mock('next/headers', () => ({
-  headers: vi.fn(() => Promise.resolve({
-    get: (name: string) => name === 'origin' ? 'http://localhost:3000' : null,
-  })),
+  headers: vi.fn(() =>
+    Promise.resolve({
+      get: (name: string) => (name === 'origin' ? 'http://localhost:3000' : null),
+    })
+  ),
 }));
 
 import { createClient } from '@/lib/supabase/server';

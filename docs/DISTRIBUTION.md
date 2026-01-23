@@ -10,14 +10,14 @@ This document details the distribution strategy for PairUX across all supported 
 
 ### Summary
 
-| Platform | Primary Channel | Secondary Channel |
-|----------|-----------------|-------------------|
-| macOS | Homebrew Cask | DMG direct download |
-| Windows | WinGet | MSI direct download |
-| Linux (Debian/Ubuntu) | APT repository | .deb direct download |
-| Linux (Fedora/RHEL) | DNF repository | .rpm direct download |
-| Linux (Arch) | AUR | - |
-| Linux (Universal) | AppImage | - |
+| Platform              | Primary Channel | Secondary Channel    |
+| --------------------- | --------------- | -------------------- |
+| macOS                 | Homebrew Cask   | DMG direct download  |
+| Windows               | WinGet          | MSI direct download  |
+| Linux (Debian/Ubuntu) | APT repository  | .deb direct download |
+| Linux (Fedora/RHEL)   | DNF repository  | .rpm direct download |
+| Linux (Arch)          | AUR             | -                    |
+| Linux (Universal)     | AppImage        | -                    |
 
 ---
 
@@ -32,6 +32,7 @@ curl -LsSf https://install.pairux.sh | sh
 ```
 
 This script will:
+
 1. Detect the operating system and architecture
 2. Download the appropriate installer
 3. Install PairUX to the standard location
@@ -52,6 +53,7 @@ irm https://install.pairux.sh/windows | iex
 ```
 
 This PowerShell script will:
+
 1. Download the latest MSI installer
 2. Verify the checksum
 3. Run the installer silently
@@ -62,6 +64,7 @@ This PowerShell script will:
 The shell installer is hosted at `install.pairux.sh` and should:
 
 **Unix Script (`install.sh`)**:
+
 ```bash
 #!/bin/sh
 set -e
@@ -111,15 +114,15 @@ if [ "$PLATFORM" = "macos" ]; then
   # Download and mount DMG
   TEMP_DMG=$(mktemp).dmg
   curl -LsSf "$DOWNLOAD_URL/PairUX-$ARCH.dmg" -o "$TEMP_DMG"
-  
+
   # Mount, copy, unmount
   MOUNT_POINT=$(hdiutil attach "$TEMP_DMG" -nobrowse | tail -1 | awk '{print $3}')
   cp -R "$MOUNT_POINT/PairUX.app" /Applications/
   hdiutil detach "$MOUNT_POINT" -quiet
   rm "$TEMP_DMG"
-  
+
   echo "PairUX installed to /Applications/PairUX.app"
-  
+
 elif [ "$PLATFORM" = "linux" ]; then
   # Detect package manager
   if command -v apt-get >/dev/null 2>&1; then
@@ -148,11 +151,11 @@ elif [ "$PLATFORM" = "linux" ]; then
     mkdir -p "$INSTALL_DIR"
     curl -LsSf "$DOWNLOAD_URL/PairUX-x86_64.AppImage" -o "$INSTALL_DIR/PairUX.AppImage"
     chmod +x "$INSTALL_DIR/PairUX.AppImage"
-    
+
     # Create symlink
     mkdir -p "$HOME/.local/bin"
     ln -sf "$INSTALL_DIR/PairUX.AppImage" "$HOME/.local/bin/pairux"
-    
+
     echo "PairUX installed to $INSTALL_DIR"
     echo "Make sure $HOME/.local/bin is in your PATH"
   fi
@@ -162,6 +165,7 @@ echo "Installation complete!"
 ```
 
 **Windows Script (`install.ps1`)**:
+
 ```powershell
 #Requires -Version 5.1
 $ErrorActionPreference = 'Stop'
@@ -190,15 +194,15 @@ $TempMsi = Join-Path $env:TEMP "PairUX-$Arch.msi"
 try {
     # Download MSI
     Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempMsi -UseBasicParsing
-    
+
     # Install silently
     $process = Start-Process msiexec.exe -ArgumentList "/i `"$TempMsi`" /qn /norestart" -Wait -PassThru
-    
+
     if ($process.ExitCode -ne 0) {
         Write-Error "Installation failed with exit code $($process.ExitCode)"
         exit 1
     }
-    
+
     Write-Host "PairUX installed successfully!"
 }
 finally {
@@ -218,30 +222,35 @@ The installer scripts should be hosted on a CDN or static hosting:
 3. **Versioned**: `https://install.pairux.sh/v1.0.0` (specific version)
 
 **Cloudflare Workers Example**:
+
 ```typescript
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
-    
+
     if (path === '/' || path === '/sh') {
       // Unix installer
-      const script = await fetch('https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.sh');
+      const script = await fetch(
+        'https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.sh'
+      );
       return new Response(script.body, {
-        headers: { 'Content-Type': 'text/plain' }
+        headers: { 'Content-Type': 'text/plain' },
       });
     }
-    
+
     if (path === '/windows' || path === '/ps1') {
       // Windows installer
-      const script = await fetch('https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.ps1');
+      const script = await fetch(
+        'https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.ps1'
+      );
       return new Response(script.body, {
-        headers: { 'Content-Type': 'text/plain' }
+        headers: { 'Content-Type': 'text/plain' },
       });
     }
-    
+
     return new Response('Not Found', { status: 404 });
-  }
+  },
 };
 ```
 
@@ -252,6 +261,7 @@ export default {
 ### Homebrew Cask
 
 **Repository Structure**:
+
 ```
 homebrew-pairux/
 ├── Casks/
@@ -260,6 +270,7 @@ homebrew-pairux/
 ```
 
 **Cask Formula** (`pairux.rb`):
+
 ```ruby
 cask "pairux" do
   version "1.0.0"
@@ -290,12 +301,14 @@ end
 ```
 
 **Publishing Process**:
+
 1. Build signed DMG
 2. Calculate SHA256 checksum
 3. Update cask formula with new version and checksum
 4. Submit PR to homebrew-cask or maintain own tap
 
 **Installation Command**:
+
 ```bash
 # Using official tap
 brew tap pairux/tap
@@ -308,11 +321,13 @@ brew install --cask pairux
 ### Code Signing & Notarization
 
 **Requirements**:
+
 - Apple Developer ID Application certificate
 - Apple Developer ID Installer certificate (for .pkg)
 - App-specific password for notarization
 
 **electron-builder Configuration**:
+
 ```yaml
 # electron-builder.yml
 mac:
@@ -342,6 +357,7 @@ pkg:
 ```
 
 **Entitlements** (`build/entitlements.mac.plist`):
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -362,6 +378,7 @@ pkg:
 ```
 
 **Environment Variables for CI**:
+
 ```bash
 # Code signing
 CSC_LINK=base64-encoded-p12-certificate
@@ -380,6 +397,7 @@ APPLE_TEAM_ID=XXXXXXXXXX
 ### WinGet
 
 **Manifest Structure**:
+
 ```
 manifests/
 └── p/
@@ -392,6 +410,7 @@ manifests/
 ```
 
 **Version Manifest** (`PairUX.PairUX.yaml`):
+
 ```yaml
 PackageIdentifier: PairUX.PairUX
 PackageVersion: 1.0.0
@@ -401,6 +420,7 @@ ManifestVersion: 1.4.0
 ```
 
 **Installer Manifest** (`PairUX.PairUX.installer.yaml`):
+
 ```yaml
 PackageIdentifier: PairUX.PairUX
 PackageVersion: 1.0.0
@@ -427,6 +447,7 @@ ManifestVersion: 1.4.0
 ```
 
 **Locale Manifest** (`PairUX.PairUX.locale.en-US.yaml`):
+
 ```yaml
 PackageIdentifier: PairUX.PairUX
 PackageVersion: 1.0.0
@@ -451,12 +472,14 @@ ManifestVersion: 1.4.0
 ```
 
 **Publishing Process**:
+
 1. Build signed MSI
 2. Calculate SHA256 checksum
 3. Create/update manifest files
 4. Submit PR to microsoft/winget-pkgs
 
 **Installation Command**:
+
 ```powershell
 winget install PairUX.PairUX
 ```
@@ -464,10 +487,12 @@ winget install PairUX.PairUX
 ### Code Signing (Windows)
 
 **Requirements**:
+
 - EV Code Signing Certificate (recommended for SmartScreen)
 - Or Standard Code Signing Certificate
 
 **electron-builder Configuration**:
+
 ```yaml
 # electron-builder.yml
 win:
@@ -482,7 +507,7 @@ win:
   sign: ./scripts/sign.js
   signingHashAlgorithms:
     - sha256
-  
+
 msi:
   oneClick: false
   perMachine: false
@@ -497,11 +522,12 @@ nsis:
 ```
 
 **Custom Signing Script** (`scripts/sign.js`):
+
 ```javascript
-exports.default = async function(configuration) {
+exports.default = async function (configuration) {
   // Use Azure SignTool or similar for EV certificates
   const { execSync } = require('child_process');
-  
+
   execSync(`AzureSignTool sign \
     -kvu "${process.env.AZURE_KEY_VAULT_URI}" \
     -kvi "${process.env.AZURE_CLIENT_ID}" \
@@ -521,6 +547,7 @@ exports.default = async function(configuration) {
 ### APT Repository (Debian/Ubuntu)
 
 **Repository Structure**:
+
 ```
 apt-repo/
 ├── pool/
@@ -542,6 +569,7 @@ apt-repo/
 ```
 
 **Repository Setup Script**:
+
 ```bash
 #!/bin/bash
 # scripts/update-apt-repo.sh
@@ -564,6 +592,7 @@ gpg --default-key $GPG_KEY_ID --clearsign -o InRelease Release
 ```
 
 **User Installation**:
+
 ```bash
 # Add GPG key
 curl -fsSL https://pairux.com/apt/pairux.gpg | sudo gpg --dearmor -o /usr/share/keyrings/pairux.gpg
@@ -577,6 +606,7 @@ sudo apt install pairux
 ```
 
 **electron-builder Configuration**:
+
 ```yaml
 # electron-builder.yml
 linux:
@@ -617,6 +647,7 @@ deb:
 ### DNF Repository (Fedora/RHEL)
 
 **Repository Structure**:
+
 ```
 rpm-repo/
 ├── Packages/
@@ -630,6 +661,7 @@ rpm-repo/
 ```
 
 **Repository Setup Script**:
+
 ```bash
 #!/bin/bash
 # scripts/update-rpm-repo.sh
@@ -648,6 +680,7 @@ gpg --default-key $GPG_KEY_ID --detach-sign --armor $REPO_DIR/repodata/repomd.xm
 ```
 
 **User Installation**:
+
 ```bash
 # Add repository
 sudo dnf config-manager --add-repo https://pairux.com/rpm/pairux.repo
@@ -660,6 +693,7 @@ sudo dnf install pairux
 ```
 
 **Repository Config** (`pairux.repo`):
+
 ```ini
 [pairux]
 name=PairUX Repository
@@ -672,6 +706,7 @@ gpgkey=https://pairux.com/rpm/RPM-GPG-KEY-pairux
 ### Arch User Repository (AUR)
 
 **PKGBUILD** (`pairux-bin/PKGBUILD`):
+
 ```bash
 # Maintainer: PairUX <support@pairux.com>
 pkgname=pairux-bin
@@ -689,30 +724,32 @@ sha256sums=('CHECKSUM_HERE')
 
 package() {
     cd "$srcdir"
-    
+
     # Install to /opt
     install -dm755 "$pkgdir/opt/pairux"
     cp -r * "$pkgdir/opt/pairux/"
-    
+
     # Create symlink
     install -dm755 "$pkgdir/usr/bin"
     ln -s /opt/pairux/pairux "$pkgdir/usr/bin/pairux"
-    
+
     # Desktop file
     install -Dm644 "$pkgdir/opt/pairux/pairux.desktop" "$pkgdir/usr/share/applications/pairux.desktop"
-    
+
     # Icon
     install -Dm644 "$pkgdir/opt/pairux/resources/icon.png" "$pkgdir/usr/share/pixmaps/pairux.png"
 }
 ```
 
 **Publishing Process**:
+
 1. Create AUR account
 2. Clone AUR package: `git clone ssh://aur@aur.archlinux.org/pairux-bin.git`
 3. Add PKGBUILD and .SRCINFO
 4. Push to AUR
 
 **Installation Command**:
+
 ```bash
 # Using yay
 yay -S pairux-bin
@@ -729,6 +766,7 @@ makepkg -si
 ### AppImage (Universal)
 
 **electron-builder Configuration**:
+
 ```yaml
 # electron-builder.yml
 appImage:
@@ -737,10 +775,12 @@ appImage:
 ```
 
 **Distribution**:
+
 - Upload to GitHub Releases
 - Register on AppImageHub (optional)
 
 **Installation**:
+
 ```bash
 # Download
 wget https://github.com/profullstack/pairux.com/releases/download/v1.0.0/PairUX-1.0.0-x86_64.AppImage
@@ -758,18 +798,18 @@ chmod +x PairUX-1.0.0-x86_64.AppImage
 
 ### Required Artifacts per Release
 
-| Platform | Artifact | Signed |
-|----------|----------|--------|
-| macOS | PairUX-{version}-arm64.dmg | ✅ |
-| macOS | PairUX-{version}-x64.dmg | ✅ |
-| macOS | PairUX-{version}-arm64.pkg | ✅ |
-| macOS | PairUX-{version}-x64.pkg | ✅ |
-| Windows | PairUX-{version}-x64.msi | ✅ |
-| Windows | PairUX-{version}-arm64.msi | ✅ |
-| Linux | pairux_{version}_amd64.deb | ✅ (GPG) |
-| Linux | pairux-{version}-1.x86_64.rpm | ✅ (GPG) |
-| Linux | PairUX-{version}-x86_64.AppImage | ❌ |
-| All | SHA256SUMS.txt | ✅ (GPG) |
+| Platform | Artifact                         | Signed   |
+| -------- | -------------------------------- | -------- |
+| macOS    | PairUX-{version}-arm64.dmg       | ✅       |
+| macOS    | PairUX-{version}-x64.dmg         | ✅       |
+| macOS    | PairUX-{version}-arm64.pkg       | ✅       |
+| macOS    | PairUX-{version}-x64.pkg         | ✅       |
+| Windows  | PairUX-{version}-x64.msi         | ✅       |
+| Windows  | PairUX-{version}-arm64.msi       | ✅       |
+| Linux    | pairux\_{version}\_amd64.deb     | ✅ (GPG) |
+| Linux    | pairux-{version}-1.x86_64.rpm    | ✅ (GPG) |
+| Linux    | PairUX-{version}-x86_64.AppImage | ❌       |
+| All      | SHA256SUMS.txt                   | ✅ (GPG) |
 
 ### Checksum Generation
 
@@ -823,6 +863,7 @@ console.log(`All versions match: ${version}`);
 ### Electron Auto-Updater
 
 **Configuration**:
+
 ```yaml
 # electron-builder.yml
 publish:
@@ -833,6 +874,7 @@ publish:
 ```
 
 **Main Process Code**:
+
 ```typescript
 import { autoUpdater } from 'electron-updater';
 
@@ -840,28 +882,28 @@ class UpdateManager {
   constructor() {
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
-    
+
     autoUpdater.on('update-available', (info) => {
       this.notifyUpdateAvailable(info.version);
     });
-    
+
     autoUpdater.on('update-downloaded', () => {
       this.notifyUpdateReady();
     });
-    
+
     autoUpdater.on('error', (error) => {
       console.error('Update error:', error);
     });
   }
-  
+
   async checkForUpdates(): Promise<void> {
     await autoUpdater.checkForUpdates();
   }
-  
+
   async downloadUpdate(): Promise<void> {
     await autoUpdater.downloadUpdate();
   }
-  
+
   installUpdate(): void {
     autoUpdater.quitAndInstall();
   }
@@ -870,11 +912,11 @@ class UpdateManager {
 
 ### Update Channels
 
-| Channel | Audience | Update Frequency |
-|---------|----------|------------------|
-| stable | All users | Major/minor releases |
-| beta | Opt-in testers | Pre-release versions |
-| alpha | Internal | Development builds |
+| Channel | Audience       | Update Frequency     |
+| ------- | -------------- | -------------------- |
+| stable  | All users      | Major/minor releases |
+| beta    | Opt-in testers | Pre-release versions |
+| alpha   | Internal       | Development builds   |
 
 ```typescript
 // Set update channel
@@ -895,10 +937,10 @@ export type Arch = 'x64' | 'arm64' | 'unknown';
 export function detectOS(): { os: OS; arch: Arch } {
   const userAgent = navigator.userAgent.toLowerCase();
   const platform = navigator.platform.toLowerCase();
-  
+
   let os: OS = 'unknown';
   let arch: Arch = 'unknown';
-  
+
   if (userAgent.includes('mac')) {
     os = 'macos';
   } else if (userAgent.includes('win')) {
@@ -906,14 +948,14 @@ export function detectOS(): { os: OS; arch: Arch } {
   } else if (userAgent.includes('linux')) {
     os = 'linux';
   }
-  
+
   // Detect ARM
   if (userAgent.includes('arm') || platform.includes('arm')) {
     arch = 'arm64';
   } else {
     arch = 'x64';
   }
-  
+
   return { os, arch };
 }
 ```
@@ -932,7 +974,8 @@ const DOWNLOADS = {
     },
     arm64: {
       primary: 'brew install --cask pairux',
-      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.dmg',
+      direct:
+        'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.dmg',
     },
   },
   windows: {
@@ -942,7 +985,8 @@ const DOWNLOADS = {
     },
     arm64: {
       primary: 'winget install PairUX.PairUX',
-      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.msi',
+      direct:
+        'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-arm64.msi',
     },
   },
   linux: {
@@ -950,7 +994,8 @@ const DOWNLOADS = {
       debian: 'sudo apt install pairux',
       fedora: 'sudo dnf install pairux',
       arch: 'yay -S pairux-bin',
-      direct: 'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x86_64.AppImage',
+      direct:
+        'https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x86_64.AppImage',
     },
   },
 };
@@ -958,12 +1003,14 @@ const DOWNLOADS = {
 export function DownloadSection() {
   const { os, arch } = detectOS();
   const downloads = DOWNLOADS[os]?.[arch] || DOWNLOADS.linux.x64;
-  
+
   return (
     <div className="download-section">
       <h2>Download PairUX</h2>
-      <p>Detected: {os} ({arch})</p>
-      
+      <p>
+        Detected: {os} ({arch})
+      </p>
+
       {os === 'macos' && (
         <div>
           <h3>Recommended: Homebrew</h3>
@@ -971,7 +1018,7 @@ export function DownloadSection() {
           <a href={downloads.direct}>Direct Download (DMG)</a>
         </div>
       )}
-      
+
       {os === 'windows' && (
         <div>
           <h3>Recommended: WinGet</h3>
@@ -979,7 +1026,7 @@ export function DownloadSection() {
           <a href={downloads.direct}>Direct Download (MSI)</a>
         </div>
       )}
-      
+
       {os === 'linux' && (
         <div>
           <h3>Choose your distribution:</h3>

@@ -14,12 +14,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "out/**"
-      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"],
       "env": [
         "SUPABASE_SERVICE_ROLE_KEY",
         "TURN_SERVER_URL",

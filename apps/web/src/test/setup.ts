@@ -41,9 +41,7 @@ vi.mock('next/navigation', () => ({
 
 // Create a mock Headers-like object
 const createMockHeaders = () => {
-  const headersMap = new Map<string, string>([
-    ['origin', 'http://localhost:3000'],
-  ]);
+  const headersMap = new Map<string, string>([['origin', 'http://localhost:3000']]);
   return {
     get: (name: string) => headersMap.get(name.toLowerCase()) ?? null,
     has: (name: string) => headersMap.has(name.toLowerCase()),
@@ -56,11 +54,13 @@ const createMockHeaders = () => {
 
 // Mock next/headers
 vi.mock('next/headers', () => ({
-  cookies: vi.fn(() => Promise.resolve({
-    getAll: vi.fn().mockReturnValue([]),
-    get: vi.fn().mockReturnValue(null),
-    set: vi.fn(),
-    delete: vi.fn(),
-  })),
+  cookies: vi.fn(() =>
+    Promise.resolve({
+      getAll: vi.fn().mockReturnValue([]),
+      get: vi.fn().mockReturnValue(null),
+      set: vi.fn(),
+      delete: vi.fn(),
+    })
+  ),
   headers: vi.fn(() => Promise.resolve(createMockHeaders())),
 }));

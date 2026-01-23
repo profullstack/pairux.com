@@ -13,6 +13,7 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 **Purpose**: Convert visitors to downloads
 
 **Components**:
+
 - Hero section with value proposition
 - Animated demo/screenshot carousel
 - Key benefits (3-4 bullet points)
@@ -21,6 +22,7 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 - Footer with links
 
 **Requirements**:
+
 - Mobile responsive
 - Fast LCP (<2.5s)
 - Clear call-to-action above fold
@@ -30,6 +32,7 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 **Purpose**: Detailed feature showcase
 
 **Sections**:
+
 - Screen sharing capabilities
 - Remote control with consent
 - Multi-cursor collaboration
@@ -42,6 +45,7 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 **Purpose**: Explain the user journey
 
 **Content**:
+
 1. Download & install
 2. Start a session
 3. Share the link
@@ -54,25 +58,28 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 **Purpose**: Get users to install the app
 
 **Features**:
+
 - OS detection (auto-recommend)
 - Manual OS selection tabs
 - Package manager commands:
+
   ```bash
   # macOS
   brew install --cask pairux
-  
+
   # Windows
   winget install PairUX.PairUX
-  
+
   # Ubuntu/Debian
   sudo apt install pairux
-  
+
   # Fedora/RHEL
   sudo dnf install pairux
-  
+
   # Arch Linux
   yay -S pairux-bin
   ```
+
 - Direct download links (DMG, MSI, AppImage)
 - System requirements
 - SHA256 checksums
@@ -82,6 +89,7 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 **Purpose**: Self-service support
 
 **Sections**:
+
 - Getting started guide
 - Troubleshooting
 - FAQ
@@ -104,17 +112,18 @@ This document details all features for PairUX v1 (MVP) and outlines future enhan
 
 ### 2.1 Auth Methods
 
-| Method | Host | Viewer | Notes |
-|--------|------|--------|-------|
-| Email/Password | ✅ | ✅ | Primary method |
-| Magic Link | ✅ | ✅ | Passwordless option |
-| OAuth (Google) | ✅ | ✅ | Social login |
-| OAuth (GitHub) | ✅ | ✅ | Developer-friendly |
-| Guest Join | ❌ | ✅ | View-only by default |
+| Method         | Host | Viewer | Notes                |
+| -------------- | ---- | ------ | -------------------- |
+| Email/Password | ✅   | ✅     | Primary method       |
+| Magic Link     | ✅   | ✅     | Passwordless option  |
+| OAuth (Google) | ✅   | ✅     | Social login         |
+| OAuth (GitHub) | ✅   | ✅     | Developer-friendly   |
+| Guest Join     | ❌   | ✅     | View-only by default |
 
 ### 2.2 Auth Flows
 
 **Host Authentication (Desktop)**:
+
 ```mermaid
 stateDiagram-v2
     [*] --> AppLaunch
@@ -128,6 +137,7 @@ stateDiagram-v2
 ```
 
 **Viewer Authentication (Web)**:
+
 ```mermaid
 stateDiagram-v2
     [*] --> JoinLink
@@ -170,18 +180,19 @@ stateDiagram-v2
 
 ### 3.2 Session States
 
-| State | Description | Host Actions | Viewer Actions |
-|-------|-------------|--------------|----------------|
-| `created` | Session exists, no sharing | Start sharing | Cannot join yet |
-| `active` | Screen being shared | Pause, End, Grant control | View, Request control |
-| `paused` | Sharing paused | Resume, End | Wait screen shown |
-| `ended` | Session terminated | N/A | Redirected to end screen |
+| State     | Description                | Host Actions              | Viewer Actions           |
+| --------- | -------------------------- | ------------------------- | ------------------------ |
+| `created` | Session exists, no sharing | Start sharing             | Cannot join yet          |
+| `active`  | Screen being shared        | Pause, End, Grant control | View, Request control    |
+| `paused`  | Sharing paused             | Resume, End               | Wait screen shown        |
+| `ended`   | Session terminated         | N/A                       | Redirected to end screen |
 
 ### 3.3 Join Links
 
 **Format**: `https://pairux.com/join/{session_id}`
 
 **Properties**:
+
 - Session ID: UUID v4
 - Optional password protection (v2)
 - Expiry: When session ends
@@ -199,11 +210,13 @@ stateDiagram-v2
 ### 4.1 Source Selection
 
 **Supported Sources**:
+
 - Entire screen (single or multi-monitor)
 - Individual application window
 - Browser tab (via Electron desktopCapturer)
 
 **Selection UI**:
+
 ```
 ┌─────────────────────────────────────────┐
 │  Select what to share                   │
@@ -224,16 +237,17 @@ stateDiagram-v2
 
 ### 4.2 Capture Settings
 
-| Setting | Default | Options |
-|---------|---------|---------|
-| Resolution | Native | Native, 1080p, 720p |
-| Frame rate | 30 fps | 15, 30, 60 fps |
-| Cursor | Included | Included, Hidden |
-| Audio | Off | Off, System audio |
+| Setting    | Default  | Options             |
+| ---------- | -------- | ------------------- |
+| Resolution | Native   | Native, 1080p, 720p |
+| Frame rate | 30 fps   | 15, 30, 60 fps      |
+| Cursor     | Included | Included, Hidden    |
+| Audio      | Off      | Off, System audio   |
 
 ### 4.3 Stream Quality
 
 **Adaptive Bitrate**:
+
 - Monitors network conditions
 - Adjusts quality automatically
 - Target: 2-8 Mbps for 1080p30
@@ -250,18 +264,20 @@ stateDiagram-v2
 **Purpose**: Optional live streaming to external platforms (YouTube, Twitch, Facebook, custom RTMP servers)
 
 **Features**:
+
 - Stream to one or more RTMP destinations simultaneously
 - Continue WebRTC session while streaming (parallel output)
 - Standard RTMP settings for broad compatibility
 
 **RTMP Destination Configuration**:
+
 ```typescript
 interface RTMPDestination {
   id: string;
-  name: string;              // e.g., "YouTube Live", "Twitch"
+  name: string; // e.g., "YouTube Live", "Twitch"
   enabled: boolean;
-  url: string;               // RTMP ingest URL
-  streamKey: string;         // Stream key (stored securely)
+  url: string; // RTMP ingest URL
+  streamKey: string; // Stream key (stored securely)
 }
 
 interface RTMPSettings {
@@ -271,17 +287,17 @@ interface RTMPSettings {
 
 interface RTMPEncoderSettings {
   // Video
-  videoCodec: 'h264';        // H.264 (AVC) for maximum compatibility
-  videoBitrate: number;      // Default: 4500 kbps (4500-6000 for 1080p)
+  videoCodec: 'h264'; // H.264 (AVC) for maximum compatibility
+  videoBitrate: number; // Default: 4500 kbps (4500-6000 for 1080p)
   resolution: '1080p' | '720p' | '480p';
-  framerate: 30 | 60;        // Default: 30 fps
-  keyframeInterval: number;  // Default: 2 seconds (GOP)
+  framerate: 30 | 60; // Default: 30 fps
+  keyframeInterval: number; // Default: 2 seconds (GOP)
 
   // Audio
-  audioCodec: 'aac';         // AAC for maximum compatibility
-  audioBitrate: number;      // Default: 160 kbps (128-320)
+  audioCodec: 'aac'; // AAC for maximum compatibility
+  audioBitrate: number; // Default: 160 kbps (128-320)
   audioSampleRate: 44100 | 48000;
-  audioChannels: 1 | 2;      // Default: 2 (stereo)
+  audioChannels: 1 | 2; // Default: 2 (stereo)
 }
 ```
 
@@ -306,6 +322,7 @@ interface RTMPEncoderSettings {
 | Custom | User-provided | Varies | Full control |
 
 **UI - RTMP Settings Panel**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Live Streaming Settings                            │
@@ -335,6 +352,7 @@ interface RTMPEncoderSettings {
 ```
 
 **Active Session - RTMP Controls**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  Live Streaming                        [⚙️ Settings] │
@@ -347,6 +365,7 @@ interface RTMPEncoderSettings {
 ```
 
 **Security**:
+
 - Stream keys stored in system keychain (Electron safeStorage)
 - Keys never logged or transmitted except to RTMP server
 - Option to require re-entry of stream key each session
@@ -378,16 +397,17 @@ stateDiagram-v2
 
 ### 5.2 Control State Details
 
-| State | Viewer Can | Host Can | Visual Indicator |
-|-------|------------|----------|------------------|
-| `view-only` | View only | Full control | None |
-| `requested` | View only | Approve/Deny | Request notification |
-| `granted` | Mouse + Keyboard | Full control | Control active badge |
-| `revoked` | View only | Full control | Control ended notice |
+| State       | Viewer Can       | Host Can     | Visual Indicator     |
+| ----------- | ---------------- | ------------ | -------------------- |
+| `view-only` | View only        | Full control | None                 |
+| `requested` | View only        | Approve/Deny | Request notification |
+| `granted`   | Mouse + Keyboard | Full control | Control active badge |
+| `revoked`   | View only        | Full control | Control ended notice |
 
 ### 5.3 Input Events
 
 **Mouse Events**:
+
 - `mousemove` - Cursor position (x, y relative to screen)
 - `mousedown` - Button press (left, right, middle)
 - `mouseup` - Button release
@@ -396,11 +416,13 @@ stateDiagram-v2
 - `scroll` - Scroll delta (x, y)
 
 **Keyboard Events**:
+
 - `keydown` - Key press with modifiers
 - `keyup` - Key release
 - Key codes follow Web KeyboardEvent standard
 
 **Event Message Format**:
+
 ```typescript
 interface InputEvent {
   type: 'mouse' | 'keyboard';
@@ -410,8 +432,8 @@ interface InputEvent {
 }
 
 interface MouseEventData {
-  x: number;      // 0-1 relative position
-  y: number;      // 0-1 relative position
+  x: number; // 0-1 relative position
+  y: number; // 0-1 relative position
   button?: number;
   deltaX?: number;
   deltaY?: number;
@@ -434,6 +456,7 @@ interface KeyboardEventData {
 **Hotkey**: `Ctrl+Shift+Escape` (configurable)
 
 **Behavior**:
+
 - Immediately revokes all remote control
 - Shows confirmation toast
 - Cannot be overridden by remote input
@@ -444,6 +467,7 @@ interface KeyboardEventData {
 **Design**: Both host and viewer can provide input simultaneously
 
 **Conflict Resolution**:
+
 - Host input always takes priority
 - No input queuing - latest wins
 - Visual indicator shows who is controlling
@@ -455,23 +479,26 @@ interface KeyboardEventData {
 ### 6.1 Cursor Rendering
 
 **Host Side**:
+
 - Native OS cursor (always visible)
 - No overlay needed
 
 **Viewer Side**:
+
 - Remote cursor rendered as overlay
 - Shows host cursor position
 - Own cursor for control input
 
 ### 6.2 Cursor Appearance
 
-| Participant | Cursor Style | Label |
-|-------------|--------------|-------|
-| Host | Native OS cursor | None |
-| Viewer (viewing) | Arrow with color | Name badge |
+| Participant          | Cursor Style     | Label      |
+| -------------------- | ---------------- | ---------- |
+| Host                 | Native OS cursor | None       |
+| Viewer (viewing)     | Arrow with color | Name badge |
 | Viewer (controlling) | Arrow with color | Name badge |
 
 **Cursor Colors**: Assigned automatically from palette
+
 - Viewer 1: Blue (#3B82F6)
 - Viewer 2: Green (#10B981)
 - Viewer 3: Purple (#8B5CF6)
@@ -506,10 +533,12 @@ stateDiagram-v2
 ### 7.2 Reconnection Logic
 
 **Triggers**:
+
 - ICE connection state: `disconnected` or `failed`
 - No data received for 10 seconds
 
 **Strategy**:
+
 1. Attempt ICE restart
 2. If fails, create new peer connection
 3. Re-establish via signaling
@@ -518,12 +547,12 @@ stateDiagram-v2
 
 ### 7.3 Network Quality Indicators
 
-| Quality | Latency | Packet Loss | Icon |
-|---------|---------|-------------|------|
-| Excellent | <50ms | <1% | 🟢 |
-| Good | 50-150ms | 1-3% | 🟡 |
-| Poor | 150-300ms | 3-10% | 🟠 |
-| Bad | >300ms | >10% | 🔴 |
+| Quality   | Latency   | Packet Loss | Icon |
+| --------- | --------- | ----------- | ---- |
+| Excellent | <50ms     | <1%         | 🟢   |
+| Good      | 50-150ms  | 1-3%        | 🟡   |
+| Poor      | 150-300ms | 3-10%       | 🟠   |
+| Bad       | >300ms    | >10%        | 🔴   |
 
 ---
 
@@ -532,6 +561,7 @@ stateDiagram-v2
 ### 8.1 Desktop App - Host UI
 
 **Main Window**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  PairUX                              [_] [□] [X]    │
@@ -555,6 +585,7 @@ stateDiagram-v2
 ```
 
 **Active Session**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  PairUX - Session Active              [_] [□] [X]  │
@@ -579,6 +610,7 @@ stateDiagram-v2
 ### 8.2 Web App - Viewer UI
 
 **Viewer Interface**:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  PairUX Viewer          🟢 Connected    [Settings] │
@@ -601,6 +633,7 @@ stateDiagram-v2
 ### 8.3 System Tray
 
 **Tray Menu**:
+
 - Show/Hide window
 - Session status
 - Quick end session
@@ -608,6 +641,7 @@ stateDiagram-v2
 - Quit
 
 **Tray Icon States**:
+
 - Idle: Default icon
 - Session active: Animated/colored icon
 - Control granted: Warning icon
@@ -619,16 +653,19 @@ stateDiagram-v2
 ### 9.1 Desktop App Settings
 
 **General**:
+
 - Start on login
 - Start minimized
 - Check for updates
 
 **Sharing**:
+
 - Default quality preset
 - Include cursor
 - Include system audio
 
 **RTMP Streaming**:
+
 - Manage destinations (add/edit/remove)
 - Stream keys (securely stored)
 - Encoder settings (bitrate, resolution, fps)
@@ -636,21 +673,25 @@ stateDiagram-v2
 - Auto-start streaming with session
 
 **Control**:
+
 - Emergency revoke hotkey
 - Require approval for control
 - Auto-revoke on inactivity
 
 **Privacy**:
+
 - Clear session history
 - Analytics opt-out
 
 ### 9.2 Web Viewer Settings
 
 **Display**:
+
 - Fit to window / Original size
 - Show remote cursor
 
 **Input**:
+
 - Keyboard layout
 - Mouse sensitivity
 

@@ -24,16 +24,19 @@
 ### Install the Desktop App (Host)
 
 **macOS**
+
 ```bash
 brew install --cask pairux
 ```
 
 **Windows**
+
 ```powershell
 winget install PairUX.PairUX
 ```
 
 **Linux (Debian/Ubuntu)**
+
 ```bash
 curl -fsSL https://pairux.com/apt/pairux.gpg | sudo gpg --dearmor -o /usr/share/keyrings/pairux.gpg
 echo "deb [signed-by=/usr/share/keyrings/pairux.gpg] https://pairux.com/apt stable main" | sudo tee /etc/apt/sources.list.d/pairux.list
@@ -41,12 +44,14 @@ sudo apt update && sudo apt install pairux
 ```
 
 **Linux (Fedora)**
+
 ```bash
 sudo dnf config-manager --add-repo https://pairux.com/rpm/pairux.repo
 sudo dnf install pairux
 ```
 
 **Linux (Arch)**
+
 ```bash
 yay -S pairux-bin
 ```
@@ -88,14 +93,14 @@ Just open the session link in any modern browser. The viewer is a **Progressive 
 
 ## 🔐 Security
 
-| Feature | Description |
-|---------|-------------|
-| **E2E Encryption** | All media encrypted via WebRTC DTLS-SRTP |
-| **No Server Storage** | Screen data never touches our servers |
-| **Explicit Consent** | Host must approve all control requests |
-| **Emergency Revoke** | `Ctrl+Shift+Escape` instantly revokes control |
-| **Visual Indicators** | Always shows when remote control is active |
-| **Code Signed** | All builds are signed and notarized |
+| Feature               | Description                                   |
+| --------------------- | --------------------------------------------- |
+| **E2E Encryption**    | All media encrypted via WebRTC DTLS-SRTP      |
+| **No Server Storage** | Screen data never touches our servers         |
+| **Explicit Consent**  | Host must approve all control requests        |
+| **Emergency Revoke**  | `Ctrl+Shift+Escape` instantly revokes control |
+| **Visual Indicators** | Always shows when remote control is active    |
+| **Code Signed**       | All builds are signed and notarized           |
 
 ---
 
@@ -119,15 +124,15 @@ The web viewer is a **Progressive Web App** that can be installed on any device:
 
 ## 🛠️ Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Desktop App | Electron + React + nut.js |
-| Web/PWA | Next.js 16.2 + Tailwind + shadcn/ui |
-| Backend | Supabase (Auth, Realtime, PostgreSQL) |
-| Media | WebRTC (native P2P) |
-| TURN Server | coturn (self-hosted) |
-| Build System | pnpm + Turborepo |
-| CI/CD | GitHub Actions |
+| Component    | Technology                            |
+| ------------ | ------------------------------------- |
+| Desktop App  | Electron + React + nut.js             |
+| Web/PWA      | Next.js 16.2 + Tailwind + shadcn/ui   |
+| Backend      | Supabase (Auth, Realtime, PostgreSQL) |
+| Media        | WebRTC (native P2P)                   |
+| TURN Server  | coturn (self-hosted)                  |
+| Build System | pnpm + Turborepo                      |
+| CI/CD        | GitHub Actions                        |
 
 ---
 
@@ -171,36 +176,37 @@ pnpm dev
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start all apps in development mode |
-| `pnpm build` | Build all apps for production |
-| `pnpm lint` | Run linting |
-| `pnpm test` | Run tests |
-| `pnpm --filter @pairux/web dev` | Start web app only |
-| `pnpm --filter @pairux/desktop dev` | Start desktop app only |
+| Command                             | Description                        |
+| ----------------------------------- | ---------------------------------- |
+| `pnpm dev`                          | Start all apps in development mode |
+| `pnpm build`                        | Build all apps for production      |
+| `pnpm lint`                         | Run linting                        |
+| `pnpm test`                         | Run tests                          |
+| `pnpm --filter @pairux/web dev`     | Start web app only                 |
+| `pnpm --filter @pairux/desktop dev` | Start desktop app only             |
 
 ---
 
 ## 📖 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/ARCHITECTURE.md) | System design and diagrams |
-| [Features](docs/FEATURES.md) | Detailed feature specifications |
-| [Tech Stack](docs/TECH-STACK.md) | Technology choices |
-| [WebRTC Flow](docs/WEBRTC-FLOW.md) | Signaling and media flow |
-| [Remote Control](docs/REMOTE-CONTROL.md) | Input injection system |
-| [Security](docs/SECURITY.md) | Security model |
-| [Distribution](docs/DISTRIBUTION.md) | Package manager publishing |
-| [CI/CD](docs/CI-CD.md) | GitHub Actions workflows |
-| [API](docs/API.md) | Database schema and API |
+| Document                                 | Description                     |
+| ---------------------------------------- | ------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)     | System design and diagrams      |
+| [Features](docs/FEATURES.md)             | Detailed feature specifications |
+| [Tech Stack](docs/TECH-STACK.md)         | Technology choices              |
+| [WebRTC Flow](docs/WEBRTC-FLOW.md)       | Signaling and media flow        |
+| [Remote Control](docs/REMOTE-CONTROL.md) | Input injection system          |
+| [Security](docs/SECURITY.md)             | Security model                  |
+| [Distribution](docs/DISTRIBUTION.md)     | Package manager publishing      |
+| [CI/CD](docs/CI-CD.md)                   | GitHub Actions workflows        |
+| [API](docs/API.md)                       | Database schema and API         |
 
 ---
 
 ## 🗺️ Roadmap
 
 ### MVP (v1.0)
+
 - [x] Documentation and architecture
 - [ ] Monorepo setup
 - [ ] Marketing website
@@ -211,6 +217,7 @@ pnpm dev
 - [ ] Package manager distribution
 
 ### Future
+
 - [ ] Multi-viewer support (up to 5)
 - [ ] Session recording
 - [ ] Chat and annotations

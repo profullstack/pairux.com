@@ -126,7 +126,7 @@ describe('ResetPasswordForm', () => {
     expect(confirmInput).toHaveAttribute('type', 'password');
 
     const toggleButtons = screen.getAllByRole('button');
-    const toggleButton = toggleButtons.find(btn => btn.getAttribute('type') === 'button');
+    const toggleButton = toggleButtons.find((btn) => btn.getAttribute('type') === 'button');
     await user.click(toggleButton!);
 
     expect(newPasswordInput).toHaveAttribute('type', 'text');

@@ -80,12 +80,9 @@ export default function DocsPage() {
         {/* Hero */}
         <section className="gradient-bg py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-              Documentation
-            </h1>
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Documentation</h1>
             <p className="mt-4 max-w-2xl text-lg text-gray-600">
-              Everything you need to know about using PairUX for collaborative
-              screen sharing.
+              Everything you need to know about using PairUX for collaborative screen sharing.
             </p>
           </div>
         </section>
@@ -97,7 +94,7 @@ export default function DocsPage() {
               {/* Sidebar */}
               <aside className="hidden lg:col-span-3 lg:block">
                 <nav className="sticky top-24">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                  <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
                     On this page
                   </h2>
                   <ul className="mt-4 space-y-2">
@@ -123,26 +120,26 @@ export default function DocsPage() {
                   <section id="getting-started">
                     <h2>Getting Started</h2>
                     <p>
-                      PairUX makes it easy to share your screen and collaborate
-                      in real-time. Here&apos;s how to get started:
+                      PairUX makes it easy to share your screen and collaborate in real-time.
+                      Here&apos;s how to get started:
                     </p>
                     <ol>
                       <li>
                         <strong>Download the desktop app</strong> - Visit the{' '}
-                        <Link href="/download">download page</Link> and install
-                        PairUX on your computer.
+                        <Link href="/download">download page</Link> and install PairUX on your
+                        computer.
                       </li>
                       <li>
-                        <strong>Start a session</strong> - Open PairUX and click
-                        &quot;Start Session&quot; to begin sharing.
+                        <strong>Start a session</strong> - Open PairUX and click &quot;Start
+                        Session&quot; to begin sharing.
                       </li>
                       <li>
-                        <strong>Share the link</strong> - Copy the join link and
-                        send it to your collaborator.
+                        <strong>Share the link</strong> - Copy the join link and send it to your
+                        collaborator.
                       </li>
                       <li>
-                        <strong>Collaborate</strong> - Your viewer can now see
-                        your screen and request control.
+                        <strong>Collaborate</strong> - Your viewer can now see your screen and
+                        request control.
                       </li>
                     </ol>
                   </section>
@@ -180,9 +177,7 @@ export default function DocsPage() {
                     </div>
 
                     <h3>Viewer Requirements</h3>
-                    <p>
-                      Viewers only need a modern web browser. We recommend:
-                    </p>
+                    <p>Viewers only need a modern web browser. We recommend:</p>
                     <ul>
                       <li>Chrome 90+</li>
                       <li>Firefox 90+</li>
@@ -198,26 +193,23 @@ export default function DocsPage() {
 
                     <div className="not-prose my-6 rounded-lg border border-gray-200 p-6">
                       <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
+                        <div className="bg-primary-100 text-primary-600 flex h-10 w-10 items-center justify-center rounded-full">
                           <MonitorSmartphone className="h-5 w-5" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">
-                            1. Choose what to share
-                          </h3>
+                          <h3 className="font-semibold text-gray-900">1. Choose what to share</h3>
                           <p className="mt-1 text-sm text-gray-600">
-                            Select your entire screen or a specific application
-                            window. The screen picker shows previews of all
-                            available sources.
+                            Select your entire screen or a specific application window. The screen
+                            picker shows previews of all available sources.
                           </p>
                         </div>
                       </div>
                     </div>
 
                     <p>
-                      Once you start a session, you&apos;ll see your screen
-                      being shared with a green border indicator. The session
-                      toolbar shows the join link and current viewers.
+                      Once you start a session, you&apos;ll see your screen being shared with a
+                      green border indicator. The session toolbar shows the join link and current
+                      viewers.
                     </p>
                   </section>
 
@@ -225,13 +217,12 @@ export default function DocsPage() {
                   <section id="viewing" className="mt-12">
                     <h2>Viewing a Session</h2>
                     <p>
-                      To join a screen sharing session, simply open the join
-                      link in your browser. No account or installation is
-                      required.
+                      To join a screen sharing session, simply open the join link in your browser.
+                      No account or installation is required.
                     </p>
                     <p>
-                      The viewer shows the host&apos;s screen in real-time. You
-                      can use the toolbar to:
+                      The viewer shows the host&apos;s screen in real-time. You can use the toolbar
+                      to:
                     </p>
                     <ul>
                       <li>Toggle fullscreen mode</li>
@@ -253,9 +244,8 @@ export default function DocsPage() {
                             Control requires host approval
                           </p>
                           <p className="mt-1 text-amber-700">
-                            Viewers must request control, and hosts must
-                            explicitly approve. Control can be revoked at any
-                            time.
+                            Viewers must request control, and hosts must explicitly approve. Control
+                            can be revoked at any time.
                           </p>
                         </div>
                       </div>
@@ -264,28 +254,27 @@ export default function DocsPage() {
                     <h3>How control works</h3>
                     <ol>
                       <li>
-                        <strong>Viewer requests control</strong> - Click the
-                        control button in the viewer toolbar.
+                        <strong>Viewer requests control</strong> - Click the control button in the
+                        viewer toolbar.
                       </li>
                       <li>
-                        <strong>Host approves</strong> - The host sees a
-                        notification and can approve or deny.
+                        <strong>Host approves</strong> - The host sees a notification and can
+                        approve or deny.
                       </li>
                       <li>
-                        <strong>Control is granted</strong> - The viewer can now
-                        use mouse and keyboard.
+                        <strong>Control is granted</strong> - The viewer can now use mouse and
+                        keyboard.
                       </li>
                       <li>
-                        <strong>Simultaneous control</strong> - Both host and
-                        viewer can control at the same time.
+                        <strong>Simultaneous control</strong> - Both host and viewer can control at
+                        the same time.
                       </li>
                     </ol>
 
                     <h3>Emergency revoke</h3>
                     <p>
-                      Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Escape</kbd>{' '}
-                      at any time to instantly revoke all remote control. This
-                      hotkey cannot be overridden.
+                      Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Escape</kbd> at any time to
+                      instantly revoke all remote control. This hotkey cannot be overridden.
                     </p>
                   </section>
 
@@ -296,41 +285,34 @@ export default function DocsPage() {
                     <div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
                       <div className="rounded-lg border border-gray-200 p-4">
                         <div className="flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-accent-600" />
-                          <h3 className="font-semibold text-gray-900">
-                            End-to-End Encryption
-                          </h3>
+                          <Shield className="text-accent-600 h-5 w-5" />
+                          <h3 className="font-semibold text-gray-900">End-to-End Encryption</h3>
                         </div>
                         <p className="mt-2 text-sm text-gray-600">
-                          All media is encrypted using WebRTC DTLS-SRTP. Your
-                          screen content never passes through our servers.
+                          All media is encrypted using WebRTC DTLS-SRTP. Your screen content never
+                          passes through our servers.
                         </p>
                       </div>
                       <div className="rounded-lg border border-gray-200 p-4">
                         <div className="flex items-center gap-2">
-                          <Wifi className="h-5 w-5 text-accent-600" />
-                          <h3 className="font-semibold text-gray-900">
-                            Peer-to-Peer
-                          </h3>
+                          <Wifi className="text-accent-600 h-5 w-5" />
+                          <h3 className="font-semibold text-gray-900">Peer-to-Peer</h3>
                         </div>
                         <p className="mt-2 text-sm text-gray-600">
-                          Connections are established directly between host and
-                          viewer using WebRTC.
+                          Connections are established directly between host and viewer using WebRTC.
                         </p>
                       </div>
                     </div>
 
                     <p>
-                      PairUX is designed with security as a core principle. Key
-                      security features include:
+                      PairUX is designed with security as a core principle. Key security features
+                      include:
                     </p>
                     <ul>
                       <li>Explicit consent required for all control</li>
                       <li>Visual indicators when sharing/control is active</li>
                       <li>Emergency revoke hotkey</li>
-                      <li>
-                        No permanent storage of screen content or input events
-                      </li>
+                      <li>No permanent storage of screen content or input events</li>
                       <li>Open source for full auditability</li>
                     </ul>
                   </section>
@@ -343,13 +325,10 @@ export default function DocsPage() {
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 text-red-600" />
                         <div className="text-sm">
-                          <p className="font-semibold text-red-800">
-                            Connection issues?
-                          </p>
+                          <p className="font-semibold text-red-800">Connection issues?</p>
                           <p className="mt-1 text-red-700">
-                            Most connection problems are caused by firewalls or
-                            corporate networks. Try using a different network or
-                            enabling TURN relay.
+                            Most connection problems are caused by firewalls or corporate networks.
+                            Try using a different network or enabling TURN relay.
                           </p>
                         </div>
                       </div>
@@ -359,19 +338,15 @@ export default function DocsPage() {
 
                     <h4>Screen Recording permission denied (macOS)</h4>
                     <p>
-                      Go to System Preferences → Security & Privacy → Privacy →
-                      Screen Recording and enable PairUX.
+                      Go to System Preferences → Security & Privacy → Privacy → Screen Recording and
+                      enable PairUX.
                     </p>
 
                     <h4>Viewer cannot connect</h4>
                     <ul>
-                      <li>
-                        Ensure both parties have a stable internet connection
-                      </li>
+                      <li>Ensure both parties have a stable internet connection</li>
                       <li>Try disabling VPN if active</li>
-                      <li>
-                        Check that WebRTC is not blocked by browser extensions
-                      </li>
+                      <li>Check that WebRTC is not blocked by browser extensions</li>
                     </ul>
 
                     <h4>Poor video quality</h4>
@@ -388,16 +363,9 @@ export default function DocsPage() {
 
                     <div className="not-prose mt-6 space-y-4">
                       {faqs.map((faq) => (
-                        <div
-                          key={faq.question}
-                          className="rounded-lg border border-gray-200 p-4"
-                        >
-                          <h3 className="font-semibold text-gray-900">
-                            {faq.question}
-                          </h3>
-                          <p className="mt-2 text-sm text-gray-600">
-                            {faq.answer}
-                          </p>
+                        <div key={faq.question} className="rounded-lg border border-gray-200 p-4">
+                          <h3 className="font-semibold text-gray-900">{faq.question}</h3>
+                          <p className="mt-2 text-sm text-gray-600">{faq.answer}</p>
                         </div>
                       ))}
                     </div>
@@ -406,12 +374,9 @@ export default function DocsPage() {
                   {/* Need help? */}
                   <section className="mt-12">
                     <div className="not-prose rounded-lg bg-gray-50 p-6">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Need more help?
-                      </h2>
+                      <h2 className="text-lg font-semibold text-gray-900">Need more help?</h2>
                       <p className="mt-2 text-gray-600">
-                        If you can&apos;t find what you&apos;re looking for,
-                        check out our{' '}
+                        If you can&apos;t find what you&apos;re looking for, check out our{' '}
                         <Link
                           href="https://github.com/profullstack/pairux.com/discussions"
                           className="text-primary-600 hover:underline"

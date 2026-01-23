@@ -29,7 +29,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     // Type assertion for data since TypeScript can't infer it correctly
-    const sessionData = data as { id: string; join_code: string; status: string; settings: unknown; created_at: string };
+    const sessionData = data as {
+      id: string;
+      join_code: string;
+      status: string;
+      settings: unknown;
+      created_at: string;
+    };
 
     // Get participant count
     const { count } = await supabase
@@ -51,12 +57,14 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { joinCode } = await params;
-    const body = await request.json().catch(() => ({})) as { displayName?: string };
+    const body = (await request.json().catch(() => ({}))) as { displayName?: string };
 
     const supabase = await createClient();
 
     // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     // If not authenticated, require display name
     let displayName: string | undefined;

@@ -36,20 +36,20 @@ graph TB
     WebRTCViewer <--> |WebRTC| WebRTCHost
     WebRTCViewer <--> TURN
     WebRTCViewer <--> STUN
-    
+
     ElectronRenderer --> ElectronMain
     ElectronMain --> ScreenCapture
     ElectronMain --> InputInjector
     ElectronMain --> WebRTCHost
     WebRTCHost <--> TURN
     WebRTCHost <--> STUN
-    
+
     JoinUI --> Auth
     ElectronRenderer --> Auth
     Auth --> Supabase
     Realtime --> Supabase
     DB --> Supabase
-    
+
     WebRTCViewer <--> |Signaling| Realtime
     WebRTCHost <--> |Signaling| Realtime
 ```
@@ -101,20 +101,20 @@ sequenceDiagram
     Host->>Supabase: Authenticate
     Host->>Supabase: Create session record
     Supabase-->>Host: Session ID + Join Link
-    
+
     Note over Host: Host shares join link
-    
+
     Viewer->>Supabase: Open join link
     Viewer->>Supabase: Authenticate or join as guest
     Viewer->>Supabase: Subscribe to session channel
-    
+
     Host->>Supabase: Broadcast WebRTC offer
     Supabase-->>Viewer: Receive offer
     Viewer->>Supabase: Broadcast WebRTC answer
     Supabase-->>Host: Receive answer
-    
+
     Note over Host,Viewer: ICE candidate exchange via Supabase Realtime
-    
+
     Host->>Viewer: Direct WebRTC connection established
     Host->>Viewer: Video stream begins
 ```
@@ -129,25 +129,25 @@ sequenceDiagram
     participant NutJS as nut.js Input Injector
 
     Note over Viewer: Viewer is in view-only mode
-    
+
     Viewer->>DataChannel: Request control
     DataChannel->>Host: Control request received
     Host->>Host: Show approval dialog
     Host->>DataChannel: Control granted
     DataChannel->>Viewer: Control state: granted
-    
+
     Note over Viewer: Viewer can now send input
-    
+
     Viewer->>DataChannel: Mouse move event
     DataChannel->>Host: Receive input event
     Host->>NutJS: Inject mouse movement
-    
+
     Viewer->>DataChannel: Keyboard event
     DataChannel->>Host: Receive input event
     Host->>NutJS: Inject keypress
-    
+
     Note over Host: Host presses emergency revoke hotkey
-    
+
     Host->>DataChannel: Control revoked
     DataChannel->>Viewer: Control state: revoked
 ```
@@ -156,43 +156,43 @@ sequenceDiagram
 
 ### Desktop App - Electron Main Process
 
-| Component | Responsibility |
-|-----------|---------------|
-| `SessionManager` | Create/end sessions, manage session state |
-| `ScreenCaptureManager` | Handle screen/window selection, capture frames |
-| `WebRTCManager` | Manage peer connections, media tracks, data channels |
-| `InputInjector` | Receive remote input, inject via nut.js |
-| `PermissionManager` | Request/verify OS permissions |
-| `ControlStateManager` | Manage control grants/revokes per participant |
+| Component              | Responsibility                                       |
+| ---------------------- | ---------------------------------------------------- |
+| `SessionManager`       | Create/end sessions, manage session state            |
+| `ScreenCaptureManager` | Handle screen/window selection, capture frames       |
+| `WebRTCManager`        | Manage peer connections, media tracks, data channels |
+| `InputInjector`        | Receive remote input, inject via nut.js              |
+| `PermissionManager`    | Request/verify OS permissions                        |
+| `ControlStateManager`  | Manage control grants/revokes per participant        |
 
 ### Desktop App - Electron Renderer
 
-| Component | Responsibility |
-|-----------|---------------|
-| `HostUI` | Main host interface |
-| `ScreenSelector` | Screen/window picker UI |
-| `ParticipantList` | Show connected participants |
-| `ControlPanel` | Grant/revoke control UI |
+| Component         | Responsibility                     |
+| ----------------- | ---------------------------------- |
+| `HostUI`          | Main host interface                |
+| `ScreenSelector`  | Screen/window picker UI            |
+| `ParticipantList` | Show connected participants        |
+| `ControlPanel`    | Grant/revoke control UI            |
 | `StatusIndicator` | Show connection and control status |
 
 ### Web App - Marketing
 
-| Component | Responsibility |
-|-----------|---------------|
-| `LandingPage` | Hero, value proposition |
-| `FeaturesPage` | Feature showcase |
+| Component      | Responsibility                     |
+| -------------- | ---------------------------------- |
+| `LandingPage`  | Hero, value proposition            |
+| `FeaturesPage` | Feature showcase                   |
 | `DownloadPage` | OS detection, install instructions |
-| `DocsPage` | FAQ, documentation |
+| `DocsPage`     | FAQ, documentation                 |
 
 ### Web App - Viewer/Join UI
 
-| Component | Responsibility |
-|-----------|---------------|
-| `JoinPage` | Session join flow |
-| `ViewerCanvas` | Render remote screen |
-| `InputCapture` | Capture mouse/keyboard for remote control |
-| `CursorOverlay` | Show multi-cursor positions |
-| `ControlRequestUI` | Request/status of control |
+| Component          | Responsibility                            |
+| ------------------ | ----------------------------------------- |
+| `JoinPage`         | Session join flow                         |
+| `ViewerCanvas`     | Render remote screen                      |
+| `InputCapture`     | Capture mouse/keyboard for remote control |
+| `CursorOverlay`    | Show multi-cursor positions               |
+| `ControlRequestUI` | Request/status of control                 |
 
 ## Network Architecture
 
@@ -213,10 +213,10 @@ graph LR
 
     HostApp <--> |ICE Candidates| STUN
     ViewerBrowser <--> |ICE Candidates| STUN
-    
+
     HostApp <--> |Relay if needed| TURN
     ViewerBrowser <--> |Relay if needed| TURN
-    
+
     HostApp <-.-> |Direct P2P if possible| ViewerBrowser
 ```
 
@@ -247,7 +247,7 @@ graph TB
     HostApp <--> WebRTC
     WebRTC <--> ViewerApp
     ViewerApp --> ControlState
-    
+
     HostApp <--> |Auth + Signaling only| Supabase
     ViewerApp <--> |Auth + Signaling only| Supabase
 ```
@@ -268,17 +268,18 @@ graph TB
 
 ## Performance Targets
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| End-to-end latency | <150ms | Time from host screen change to viewer display |
-| Input latency | <100ms | Time from viewer input to host injection |
-| Video quality | 1080p @ 30fps | Adaptive based on bandwidth |
-| Connection time | <10s | From join click to video display |
-| Reconnection time | <5s | After network interruption |
+| Metric             | Target        | Measurement                                    |
+| ------------------ | ------------- | ---------------------------------------------- |
+| End-to-end latency | <150ms        | Time from host screen change to viewer display |
+| Input latency      | <100ms        | Time from viewer input to host injection       |
+| Video quality      | 1080p @ 30fps | Adaptive based on bandwidth                    |
+| Connection time    | <10s          | From join click to video display               |
+| Reconnection time  | <5s           | After network interruption                     |
 
 ## Next Steps
 
 See the following documents for detailed specifications:
+
 - [FEATURES.md](./FEATURES.md) - Feature specifications
 - [TECH-STACK.md](./TECH-STACK.md) - Technology choices
 - [WEBRTC-FLOW.md](./WEBRTC-FLOW.md) - WebRTC implementation details

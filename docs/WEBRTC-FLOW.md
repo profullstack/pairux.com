@@ -10,11 +10,11 @@ This document details the WebRTC implementation for PairUX, including signaling,
 
 ### Peer Roles
 
-| Role | Application | Responsibilities |
-|------|-------------|------------------|
-| **Host** | Desktop App | Captures screen, sends video, receives input |
+| Role           | Application | Responsibilities                                |
+| -------------- | ----------- | ----------------------------------------------- |
+| **Host**       | Desktop App | Captures screen, sends video, receives input    |
 | **Controller** | Web Browser | Receives video, sends input events, can control |
-| **Viewer** | Web Browser | Receives video only, view-only mode |
+| **Viewer**     | Web Browser | Receives video only, view-only mode             |
 
 ---
 
@@ -37,15 +37,15 @@ type SessionMode = 'p2p' | 'sfu';
 
 interface SessionConfig {
   mode: SessionMode;
-  maxControllers: number;  // Limit controllers in both modes
-  maxViewers: number;      // Soft limit for P2P, higher for SFU
+  maxControllers: number; // Limit controllers in both modes
+  maxViewers: number; // Soft limit for P2P, higher for SFU
 }
 
 // Default configuration
 const defaultConfig: SessionConfig = {
   mode: 'p2p',
   maxControllers: 3,
-  maxViewers: 15
+  maxViewers: 15,
 };
 ```
 
@@ -71,13 +71,13 @@ graph TD
         V2[Viewer 2]
         V3[Viewer 3]
     end
-    
+
     Host -->|Stream| C1
     Host -->|Stream| C2
     Host -->|Stream| V1
     Host -->|Stream| V2
     Host -->|Stream| V3
-    
+
     C1 -.->|Input| Host
     C2 -.->|Input| Host
 ```
@@ -103,52 +103,52 @@ graph TD
         V2[Viewer 2]
         VN[Viewer N...]
     end
-    
+
     Host -->|Single Stream| SFU
     SFU -->|Forward| C1
     SFU -->|Forward| C2
     SFU -->|Forward| V1
     SFU -->|Forward| V2
     SFU -->|Forward| VN
-    
+
     C1 -.->|Input via DataChannel| Host
     C2 -.->|Input via DataChannel| Host
 ```
 
 ### Controller vs Viewer Behavior
 
-| Aspect | Controller | Viewer |
-|--------|------------|--------|
-| Media Reception | Via P2P or SFU | Via P2P or SFU |
-| Input Capability | Can send mouse/keyboard | View-only |
-| Priority | Higher quality layers | Standard quality |
-| Limit | Max 3 per session | Unlimited in SFU mode |
-| Data Channel | Required for input | Optional for chat |
+| Aspect           | Controller              | Viewer                |
+| ---------------- | ----------------------- | --------------------- |
+| Media Reception  | Via P2P or SFU          | Via P2P or SFU        |
+| Input Capability | Can send mouse/keyboard | View-only             |
+| Priority         | Higher quality layers   | Standard quality      |
+| Limit            | Max 3 per session       | Unlimited in SFU mode |
+| Data Channel     | Required for input      | Optional for chat     |
 
 ### Mode Comparison
 
-| Aspect | P2P Mode | SFU Mode |
-|--------|----------|----------|
-| Latency | Lowest | Slightly higher |
-| Host CPU | Scales with viewers | Constant |
-| Host Bandwidth | Scales with viewers | Constant |
-| Max Viewers | ~15-25 | 100+ |
-| Best For | Pair programming | Demos, presentations |
-| Encryption | E2E | E2E (SFU forwards encrypted) |
+| Aspect         | P2P Mode            | SFU Mode                     |
+| -------------- | ------------------- | ---------------------------- |
+| Latency        | Lowest              | Slightly higher              |
+| Host CPU       | Scales with viewers | Constant                     |
+| Host Bandwidth | Scales with viewers | Constant                     |
+| Max Viewers    | ~15-25              | 100+                         |
+| Best For       | Pair programming    | Demos, presentations         |
+| Encryption     | E2E                 | E2E (SFU forwards encrypted) |
 
 ### Automatic Safeguards (Optional)
 
 ```typescript
 interface SafeguardConfig {
-  p2pViewerWarningThreshold: number;  // Warn when exceeded
-  p2pViewerHardLimit: number;         // Block new joins
-  suggestSfuThreshold: number;        // Suggest switching
+  p2pViewerWarningThreshold: number; // Warn when exceeded
+  p2pViewerHardLimit: number; // Block new joins
+  suggestSfuThreshold: number; // Suggest switching
 }
 
 const safeguards: SafeguardConfig = {
   p2pViewerWarningThreshold: 10,
   p2pViewerHardLimit: 25,
-  suggestSfuThreshold: 15
+  suggestSfuThreshold: 15,
 };
 
 function checkViewerLimit(currentViewers: number, mode: SessionMode): SafeguardAction {
@@ -157,7 +157,10 @@ function checkViewerLimit(currentViewers: number, mode: SessionMode): SafeguardA
       return { action: 'block', message: 'P2P limit reached. Switch to SFU mode.' };
     }
     if (currentViewers >= safeguards.suggestSfuThreshold) {
-      return { action: 'suggest', message: 'Consider switching to SFU mode for better performance.' };
+      return {
+        action: 'suggest',
+        message: 'Consider switching to SFU mode for better performance.',
+      };
     }
     if (currentViewers >= safeguards.p2pViewerWarningThreshold) {
       return { action: 'warn', message: 'Approaching P2P viewer limit.' };
@@ -203,11 +206,11 @@ async function createSession(request: CreateSessionRequest): Promise<Session> {
       mode: request.mode,
       max_controllers: request.config.maxControllers ?? 3,
       max_viewers: request.mode === 'sfu' ? 100 : 25,
-      status: 'waiting'
+      status: 'waiting',
     })
     .select()
     .single();
-    
+
   return session.data;
 }
 ```
@@ -230,22 +233,22 @@ graph LR
         VideoTrack[Video Track]
         DataChannelH[Data Channel]
     end
-    
+
     subgraph WebRTC [WebRTC Connection]
         MediaStream[Media Stream]
         DataChannel[Data Channel]
     end
-    
+
     subgraph Viewer [Viewer - Browser]
         VideoElement[Video Element]
         InputCapture[Input Capture]
         DataChannelV[Data Channel]
     end
-    
+
     ScreenCapture --> VideoTrack
     VideoTrack --> MediaStream
     MediaStream --> VideoElement
-    
+
     InputCapture --> DataChannelV
     DataChannelV --> DataChannel
     DataChannel --> DataChannelH
@@ -269,37 +272,37 @@ sequenceDiagram
 
     Host->>Channel: Subscribe to session:{id}
     Host->>Channel: Set presence: host online
-    
+
     Viewer->>Channel: Subscribe to session:{id}
     Viewer->>Channel: Set presence: viewer online
-    
+
     Channel-->>Host: Presence: viewer joined
-    
+
     Note over Host: Create RTCPeerConnection
     Note over Host: Add screen capture track
     Note over Host: Create data channel
-    
+
     Host->>Host: createOffer
     Host->>Channel: Broadcast: offer SDP
     Channel-->>Viewer: Receive: offer SDP
-    
+
     Note over Viewer: Create RTCPeerConnection
     Viewer->>Viewer: setRemoteDescription offer
     Viewer->>Viewer: createAnswer
     Viewer->>Channel: Broadcast: answer SDP
     Channel-->>Host: Receive: answer SDP
     Host->>Host: setRemoteDescription answer
-    
+
     Note over Host,Viewer: ICE Candidate Exchange
-    
+
     Host->>Channel: Broadcast: ICE candidate
     Channel-->>Viewer: Receive: ICE candidate
     Viewer->>Viewer: addIceCandidate
-    
+
     Viewer->>Channel: Broadcast: ICE candidate
     Channel-->>Host: Receive: ICE candidate
     Host->>Host: addIceCandidate
-    
+
     Note over Host,Viewer: Connection Established
 ```
 
@@ -339,17 +342,17 @@ interface IceCandidateMessage extends SignalMessage {
 class SignalingChannel {
   private channel: RealtimeChannel;
   private supabase: SupabaseClient;
-  
+
   constructor(supabase: SupabaseClient, sessionId: string) {
     this.supabase = supabase;
     this.channel = supabase.channel(`session:${sessionId}`, {
       config: {
         broadcast: { self: false }, // Don't receive own messages
-        presence: { key: 'user_id' }
-      }
+        presence: { key: 'user_id' },
+      },
     });
   }
-  
+
   async connect(): Promise<void> {
     await this.channel
       .on('broadcast', { event: 'signal' }, this.handleSignal.bind(this))
@@ -357,15 +360,15 @@ class SignalingChannel {
       .on('presence', { event: 'leave' }, this.handleLeave.bind(this))
       .subscribe();
   }
-  
+
   async sendSignal(message: SignalMessage): Promise<void> {
     await this.channel.send({
       type: 'broadcast',
       event: 'signal',
-      payload: message
+      payload: message,
     });
   }
-  
+
   private handleSignal(payload: { payload: SignalMessage }) {
     const message = payload.payload;
     switch (message.type) {
@@ -394,17 +397,17 @@ const iceServers: RTCIceServer[] = [
   // Public STUN servers (fallback)
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  
+
   // Self-hosted TURN server
   {
     urls: [
       'turn:turn.pairux.com:3478?transport=udp',
       'turn:turn.pairux.com:3478?transport=tcp',
-      'turns:turn.pairux.com:5349?transport=tcp'
+      'turns:turn.pairux.com:5349?transport=tcp',
     ],
     username: 'pairux',
-    credential: 'secret' // Should be time-limited credential
-  }
+    credential: 'secret', // Should be time-limited credential
+  },
 ];
 ```
 
@@ -417,7 +420,7 @@ stateDiagram-v2
     Gathering --> Gathering: onicecandidate events
     Gathering --> Complete: All candidates gathered
     Complete --> [*]
-    
+
     note right of Gathering
         Candidates discovered:
         1. Host candidates srflx
@@ -428,11 +431,11 @@ stateDiagram-v2
 
 ### ICE Candidate Types
 
-| Type | Description | When Used |
-|------|-------------|-----------|
-| `host` | Local IP address | Same network |
-| `srflx` | Server reflexive (STUN) | NAT traversal |
-| `relay` | TURN relay | Restrictive NAT/firewall |
+| Type    | Description             | When Used                |
+| ------- | ----------------------- | ------------------------ |
+| `host`  | Local IP address        | Same network             |
+| `srflx` | Server reflexive (STUN) | NAT traversal            |
+| `relay` | TURN relay              | Restrictive NAT/firewall |
 
 ### Connection Priority
 
@@ -454,7 +457,7 @@ async function getScreenSources(): Promise<DesktopCapturerSource[]> {
   return await desktopCapturer.getSources({
     types: ['screen', 'window'],
     thumbnailSize: { width: 320, height: 180 },
-    fetchWindowIcons: true
+    fetchWindowIcons: true,
   });
 }
 
@@ -468,11 +471,11 @@ async function captureScreen(sourceId: string): Promise<MediaStream> {
         chromeMediaSourceId: sourceId,
         maxWidth: 1920,
         maxHeight: 1080,
-        maxFrameRate: 30
-      }
-    } as any
+        maxFrameRate: 30,
+      },
+    } as any,
   });
-  
+
   return stream;
 }
 ```
@@ -485,9 +488,9 @@ async function captureScreenBrowser(): Promise<MediaStream> {
   return await navigator.mediaDevices.getDisplayMedia({
     video: {
       cursor: 'always',
-      displaySurface: 'monitor'
+      displaySurface: 'monitor',
     },
-    audio: false
+    audio: false,
   });
 }
 ```
@@ -499,7 +502,7 @@ const videoConstraints = {
   width: { ideal: 1920, max: 2560 },
   height: { ideal: 1080, max: 1440 },
   frameRate: { ideal: 30, max: 60 },
-  cursor: 'always'
+  cursor: 'always',
 };
 ```
 
@@ -513,31 +516,33 @@ const videoConstraints = {
 class WebRTCHost {
   private pc: RTCPeerConnection;
   private videoSender: RTCRtpSender | null = null;
-  
+
   async startSharing(stream: MediaStream): Promise<void> {
     const videoTrack = stream.getVideoTracks()[0];
-    
+
     // Add track to peer connection
     this.videoSender = this.pc.addTrack(videoTrack, stream);
-    
+
     // Configure encoding parameters
     const params = this.videoSender.getParameters();
-    params.encodings = [{
-      maxBitrate: 4_000_000, // 4 Mbps
-      maxFramerate: 30,
-      scaleResolutionDownBy: 1.0
-    }];
+    params.encodings = [
+      {
+        maxBitrate: 4_000_000, // 4 Mbps
+        maxFramerate: 30,
+        scaleResolutionDownBy: 1.0,
+      },
+    ];
     await this.videoSender.setParameters(params);
   }
-  
+
   async changeSource(newStream: MediaStream): Promise<void> {
     const newTrack = newStream.getVideoTracks()[0];
-    
+
     if (this.videoSender) {
       await this.videoSender.replaceTrack(newTrack);
     }
   }
-  
+
   stopSharing(): void {
     if (this.videoSender) {
       this.pc.removeTrack(this.videoSender);
@@ -553,17 +558,17 @@ class WebRTCHost {
 class WebRTCViewer {
   private pc: RTCPeerConnection;
   private videoElement: HTMLVideoElement;
-  
+
   constructor(videoElement: HTMLVideoElement) {
     this.videoElement = videoElement;
     this.pc = new RTCPeerConnection({ iceServers });
-    
+
     this.pc.ontrack = this.handleTrack.bind(this);
   }
-  
+
   private handleTrack(event: RTCTrackEvent): void {
     const [stream] = event.streams;
-    
+
     if (event.track.kind === 'video') {
       this.videoElement.srcObject = stream;
       this.videoElement.play().catch(console.error);
@@ -581,8 +586,8 @@ class WebRTCViewer {
 ```typescript
 // Host creates data channel
 const dataChannel = pc.createDataChannel('control', {
-  ordered: true,        // Guarantee order for input events
-  maxRetransmits: 3     // Retry failed messages
+  ordered: true, // Guarantee order for input events
+  maxRetransmits: 3, // Retry failed messages
 });
 
 // Viewer receives data channel
@@ -598,7 +603,7 @@ pc.ondatachannel = (event) => {
 
 ```typescript
 // All data channel messages
-type DataChannelMessage = 
+type DataChannelMessage =
   | InputEventMessage
   | ControlRequestMessage
   | ControlResponseMessage
@@ -623,8 +628,8 @@ interface ControlResponseMessage {
 
 interface CursorPositionMessage {
   type: 'cursor';
-  x: number;  // 0-1 relative
-  y: number;  // 0-1 relative
+  x: number; // 0-1 relative
+  y: number; // 0-1 relative
   visible: boolean;
 }
 
@@ -647,7 +652,7 @@ function sendMessage(channel: RTCDataChannel, message: DataChannelMessage): void
 // Receive message
 function handleMessage(event: MessageEvent): void {
   const message: DataChannelMessage = JSON.parse(event.data);
-  
+
   switch (message.type) {
     case 'input':
       handleInputEvent(message.event);
@@ -688,12 +693,12 @@ stateDiagram-v2
 ### State Machine Implementation
 
 ```typescript
-type ConnectionState = 
-  | 'idle' 
-  | 'connecting' 
-  | 'connected' 
-  | 'reconnecting' 
-  | 'failed' 
+type ConnectionState =
+  | 'idle'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'failed'
   | 'disconnected';
 
 class ConnectionManager {
@@ -701,17 +706,17 @@ class ConnectionManager {
   private pc: RTCPeerConnection | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 3;
-  
+
   constructor() {
     this.setupEventHandlers();
   }
-  
+
   private setupEventHandlers(): void {
     if (!this.pc) return;
-    
+
     this.pc.oniceconnectionstatechange = () => {
       const iceState = this.pc!.iceConnectionState;
-      
+
       switch (iceState) {
         case 'checking':
           this.setState('connecting');
@@ -733,31 +738,31 @@ class ConnectionManager {
       }
     };
   }
-  
+
   private async handleDisconnect(): Promise<void> {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.setState('reconnecting');
       this.reconnectAttempts++;
-      
+
       // Try ICE restart
       await this.restartIce();
     } else {
       this.setState('failed');
     }
   }
-  
+
   private async restartIce(): Promise<void> {
     if (!this.pc) return;
-    
+
     const offer = await this.pc.createOffer({ iceRestart: true });
     await this.pc.setLocalDescription(offer);
-    
+
     // Send new offer via signaling
     this.signaling.sendSignal({
       type: 'offer',
       sdp: offer.sdp!,
       senderId: this.userId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -773,11 +778,11 @@ class ConnectionManager {
 class QualityMonitor {
   private pc: RTCPeerConnection;
   private interval: NodeJS.Timeout | null = null;
-  
+
   startMonitoring(): void {
     this.interval = setInterval(async () => {
       const stats = await this.pc.getStats();
-      
+
       stats.forEach((report) => {
         if (report.type === 'outbound-rtp' && report.kind === 'video') {
           this.analyzeVideoStats(report);
@@ -788,19 +793,19 @@ class QualityMonitor {
       });
     }, 1000);
   }
-  
+
   private analyzeVideoStats(report: RTCOutboundRtpStreamStats): void {
     const bitrate = report.bytesSent; // Calculate delta
     const frameRate = report.framesPerSecond;
     const packetsLost = report.packetsLost;
-    
+
     // Emit quality metrics
     this.emit('quality', { bitrate, frameRate, packetsLost });
   }
-  
+
   private analyzeConnectionStats(report: RTCIceCandidatePairStats): void {
     const rtt = report.currentRoundTripTime * 1000; // Convert to ms
-    
+
     // Emit latency
     this.emit('latency', rtt);
   }
@@ -813,17 +818,17 @@ class QualityMonitor {
 class AdaptiveBitrate {
   private sender: RTCRtpSender;
   private currentBitrate: number = 4_000_000; // 4 Mbps default
-  
+
   private readonly presets = {
-    low: { bitrate: 1_000_000, resolution: 0.5 },    // 720p
+    low: { bitrate: 1_000_000, resolution: 0.5 }, // 720p
     medium: { bitrate: 2_500_000, resolution: 0.75 }, // 900p
-    high: { bitrate: 4_000_000, resolution: 1.0 },    // 1080p
-    ultra: { bitrate: 8_000_000, resolution: 1.0 }    // 1080p high
+    high: { bitrate: 4_000_000, resolution: 1.0 }, // 1080p
+    ultra: { bitrate: 8_000_000, resolution: 1.0 }, // 1080p high
   };
-  
+
   async adjustQuality(metrics: QualityMetrics): Promise<void> {
     let targetPreset: keyof typeof this.presets;
-    
+
     if (metrics.packetLoss > 10 || metrics.rtt > 300) {
       targetPreset = 'low';
     } else if (metrics.packetLoss > 5 || metrics.rtt > 150) {
@@ -833,17 +838,17 @@ class AdaptiveBitrate {
     } else {
       targetPreset = 'high';
     }
-    
+
     await this.applyPreset(targetPreset);
   }
-  
+
   private async applyPreset(preset: keyof typeof this.presets): Promise<void> {
     const { bitrate, resolution } = this.presets[preset];
-    
+
     const params = this.sender.getParameters();
     params.encodings[0].maxBitrate = bitrate;
     params.encodings[0].scaleResolutionDownBy = 1 / resolution;
-    
+
     await this.sender.setParameters(params);
     this.currentBitrate = bitrate;
   }
@@ -856,13 +861,13 @@ class AdaptiveBitrate {
 
 ### Common Errors
 
-| Error | Cause | Recovery |
-|-------|-------|----------|
-| `NotAllowedError` | Permission denied | Prompt user to grant permission |
-| `NotFoundError` | No capture source | Show source selector |
-| `ICE failed` | Network issues | Attempt ICE restart |
-| `DTLS failed` | TLS handshake error | Recreate connection |
-| `Data channel error` | Channel closed | Reopen channel |
+| Error                | Cause               | Recovery                        |
+| -------------------- | ------------------- | ------------------------------- |
+| `NotAllowedError`    | Permission denied   | Prompt user to grant permission |
+| `NotFoundError`      | No capture source   | Show source selector            |
+| `ICE failed`         | Network issues      | Attempt ICE restart             |
+| `DTLS failed`        | TLS handshake error | Recreate connection             |
+| `Data channel error` | Channel closed      | Reopen channel                  |
 
 ### Error Recovery
 
@@ -870,22 +875,22 @@ class AdaptiveBitrate {
 class ErrorHandler {
   async handleError(error: Error, context: string): Promise<void> {
     console.error(`[${context}]`, error);
-    
+
     if (error.name === 'NotAllowedError') {
       this.emit('permission-denied', context);
       return;
     }
-    
+
     if (error.message.includes('ICE')) {
       await this.attemptIceRestart();
       return;
     }
-    
+
     if (error.message.includes('DTLS')) {
       await this.recreateConnection();
       return;
     }
-    
+
     // Unknown error - notify user
     this.emit('error', { message: error.message, recoverable: false });
   }
@@ -910,14 +915,14 @@ class ErrorHandler {
 // Clean up resources
 function cleanup(): void {
   // Stop all tracks
-  localStream?.getTracks().forEach(track => track.stop());
-  
+  localStream?.getTracks().forEach((track) => track.stop());
+
   // Close data channel
   dataChannel?.close();
-  
+
   // Close peer connection
   peerConnection?.close();
-  
+
   // Clear references
   localStream = null;
   dataChannel = null;
@@ -947,25 +952,25 @@ function optimizeFrameRate(isViewerActive: boolean): void {
 async function createLoopback(): Promise<void> {
   const pc1 = new RTCPeerConnection();
   const pc2 = new RTCPeerConnection();
-  
+
   // Connect ICE candidates
   pc1.onicecandidate = (e) => e.candidate && pc2.addIceCandidate(e.candidate);
   pc2.onicecandidate = (e) => e.candidate && pc1.addIceCandidate(e.candidate);
-  
+
   // Add track to pc1
   const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-  stream.getTracks().forEach(track => pc1.addTrack(track, stream));
-  
+  stream.getTracks().forEach((track) => pc1.addTrack(track, stream));
+
   // Receive on pc2
   pc2.ontrack = (e) => {
     videoElement.srcObject = e.streams[0];
   };
-  
+
   // Exchange SDP
   const offer = await pc1.createOffer();
   await pc1.setLocalDescription(offer);
   await pc2.setRemoteDescription(offer);
-  
+
   const answer = await pc2.createAnswer();
   await pc2.setLocalDescription(answer);
   await pc1.setRemoteDescription(answer);
@@ -975,6 +980,7 @@ async function createLoopback(): Promise<void> {
 ### Network Simulation
 
 Use Chrome DevTools Network Throttling or `tc` (Linux) to simulate:
+
 - High latency (200ms+)
 - Packet loss (5-10%)
 - Limited bandwidth (1 Mbps)

@@ -37,8 +37,9 @@ export default function AboutPage() {
                 remote control, require expensive licenses, or force you into vendor lock-in.
               </p>
               <p>
-                We believe collaborative screen sharing should be accessible to everyone. That&apos;s
-                why PairUX is open source, with transparent pricing and no artificial limitations.
+                We believe collaborative screen sharing should be accessible to everyone.
+                That&apos;s why PairUX is open source, with transparent pricing and no artificial
+                limitations.
               </p>
 
               <h2>What We&apos;re Building</h2>
@@ -58,7 +59,10 @@ export default function AboutPage() {
               <p>
                 PairUX is released under the MIT license. You can view, modify, and contribute to
                 the code on{' '}
-                <Link href="https://github.com/profullstack/pairux.com" className="text-primary-600 hover:underline">
+                <Link
+                  href="https://github.com/profullstack/pairux.com"
+                  className="text-primary-600 hover:underline"
+                >
                   GitHub
                 </Link>
                 . We welcome contributions from the community.

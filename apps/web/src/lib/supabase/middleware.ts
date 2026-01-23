@@ -41,9 +41,17 @@ export async function updateSession(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       // Code exchanged successfully - redirect to same path without the code
+      // Important: Copy cookies from supabaseResponse to the redirect response
       const url = request.nextUrl.clone();
       url.searchParams.delete('code');
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+
+      // Copy all cookies from supabaseResponse to the redirect
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+
+      return redirectResponse;
     }
   }
 

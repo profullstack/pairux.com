@@ -92,6 +92,31 @@ export interface IPCChannels {
       | { success: false; error: string };
   };
 
+  'session:lookup': {
+    args: { joinCode: string };
+    return:
+      | {
+          success: true;
+          session: {
+            id: string;
+            join_code: string;
+            status: string;
+            settings: {
+              quality?: string;
+              allowControl?: boolean;
+              maxParticipants?: number;
+            };
+            participant_count: number;
+          };
+        }
+      | { success: false; error: string };
+  };
+
+  'session:join': {
+    args: { joinCode: string; displayName?: string };
+    return: { success: true; participant: SessionParticipant } | { success: false; error: string };
+  };
+
   // Chat channels
   'chat:send': {
     args: { sessionId: string; content: string };

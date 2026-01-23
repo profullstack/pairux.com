@@ -149,5 +149,114 @@ export function registerSessionHandlers(): void {
     }
   );
 
+  // Lookup session by join code
+  ipcMain.handle(
+    'session:lookup',
+    async (
+      _event,
+      args: { joinCode: string }
+    ): Promise<
+      | {
+          success: true;
+          session: {
+            id: string;
+            join_code: string;
+            status: string;
+            settings: {
+              quality?: string;
+              allowControl?: boolean;
+              maxParticipants?: number;
+            };
+            participant_count: number;
+          };
+        }
+      | { success: false; error: string }
+    > => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/sessions/join/${args.joinCode.toUpperCase()}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        const data = (await response.json()) as ApiResponse<{
+          id: string;
+          join_code: string;
+          status: string;
+          settings: {
+            quality?: string;
+            allowControl?: boolean;
+            maxParticipants?: number;
+          };
+          participant_count: number;
+        }>;
+
+        if (!response.ok) {
+          console.error('[Session] Lookup session error:', data);
+          return { success: false, error: data.error ?? 'Session not found' };
+        }
+
+        if (!data.data) {
+          return { success: false, error: 'Invalid response from server' };
+        }
+
+        console.log('[Session] Session found:', data.data.id);
+        return { success: true, session: data.data };
+      } catch (err) {
+        console.error('[Session] Lookup session error:', err);
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+      }
+    }
+  );
+
+  // Join session
+  ipcMain.handle(
+    'session:join',
+    async (
+      _event,
+      args: { joinCode: string; displayName?: string }
+    ): Promise<
+      { success: true; participant: SessionParticipant } | { success: false; error: string }
+    > => {
+      try {
+        const headers = getAuthHeaders();
+
+        // For desktop app joining, we can be authenticated or provide display name
+        const requestHeaders = headers ?? { 'Content-Type': 'application/json' };
+        if (headers && !headers['Content-Type']) {
+          headers['Content-Type'] = 'application/json';
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/sessions/join/${args.joinCode.toUpperCase()}`,
+          {
+            method: 'POST',
+            headers: requestHeaders,
+            body: JSON.stringify({ displayName: args.displayName }),
+          }
+        );
+
+        const data = (await response.json()) as ApiResponse<SessionParticipant>;
+
+        if (!response.ok) {
+          console.error('[Session] Join session error:', data);
+          return { success: false, error: data.error ?? 'Failed to join session' };
+        }
+
+        if (!data.data) {
+          return { success: false, error: 'Invalid response from server' };
+        }
+
+        console.log('[Session] Joined session as participant:', data.data.id);
+        return { success: true, participant: data.data };
+      } catch (err) {
+        console.error('[Session] Join session error:', err);
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+      }
+    }
+  );
+
   console.log('[Session] Session IPC handlers registered');
 }

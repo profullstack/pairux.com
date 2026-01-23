@@ -120,7 +120,8 @@
       "Bash(pnpm -w run format)",
       "Bash(scp:*)",
       "Bash(ssh:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": [
       "Bash(npm *)",

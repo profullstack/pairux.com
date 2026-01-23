@@ -27,6 +27,7 @@ const mockMessages = [
     content: 'Hello!',
     message_type: 'text' as const,
     created_at: '2024-01-01T00:00:00Z',
+    recipient_id: null,
   },
   {
     id: 'msg-2',
@@ -36,6 +37,7 @@ const mockMessages = [
     content: 'Bob joined the session',
     message_type: 'system' as const,
     created_at: '2024-01-01T00:01:00Z',
+    recipient_id: null,
   },
 ];
 

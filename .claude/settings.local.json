@@ -121,7 +121,22 @@
       "Bash(scp:*)",
       "Bash(ssh:*)",
       "Bash(git push:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(turnutils_stunclient:*)",
+      "Bash(gh release list:*)",
+      "Bash(pnpm dev)",
+      "Bash(node_modules/electron/dist/electron:*)",
+      "Bash(./node_modules/electron/dist/electron:*)",
+      "Bash(./node_modules/electron/dist/electron -e \"console.log\\(''type:'', typeof require\\(''electron''\\), ''app:'', typeof require\\(''electron''\\).app\\)\")",
+      "Bash(node_modules/.bin/electron:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(tree:*)",
+      "Bash(timeout 25 pnpm dev:desktop:*)",
+      "Bash(/home/ettinger/src/pairux.com/node_modules/electron/dist/electron:*)",
+      "Bash(/tmp/test-electron/node_modules/.bin/electron:*)",
+      "Bash(/tmp/test-electron/node_modules/electron/dist/electron:*)",
+      "Bash(node --version:*)",
+      "Bash(source ~/.nvm/nvm.sh nvm list)"
     ],
     "deny": [
       "Bash(npm *)",

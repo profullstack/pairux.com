@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { getCaptureSources } from '../capture/sources';
+import { registerAuthHandlers } from './auth';
 import type { CaptureSource } from '@pairux/shared-types';
 
 // Detect display server
@@ -9,6 +10,9 @@ const isWayland =
 
 export function registerIpcHandlers(): void {
   console.log('[IPC] Registering IPC handlers');
+
+  // Register auth handlers
+  registerAuthHandlers();
 
   // Capture handlers
   ipcMain.handle(

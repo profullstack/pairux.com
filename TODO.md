@@ -60,10 +60,10 @@
 
 ### PWA Viewer (Join Session)
 
-- [ ] **Session Join Flow**
-  - [ ] Join via link (no account required)
-  - [ ] Optional: Sign in for persistent identity
-  - [ ] Session code entry fallback
+- [x] **Session Join Flow**
+  - [x] Join via link (no account required)
+  - [x] Optional: Sign in for persistent identity
+  - [x] Session code entry fallback
 
 - [ ] **Video Viewer**
   - [ ] WebRTC video stream display

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-misused-promises */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { User, Loader2, AlertCircle, Users, Monitor } from 'lucide-react';
+import { User, Loader2, AlertCircle, Users, Monitor, CheckCircle } from 'lucide-react';
 
 interface SessionInfo {
   id: string;
@@ -18,36 +17,72 @@ interface SessionInfo {
   participant_count: number;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  display_name?: string;
+}
+
+interface SessionResponse {
+  user: { id: string; email: string } | null;
+  profile: UserProfile | null;
+}
+
+interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+}
+
 export default function JoinPage({ params }: { params: Promise<{ joinCode: string }> }) {
+  const { joinCode } = use(params);
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState<string | null>(null);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [user, setUser] = useState<SessionResponse['user']>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
+  // Fetch user session on mount
   useEffect(() => {
-    params.then(({ joinCode }) => {
-      setJoinCode(joinCode);
-    });
-  }, [params]);
+    async function fetchUser() {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = (await res.json()) as ApiResponse<SessionResponse>;
+          if (data.data) {
+            setUser(data.data.user);
+            setProfile(data.data.profile);
+            // Pre-fill display name for authenticated users
+            if (data.data.profile?.display_name) {
+              setDisplayName(data.data.profile.display_name);
+            }
+          }
+        }
+      } catch {
+        // User not logged in
+      }
+    }
+    void fetchUser();
+  }, []);
 
+  // Lookup session
   useEffect(() => {
-    if (!joinCode) return;
-
     async function lookupSession() {
       try {
         const res = await fetch(`/api/sessions/join/${joinCode}`);
-        const data = await res.json();
+        const data = (await res.json()) as ApiResponse<SessionInfo>;
 
         if (!res.ok) {
-          setError(data.error || 'Session not found');
+          setError(data.error ?? 'Session not found');
           setLoading(false);
           return;
         }
 
-        setSession(data.data);
+        if (data.data) {
+          setSession(data.data);
+        }
       } catch {
         setError('Failed to lookup session');
       } finally {
@@ -55,32 +90,36 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
       }
     }
 
-    lookupSession();
+    void lookupSession();
   }, [joinCode]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    if (!joinCode) return;
 
     setError('');
     setJoining(true);
 
     try {
+      // For authenticated users, displayName is optional
+      const body = user ? { displayName: displayName || undefined } : { displayName };
+
       const res = await fetch(`/api/sessions/join/${joinCode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName }),
+        body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as ApiResponse<unknown>;
 
       if (!res.ok) {
-        setError(data.error || 'Failed to join session');
+        setError(data.error ?? 'Failed to join session');
         return;
       }
 
       // Redirect to session viewer
-      router.push(`/session/${session?.id}`);
+      if (session?.id) {
+        router.push(`/session/${session.id}`);
+      }
     } catch {
       setError('Failed to join session');
     } finally {
@@ -172,7 +211,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                   <span className="text-gray-600">Participants</span>
                   <span className="flex items-center gap-1 text-gray-900">
                     <Users className="h-4 w-4" />
-                    {session.participant_count} / {session.settings.maxParticipants || 5}
+                    {session.participant_count} / {session.settings.maxParticipants ?? 5}
                   </span>
                 </div>
               </div>
@@ -185,37 +224,67 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
               </div>
             )}
 
-            <form onSubmit={handleJoin} className="space-y-4">
-              <div>
-                <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
-                  Your Name
-                </label>
-                <div className="relative mt-1">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <User className="h-5 w-5 text-gray-400" />
+            <form onSubmit={(e) => void handleJoin(e)} className="space-y-4">
+              {user ? (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">
+                      Signed in as {profile?.display_name ?? user.email}
+                    </span>
                   </div>
-                  <input
-                    id="displayName"
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => {
-                      setDisplayName(e.target.value);
-                    }}
-                    required
-                    minLength={2}
-                    maxLength={50}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-                    placeholder="Enter your name"
-                  />
+                  <div className="mt-2">
+                    <label
+                      htmlFor="displayName"
+                      className="block text-xs font-medium text-green-700"
+                    >
+                      Display name (optional)
+                    </label>
+                    <input
+                      id="displayName"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                      }}
+                      maxLength={50}
+                      className="mt-1 block w-full rounded border border-green-300 bg-white px-3 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                      placeholder={profile?.display_name ?? 'Use account name'}
+                    />
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  This is how others will see you in the session
-                </p>
-              </div>
+              ) : (
+                <div>
+                  <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+                    Your Name
+                  </label>
+                  <div className="relative mt-1">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="displayName"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                      }}
+                      required
+                      minLength={2}
+                      maxLength={50}
+                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    This is how others will see you in the session
+                  </p>
+                </div>
+              )}
 
               <button
                 type="submit"
-                disabled={joining || !displayName.trim()}
+                disabled={joining || (!user && !displayName.trim())}
                 className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {joining && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -223,16 +292,18 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
               </button>
             </form>
 
-            <p className="mt-6 text-center text-xs text-gray-500">
-              Have an account?{' '}
-              <Link
-                href={`/login?redirect=/join/${joinCode}`}
-                className="text-primary-600 hover:text-primary-500 font-medium"
-              >
-                Sign in
-              </Link>{' '}
-              for a better experience
-            </p>
+            {!user && (
+              <p className="mt-6 text-center text-xs text-gray-500">
+                Have an account?{' '}
+                <Link
+                  href={`/login?redirect=/join/${joinCode}`}
+                  className="text-primary-600 hover:text-primary-500 font-medium"
+                >
+                  Sign in
+                </Link>{' '}
+                for a better experience
+              </p>
+            )}
           </div>
         </div>
       </main>

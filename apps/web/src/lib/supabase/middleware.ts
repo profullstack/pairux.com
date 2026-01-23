@@ -38,12 +38,19 @@ export async function updateSession(request: NextRequest) {
   // Handle auth code exchange (for password reset, email confirmation, etc.)
   const code = request.nextUrl.searchParams.get('code');
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    if (!result.error) {
       // Code exchanged successfully - redirect to same path without the code
       // Important: Copy cookies from supabaseResponse to the redirect response
       const url = request.nextUrl.clone();
       url.searchParams.delete('code');
+
+      // For password reset flow, pass the access token to the page
+      if (request.nextUrl.pathname === '/reset-password') {
+        url.searchParams.set('access_token', result.data.session.access_token);
+        url.searchParams.set('type', 'recovery');
+      }
+
       const redirectResponse = NextResponse.redirect(url);
 
       // Copy all cookies from supabaseResponse to the redirect

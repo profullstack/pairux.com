@@ -296,6 +296,83 @@
 
 ---
 
+## 🔄 Session Resilience & Host Disconnection
+
+> **Principle:** A room is a durable object. A host is just a role.
+
+### Room-Centric Architecture
+
+- [ ] **Persistent Room Model**
+  - [ ] Decouple room lifecycle from host connection
+  - [ ] Room survives host disconnects (status: `open | active | paused | closed`)
+  - [ ] Add `current_host_id` field (nullable) to sessions table
+  - [ ] Implement room TTL expiration (configurable, e.g., 24h inactive)
+  - [ ] Room only closes via explicit action or TTL expiration
+
+- [ ] **Media Sessions (Ephemeral)**
+  - [ ] Create `media_sessions` table (separate from rooms)
+  - [ ] Track media session properties: `id`, `room_id`, `mode`, `publisher_id`, `status`
+  - [ ] Media session states: `active | paused | ended`
+  - [ ] End/pause media session when host disconnects (room stays alive)
+  - [ ] Allow new media session to attach when host reconnects or transfers
+
+### Host Disconnection Handling
+
+- [ ] **Immediate Behavior**
+  - [ ] Room remains open on host disconnect
+  - [ ] Viewers stay connected to UI, chat, presence, SFU (if applicable)
+  - [ ] Screen share pauses/freezes gracefully (last frame or placeholder)
+  - [ ] No automatic participant kick
+
+- [ ] **UX Messaging**
+  - [ ] "Host disconnected. Waiting for reconnection…" overlay
+  - [ ] Countdown timer or reconnection status indicator
+  - [ ] Clear visual state for "host offline"
+  - [ ] Only hard-kick when room is explicitly closed
+
+### Reconnection Logic
+
+- [ ] **Grace Period**
+  - [ ] Implement host reconnection window (2-5 minutes configurable)
+  - [ ] Auto-reattach returning host (no participant disruption)
+  - [ ] Resume screen sharing on host reconnect
+  - [ ] ICE restart for P2P connections on reconnect
+
+- [ ] **Host Reassignment (if host doesn't return)**
+  - [ ] Option A: Admin/host can pre-designate backup host
+  - [ ] Option B: Auto-promote a controller to host role
+  - [ ] Option C: Viewer-only continuation (room stays alive, no screen share)
+  - [ ] New host can start fresh screen sharing session
+
+### Presence & Heartbeats
+
+- [ ] **Client Heartbeats**
+  - [ ] Periodic heartbeat from all clients (every 30s)
+  - [ ] Soft-state presence (disconnection inferred, not immediate)
+  - [ ] Grace period before marking participant offline
+  - [ ] Avoid false "everyone dropped" on brief network blips
+
+- [ ] **Host Status Tracking**
+  - [ ] Track `host_last_seen_at` timestamp
+  - [ ] Distinguish between "host offline" vs "host left intentionally"
+  - [ ] Broadcast host status changes to all participants
+
+### SFU vs P2P Behavior
+
+- [ ] **P2P Mode**
+  - [ ] Media streams drop on host disconnect
+  - [ ] Room stays alive for chat/presence
+  - [ ] Reconnect requires SDP renegotiation
+  - [ ] Participants not kicked
+
+- [ ] **SFU Mode (Better UX)**
+  - [ ] SFU keeps viewer connections alive
+  - [ ] Viewers see last frame or placeholder
+  - [ ] New publisher can attach seamlessly
+  - [ ] No participant connection disruption
+
+---
+
 ## 📦 Distribution
 
 - [ ] **Build Pipeline**

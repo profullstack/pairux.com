@@ -770,6 +770,380 @@ class ConnectionManager {
 
 ---
 
+## Host Disconnection & Room Persistence
+
+### Core Principle
+
+> **A room is a durable object. A host is just a role.**
+
+If the host drops:
+- The **room stays alive**
+- Participants stay connected (UI, chat, presence)
+- The session can recover, pause, or transfer ownership
+- No automatic participant kick
+
+### Room-Centric Architecture
+
+```mermaid
+graph TB
+    subgraph Room [Persistent Room]
+        RoomState[Room State]
+        Participants[Participants]
+        Chat[Chat / Presence]
+    end
+
+    subgraph MediaSession [Ephemeral Media Session]
+        ScreenShare[Screen Share]
+        Publisher[Publisher/Host]
+        Streams[Media Streams]
+    end
+
+    Room --> MediaSession
+    MediaSession -.->|"Host Disconnect"| Paused[Paused/Ended]
+    Paused -.->|"Host Reconnect"| MediaSession
+    Room -->|"Survives"| Room
+```
+
+### Room vs Media Session
+
+| Aspect | Room | Media Session |
+|--------|------|---------------|
+| Lifecycle | Persistent | Ephemeral |
+| Survives host disconnect | ✅ Yes | ❌ No (pauses/ends) |
+| Created by | Explicit action | Host starts sharing |
+| Ended by | Explicit close or TTL | Host stops/disconnects |
+| Contains | Participants, chat, settings | Streams, publisher info |
+
+### Disconnection State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> HostOnline: Host joins
+    HostOnline --> HostOffline: Connection lost
+    HostOffline --> HostOnline: Reconnect within grace period
+    HostOffline --> HostTransferred: Grace period expired + reassign
+    HostOffline --> RoomPaused: Grace period expired + no reassign
+    HostTransferred --> HostOnline: New host active
+    RoomPaused --> HostOnline: Original/new host reconnects
+    HostOnline --> RoomClosed: Host ends session
+    RoomPaused --> RoomClosed: TTL expired
+    RoomClosed --> [*]
+
+    note right of HostOffline
+        Grace period: 2-5 minutes
+        Participants stay connected
+        Media paused/frozen
+    end note
+```
+
+### What Happens When Host Disconnects
+
+#### Immediate Behavior
+
+1. **Room remains open** - No state change to room itself
+2. **Viewers stay connected** to:
+   - UI and controls
+   - Chat and presence channel
+   - SFU (if applicable)
+3. **Screen share pauses** gracefully:
+   - P2P: Streams drop, last frame may freeze
+   - SFU: Viewers see last frame or placeholder
+4. **No hard kick** unless room is explicitly closed
+
+#### UX Messaging
+
+```typescript
+interface HostDisconnectUI {
+  overlay: true;
+  message: 'Host disconnected. Waiting for reconnection…';
+  showReconnectTimer: true;
+  gracePeriodSeconds: 300; // 5 minutes
+  allowLeaveButton: true;
+}
+
+// State indicators
+type HostStatus = 'online' | 'reconnecting' | 'offline' | 'transferred';
+
+function getStatusMessage(status: HostStatus, secondsRemaining?: number): string {
+  switch (status) {
+    case 'online':
+      return 'Host is sharing screen';
+    case 'reconnecting':
+      return `Host reconnecting... (${secondsRemaining}s remaining)`;
+    case 'offline':
+      return 'Host is offline. Waiting for reconnection or transfer.';
+    case 'transferred':
+      return 'Session transferred to new host';
+  }
+}
+```
+
+### Reconnection Logic
+
+#### Grace Period Implementation
+
+```typescript
+interface ReconnectionConfig {
+  gracePeriodMs: number; // Default: 300000 (5 minutes)
+  heartbeatIntervalMs: number; // Default: 30000 (30 seconds)
+  offlineThresholdMs: number; // Default: 60000 (1 minute without heartbeat)
+}
+
+const defaultConfig: ReconnectionConfig = {
+  gracePeriodMs: 5 * 60 * 1000,
+  heartbeatIntervalMs: 30 * 1000,
+  offlineThresholdMs: 60 * 1000,
+};
+
+class HostReconnectionManager {
+  private config: ReconnectionConfig;
+  private gracePeriodTimer: NodeJS.Timeout | null = null;
+  private hostLastSeen: number = Date.now();
+
+  onHostDisconnect(): void {
+    // Start grace period
+    this.gracePeriodTimer = setTimeout(() => {
+      this.handleGracePeriodExpired();
+    }, this.config.gracePeriodMs);
+
+    // Notify participants
+    this.broadcast({
+      type: 'host-status',
+      status: 'reconnecting',
+      gracePeriodEndsAt: Date.now() + this.config.gracePeriodMs,
+    });
+  }
+
+  onHostReconnect(): void {
+    // Cancel grace period
+    if (this.gracePeriodTimer) {
+      clearTimeout(this.gracePeriodTimer);
+      this.gracePeriodTimer = null;
+    }
+
+    // Resume session
+    this.broadcast({
+      type: 'host-status',
+      status: 'online',
+    });
+
+    // Trigger ICE restart for P2P connections
+    this.restartIceForAllPeers();
+  }
+
+  private handleGracePeriodExpired(): void {
+    // Options: reassign host, pause room, or close
+    if (this.hasDesignatedBackupHost()) {
+      this.transferToBackupHost();
+    } else if (this.hasEligibleController()) {
+      this.promptControllerPromotion();
+    } else {
+      this.pauseRoom();
+    }
+  }
+}
+```
+
+#### ICE Restart on Reconnect
+
+```typescript
+async function restartIceForPeer(pc: RTCPeerConnection, signaling: SignalingChannel): Promise<void> {
+  // Create new offer with ICE restart flag
+  const offer = await pc.createOffer({ iceRestart: true });
+  await pc.setLocalDescription(offer);
+
+  // Send via signaling
+  await signaling.sendSignal({
+    type: 'offer',
+    sdp: offer.sdp!,
+    senderId: hostUserId,
+    timestamp: Date.now(),
+    isReconnect: true,
+  });
+}
+```
+
+### Host Reassignment
+
+#### Option A: Pre-designated Backup Host
+
+```typescript
+interface SessionSettings {
+  backupHostId?: string; // User ID of designated backup
+  allowControllerPromotion: boolean;
+  autoCloseOnHostTimeout: boolean;
+}
+
+async function transferToBackupHost(sessionId: string, backupHostId: string): Promise<void> {
+  // Update session
+  await supabase.from('sessions').update({
+    current_host_id: backupHostId,
+    host_transferred_at: new Date().toISOString(),
+  }).eq('id', sessionId);
+
+  // Update participant roles
+  await supabase.from('session_participants').update({
+    role: 'host',
+  }).eq('session_id', sessionId).eq('user_id', backupHostId);
+
+  // Notify all participants
+  channel.send({
+    type: 'broadcast',
+    event: 'host-transfer',
+    payload: { newHostId: backupHostId },
+  });
+}
+```
+
+#### Option B: Controller Promotion
+
+```typescript
+async function promoteController(sessionId: string, controllerId: string): Promise<void> {
+  // Verify controller has granted control state
+  const { data: participant } = await supabase
+    .from('session_participants')
+    .select('*')
+    .eq('session_id', sessionId)
+    .eq('user_id', controllerId)
+    .eq('control_state', 'granted')
+    .single();
+
+  if (!participant) {
+    throw new Error('Controller not eligible for promotion');
+  }
+
+  // Promote to host
+  await transferToBackupHost(sessionId, controllerId);
+}
+```
+
+### SFU vs P2P: Disconnection Behavior
+
+#### P2P Mode
+
+```mermaid
+sequenceDiagram
+    participant Host
+    participant Viewer1
+    participant Viewer2
+
+    Note over Host,Viewer2: Host connected, streaming
+
+    Host->>Viewer1: Video stream
+    Host->>Viewer2: Video stream
+
+    Note over Host: Host disconnects
+
+    Host--xViewer1: Stream ends
+    Host--xViewer2: Stream ends
+
+    Note over Viewer1,Viewer2: Viewers see frozen frame / connection lost
+    Note over Viewer1,Viewer2: Room still active, chat works
+
+    Host->>Viewer1: Reconnect + ICE restart
+    Host->>Viewer2: Reconnect + ICE restart
+
+    Note over Host,Viewer2: Streaming resumes
+```
+
+**P2P Behavior:**
+- Media streams drop immediately
+- Room stays alive for chat/presence
+- Reconnect requires full SDP renegotiation
+- ICE restart needed for each peer
+- Participants NOT kicked
+
+#### SFU Mode (Recommended for Resilience)
+
+```mermaid
+sequenceDiagram
+    participant Host
+    participant SFU
+    participant Viewer1
+    participant Viewer2
+
+    Note over Host,Viewer2: Host connected, streaming via SFU
+
+    Host->>SFU: Single video stream
+    SFU->>Viewer1: Forward stream
+    SFU->>Viewer2: Forward stream
+
+    Note over Host: Host disconnects
+
+    Host--xSFU: Publisher disconnects
+
+    Note over SFU: SFU keeps viewer connections alive
+    SFU->>Viewer1: Last frame / placeholder
+    SFU->>Viewer2: Last frame / placeholder
+
+    Note over Viewer1,Viewer2: Viewers see "Host reconnecting..." overlay
+
+    Host->>SFU: Reconnect as publisher
+
+    SFU->>Viewer1: Resume stream (seamless)
+    SFU->>Viewer2: Resume stream (seamless)
+
+    Note over Host,Viewer2: No viewer reconnection needed
+```
+
+**SFU Advantages:**
+- Viewer connections remain stable
+- No ICE restart needed for viewers
+- Seamless publisher handoff possible
+- Last frame preserved (not black screen)
+- Dramatically smoother UX
+
+### Presence & Heartbeats
+
+```typescript
+class PresenceManager {
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private readonly HEARTBEAT_MS = 30000;
+  private readonly OFFLINE_THRESHOLD_MS = 60000;
+
+  startHeartbeat(channel: RealtimeChannel, userId: string): void {
+    this.heartbeatInterval = setInterval(async () => {
+      await channel.track({
+        user_id: userId,
+        online_at: new Date().toISOString(),
+        last_heartbeat: Date.now(),
+      });
+    }, this.HEARTBEAT_MS);
+  }
+
+  // Called on presence sync
+  checkParticipantStatus(presenceState: Record<string, any[]>): ParticipantStatus[] {
+    const now = Date.now();
+
+    return Object.entries(presenceState).map(([key, presences]) => {
+      const latest = presences[0];
+      const lastHeartbeat = latest?.last_heartbeat ?? 0;
+      const isOnline = now - lastHeartbeat < this.OFFLINE_THRESHOLD_MS;
+
+      return {
+        userId: key,
+        isOnline,
+        lastSeen: lastHeartbeat,
+        role: latest?.role,
+      };
+    });
+  }
+}
+```
+
+### UX Rules (Non-Negotiable)
+
+1. **Room never auto-closes** because one user disconnects
+2. Only explicit actions close rooms:
+   - Host clicks "End Session"
+   - Room TTL expires (e.g., 24h inactive)
+3. Clear visual role indicators at all times
+4. Clear "host offline" state with countdown
+5. Participants can leave voluntarily but aren't kicked
+6. Chat and presence continue during host offline period
+
+---
+
 ## Bandwidth Adaptation
 
 ### Monitoring Connection Quality

@@ -87,7 +87,8 @@
       "Bash(./.githooks/pre-commit:*)",
       "Bash(git reset:*)",
       "Bash(curl:*)",
-      "Bash(pnpm --filter web test -- --run src/app/api/auth/reset-password/route.test.ts)"
+      "Bash(pnpm --filter web test -- --run src/app/api/auth/reset-password/route.test.ts)",
+      "Bash(SUPABASE_PROJECT_REF=yuwjbjskkghlyrdkhexu SUPABASE_ACCESS_TOKEN=sbp_4da30ff35e42decb69c30efab313c745a150dc22 pnpm:*)"
     ],
     "deny": [
       "Bash(npm *)",

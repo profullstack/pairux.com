@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Script from 'next/script';
+import { PWAInstallButton } from '@/components/pwa';
 import './globals.css';
 
 const inter = Inter({
@@ -101,6 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-screen font-sans">
         {children}
+        <PWAInstallButton />
         {/* Datafast Analytics */}
         <Script
           defer

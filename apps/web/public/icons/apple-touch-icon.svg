@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="180" height="180" fill="#0f172a" rx="18"/>
+
+  <!-- Outer ring representing connection -->
+  <circle cx="90" cy="90" r="62.99999999999999" fill="none" stroke="#3b82f6" stroke-width="7.2"/>
+
+  <!-- Two overlapping circles representing pair/collaboration -->
+  <circle cx="71.1" cy="90" r="31.499999999999996" fill="#3b82f6" opacity="0.9"/>
+  <circle cx="108.9" cy="90" r="31.499999999999996" fill="#60a5fa" opacity="0.9"/>
+
+  <!-- Center intersection highlight -->
+  <ellipse cx="90" cy="90" rx="15.749999999999998" ry="28.349999999999998" fill="#93c5fd"/>
+</svg>

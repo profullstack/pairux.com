@@ -35,6 +35,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Handle auth code exchange (for password reset, email confirmation, etc.)
+  const code = request.nextUrl.searchParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      // Code exchanged successfully - redirect to same path without the code
+      const url = request.nextUrl.clone();
+      url.searchParams.delete('code');
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Refresh session if expired
   const {
     data: { user },

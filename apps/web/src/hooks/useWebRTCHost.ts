@@ -8,7 +8,41 @@ import type {
   ControlMessage,
   CursorPositionMessage,
   ControlStateUI,
+  NetworkQuality,
 } from '@pairux/shared-types';
+
+// Adaptive bitrate encoding presets
+interface BitratePreset {
+  maxBitrate: number; // bps
+  scaleResolutionDownBy: number;
+  maxFramerate: number;
+}
+
+const BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
+  excellent: {
+    maxBitrate: 2_500_000, // 2.5 Mbps
+    scaleResolutionDownBy: 1,
+    maxFramerate: 30,
+  },
+  good: {
+    maxBitrate: 1_500_000, // 1.5 Mbps
+    scaleResolutionDownBy: 1,
+    maxFramerate: 30,
+  },
+  poor: {
+    maxBitrate: 800_000, // 800 Kbps
+    scaleResolutionDownBy: 2,
+    maxFramerate: 24,
+  },
+  bad: {
+    maxBitrate: 400_000, // 400 Kbps
+    scaleResolutionDownBy: 4,
+    maxFramerate: 15,
+  },
+};
+
+// Stats collection interval (ms)
+const STATS_INTERVAL = 2000;
 
 // ICE server configuration
 const ICE_SERVERS: RTCIceServer[] = [
@@ -35,6 +69,8 @@ interface ViewerConnection {
   dataChannel: RTCDataChannel | null;
   connectionState: ConnectionState;
   controlState: ControlStateUI;
+  networkQuality: NetworkQuality;
+  currentPreset: NetworkQuality;
 }
 
 interface UseWebRTCHostOptions {
@@ -80,6 +116,7 @@ export function useWebRTCHost({
   const channelRef = useRef<RealtimeChannel | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
+  const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
@@ -88,6 +125,89 @@ export function useWebRTCHost({
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
+
+  // Calculate network quality from stats
+  const calculateNetworkQuality = useCallback(
+    (packetLoss: number, roundTripTime: number): NetworkQuality => {
+      if (packetLoss < 1 && roundTripTime < 50) {
+        return 'excellent';
+      } else if (packetLoss < 3 && roundTripTime < 100) {
+        return 'good';
+      } else if (packetLoss < 8 && roundTripTime < 200) {
+        return 'poor';
+      }
+      return 'bad';
+    },
+    []
+  );
+
+  // Adjust bitrate for a viewer based on network quality
+  const adjustBitrate = useCallback(async (viewer: ViewerConnection, quality: NetworkQuality) => {
+    // Only adjust if quality changed
+    if (viewer.currentPreset === quality) return;
+
+    const preset = BITRATE_PRESETS[quality];
+    const senders = viewer.peerConnection.getSenders();
+    const videoSender = senders.find((s) => s.track?.kind === 'video');
+
+    if (!videoSender) return;
+
+    try {
+      const params = videoSender.getParameters();
+      const encoding = params.encodings[0];
+
+      // Apply bitrate preset to first encoding if it exists
+      if (encoding) {
+        encoding.maxBitrate = preset.maxBitrate;
+        encoding.scaleResolutionDownBy = preset.scaleResolutionDownBy;
+        encoding.maxFramerate = preset.maxFramerate;
+        await videoSender.setParameters(params);
+        viewer.currentPreset = quality;
+      }
+    } catch (err) {
+      console.error('Failed to adjust bitrate for viewer:', viewer.id, err);
+    }
+  }, []);
+
+  // Collect stats and adjust bitrate for all viewers
+  const collectStatsAndAdjust = useCallback(async () => {
+    for (const viewer of viewersRef.current.values()) {
+      if (viewer.connectionState !== 'connected') continue;
+
+      try {
+        const stats = await viewer.peerConnection.getStats();
+        let packetLoss = 0;
+        let roundTripTime = 0;
+        let packetsLost = 0;
+        let packetsSent = 0;
+
+        stats.forEach((report: RTCStatsReport[keyof RTCStatsReport] & Record<string, unknown>) => {
+          if (report.type === 'outbound-rtp' && report.kind === 'video') {
+            packetsSent = (report.packetsSent as number | undefined) ?? 0;
+          }
+          if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
+            packetsLost = (report.packetsLost as number | undefined) ?? 0;
+          }
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
+          }
+        });
+
+        // Calculate packet loss percentage
+        if (packetsSent > 0) {
+          packetLoss = (packetsLost / packetsSent) * 100;
+        }
+
+        const quality = calculateNetworkQuality(packetLoss, roundTripTime);
+        viewer.networkQuality = quality;
+
+        // Adjust bitrate based on network quality
+        await adjustBitrate(viewer, quality);
+      } catch {
+        // Stats collection failed - non-critical
+      }
+    }
+  }, [calculateNetworkQuality, adjustBitrate]);
 
   // Handle data channel messages from a viewer
   const handleDataChannelMessage = useCallback((viewerId: string, event: MessageEvent<string>) => {
@@ -289,6 +409,8 @@ export function useWebRTCHost({
         dataChannel: null,
         connectionState: 'connecting',
         controlState: 'view-only',
+        networkQuality: 'good',
+        currentPreset: 'good',
       };
 
       viewersRef.current.set(viewerId, viewer);
@@ -371,12 +493,31 @@ export function useWebRTCHost({
             online_at: new Date().toISOString(),
             role: 'host',
           });
+
+          // Start adaptive bitrate monitoring
+          statsIntervalRef.current = setInterval(() => {
+            void collectStatsAndAdjust();
+          }, STATS_INTERVAL);
         }
       });
-  }, [sessionId, hostId, localStream, handleSignalMessage, handleViewerJoin, removeViewer]);
+  }, [
+    sessionId,
+    hostId,
+    localStream,
+    handleSignalMessage,
+    handleViewerJoin,
+    removeViewer,
+    collectStatsAndAdjust,
+  ]);
 
   // Stop hosting
   const stopHosting = useCallback(() => {
+    // Stop adaptive bitrate monitoring
+    if (statsIntervalRef.current) {
+      clearInterval(statsIntervalRef.current);
+      statsIntervalRef.current = null;
+    }
+
     // Close all viewer connections
     viewersRef.current.forEach((viewer) => {
       viewer.peerConnection.close();

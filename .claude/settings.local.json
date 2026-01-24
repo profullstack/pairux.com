@@ -167,7 +167,8 @@
       "Bash(pnpm --filter @pairux/desktop test -- --run)",
       "Bash(pnpm --filter @pairux/web test -- --run)",
       "Bash(gh run:*)",
-      "Bash(pnpm --filter @pairux/desktop test)"
+      "Bash(pnpm --filter @pairux/desktop test)",
+      "Bash(git hook run:*)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

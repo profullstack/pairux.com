@@ -165,7 +165,9 @@
       "Bash(npm search:*)",
       "Bash(npm view:*)",
       "Bash(pnpm --filter @pairux/desktop test -- --run)",
-      "Bash(pnpm --filter @pairux/web test -- --run)"
+      "Bash(pnpm --filter @pairux/web test -- --run)",
+      "Bash(gh run:*)",
+      "Bash(pnpm --filter @pairux/desktop test)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

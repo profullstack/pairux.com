@@ -48,28 +48,43 @@ if [ -z "$STAGED_FILES" ]; then
     exit 0
 fi
 
-# 0. Format staged files (auto-fix)
+# 0. Format and fix staged files (auto-fix)
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📋 Formatting staged files"
+echo "📋 Formatting and fixing staged files"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Get staged files that Prettier can format
+# Get staged files that can be processed
+LINT_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$' || true)
 PRETTIER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx|json|md|css|scss|html|yaml|yml)$' || true)
 
+# Run ESLint --fix on JS/TS files
+if [ -n "$LINT_FILES" ]; then
+    echo "Running ESLint --fix on staged files..."
+    echo "$LINT_FILES" | xargs pnpm eslint --fix || true
+
+    # Re-stage the fixed files
+    echo "$LINT_FILES" | xargs git add
+
+    echo "${GREEN}✅ ESLint fix complete${NC}"
+else
+    echo "No lintable files staged."
+fi
+
+# Run Prettier on formattable files
 if [ -n "$PRETTIER_FILES" ]; then
-    # Format the files
+    echo "Running Prettier on staged files..."
     echo "$PRETTIER_FILES" | xargs pnpm prettier --write
-    
+
     # Re-stage the formatted files
     echo "$PRETTIER_FILES" | xargs git add
-    
-    echo "${GREEN}✅ Formatting complete${NC}"
+
+    echo "${GREEN}✅ Prettier formatting complete${NC}"
 else
     echo "No formattable files staged."
 fi
 echo ""
 
-# 1. Linting
+# 1. Linting (verify all issues are fixed)
 run_check "ESLint" "pnpm lint"
 
 # 2. Run tests

@@ -196,6 +196,57 @@ export interface IPCChannels {
     args: undefined;
     return: { accessibility: boolean; screenCapture: boolean };
   };
+
+  // Recording channels
+  'recording:start': {
+    args: { customPath?: string; format?: 'webm' | 'mp4' } | undefined;
+    return: { success: boolean; path?: string; error?: string };
+  };
+
+  'recording:stop': {
+    args: undefined;
+    return: { success: boolean; path?: string; duration?: number; error?: string };
+  };
+
+  'recording:writeChunk': {
+    args: ArrayBuffer;
+    return: { success: boolean };
+  };
+
+  'recording:status': {
+    args: undefined;
+    return: { isRecording: boolean; path: string | null; duration: number | null };
+  };
+
+  'recording:showSaveDialog': {
+    args: undefined;
+    return: { path: string | null };
+  };
+
+  'recording:getDirectory': {
+    args: undefined;
+    return: { path: string };
+  };
+
+  'recording:getAvailableSpace': {
+    args: undefined;
+    return: { bytes: number; gb: number };
+  };
+
+  'recording:openFolder': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  'recording:pause': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  'recording:resume': {
+    args: undefined;
+    return: { success: boolean };
+  };
 }
 
 // Event channels (main -> renderer)
@@ -203,6 +254,10 @@ export interface IPCEvents {
   'capture:sourceChanged': CaptureSource;
   'app:error': { message: string; code?: string };
   'input:emergency-stop': undefined;
+  'recording:started': { path: string };
+  'recording:stopped': { path: string; duration: number };
+  'recording:error': { error: string };
+  'recording:space-warning': { availableGb: number };
 }
 
 // Type helpers for the API

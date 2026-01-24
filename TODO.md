@@ -144,23 +144,23 @@
 
 ### Core Functionality
 
-- [ ] **Screen Capture**
-  - [ ] Screen/window picker dialog
-  - [ ] Capture via Electron desktopCapturer
-  - [ ] Frame rate optimization (30fps target)
-  - [ ] Resolution scaling options
+- [x] **Screen Capture**
+  - [x] Screen/window picker dialog
+  - [x] Capture via Electron desktopCapturer
+  - [x] Frame rate optimization (30fps target)
+  - [x] Resolution scaling options
 
-- [ ] **Screen Recording (Local)**
-  - [ ] Start/stop recording controls
-  - [ ] Record to local file (WebM/MP4)
-  - [ ] Audio capture option (system audio + mic)
-  - [ ] Recording indicator overlay
-  - [ ] Auto-save on session end
-  - [ ] File location picker
-  - [ ] Recording quality presets (720p/1080p/4K)
-  - [ ] Pause/resume recording
-  - [ ] Recording duration display
-  - [ ] Storage space warning
+- [x] **Screen Recording (Local)**
+  - [x] Start/stop recording controls
+  - [x] Record to local file (WebM/MP4)
+  - [x] Audio capture option (system audio + mic)
+  - [x] Recording indicator overlay
+  - [x] Auto-save on session end
+  - [x] File location picker
+  - [x] Recording quality presets (720p/1080p/4K)
+  - [x] Pause/resume recording
+  - [x] Recording duration display
+  - [x] Storage space warning
 
 - [ ] **RTMP Live Streaming**
   - [ ] Add/edit/remove RTMP destinations
@@ -188,12 +188,12 @@
   - [ ] Adaptive bitrate encoding
   - [ ] Connection quality monitoring
 
-- [ ] **Input Injection (nut.js)**
-  - [ ] Mouse movement injection
-  - [ ] Mouse click injection (left/right/middle)
-  - [ ] Mouse scroll injection
-  - [ ] Keyboard input injection
-  - [ ] Special key handling (modifiers, function keys)
+- [x] **Input Injection (nut.js)**
+  - [x] Mouse movement injection
+  - [x] Mouse click injection (left/right/middle)
+  - [x] Mouse scroll injection
+  - [x] Keyboard input injection
+  - [x] Special key handling (modifiers, function keys)
 
 ### Session Management
 
@@ -205,12 +205,12 @@
   - [ ] View participant list
   - [ ] End session
 
-- [ ] **Control State Machine**
-  - [ ] View-only (default)
-  - [ ] Control requested (pending)
-  - [ ] Control granted (active)
-  - [ ] Control revoked
-  - [ ] Emergency revoke hotkey (Ctrl+Shift+Escape)
+- [x] **Control State Machine**
+  - [x] View-only (default)
+  - [x] Control requested (pending)
+  - [x] Control granted (active)
+  - [x] Control revoked
+  - [x] Emergency revoke hotkey (Ctrl+Shift+Escape)
 
 - [ ] **Participant Management**
   - [ ] See who's connected
@@ -239,10 +239,10 @@
 
 ### Platform-Specific
 
-- [ ] **macOS**
-  - [ ] Accessibility permission request
-  - [ ] Screen Recording permission request
-  - [ ] Input Monitoring permission request
+- [x] **macOS**
+  - [x] Accessibility permission request
+  - [x] Screen Recording permission request
+  - [x] Input Monitoring permission request
   - [ ] Menu bar integration
 
 - [ ] **Windows**
@@ -302,60 +302,60 @@
 
 ### Room-Centric Architecture
 
-- [ ] **Persistent Room Model**
-  - [ ] Decouple room lifecycle from host connection
-  - [ ] Room survives host disconnects (status: `open | active | paused | closed`)
-  - [ ] Add `current_host_id` field (nullable) to sessions table
-  - [ ] Implement room TTL expiration (configurable, e.g., 24h inactive)
-  - [ ] Room only closes via explicit action or TTL expiration
+- [x] **Persistent Room Model**
+  - [x] Decouple room lifecycle from host connection
+  - [x] Room survives host disconnects (status: `open | active | paused | closed`)
+  - [x] Add `current_host_id` field (nullable) to sessions table
+  - [x] Implement room TTL expiration (configurable, e.g., 24h inactive)
+  - [x] Room only closes via explicit action or TTL expiration
 
-- [ ] **Media Sessions (Ephemeral)**
-  - [ ] Create `media_sessions` table (separate from rooms)
-  - [ ] Track media session properties: `id`, `room_id`, `mode`, `publisher_id`, `status`
-  - [ ] Media session states: `active | paused | ended`
-  - [ ] End/pause media session when host disconnects (room stays alive)
-  - [ ] Allow new media session to attach when host reconnects or transfers
+- [x] **Media Sessions (Ephemeral)**
+  - [x] Create `media_sessions` table (separate from rooms)
+  - [x] Track media session properties: `id`, `room_id`, `mode`, `publisher_id`, `status`
+  - [x] Media session states: `active | paused | ended`
+  - [x] End/pause media session when host disconnects (room stays alive)
+  - [x] Allow new media session to attach when host reconnects or transfers
 
 ### Host Disconnection Handling
 
-- [ ] **Immediate Behavior**
-  - [ ] Room remains open on host disconnect
-  - [ ] Viewers stay connected to UI, chat, presence, SFU (if applicable)
-  - [ ] Screen share pauses/freezes gracefully (last frame or placeholder)
-  - [ ] No automatic participant kick
+- [x] **Immediate Behavior**
+  - [x] Room remains open on host disconnect
+  - [x] Viewers stay connected to UI, chat, presence, SFU (if applicable)
+  - [x] Screen share pauses/freezes gracefully (last frame or placeholder)
+  - [x] No automatic participant kick
 
-- [ ] **UX Messaging**
-  - [ ] "Host disconnected. Waiting for reconnection…" overlay
-  - [ ] Countdown timer or reconnection status indicator
-  - [ ] Clear visual state for "host offline"
-  - [ ] Only hard-kick when room is explicitly closed
+- [x] **UX Messaging**
+  - [x] "Host disconnected. Waiting for reconnection…" overlay
+  - [x] Countdown timer or reconnection status indicator
+  - [x] Clear visual state for "host offline"
+  - [x] Only hard-kick when room is explicitly closed
 
 ### Reconnection Logic
 
-- [ ] **Grace Period**
-  - [ ] Implement host reconnection window (2-5 minutes configurable)
-  - [ ] Auto-reattach returning host (no participant disruption)
-  - [ ] Resume screen sharing on host reconnect
-  - [ ] ICE restart for P2P connections on reconnect
+- [x] **Grace Period**
+  - [x] Implement host reconnection window (2-5 minutes configurable)
+  - [x] Auto-reattach returning host (no participant disruption)
+  - [x] Resume screen sharing on host reconnect
+  - [x] ICE restart for P2P connections on reconnect
 
-- [ ] **Host Reassignment (if host doesn't return)**
-  - [ ] Option A: Admin/host can pre-designate backup host
-  - [ ] Option B: Auto-promote a controller to host role
-  - [ ] Option C: Viewer-only continuation (room stays alive, no screen share)
-  - [ ] New host can start fresh screen sharing session
+- [x] **Host Reassignment (if host doesn't return)**
+  - [x] Option A: Admin/host can pre-designate backup host
+  - [x] Option B: Auto-promote a controller to host role
+  - [x] Option C: Viewer-only continuation (room stays alive, no screen share)
+  - [x] New host can start fresh screen sharing session
 
 ### Presence & Heartbeats
 
-- [ ] **Client Heartbeats**
-  - [ ] Periodic heartbeat from all clients (every 30s)
-  - [ ] Soft-state presence (disconnection inferred, not immediate)
-  - [ ] Grace period before marking participant offline
-  - [ ] Avoid false "everyone dropped" on brief network blips
+- [x] **Client Heartbeats**
+  - [x] Periodic heartbeat from all clients (every 30s)
+  - [x] Soft-state presence (disconnection inferred, not immediate)
+  - [x] Grace period before marking participant offline
+  - [x] Avoid false "everyone dropped" on brief network blips
 
-- [ ] **Host Status Tracking**
-  - [ ] Track `host_last_seen_at` timestamp
-  - [ ] Distinguish between "host offline" vs "host left intentionally"
-  - [ ] Broadcast host status changes to all participants
+- [x] **Host Status Tracking**
+  - [x] Track `host_last_seen_at` timestamp
+  - [x] Distinguish between "host offline" vs "host left intentionally"
+  - [x] Broadcast host status changes to all participants
 
 ### SFU vs P2P Behavior
 
@@ -404,8 +404,8 @@
 
 - [x] **Unit Tests**
   - [x] Utility functions
-  - [ ] State management
-  - [ ] API route handlers
+  - [x] State management (usePresence, useInputInjection hooks)
+  - [x] API route handlers
 
 - [ ] **Integration Tests**
   - [ ] Auth flows

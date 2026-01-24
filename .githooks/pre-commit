@@ -1,7 +1,8 @@
 #!/bin/sh
 #
 # PairUX Pre-commit Hook
-# Runs lint, test, and build before allowing commits
+# Runs lint, typecheck, format, test, and build before allowing commits
+# Matches CI/CD checks in .github/workflows/pr-checks.yml
 #
 # To install: git config core.hooksPath .githooks
 # Or run: pnpm setup:hooks
@@ -87,10 +88,16 @@ echo ""
 # 1. Linting (verify all issues are fixed)
 run_check "ESLint" "pnpm lint"
 
-# 2. Run tests
+# 2. Type check (same as CI)
+run_check "TypeCheck" "pnpm typecheck"
+
+# 3. Format check (same as CI)
+run_check "Format" "pnpm format:check"
+
+# 4. Run tests
 run_check "Tests" "pnpm test"
 
-# 3. Build check
+# 5. Build check
 run_check "Build" "pnpm build"
 
 # Final result

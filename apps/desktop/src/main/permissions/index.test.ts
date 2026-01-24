@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock electron before imports
 vi.mock('electron', () => ({

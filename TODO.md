@@ -181,12 +181,12 @@
   - [ ] Auto-reconnect on disconnect (3 attempts)
   - [ ] Error handling (auth failed, bandwidth, disconnected)
 
-- [ ] **WebRTC Streaming**
-  - [ ] Peer connection management
-  - [ ] ICE candidate handling
-  - [ ] STUN/TURN configuration
-  - [ ] Adaptive bitrate encoding
-  - [ ] Connection quality monitoring
+- [x] **WebRTC Streaming**
+  - [x] Peer connection management
+  - [x] ICE candidate handling
+  - [x] STUN/TURN configuration
+  - [x] Adaptive bitrate encoding
+  - [x] Connection quality monitoring
 
 - [x] **Input Injection (nut.js)**
   - [x] Mouse movement injection

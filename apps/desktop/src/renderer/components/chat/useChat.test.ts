@@ -370,9 +370,8 @@ describe('useChat', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBeNull();
+        expect(result.current.isConnected).toBe(true);
       });
-
-      expect(result.current.isConnected).toBe(true);
     });
   });
 });

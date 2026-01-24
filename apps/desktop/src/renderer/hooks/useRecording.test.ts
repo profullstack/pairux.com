@@ -51,11 +51,8 @@ beforeEach(() => {
     }
   ).electronAPI = mockElectronAPI;
 
-  (
-    global as unknown as {
-      MediaRecorder: typeof MockMediaRecorder;
-    }
-  ).MediaRecorder = MockMediaRecorder as unknown as typeof MediaRecorder;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (global as any).MediaRecorder = MockMediaRecorder;
 
   Object.defineProperty(navigator, 'mediaDevices', {
     value: { getUserMedia: mockGetUserMedia },
@@ -365,8 +362,8 @@ describe('useRecording', () => {
         override stop = stopSpy;
       }
 
-      (global as unknown as { MediaRecorder: typeof TestMediaRecorder }).MediaRecorder =
-        TestMediaRecorder as unknown as typeof MediaRecorder;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).MediaRecorder = TestMediaRecorder;
 
       const { result, unmount } = renderHook(() => useRecording());
 

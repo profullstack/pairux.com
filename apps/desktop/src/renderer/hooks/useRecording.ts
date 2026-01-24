@@ -311,14 +311,13 @@ export function useRecording(options: UseRecordingOptions = {}) {
       }
 
       // Stop recording on main process
-      let result = { success: true, path: state.path ?? undefined, duration: state.duration };
+      let result: { success: boolean; path?: string; duration?: number; error?: string } = {
+        success: true,
+        path: state.path ?? undefined,
+        duration: state.duration,
+      };
       if (electronAPI) {
-        result = (await electronAPI.invoke('recording:stop')) as {
-          success: boolean;
-          path?: string;
-          duration?: number;
-          error?: string;
-        };
+        result = (await electronAPI.invoke('recording:stop')) as typeof result;
       }
 
       const finalDuration = state.duration;

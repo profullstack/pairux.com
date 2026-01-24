@@ -7,6 +7,9 @@
 // Database types
 export type {
   SessionStatus,
+  SessionMode,
+  MediaSessionStatus,
+  ConnectionStatus,
   ParticipantRole,
   ControlState,
   SessionSettings,
@@ -24,6 +27,11 @@ export type {
   ChatMessage,
   ChatMessageInsert,
   SessionWithMessages,
+  MediaSession,
+  MediaSessionInsert,
+  MediaSessionUpdate,
+  CaptureSourceInfo,
+  SessionStatusResult,
   Database,
 } from './database.js';
 

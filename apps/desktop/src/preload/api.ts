@@ -4,6 +4,7 @@ import type {
   Session,
   SessionParticipant,
   ChatMessage,
+  InputEvent,
 } from '@pairux/shared-types';
 
 /**
@@ -133,12 +134,75 @@ export interface IPCChannels {
         }
       | { success: false; error: string };
   };
+
+  // Input injection channels
+  'input:init': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  'input:enable': {
+    args: undefined;
+    return: { success: boolean; enabled: boolean };
+  };
+
+  'input:disable': {
+    args: undefined;
+    return: { success: boolean; enabled: boolean };
+  };
+
+  'input:status': {
+    args: undefined;
+    return: { enabled: boolean };
+  };
+
+  'input:updateScreenSize': {
+    args: { width: number; height: number };
+    return: { success: boolean };
+  };
+
+  'input:inject': {
+    args: { event: InputEvent };
+    return: { success: boolean };
+  };
+
+  'input:injectBatch': {
+    args: { events: InputEvent[] };
+    return: { success: boolean; count: number };
+  };
+
+  'input:emergencyStop': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  // Permission channels
+  'permissions:status': {
+    args: undefined;
+    return: { accessibility: boolean; screenCapture: boolean };
+  };
+
+  'permissions:requestAccessibility': {
+    args: undefined;
+    return: { granted: boolean };
+  };
+
+  'permissions:requestScreenCapture': {
+    args: undefined;
+    return: { granted: boolean };
+  };
+
+  'permissions:requestAll': {
+    args: undefined;
+    return: { accessibility: boolean; screenCapture: boolean };
+  };
 }
 
 // Event channels (main -> renderer)
 export interface IPCEvents {
   'capture:sourceChanged': CaptureSource;
   'app:error': { message: string; code?: string };
+  'input:emergency-stop': undefined;
 }
 
 // Type helpers for the API

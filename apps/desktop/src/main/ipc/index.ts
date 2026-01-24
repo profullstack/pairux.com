@@ -3,6 +3,8 @@ import { getCaptureSources } from '../capture/sources';
 import { registerAuthHandlers } from './auth';
 import { registerSessionHandlers } from './session';
 import { registerChatHandlers } from './chat';
+import { registerInputHandlers } from './input';
+import { registerPermissionHandlers } from './permissions';
 import type { CaptureSource } from '@pairux/shared-types';
 
 // Detect display server
@@ -21,6 +23,12 @@ export function registerIpcHandlers(): void {
 
   // Register chat handlers
   registerChatHandlers();
+
+  // Register input injection handlers
+  registerInputHandlers();
+
+  // Register permission handlers
+  registerPermissionHandlers();
 
   // Capture handlers
   ipcMain.handle(

@@ -161,7 +161,11 @@
       "Bash(pnpm --filter web test)",
       "Bash(pnpm --filter web lint:*)",
       "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && wc -l {}')",
-      "Bash(node scripts/generate-pwa-icons.mjs:*)"
+      "Bash(node scripts/generate-pwa-icons.mjs:*)",
+      "Bash(npm search:*)",
+      "Bash(npm view:*)",
+      "Bash(pnpm --filter @pairux/desktop test -- --run)",
+      "Bash(pnpm --filter @pairux/web test -- --run)"
     ],
     "deny": ["Bash(npm *)", "Bash(npx *)"],
     "additionalDirectories": [

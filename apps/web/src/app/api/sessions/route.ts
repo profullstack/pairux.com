@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         allowControl: settings.allowGuestControl,
         maxParticipants: settings.maxParticipants,
       },
+      p_mode: settings.mode,
     });
 
     if (error) {

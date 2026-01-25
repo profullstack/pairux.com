@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { CaptureSource, Session } from '@pairux/shared-types';
 import { ChatPanel } from '@/components/chat';
+import { ParticipantList } from '@/components/ParticipantList';
 import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 
@@ -38,6 +39,7 @@ export function CapturePreview({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [showParticipants, setShowParticipants] = useState(false);
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
 
@@ -173,6 +175,21 @@ export function CapturePreview({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Participants toggle */}
+            <button
+              onClick={() => {
+                setShowParticipants(!showParticipants);
+              }}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                showParticipants
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              Participants
+            </button>
+
             {/* Chat toggle */}
             <button
               onClick={() => {
@@ -352,6 +369,13 @@ export function CapturePreview({
           )}
         </div>
       </div>
+
+      {/* Participants panel */}
+      {session && showParticipants && (
+        <div className="w-72 shrink-0 border-l border-border bg-background p-4">
+          <ParticipantList participants={participants} currentUserId={currentUserId} />
+        </div>
+      )}
 
       {/* Chat panel */}
       {session && showChat && (

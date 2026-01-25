@@ -5,6 +5,7 @@ import type {
   SessionParticipant,
   ChatMessage,
   InputEvent,
+  SessionMode,
 } from '@pairux/shared-types';
 
 /**
@@ -23,6 +24,7 @@ export interface AuthUser {
 export interface CreateSessionSettings {
   allowGuestControl?: boolean;
   maxParticipants?: number;
+  mode?: SessionMode;
 }
 
 // Request/response channels (invoke pattern)

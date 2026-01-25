@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Session, SessionParticipant } from '@pairux/shared-types';
+import type { Session, SessionParticipant, SessionMode } from '@pairux/shared-types';
 import { getElectronAPI } from '@/lib/ipc';
 
 interface SessionState {
@@ -14,6 +14,7 @@ interface UseSessionReturn extends SessionState {
   createSession: (settings?: {
     allowGuestControl?: boolean;
     maxParticipants?: number;
+    mode?: SessionMode;
   }) => Promise<Session | null>;
   endSession: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -29,7 +30,11 @@ export function useSession(): UseSessionReturn {
   const [error, setError] = useState<string | null>(null);
 
   const createSession = useCallback(
-    async (settings?: { allowGuestControl?: boolean; maxParticipants?: number }) => {
+    async (settings?: {
+      allowGuestControl?: boolean;
+      maxParticipants?: number;
+      mode?: SessionMode;
+    }) => {
       setIsCreating(true);
       setError(null);
 

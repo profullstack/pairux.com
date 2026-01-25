@@ -234,6 +234,7 @@ describe('createSessionSchema', () => {
     if (result.success) {
       expect(result.data.allowGuestControl).toBe(false);
       expect(result.data.maxParticipants).toBe(5);
+      expect(result.data.mode).toBe('p2p');
     }
   });
 
@@ -254,6 +255,33 @@ describe('createSessionSchema', () => {
   it('rejects maxParticipants outside range', () => {
     const result = createSessionSchema.safeParse({
       maxParticipants: 20,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('validates p2p mode', () => {
+    const result = createSessionSchema.safeParse({
+      mode: 'p2p',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.mode).toBe('p2p');
+    }
+  });
+
+  it('validates sfu mode', () => {
+    const result = createSessionSchema.safeParse({
+      mode: 'sfu',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.mode).toBe('sfu');
+    }
+  });
+
+  it('rejects invalid mode', () => {
+    const result = createSessionSchema.safeParse({
+      mode: 'invalid',
     });
     expect(result.success).toBe(false);
   });

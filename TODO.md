@@ -212,11 +212,11 @@
   - [x] Control revoked
   - [x] Emergency revoke hotkey (Ctrl+Shift+Escape)
 
-- [ ] **Participant Management**
-  - [ ] See who's connected
-  - [ ] Grant/revoke control per participant
-  - [ ] Kick participant
-  - [ ] Control request notifications
+- [x] **Participant Management**
+  - [x] See who's connected
+  - [x] Grant/revoke control per participant
+  - [x] Kick participant
+  - [x] Control request notifications
 
 ### UI/UX
 

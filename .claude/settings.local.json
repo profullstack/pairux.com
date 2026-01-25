@@ -172,9 +172,14 @@
       "Bash(pnpm --filter @pairux/web test -- --run src/lib/validations.test.ts)",
       "Bash(pnpm --filter @pairux/web test:*)",
       "Bash(pnpm --filter @pairux/desktop test -- --run src/renderer/components/ParticipantList.test.tsx)",
-      "Bash(pnpm --filter @pairux/desktop test:*)"
+      "Bash(pnpm --filter @pairux/desktop test:*)",
+      "Bash(pnpm run format:check:*)",
+      "Bash(xargs:*)"
     ],
-    "deny": ["Bash(npm *)", "Bash(npx *)"],
+    "deny": [
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
     "additionalDirectories": [
       "/home/ettinger/src/profullstack.com/music-torrent/services/dht-search-api/src"
     ]

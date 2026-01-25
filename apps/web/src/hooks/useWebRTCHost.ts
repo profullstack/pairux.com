@@ -9,6 +9,7 @@ import type {
   CursorPositionMessage,
   ControlStateUI,
   NetworkQuality,
+  KickMessage,
 } from '@pairux/shared-types';
 
 // Adaptive bitrate encoding presets
@@ -63,7 +64,7 @@ if (
   });
 }
 
-interface ViewerConnection {
+export interface ViewerConnection {
   id: string;
   peerConnection: RTCPeerConnection;
   dataChannel: RTCDataChannel | null;
@@ -95,6 +96,7 @@ interface UseWebRTCHostReturn {
   stopHosting: () => void;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
+  kickViewer: (viewerId: string) => void;
 }
 
 export function useWebRTCHost({
@@ -610,6 +612,35 @@ export function useWebRTCHost({
     setViewers(new Map(viewersRef.current));
   }, []);
 
+  // Kick a viewer from the session
+  const kickViewer = useCallback(
+    (viewerId: string) => {
+      const viewer = viewersRef.current.get(viewerId);
+      if (!viewer) return;
+
+      // Send kick notification before closing (if data channel is open)
+      if (viewer.dataChannel?.readyState === 'open') {
+        const message: KickMessage = {
+          type: 'kick',
+          timestamp: Date.now(),
+        };
+        viewer.dataChannel.send(JSON.stringify(message));
+      }
+
+      // Clear controlling viewer if this viewer had control
+      if (controllingViewer === viewerId) {
+        setControllingViewer(null);
+      }
+
+      // Close the peer connection
+      viewer.peerConnection.close();
+      viewersRef.current.delete(viewerId);
+      setViewers(new Map(viewersRef.current));
+      onViewerLeft?.(viewerId);
+    },
+    [controllingViewer, onViewerLeft]
+  );
+
   return {
     isHosting,
     viewerCount: viewers.size,
@@ -620,5 +651,6 @@ export function useWebRTCHost({
     stopHosting,
     grantControl,
     revokeControl,
+    kickViewer,
   };
 }

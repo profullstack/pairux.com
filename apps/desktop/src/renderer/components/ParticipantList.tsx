@@ -1,9 +1,15 @@
-import { Users, Crown, Eye, Monitor, Circle } from 'lucide-react';
+import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import type { SessionParticipant } from '@pairux/shared-types';
 
 interface ParticipantListProps {
   participants: SessionParticipant[];
   currentUserId?: string;
+  sessionId?: string;
+  isHost?: boolean;
+  onGrantControl?: (participantId: string) => Promise<void>;
+  onRevokeControl?: (participantId: string) => Promise<void>;
+  onKickParticipant?: (participantId: string) => Promise<void>;
 }
 
 function getConnectionColor(status: SessionParticipant['connection_status']): string {
@@ -55,8 +61,55 @@ function getRoleBadge(participant: SessionParticipant) {
   );
 }
 
-export function ParticipantList({ participants, currentUserId }: ParticipantListProps) {
+export function ParticipantList({
+  participants,
+  currentUserId,
+  isHost = false,
+  onGrantControl,
+  onRevokeControl,
+  onKickParticipant,
+}: ParticipantListProps) {
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const activeParticipants = participants.filter((p) => !p.left_at);
+
+  const handleGrantControl = useCallback(
+    async (participantId: string) => {
+      if (!onGrantControl) return;
+      setLoadingAction(`grant-${participantId}`);
+      try {
+        await onGrantControl(participantId);
+      } finally {
+        setLoadingAction(null);
+      }
+    },
+    [onGrantControl]
+  );
+
+  const handleRevokeControl = useCallback(
+    async (participantId: string) => {
+      if (!onRevokeControl) return;
+      setLoadingAction(`revoke-${participantId}`);
+      try {
+        await onRevokeControl(participantId);
+      } finally {
+        setLoadingAction(null);
+      }
+    },
+    [onRevokeControl]
+  );
+
+  const handleKick = useCallback(
+    async (participantId: string) => {
+      if (!onKickParticipant) return;
+      setLoadingAction(`kick-${participantId}`);
+      try {
+        await onKickParticipant(participantId);
+      } finally {
+        setLoadingAction(null);
+      }
+    },
+    [onKickParticipant]
+  );
 
   if (activeParticipants.length === 0) {
     return (
@@ -81,6 +134,8 @@ export function ParticipantList({ participants, currentUserId }: ParticipantList
       <div className="space-y-1">
         {activeParticipants.map((participant) => {
           const isCurrentUser = participant.user_id === currentUserId;
+          const isParticipantHost = participant.role === 'host';
+          const showActions = isHost && !isParticipantHost && !isCurrentUser;
 
           return (
             <div
@@ -109,7 +164,61 @@ export function ParticipantList({ participants, currentUserId }: ParticipantList
                   </span>
                 </div>
               </div>
-              {getRoleBadge(participant)}
+
+              <div className="flex items-center gap-2">
+                {getRoleBadge(participant)}
+
+                {/* Host actions */}
+                {showActions && (
+                  <div className="flex gap-1">
+                    {/* Grant/Revoke control button */}
+                    {participant.control_state === 'granted' ? (
+                      <button
+                        onClick={() => void handleRevokeControl(participant.id)}
+                        disabled={loadingAction !== null}
+                        className="rounded p-1.5 text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"
+                        title="Revoke control"
+                        aria-label="Revoke control"
+                      >
+                        {loadingAction === `revoke-${participant.id}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Shield className="h-4 w-4" />
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => void handleGrantControl(participant.id)}
+                        disabled={loadingAction !== null}
+                        className="rounded p-1.5 text-green-500 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                        title="Grant control"
+                        aria-label="Grant control"
+                      >
+                        {loadingAction === `grant-${participant.id}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Shield className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+
+                    {/* Kick button */}
+                    <button
+                      onClick={() => void handleKick(participant.id)}
+                      disabled={loadingAction !== null}
+                      className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive disabled:opacity-50"
+                      title="Remove participant"
+                      aria-label="Remove participant"
+                    >
+                      {loadingAction === `kick-${participant.id}` ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserX className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

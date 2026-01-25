@@ -93,6 +93,63 @@ describe('useSession', () => {
 
       expect(result.current.isCreating).toBe(false);
     });
+
+    it('should pass mode parameter when creating session with p2p', async () => {
+      const mockSession = {
+        id: 'session-123',
+        join_code: 'ABC123',
+        host_user_id: 'user-1',
+        status: 'active',
+        mode: 'p2p',
+        settings: {},
+        created_at: new Date().toISOString(),
+        ended_at: null,
+      };
+
+      mockElectronAPI.invoke.mockResolvedValueOnce({
+        success: true,
+        session: mockSession,
+      });
+
+      const { result } = renderHook(() => useSession());
+
+      await act(async () => {
+        await result.current.createSession({ mode: 'p2p' });
+      });
+
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('session:create', {
+        mode: 'p2p',
+      });
+    });
+
+    it('should pass mode parameter when creating session with sfu', async () => {
+      const mockSession = {
+        id: 'session-123',
+        join_code: 'ABC123',
+        host_user_id: 'user-1',
+        status: 'active',
+        mode: 'sfu',
+        settings: {},
+        created_at: new Date().toISOString(),
+        ended_at: null,
+      };
+
+      mockElectronAPI.invoke.mockResolvedValueOnce({
+        success: true,
+        session: mockSession,
+      });
+
+      const { result } = renderHook(() => useSession());
+
+      await act(async () => {
+        await result.current.createSession({ mode: 'sfu', maxParticipants: 10 });
+      });
+
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('session:create', {
+        mode: 'sfu',
+        maxParticipants: 10,
+      });
+    });
   });
 
   describe('endSession', () => {

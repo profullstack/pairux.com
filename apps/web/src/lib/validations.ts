@@ -75,6 +75,7 @@ export const createSessionSchema = z.object({
     .optional(),
   allowGuestControl: z.boolean().default(false),
   maxParticipants: z.number().min(1).max(10).default(5),
+  mode: z.enum(['p2p', 'sfu']).default('p2p'),
 });
 
 // Chat message schema

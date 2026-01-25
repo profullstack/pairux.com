@@ -197,13 +197,13 @@
 
 ### Session Management
 
-- [ ] **Host Controls**
-  - [ ] Start new session
-  - [ ] P2P vs SFU mode selection at session start
-  - [ ] Generate shareable link
-  - [ ] Copy link to clipboard
-  - [ ] View participant list
-  - [ ] End session
+- [x] **Host Controls**
+  - [x] Start new session
+  - [x] P2P vs SFU mode selection at session start
+  - [x] Generate shareable link
+  - [x] Copy link to clipboard
+  - [x] View participant list
+  - [x] End session
 
 - [x] **Control State Machine**
   - [x] View-only (default)

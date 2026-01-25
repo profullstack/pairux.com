@@ -2,10 +2,13 @@
 
 import { useState, useEffect, use, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Users, Copy, Check, LogOut, Loader2, AlertCircle, Share2, Eye } from 'lucide-react';
 import { VideoPreview } from '@/components/video';
+import { ParticipantList } from '@/components/chat/ParticipantList';
 import { useScreenCapture } from '@/hooks/useScreenCapture';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
+import type { SessionParticipant } from '@pairux/shared-types';
 
 interface SessionData {
   id: string;
@@ -18,6 +21,7 @@ interface SessionData {
     maxParticipants?: number;
   };
   created_at: string;
+  session_participants?: SessionParticipant[];
 }
 
 interface ApiResponse<T> {
@@ -27,10 +31,12 @@ interface ApiResponse<T> {
 
 export default function HostSessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
+  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
 
   // Screen capture hook
   const {
@@ -121,6 +127,30 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     stopHosting();
   }, [stopCapture, stopHosting]);
 
+  // Handle end session
+  const handleEndSession = useCallback(async () => {
+    if (!session || isEnding) return;
+
+    setIsEnding(true);
+    try {
+      stopCapture();
+      stopHosting();
+
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        console.error('Failed to end session');
+      }
+
+      router.push('/');
+    } catch (err) {
+      console.error('Error ending session:', err);
+      router.push('/');
+    }
+  }, [session, sessionId, isEnding, stopCapture, stopHosting, router]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900">
@@ -200,13 +230,19 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
               </div>
 
               {/* End session button */}
-              <Link
-                href="/"
-                className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              <button
+                type="button"
+                onClick={() => void handleEndSession()}
+                disabled={isEnding}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
               >
-                <LogOut className="h-4 w-4" />
+                {isEnding ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
                 <span className="hidden sm:inline">End</span>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -270,66 +306,79 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 
         {/* Info sidebar */}
         <aside className="hidden w-72 flex-shrink-0 border-l border-gray-800 bg-gray-900 lg:block">
-          <div className="p-4">
-            {/* Session info */}
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-white">Session Info</h3>
-              <div className="mt-3 space-y-3">
-                <div>
-                  <p className="text-xs text-gray-500">Status</p>
-                  <p className="text-sm text-white">
-                    {captureState === 'active' ? 'Sharing Screen' : 'Ready to Share'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Mode</p>
-                  <p className="text-sm text-white">View Only (Web)</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Viewers</p>
-                  <p className="text-sm text-white">{viewerCount} connected</p>
+          <div className="flex h-full flex-col">
+            {/* Participants section */}
+            {session.session_participants && session.session_participants.length > 0 && (
+              <div className="border-b border-gray-800">
+                <ParticipantList
+                  participants={session.session_participants.filter((p) => !p.left_at)}
+                  currentUserId={session.host_user_id}
+                  defaultExpanded={true}
+                />
+              </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Session info */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-white">Session Info</h3>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Status</p>
+                    <p className="text-sm text-white">
+                      {captureState === 'active' ? 'Sharing Screen' : 'Ready to Share'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Mode</p>
+                    <p className="text-sm text-white">View Only (Web)</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Viewers</p>
+                    <p className="text-sm text-white">{viewerCount} connected</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* How to join */}
-            <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Users className="h-4 w-4" />
-                Invite Viewers
-              </h4>
-              <ol className="mt-3 space-y-2 text-sm text-gray-400">
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
-                    1
-                  </span>
-                  Share the join link or code
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
-                    2
-                  </span>
-                  Viewers open the link in their browser
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
-                    3
-                  </span>
-                  They&apos;ll see your screen instantly
-                </li>
-              </ol>
-            </div>
+              {/* How to join */}
+              <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+                <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <Users className="h-4 w-4" />
+                  Invite Viewers
+                </h4>
+                <ol className="mt-3 space-y-2 text-sm text-gray-400">
+                  <li className="flex items-start gap-2">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
+                      1
+                    </span>
+                    Share the join link or code
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
+                      2
+                    </span>
+                    Viewers open the link in their browser
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-white">
+                      3
+                    </span>
+                    They&apos;ll see your screen instantly
+                  </li>
+                </ol>
+              </div>
 
-            {/* Limitations note */}
-            <div className="mt-4 rounded-lg border border-yellow-900/50 bg-yellow-900/20 p-3">
-              <p className="text-xs text-yellow-400">
-                <strong>Note:</strong> Web hosting is view-only. For remote control features, use
-                the{' '}
-                <Link href="/download" className="underline hover:text-yellow-300">
-                  desktop app
-                </Link>
-                .
-              </p>
+              {/* Limitations note */}
+              <div className="mt-4 rounded-lg border border-yellow-900/50 bg-yellow-900/20 p-3">
+                <p className="text-xs text-yellow-400">
+                  <strong>Note:</strong> Web hosting is view-only. For remote control features, use
+                  the{' '}
+                  <Link href="/download" className="underline hover:text-yellow-300">
+                    desktop app
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           </div>
         </aside>

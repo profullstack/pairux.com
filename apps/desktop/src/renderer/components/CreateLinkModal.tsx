@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { X, Copy, Check, Loader2, Link2, Monitor } from 'lucide-react';
+import { X, Copy, Check, Loader2, Link2, Monitor, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getElectronAPI } from '@/lib/ipc';
-import type { Session } from '@pairux/shared-types';
+import type { Session, SessionMode } from '@pairux/shared-types';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [mode, setMode] = useState<SessionMode>('p2p');
 
   const createSession = useCallback(async () => {
     setIsCreating(true);
@@ -25,7 +26,8 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
       const api = getElectronAPI();
       const result = await api.invoke('session:create', {
         allowGuestControl: false,
-        maxParticipants: 5,
+        maxParticipants: mode === 'sfu' ? 10 : 5,
+        mode,
       });
 
       if (!result.success) {
@@ -39,19 +41,21 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
     } finally {
       setIsCreating(false);
     }
-  }, []);
+  }, [mode]);
 
-  useEffect(() => {
-    if (isOpen && !session && !isCreating) {
-      void createSession();
-    }
-  }, [isOpen, session, isCreating, createSession]);
+  // Don't auto-create session - let user select mode first
+  // useEffect(() => {
+  //   if (isOpen && !session && !isCreating) {
+  //     void createSession();
+  //   }
+  // }, [isOpen, session, isCreating, createSession]);
 
   useEffect(() => {
     if (!isOpen) {
       setSession(null);
       setError(null);
       setCopied(false);
+      setMode('p2p');
     }
   }, [isOpen]);
 
@@ -116,6 +120,75 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="mt-4 text-sm text-muted-foreground">Creating session...</p>
             </div>
+          )}
+
+          {!session && !isCreating && (
+            <>
+              {/* Mode Selection */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Connection Mode</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('p2p');
+                    }}
+                    className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                      mode === 'p2p'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-muted-foreground/50'
+                    }`}
+                  >
+                    <Zap
+                      className={`h-6 w-6 ${mode === 'p2p' ? 'text-primary' : 'text-muted-foreground'}`}
+                    />
+                    <div className="text-center">
+                      <p
+                        className={`font-medium ${mode === 'p2p' ? 'text-foreground' : 'text-muted-foreground'}`}
+                      >
+                        Direct (P2P)
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Best for 1-on-1, lower latency
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('sfu');
+                    }}
+                    className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                      mode === 'sfu'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-muted-foreground/50'
+                    }`}
+                  >
+                    <Users
+                      className={`h-6 w-6 ${mode === 'sfu' ? 'text-primary' : 'text-muted-foreground'}`}
+                    />
+                    <div className="text-center">
+                      <p
+                        className={`font-medium ${mode === 'sfu' ? 'text-foreground' : 'text-muted-foreground'}`}
+                      >
+                        Relay (SFU)
+                      </p>
+                      <p className="text-xs text-muted-foreground">Best for multiple viewers</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={onClose} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={() => void createSession()} className="flex-1">
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Create Link
+                </Button>
+              </div>
+            </>
           )}
 
           {session && !isCreating && (

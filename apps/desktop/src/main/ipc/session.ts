@@ -48,6 +48,7 @@ export function registerSessionHandlers(): void {
           body: JSON.stringify({
             allowGuestControl: settings?.allowGuestControl ?? false,
             maxParticipants: settings?.maxParticipants ?? 5,
+            mode: settings?.mode ?? 'p2p',
           }),
         });
 

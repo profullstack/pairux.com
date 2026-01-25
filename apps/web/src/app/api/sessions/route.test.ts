@@ -14,7 +14,7 @@ describe('POST /api/sessions', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  it('creates session for authenticated user', async () => {
+  it('creates session for authenticated user with default mode', async () => {
     const mockSupabase = createMockSupabaseClient({
       auth: {
         getUser: vi.fn().mockResolvedValue({
@@ -43,6 +43,7 @@ describe('POST /api/sessions', () => {
         allowControl: false,
         maxParticipants: 5,
       },
+      p_mode: 'p2p',
     });
   });
 
@@ -76,6 +77,40 @@ describe('POST /api/sessions', () => {
         allowControl: true,
         maxParticipants: 3,
       },
+      p_mode: 'p2p',
+    });
+  });
+
+  it('creates session with SFU mode', async () => {
+    const mockSupabase = createMockSupabaseClient({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        }),
+      },
+      rpc: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+    });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+
+    const request = new Request('http://localhost/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'sfu',
+      }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(201);
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('create_session', {
+      p_settings: {
+        quality: 'medium',
+        allowControl: false,
+        maxParticipants: 5,
+      },
+      p_mode: 'sfu',
     });
   });
 

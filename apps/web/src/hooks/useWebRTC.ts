@@ -11,6 +11,7 @@ import type {
   ControlMessage,
   ControlStateUI,
   CursorPositionMessage,
+  KickMessage,
 } from '@pairux/shared-types';
 
 // ICE server configuration
@@ -39,6 +40,7 @@ interface UseWebRTCOptions {
   onStreamEnded?: () => void;
   onControlStateChange?: (state: ControlStateUI) => void;
   onCursorUpdate?: (cursor: CursorPositionMessage) => void;
+  onKicked?: (reason?: string) => void;
 }
 
 interface UseWebRTCReturn {
@@ -65,6 +67,7 @@ export function useWebRTC({
   onStreamEnded,
   onControlStateChange,
   onCursorUpdate,
+  onKicked,
 }: UseWebRTCOptions): UseWebRTCReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -86,10 +89,13 @@ export function useWebRTC({
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const onControlStateChangeRef = useRef(onControlStateChange);
   const onCursorUpdateRef = useRef(onCursorUpdate);
+  const onKickedRef = useRef(onKicked);
+  const disconnectRef = useRef<(() => void) | undefined>(undefined);
 
   // Keep refs updated
   onControlStateChangeRef.current = onControlStateChange;
   onCursorUpdateRef.current = onCursorUpdate;
+  onKickedRef.current = onKicked;
 
   // Calculate network quality from metrics
   const calculateNetworkQuality = useCallback((metrics: QualityMetrics): NetworkQuality => {
@@ -108,7 +114,10 @@ export function useWebRTC({
   // Handle incoming data channel messages
   const handleDataChannelMessage = useCallback((event: MessageEvent<string>) => {
     try {
-      const message = JSON.parse(event.data) as ControlMessage | CursorPositionMessage;
+      const message = JSON.parse(event.data) as
+        | ControlMessage
+        | CursorPositionMessage
+        | KickMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -122,6 +131,12 @@ export function useWebRTC({
             break;
           case 'cursor':
             onCursorUpdateRef.current?.(message);
+            break;
+          case 'kick':
+            // Host kicked this viewer
+            setError('You were removed from the session');
+            disconnectRef.current?.();
+            onKickedRef.current?.(message.reason);
             break;
         }
       }
@@ -476,6 +491,9 @@ export function useWebRTC({
     setDataChannelReady(false);
     setControlState('view-only');
   }, []);
+
+  // Keep disconnect ref updated for use in data channel handler
+  disconnectRef.current = disconnect;
 
   // Initialize connection
   const initialize = useCallback(() => {

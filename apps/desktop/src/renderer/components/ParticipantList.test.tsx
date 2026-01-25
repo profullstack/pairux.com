@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ParticipantList } from './ParticipantList';
 import type { SessionParticipant } from '@pairux/shared-types';
 
@@ -154,5 +154,204 @@ describe('ParticipantList', () => {
     render(<ParticipantList participants={participants} />);
 
     expect(screen.getByText('reconnecting')).toBeInTheDocument();
+  });
+
+  describe('Host Actions', () => {
+    it('shows grant control button for viewers when isHost is true', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+          control_state: 'view-only',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.getByTitle('Grant control')).toBeInTheDocument();
+    });
+
+    it('shows revoke control button when viewer has control', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Controller',
+          role: 'viewer',
+          control_state: 'granted',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.getByTitle('Revoke control')).toBeInTheDocument();
+    });
+
+    it('shows kick button for viewers when isHost is true', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.getByTitle('Remove participant')).toBeInTheDocument();
+    });
+
+    it('does not show actions for host participant', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Host',
+          role: 'host',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByTitle('Grant control')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Remove participant')).not.toBeInTheDocument();
+    });
+
+    it('does not show actions when isHost is false', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={false}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByTitle('Grant control')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Remove participant')).not.toBeInTheDocument();
+    });
+
+    it('calls onGrantControl when grant button is clicked', async () => {
+      const onGrantControl = vi.fn().mockResolvedValue(undefined);
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+          control_state: 'view-only',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={onGrantControl}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTitle('Grant control'));
+
+      await waitFor(() => {
+        expect(onGrantControl).toHaveBeenCalledWith('p-1');
+      });
+    });
+
+    it('calls onRevokeControl when revoke button is clicked', async () => {
+      const onRevokeControl = vi.fn().mockResolvedValue(undefined);
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Controller',
+          role: 'viewer',
+          control_state: 'granted',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={onRevokeControl}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTitle('Revoke control'));
+
+      await waitFor(() => {
+        expect(onRevokeControl).toHaveBeenCalledWith('p-1');
+      });
+    });
+
+    it('calls onKickParticipant when kick button is clicked', async () => {
+      const onKickParticipant = vi.fn().mockResolvedValue(undefined);
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={onKickParticipant}
+        />
+      );
+
+      fireEvent.click(screen.getByTitle('Remove participant'));
+
+      await waitFor(() => {
+        expect(onKickParticipant).toHaveBeenCalledWith('p-1');
+      });
+    });
   });
 });

@@ -58,8 +58,19 @@ export interface ControlRevokeMessage {
   timestamp: number;
 }
 
+// Kick message (host kicks a participant)
+export interface KickMessage {
+  type: 'kick';
+  reason?: string;
+  timestamp: number;
+}
+
 // Union type for control messages
-export type ControlMessage = ControlRequestMessage | ControlGrantMessage | ControlRevokeMessage;
+export type ControlMessage =
+  | ControlRequestMessage
+  | ControlGrantMessage
+  | ControlRevokeMessage
+  | KickMessage;
 
 // Cursor position message (for multi-cursor overlay)
 export interface CursorPositionMessage {

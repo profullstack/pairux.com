@@ -255,6 +255,10 @@ export interface Database {
         Args: { p_session_id: string };
         Returns: SessionParticipant;
       };
+      kick_participant: {
+        Args: { p_session_id: string; p_participant_id: string };
+        Returns: SessionParticipant;
+      };
       send_chat_message: {
         Args: {
           p_session_id: string;

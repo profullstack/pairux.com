@@ -128,6 +128,71 @@ export function CapturePreview({
     }, 2000);
   }, [session]);
 
+  // Participant management actions
+  const handleGrantControl = useCallback(
+    async (participantId: string) => {
+      if (!session) return;
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}/control`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ control_state: 'granted' }),
+          }
+        );
+        if (!response.ok) {
+          console.error('Failed to grant control');
+        }
+      } catch (err) {
+        console.error('Error granting control:', err);
+      }
+    },
+    [session]
+  );
+
+  const handleRevokeControl = useCallback(
+    async (participantId: string) => {
+      if (!session) return;
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}/control`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ control_state: 'view-only' }),
+          }
+        );
+        if (!response.ok) {
+          console.error('Failed to revoke control');
+        }
+      } catch (err) {
+        console.error('Error revoking control:', err);
+      }
+    },
+    [session]
+  );
+
+  const handleKickParticipant = useCallback(
+    async (participantId: string) => {
+      if (!session) return;
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}`,
+          {
+            method: 'DELETE',
+          }
+        );
+        if (!response.ok) {
+          console.error('Failed to kick participant');
+        }
+      } catch (err) {
+        console.error('Error kicking participant:', err);
+      }
+    },
+    [session]
+  );
+
   const handleStartRecording = useCallback(async () => {
     if (!source) return;
     setSpaceWarning(null);
@@ -373,7 +438,15 @@ export function CapturePreview({
       {/* Participants panel */}
       {session && showParticipants && (
         <div className="w-72 shrink-0 border-l border-border bg-background p-4">
-          <ParticipantList participants={participants} currentUserId={currentUserId} />
+          <ParticipantList
+            participants={participants}
+            currentUserId={currentUserId}
+            sessionId={session.id}
+            isHost={true}
+            onGrantControl={handleGrantControl}
+            onRevokeControl={handleRevokeControl}
+            onKickParticipant={handleKickParticipant}
+          />
         </div>
       )}
 

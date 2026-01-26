@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# PairUX Post-Commit Hook
+# Notifies user if a release will be triggered on push.
+#
+
+# Colors for output
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Temp file from commit-msg hook
+RELEASE_TRIGGER_FILE="/tmp/.pairux-release-trigger"
+
+# Check if a release was triggered
+if [ -f "$RELEASE_TRIGGER_FILE" ]; then
+    RELEASE_TYPE=$(cat "$RELEASE_TRIGGER_FILE")
+    echo ""
+    echo "${YELLOW}📦 Release trigger detected: ${RELEASE_TYPE}${NC}"
+    echo "${YELLOW}   The release will run automatically after you push.${NC}"
+    echo ""
+fi

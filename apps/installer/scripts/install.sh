@@ -171,7 +171,9 @@ install_macos() {
     download "$download_url" "$archive_path" || error "Failed to download PairUX"
 
     info "Extracting..."
-    unzip -q "$archive_path" -d "$temp_dir"
+    # Use ditto to preserve macOS file attributes, permissions, and code signing
+    # (unzip strips executable bits from Electron helper apps, breaking the app)
+    ditto -xk "$archive_path" "$temp_dir"
 
     # Move to Applications
     if [ -d "${APPLICATIONS_DIR}/PairUX.app" ]; then

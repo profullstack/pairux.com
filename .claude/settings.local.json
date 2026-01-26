@@ -184,7 +184,9 @@
       "Bash(bash)",
       "Bash(timeout 5 pairux:*)",
       "Bash(gh run watch:*)",
-      "Bash(~/.local/bin/pairux:*)"
+      "Bash(~/.local/bin/pairux:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pnpm view:*)"
     ],
     "deny": [
       "Bash(npm *)",

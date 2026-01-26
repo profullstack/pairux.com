@@ -1,0 +1,135 @@
+name: Submit to Package Managers
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to submit (without v prefix)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (generate manifests without submitting)'
+        required: false
+        type: boolean
+        default: false
+      package_managers:
+        description: 'Package managers to submit to (comma-separated, or "all")'
+        required: false
+        type: string
+        default: 'all'
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    name: Submit to Package Managers
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup AUR SSH key
+        if: env.AUR_SSH_KEY != ''
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_KEY" | base64 -d > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
+          cat >> ~/.ssh/config << EOF
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
+        env:
+          AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
+
+      - name: Import GPG key
+        if: env.GPG_PRIVATE_KEY != ''
+        run: |
+          echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
+          # Trust the key
+          KEY_ID=$(gpg --list-keys --keyid-format LONG | grep -A1 "^pub" | tail -1 | awk '{print $1}')
+          echo "${KEY_ID}:6:" | gpg --import-ownertrust
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          fi
+          # Remove v prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Submitting version: $VERSION"
+
+      - name: Determine package managers
+        id: pms
+        run: |
+          if [ -n "${{ github.event.inputs.package_managers }}" ]; then
+            PMS="${{ github.event.inputs.package_managers }}"
+          else
+            PMS="all"
+          fi
+          echo "package_managers=$PMS" >> $GITHUB_OUTPUT
+
+      - name: Submit to package managers
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PMS="${{ steps.pms.outputs.package_managers }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+
+          ARGS="-v $VERSION"
+
+          # Parse package managers
+          if [ "$PMS" = "all" ]; then
+            ARGS="$ARGS -p all"
+          else
+            for PM in $(echo "$PMS" | tr ',' ' '); do
+              ARGS="$ARGS -p $PM"
+            done
+          fi
+
+          # Add dry run flag if enabled
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+
+          echo "Running: npx tsx scripts/submit-packages.ts $ARGS"
+          npx tsx scripts/submit-packages.ts $ARGS
+        env:
+          GITHUB_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Package Submission Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package Managers**: ${{ steps.pms.outputs.package_managers }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for detailed submission status." >> $GITHUB_STEP_SUMMARY

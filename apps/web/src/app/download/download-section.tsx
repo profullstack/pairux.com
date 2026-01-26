@@ -352,6 +352,14 @@ export function DownloadSection() {
                   <Download className="h-4 w-4 text-gray-500" />
                 </Link>
               </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">Shell Script</label>
+                <div className="mt-1 flex items-center gap-2 rounded bg-gray-100 p-2 font-mono text-xs">
+                  <code className="flex-1 truncate">{shellInstallCommand}</code>
+                  <CopyButton text={shellInstallCommand} />
+                </div>
+              </div>
             </div>
 
             {/* Windows */}

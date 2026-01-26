@@ -48,6 +48,14 @@ linux:
     - rpm
   category: Network
   maintainer: PairUX Team
+  artifactName: '${productName}-${version}-${arch}.${ext}'
+  executableName: pairux
+
+deb:
+  packageName: pairux
+
+rpm:
+  packageName: pairux
 
 nsis:
   oneClick: false

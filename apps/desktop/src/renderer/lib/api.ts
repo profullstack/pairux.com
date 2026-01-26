@@ -1,10 +1,10 @@
 import type { ChatMessage, Session, SessionParticipant } from '@pairux/shared-types';
+import { APP_URL } from '../../shared/config';
 
 // API base URL - use localhost for development, production URL for prod
-const meta = import.meta as unknown as { env?: { DEV?: boolean; VITE_API_URL?: string } };
+const meta = import.meta as unknown as { env?: { DEV?: boolean } };
 const isDev = meta.env?.DEV === true;
-const envApiUrl = meta.env?.VITE_API_URL;
-const API_BASE_URL = isDev ? 'http://localhost:3000' : (envApiUrl ?? 'https://pairux.com');
+const API_BASE_URL = isDev ? 'http://localhost:3000' : APP_URL;
 
 interface ApiResponse<T> {
   data?: T;

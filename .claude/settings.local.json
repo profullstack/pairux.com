@@ -190,7 +190,10 @@
       "Bash(gh release view:*)",
       "Bash(npx tsx:*)",
       "Bash(gh repo view:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(git hook:*)",
+      "Bash(gh repo create:*)",
+      "Bash(.husky/pre-commit:*)"
     ],
     "deny": [
       "Bash(npm *)",

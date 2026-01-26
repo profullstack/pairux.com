@@ -6,11 +6,20 @@ directories:
   output: out
   buildResources: resources
 
+# App icon - electron-builder will look for icon.png, icon.icns, icon.ico in buildResources
+icon: resources/icon.png
+
 files:
   - dist/**/*
   - resources/**/*
   - '!**/*.map'
   - '!**/node_modules/**/{CHANGELOG.md,README.md,LICENSE*}'
+
+extraResources:
+  - from: resources/icons
+    to: icons
+    filter:
+      - '**/*'
 
 asar: true
 asarUnpack:

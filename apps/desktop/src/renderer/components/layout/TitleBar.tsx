@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, LogOut, User, ChevronDown, Settings } from 'lucide-react';
+import { LogOut, User, ChevronDown, Settings } from 'lucide-react';
 import { isElectron, getElectronAPI } from '../../lib/ipc';
 import { useAuthStore } from '@/stores/auth';
 
@@ -23,7 +23,7 @@ export function TitleBar() {
       } pr-4`}
     >
       <div className="no-drag flex items-center gap-2">
-        <Monitor className="h-4 w-4 text-primary" />
+        <img src="/logo.svg" alt="PairUX" className="h-4 w-4" />
         <span className="text-sm font-medium">PairUX</span>
       </div>
 

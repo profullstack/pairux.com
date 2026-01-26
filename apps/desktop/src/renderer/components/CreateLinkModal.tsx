@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
+import { APP_URL } from '../../shared/config';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
   const handleCopyLink = useCallback(async () => {
     if (!session) return;
 
-    const joinUrl = `https://pairux.com/join/${session.join_code}`;
+    const joinUrl = `${APP_URL}/join/${session.join_code}`;
     await navigator.clipboard.writeText(joinUrl);
     setCopied(true);
     setTimeout(() => {
@@ -79,7 +80,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
 
   if (!isOpen) return null;
 
-  const joinUrl = session ? `https://pairux.com/join/${session.join_code}` : '';
+  const joinUrl = session ? `${APP_URL}/join/${session.join_code}` : '';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

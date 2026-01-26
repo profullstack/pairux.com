@@ -16,6 +16,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import type { CaptureSource, Session } from '@pairux/shared-types';
+import { APP_URL } from '../../../shared/config';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
 import { useSession } from '@/hooks/useSession';
@@ -169,7 +170,7 @@ export function CapturePreview({
   const handleCopyLink = useCallback(async () => {
     if (!session) return;
 
-    const joinUrl = `https://pairux.com/join/${session.join_code}`;
+    const joinUrl = `${APP_URL}/join/${session.join_code}`;
     await navigator.clipboard.writeText(joinUrl);
     setCopied(true);
     setTimeout(() => {
@@ -183,7 +184,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}/control`,
+          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -205,7 +206,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}/control`,
+          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -227,7 +228,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'}/api/sessions/${session.id}/participants/${participantId}`,
+          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}`,
           {
             method: 'DELETE',
           }

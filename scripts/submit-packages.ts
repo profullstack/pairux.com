@@ -23,6 +23,8 @@
  *   aur         Arch User Repository
  *   apt         Debian/Ubuntu APT repository
  *   rpm         Fedora/RHEL RPM repository
+ *   gentoo      Gentoo ebuild overlay
+ *   nix         Nix/NixOS package
  *   all         All configured package managers
  *
  * Environment Variables:
@@ -153,6 +155,8 @@ ${colors.yellow}Package Managers:${colors.reset}
   aur         Arch User Repository
   apt         Debian/Ubuntu APT repository
   rpm         Fedora/RHEL RPM repository
+  gentoo      Gentoo ebuild overlay
+  nix         Nix/NixOS package
   all         All configured package managers
 
 ${colors.yellow}Environment Variables:${colors.reset}
@@ -318,6 +322,12 @@ function loadConfig(): AllConfigs {
         repoOwner: 'profullstack',
         repoName: 'pairux-rpm',
       },
+    },
+    gentoo: {
+      enabled: true,
+    },
+    nix: {
+      enabled: true,
     },
   };
 

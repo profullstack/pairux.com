@@ -50,6 +50,8 @@ const footerLinks = {
     { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux', external: true },
     { name: 'APT (Debian)', href: 'https://github.com/profullstack/pairux-apt', external: true },
     { name: 'RPM (Fedora)', href: 'https://github.com/profullstack/pairux-rpm', external: true },
+    { name: 'Gentoo', href: 'https://github.com/profullstack/gentoo-pairux', external: true },
+    { name: 'Nix', href: 'https://github.com/profullstack/pairux-nix', external: true },
   ],
   resources: [
     { name: 'Documentation', href: '/docs' },

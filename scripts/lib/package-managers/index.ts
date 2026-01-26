@@ -29,6 +29,8 @@ export { ChocolateyPackageManager } from './chocolatey.js';
 export { AURPackageManager } from './aur.js';
 export { APTPackageManager } from './apt.js';
 export { RPMPackageManager } from './rpm.js';
+export { GentooPackageManager } from './gentoo.js';
+export { NixPackageManager } from './nix.js';
 
 import type { PackageManager, PackageManagerConfig, Logger } from './types.js';
 import { HomebrewPackageManager } from './homebrew.js';
@@ -38,6 +40,8 @@ import { ChocolateyPackageManager } from './chocolatey.js';
 import { AURPackageManager } from './aur.js';
 import { APTPackageManager } from './apt.js';
 import { RPMPackageManager } from './rpm.js';
+import { GentooPackageManager } from './gentoo.js';
+import { NixPackageManager } from './nix.js';
 
 export interface AllConfigs {
   homebrew: PackageManagerConfig;
@@ -47,6 +51,8 @@ export interface AllConfigs {
   aur: PackageManagerConfig;
   apt: PackageManagerConfig;
   rpm: PackageManagerConfig;
+  gentoo: PackageManagerConfig;
+  nix: PackageManagerConfig;
 }
 
 /**
@@ -61,6 +67,8 @@ export function createAllPackageManagers(configs: AllConfigs, logger: Logger): P
     new AURPackageManager(configs.aur, logger),
     new APTPackageManager(configs.apt, logger),
     new RPMPackageManager(configs.rpm, logger),
+    new GentooPackageManager(configs.gentoo, logger),
+    new NixPackageManager(configs.nix, logger),
   ].sort((a, b) => a.priority - b.priority);
 }
 
@@ -83,6 +91,8 @@ export function getPackageManager(
     aur: AURPackageManager,
     apt: APTPackageManager,
     rpm: RPMPackageManager,
+    gentoo: GentooPackageManager,
+    nix: NixPackageManager,
   };
 
   const ManagerClass = managers[name.toLowerCase()];
@@ -105,6 +115,8 @@ export const PACKAGE_MANAGER_NAMES = [
   'aur',
   'apt',
   'rpm',
+  'gentoo',
+  'nix',
 ] as const;
 
 export type PackageManagerName = (typeof PACKAGE_MANAGER_NAMES)[number];

@@ -21,9 +21,10 @@ on:
         default: 'all'
 
 jobs:
-  submit:
+  # Linux job for most package managers
+  submit-linux:
     runs-on: ubuntu-latest
-    name: Submit to Package Managers
+    name: Submit (Linux)
 
     steps:
       - name: Checkout code
@@ -86,14 +87,23 @@ jobs:
       - name: Determine package managers
         id: pms
         run: |
-          if [ -n "${{ github.event.inputs.package_managers }}" ]; then
-            PMS="${{ github.event.inputs.package_managers }}"
+          INPUT_PMS="${{ github.event.inputs.package_managers }}"
+          if [ -z "$INPUT_PMS" ]; then
+            INPUT_PMS="all"
+          fi
+
+          # If "all" or contains chocolatey, we need to exclude chocolatey from linux job
+          if [ "$INPUT_PMS" = "all" ]; then
+            # Run all except chocolatey on Linux
+            PMS="homebrew,scoop,winget,aur,apt,rpm"
           else
-            PMS="all"
+            # Remove chocolatey from the list for Linux job
+            PMS=$(echo "$INPUT_PMS" | sed 's/chocolatey,//g' | sed 's/,chocolatey//g' | sed 's/^chocolatey$//g')
           fi
           echo "package_managers=$PMS" >> $GITHUB_OUTPUT
 
       - name: Submit to package managers
+        if: steps.pms.outputs.package_managers != ''
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           PMS="${{ steps.pms.outputs.package_managers }}"
@@ -102,13 +112,9 @@ jobs:
           ARGS="-v $VERSION"
 
           # Parse package managers
-          if [ "$PMS" = "all" ]; then
-            ARGS="$ARGS -p all"
-          else
-            for PM in $(echo "$PMS" | tr ',' ' '); do
-              ARGS="$ARGS -p $PM"
-            done
-          fi
+          for PM in $(echo "$PMS" | tr ',' ' '); do
+            ARGS="$ARGS -p $PM"
+          done
 
           # Add dry run flag if enabled
           if [ "$DRY_RUN" = "true" ]; then
@@ -126,10 +132,90 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Package Submission Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Package Submission Summary (Linux)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Package Managers**: ${{ steps.pms.outputs.package_managers }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+
+  # Windows job for Chocolatey
+  submit-chocolatey:
+    runs-on: windows-latest
+    name: Submit (Chocolatey)
+    if: >-
+      github.event.inputs.package_managers == 'all' ||
+      github.event.inputs.package_managers == '' ||
+      contains(github.event.inputs.package_managers, 'chocolatey')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          fi
+          # Remove v prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Submitting version: $VERSION"
+
+      - name: Check Chocolatey API key
+        id: check-key
+        shell: bash
+        run: |
+          if [ -z "$CHOCOLATEY_API_KEY" ]; then
+            echo "has_key=false" >> $GITHUB_OUTPUT
+            echo "::warning::CHOCOLATEY_API_KEY secret not configured, skipping"
+          else
+            echo "has_key=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+
+      - name: Submit to Chocolatey
+        if: steps.check-key.outputs.has_key == 'true'
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+
+          ARGS="-v $VERSION -p chocolatey"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+
+          echo "Running: npx tsx scripts/submit-packages.ts $ARGS"
+          npx tsx scripts/submit-packages.ts $ARGS
+        env:
+          GITHUB_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Package Submission Summary (Chocolatey)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for detailed submission status." >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY

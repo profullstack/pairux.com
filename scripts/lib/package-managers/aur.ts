@@ -68,23 +68,8 @@ depends=('gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 
 provides=('pairux')
 conflicts=('pairux' 'pairux-git')
 options=('!strip')
-source=("PairUX-\${pkgver}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/PairUX-\${pkgver}-x64.AppImage"
-        "pairux.desktop")
-sha256sums=('${sha256}'
-            'SKIP')
-
-prepare() {
-    cat > pairux.desktop << 'EOF'
-[Desktop Entry]
-Name=PairUX
-Comment=Collaborative screen sharing with remote control
-Exec=/opt/pairux/pairux.AppImage --no-sandbox %U
-Icon=pairux
-Type=Application
-Categories=Network;RemoteAccess;
-StartupWMClass=PairUX
-EOF
-}
+source=("PairUX-\${pkgver}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/PairUX-\${pkgver}-x64.AppImage")
+sha256sums=('${sha256}')
 
 package() {
     cd "\$srcdir"
@@ -101,8 +86,18 @@ exec /opt/pairux/pairux.AppImage "$@"
 WRAPPER
     chmod 755 "\$pkgdir/usr/bin/pairux"
 
-    # Desktop file
-    install -Dm644 pairux.desktop "\$pkgdir/usr/share/applications/pairux.desktop"
+    # Create and install desktop file
+    cat > "\$srcdir/pairux.desktop" << 'DESKTOP'
+[Desktop Entry]
+Name=PairUX
+Comment=Collaborative screen sharing with remote control
+Exec=/opt/pairux/pairux.AppImage --no-sandbox %U
+Icon=pairux
+Type=Application
+Categories=Network;RemoteAccess;
+StartupWMClass=PairUX
+DESKTOP
+    install -Dm644 "\$srcdir/pairux.desktop" "\$pkgdir/usr/share/applications/pairux.desktop"
 
     # Extract and install icon from AppImage
     cd "\$pkgdir/opt/pairux"
@@ -139,7 +134,6 @@ WRAPPER
 \tconflicts = pairux-git
 \toptions = !strip
 \tsource = PairUX-${version}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x64.AppImage
-\tsource = pairux.desktop
 
 pkgname = ${PACKAGE_NAME}
 `;

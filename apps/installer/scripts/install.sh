@@ -214,9 +214,10 @@ install_linux() {
     cat > "$BIN_DIR/pairux" << 'WRAPPER'
 #!/bin/bash
 # PairUX launcher
+# --no-sandbox is required for AppImages without SUID chrome-sandbox
 APPIMAGE="$HOME/.pairux/PairUX.AppImage"
 if [ -x "$APPIMAGE" ]; then
-    exec "$APPIMAGE" "$@"
+    exec "$APPIMAGE" --no-sandbox "$@"
 else
     echo "Error: PairUX AppImage not found at $APPIMAGE"
     echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"

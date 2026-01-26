@@ -396,8 +396,12 @@ ${colors.cyan}╔═════════════════════
   logger.info(`Found ${releaseInfo.checksums.size} checksums`);
 
   // Map checksums to assets
+  // Note: checksums file may have spaces in filename (e.g., "PairUX Setup 0.1.17.exe")
+  // while GitHub asset has dots (e.g., "PairUX.Setup.0.1.17.exe")
   for (const asset of releaseInfo.assets) {
-    asset.sha256 = releaseInfo.checksums.get(asset.name);
+    const nameWithSpaces = asset.name.replace(/\./g, ' ').replace(/ exe$/, '.exe');
+    asset.sha256 =
+      releaseInfo.checksums.get(asset.name) ?? releaseInfo.checksums.get(nameWithSpaces);
   }
 
   // Get package managers to run

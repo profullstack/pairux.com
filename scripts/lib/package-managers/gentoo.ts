@@ -139,11 +139,82 @@ Categories=Network;RemoteAccess;
 StartupWMClass=PairUX
 `;
 
+    // Generate README
+    const readme = `# PairUX Gentoo Overlay
+
+Gentoo overlay for [PairUX](https://pairux.com) - Collaborative screen sharing with remote control.
+
+## Installation
+
+### Using eselect-repository (recommended)
+
+\`\`\`bash
+# Install eselect-repository if not already installed
+sudo emerge app-eselect/eselect-repository
+
+# Add the overlay
+sudo eselect repository add pairux git https://github.com/profullstack/gentoo-pairux.git
+
+# Sync the overlay
+sudo emaint sync -r pairux
+
+# Install PairUX
+sudo emerge net-misc/pairux-bin
+\`\`\`
+
+### Using layman (deprecated)
+
+\`\`\`bash
+# Add overlay
+sudo layman -o https://raw.githubusercontent.com/profullstack/gentoo-pairux/master/repositories.xml -f -a pairux
+
+# Install
+sudo emerge net-misc/pairux-bin
+\`\`\`
+
+## Package Info
+
+- **Category:** net-misc
+- **Package:** pairux-bin
+- **Version:** ${release.version}
+- **License:** MIT
+
+## Uninstall
+
+\`\`\`bash
+sudo emerge --unmerge net-misc/pairux-bin
+sudo eselect repository remove pairux
+\`\`\`
+
+## License
+
+MIT
+`;
+
+    // Generate repositories.xml for layman compatibility
+    const repositoriesXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE repositories SYSTEM "/dtd/repositories.dtd">
+<repositories xmlns="" version="1.0">
+  <repo quality="experimental" status="unofficial">
+    <name>pairux</name>
+    <description>Gentoo overlay for PairUX - collaborative screen sharing</description>
+    <homepage>https://pairux.com</homepage>
+    <owner>
+      <email>hello@pairux.com</email>
+      <name>PairUX Team</name>
+    </owner>
+    <source type="git">https://github.com/profullstack/gentoo-pairux.git</source>
+  </repo>
+</repositories>
+`;
+
     return Promise.resolve({
       [`${CATEGORY}/${PACKAGE_NAME}/${PACKAGE_NAME}-${release.version}.ebuild`]: ebuild,
       [`${CATEGORY}/${PACKAGE_NAME}/metadata.xml`]: metadataXml,
       [`${CATEGORY}/${PACKAGE_NAME}/files/pairux`]: actualWrapper,
       [`${CATEGORY}/${PACKAGE_NAME}/files/pairux.desktop`]: actualDesktop,
+      'README.md': readme,
+      'repositories.xml': repositoriesXml,
     });
   }
 

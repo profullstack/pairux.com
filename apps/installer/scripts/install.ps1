@@ -80,7 +80,7 @@ function Get-DownloadUrl {
     )
 
     # Windows uses NSIS installer
-    $filename = "PairUX-Setup-$Version.exe"
+    $filename = "PairUX.Setup.$Version.exe"
     return "https://github.com/$GitHubRepo/releases/download/v$Version/$filename"
 }
 

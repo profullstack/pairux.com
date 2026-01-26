@@ -186,7 +186,8 @@
       "Bash(gh run watch:*)",
       "Bash(~/.local/bin/pairux:*)",
       "Bash(npx eslint:*)",
-      "Bash(pnpm view:*)"
+      "Bash(pnpm view:*)",
+      "Bash(gh release view:*)"
     ],
     "deny": [
       "Bash(npm *)",

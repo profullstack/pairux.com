@@ -232,10 +232,10 @@
   - [x] Chat panel integration
   - [x] Settings access
 
-- [ ] **Overlay Indicators**
-  - [ ] "Control Active" visual indicator
-  - [ ] Remote cursor visualization
-  - [ ] Recording/sharing indicator
+- [x] **Overlay Indicators**
+  - [x] "Control Active" visual indicator
+  - [x] Remote cursor visualization
+  - [x] Recording/sharing indicator
 
 ### Platform-Specific
 
@@ -243,16 +243,16 @@
   - [x] Accessibility permission request
   - [x] Screen Recording permission request
   - [x] Input Monitoring permission request
-  - [ ] Menu bar integration
+  - [x] Menu bar integration
 
-- [ ] **Windows**
-  - [ ] UAC handling
-  - [ ] Windows Defender allowlisting docs
+- [x] **Windows**
+  - [x] UAC handling
+  - [x] Windows Defender allowlisting docs
 
-- [ ] **Linux**
-  - [ ] X11 support
-  - [ ] Wayland support (limited)
-  - [ ] Permission documentation
+- [x] **Linux**
+  - [x] X11 support
+  - [x] Wayland support (limited)
+  - [x] Permission documentation
 
 ---
 

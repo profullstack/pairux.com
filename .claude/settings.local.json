@@ -174,7 +174,9 @@
       "Bash(pnpm --filter @pairux/desktop test -- --run src/renderer/components/ParticipantList.test.tsx)",
       "Bash(pnpm --filter @pairux/desktop test:*)",
       "Bash(pnpm run format:check:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(pnpm eslint:*)"
     ],
     "deny": [
       "Bash(npm *)",

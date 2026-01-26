@@ -16,6 +16,7 @@ export default tseslint.config(
       '**/coverage/**',
       '**/.turbo/**',
       '**/build/**',
+      'eslint.config.js',
     ],
   },
 
@@ -89,12 +90,40 @@ export default tseslint.config(
     },
   },
 
-  // Relax rules for config files
+  // Relax rules for config files (disable type-checked rules)
   {
     files: ['*.config.{js,ts,mjs}', 'scripts/**/*.{js,mjs}'],
-    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      parserOptions: {
+        project: null,
+        projectService: false,
+      },
+    },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+      '@typescript-eslint/only-throw-error': 'off',
+      '@typescript-eslint/use-unknown-in-catch-callback-variable': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/dot-notation': 'off',
+      '@typescript-eslint/non-nullable-type-assertion-style': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
     },
   },
 
@@ -111,6 +140,7 @@ export default tseslint.config(
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/unbound-method': 'off', // Mock methods in tests
     },
   },
 

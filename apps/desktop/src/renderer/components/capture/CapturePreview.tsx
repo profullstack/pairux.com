@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   StopCircle,
   Monitor,
@@ -20,6 +20,13 @@ import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
 import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
+import {
+  SharingIndicator,
+  RecordingIndicator,
+  ControlActiveIndicator,
+  RemoteCursorsContainer,
+  useRemoteCursors,
+} from '@/components/overlay';
 
 interface CapturePreviewProps {
   stream: MediaStream;
@@ -37,11 +44,13 @@ export function CapturePreview({
   initialSession,
 }: CapturePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [showParticipants, setShowParticipants] = useState(false);
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
   const {
     session: createdSession,
@@ -83,6 +92,25 @@ export function CapturePreview({
   // Use initialSession if provided, otherwise use created session
   const session = initialSession ?? createdSession;
 
+  // Remote cursors for showing viewer cursor positions
+  const { cursors: remoteCursors } = useRemoteCursors();
+
+  // Find participant with control granted
+  const participantWithControl = useMemo(() => {
+    return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
+  }, [participants]);
+
+  // Get source dimensions for cursor scaling
+  const sourceDimensions = useMemo(() => {
+    const tracks = stream.getVideoTracks();
+    const track = tracks.length > 0 ? tracks[0] : undefined;
+    const settings = track?.getSettings();
+    return {
+      width: settings?.width ?? 1920,
+      height: settings?.height ?? 1080,
+    };
+  }, [stream]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -95,6 +123,27 @@ export function CapturePreview({
       }
     };
   }, [stream]);
+
+  // Track container dimensions for cursor scaling
+  useEffect(() => {
+    const container = videoContainerRef.current;
+    if (!container) return;
+
+    const updateDimensions = () => {
+      setContainerDimensions({
+        width: container.clientWidth,
+        height: container.clientHeight,
+      });
+    };
+
+    updateDimensions();
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // Set initial session if provided
   useEffect(() => {
@@ -408,7 +457,10 @@ export function CapturePreview({
         ) : null}
 
         {/* Video preview */}
-        <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black">
+        <div
+          ref={videoContainerRef}
+          className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black"
+        >
           <video
             ref={videoRef}
             autoPlay
@@ -417,21 +469,28 @@ export function CapturePreview({
             className="h-full w-full object-contain"
           />
 
-          {/* Live indicator */}
-          <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <span className="text-xs font-medium text-white">{session ? 'LIVE' : 'PREVIEW'}</span>
+          {/* Live/Preview indicator */}
+          <div className="absolute left-4 top-4 flex flex-col gap-2">
+            <SharingIndicator isLive={!!session} />
+            {/* Control Active indicator */}
+            {participantWithControl && (
+              <ControlActiveIndicator participant={participantWithControl} />
+            )}
           </div>
 
           {/* Recording indicator */}
           {isRecording && (
-            <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1.5">
-              <Circle className="h-2 w-2 animate-pulse fill-white text-white" />
-              <span className="font-mono text-xs font-medium text-white">
-                {isPaused ? 'PAUSED' : 'REC'} {formatDuration(duration)}
-              </span>
+            <div className="absolute right-4 top-4">
+              <RecordingIndicator isPaused={isPaused} duration={duration} />
             </div>
           )}
+
+          {/* Remote cursors */}
+          <RemoteCursorsContainer
+            cursors={remoteCursors}
+            containerDimensions={containerDimensions}
+            sourceDimensions={sourceDimensions}
+          />
         </div>
       </div>
 

@@ -225,12 +225,12 @@
   - [x] Quick actions menu
   - [x] Session status indicator
 
-- [ ] **Main Window**
-  - [ ] Session dashboard
-  - [ ] Screen preview
-  - [ ] Participant list
-  - [ ] Chat panel integration
-  - [ ] Settings access
+- [x] **Main Window**
+  - [x] Session dashboard
+  - [x] Screen preview
+  - [x] Participant list
+  - [x] Chat panel integration
+  - [x] Settings access
 
 - [ ] **Overlay Indicators**
   - [ ] "Control Active" visual indicator

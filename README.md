@@ -1,6 +1,13 @@
-# PairUX
+<p align="center">
+  <img src="apps/web/public/logo.svg" alt="PairUX Logo" width="120" />
+</p>
 
-**Collaborative screen sharing with simultaneous remote control** — like Screenhero, but open source.
+<h1 align="center">PairUX</h1>
+
+<p align="center">
+  <strong>Collaborative screen sharing with simultaneous remote control</strong><br>
+  Like Screenhero, but open source.
+</p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -23,38 +30,165 @@
 
 ### Install the Desktop App (Host)
 
-**macOS**
+<details>
+<summary><strong>macOS</strong></summary>
+
+**Homebrew** (Recommended)
 
 ```bash
+brew tap profullstack/homebrew-pairux
 brew install --cask pairux
 ```
 
-**Windows**
+**Direct Download**
+
+- [PairUX-x.x.x-arm64.dmg](https://github.com/profullstack/pairux.com/releases/latest) (Apple Silicon)
+- [PairUX-x.x.x-x64.dmg](https://github.com/profullstack/pairux.com/releases/latest) (Intel)
+
+</details>
+
+<details>
+<summary><strong>Windows</strong></summary>
+
+**WinGet** (Recommended)
 
 ```powershell
 winget install PairUX.PairUX
 ```
 
-**Linux (Debian/Ubuntu)**
+**Scoop**
+
+```powershell
+scoop bucket add pairux https://github.com/profullstack/scoop-pairux
+scoop install pairux
+```
+
+**Chocolatey**
+
+```powershell
+choco install pairux
+```
+
+**Direct Download**
+
+- [PairUX-x.x.x-x64.exe](https://github.com/profullstack/pairux.com/releases/latest)
+
+</details>
+
+<details>
+<summary><strong>Linux (Debian/Ubuntu)</strong></summary>
+
+**APT Repository** (Recommended)
 
 ```bash
-curl -fsSL https://pairux.com/apt/pairux.gpg | sudo gpg --dearmor -o /usr/share/keyrings/pairux.gpg
-echo "deb [signed-by=/usr/share/keyrings/pairux.gpg] https://pairux.com/apt stable main" | sudo tee /etc/apt/sources.list.d/pairux.list
+# Add GPG key
+curl -fsSL https://profullstack.github.io/pairux-apt/pairux.gpg | sudo gpg --dearmor -o /usr/share/keyrings/pairux.gpg
+
+# Add repository
+echo "deb [signed-by=/usr/share/keyrings/pairux.gpg] https://profullstack.github.io/pairux-apt stable main" | sudo tee /etc/apt/sources.list.d/pairux.list
+
+# Install
 sudo apt update && sudo apt install pairux
 ```
 
-**Linux (Fedora)**
+**Direct Download**
+
+- [pairux_x.x.x_amd64.deb](https://github.com/profullstack/pairux.com/releases/latest)
+
+</details>
+
+<details>
+<summary><strong>Linux (Fedora/RHEL/CentOS)</strong></summary>
+
+**RPM Repository** (Recommended)
 
 ```bash
-sudo dnf config-manager --add-repo https://pairux.com/rpm/pairux.repo
+# Add repository
+sudo dnf config-manager --add-repo https://profullstack.github.io/pairux-rpm/pairux.repo
+
+# Import GPG key
+sudo rpm --import https://profullstack.github.io/pairux-rpm/RPM-GPG-KEY-pairux
+
+# Install
 sudo dnf install pairux
 ```
 
-**Linux (Arch)**
+**Direct Download**
+
+- [pairux-x.x.x-1.x86_64.rpm](https://github.com/profullstack/pairux.com/releases/latest)
+
+</details>
+
+<details>
+<summary><strong>Linux (Arch)</strong></summary>
+
+**AUR** (Recommended)
 
 ```bash
+# Using yay
 yay -S pairux-bin
+
+# Using paru
+paru -S pairux-bin
+
+# Manual
+git clone https://aur.archlinux.org/pairux-bin.git
+cd pairux-bin
+makepkg -si
 ```
+
+</details>
+
+<details>
+<summary><strong>Linux (Gentoo)</strong></summary>
+
+**Custom Overlay**
+
+```bash
+# Add overlay
+sudo eselect repository add pairux git https://github.com/profullstack/gentoo-pairux.git
+sudo emaint sync -r pairux
+
+# Install
+sudo emerge net-misc/pairux-bin
+```
+
+</details>
+
+<details>
+<summary><strong>Linux (NixOS/Nix)</strong></summary>
+
+**Flake** (Recommended)
+
+```bash
+nix profile install github:profullstack/pairux-nix
+```
+
+**nix-shell**
+
+```bash
+nix-shell -p pairux
+```
+
+</details>
+
+<details>
+<summary><strong>Linux (Universal)</strong></summary>
+
+**AppImage**
+
+```bash
+# Download
+wget https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x.x.x-x64.AppImage
+
+# Make executable
+chmod +x PairUX-*.AppImage
+
+# Run
+./PairUX-*.AppImage
+```
+
+</details>
 
 ### Join as a Viewer (No Install Required!)
 

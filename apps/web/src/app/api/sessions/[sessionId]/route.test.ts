@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, DELETE } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
 
+const mockGetAuthenticatedUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
+  getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -90,18 +93,13 @@ describe('DELETE /api/sessions/[sessionId]', () => {
 
   it('ends session for authenticated host', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({
         data: { success: true },
         error: null,
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/test-session-id', {
       method: 'DELETE',
@@ -116,15 +114,9 @@ describe('DELETE /api/sessions/[sessionId]', () => {
   });
 
   it('returns 401 for unauthenticated user', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/sessions/test-session-id', {
       method: 'DELETE',
@@ -138,18 +130,13 @@ describe('DELETE /api/sessions/[sessionId]', () => {
 
   it('returns 400 when RPC fails', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Not authorized to end this session' },
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/test-session-id', {
       method: 'DELETE',

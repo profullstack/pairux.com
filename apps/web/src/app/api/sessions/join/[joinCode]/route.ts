@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { guestJoinSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 
@@ -61,10 +61,8 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const supabase = await createClient();
 
-    // Check if user is authenticated
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Check if user is authenticated (supports both cookie and Bearer token)
+    const { user } = await getAuthenticatedUser(supabase);
 
     // If not authenticated, require display name
     let displayName: string | undefined;

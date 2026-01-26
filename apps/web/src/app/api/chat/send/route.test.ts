@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from './route';
 import { createMockSupabaseClient, mockUser } from '@/test/mocks/supabase';
 
+const mockGetAuthenticatedUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
+  getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -26,15 +29,10 @@ describe('POST /api/chat/send', () => {
 
   it('sends message for authenticated user', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: mockChatMessage, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -61,15 +59,10 @@ describe('POST /api/chat/send', () => {
   it('sends message for guest with participantId', async () => {
     const guestMessage = { ...mockChatMessage, user_id: null };
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: guestMessage, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -95,15 +88,9 @@ describe('POST /api/chat/send', () => {
   });
 
   it('returns 401 for unauthenticated user without participantId', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -122,15 +109,9 @@ describe('POST /api/chat/send', () => {
   });
 
   it('returns 400 for empty content', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -146,15 +127,9 @@ describe('POST /api/chat/send', () => {
   });
 
   it('returns 400 for content exceeding max length', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -170,15 +145,9 @@ describe('POST /api/chat/send', () => {
   });
 
   it('returns 400 for invalid session ID format', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',
@@ -195,18 +164,13 @@ describe('POST /api/chat/send', () => {
 
   it('returns 400 when RPC fails', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'User is not a participant in this session' },
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/chat/send', {
       method: 'POST',

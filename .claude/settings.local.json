@@ -206,7 +206,9 @@
       "Bash(./.husky/pre-commit)",
       "Bash(gh release edit:*)",
       "Bash(base64:*)",
-      "Bash(jq -r '.version' echo -e \"\\\\n=== Gentoo ===\")"
+      "Bash(jq -r '.version' echo -e \"\\\\n=== Gentoo ===\")",
+      "Bash(pnpm turbo build:*)",
+      "Bash(pnpm turbo test:*)"
     ],
     "deny": [
       "Bash(npm *)",

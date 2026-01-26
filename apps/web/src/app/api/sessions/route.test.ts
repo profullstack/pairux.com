@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST, GET } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
 
+const mockGetAuthenticatedUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
+  getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -16,15 +19,10 @@ describe('POST /api/sessions', () => {
 
   it('creates session for authenticated user with default mode', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -49,15 +47,10 @@ describe('POST /api/sessions', () => {
 
   it('creates session with custom settings', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -83,15 +76,10 @@ describe('POST /api/sessions', () => {
 
   it('creates session with SFU mode', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -115,15 +103,9 @@ describe('POST /api/sessions', () => {
   });
 
   it('returns 401 for unauthenticated user', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -140,18 +122,13 @@ describe('POST /api/sessions', () => {
 
   it('returns 400 when RPC fails', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Session limit reached' },
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -167,15 +144,9 @@ describe('POST /api/sessions', () => {
   });
 
   it('returns 400 for invalid maxParticipants', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
@@ -203,15 +174,10 @@ describe('GET /api/sessions', () => {
     });
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       from: mockFrom,
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await GET();
     const body = await response.json();
@@ -221,15 +187,9 @@ describe('GET /api/sessions', () => {
   });
 
   it('returns 401 for unauthenticated user', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const response = await GET();
     const body = await response.json();
@@ -249,15 +209,10 @@ describe('GET /api/sessions', () => {
     });
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       from: mockFrom,
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await GET();
     const body = await response.json();

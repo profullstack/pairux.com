@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { z } from 'zod';
 
@@ -24,9 +24,7 @@ export async function GET(request: Request) {
     const supabase = await createClient();
 
     // Check authentication (for RLS policies)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getAuthenticatedUser(supabase);
 
     // Build query
     let query = supabase

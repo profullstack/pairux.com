@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import type { ControlState } from '@pairux/shared-types';
 
@@ -25,11 +25,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const supabase = await createClient();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Check authentication (supports both cookie and Bearer token)
+    const { user, error: authError } = await getAuthenticatedUser(supabase);
 
     if (authError || !user) {
       return errorResponse('Authentication required', 401);

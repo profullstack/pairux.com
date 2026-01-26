@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './route';
 import { createMockSupabaseClient, mockUser, mockProfile } from '@/test/mocks/supabase';
 
+const mockGetAuthenticatedUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
+  getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -22,15 +25,10 @@ describe('GET /api/auth/session', () => {
     });
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       from: mockFrom,
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await GET();
     const body = await response.json();
@@ -42,15 +40,9 @@ describe('GET /api/auth/session', () => {
   });
 
   it('returns null user and profile for unauthenticated request', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const response = await GET();
     const body = await response.json();
@@ -61,15 +53,12 @@ describe('GET /api/auth/session', () => {
   });
 
   it('returns null when auth error occurs', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: { message: 'Session expired' },
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({
+      user: null,
+      error: { message: 'Session expired' },
+    });
 
     const response = await GET();
     const body = await response.json();
@@ -90,15 +79,10 @@ describe('GET /api/auth/session', () => {
     });
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       from: mockFrom,
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await GET();
     const body = await response.json();
@@ -119,15 +103,10 @@ describe('GET /api/auth/session', () => {
     });
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       from: mockFrom,
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await GET();
 

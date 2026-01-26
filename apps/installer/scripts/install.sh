@@ -208,11 +208,64 @@ install_linux() {
 
     chmod +x "$appimage_path"
 
-    # Create symlink in bin directory
+    # Create wrapper script that handles sandbox issues
+    info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
-    ln -sf "$appimage_path" "$BIN_DIR/pairux"
+    cat > "$BIN_DIR/pairux" << 'WRAPPER'
+#!/bin/bash
+# PairUX launcher - handles AppImage sandbox requirements
+APPIMAGE="$HOME/.pairux/PairUX.AppImage"
+if [ -x "$APPIMAGE" ]; then
+    # Use --no-sandbox to avoid SUID sandbox issues on some systems
+    exec "$APPIMAGE" --no-sandbox "$@"
+else
+    echo "Error: PairUX AppImage not found at $APPIMAGE"
+    echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"
+    exit 1
+fi
+WRAPPER
+    chmod +x "$BIN_DIR/pairux"
+
+    # Create .desktop file for application menu integration
+    info "Creating desktop entry..."
+    local desktop_dir="$HOME/.local/share/applications"
+    local icon_dir="$HOME/.local/share/icons/hicolor/256x256/apps"
+    mkdir -p "$desktop_dir" "$icon_dir"
+
+    # Extract icon from AppImage if possible
+    if command -v "$appimage_path" &> /dev/null; then
+        # Try to extract the icon
+        cd "$temp_dir"
+        "$appimage_path" --appimage-extract "*.png" 2>/dev/null || true
+        if [ -f "squashfs-root/pairux.png" ]; then
+            cp "squashfs-root/pairux.png" "$icon_dir/"
+        elif [ -f "squashfs-root/usr/share/icons/hicolor/256x256/apps/pairux.png" ]; then
+            cp "squashfs-root/usr/share/icons/hicolor/256x256/apps/pairux.png" "$icon_dir/"
+        fi
+        cd - > /dev/null
+    fi
+
+    # Create .desktop file
+    cat > "$desktop_dir/pairux.desktop" << DESKTOP
+[Desktop Entry]
+Name=PairUX
+Comment=Screen sharing with remote control
+Exec=$BIN_DIR/pairux %U
+Icon=pairux
+Terminal=false
+Type=Application
+Categories=Network;RemoteAccess;
+StartupWMClass=PairUX
+Keywords=screen;share;remote;control;
+DESKTOP
+
+    # Update desktop database if available
+    if command -v update-desktop-database &> /dev/null; then
+        update-desktop-database "$desktop_dir" 2>/dev/null || true
+    fi
 
     success "PairUX ${version} installed to ${INSTALL_DIR}"
+    info "Desktop entry created - PairUX should appear in your applications menu"
 }
 
 # Download and install

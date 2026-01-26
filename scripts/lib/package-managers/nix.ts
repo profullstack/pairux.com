@@ -6,7 +6,7 @@
  */
 
 import { BasePackageManager } from './base.js';
-import type { PackageManagerConfig, ReleaseInfo, SubmissionResult, Logger } from './types.js';
+import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const NIXPKGS_OWNER = 'NixOS';
 const NIXPKGS_REPO = 'nixpkgs';
@@ -18,12 +18,8 @@ export class NixPackageManager extends BasePackageManager {
   readonly platform = 'linux' as const;
   readonly priority = 9;
 
-  constructor(config: PackageManagerConfig, logger: Logger) {
-    super(config, logger);
-  }
-
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getGitHubToken();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -41,19 +37,14 @@ export class NixPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // Find assets for different architectures
     const x86AppImage = this.findAsset(
       release,
       (a) => a.name.includes('x86_64') && a.name.endsWith('.AppImage')
     );
-    const armAppImage = this.findAsset(
-      release,
-      (a) => a.name.includes('arm64') && a.name.endsWith('.AppImage')
-    );
 
-    const x86Sha256 = release.checksums.get(x86AppImage?.name || '') || '';
-    const armSha256 = release.checksums.get(armAppImage?.name || '') || '';
+    const x86Sha256 = release.checksums.get(x86AppImage?.name ?? '') ?? '';
 
     // Generate Nix expression
     const nixExpr = `{ lib
@@ -67,7 +58,7 @@ let
 
   src = fetchurl {
     url = "https://github.com/profullstack/pairux.com/releases/download/v\${version}/PairUX-\${version}-x86_64.AppImage";
-    sha256 = "${x86Sha256 || 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='}";
+    sha256 = "${x86Sha256 !== '' ? x86Sha256 : 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='}";
   };
 
   appimageContents = appimageTools.extractType2 { inherit pname version src; };
@@ -101,7 +92,7 @@ appimageTools.wrapType2 {
 }
 `;
 
-    return nixExpr;
+    return Promise.resolve(nixExpr);
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
@@ -138,28 +129,6 @@ appimageTools.wrapType2 {
     this.logger.info('2. Create pkgs/by-name/pa/pairux/package.nix with the above content');
     this.logger.info('3. Test locally with: nix-build -A pairux');
     this.logger.info('4. Submit a PR following nixpkgs contribution guidelines');
-
-    // Alternative: We can maintain our own flake
-    const flakeNix = `{
-  description = "PairUX - Collaborative screen sharing with remote control";
-
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
-
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.\${system};
-      in
-      {
-        packages.default = pkgs.callPackage ./package.nix { };
-        packages.pairux = self.packages.\${system}.default;
-      }
-    );
-}
-`;
 
     this.logger.info('');
     this.logger.info('Alternatively, users can install via flake:');

@@ -25,13 +25,16 @@ export class RPMPackageManager extends BasePackageManager {
 
   constructor(config: PackageManagerConfig, logger: Logger) {
     super(config, logger);
-    this.repoOwner = (config.additionalConfig?.repoOwner as string) || DEFAULT_REPO_OWNER;
-    this.repoName = (config.additionalConfig?.repoName as string) || DEFAULT_REPO_NAME;
+    this.repoOwner =
+      (config.additionalConfig?.repoOwner as string | undefined) ?? DEFAULT_REPO_OWNER;
+    this.repoName = (config.additionalConfig?.repoName as string | undefined) ?? DEFAULT_REPO_NAME;
   }
 
-  async isConfigured(): Promise<boolean> {
+  isConfigured(): Promise<boolean> {
     // RPM requires GitHub token and GPG key for signing
-    return this.config.enabled && !!this.getGitHubToken() && !!process.env.GPG_PRIVATE_KEY;
+    return Promise.resolve(
+      this.config.enabled && !!this.getGitHubToken() && !!process.env.GPG_PRIVATE_KEY
+    );
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -46,10 +49,10 @@ export class RPMPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // RPM doesn't use a manifest file in the traditional sense
     // This returns instructions for the repo structure
-    return `RPM Repository Update for ${release.version}
+    return Promise.resolve(`RPM Repository Update for ${release.version}
 
 Repository structure:
   Packages/pairux-${release.version}-1.x86_64.rpm
@@ -57,7 +60,7 @@ Repository structure:
   repodata/repomd.xml.asc
   RPM-GPG-KEY-pairux
   pairux.repo
-`;
+`);
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
@@ -96,7 +99,7 @@ Repository structure:
       };
     }
 
-    const tempDir = join(tmpdir(), `rpm-${Date.now()}`);
+    const tempDir = join(tmpdir(), `rpm-${String(Date.now())}`);
     const repoDir = join(tempDir, 'repo');
 
     try {
@@ -110,7 +113,7 @@ Repository structure:
       await this.ensureRepo(this.repoOwner, this.repoName, 'RPM repository for PairUX', false);
 
       execSync(
-        `git clone https://${token}@github.com/${this.repoOwner}/${this.repoName}.git ${repoDir}`,
+        `git clone https://${token ?? ''}@github.com/${this.repoOwner}/${this.repoName}.git ${repoDir}`,
         { stdio: 'pipe' }
       );
 
@@ -143,7 +146,7 @@ Repository structure:
 
       // Sign repomd.xml with GPG
       this.logger.info('Signing repomd.xml...');
-      await this.signRepomd(repoDir);
+      this.signRepomd(repoDir);
 
       // Export public key
       const gpgPublicKey = this.exportGPGPublicKey();
@@ -230,12 +233,12 @@ You can also download the RPM directly from the [Packages](./Packages) directory
     const timestamp = Math.floor(Date.now() / 1000);
     return `<?xml version="1.0" encoding="UTF-8"?>
 <repomd xmlns="http://linux.duke.edu/metadata/repo">
-  <revision>${timestamp}</revision>
+  <revision>${String(timestamp)}</revision>
 </repomd>
 `;
   }
 
-  private async signRepomd(repoDir: string): Promise<void> {
+  private signRepomd(repoDir: string): void {
     const gpgKey = process.env.GPG_PRIVATE_KEY;
     if (!gpgKey) {
       this.logger.warn('GPG_PRIVATE_KEY not set, skipping signing');
@@ -254,7 +257,7 @@ You can also download the RPM directly from the [Packages](./Packages) directory
       const keyData = Buffer.from(gpgKey, 'base64').toString('utf-8');
       execSync(`echo "${keyData}" | gpg --batch --import`, { stdio: 'pipe' });
 
-      const passphrase = process.env.GPG_PASSPHRASE || '';
+      const passphrase = process.env.GPG_PASSPHRASE ?? '';
 
       // Create detached signature
       execSync(
@@ -262,7 +265,9 @@ You can also download the RPM directly from the [Packages](./Packages) directory
         { stdio: 'pipe' }
       );
     } catch (error) {
-      this.logger.warn(`GPG signing failed: ${error}`);
+      this.logger.warn(
+        `GPG signing failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

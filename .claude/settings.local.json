@@ -202,7 +202,8 @@
       "Bash(set +a)",
       "Bash(gh workflow run:*)",
       "Bash(gh workflow:*)",
-      "Bash(pnpm -F @pairux/web typecheck:*)"
+      "Bash(pnpm -F @pairux/web typecheck:*)",
+      "Bash(./.husky/pre-commit)"
     ],
     "deny": [
       "Bash(npm *)",

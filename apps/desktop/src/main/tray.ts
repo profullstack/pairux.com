@@ -44,36 +44,34 @@ function createTrayIcon(status: TrayStatus): Electron.NativeImage {
   };
 
   const iconPath = join(resourcePath, iconMap[status]);
+  console.log('[Tray] Looking for icon at:', iconPath, 'exists:', existsSync(iconPath));
 
   if (existsSync(iconPath)) {
-    return nativeImage.createFromPath(iconPath);
+    const icon = nativeImage.createFromPath(iconPath);
+    if (!icon.isEmpty()) {
+      return icon;
+    }
+    console.warn('[Tray] Icon loaded but is empty:', iconPath);
   }
 
-  // Fallback: create simple colored circle icons programmatically
-  const size = process.platform === 'darwin' ? 22 : 16;
-  const colors: Record<TrayStatus, string> = {
-    idle: '#6b7280', // Gray
-    active: '#22c55e', // Green
-    paused: '#f59e0b', // Amber
-    error: '#ef4444', // Red
-  };
+  // Fallback: use the main app icon
+  const mainIconPath = app.isPackaged
+    ? join(process.resourcesPath, 'icon.png')
+    : join(__dirname, '../../resources/icon.png');
 
-  const color = colors[status];
+  console.log('[Tray] Trying fallback icon at:', mainIconPath, 'exists:', existsSync(mainIconPath));
 
-  // Create a simple SVG circle
-  const cx = String(size / 2);
-  const cy = String(size / 2);
-  const outerR = String(size / 2 - 1);
-  const innerR = String(size / 4);
-  const svg = `
-    <svg width="${String(size)}" height="${String(size)}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${color}"/>
-      <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="white"/>
-    </svg>
-  `;
+  if (existsSync(mainIconPath)) {
+    const icon = nativeImage.createFromPath(mainIconPath);
+    if (!icon.isEmpty()) {
+      // Resize for tray
+      const size = process.platform === 'darwin' ? 22 : 16;
+      return icon.resize({ width: size, height: size });
+    }
+  }
 
-  const buffer = Buffer.from(svg);
-  return nativeImage.createFromBuffer(buffer);
+  console.warn('[Tray] No icon found, using empty image');
+  return nativeImage.createEmpty();
 }
 
 /**
@@ -194,10 +192,23 @@ export function initializeTray(trayCallbacks: TrayCallbacks): Tray {
   const icon = createTrayIcon('idle');
   tray = new Tray(icon);
 
-  tray.setContextMenu(buildContextMenu());
+  const contextMenu = buildContextMenu();
+  tray.setContextMenu(contextMenu);
   updateTooltip();
 
-  // Double-click to show window (Windows/Linux)
+  // On Linux, single-click should show the context menu
+  // On Windows/macOS, single-click behavior varies by platform
+  tray.on('click', () => {
+    if (process.platform === 'linux') {
+      // On Linux, explicitly pop up the context menu on click
+      tray?.popUpContextMenu(contextMenu);
+    } else {
+      // On Windows/macOS, single-click shows window
+      callbacks?.onShowWindow();
+    }
+  });
+
+  // Double-click to show window (all platforms)
   tray.on('double-click', () => {
     callbacks?.onShowWindow();
   });

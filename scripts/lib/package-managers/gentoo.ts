@@ -6,7 +6,7 @@
  */
 
 import { BasePackageManager } from './base.js';
-import type { PackageManagerConfig, ReleaseInfo, SubmissionResult, Logger } from './types.js';
+import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const OVERLAY_OWNER = 'profullstack';
 const OVERLAY_REPO = 'gentoo-pairux';
@@ -19,12 +19,8 @@ export class GentooPackageManager extends BasePackageManager {
   readonly platform = 'linux' as const;
   readonly priority = 8;
 
-  constructor(config: PackageManagerConfig, logger: Logger) {
-    super(config, logger);
-  }
-
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getGitHubToken();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -37,19 +33,7 @@ export class GentooPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
-    // Find the AppImage for x86_64
-    const appImage = this.findAsset(
-      release,
-      (a) => a.name.includes('x86_64') && a.name.endsWith('.AppImage')
-    );
-
-    const downloadUrl =
-      appImage?.downloadUrl ||
-      `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x86_64.AppImage`;
-
-    const sha256 = release.checksums.get(appImage?.name || '') || '';
-
+  generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
     // Generate ebuild
     const ebuild = `# Copyright 2024 Gentoo Authors
 # Distributed under the terms of the MIT License
@@ -118,27 +102,6 @@ pkg_postrm() {
 }
 `;
 
-    // Generate wrapper script
-    const wrapperScript = `#!/bin/bash
-export ELECTRON_DISABLE_SANDBOX=1
-exec /opt/pairux/pairux-bin-\${PV}.AppImage "$@"
-`;
-
-    // Generate desktop file
-    const desktopFile = `[Desktop Entry]
-Name=PairUX
-Comment=Collaborative screen sharing with remote control
-Exec=/opt/pairux/pairux-bin-\${PV}.AppImage --no-sandbox %U
-Icon=pairux
-Type=Application
-Categories=Network;RemoteAccess;
-StartupWMClass=PairUX
-`;
-
-    // Generate Manifest (Gentoo package manifest with checksums)
-    const manifest = `DIST ${PACKAGE_NAME}-${release.version}.AppImage ${appImage?.size || 0} BLAKE2B ${sha256 || 'TODO'} SHA512 ${sha256 || 'TODO'}
-`;
-
     // Generate metadata.xml
     const metadataXml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
@@ -176,12 +139,12 @@ Categories=Network;RemoteAccess;
 StartupWMClass=PairUX
 `;
 
-    return {
+    return Promise.resolve({
       [`${CATEGORY}/${PACKAGE_NAME}/${PACKAGE_NAME}-${release.version}.ebuild`]: ebuild,
       [`${CATEGORY}/${PACKAGE_NAME}/metadata.xml`]: metadataXml,
       [`${CATEGORY}/${PACKAGE_NAME}/files/pairux`]: actualWrapper,
       [`${CATEGORY}/${PACKAGE_NAME}/files/pairux.desktop`]: actualDesktop,
-    };
+    });
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {

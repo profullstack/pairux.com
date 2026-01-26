@@ -35,6 +35,8 @@
     "version:bump": "node scripts/version-bump.mjs",
     "release": "node scripts/release.mjs",
     "submit-packages": "npx tsx scripts/submit-packages.ts",
+    "test:scripts": "vitest run --config scripts/vitest.config.ts",
+    "test:scripts:watch": "vitest --config scripts/vitest.config.ts",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",

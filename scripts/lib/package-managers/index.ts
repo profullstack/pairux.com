@@ -15,6 +15,7 @@ export type {
   PackageManager,
   GitHubFile,
   PRSubmissionParams,
+  CrossForkPRSubmissionParams,
   Logger,
 } from './types.js';
 

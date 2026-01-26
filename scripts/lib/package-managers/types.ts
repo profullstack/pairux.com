@@ -101,6 +101,27 @@ export interface PRSubmissionParams {
   prBody: string;
 }
 
+export interface CrossForkPRSubmissionParams {
+  /** The upstream repo owner (e.g., 'microsoft' for winget-pkgs) */
+  upstreamOwner: string;
+  /** The upstream repo name (e.g., 'winget-pkgs') */
+  upstreamRepo: string;
+  /** The fork owner (your username) */
+  forkOwner: string;
+  /** The base branch on upstream (e.g., 'master') */
+  baseBranch: string;
+  /** The head branch on your fork */
+  headBranch: string;
+  /** Files to create/update */
+  files: GitHubFile[];
+  /** Commit message for the changes */
+  commitMessage: string;
+  /** PR title */
+  prTitle: string;
+  /** PR body/description */
+  prBody: string;
+}
+
 export interface Logger {
   info: (message: string, ...args: unknown[]) => void;
   warn: (message: string, ...args: unknown[]) => void;

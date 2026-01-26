@@ -10,7 +10,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { BasePackageManager } from './base.js';
-import type { PackageManagerConfig, ReleaseInfo, SubmissionResult, Logger } from './types.js';
+import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const PACKAGE_ID = 'pairux';
 const CHOCOLATEY_API_URL = 'https://push.chocolatey.org/';
@@ -21,16 +21,12 @@ export class ChocolateyPackageManager extends BasePackageManager {
   readonly platform = 'windows' as const;
   readonly priority = 3;
 
-  constructor(config: PackageManagerConfig, logger: Logger) {
-    super(config, logger);
-  }
-
   private getChocolateyApiKey(): string | undefined {
     return process.env.CHOCOLATEY_API_KEY;
   }
 
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getChocolateyApiKey();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getChocolateyApiKey());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -45,19 +41,19 @@ export class ChocolateyPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
+  generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
     // Find the Windows installer (NSIS exe)
     const x64Exe = this.findAsset(
       release,
       (a) => a.name.endsWith('.exe') && a.name.includes('x64')
     );
-    const exe = x64Exe || this.findAsset(release, (a) => a.name.endsWith('.exe'));
+    const exe = x64Exe ?? this.findAsset(release, (a) => a.name.endsWith('.exe'));
 
     const downloadUrl =
-      exe?.downloadUrl ||
+      exe?.downloadUrl ??
       `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
 
-    const checksum = exe?.sha256 || '';
+    const checksum = exe?.sha256 ?? '';
 
     // Generate .nuspec file
     const nuspec = `<?xml version="1.0" encoding="utf-8"?>
@@ -159,7 +155,7 @@ The installer can be downloaded from:
 ${downloadUrl}
 
 The SHA256 checksum for the installer is:
-${checksum || 'Checksum will be verified during package build'}
+${checksum !== '' ? checksum : 'Checksum will be verified during package build'}
 
 This can be verified by:
 1. Downloading the installer from the official GitHub releases
@@ -169,12 +165,12 @@ The source code is available at:
 https://github.com/profullstack/pairux.com
 `;
 
-    return {
+    return Promise.resolve({
       'pairux.nuspec': nuspec,
       'tools/chocolateyInstall.ps1': installScript,
       'tools/chocolateyUninstall.ps1': uninstallScript,
       'tools/VERIFICATION.txt': verification,
-    };
+    });
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {

@@ -5,7 +5,7 @@
  */
 
 import { BasePackageManager } from './base.js';
-import type { PackageManagerConfig, ReleaseInfo, SubmissionResult, Logger } from './types.js';
+import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const WINGET_OWNER = 'microsoft';
 const WINGET_REPO = 'winget-pkgs';
@@ -17,12 +17,8 @@ export class WingetPackageManager extends BasePackageManager {
   readonly platform = 'windows' as const;
   readonly priority = 3;
 
-  constructor(config: PackageManagerConfig, logger: Logger) {
-    super(config, logger);
-  }
-
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getGitHubToken();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -35,16 +31,16 @@ export class WingetPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
+  generateManifest(release: ReleaseInfo): Promise<Record<string, string>> {
     // Find the Windows installer
     const x64Exe = this.findAsset(
       release,
       (a) => a.name.endsWith('.exe') && (a.name.includes('x64') || !a.name.includes('arm'))
     );
 
-    const x64Sha = x64Exe?.sha256?.toUpperCase() || 'SHA256_PLACEHOLDER';
+    const x64Sha = x64Exe?.sha256?.toUpperCase() ?? 'SHA256_PLACEHOLDER';
     const downloadUrl =
-      x64Exe?.downloadUrl ||
+      x64Exe?.downloadUrl ??
       `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
 
     // Version manifest
@@ -109,11 +105,11 @@ ManifestType: defaultLocale
 ManifestVersion: 1.6.0
 `;
 
-    return {
+    return Promise.resolve({
       version: versionManifest,
       installer: installerManifest,
       locale: localeManifest,
-    };
+    });
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
@@ -185,9 +181,11 @@ ManifestVersion: 1.6.0
 
     const branchName = `pairux-${release.version}`;
 
-    return this.submitViaPR({
-      owner: forkOwner,
-      repo: WINGET_REPO,
+    // Submit via cross-fork PR to microsoft/winget-pkgs
+    return this.submitCrossForkPR({
+      upstreamOwner: WINGET_OWNER,
+      upstreamRepo: WINGET_REPO,
+      forkOwner,
       baseBranch: 'master',
       headBranch: branchName,
       files: [

@@ -176,7 +176,11 @@
       "Bash(pnpm run format:check:*)",
       "Bash(xargs:*)",
       "Bash(pnpm run test:*)",
-      "Bash(pnpm eslint:*)"
+      "Bash(pnpm eslint:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(node scripts/release.mjs:*)",
+      "Bash(gh release:*)"
     ],
     "deny": [
       "Bash(npm *)",

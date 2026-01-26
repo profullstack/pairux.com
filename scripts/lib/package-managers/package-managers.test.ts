@@ -115,7 +115,7 @@ describe('WingetPackageManager', () => {
       expect(manifests).toHaveProperty('locale');
 
       // Check version manifest
-      expect(manifests.version).toContain('PackageIdentifier: PairUX.PairUX');
+      expect(manifests.version).toContain('PackageIdentifier: Profullstack.PairUX');
       expect(manifests.version).toContain('PackageVersion: 1.0.0');
       expect(manifests.version).toContain('ManifestType: version');
 
@@ -176,7 +176,9 @@ describe('WingetPackageManager', () => {
       const exists = await winget.checkExisting('1.0.0');
       expect(exists).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('microsoft/winget-pkgs/contents/manifests/p/PairUX/PairUX/1.0.0'),
+        expect.stringContaining(
+          'microsoft/winget-pkgs/contents/manifests/p/Profullstack/PairUX/1.0.0'
+        ),
         expect.any(Object)
       );
     });

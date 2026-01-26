@@ -1,6 +1,6 @@
 {
   "name": "pairux",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Collaborative desktop screen sharing with remote control",
   "type": "module",

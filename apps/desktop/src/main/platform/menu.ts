@@ -5,6 +5,7 @@
 
 import { app, Menu, shell, BrowserWindow } from 'electron';
 import type { MenuItemConstructorOptions } from 'electron';
+import { APP_URL } from '../../shared/config';
 
 export interface MenuCallbacks {
   onAbout: () => void;
@@ -143,7 +144,7 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
       {
         label: 'PairUX Help',
         click: () => {
-          void shell.openExternal('https://pairux.com/docs');
+          void shell.openExternal(`${APP_URL}/docs`);
         },
       },
       {
@@ -156,7 +157,7 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
       {
         label: 'View License',
         click: () => {
-          void shell.openExternal('https://pairux.com/license');
+          void shell.openExternal(`${APP_URL}/license`);
         },
       },
     ],
@@ -237,7 +238,7 @@ function buildDefaultMenu(): MenuItemConstructorOptions[] {
       {
         label: 'Documentation',
         click: () => {
-          void shell.openExternal('https://pairux.com/docs');
+          void shell.openExternal(`${APP_URL}/docs`);
         },
       },
       {

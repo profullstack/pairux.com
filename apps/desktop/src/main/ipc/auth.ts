@@ -1,43 +1,50 @@
 import { ipcMain, shell } from 'electron';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { storeAuth, getStoredAuth, clearStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
-
-let supabaseClient: SupabaseClient | null = null;
-
-function getSupabase(): SupabaseClient {
-  if (supabaseClient) return supabaseClient;
-
-  // Support both VITE_ and NEXT_PUBLIC_ prefixed env vars
-  const supabaseUrl =
-    process.env.VITE_SUPABASE_URL ??
-    process.env.NEXT_PUBLIC_SUPABASE_URL ??
-    process.env.SUPABASE_URL;
-
-  const supabaseAnonKey =
-    process.env.VITE_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      'Supabase credentials not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.'
-    );
-  }
-
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-
-  return supabaseClient;
-}
+import { APP_URL } from '../../shared/config';
 
 export interface AuthUser {
   id: string;
   email: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+interface JsonResponse {
+  data?: unknown;
+  error?: string;
+}
+
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  try {
+    const url = `${APP_URL}${endpoint}`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> | undefined),
+    };
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    const data = (await response.json()) as JsonResponse;
+
+    if (!response.ok) {
+      return { success: false, error: data.error ?? `HTTP ${String(response.status)}` };
+    }
+
+    return { success: true, data: (data.data ?? data) as T };
+  } catch (error) {
+    console.error(`[Auth] API request failed:`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+    };
+  }
 }
 
 export function registerAuthHandlers(): void {
@@ -51,29 +58,28 @@ export function registerAuthHandlers(): void {
       args: { email: string; password: string }
     ): Promise<{ success: true; user: AuthUser } | { success: false; error: string }> => {
       try {
-        const supabase = getSupabase();
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: args.email,
-          password: args.password,
+        const result = await apiRequest<{ user: AuthUser }>('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email: args.email, password: args.password }),
         });
 
-        if (error) {
-          console.log('[Auth] Login failed:', error.message);
-          return { success: false, error: error.message };
+        if (!result.success || !result.data?.user) {
+          console.log('[Auth] Login failed:', result.error);
+          return { success: false, error: result.error ?? 'Invalid credentials' };
         }
 
-        // Store tokens securely
+        const user = result.data.user;
+
+        // Store user info (no tokens needed since we use API)
         storeAuth({
-          accessToken: data.session.access_token,
-          refreshToken: data.session.refresh_token,
-          expiresAt: data.session.expires_at
-            ? data.session.expires_at * 1000
-            : Date.now() + 3600000,
-          user: { id: data.user.id, email: data.user.email ?? '' },
+          accessToken: 'api-session', // Placeholder - auth is cookie-based on API
+          refreshToken: '',
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+          user: { id: user.id, email: user.email },
         });
 
-        console.log('[Auth] Login successful for user:', data.user.email);
-        return { success: true, user: { id: data.user.id, email: data.user.email ?? '' } };
+        console.log('[Auth] Login successful for user:', user.email);
+        return { success: true, user: { id: user.id, email: user.email } };
       } catch (err) {
         console.error('[Auth] Login error:', err);
         return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -84,8 +90,7 @@ export function registerAuthHandlers(): void {
   // Logout handler
   ipcMain.handle('auth:logout', async (): Promise<{ success: boolean }> => {
     try {
-      const supabase = getSupabase();
-      await supabase.auth.signOut();
+      await apiRequest('/api/auth/logout', { method: 'POST' });
       clearStoredAuth();
       console.log('[Auth] Logged out');
       return { success: true };
@@ -97,86 +102,37 @@ export function registerAuthHandlers(): void {
   });
 
   // Get session handler
-  ipcMain.handle(
-    'auth:getSession',
-    async (): Promise<{ user: AuthUser | null; profile: Profile | null }> => {
-      const stored = getStoredAuth();
-      if (!stored || isAuthExpired(stored)) {
-        return { user: null, profile: null };
-      }
-
-      try {
-        const supabase = getSupabase();
-        // Set session from stored tokens
-        await supabase.auth.setSession({
-          access_token: stored.accessToken,
-          refresh_token: stored.refreshToken,
-        });
-
-        // Fetch profile
-        const { data: profile }: { data: Profile | null } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', stored.user.id)
-          .single();
-
-        return { user: stored.user, profile };
-      } catch (error) {
-        console.error('[Auth] Get session error:', error);
-        return { user: null, profile: null };
-      }
+  ipcMain.handle('auth:getSession', (): { user: AuthUser | null; profile: Profile | null } => {
+    const stored = getStoredAuth();
+    if (!stored || isAuthExpired(stored)) {
+      return { user: null, profile: null };
     }
-  );
+
+    // Return stored user info
+    // Profile would need to be fetched separately if needed
+    return { user: stored.user, profile: null };
+  });
 
   // Validate session (check if still valid)
-  ipcMain.handle(
-    'auth:validateSession',
-    async (): Promise<{ valid: boolean; user: AuthUser | null }> => {
-      const stored = getStoredAuth();
-      if (!stored) {
-        return { valid: false, user: null };
-      }
-
-      if (isAuthExpired(stored)) {
-        // Try to refresh
-        try {
-          const supabase = getSupabase();
-          const { data, error } = await supabase.auth.refreshSession({
-            refresh_token: stored.refreshToken,
-          });
-
-          if (error || !data.session || !data.user) {
-            console.log('[Auth] Session refresh failed:', error?.message);
-            clearStoredAuth();
-            return { valid: false, user: null };
-          }
-
-          const refreshedUser = data.user;
-          storeAuth({
-            accessToken: data.session.access_token,
-            refreshToken: data.session.refresh_token,
-            expiresAt: data.session.expires_at
-              ? data.session.expires_at * 1000
-              : Date.now() + 3600000,
-            user: { id: refreshedUser.id, email: refreshedUser.email ?? '' },
-          });
-
-          console.log('[Auth] Session refreshed for user:', refreshedUser.email);
-          return { valid: true, user: { id: refreshedUser.id, email: refreshedUser.email ?? '' } };
-        } catch (error) {
-          console.error('[Auth] Session refresh error:', error);
-          clearStoredAuth();
-          return { valid: false, user: null };
-        }
-      }
-
-      return { valid: true, user: stored.user };
+  ipcMain.handle('auth:validateSession', (): { valid: boolean; user: AuthUser | null } => {
+    const stored = getStoredAuth();
+    if (!stored) {
+      return { valid: false, user: null };
     }
-  );
+
+    if (isAuthExpired(stored)) {
+      clearStoredAuth();
+      return { valid: false, user: null };
+    }
+
+    return { valid: true, user: stored.user };
+  });
 
   // Open external URL (for signup/forgot password)
   ipcMain.handle('auth:openExternal', async (_event, url: string): Promise<void> => {
-    await shell.openExternal(url);
+    // For signup/forgot password, open the web app
+    const fullUrl = url.startsWith('http') ? url : `${APP_URL}${url}`;
+    await shell.openExternal(fullUrl);
   });
 
   console.log('[Auth] Auth IPC handlers registered');

@@ -25,6 +25,7 @@ export { BasePackageManager } from './base.js';
 export { HomebrewPackageManager } from './homebrew.js';
 export { ScoopPackageManager } from './scoop.js';
 export { WingetPackageManager } from './winget.js';
+export { ChocolateyPackageManager } from './chocolatey.js';
 export { AURPackageManager } from './aur.js';
 export { APTPackageManager } from './apt.js';
 export { RPMPackageManager } from './rpm.js';
@@ -33,6 +34,7 @@ import type { PackageManager, PackageManagerConfig, Logger } from './types.js';
 import { HomebrewPackageManager } from './homebrew.js';
 import { ScoopPackageManager } from './scoop.js';
 import { WingetPackageManager } from './winget.js';
+import { ChocolateyPackageManager } from './chocolatey.js';
 import { AURPackageManager } from './aur.js';
 import { APTPackageManager } from './apt.js';
 import { RPMPackageManager } from './rpm.js';
@@ -41,6 +43,7 @@ export interface AllConfigs {
   homebrew: PackageManagerConfig;
   scoop: PackageManagerConfig;
   winget: PackageManagerConfig;
+  chocolatey: PackageManagerConfig;
   aur: PackageManagerConfig;
   apt: PackageManagerConfig;
   rpm: PackageManagerConfig;
@@ -54,6 +57,7 @@ export function createAllPackageManagers(configs: AllConfigs, logger: Logger): P
     new HomebrewPackageManager(configs.homebrew, logger),
     new ScoopPackageManager(configs.scoop, logger),
     new WingetPackageManager(configs.winget, logger),
+    new ChocolateyPackageManager(configs.chocolatey, logger),
     new AURPackageManager(configs.aur, logger),
     new APTPackageManager(configs.apt, logger),
     new RPMPackageManager(configs.rpm, logger),
@@ -75,6 +79,7 @@ export function getPackageManager(
     homebrew: HomebrewPackageManager,
     scoop: ScoopPackageManager,
     winget: WingetPackageManager,
+    chocolatey: ChocolateyPackageManager,
     aur: AURPackageManager,
     apt: APTPackageManager,
     rpm: RPMPackageManager,
@@ -92,6 +97,14 @@ export function getPackageManager(
 /**
  * List of all supported package manager names
  */
-export const PACKAGE_MANAGER_NAMES = ['homebrew', 'scoop', 'winget', 'aur', 'apt', 'rpm'] as const;
+export const PACKAGE_MANAGER_NAMES = [
+  'homebrew',
+  'scoop',
+  'winget',
+  'chocolatey',
+  'aur',
+  'apt',
+  'rpm',
+] as const;
 
 export type PackageManagerName = (typeof PACKAGE_MANAGER_NAMES)[number];

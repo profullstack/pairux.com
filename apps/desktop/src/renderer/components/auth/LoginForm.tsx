@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/stores/auth';
 import { loginSchema } from '@/lib/validations';
 import { getElectronAPI } from '@/lib/ipc';
+import { APP_URL } from '../../../shared/config';
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -52,20 +53,18 @@ export function LoginForm() {
   };
 
   const openSignup = () => {
-    void openExternal('https://pairux.com/signup');
+    void openExternal(`${APP_URL}/signup`);
   };
 
   const openForgotPassword = () => {
-    void openExternal('https://pairux.com/forgot-password');
+    void openExternal(`${APP_URL}/forgot-password`);
   };
 
   return (
     <Card className="w-full max-w-md border-border">
       <CardHeader className="space-y-1 text-center">
         <div className="mb-4 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-2xl font-bold text-primary-foreground">
-            P
-          </div>
+          <img src="/logo.svg" alt="PairUX" className="h-12 w-12" />
         </div>
         <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
         <CardDescription>Sign in to your PairUX account</CardDescription>

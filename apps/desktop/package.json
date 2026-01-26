@@ -29,7 +29,6 @@
     "@nut-tree-fork/nut-js": "^4.2.6",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@supabase/supabase-js": "^2.47.0",
     "class-variance-authority": "^0.7.1",
     "dotenv": "^17.2.3",
     "linkify-react": "^4.3.2",

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Monitor } from 'lucide-react';
+import Image from 'next/image';
 
 // Custom GitHub icon SVG component (brand icons deprecated in lucide)
 function GitHubIcon({ className }: { className?: string }) {
@@ -25,6 +25,31 @@ const footerLinks = {
     { name: 'Download', href: '/download' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Changelog', href: '/changelog' },
+  ],
+  install: [
+    {
+      name: 'Homebrew (macOS)',
+      href: 'https://github.com/profullstack/homebrew-pairux',
+      external: true,
+    },
+    {
+      name: 'Scoop (Windows)',
+      href: 'https://github.com/profullstack/scoop-pairux',
+      external: true,
+    },
+    {
+      name: 'WinGet (Windows)',
+      href: 'https://github.com/microsoft/winget-pkgs/tree/master/manifests/p/PairUX/PairUX',
+      external: true,
+    },
+    {
+      name: 'Chocolatey (Windows)',
+      href: 'https://community.chocolatey.org/packages/pairux',
+      external: true,
+    },
+    { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux', external: true },
+    { name: 'APT (Debian)', href: 'https://github.com/profullstack/pairux-apt', external: true },
+    { name: 'RPM (Fedora)', href: 'https://github.com/profullstack/pairux-rpm', external: true },
   ],
   resources: [
     { name: 'Documentation', href: '/docs' },
@@ -57,13 +82,11 @@ export function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <div className="bg-primary-600 flex h-9 w-9 items-center justify-center rounded-lg">
-                <Monitor className="h-5 w-5 text-white" />
-              </div>
+              <Image src="/logo.svg" alt="PairUX" width={36} height={36} className="h-9 w-9" />
               <span className="text-xl font-bold text-gray-900">PairUX</span>
             </Link>
             <p className="mt-4 text-sm text-gray-600">
@@ -94,6 +117,25 @@ export function Footer() {
                 <li key={item.name}>
                   <Link
                     href={item.href}
+                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Install links */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Install</h3>
+            <ul className="mt-4 space-y-3">
+              {footerLinks.install.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-600 transition-colors hover:text-gray-900"
                   >
                     {item.name}

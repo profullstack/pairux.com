@@ -19,6 +19,7 @@
  *   homebrew    macOS Homebrew Cask
  *   scoop       Windows Scoop bucket
  *   winget      Windows Package Manager
+ *   chocolatey  Windows Chocolatey
  *   aur         Arch User Repository
  *   apt         Debian/Ubuntu APT repository
  *   rpm         Fedora/RHEL RPM repository
@@ -29,6 +30,7 @@
  *   AUR_SSH_KEY            Required for AUR (base64 encoded)
  *   GPG_PRIVATE_KEY        Required for APT/RPM (base64 encoded)
  *   GPG_PASSPHRASE         Optional GPG passphrase
+ *   CHOCOLATEY_API_KEY     Required for Chocolatey
  */
 
 import { parseArgs } from 'node:util';
@@ -147,6 +149,7 @@ ${colors.yellow}Package Managers:${colors.reset}
   homebrew    macOS Homebrew Cask
   scoop       Windows Scoop bucket
   winget      Windows Package Manager
+  chocolatey  Windows Chocolatey
   aur         Arch User Repository
   apt         Debian/Ubuntu APT repository
   rpm         Fedora/RHEL RPM repository
@@ -157,6 +160,7 @@ ${colors.yellow}Environment Variables:${colors.reset}
   AUR_SSH_KEY            Required for AUR (base64 encoded)
   GPG_PRIVATE_KEY        Required for APT/RPM (base64 encoded)
   GPG_PASSPHRASE         Optional GPG passphrase
+  CHOCOLATEY_API_KEY     Required for Chocolatey
 
 ${colors.yellow}Examples:${colors.reset}
   npx tsx scripts/submit-packages.ts --dry-run
@@ -294,6 +298,9 @@ function loadConfig(): AllConfigs {
     },
     winget: {
       enabled: true,
+    },
+    chocolatey: {
+      enabled: !!process.env.CHOCOLATEY_API_KEY,
     },
     aur: {
       enabled: !!process.env.AUR_SSH_KEY,

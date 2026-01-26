@@ -185,4 +185,6 @@ jobs:
           files: |
             dist/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use PKG_SUBMIT_TOKEN (PAT) to trigger submit-packages workflow
+          # GITHUB_TOKEN doesn't trigger other workflows
+          GITHUB_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}

@@ -213,11 +213,10 @@ install_linux() {
     mkdir -p "$BIN_DIR"
     cat > "$BIN_DIR/pairux" << 'WRAPPER'
 #!/bin/bash
-# PairUX launcher - handles AppImage sandbox requirements
+# PairUX launcher
 APPIMAGE="$HOME/.pairux/PairUX.AppImage"
 if [ -x "$APPIMAGE" ]; then
-    # Use --no-sandbox to avoid SUID sandbox issues on some systems
-    exec "$APPIMAGE" --no-sandbox "$@"
+    exec "$APPIMAGE" "$@"
 else
     echo "Error: PairUX AppImage not found at $APPIMAGE"
     echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"

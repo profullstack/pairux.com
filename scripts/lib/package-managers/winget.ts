@@ -9,7 +9,7 @@ import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const WINGET_OWNER = 'microsoft';
 const WINGET_REPO = 'winget-pkgs';
-const PACKAGE_IDENTIFIER = 'PairUX.PairUX';
+const PACKAGE_IDENTIFIER = 'Profullstack.PairUX';
 
 export class WingetPackageManager extends BasePackageManager {
   readonly name = 'winget';
@@ -23,7 +23,7 @@ export class WingetPackageManager extends BasePackageManager {
 
   async checkExisting(version: string): Promise<boolean> {
     try {
-      const path = `manifests/p/PairUX/PairUX/${version}/${PACKAGE_IDENTIFIER}.yaml`;
+      const path = `manifests/p/Profullstack/PairUX/${version}/${PACKAGE_IDENTIFIER}.yaml`;
       const file = await this.getFileContent(WINGET_OWNER, WINGET_REPO, path);
       return file !== null;
     } catch {
@@ -44,16 +44,16 @@ export class WingetPackageManager extends BasePackageManager {
       `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
 
     // Version manifest
-    const versionManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json
+    const versionManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.10.0.schema.json
 PackageIdentifier: ${PACKAGE_IDENTIFIER}
 PackageVersion: ${release.version}
 DefaultLocale: en-US
 ManifestType: version
-ManifestVersion: 1.6.0
+ManifestVersion: 1.10.0
 `;
 
     // Installer manifest
-    const installerManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+    const installerManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
 PackageIdentifier: ${PACKAGE_IDENTIFIER}
 PackageVersion: ${release.version}
 Platform:
@@ -73,11 +73,11 @@ Installers:
     InstallerUrl: ${downloadUrl}
     InstallerSha256: ${x64Sha}
 ManifestType: installer
-ManifestVersion: 1.6.0
+ManifestVersion: 1.10.0
 `;
 
     // Locale manifest
-    const localeManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+    const localeManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
 PackageIdentifier: ${PACKAGE_IDENTIFIER}
 PackageVersion: ${release.version}
 PackageLocale: en-US
@@ -102,7 +102,7 @@ Tags:
   - remote-desktop
 ReleaseNotesUrl: https://github.com/profullstack/pairux.com/releases/tag/v${release.version}
 ManifestType: defaultLocale
-ManifestVersion: 1.6.0
+ManifestVersion: 1.10.0
 `;
 
     return Promise.resolve({
@@ -140,7 +140,7 @@ ManifestVersion: 1.6.0
       };
     }
 
-    const basePath = `manifests/p/PairUX/PairUX/${release.version}`;
+    const basePath = `manifests/p/Profullstack/PairUX/${release.version}`;
 
     // Submit via PR to microsoft/winget-pkgs
     // First, we need to fork the repo to our account

@@ -210,7 +210,11 @@
       "Bash(pnpm turbo build:*)",
       "Bash(pnpm turbo test:*)",
       "Bash(pnpm run:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(gh pr view:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr close:*)"
     ],
     "deny": [
       "Bash(npm *)",

@@ -220,10 +220,10 @@
 
 ### UI/UX
 
-- [ ] **System Tray**
-  - [ ] Tray icon with status
-  - [ ] Quick actions menu
-  - [ ] Session status indicator
+- [x] **System Tray**
+  - [x] Tray icon with status
+  - [x] Quick actions menu
+  - [x] Session status indicator
 
 - [ ] **Main Window**
   - [ ] Session dashboard

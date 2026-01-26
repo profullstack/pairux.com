@@ -1,8 +1,9 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, clipboard } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
+import { initializeTray, destroyTray, getTraySession } from './tray';
 
 // Load environment variables from .env file
 // In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
@@ -84,6 +85,38 @@ void app.whenReady().then(async () => {
 
   await createWindow();
 
+  // Initialize system tray
+  initializeTray({
+    onShowWindow: () => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    },
+    onEndSession: () => {
+      // Send message to renderer to end session
+      if (mainWindow) {
+        mainWindow.webContents.send('tray:end-session');
+      }
+    },
+    onTogglePause: () => {
+      // Send message to renderer to toggle pause
+      if (mainWindow) {
+        mainWindow.webContents.send('tray:toggle-pause');
+      }
+    },
+    onCopyJoinCode: () => {
+      const session = getTraySession();
+      if (session) {
+        clipboard.writeText(session.joinCode);
+      }
+    },
+    onQuit: () => {
+      app.quit();
+    },
+  });
+
   app.on('activate', () => {
     // On macOS, re-create window when dock icon is clicked
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -101,6 +134,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   console.log('[Main] App quitting...');
+  destroyTray();
 });
 
 // Handle uncaught exceptions

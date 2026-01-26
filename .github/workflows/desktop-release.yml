@@ -151,6 +151,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
+          # Detect prerelease (alpha, beta, rc, or 0.x.x)
+          if [[ "$VERSION" == *"-"* ]] || [[ "$VERSION" == 0.* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -172,7 +179,8 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: PairUX ${{ steps.version.outputs.version }}
-          draft: true
+          draft: false
+          prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: true
           files: |
             dist/*

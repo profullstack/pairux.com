@@ -8,12 +8,23 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// Read package.json version for fallback
+function getPackageVersion(): string {
+  try {
+    const pkgPath = join(__dirname, '../package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
+    return pkg.version;
+  } catch {
+    return '0.1.0';
+  }
+}
+
 // Configuration
 const PORT = parseInt(process.env.PORT ?? '8080', 10);
 const SCRIPTS_DIR = process.env.SCRIPTS_DIR ?? join(__dirname, '../scripts');
 const BASE_URL = process.env.BASE_URL ?? 'https://installer.pairux.com';
 const GITHUB_REPO = process.env.GITHUB_REPO ?? 'profullstack/pairux.com';
-const FALLBACK_VERSION = process.env.LATEST_VERSION ?? '0.1.0';
+const FALLBACK_VERSION = process.env.LATEST_VERSION ?? getPackageVersion();
 
 // Cache for GitHub version
 let cachedVersion: { version: string; timestamp: number } | null = null;
@@ -100,7 +111,7 @@ app.get('/', async (c) => {
   const latestVersion = await getLatestVersion();
   return c.json({
     name: 'PairUX Installer Service',
-    version: '0.1.0',
+    version: getPackageVersion(),
     latestRelease: latestVersion,
     install: {
       unix: `curl -fsSL ${BASE_URL}/install.sh | bash`,

@@ -1,16 +1,34 @@
-import { BrowserWindow, shell, session, desktopCapturer } from 'electron';
+import { BrowserWindow, shell, session, desktopCapturer, nativeImage } from 'electron';
 import { join } from 'path';
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// Get the icon path based on environment
+function getIconPath(): string {
+  if (isDev) {
+    // Development: use resources folder relative to dist/main
+    return join(__dirname, '../../resources/icon.png');
+  }
+  // Production: icon is in resources folder of the packaged app
+  return join(__dirname, '../../resources/icon.png');
+}
+
 export async function createMainWindow(): Promise<BrowserWindow> {
+  // Load the window icon
+  const iconPath = getIconPath();
+  const icon = nativeImage.createFromPath(iconPath);
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
     minHeight: 600,
     show: false,
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    icon: icon.isEmpty() ? undefined : icon,
+    // macOS: hidden inset for native look with traffic lights
+    // Windows: custom title bar overlay
+    // Linux: default titlebar to show window controls and menu
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     titleBarOverlay:
       process.platform === 'win32'
         ? {

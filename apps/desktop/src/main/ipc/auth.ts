@@ -58,23 +58,26 @@ export function registerAuthHandlers(): void {
       args: { email: string; password: string }
     ): Promise<{ success: true; user: AuthUser } | { success: false; error: string }> => {
       try {
-        const result = await apiRequest<{ user: AuthUser }>('/api/auth/login', {
+        const result = await apiRequest<{
+          user: AuthUser;
+          session: { accessToken: string; refreshToken: string; expiresAt: number };
+        }>('/api/auth/login', {
           method: 'POST',
           body: JSON.stringify({ email: args.email, password: args.password }),
         });
 
-        if (!result.success || !result.data?.user) {
+        if (!result.success || !result.data) {
           console.log('[Auth] Login failed:', result.error);
           return { success: false, error: result.error ?? 'Invalid credentials' };
         }
 
-        const user = result.data.user;
+        const { user, session } = result.data;
 
-        // Store user info (no tokens needed since we use API)
+        // Store real access token for API authentication
         storeAuth({
-          accessToken: 'api-session', // Placeholder - auth is cookie-based on API
-          refreshToken: '',
-          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken,
+          expiresAt: session.expiresAt * 1000, // Convert to milliseconds
           user: { id: user.id, email: user.email },
         });
 

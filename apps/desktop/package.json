@@ -3,6 +3,12 @@
   "version": "0.1.1",
   "private": true,
   "description": "PairUX Desktop - Screen sharing with remote control",
+  "author": "PairUX Team <hello@pairux.com>",
+  "homepage": "https://pairux.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/profullstack/pairux.com.git"
+  },
   "main": "dist/main/index.js",
   "scripts": {
     "dev": "electron-vite dev -- --no-sandbox",

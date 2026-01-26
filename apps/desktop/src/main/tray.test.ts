@@ -25,6 +25,7 @@ vi.mock('electron', () => {
     nativeImage: {
       createFromPath: vi.fn().mockReturnValue({}),
       createFromBuffer: vi.fn().mockReturnValue({}),
+      createEmpty: vi.fn().mockReturnValue({}),
     },
     app: {
       isPackaged: false,

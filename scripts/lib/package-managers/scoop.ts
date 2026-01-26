@@ -21,12 +21,14 @@ export class ScoopPackageManager extends BasePackageManager {
 
   constructor(config: PackageManagerConfig, logger: Logger) {
     super(config, logger);
-    this.bucketOwner = (config.additionalConfig?.bucketOwner as string) || DEFAULT_BUCKET_OWNER;
-    this.bucketRepo = (config.additionalConfig?.bucketRepo as string) || DEFAULT_BUCKET_REPO;
+    this.bucketOwner =
+      (config.additionalConfig?.bucketOwner as string | undefined) ?? DEFAULT_BUCKET_OWNER;
+    this.bucketRepo =
+      (config.additionalConfig?.bucketRepo as string | undefined) ?? DEFAULT_BUCKET_REPO;
   }
 
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getGitHubToken();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -39,14 +41,14 @@ export class ScoopPackageManager extends BasePackageManager {
 
       if (!file) return false;
 
-      const manifest = JSON.parse(file.content);
+      const manifest = JSON.parse(file.content) as { version?: string };
       return manifest.version === version;
     } catch {
       return false;
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // Find the Windows installer (NSIS exe)
     const x64Exe = this.findAsset(
       release,
@@ -54,7 +56,7 @@ export class ScoopPackageManager extends BasePackageManager {
     );
 
     // If no x64 specific, find any exe
-    const exe = x64Exe || this.findAsset(release, (a) => a.name.endsWith('.exe'));
+    const exe = x64Exe ?? this.findAsset(release, (a) => a.name.endsWith('.exe'));
 
     const manifest = {
       version: release.version,
@@ -62,9 +64,9 @@ export class ScoopPackageManager extends BasePackageManager {
       homepage: 'https://pairux.com',
       license: 'MIT',
       url:
-        exe?.downloadUrl ||
+        exe?.downloadUrl ??
         `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`,
-      hash: exe?.sha256 || 'SHA256_PLACEHOLDER',
+      hash: exe?.sha256 ?? 'SHA256_PLACEHOLDER',
       installer: {
         args: ['/S', '/D=$dir'],
       },
@@ -81,7 +83,7 @@ export class ScoopPackageManager extends BasePackageManager {
       },
     };
 
-    return JSON.stringify(manifest, null, 2);
+    return Promise.resolve(JSON.stringify(manifest, null, 2));
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {

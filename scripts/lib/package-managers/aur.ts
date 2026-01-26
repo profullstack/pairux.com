@@ -4,12 +4,12 @@
  * Pushes PKGBUILD to aur.archlinux.org via SSH.
  */
 
-import { execSync, spawn } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { BasePackageManager } from './base.js';
-import type { PackageManagerConfig, ReleaseInfo, SubmissionResult, Logger } from './types.js';
+import type { ReleaseInfo, SubmissionResult } from './types.js';
 
 const AUR_SSH_HOST = 'aur@aur.archlinux.org';
 const PACKAGE_NAME = 'pairux-bin';
@@ -20,13 +20,9 @@ export class AURPackageManager extends BasePackageManager {
   readonly platform = 'linux' as const;
   readonly priority = 4;
 
-  constructor(config: PackageManagerConfig, logger: Logger) {
-    super(config, logger);
-  }
-
-  async isConfigured(): Promise<boolean> {
+  isConfigured(): Promise<boolean> {
     // AUR requires SSH key
-    return this.config.enabled && !!process.env.AUR_SSH_KEY;
+    return Promise.resolve(this.config.enabled && !!process.env.AUR_SSH_KEY);
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -47,14 +43,14 @@ export class AURPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // Find the AppImage for x86_64
     const appImage = this.findAsset(
       release,
       (a) => a.name.includes('x64') && a.name.endsWith('.AppImage')
     );
 
-    const sha256 = appImage?.sha256 || 'SKIP';
+    const sha256 = appImage?.sha256 ?? 'SKIP';
 
     const pkgbuild = `# Maintainer: PairUX Team <hello@pairux.com>
 pkgname=${PACKAGE_NAME}
@@ -72,22 +68,22 @@ source=("PairUX-\${pkgver}.AppImage::https://github.com/profullstack/pairux.com/
 sha256sums=('${sha256}')
 
 package() {
-    cd "\$srcdir"
+    cd "$srcdir"
 
     # Install AppImage
-    install -Dm755 "PairUX-\${pkgver}.AppImage" "\$pkgdir/opt/pairux/pairux.AppImage"
+    install -Dm755 "PairUX-\${pkgver}.AppImage" "$pkgdir/opt/pairux/pairux.AppImage"
 
     # Create wrapper script
-    install -dm755 "\$pkgdir/usr/bin"
-    cat > "\$pkgdir/usr/bin/pairux" << 'WRAPPER'
+    install -dm755 "$pkgdir/usr/bin"
+    cat > "$pkgdir/usr/bin/pairux" << 'WRAPPER'
 #!/bin/bash
 export ELECTRON_DISABLE_SANDBOX=1
 exec /opt/pairux/pairux.AppImage "$@"
 WRAPPER
-    chmod 755 "\$pkgdir/usr/bin/pairux"
+    chmod 755 "$pkgdir/usr/bin/pairux"
 
     # Create and install desktop file
-    cat > "\$srcdir/pairux.desktop" << 'DESKTOP'
+    cat > "$srcdir/pairux.desktop" << 'DESKTOP'
 [Desktop Entry]
 Name=PairUX
 Comment=Collaborative screen sharing with remote control
@@ -97,19 +93,19 @@ Type=Application
 Categories=Network;RemoteAccess;
 StartupWMClass=PairUX
 DESKTOP
-    install -Dm644 "\$srcdir/pairux.desktop" "\$pkgdir/usr/share/applications/pairux.desktop"
+    install -Dm644 "$srcdir/pairux.desktop" "$pkgdir/usr/share/applications/pairux.desktop"
 
     # Extract and install icon from AppImage
-    cd "\$pkgdir/opt/pairux"
+    cd "$pkgdir/opt/pairux"
     ./pairux.AppImage --appimage-extract usr/share/icons/hicolor/512x512/apps/*.png 2>/dev/null || true
     if [ -f squashfs-root/usr/share/icons/hicolor/512x512/apps/*.png ]; then
-        install -Dm644 squashfs-root/usr/share/icons/hicolor/512x512/apps/*.png "\$pkgdir/usr/share/pixmaps/pairux.png"
+        install -Dm644 squashfs-root/usr/share/icons/hicolor/512x512/apps/*.png "$pkgdir/usr/share/pixmaps/pairux.png"
     fi
     rm -rf squashfs-root
 }
 `;
 
-    return pkgbuild;
+    return Promise.resolve(pkgbuild);
   }
 
   private generateSrcinfo(version: string): string {
@@ -175,7 +171,7 @@ pkgname = ${PACKAGE_NAME}
       };
     }
 
-    const tempDir = join(tmpdir(), `aur-${Date.now()}`);
+    const tempDir = join(tmpdir(), `aur-${String(Date.now())}`);
     const sshDir = join(tempDir, '.ssh');
     const repoDir = join(tempDir, PACKAGE_NAME);
 

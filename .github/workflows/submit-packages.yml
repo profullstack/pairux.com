@@ -95,7 +95,7 @@ jobs:
           # If "all" or contains chocolatey, we need to exclude chocolatey from linux job
           if [ "$INPUT_PMS" = "all" ]; then
             # Run all except chocolatey on Linux
-            PMS="homebrew,scoop,winget,aur,apt,rpm"
+            PMS="homebrew,scoop,winget,aur,apt,rpm,gentoo,nix"
           else
             # Remove chocolatey from the list for Linux job
             PMS=$(echo "$INPUT_PMS" | sed 's/chocolatey,//g' | sed 's/,chocolatey//g' | sed 's/^chocolatey$//g')

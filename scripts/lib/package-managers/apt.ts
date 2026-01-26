@@ -26,13 +26,16 @@ export class APTPackageManager extends BasePackageManager {
 
   constructor(config: PackageManagerConfig, logger: Logger) {
     super(config, logger);
-    this.repoOwner = (config.additionalConfig?.repoOwner as string) || DEFAULT_REPO_OWNER;
-    this.repoName = (config.additionalConfig?.repoName as string) || DEFAULT_REPO_NAME;
+    this.repoOwner =
+      (config.additionalConfig?.repoOwner as string | undefined) ?? DEFAULT_REPO_OWNER;
+    this.repoName = (config.additionalConfig?.repoName as string | undefined) ?? DEFAULT_REPO_NAME;
   }
 
-  async isConfigured(): Promise<boolean> {
+  isConfigured(): Promise<boolean> {
     // APT requires GitHub token and GPG key for signing
-    return this.config.enabled && !!this.getGitHubToken() && !!process.env.GPG_PRIVATE_KEY;
+    return Promise.resolve(
+      this.config.enabled && !!this.getGitHubToken() && !!process.env.GPG_PRIVATE_KEY
+    );
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -46,10 +49,10 @@ export class APTPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // APT doesn't use a manifest file in the traditional sense
     // This returns instructions for the repo structure
-    return `APT Repository Update for ${release.version}
+    return Promise.resolve(`APT Repository Update for ${release.version}
 
 Pool structure:
   pool/main/p/pairux/pairux_${release.version}_amd64.deb
@@ -60,7 +63,7 @@ Distribution structure:
   dists/stable/Release
   dists/stable/Release.gpg
   dists/stable/InRelease
-`;
+`);
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
@@ -99,7 +102,7 @@ Distribution structure:
       };
     }
 
-    const tempDir = join(tmpdir(), `apt-${Date.now()}`);
+    const tempDir = join(tmpdir(), `apt-${String(Date.now())}`);
     const repoDir = join(tempDir, 'repo');
 
     try {
@@ -113,7 +116,7 @@ Distribution structure:
       await this.ensureRepo(this.repoOwner, this.repoName, 'APT repository for PairUX', false);
 
       execSync(
-        `git clone https://${token}@github.com/${this.repoOwner}/${this.repoName}.git ${repoDir}`,
+        `git clone https://${token ?? ''}@github.com/${this.repoOwner}/${this.repoName}.git ${repoDir}`,
         { stdio: 'pipe' }
       );
 
@@ -157,7 +160,7 @@ Distribution structure:
 
       // Sign Release file with GPG
       this.logger.info('Signing Release file...');
-      await this.signReleaseFile(repoDir);
+      this.signReleaseFile(repoDir);
 
       // Export public key
       const gpgPublicKey = this.exportGPGPublicKey();
@@ -230,10 +233,10 @@ sudo apt install pairux
 Version: ${release.version}
 Architecture: amd64
 Maintainer: PairUX Team <hello@pairux.com>
-Installed-Size: ${Math.ceil(size / 1024)}
+Installed-Size: ${String(Math.ceil(size / 1024))}
 Depends: libgtk-3-0, libnotify4, libnss3, libxss1, libxtst6, xdg-utils, libatspi2.0-0, libuuid1
 Filename: pool/main/p/pairux/pairux_${release.version}_amd64.deb
-Size: ${size}
+Size: ${String(size)}
 Section: net
 Priority: optional
 Homepage: https://pairux.com
@@ -276,12 +279,12 @@ Components: main
 Description: PairUX APT Repository
 Date: ${date}
 SHA256:
- ${packagesHash} ${packagesSize} main/binary-amd64/Packages
- ${packagesGzHash} ${packagesGzSize} main/binary-amd64/Packages.gz
+ ${packagesHash} ${String(packagesSize)} main/binary-amd64/Packages
+ ${packagesGzHash} ${String(packagesGzSize)} main/binary-amd64/Packages.gz
 `;
   }
 
-  private async signReleaseFile(repoDir: string): Promise<void> {
+  private signReleaseFile(repoDir: string): void {
     const gpgKey = process.env.GPG_PRIVATE_KEY;
     if (!gpgKey) {
       this.logger.warn('GPG_PRIVATE_KEY not set, skipping signing');
@@ -297,7 +300,7 @@ SHA256:
       const keyData = Buffer.from(gpgKey, 'base64').toString('utf-8');
       execSync(`echo "${keyData}" | gpg --batch --import`, { stdio: 'pipe' });
 
-      const passphrase = process.env.GPG_PASSPHRASE || '';
+      const passphrase = process.env.GPG_PASSPHRASE ?? '';
 
       // Create detached signature
       execSync(
@@ -311,7 +314,9 @@ SHA256:
         { stdio: 'pipe' }
       );
     } catch (error) {
-      this.logger.warn(`GPG signing failed: ${error}`);
+      this.logger.warn(
+        `GPG signing failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

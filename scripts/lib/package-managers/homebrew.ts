@@ -22,12 +22,12 @@ export class HomebrewPackageManager extends BasePackageManager {
 
   constructor(config: PackageManagerConfig, logger: Logger) {
     super(config, logger);
-    this.tapOwner = (config.additionalConfig?.tapOwner as string) || DEFAULT_TAP_OWNER;
-    this.tapRepo = (config.additionalConfig?.tapRepo as string) || DEFAULT_TAP_REPO;
+    this.tapOwner = (config.additionalConfig?.tapOwner as string | undefined) ?? DEFAULT_TAP_OWNER;
+    this.tapRepo = (config.additionalConfig?.tapRepo as string | undefined) ?? DEFAULT_TAP_REPO;
   }
 
-  async isConfigured(): Promise<boolean> {
-    return this.config.enabled && !!this.getGitHubToken();
+  isConfigured(): Promise<boolean> {
+    return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
   async checkExisting(version: string): Promise<boolean> {
@@ -43,7 +43,7 @@ export class HomebrewPackageManager extends BasePackageManager {
     }
   }
 
-  async generateManifest(release: ReleaseInfo): Promise<string> {
+  generateManifest(release: ReleaseInfo): Promise<string> {
     // Find the DMG assets for arm64 and x64
     const arm64Dmg = this.findAsset(
       release,
@@ -55,10 +55,10 @@ export class HomebrewPackageManager extends BasePackageManager {
         !a.name.includes('arm64') && a.name.endsWith('.dmg') && a.name.includes(release.version)
     );
 
-    const arm64Sha = arm64Dmg?.sha256 || 'SHA256_PLACEHOLDER';
-    const x64Sha = x64Dmg?.sha256 || 'SHA256_PLACEHOLDER';
+    const arm64Sha = arm64Dmg?.sha256 ?? 'SHA256_PLACEHOLDER';
+    const x64Sha = x64Dmg?.sha256 ?? 'SHA256_PLACEHOLDER';
 
-    return `cask "pairux" do
+    return Promise.resolve(`cask "pairux" do
   version "${release.version}"
 
   on_arm do
@@ -94,7 +94,7 @@ export class HomebrewPackageManager extends BasePackageManager {
     "~/Library/Saved Application State/com.pairux.desktop.savedState",
   ]
 end
-`;
+`);
   }
 
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {

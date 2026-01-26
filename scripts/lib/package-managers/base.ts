@@ -11,6 +11,7 @@ import type {
   ReleaseInfo,
   SubmissionResult,
   PRSubmissionParams,
+  CrossForkPRSubmissionParams,
   GitHubFile,
   Logger,
 } from './types.js';
@@ -40,7 +41,7 @@ export abstract class BasePackageManager implements PackageManager {
    * Get GitHub token from environment or config
    */
   protected getGitHubToken(): string | undefined {
-    return this.config.apiToken || process.env.GITHUB_TOKEN;
+    return this.config.apiToken ?? process.env.GITHUB_TOKEN;
   }
 
   /**
@@ -54,20 +55,29 @@ export abstract class BasePackageManager implements PackageManager {
 
     const url = endpoint.startsWith('http') ? endpoint : `${GITHUB_API}${endpoint}`;
 
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github.v3+json',
+      Authorization: `Bearer ${token}`,
+      'User-Agent': 'PairUX-Submit-Packages',
+      'Content-Type': 'application/json',
+    };
+
+    // Merge additional headers if provided
+    if (options.headers) {
+      const optHeaders = options.headers as Record<string, string>;
+      for (const [key, value] of Object.entries(optHeaders)) {
+        headers[key] = value;
+      }
+    }
+
     const response = await fetch(url, {
       ...options,
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-        Authorization: `Bearer ${token}`,
-        'User-Agent': 'PairUX-Submit-Packages',
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`GitHub API error (${response.status}): ${errorText}`);
+      throw new Error(`GitHub API error (${String(response.status)}): ${errorText}`);
     }
 
     return response.json() as Promise<T>;
@@ -170,7 +180,7 @@ export abstract class BasePackageManager implements PackageManager {
     branch: string,
     fromBranch?: string
   ): Promise<void> {
-    const baseBranch = fromBranch || (await this.getDefaultBranch(owner, repo));
+    const baseBranch = fromBranch ?? (await this.getDefaultBranch(owner, repo));
     const baseSha = await this.getBranchSha(owner, repo, baseBranch);
 
     await this.githubRequest(`/repos/${owner}/${repo}/git/refs`, {
@@ -285,7 +295,7 @@ export abstract class BasePackageManager implements PackageManager {
         return {
           packageManager: this.name,
           status: 'success',
-          message: `PR already exists: #${existingPRs[0].number}`,
+          message: `PR already exists: #${String(existingPRs[0].number)}`,
           prUrl: existingPRs[0].html_url,
         };
       }
@@ -307,7 +317,92 @@ export abstract class BasePackageManager implements PackageManager {
       return {
         packageManager: this.name,
         status: 'success',
-        message: `PR created: #${pr.number}`,
+        message: `PR created: #${String(pr.number)}`,
+        prUrl: pr.html_url,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        packageManager: this.name,
+        status: 'failed',
+        message: errorMessage,
+        error: error instanceof Error ? error : new Error(errorMessage),
+      };
+    }
+  }
+
+  /**
+   * Submit changes via a cross-fork Pull Request (e.g., for microsoft/winget-pkgs)
+   * This creates files in your fork and opens a PR to the upstream repo.
+   */
+  protected async submitCrossForkPR(
+    params: CrossForkPRSubmissionParams
+  ): Promise<SubmissionResult> {
+    const {
+      upstreamOwner,
+      upstreamRepo,
+      forkOwner,
+      baseBranch,
+      headBranch,
+      files,
+      commitMessage,
+      prTitle,
+      prBody,
+    } = params;
+
+    try {
+      // Check if branch already exists in our fork (from previous run)
+      const branchExistsAlready = await this.branchExists(forkOwner, upstreamRepo, headBranch);
+
+      if (!branchExistsAlready) {
+        // Create the branch in our fork from the base branch
+        await this.createBranch(forkOwner, upstreamRepo, headBranch, baseBranch);
+      }
+
+      // Create/update all files in our fork
+      for (const file of files) {
+        await this.createOrUpdateFile(
+          forkOwner,
+          upstreamRepo,
+          file.path,
+          file.content,
+          commitMessage,
+          headBranch
+        );
+      }
+
+      // Check for existing PR on the upstream repo
+      const existingPRs = await this.githubRequest<{ html_url: string; number: number }[]>(
+        `/repos/${upstreamOwner}/${upstreamRepo}/pulls?head=${forkOwner}:${headBranch}&state=open`
+      );
+
+      if (existingPRs.length > 0) {
+        return {
+          packageManager: this.name,
+          status: 'success',
+          message: `PR already exists: #${String(existingPRs[0].number)}`,
+          prUrl: existingPRs[0].html_url,
+        };
+      }
+
+      // Create the PR on the upstream repo
+      const pr = await this.githubRequest<{ html_url: string; number: number }>(
+        `/repos/${upstreamOwner}/${upstreamRepo}/pulls`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            title: prTitle,
+            body: prBody,
+            head: `${forkOwner}:${headBranch}`,
+            base: baseBranch,
+          }),
+        }
+      );
+
+      return {
+        packageManager: this.name,
+        status: 'success',
+        message: `PR created: #${String(pr.number)}`,
         prUrl: pr.html_url,
       };
     } catch (error) {
@@ -332,7 +427,7 @@ export abstract class BasePackageManager implements PackageManager {
     branch?: string
   ): Promise<SubmissionResult> {
     try {
-      const targetBranch = branch || (await this.getDefaultBranch(owner, repo));
+      const targetBranch = branch ?? (await this.getDefaultBranch(owner, repo));
       let commitUrl = '';
 
       for (const file of files) {
@@ -370,7 +465,7 @@ export abstract class BasePackageManager implements PackageManager {
   protected async downloadFile(url: string): Promise<Buffer> {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to download ${url}: ${response.status}`);
+      throw new Error(`Failed to download ${url}: ${String(response.status)}`);
     }
     return Buffer.from(await response.arrayBuffer());
   }

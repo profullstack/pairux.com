@@ -333,14 +333,16 @@ export function CapturePreview({
                       setRecordingQuality(e.target.value as RecordingQuality);
                     }}
                     className="rounded bg-background px-2 py-1 text-xs"
+                    title="Recording quality - affects file size and bitrate"
                   >
-                    <option value="720p">720p</option>
-                    <option value="1080p">1080p</option>
-                    <option value="4k">4K</option>
+                    <option value="720p">720p (2.5 Mbps)</option>
+                    <option value="1080p">1080p (5 Mbps)</option>
+                    <option value="4k">4K (15 Mbps)</option>
                   </select>
                   <button
                     onClick={() => void handleStartRecording()}
                     className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                    title="Start recording to local file"
                   >
                     <Circle className="h-3 w-3 fill-current" />
                     Record

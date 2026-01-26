@@ -31,7 +31,9 @@ export async function getCaptureSources(types: ('screen' | 'window')[]): Promise
       } satisfies CaptureSource;
     });
   } catch (error) {
+    // On Wayland and some Linux systems, desktopCapturer may not work
+    // Return empty array instead of throwing to allow fallback to getDisplayMedia
     console.error('[Capture] Failed to get capture sources:', error);
-    throw error;
+    return [];
   }
 }

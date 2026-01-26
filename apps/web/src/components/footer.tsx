@@ -47,7 +47,7 @@ const footerLinks = {
       href: 'https://community.chocolatey.org/packages/pairux',
       external: true,
     },
-    { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux', external: true },
+    { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux-bin', external: true },
     { name: 'APT (Debian)', href: 'https://github.com/profullstack/pairux-apt', external: true },
     { name: 'RPM (Fedora)', href: 'https://github.com/profullstack/pairux-rpm', external: true },
     { name: 'Gentoo', href: 'https://github.com/profullstack/gentoo-pairux', external: true },
@@ -87,9 +87,8 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.svg" alt="PairUX" width={36} height={36} className="h-9 w-9" />
-              <span className="text-xl font-bold text-gray-900">PairUX</span>
+            <Link href="/" className="flex items-center">
+              <Image src="/logo.svg" alt="PairUX" width={113} height={40} className="h-10 w-auto" />
             </Link>
             <p className="mt-4 text-sm text-gray-600">
               Collaborative screen sharing with simultaneous remote control. Like Screenhero, but

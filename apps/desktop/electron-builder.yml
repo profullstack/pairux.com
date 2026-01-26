@@ -9,12 +9,12 @@ directories:
 files:
   - dist/**/*
   - resources/**/*
-  - "!**/*.map"
-  - "!**/node_modules/**/{CHANGELOG.md,README.md,LICENSE*}"
+  - '!**/*.map'
+  - '!**/node_modules/**/{CHANGELOG.md,README.md,LICENSE*}'
 
 asar: true
 asarUnpack:
-  - "**/*.node"
+  - '**/*.node'
 
 mac:
   category: public.app-category.productivity
@@ -38,9 +38,6 @@ win:
       arch:
         - x64
         - arm64
-    - target: msi
-      arch:
-        - x64
   signingHashAlgorithms:
     - sha256
 

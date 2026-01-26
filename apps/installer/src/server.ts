@@ -63,17 +63,18 @@ function getGitHubDownloadUrl(version: string, platform: string): string {
   const baseUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${version}`;
 
   // Map platform to electron-builder output filenames
+  // These must match the artifactName pattern in electron-builder.yml
   switch (platform) {
     case 'darwin-x64':
-      return `${baseUrl}/PairUX-${version}-mac-x64.zip`;
+      return `${baseUrl}/PairUX-${version}-mac.zip`;
     case 'darwin-arm64':
-      return `${baseUrl}/PairUX-${version}-mac-arm64.zip`;
+      return `${baseUrl}/PairUX-${version}-arm64-mac.zip`;
     case 'linux-x64':
-      return `${baseUrl}/PairUX-${version}.AppImage`;
+      return `${baseUrl}/PairUX-${version}-x86_64.AppImage`;
     case 'linux-arm64':
       return `${baseUrl}/PairUX-${version}-arm64.AppImage`;
     case 'windows-x64':
-      return `${baseUrl}/PairUX-Setup-${version}.exe`;
+      return `${baseUrl}/PairUX.Setup.${version}.exe`;
     default:
       return '';
   }

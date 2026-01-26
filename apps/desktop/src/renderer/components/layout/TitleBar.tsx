@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, LogOut, User, ChevronDown } from 'lucide-react';
+import { Monitor, LogOut, User, ChevronDown, Settings } from 'lucide-react';
 import { isElectron, getElectronAPI } from '../../lib/ipc';
 import { useAuthStore } from '@/stores/auth';
 
@@ -58,6 +58,16 @@ export function TitleBar() {
                   <p className="truncate text-sm font-medium">{user.email}</p>
                   <p className="text-xs text-muted-foreground">Signed in</p>
                 </div>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    void navigate('/settings');
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted"
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </button>
                 <button
                   onClick={() => {
                     setShowMenu(false);

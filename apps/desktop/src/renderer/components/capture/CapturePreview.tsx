@@ -250,8 +250,11 @@ export function CapturePreview({
       quality: recordingQuality,
       format: 'webm',
       includeAudio: false,
+      // Pass the existing stream so we don't need to create a new one
+      // This is especially important for Wayland where the source ID isn't a valid chromeMediaSourceId
+      existingStream: stream,
     });
-  }, [source, recordingQuality, startRecording]);
+  }, [source, recordingQuality, startRecording, stream]);
 
   const handleStopRecording = useCallback(async () => {
     await stopRecording();

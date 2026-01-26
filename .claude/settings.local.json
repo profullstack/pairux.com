@@ -199,7 +199,10 @@
       "Bash(gh api:*)",
       "Bash(set -a)",
       "Bash(source .env)",
-      "Bash(set +a)"
+      "Bash(set +a)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh workflow:*)",
+      "Bash(pnpm -F @pairux/web typecheck:*)"
     ],
     "deny": [
       "Bash(npm *)",

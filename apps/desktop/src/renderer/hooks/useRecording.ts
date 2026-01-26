@@ -13,6 +13,8 @@ interface RecordingOptions {
   format?: RecordingFormat;
   includeAudio?: boolean;
   customPath?: string;
+  /** Existing stream to record from (for Wayland/getDisplayMedia captures) */
+  existingStream?: MediaStream;
 }
 
 interface RecordingState {
@@ -116,35 +118,46 @@ export function useRecording(options: UseRecordingOptions = {}) {
         format = 'webm',
         includeAudio = false,
         customPath,
+        existingStream,
       } = recordingOptions;
 
       try {
         // Get video constraints based on quality
         const preset = QUALITY_PRESETS[quality];
 
-        // Get media stream from the source
-        // Electron's desktopCapturer requires non-standard mandatory constraints
-        const constraints = {
-          audio: includeAudio
-            ? {
-                mandatory: {
-                  chromeMediaSource: 'desktop',
-                },
-              }
-            : false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: sourceId,
-              maxWidth: preset.width,
-              maxHeight: preset.height,
-              maxFrameRate: 30,
-            },
-          },
-        } as MediaStreamConstraints;
+        let stream: MediaStream;
+        let ownsStream = false;
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
+        if (existingStream) {
+          // Use existing stream (e.g., from Wayland getDisplayMedia)
+          stream = existingStream;
+          ownsStream = false;
+        } else {
+          // Get media stream from the source
+          // Electron's desktopCapturer requires non-standard mandatory constraints
+          const constraints = {
+            audio: includeAudio
+              ? {
+                  mandatory: {
+                    chromeMediaSource: 'desktop',
+                  },
+                }
+              : false,
+            video: {
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: sourceId,
+                maxWidth: preset.width,
+                maxHeight: preset.height,
+                maxFrameRate: 30,
+              },
+            },
+          } as MediaStreamConstraints;
+
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+          ownsStream = true;
+        }
+        streamRef.current = ownsStream ? stream : null; // Only track if we own it
 
         // Start recording on main process (creates file)
         const startResult = (await electronAPI.invoke('recording:start', {
@@ -153,9 +166,12 @@ export function useRecording(options: UseRecordingOptions = {}) {
         })) as { success: boolean; path?: string; error?: string };
 
         if (!startResult.success) {
-          stream.getTracks().forEach((track) => {
-            track.stop();
-          });
+          // Only stop tracks if we created the stream
+          if (ownsStream) {
+            stream.getTracks().forEach((track) => {
+              track.stop();
+            });
+          }
           return { success: false, error: startResult.error };
         }
 

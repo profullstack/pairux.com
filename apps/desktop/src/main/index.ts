@@ -4,6 +4,7 @@ import { app, BrowserWindow, clipboard } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
 import { initializeTray, destroyTray, getTraySession } from './tray';
+import { initializeMenu, showAboutDialog } from './platform';
 
 // Load environment variables from .env file
 // In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
@@ -114,6 +115,32 @@ void app.whenReady().then(async () => {
     },
     onQuit: () => {
       app.quit();
+    },
+  });
+
+  // Initialize application menu (especially for macOS menu bar)
+  initializeMenu({
+    onAbout: () => {
+      showAboutDialog();
+    },
+    onPreferences: () => {
+      if (mainWindow) {
+        mainWindow.webContents.send('navigate', '/settings');
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    },
+    onNewSession: () => {
+      if (mainWindow) {
+        mainWindow.webContents.send('navigate', '/');
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    },
+    onEndSession: () => {
+      if (mainWindow) {
+        mainWindow.webContents.send('tray:end-session');
+      }
     },
   });
 

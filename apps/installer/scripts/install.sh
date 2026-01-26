@@ -131,11 +131,19 @@ get_download_url() {
     case "$os" in
         darwin)
             # macOS uses zip files
-            filename="PairUX-${version}-mac-${arch}.zip"
+            if [ "$arch" = "arm64" ]; then
+                filename="PairUX-${version}-arm64-mac.zip"
+            else
+                filename="PairUX-${version}-mac.zip"
+            fi
             ;;
         linux)
             # Linux uses AppImage
-            filename="PairUX-${version}.AppImage"
+            if [ "$arch" = "arm64" ]; then
+                filename="PairUX-${version}-arm64.AppImage"
+            else
+                filename="PairUX-${version}-x86_64.AppImage"
+            fi
             ;;
         *)
             error "Unsupported platform: $platform"

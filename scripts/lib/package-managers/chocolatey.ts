@@ -53,7 +53,19 @@ export class ChocolateyPackageManager extends BasePackageManager {
       exe?.downloadUrl ??
       `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
 
-    const checksum = exe?.sha256 ?? '';
+    // Get checksum from asset or from checksums map (required for Chocolatey validation - CPMR0073)
+    const checksum =
+      exe?.sha256 ??
+      release.checksums.get(exe?.name ?? '') ??
+      release.checksums.get(`PairUX-${release.version}-x64.exe`) ??
+      '';
+
+    if (!checksum) {
+      throw new Error(
+        `No SHA256 checksum found for Windows installer. Chocolatey requires checksum validation (CPMR0073). ` +
+          `Ensure checksums.txt is uploaded with the release.`
+      );
+    }
 
     // Generate .nuspec file
     const nuspec = `<?xml version="1.0" encoding="utf-8"?>
@@ -155,11 +167,12 @@ The installer can be downloaded from:
 ${downloadUrl}
 
 The SHA256 checksum for the installer is:
-${checksum !== '' ? checksum : 'Checksum will be verified during package build'}
+${checksum}
 
 This can be verified by:
 1. Downloading the installer from the official GitHub releases
 2. Running: Get-FileHash <path-to-installer> -Algorithm SHA256
+3. Comparing the output to the checksum above
 
 The source code is available at:
 https://github.com/profullstack/pairux.com

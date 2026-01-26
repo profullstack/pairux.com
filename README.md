@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/logo.svg" alt="PairUX Logo" width="120" />
+  <img src="apps/web/public/favicon.svg" alt="PairUX Logo" width="120" />
 </p>
 
 <h1 align="center">PairUX</h1>

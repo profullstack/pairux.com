@@ -129,6 +129,9 @@ function main() {
     'package.json',
     'apps/web/package.json',
     'apps/desktop/package.json',
+    'apps/installer/package.json',
+    'apps/turn/package.json',
+    'packages/shared-types/package.json',
   ];
 
   console.log('📝 Updating package.json files:');

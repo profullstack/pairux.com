@@ -258,21 +258,21 @@
 
 ## 🔐 Authentication & Authorization
 
-- [ ] **Supabase Auth Integration**
-  - [ ] Email/password signup
-  - [ ] Email verification
-  - [ ] Password reset flow
-  - [ ] Session persistence
+- [x] **Supabase Auth Integration**
+  - [x] Email/password signup
+  - [x] Email verification
+  - [x] Password reset flow
+  - [x] Session persistence
 
-- [ ] **Guest Access**
-  - [ ] Join without account
-  - [ ] Temporary display name
-  - [ ] Limited to viewer role
+- [x] **Guest Access**
+  - [x] Join without account
+  - [x] Temporary display name
+  - [x] Limited to viewer role
 
-- [ ] **Session Authorization**
-  - [ ] Host owns session
-  - [ ] Participants join via link
-  - [ ] RLS policies for data access
+- [x] **Session Authorization**
+  - [x] Host owns session
+  - [x] Participants join via link
+  - [x] RLS policies for data access
 
 ---
 

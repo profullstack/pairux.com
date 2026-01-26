@@ -6,8 +6,8 @@
  */
 
 import { execSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { BasePackageManager } from './base.js';
 import type { ReleaseInfo, SubmissionResult } from './types.js';
@@ -215,10 +215,9 @@ https://github.com/profullstack/pairux.com
       // Write package files
       for (const [filePath, content] of Object.entries(files)) {
         const fullPath = join(tempDir, filePath);
-        const dir = fullPath.substring(0, fullPath.lastIndexOf('/'));
-        if (dir !== tempDir) {
-          execSync(`mkdir -p "${dir}"`, { cwd: tempDir });
-        }
+        const dir = dirname(fullPath);
+        // Create parent directory if it doesn't exist (no-op if it does)
+        mkdirSync(dir, { recursive: true });
         writeFileSync(fullPath, content, 'utf-8');
       }
 

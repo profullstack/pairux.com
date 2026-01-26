@@ -34,6 +34,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "version:bump": "node scripts/version-bump.mjs",
     "release": "node scripts/release.mjs",
+    "submit-packages": "npx tsx scripts/submit-packages.ts",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",

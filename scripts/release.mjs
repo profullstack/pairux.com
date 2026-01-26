@@ -152,8 +152,11 @@ function main() {
     console.log('\n📋 What happens next:');
     console.log('  1. GitHub Actions will build desktop apps for all platforms');
     console.log('  2. A GitHub Release will be created automatically');
-    console.log('  3. Download links will be available at:');
+    console.log('  3. Package managers will be updated via the submit-packages workflow');
+    console.log('  4. Download links will be available at:');
     console.log(`     https://github.com/profullstack/pairux.com/releases/tag/v${newVersion}`);
+    console.log('\n💡 To manually submit to package managers:');
+    console.log(`   pnpm submit-packages -v ${newVersion}`);
   } catch (error) {
     console.error('\n❌ Release failed. Rolling back...');
     exec('git checkout -- .', true);

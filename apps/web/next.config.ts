@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
+  // Enable Turbopack (Next.js 16+ default)
+  turbopack: {},
+
   // Standalone output for Docker deployment
   output: 'standalone',
 
@@ -28,7 +31,7 @@ const nextConfig: NextConfig = {
   },
 
   // Headers for security
-  async headers() {
+  headers() {
     return [
       {
         source: '/(.*)',
@@ -51,7 +54,7 @@ const nextConfig: NextConfig = {
   },
 
   // Redirects
-  async redirects() {
+  redirects() {
     return [
       {
         source: '/github',

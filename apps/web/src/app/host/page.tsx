@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users } from 'lucide-react';
+import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users, Settings } from 'lucide-react';
 import { HeaderClient } from '@/components/header-client';
 
 interface SessionData {
@@ -17,6 +17,9 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Settings key (same as in settings page)
+const SETTINGS_KEY = 'pairux-web-settings';
+
 export default function StartHostPage() {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
@@ -24,6 +27,23 @@ export default function StartHostPage() {
   const [maxParticipants, setMaxParticipants] = useState(5);
   // allowGuestControl is always false for web hosting (disabled)
   const allowGuestControl = false;
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings) as {
+          session?: { defaultMaxParticipants?: number };
+        };
+        if (parsed.session?.defaultMaxParticipants) {
+          setMaxParticipants(parsed.session.defaultMaxParticipants);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
 
   const createSession = useCallback(async () => {
     setIsCreating(true);
@@ -83,7 +103,16 @@ export default function StartHostPage() {
 
           {/* Settings Card */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">Session Settings</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Session Settings</h2>
+              <Link
+                href="/settings"
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+              >
+                <Settings className="h-4 w-4" />
+                Defaults
+              </Link>
+            </div>
 
             {/* Error message */}
             {error && (

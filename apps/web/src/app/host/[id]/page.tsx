@@ -3,10 +3,27 @@
 import { useState, useEffect, use, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Users, Copy, Check, LogOut, Loader2, AlertCircle, Share2, Eye } from 'lucide-react';
+import {
+  Users,
+  Copy,
+  Check,
+  LogOut,
+  Loader2,
+  AlertCircle,
+  Share2,
+  Eye,
+  MessageSquare,
+  Circle,
+  Pause,
+  Play,
+  StopCircle,
+  Download,
+} from 'lucide-react';
 import { VideoPreview } from '@/components/video';
 import { ParticipantList } from '@/components/chat/ParticipantList';
-import { useScreenCapture } from '@/hooks/useScreenCapture';
+import { ChatPanel } from '@/components/chat/ChatPanel';
+import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture';
+import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import type { SessionParticipant } from '@pairux/shared-types';
 
@@ -37,6 +54,10 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [captureQuality, setCaptureQuality] = useState<CaptureQuality>('1080p');
+  const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
 
   // Screen capture hook
   const {
@@ -46,6 +67,23 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     startCapture,
     stopCapture,
   } = useScreenCapture();
+
+  // Recording hook
+  const {
+    isRecording,
+    isPaused,
+    duration,
+    error: recordingError,
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    downloadRecording,
+  } = useRecording({
+    onStop: (blob) => {
+      setRecordingBlob(blob);
+    },
+  });
 
   // WebRTC host hook
   const {
@@ -123,9 +161,46 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 
   // Handle stop sharing
   const handleStopSharing = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+    }
     stopCapture();
     stopHosting();
-  }, [stopCapture, stopHosting]);
+  }, [isRecording, stopRecording, stopCapture, stopHosting]);
+
+  // Handle start recording
+  const handleStartRecording = useCallback(() => {
+    if (!stream) return;
+    setRecordingBlob(null);
+    startRecording(stream, { quality: recordingQuality });
+  }, [stream, recordingQuality, startRecording]);
+
+  // Handle stop recording
+  const handleStopRecording = useCallback(() => {
+    stopRecording();
+  }, [stopRecording]);
+
+  // Handle toggle pause
+  const handleTogglePause = useCallback(() => {
+    if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  }, [isPaused, pauseRecording, resumeRecording]);
+
+  // Handle download recording
+  const handleDownloadRecording = useCallback(() => {
+    if (recordingBlob) {
+      downloadRecording(recordingBlob);
+      setRecordingBlob(null);
+    }
+  }, [recordingBlob, downloadRecording]);
+
+  // Handle start capture with quality
+  const handleStartCapture = useCallback(() => {
+    void startCapture({ quality: captureQuality });
+  }, [startCapture, captureQuality]);
 
   // Handle end session
   const handleEndSession = useCallback(async () => {
@@ -197,7 +272,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  const displayError = captureError ?? hostingError;
+  const displayError = captureError ?? hostingError ?? recordingError;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
@@ -222,7 +297,87 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {/* Recording controls */}
+              {captureState === 'active' && (
+                <div className="flex items-center gap-1 rounded-lg bg-gray-800 px-2 py-1">
+                  {!isRecording ? (
+                    <>
+                      <select
+                        value={recordingQuality}
+                        onChange={(e) => {
+                          setRecordingQuality(e.target.value as RecordingQuality);
+                        }}
+                        className="rounded bg-gray-700 px-2 py-1 text-xs text-gray-200"
+                      >
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p</option>
+                        <option value="4k">4K</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleStartRecording}
+                        className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-red-700"
+                      >
+                        <Circle className="h-3 w-3 fill-current" />
+                        Record
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex items-center gap-1.5 px-2 font-mono text-xs text-gray-200">
+                        <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
+                        {formatDuration(duration)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleTogglePause}
+                        className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-700"
+                        title={isPaused ? 'Resume' : 'Pause'}
+                      >
+                        {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleStopRecording}
+                        className="flex items-center gap-1.5 rounded-md bg-gray-700 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-600"
+                      >
+                        <StopCircle className="h-3 w-3" />
+                        Stop
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Download recording button */}
+              {recordingBlob && (
+                <button
+                  type="button"
+                  onClick={handleDownloadRecording}
+                  className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </button>
+              )}
+
+              {/* Chat toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChat(!showChat);
+                }}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  showChat
+                    ? 'bg-primary-600 text-white'
+                    : 'border border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Chat</span>
+              </button>
+
               {/* Viewer count */}
               <div className="flex items-center gap-1.5 rounded-full bg-gray-800 px-2.5 py-1 text-xs font-medium text-gray-300">
                 <Eye className="h-3.5 w-3.5" />
@@ -233,7 +388,8 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
               <button
                 type="button"
                 onClick={() => void handleEndSession()}
-                disabled={isEnding}
+                disabled={isEnding || isRecording}
+                title={isRecording ? 'Stop recording first' : undefined}
                 className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
               >
                 {isEnding ? (
@@ -252,11 +408,32 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
       <div className="flex flex-1 overflow-hidden">
         {/* Video area */}
         <main className="flex flex-1 flex-col">
+          {/* Quality selection bar - show before capture starts */}
+          {captureState === 'idle' && (
+            <div className="border-b border-gray-800 bg-gray-900 px-4 py-2">
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-400">Quality:</label>
+                <select
+                  value={captureQuality}
+                  onChange={(e) => {
+                    setCaptureQuality(e.target.value as CaptureQuality);
+                  }}
+                  className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="720p">720p (HD)</option>
+                  <option value="1080p">1080p (Full HD)</option>
+                  <option value="4k">4K (Ultra HD)</option>
+                </select>
+                <span className="text-xs text-gray-500">Higher quality uses more bandwidth</span>
+              </div>
+            </div>
+          )}
+
           <VideoPreview
             stream={stream}
             captureState={captureState}
             error={displayError}
-            onStartCapture={() => void startCapture()}
+            onStartCapture={handleStartCapture}
             onStopCapture={handleStopSharing}
             className="flex-1"
           />
@@ -382,6 +559,19 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </aside>
+
+        {/* Chat panel */}
+        {showChat && (
+          <ChatPanel
+            sessionId={session.id}
+            participantId={session.host_user_id}
+            isCollapsed={false}
+            onToggleCollapse={() => {
+              setShowChat(false);
+            }}
+            className="border-l border-gray-800 bg-gray-900"
+          />
+        )}
       </div>
     </div>
   );

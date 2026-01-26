@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# PairUX Commit Message Hook
+# Detects "release:patch", "release:minor", or "release:major" anywhere in
+# commit messages and saves the release type for post-commit processing.
+#
+# Usage:
+#   git commit -m "release:patch"                    # Triggers pnpm release patch
+#   git commit -m "fix bug and release:minor"        # Triggers pnpm release minor
+#   git commit -m "big update release:major done"    # Triggers pnpm release major
+#
+# The release only runs AFTER pre-commit tests pass and commit succeeds.
+#
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Temp file to signal post-commit hook
+RELEASE_TRIGGER_FILE="/tmp/.pairux-release-trigger"
+
+# Clean up any previous trigger
+rm -f "$RELEASE_TRIGGER_FILE"
+
+# Check for release trigger patterns anywhere in the message (case-insensitive)
+if echo "$COMMIT_MSG" | grep -qiE 'release[: ]?patch'; then
+    echo "patch" > "$RELEASE_TRIGGER_FILE"
+elif echo "$COMMIT_MSG" | grep -qiE 'release[: ]?minor'; then
+    echo "minor" > "$RELEASE_TRIGGER_FILE"
+elif echo "$COMMIT_MSG" | grep -qiE 'release[: ]?major'; then
+    echo "major" > "$RELEASE_TRIGGER_FILE"
+fi
+
+# Always allow the commit to proceed - release happens in post-commit
+exit 0

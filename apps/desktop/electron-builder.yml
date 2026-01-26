@@ -1,6 +1,6 @@
 appId: com.pairux.desktop
 productName: PairUX
-copyright: Copyright 2024 PairUX Team
+copyright: Copyright 2026 Profullstack, Inc.
 
 directories:
   output: out
@@ -47,7 +47,7 @@ linux:
     - deb
     - rpm
   category: Network
-  maintainer: PairUX Team
+  maintainer: Profullstack, Inc.
   artifactName: '${productName}-${version}-${arch}.${ext}'
   executableName: pairux
 

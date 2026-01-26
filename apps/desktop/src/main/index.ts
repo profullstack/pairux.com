@@ -25,10 +25,10 @@ console.log(
 
 // Enable features for screen capture on Linux
 if (process.platform === 'linux') {
-  // Disable SUID sandbox in development (avoids permission issues)
-  if (process.env.NODE_ENV === 'development') {
-    app.commandLine.appendSwitch('no-sandbox');
-  }
+  // Disable SUID sandbox for user-installed AppImages
+  // The chrome-sandbox binary requires SUID root permissions which aren't
+  // available in user space. This is safe for desktop apps.
+  app.commandLine.appendSwitch('no-sandbox');
 
   // Enable PipeWire for Wayland screen capture
   app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');

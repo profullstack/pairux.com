@@ -193,7 +193,13 @@
       "Bash(git remote:*)",
       "Bash(git hook:*)",
       "Bash(gh repo create:*)",
-      "Bash(.husky/pre-commit:*)"
+      "Bash(.husky/pre-commit:*)",
+      "Bash(gh secret list:*)",
+      "Bash(gh secret set:*)",
+      "Bash(gh api:*)",
+      "Bash(set -a)",
+      "Bash(source .env)",
+      "Bash(set +a)"
     ],
     "deny": [
       "Bash(npm *)",

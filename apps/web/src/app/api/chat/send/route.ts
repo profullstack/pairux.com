@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { sendChatMessageSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 
@@ -33,9 +33,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Check authentication (optional for guests with participantId)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getAuthenticatedUser(supabase);
 
     // Rate limit by user ID or participant ID
     const rateLimitKey = user?.id ?? participantId ?? 'anonymous';

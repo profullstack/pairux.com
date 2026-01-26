@@ -2,8 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
 
+const mockGetAuthenticatedUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
+  getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -159,15 +162,10 @@ describe('POST /api/sessions/join/[joinCode]', () => {
     };
 
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: joinResult, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -187,15 +185,10 @@ describe('POST /api/sessions/join/[joinCode]', () => {
 
   it('joins session as authenticated user with custom display name', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: {}, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -212,15 +205,10 @@ describe('POST /api/sessions/join/[joinCode]', () => {
 
   it('joins session as guest with display name', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: {}, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -237,15 +225,9 @@ describe('POST /api/sessions/join/[joinCode]', () => {
   });
 
   it('returns 400 when guest has no display name', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -260,15 +242,9 @@ describe('POST /api/sessions/join/[joinCode]', () => {
   });
 
   it('returns 400 when guest display name is too short', async () => {
-    const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-    });
+    const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -284,18 +260,13 @@ describe('POST /api/sessions/join/[joinCode]', () => {
 
   it('returns 400 when RPC fails', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Session is full' },
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123', {
       method: 'POST',
@@ -311,15 +282,10 @@ describe('POST /api/sessions/join/[joinCode]', () => {
 
   it('converts join code to uppercase', async () => {
     const mockSupabase = createMockSupabaseClient({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: mockUser },
-          error: null,
-        }),
-      },
       rpc: vi.fn().mockResolvedValue({ data: {}, error: null }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const request = new Request('http://localhost/api/sessions/join/abc123', {
       method: 'POST',

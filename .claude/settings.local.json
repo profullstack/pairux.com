@@ -204,7 +204,9 @@
       "Bash(gh workflow:*)",
       "Bash(pnpm -F @pairux/web typecheck:*)",
       "Bash(./.husky/pre-commit)",
-      "Bash(gh release edit:*)"
+      "Bash(gh release edit:*)",
+      "Bash(base64:*)",
+      "Bash(jq -r '.version' echo -e \"\\\\n=== Gentoo ===\")"
     ],
     "deny": [
       "Bash(npm *)",

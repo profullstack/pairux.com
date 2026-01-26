@@ -15,6 +15,16 @@ import type {
 
 export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos';
 
+export type TrayStatus = 'idle' | 'active' | 'paused' | 'error';
+
+export interface TraySessionInfo {
+  id: string;
+  joinCode: string;
+  participantCount: number;
+  status: 'created' | 'active' | 'paused' | 'ended';
+  role: 'host' | 'viewer';
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -249,6 +259,42 @@ export interface IPCChannels {
     args: undefined;
     return: { success: boolean };
   };
+
+  // Tray channels
+  'tray:setSession': {
+    args: { session: TraySessionInfo | null };
+    return: { success: boolean };
+  };
+
+  'tray:setStatus': {
+    args: { status: TrayStatus };
+    return: { success: boolean };
+  };
+
+  'tray:getStatus': {
+    args: undefined;
+    return: { status: TrayStatus; session: TraySessionInfo | null };
+  };
+
+  'tray:copyJoinCode': {
+    args: { joinCode: string };
+    return: { success: boolean };
+  };
+
+  'tray:notify': {
+    args: { title: string; content: string };
+    return: { success: boolean };
+  };
+
+  'tray:flash': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
+  'tray:minimize': {
+    args: undefined;
+    return: { success: boolean };
+  };
 }
 
 // Event channels (main -> renderer)
@@ -260,6 +306,8 @@ export interface IPCEvents {
   'recording:stopped': { path: string; duration: number };
   'recording:error': { error: string };
   'recording:space-warning': { availableGb: number };
+  'tray:end-session': undefined;
+  'tray:toggle-pause': undefined;
 }
 
 // Type helpers for the API

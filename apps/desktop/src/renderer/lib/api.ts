@@ -4,7 +4,7 @@ import { APP_URL } from '../../shared/config';
 // API base URL - use localhost for development, production URL for prod
 const meta = import.meta as unknown as { env?: { DEV?: boolean } };
 const isDev = meta.env?.DEV === true;
-export const API_BASE_URL = isDev ? 'http://localhost:3000' : APP_URL;
+const API_BASE_URL = isDev ? 'http://localhost:3000' : APP_URL;
 
 interface ApiResponse<T> {
   data?: T;

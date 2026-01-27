@@ -86,10 +86,19 @@ export function SettingsPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
+      // Get auth token from secure storage via IPC
+      const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+      if (!token) {
+        setSaveError('Not authenticated. Please log in again.');
+        return;
+      }
+
       const response = await fetch(`${APP_URL}/api/settings`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ settings }),
       });
 

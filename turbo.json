@@ -5,7 +5,10 @@
     "NODE_ENV",
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "NEXT_PUBLIC_APP_URL"
+    "NEXT_PUBLIC_APP_URL",
+    "XDG_SESSION_TYPE",
+    "WAYLAND_DISPLAY",
+    "DISPLAY"
   ],
   "tasks": {
     "dev": {

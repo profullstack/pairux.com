@@ -9,6 +9,50 @@ import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 
+// Standard resolution presets (all macroblock-aligned to prevent VP9 green bar artifacts)
+const CAPTURE_RESOLUTION: Record<string, { width: number; height: number }> = {
+  '720p': { width: 1280, height: 720 },
+  '1080p': { width: 1920, height: 1080 },
+  '4k': { width: 3840, height: 2160 },
+};
+
+/**
+ * Read the user's quality setting and force the video track to that standard resolution.
+ * This prevents green bar artifacts from non-macroblock-aligned resolutions.
+ */
+async function constrainTrackToQualitySetting(track: MediaStreamTrack): Promise<void> {
+  let quality = '1080p';
+  try {
+    const saved = localStorage.getItem('pairux-settings');
+    if (saved) {
+      const parsed = JSON.parse(saved) as { recording?: { defaultQuality?: string } };
+      if (
+        parsed.recording?.defaultQuality &&
+        parsed.recording.defaultQuality in CAPTURE_RESOLUTION
+      ) {
+        quality = parsed.recording.defaultQuality;
+      }
+    }
+  } catch {
+    // Use default
+  }
+
+  const target = CAPTURE_RESOLUTION[quality] ?? CAPTURE_RESOLUTION['1080p'];
+  const settings = track.getSettings();
+
+  try {
+    await track.applyConstraints({
+      width: { ideal: target.width, max: target.width },
+      height: { ideal: target.height, max: target.height },
+    });
+    console.log(
+      `[Renderer] Constrained resolution from ${String(settings.width ?? '?')}x${String(settings.height ?? '?')} to ${String(target.width)}x${String(target.height)} (quality: ${quality})`
+    );
+  } catch (e) {
+    console.warn('[Renderer] Could not constrain resolution:', e);
+  }
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -93,6 +137,9 @@ export function HomePage() {
       const videoTrack = mediaStream.getVideoTracks()[0];
       videoTrack.contentHint = 'detail';
 
+      // Align resolution to 16px boundary to prevent VP9 green bar artifacts
+      await constrainTrackToQualitySetting(videoTrack);
+
       setStream(mediaStream);
     } catch (err) {
       console.error('[Renderer] Failed to start capture:', err);
@@ -140,6 +187,10 @@ export function HomePage() {
       // Set content hint for screen sharing optimization
       // 'detail' tells encoder to prioritize sharpness (good for text)
       track.contentHint = 'detail';
+
+      // Align resolution to 16px boundary to prevent VP9 green bar artifacts
+      await constrainTrackToQualitySetting(track);
+
       const settings = track.getSettings();
 
       setSelectedSource({

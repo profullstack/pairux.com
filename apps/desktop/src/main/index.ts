@@ -70,7 +70,7 @@ if (!gotTheLock) {
 let mainWindow: BrowserWindow | null = null;
 
 async function createWindow(): Promise<void> {
-  mainWindow = await createMainWindow();
+  mainWindow = await createMainWindow(isWayland);
 
   mainWindow.on('closed', () => {
     mainWindow = null;

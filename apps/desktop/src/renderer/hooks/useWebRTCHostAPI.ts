@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { API_BASE_URL } from '../../shared/config';
+import { API_BASE_URL } from '../lib/api';
 import { getElectronAPI } from '@/lib/ipc';
 import type {
   ConnectionState,

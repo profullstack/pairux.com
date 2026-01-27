@@ -33,11 +33,14 @@ if (process.platform === 'linux') {
   // Enable PipeWire for Wayland screen capture
   app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
 
-  // NOTE: We intentionally do NOT set ozone-platform=wayland here.
-  // Electron's desktopCapturer.getSources() only returns cursor-only
-  // placeholders under native Wayland. By running under XWayland,
-  // desktopCapturer works normally and setDisplayMediaRequestHandler
-  // can provide real screen content.
+  // Use native Wayland backend for proper KDE/GNOME integration
+  // (tray icons, window decorations, taskbar). Screen capture is handled
+  // by setDisplayMediaRequestHandler + desktopCapturer.getSources()
+  // routed through PipeWire via WebRTCPipeWireCapturer.
+  if (isWayland) {
+    app.commandLine.appendSwitch('ozone-platform', 'wayland');
+    app.commandLine.appendSwitch('enable-wayland-ime');
+  }
 
   // Enable hardware acceleration
   app.commandLine.appendSwitch('enable-gpu-rasterization');

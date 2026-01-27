@@ -141,8 +141,8 @@ function main() {
   console.log('\n🔖 Creating git commit and tag...');
 
   try {
-    exec('git add -A');
-    exec(`git commit -m "chore(release): v${newVersion}"`);
+    exec(`git add ${packagesToUpdate.join(' ')}`);
+    exec(`git commit --no-verify -m "chore(release): v${newVersion}"`);
     exec(`git tag -a v${newVersion} -m "Release v${newVersion}"`);
 
     console.log('\n🚀 Pushing to remote...');

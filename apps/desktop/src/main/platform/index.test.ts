@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('electron', () => ({
   app: {
     getName: vi.fn().mockReturnValue('PairUX'),
+    getVersion: vi.fn().mockReturnValue('0.0.0-test'),
     getPath: vi.fn().mockReturnValue('/test/path'),
     isPackaged: false,
     showAboutPanel: vi.fn(),

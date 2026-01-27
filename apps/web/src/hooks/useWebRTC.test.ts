@@ -165,6 +165,32 @@ describe('useWebRTC', () => {
       expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true, video: false });
     });
 
+    it('should set up channel subscription after getUserMedia resolves', async () => {
+      const mockStream = createMockMicStream();
+      const callOrder: string[] = [];
+
+      mockGetUserMedia.mockImplementation(async () => {
+        callOrder.push('getUserMedia');
+        return mockStream;
+      });
+
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callOrder.push('subscribe');
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      await act(async () => {
+        renderHook(() => useWebRTC(defaultOptions));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // getUserMedia should resolve BEFORE channel subscription is set up
+      expect(callOrder.indexOf('getUserMedia')).toBeLessThan(callOrder.indexOf('subscribe'));
+    });
+
     it('should gracefully handle mic permission denied', async () => {
       mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
 
@@ -182,6 +208,20 @@ describe('useWebRTC', () => {
       expect(hookResult!.current.micEnabled).toBe(false);
       // Should not set an error for mic permission denial
       expect(hookResult!.current.error).toBeNull();
+    });
+
+    it('should still set up signaling channel when mic is denied', async () => {
+      mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
+
+      await act(async () => {
+        renderHook(() => useWebRTC(defaultOptions));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Channel should still be subscribed even after mic denial
+      expect(mockChannel.subscribe).toHaveBeenCalled();
     });
   });
 

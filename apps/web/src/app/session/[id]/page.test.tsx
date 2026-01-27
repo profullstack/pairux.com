@@ -30,6 +30,16 @@ vi.mock('@/hooks/useWebRTC', () => ({
   useWebRTC: () => mockUseWebRTC,
 }));
 
+vi.mock('@/components/chat/ChatPanel', () => ({
+  ChatPanel: ({ sessionId }: { sessionId: string }) => (
+    <div data-testid="chat-panel">Chat for {sessionId}</div>
+  ),
+}));
+
+vi.mock('@/components/session/SessionSettingsPanel', () => ({
+  SessionSettingsPanel: () => <div data-testid="session-settings-panel">Settings Panel</div>,
+}));
+
 // Create a stable promise that resolves immediately
 function createResolvedParams(id: string) {
   return Promise.resolve({ id });
@@ -346,6 +356,124 @@ describe('SessionViewerPage', () => {
       });
       expect(screen.getByText('Active User')).toBeInTheDocument();
       expect(screen.queryByText('Left User')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Sidebar panel toggling', () => {
+    const mockSessionData = {
+      id: 'session-123',
+      join_code: 'ABC123',
+      status: 'active',
+      settings: { quality: 'medium', allowControl: false, maxParticipants: 5 },
+      created_at: '2024-01-01T00:00:00Z',
+      session_participants: [
+        {
+          id: 'p-1',
+          display_name: 'Host User',
+          role: 'host',
+          control_state: 'granted',
+          joined_at: '2024-01-01T00:00:00Z',
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: mockSessionData }),
+      } as Response);
+    });
+
+    it('shows participants panel by default', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Participants (1)')).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('chat-panel')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('session-settings-panel')).not.toBeInTheDocument();
+    });
+
+    it('switches to chat panel when Chat button is clicked', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Chat/ })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Chat/ }));
+
+      expect(screen.getByTestId('chat-panel')).toBeInTheDocument();
+      expect(screen.queryByText('Participants (1)')).not.toBeInTheDocument();
+    });
+
+    it('switches to settings panel when Settings button is clicked', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Settings/ })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Settings/ }));
+
+      expect(screen.getByTestId('session-settings-panel')).toBeInTheDocument();
+      expect(screen.queryByText('Participants (1)')).not.toBeInTheDocument();
+    });
+
+    it('closes sidebar when active panel button is clicked again', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Participants (1)')).toBeInTheDocument();
+      });
+
+      // Click Participants button to toggle off
+      fireEvent.click(screen.getByRole('button', { name: /Participants/ }));
+
+      expect(screen.queryByText('Participants (1)')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('chat-panel')).not.toBeInTheDocument();
+    });
+
+    it('switches between panels without closing sidebar', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Participants (1)')).toBeInTheDocument();
+      });
+
+      // Switch to chat
+      fireEvent.click(screen.getByRole('button', { name: /Chat/ }));
+      expect(screen.getByTestId('chat-panel')).toBeInTheDocument();
+
+      // Switch to settings
+      fireEvent.click(screen.getByRole('button', { name: /Settings/ }));
+      expect(screen.getByTestId('session-settings-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('chat-panel')).not.toBeInTheDocument();
+
+      // Switch back to participants
+      fireEvent.click(screen.getByRole('button', { name: /Participants/ }));
+      expect(screen.getByText('Participants (1)')).toBeInTheDocument();
+      expect(screen.queryByTestId('session-settings-panel')).not.toBeInTheDocument();
     });
   });
 });

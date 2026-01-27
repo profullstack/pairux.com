@@ -22,6 +22,10 @@ import {
   InputCapture,
   CursorOverlay,
 } from '@/components/control';
+import { ChatPanel } from '@/components/chat/ChatPanel';
+import { SessionSettingsPanel } from '@/components/session/SessionSettingsPanel';
+
+type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
 
 interface Participant {
   id: string;
@@ -56,7 +60,12 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+  const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
   const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  const togglePanel = useCallback((panel: SidebarPanel) => {
+    setActivePanel((current) => (current === panel ? null : panel));
+  }, []);
 
   // Handle cursor updates from other participants
   const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
@@ -265,14 +274,42 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              onClick={() => {
+                togglePanel('participants');
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activePanel === 'participants'
+                  ? 'bg-blue-700 text-white hover:bg-blue-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              Participants
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                togglePanel('chat');
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activePanel === 'chat'
+                  ? 'bg-blue-700 text-white hover:bg-blue-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
             >
               <MessageSquare className="h-4 w-4" />
               Chat
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              onClick={() => {
+                togglePanel('settings');
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activePanel === 'settings'
+                  ? 'bg-blue-700 text-white hover:bg-blue-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
             >
               <Settings className="h-4 w-4" />
               Settings
@@ -280,33 +317,61 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
           </div>
         </main>
 
-        {/* Participants sidebar */}
-        <aside className="hidden w-64 flex-shrink-0 border-l border-gray-800 bg-gray-900 lg:block">
-          <div className="p-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Users className="h-4 w-4" />
-              Participants ({activeParticipants.length})
-            </h3>
-            <ul className="mt-4 space-y-2">
-              {activeParticipants.map((participant) => (
-                <li
-                  key={participant.id}
-                  className="flex items-center justify-between rounded-lg bg-gray-800 px-3 py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white">
-                      {participant.display_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{participant.display_name}</p>
-                      <p className="text-xs text-gray-500">{participant.role}</p>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
+        {/* Right sidebar — toggled by control bar buttons */}
+        {activePanel && (
+          <aside className="hidden w-72 flex-shrink-0 border-l border-gray-800 bg-gray-900 lg:block">
+            {activePanel === 'participants' && (
+              <div className="p-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <Users className="h-4 w-4" />
+                  Participants ({activeParticipants.length})
+                </h3>
+                <ul className="mt-4 space-y-2">
+                  {activeParticipants.map((participant) => (
+                    <li
+                      key={participant.id}
+                      className="flex items-center justify-between rounded-lg bg-gray-800 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white">
+                          {participant.display_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {participant.display_name}
+                          </p>
+                          <p className="text-xs text-gray-500">{participant.role}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activePanel === 'chat' && (
+              <ChatPanel
+                sessionId={sessionId}
+                participantId={participantId}
+                isCollapsed={false}
+                onToggleCollapse={() => {
+                  setActivePanel(null);
+                }}
+                className="h-full !w-full !border-0"
+              />
+            )}
+
+            {activePanel === 'settings' && (
+              <SessionSettingsPanel
+                session={session}
+                connectionState={connectionState}
+                qualityMetrics={qualityMetrics}
+                networkQuality={networkQuality}
+                participantCount={activeParticipants.length}
+              />
+            )}
+          </aside>
+        )}
       </div>
     </div>
   );

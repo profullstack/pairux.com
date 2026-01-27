@@ -46,6 +46,7 @@ export function SettingsPage() {
   const [platformInfo, setPlatformInfo] = useState<{
     platform: string;
     version: string;
+    appVersion: string;
   } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -128,6 +129,7 @@ export function SettingsPage() {
         setPlatformInfo({
           platform: info.platform,
           version: info.version,
+          appVersion: info.appVersion,
         });
       });
       void api.invoke('recording:getDirectory', undefined).then((result) => {
@@ -354,6 +356,12 @@ export function SettingsPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Application</span>
               <span className="text-sm font-medium">PairUX</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Version</span>
+              <span className="text-sm font-medium">
+                {platformInfo?.appVersion ?? 'Loading...'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Platform</span>

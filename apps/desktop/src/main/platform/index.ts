@@ -24,6 +24,7 @@ export interface PlatformInfo {
   isX11: boolean;
   arch: string;
   version: string;
+  appVersion: string;
   isElevated: boolean;
   hasScreenCaptureSupport: boolean;
   hasInputInjectionSupport: boolean;
@@ -87,6 +88,7 @@ export function getPlatformInfo(): PlatformInfo {
     arch: process.arch,
     version:
       typeof process.getSystemVersion === 'function' ? process.getSystemVersion() : 'unknown',
+    appVersion: app.getVersion(),
     isElevated: isElevated(),
     hasScreenCaptureSupport: checkScreenCaptureSupport(),
     hasInputInjectionSupport: checkInputInjectionSupport(),

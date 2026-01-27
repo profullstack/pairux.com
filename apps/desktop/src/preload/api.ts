@@ -52,6 +52,7 @@ export interface IPCChannels {
       platform: NodeJS.Platform;
       arch: string;
       version: string;
+      appVersion: string;
       displayServer: DisplayServer;
       isWayland: boolean;
     };

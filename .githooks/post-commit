@@ -1,11 +1,21 @@
 #!/bin/sh
 #
 # PairUX Post-Commit Hook
-# Notifies user if a release will be triggered on push.
+# Runs version bump when a release trigger is detected in the commit message.
+#
+# Flow:
+# 1. User commits with "release:patch" in message
+# 2. pre-commit runs tests → passes
+# 3. commit-msg saves trigger to temp file
+# 4. post-commit (this hook) runs version:bump → creates version commit + tag
+# 5. User pushes → both commits and tag are included in the push
 #
 
 # Colors for output
+GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Temp file from commit-msg hook
@@ -14,8 +24,29 @@ RELEASE_TRIGGER_FILE="/tmp/.pairux-release-trigger"
 # Check if a release was triggered
 if [ -f "$RELEASE_TRIGGER_FILE" ]; then
     RELEASE_TYPE=$(cat "$RELEASE_TRIGGER_FILE")
+
+    # Remove trigger file BEFORE running version bump to prevent re-triggering
+    rm -f "$RELEASE_TRIGGER_FILE"
+
     echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo "${YELLOW}📦 Release trigger detected: ${RELEASE_TYPE}${NC}"
-    echo "${YELLOW}   The release will run automatically after you push.${NC}"
+    echo "${YELLOW}   Running version bump...${NC}"
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
+
+    # Get the repo directory
+    REPO_DIR="$(git rev-parse --show-toplevel)"
+
+    # Run the version bump (creates commit + tag, does NOT push)
+    if (cd "$REPO_DIR" && pnpm version:bump "$RELEASE_TYPE" --from-hook); then
+        echo ""
+        echo "${GREEN}✅ Version bump complete.${NC}"
+        echo "${YELLOW}   Push with: git push --follow-tags${NC}"
+        echo ""
+    else
+        echo ""
+        echo "${RED}❌ Version bump failed! Push your commit and bump manually.${NC}"
+        echo ""
+    fi
 fi

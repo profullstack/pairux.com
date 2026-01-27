@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Volume2,
   VolumeX,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import type {
   CaptureSource,
@@ -71,6 +73,11 @@ export function CapturePreview({
     return '1080p';
   });
   const [includeAudio, setIncludeAudio] = useState(true);
+  const [micEnabled, setMicEnabled] = useState(() => {
+    // Mic is enabled if the stream has audio tracks
+    return stream.getAudioTracks().length > 0;
+  });
+  const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
@@ -125,6 +132,7 @@ export function CapturePreview({
     error: hostingError,
     startHosting,
     stopHosting,
+    muteViewer,
   } = useWebRTCHostAPI({
     sessionId: session?.id ?? '',
     hostId: currentUserId ?? session?.id ?? '',
@@ -359,6 +367,34 @@ export function CapturePreview({
     }
   }, [isPaused, pauseRecording, resumeRecording]);
 
+  const handleMuteParticipant = useCallback(
+    (participantUserId: string, muted: boolean) => {
+      muteViewer(participantUserId, muted);
+      setMutedParticipants((prev) => {
+        const next = new Set(prev);
+        if (muted) {
+          next.add(participantUserId);
+        } else {
+          next.delete(participantUserId);
+        }
+        return next;
+      });
+    },
+    [muteViewer]
+  );
+
+  const handleToggleMic = useCallback(() => {
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) return;
+    const newEnabled = !micEnabled;
+    audioTracks.forEach((track) => {
+      track.enabled = newEnabled;
+    });
+    setMicEnabled(newEnabled);
+  }, [stream, micEnabled]);
+
+  const hasMic = stream.getAudioTracks().length > 0;
+
   const isScreen = source?.type === 'screen';
   const activeParticipants = participants.filter((p) => !p.left_at);
 
@@ -549,6 +585,24 @@ export function CapturePreview({
                 {viewerCount} connected{viewerCount !== 1 ? '' : ''}
                 {activeParticipants.length > 0 && ` (${String(activeParticipants.length)} joined)`}
               </div>
+
+              {/* Microphone toggle for streaming audio */}
+              <Button
+                variant={micEnabled ? 'default' : 'secondary'}
+                size="sm"
+                onClick={handleToggleMic}
+                disabled={!hasMic}
+                title={
+                  !hasMic
+                    ? 'No microphone available'
+                    : micEnabled
+                      ? 'Mute microphone'
+                      : 'Unmute microphone'
+                }
+              >
+                {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                {micEnabled ? 'Mic On' : 'Mic Off'}
+              </Button>
             </div>
 
             <span className="font-mono text-sm text-muted-foreground">
@@ -612,6 +666,8 @@ export function CapturePreview({
             onGrantControl={handleGrantControl}
             onRevokeControl={handleRevokeControl}
             onKickParticipant={handleKickParticipant}
+            onMuteParticipant={handleMuteParticipant}
+            mutedParticipants={mutedParticipants}
           />
         </div>
       )}

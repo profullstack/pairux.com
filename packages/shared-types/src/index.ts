@@ -47,6 +47,7 @@ export type {
   ControlGrantMessage,
   ControlRevokeMessage,
   KickMessage,
+  MuteMessage,
   ControlMessage,
   CursorPositionMessage,
   PingMessage,

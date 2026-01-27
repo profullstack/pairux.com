@@ -57,27 +57,30 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     `[Main] Window: isWayland=${String(isWayland)}, XDG_SESSION_TYPE=${process.env.XDG_SESSION_TYPE ?? 'unset'}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY ?? 'unset'}`
   );
 
-  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    console.log('[Main] Display media request received');
+  session.defaultSession.setDisplayMediaRequestHandler(
+    (_request, callback) => {
+      console.log('[Main] Display media request received');
 
-    desktopCapturer
-      .getSources({
-        types: ['screen', 'window'],
-      })
-      .then((sources) => {
-        if (sources.length > 0) {
-          console.log('[Main] Granting access to source:', sources[0].name);
-          callback({ video: sources[0] });
-        } else {
-          console.log('[Main] No sources available');
+      desktopCapturer
+        .getSources({
+          types: ['screen', 'window'],
+        })
+        .then((sources) => {
+          if (sources.length > 0) {
+            console.log('[Main] Granting access to source:', sources[0].name);
+            callback({ video: sources[0] });
+          } else {
+            console.log('[Main] No sources available');
+            callback({});
+          }
+        })
+        .catch((err: unknown) => {
+          console.error('[Main] Failed to get sources:', err);
           callback({});
-        }
-      })
-      .catch((err: unknown) => {
-        console.error('[Main] Failed to get sources:', err);
-        callback({});
-      });
-  });
+        });
+    },
+    { useSystemPicker: true }
+  );
 
   // Handle permission requests
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {

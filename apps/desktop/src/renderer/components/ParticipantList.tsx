@@ -1,4 +1,15 @@
-import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Loader2 } from 'lucide-react';
+import {
+  Users,
+  Crown,
+  Eye,
+  Monitor,
+  Circle,
+  Shield,
+  UserX,
+  Loader2,
+  Mic,
+  MicOff,
+} from 'lucide-react';
 import { useState, useCallback } from 'react';
 import type { SessionParticipant } from '@pairux/shared-types';
 
@@ -10,6 +21,8 @@ interface ParticipantListProps {
   onGrantControl?: (participantId: string) => Promise<void>;
   onRevokeControl?: (participantId: string) => Promise<void>;
   onKickParticipant?: (participantId: string) => Promise<void>;
+  onMuteParticipant?: (participantId: string, muted: boolean) => void;
+  mutedParticipants?: Set<string>;
 }
 
 function getConnectionColor(status: SessionParticipant['connection_status']): string {
@@ -68,6 +81,8 @@ export function ParticipantList({
   onGrantControl,
   onRevokeControl,
   onKickParticipant,
+  onMuteParticipant,
+  mutedParticipants,
 }: ParticipantListProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const activeParticipants = participants.filter((p) => !p.left_at);
@@ -171,6 +186,35 @@ export function ParticipantList({
                 {/* Host actions */}
                 {showActions && (
                   <div className="flex gap-1">
+                    {/* Mute/Unmute button */}
+                    {onMuteParticipant &&
+                      participant.user_id &&
+                      (() => {
+                        const userId = participant.user_id;
+                        const isMutedNow = mutedParticipants?.has(userId) ?? false;
+                        return (
+                          <button
+                            onClick={() => {
+                              onMuteParticipant(userId, !isMutedNow);
+                            }}
+                            disabled={loadingAction !== null}
+                            className={`rounded p-1.5 transition-colors disabled:opacity-50 ${
+                              isMutedNow
+                                ? 'text-destructive hover:bg-destructive/20'
+                                : 'text-muted-foreground hover:bg-muted'
+                            }`}
+                            title={isMutedNow ? 'Unmute participant' : 'Mute participant'}
+                            aria-label={isMutedNow ? 'Unmute participant' : 'Mute participant'}
+                          >
+                            {isMutedNow ? (
+                              <MicOff className="h-4 w-4" />
+                            ) : (
+                              <Mic className="h-4 w-4" />
+                            )}
+                          </button>
+                        );
+                      })()}
+
                     {/* Grant/Revoke control button */}
                     {participant.control_state === 'granted' ? (
                       <button

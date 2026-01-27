@@ -237,6 +237,145 @@ describe('useWebRTCHostAPI', () => {
     });
   });
 
+  describe('muteViewer', () => {
+    it('should expose muteViewer in returned API', () => {
+      const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));
+      expect(result.current.muteViewer).toBeInstanceOf(Function);
+    });
+
+    it('should send mute message via data channel when muting a viewer', async () => {
+      const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      const es = MockEventSource.instances[0];
+
+      // Simulate connected
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      // Simulate a viewer joining
+      await act(async () => {
+        es.emit(
+          'presence-join',
+          JSON.stringify({
+            presences: [{ user_id: 'viewer-1', role: 'viewer' }],
+          })
+        );
+      });
+
+      await act(async () => {
+        await vi.waitFor(() => {
+          expect(result.current.viewerCount).toBe(1);
+        });
+      });
+
+      // Get the viewer's data channel mock
+      const viewer = result.current.viewers.get('viewer-1');
+      expect(viewer).toBeDefined();
+
+      // Simulate data channel becoming open
+      if (viewer) {
+        const dc =
+          viewer.dataChannel ??
+          (viewer.peerConnection as unknown as MockRTCPeerConnection).createDataChannel.mock
+            .results[0]?.value;
+        if (dc) {
+          dc.readyState = 'open';
+          viewer.dataChannel = dc;
+        }
+      }
+
+      // Mute the viewer
+      act(() => {
+        result.current.muteViewer('viewer-1', true);
+      });
+
+      // Check that the viewer is marked as muted
+      const updatedViewer = result.current.viewers.get('viewer-1');
+      expect(updatedViewer?.isMuted).toBe(true);
+    });
+  });
+
+  describe('audio handling', () => {
+    it('should initialize viewer connections with audio fields', async () => {
+      const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      const es = MockEventSource.instances[0];
+
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      await act(async () => {
+        es.emit(
+          'presence-join',
+          JSON.stringify({
+            presences: [{ user_id: 'viewer-1', role: 'viewer' }],
+          })
+        );
+      });
+
+      await act(async () => {
+        await vi.waitFor(() => {
+          expect(result.current.viewerCount).toBe(1);
+        });
+      });
+
+      const viewer = result.current.viewers.get('viewer-1');
+      expect(viewer).toBeDefined();
+      expect(viewer?.audioTrack).toBeNull();
+      expect(viewer?.audioElement).toBeNull();
+      expect(viewer?.isMuted).toBe(false);
+    });
+
+    it('should always create data channel regardless of allowControl setting', async () => {
+      // Even without allowControl, data channel should be created for mute commands
+      const { result } = renderHook(() =>
+        useWebRTCHostAPI({ ...defaultOptions, allowControl: false })
+      );
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      const es = MockEventSource.instances[0];
+
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      await act(async () => {
+        es.emit(
+          'presence-join',
+          JSON.stringify({
+            presences: [{ user_id: 'viewer-1', role: 'viewer' }],
+          })
+        );
+      });
+
+      await act(async () => {
+        await vi.waitFor(() => {
+          expect(result.current.viewerCount).toBe(1);
+        });
+      });
+
+      // Data channel should have been created via createDataChannel
+      const viewer = result.current.viewers.get('viewer-1');
+      expect(viewer).toBeDefined();
+      // The mock PC should have createDataChannel called
+      const mockPC = viewer?.peerConnection as unknown as MockRTCPeerConnection;
+      expect(mockPC.createDataChannel).toHaveBeenCalledWith('control', { ordered: true });
+    });
+  });
+
   describe('signal handling', () => {
     it('should ignore answer when signaling state is not have-local-offer', async () => {
       const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));

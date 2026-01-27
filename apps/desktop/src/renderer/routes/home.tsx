@@ -140,6 +140,17 @@ export function HomePage() {
       // Align resolution to 16px boundary to prevent VP9 green bar artifacts
       await constrainTrackToQualitySetting(videoTrack);
 
+      // Add microphone audio for streaming to viewers
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micStream.getAudioTracks().forEach((track) => {
+          mediaStream.addTrack(track);
+        });
+        console.log('[Renderer] Microphone audio added to stream');
+      } catch (micErr) {
+        console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
+      }
+
       setStream(mediaStream);
     } catch (err) {
       console.error('[Renderer] Failed to start capture:', err);
@@ -199,6 +210,17 @@ export function HomePage() {
         type: 'screen',
         thumbnail: undefined,
       });
+
+      // Add microphone audio for streaming to viewers
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micStream.getAudioTracks().forEach((t) => {
+          mediaStream.addTrack(t);
+        });
+        console.log('[Renderer] Microphone audio added to Wayland stream');
+      } catch (micErr) {
+        console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
+      }
 
       console.log('[Renderer] Wayland capture started:', settings);
       setStream(mediaStream);
@@ -282,8 +304,7 @@ export function HomePage() {
           {isWayland && (
             <div className="mb-6 rounded-lg bg-muted p-4">
               <p className="mb-3 text-sm text-muted-foreground">
-                You&apos;re using Wayland. Click below to open the system screen picker, or select a
-                source from the list.
+                You&apos;re using Wayland. Click below to open the system screen picker.
               </p>
               <button
                 onClick={() => {
@@ -304,11 +325,16 @@ export function HomePage() {
             </div>
           )}
 
-          <SourcePicker
-            onSelect={(source) => {
-              void handleSourceSelect(source);
-            }}
-          />
+          {/* On Wayland, desktopCapturer.getSources() triggers a PipeWire portal session
+              that conflicts with subsequent getDisplayMedia() calls. Skip the SourcePicker
+              and rely on the system screen picker button above instead. */}
+          {!isWayland && (
+            <SourcePicker
+              onSelect={(source) => {
+                void handleSourceSelect(source);
+              }}
+            />
+          )}
         </div>
       ) : (
         <CapturePreview

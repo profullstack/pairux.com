@@ -1,19 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { Suspense } from 'react';
 import SessionViewerPage from './page';
 
 // Mock the useWebRTC hook
+const mockToggleMic = vi.fn();
+const mockUseWebRTC = {
+  connectionState: 'idle' as const,
+  remoteStream: null,
+  qualityMetrics: null,
+  networkQuality: 'good' as const,
+  error: null,
+  reconnect: vi.fn(),
+  disconnect: vi.fn(),
+  // Remote control
+  controlState: 'view-only' as const,
+  dataChannelReady: false,
+  requestControl: vi.fn(),
+  releaseControl: vi.fn(),
+  sendInput: vi.fn(),
+  sendCursorPosition: vi.fn(),
+  // Microphone
+  micEnabled: false,
+  hasMic: true,
+  toggleMic: mockToggleMic,
+};
+
 vi.mock('@/hooks/useWebRTC', () => ({
-  useWebRTC: () => ({
-    connectionState: 'idle',
-    remoteStream: null,
-    qualityMetrics: null,
-    networkQuality: 'good',
-    error: null,
-    reconnect: vi.fn(),
-    disconnect: vi.fn(),
-  }),
+  useWebRTC: () => mockUseWebRTC,
 }));
 
 // Create a stable promise that resolves immediately
@@ -231,6 +245,62 @@ describe('SessionViewerPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Waiting')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Microphone toggle', () => {
+    const mockSessionData = {
+      id: 'session-123',
+      join_code: 'ABC123',
+      status: 'active',
+      settings: { quality: 'medium', allowControl: false, maxParticipants: 5 },
+      created_at: '2024-01-01T00:00:00Z',
+      session_participants: [
+        {
+          id: 'p-1',
+          display_name: 'Host User',
+          role: 'host',
+          control_state: 'granted',
+          joined_at: '2024-01-01T00:00:00Z',
+        },
+      ],
+    };
+
+    it('shows mic off button when mic is disabled', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: mockSessionData }),
+      } as Response);
+
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mic Off/ })).toBeInTheDocument();
+      });
+    });
+
+    it('calls toggleMic when mic button is clicked', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: mockSessionData }),
+      } as Response);
+
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mic Off/ })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Mic Off/ }));
+      expect(mockToggleMic).toHaveBeenCalled();
     });
   });
 

@@ -24,6 +24,7 @@ import {
 } from '@/components/control';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import { SessionSettingsPanel } from '@/components/session/SessionSettingsPanel';
+import { Logo } from '@/components/Logo';
 
 type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
 
@@ -149,12 +150,7 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
         <header className="border-b border-gray-800 bg-gray-900">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-14 items-center">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="bg-primary-600 flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white">
-                  P
-                </div>
-                <span className="text-lg font-bold text-white">PairUX</span>
-              </Link>
+              <Logo size="sm" variant="light" />
             </div>
           </div>
         </header>
@@ -187,12 +183,7 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="bg-primary-600 flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white">
-                  P
-                </div>
-                <span className="text-lg font-bold text-white">PairUX</span>
-              </Link>
+              <Logo size="sm" variant="light" />
               <div className="hidden items-center gap-2 sm:flex">
                 <span className="text-sm text-gray-500">Session</span>
                 <span className="font-mono text-sm font-semibold text-white">

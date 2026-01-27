@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Loader2, AlertCircle, Users, Monitor, CheckCircle } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 interface SessionInfo {
   id: string;
@@ -184,12 +185,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white">
-                P
-              </div>
-              <span className="text-xl font-bold text-gray-900">PairUX</span>
-            </Link>
+            <Logo size="sm" />
           </div>
         </div>
       </header>

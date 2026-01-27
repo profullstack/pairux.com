@@ -26,6 +26,7 @@ import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture'
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import type { SessionParticipant } from '@pairux/shared-types';
+import { Logo } from '@/components/Logo';
 
 interface SessionData {
   id: string;
@@ -243,12 +244,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
         <header className="border-b border-gray-800 bg-gray-900">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-14 items-center">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="bg-primary-600 flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white">
-                  P
-                </div>
-                <span className="text-lg font-bold text-white">PairUX</span>
-              </Link>
+              <Logo size="sm" variant="light" />
             </div>
           </div>
         </header>
@@ -281,12 +277,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="bg-primary-600 flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white">
-                  P
-                </div>
-                <span className="text-lg font-bold text-white">PairUX</span>
-              </Link>
+              <Logo size="sm" variant="light" />
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-green-900/50 px-2 py-0.5 text-xs font-medium text-green-400">
                   Hosting

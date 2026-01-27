@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 
 // Custom GitHub icon SVG component (brand icons deprecated in lucide)
 function GitHubIcon({ className }: { className?: string }) {
@@ -87,9 +87,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center">
-              <Image src="/logo.svg" alt="PairUX" width={113} height={40} className="h-10 w-auto" />
-            </Link>
+            <Logo size="lg" />
             <p className="mt-4 text-sm text-gray-600">
               Collaborative screen sharing with simultaneous remote control. Like Screenhero, but
               open source.

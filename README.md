@@ -342,19 +342,19 @@ pnpm dev
 ### MVP (v1.0)
 
 - [x] Documentation and architecture
-- [ ] Monorepo setup
-- [ ] Marketing website
-- [ ] Desktop host app
-- [ ] PWA viewer
-- [ ] Screen sharing
-- [ ] Remote control
-- [ ] Package manager distribution
+- [x] Monorepo setup
+- [x] Marketing website
+- [x] Desktop host app
+- [x] PWA viewer
+- [x] Screen sharing
+- [x] Remote control
+- [x] Package manager distribution
+- [x] Multi-viewer support (up to 5 for p2p, 100k for SNF)
+- [x] Session recording
+- [x] Chat and annotations
 
 ### Future
 
-- [ ] Multi-viewer support (up to 5)
-- [ ] Session recording
-- [ ] Chat and annotations
 - [ ] File transfer
 - [ ] Mobile viewer app
 

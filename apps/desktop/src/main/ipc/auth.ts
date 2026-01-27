@@ -1,7 +1,7 @@
 import { ipcMain, shell } from 'electron';
 import { storeAuth, getStoredAuth, clearStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
-import { APP_URL } from '../../shared/config';
+import { APP_URL, API_BASE_URL } from '../../shared/config';
 
 export interface AuthUser {
   id: string;
@@ -21,7 +21,7 @@ interface JsonResponse {
 
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
-    const url = `${APP_URL}${endpoint}`;
+    const url = `${API_BASE_URL}${endpoint}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> | undefined),

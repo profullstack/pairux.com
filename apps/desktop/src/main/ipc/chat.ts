@@ -1,9 +1,7 @@
 import { ipcMain } from 'electron';
 import { getStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { ChatMessage } from '@pairux/shared-types';
-import { APP_URL } from '../../shared/config';
-
-const API_BASE_URL = APP_URL;
+import { API_BASE_URL } from '../../shared/config';
 
 interface ApiResponse<T> {
   data?: T;

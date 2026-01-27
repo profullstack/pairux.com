@@ -229,7 +229,9 @@
       "Bash(pnpm --filter @pairux/web test -- --reporter=verbose)",
       "Bash(file:*)",
       "Bash(identify:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(npx turbo:*)",
+      "Bash(pnpm run precommit:*)"
     ],
     "deny": [
       "Bash(npm *)",

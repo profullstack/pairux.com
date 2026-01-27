@@ -106,6 +106,7 @@ export function useWebRTCHostAPI({
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const authTokenRef = useRef<string | null>(null);
+  const isStartingRef = useRef(false);
 
   // Keep callback refs updated
   const onControlRequestRef = useRef(onControlRequest);
@@ -470,6 +471,13 @@ export function useWebRTCHostAPI({
         case 'answer': {
           const viewer = viewersRef.current.get(viewerId);
           if (viewer && signal.sdp) {
+            // Only set remote description if we're expecting an answer
+            if (viewer.peerConnection.signalingState !== 'have-local-offer') {
+              console.warn(
+                `[WebRTCHost] Ignoring answer from ${viewerId} — signaling state is ${viewer.peerConnection.signalingState}`
+              );
+              break;
+            }
             console.log('[WebRTCHost] Received answer from:', viewerId);
             await viewer.peerConnection.setRemoteDescription({
               type: 'answer',
@@ -498,6 +506,12 @@ export function useWebRTCHostAPI({
       return;
     }
 
+    // Prevent concurrent startHosting calls
+    if (isStartingRef.current || eventSourceRef.current) {
+      return;
+    }
+    isStartingRef.current = true;
+
     console.log('[WebRTCHost] Starting hosting for session:', sessionId);
 
     // Get auth token for API authentication
@@ -508,6 +522,7 @@ export function useWebRTCHostAPI({
       console.log('[WebRTCHost] Auth token retrieved:', token ? 'yes' : 'no');
     } catch (err) {
       console.error('[WebRTCHost] Failed to get auth token:', err);
+      isStartingRef.current = false;
       setError('Failed to authenticate. Please log in again.');
       return;
     }
@@ -529,6 +544,7 @@ export function useWebRTCHostAPI({
 
     eventSource.addEventListener('connected', (event) => {
       console.log('[WebRTCHost] SSE connected:', event.data);
+      isStartingRef.current = false;
       setIsHosting(true);
       setError(null);
     });
@@ -572,6 +588,7 @@ export function useWebRTCHostAPI({
 
     eventSource.addEventListener('error', () => {
       console.error('[WebRTCHost] SSE error');
+      isStartingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
     });
 
@@ -592,6 +609,7 @@ export function useWebRTCHostAPI({
   // Stop hosting
   const stopHosting = useCallback(() => {
     console.log('[WebRTCHost] Stopping hosting');
+    isStartingRef.current = false;
 
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);

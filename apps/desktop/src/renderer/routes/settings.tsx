@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
 import type { RecordingQuality } from '@/hooks/useRecording';
-import { APP_URL } from '../../shared/config';
+import { API_BASE_URL } from '../../shared/config';
 
 interface AppSettings {
   recording: {
@@ -93,7 +93,7 @@ export function SettingsPage() {
         return;
       }
 
-      const response = await fetch(`${APP_URL}/api/settings`, {
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

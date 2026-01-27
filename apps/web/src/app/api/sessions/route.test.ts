@@ -165,8 +165,18 @@ describe('GET /api/sessions', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
+  const createGetRequest = (limit?: number) => {
+    const url = limit
+      ? `http://localhost/api/sessions?limit=${String(limit)}`
+      : 'http://localhost/api/sessions';
+    return new Request(url, { method: 'GET' });
+  };
+
   it('lists sessions for authenticated user', async () => {
-    const sessions = [mockSession, { ...mockSession, id: 'session-2' }];
+    const sessions = [
+      { ...mockSession, session_participants: [{ id: 'p1' }, { id: 'p2' }] },
+      { ...mockSession, id: 'session-2', session_participants: [] },
+    ];
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -179,11 +189,34 @@ describe('GET /api/sessions', () => {
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data).toEqual(sessions);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].participant_count).toBe(2);
+    expect(body.data[1].participant_count).toBe(0);
+  });
+
+  it('respects limit parameter', async () => {
+    const sessions = [{ ...mockSession, session_participants: [] }];
+    const mockLimit = vi.fn().mockResolvedValue({ data: sessions, error: null });
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: mockLimit,
+    });
+
+    const mockSupabase = createMockSupabaseClient({
+      from: mockFrom,
+    });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await GET(createGetRequest(5));
+    expect(response.status).toBe(200);
+    expect(mockLimit).toHaveBeenCalledWith(5);
   });
 
   it('returns 401 for unauthenticated user', async () => {
@@ -191,7 +224,7 @@ describe('GET /api/sessions', () => {
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
     mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
     const body = await response.json();
 
     expect(response.status).toBe(401);
@@ -214,7 +247,7 @@ describe('GET /api/sessions', () => {
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
     const body = await response.json();
 
     expect(response.status).toBe(400);

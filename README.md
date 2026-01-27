@@ -179,7 +179,7 @@ nix-shell -p pairux
 
 ```bash
 # Download
-wget https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x.x.x-x64.AppImage
+wget https://github.com/profullstack/pairux.com/releases/latest/download/PairUX-x.x.x-x86_64.AppImage
 
 # Make executable
 chmod +x PairUX-*.AppImage

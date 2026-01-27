@@ -399,9 +399,18 @@ ${colors.cyan}╔═════════════════════
   // Note: checksums file may have spaces in filename (e.g., "PairUX Setup 0.1.17.exe")
   // while GitHub asset has dots (e.g., "PairUX.Setup.0.1.17.exe")
   for (const asset of releaseInfo.assets) {
-    const nameWithSpaces = asset.name.replace(/\./g, ' ').replace(/ exe$/, '.exe');
-    asset.sha256 =
-      releaseInfo.checksums.get(asset.name) ?? releaseInfo.checksums.get(nameWithSpaces);
+    // Try exact match first
+    let checksum = releaseInfo.checksums.get(asset.name);
+
+    // If not found, try replacing "PairUX.Setup" with "PairUX Setup"
+    if (!checksum && asset.name.startsWith('PairUX.Setup.')) {
+      const nameWithSpaces = asset.name.replace('PairUX.Setup.', 'PairUX Setup ');
+      checksum = releaseInfo.checksums.get(nameWithSpaces);
+    }
+
+    if (checksum) {
+      asset.sha256 = checksum;
+    }
   }
 
   // Get package managers to run

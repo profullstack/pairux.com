@@ -41,8 +41,12 @@ export async function POST(request: Request) {
 }
 
 // GET /api/sessions - List user's sessions
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10), 100) : undefined;
+
     const supabase = await createClient();
 
     // Check authentication (supports both cookie and Bearer token)
@@ -53,18 +57,37 @@ export async function GET() {
     }
 
     // Get user's sessions (as host)
-    const { data, error } = await supabase
+    let query = supabase
       .from('sessions')
-      .select('*, session_participants(*)')
+      .select('*, session_participants(id)')
       .eq('host_user_id', user.id)
       .order('created_at', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('List sessions error:', error);
       return errorResponse(error.message, 400);
     }
 
-    return successResponse(data);
+    // Transform to include participant_count
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sessionsWithCount = data.map((session: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const participants = session.session_participants;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return {
+        ...session,
+        participant_count: Array.isArray(participants) ? participants.length : 0,
+        session_participants: undefined, // Remove the raw array
+      };
+    });
+
+    return successResponse(sessionsWithCount);
   } catch (error) {
     return handleApiError(error);
   }

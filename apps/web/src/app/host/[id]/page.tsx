@@ -18,6 +18,8 @@ import {
   Play,
   StopCircle,
   Download,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { VideoPreview } from '@/components/video';
 import { ParticipantList } from '@/components/chat/ParticipantList';
@@ -93,6 +95,10 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     error: hostingError,
     startHosting,
     stopHosting,
+    micEnabled,
+    hasMic,
+    toggleMic,
+    micStream,
   } = useWebRTCHost({
     sessionId,
     hostId: session?.host_user_id ?? sessionId,
@@ -133,7 +139,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
   // Start hosting when stream is available
   useEffect(() => {
     if (stream && !isHosting) {
-      startHosting();
+      void startHosting();
     }
   }, [stream, isHosting, startHosting]);
 
@@ -173,8 +179,20 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
   const handleStartRecording = useCallback(() => {
     if (!stream) return;
     setRecordingBlob(null);
-    startRecording(stream, { quality: recordingQuality });
-  }, [stream, recordingQuality, startRecording]);
+
+    // Create combined stream: screen video + mic audio
+    const combinedStream = new MediaStream();
+    stream.getVideoTracks().forEach((track) => {
+      combinedStream.addTrack(track);
+    });
+    if (micStream) {
+      micStream.getAudioTracks().forEach((track) => {
+        combinedStream.addTrack(track);
+      });
+    }
+
+    startRecording(combinedStream, { quality: recordingQuality });
+  }, [stream, micStream, recordingQuality, startRecording]);
 
   // Handle stop recording
   const handleStopRecording = useCallback(() => {
@@ -352,6 +370,28 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
                   Download
                 </button>
               )}
+
+              {/* Mic toggle */}
+              <button
+                type="button"
+                onClick={toggleMic}
+                disabled={!hasMic}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  micEnabled
+                    ? 'bg-green-700 text-white hover:bg-green-600'
+                    : 'border border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                } disabled:opacity-50`}
+                title={
+                  !hasMic
+                    ? 'No microphone available'
+                    : micEnabled
+                      ? 'Mute microphone'
+                      : 'Unmute microphone'
+                }
+              >
+                {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                <span className="hidden sm:inline">{micEnabled ? 'Mic On' : 'Mic Off'}</span>
+              </button>
 
               {/* Chat toggle */}
               <button

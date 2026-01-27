@@ -203,4 +203,69 @@ describe('ChatPanel', () => {
       participantId: 'guest-123',
     });
   });
+
+  describe('dark theme styling', () => {
+    it('renders panel container with dark background and border', () => {
+      render(<ChatPanel sessionId="test-session" />);
+
+      const panel = screen.getByTestId('chat-panel');
+      expect(panel.className).toContain('bg-gray-900');
+      expect(panel.className).toContain('border-gray-700');
+    });
+
+    it('renders header with dark border', () => {
+      render(<ChatPanel sessionId="test-session" />);
+
+      const panel = screen.getByTestId('chat-panel');
+      // Header is the first child div with border-b
+      const header = panel.querySelector('.border-b.border-gray-700');
+      expect(header).toBeInTheDocument();
+    });
+
+    it('renders header title with white text', () => {
+      render(<ChatPanel sessionId="test-session" />);
+
+      const chatTitle = screen.getByText('Chat');
+      expect(chatTitle.className).toContain('text-white');
+    });
+
+    it('renders error banner with dark theme classes', () => {
+      vi.mocked(useChat).mockReturnValue({
+        messages: [],
+        isConnected: false,
+        isLoading: false,
+        error: 'Connection lost',
+        hasMore: false,
+        sendMessage: mockSendMessage,
+        loadMore: mockLoadMore,
+        reconnect: mockReconnect,
+      });
+
+      render(<ChatPanel sessionId="test-session" />);
+
+      const errorBanner = screen.getByText('Connection lost').closest('div');
+      expect(errorBanner?.className).toContain('bg-red-900/30');
+      expect(errorBanner?.className).toContain('text-red-400');
+      expect(errorBanner?.className).toContain('border-red-800');
+    });
+
+    it('renders collapsed button with dark background', () => {
+      render(<ChatPanel sessionId="test-session" />);
+
+      // Collapse the panel
+      fireEvent.click(screen.getByLabelText('Close chat'));
+
+      const openButton = screen.getByLabelText('Open chat');
+      expect(openButton.className).toContain('bg-gray-900');
+      expect(openButton.className).toContain('border-gray-700');
+    });
+
+    it('does not contain light theme classes', () => {
+      render(<ChatPanel sessionId="test-session" />);
+
+      const panel = screen.getByTestId('chat-panel');
+      expect(panel.className).not.toContain('bg-white');
+      expect(panel.className).not.toContain('border-gray-200');
+    });
+  });
 });

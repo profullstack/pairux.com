@@ -80,9 +80,9 @@ export const MentionAutocomplete = memo(function MentionAutocomplete({
     return (
       <div
         ref={listRef}
-        className="absolute bottom-full left-0 mb-1 w-64 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+        className="absolute bottom-full left-0 mb-1 w-64 rounded-lg border border-gray-700 bg-gray-800 p-2 shadow-lg"
       >
-        <p className="text-sm text-gray-500">No matching participants</p>
+        <p className="text-sm text-gray-400">No matching participants</p>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export const MentionAutocomplete = memo(function MentionAutocomplete({
   return (
     <div
       ref={listRef}
-      className="absolute bottom-full left-0 mb-1 max-h-48 w-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+      className="absolute bottom-full left-0 mb-1 max-h-48 w-64 overflow-y-auto rounded-lg border border-gray-700 bg-gray-800 shadow-lg"
       role="listbox"
     >
       {filteredParticipants.map((participant, index) => {
@@ -108,7 +108,7 @@ export const MentionAutocomplete = memo(function MentionAutocomplete({
               onSelectedIndexChange(index);
             }}
             className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors ${
-              isSelected ? 'bg-primary-50' : 'hover:bg-gray-50'
+              isSelected ? 'bg-primary-900/50' : 'hover:bg-gray-700'
             }`}
             role="option"
             aria-selected={isSelected}
@@ -126,11 +126,11 @@ export const MentionAutocomplete = memo(function MentionAutocomplete({
             </div>
 
             {/* Name */}
-            <span className="flex-1 truncate text-sm font-medium text-gray-700">
+            <span className="flex-1 truncate text-sm font-medium text-gray-300">
               {participant.display_name}
             </span>
 
-            {isHost && <span className="text-xs text-gray-400">Host</span>}
+            {isHost && <span className="text-xs text-gray-500">Host</span>}
           </button>
         );
       })}

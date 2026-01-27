@@ -39,7 +39,7 @@ export const ParticipantItem = memo(function ParticipantItem({
 
   return (
     <div
-      className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-50"
+      className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-800"
       data-testid="participant-item"
     >
       {/* Avatar */}
@@ -57,12 +57,12 @@ export const ParticipantItem = memo(function ParticipantItem({
       {/* Name and role */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-medium text-gray-700">
+          <span className="truncate text-sm font-medium text-gray-300">
             {participant.display_name}
           </span>
-          {isCurrentUser && <span className="text-xs text-gray-400">(you)</span>}
+          {isCurrentUser && <span className="text-xs text-gray-500">(you)</span>}
         </div>
-        {isHost && <span className="text-xs text-gray-500">Host</span>}
+        {isHost && <span className="text-xs text-gray-400">Host</span>}
       </div>
 
       {/* DM button - only show for other participants */}
@@ -71,7 +71,7 @@ export const ParticipantItem = memo(function ParticipantItem({
           onClick={() => {
             onStartDM(participant);
           }}
-          className="rounded-md p-1.5 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded-md p-1.5 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-700 hover:text-gray-300"
           aria-label={`Message ${participant.display_name}`}
           title={`Message ${participant.display_name}`}
         >

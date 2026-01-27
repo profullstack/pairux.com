@@ -83,47 +83,47 @@ export function ChatPanel({
     return (
       <button
         onClick={handleToggle}
-        className={`flex h-full w-12 flex-col items-center justify-center border-l border-gray-200 bg-white hover:bg-gray-50 ${className}`}
+        className={`flex h-full w-12 flex-col items-center justify-center border-l border-gray-700 bg-gray-900 hover:bg-gray-800 ${className}`}
         aria-label="Open chat"
       >
-        <MessageSquare className="h-5 w-5 text-gray-600" />
+        <MessageSquare className="h-5 w-5 text-gray-400" />
         {unreadCount > 0 && (
           <span className="bg-primary-500 mt-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
-        <ChevronLeft className="mt-2 h-4 w-4 text-gray-400" />
+        <ChevronLeft className="mt-2 h-4 w-4 text-gray-500" />
       </button>
     );
   }
 
   return (
     <div
-      className={`flex h-full w-80 flex-col border-l border-gray-200 bg-white ${className}`}
+      className={`flex h-full w-80 flex-col border-l border-gray-700 bg-gray-900 ${className}`}
       data-testid="chat-panel"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3">
         {dmRecipient ? (
           // DM mode header
           <div className="flex items-center gap-2">
             <button
               onClick={handleCloseDM}
-              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-gray-300"
               aria-label="Back to chat"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <User className="h-5 w-5 text-gray-600" />
-            <h2 className="max-w-[140px] truncate font-medium text-gray-900">
+            <User className="h-5 w-5 text-gray-400" />
+            <h2 className="max-w-[140px] truncate font-medium text-white">
               DM: {dmRecipient.display_name}
             </h2>
           </div>
         ) : (
           // Normal chat header
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-gray-600" />
-            <h2 className="font-medium text-gray-900">Chat</h2>
+            <MessageSquare className="h-5 w-5 text-gray-400" />
+            <h2 className="font-medium text-white">Chat</h2>
             {/* Connection status */}
             {isConnected ? (
               <Wifi className="h-4 w-4 text-green-500" aria-label="Connected" />
@@ -135,7 +135,7 @@ export function ChatPanel({
 
         <button
           onClick={handleToggle}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-gray-300"
           aria-label="Close chat"
         >
           <ChevronRight className="h-5 w-5" />
@@ -144,12 +144,12 @@ export function ChatPanel({
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+        <div className="flex items-center gap-2 border-b border-red-800 bg-red-900/30 px-4 py-2 text-sm text-red-400">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span className="flex-1">{error}</span>
           <button
             onClick={reconnect}
-            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-red-100"
+            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-red-900/50"
           >
             <RefreshCw className="h-3 w-3" />
             Retry

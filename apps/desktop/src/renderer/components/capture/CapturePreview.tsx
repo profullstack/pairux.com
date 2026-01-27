@@ -405,7 +405,7 @@ export function CapturePreview({
                   >
                     <option value="720p">720p</option>
                     <option value="1080p">1080p</option>
-                    <option value="4k">4K</option>
+                    <option value="4k">4K (where available)</option>
                   </select>
                   <button
                     onClick={() => {

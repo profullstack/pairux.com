@@ -59,7 +59,6 @@ export function HomePage() {
         mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             displaySurface: source.type === 'screen' ? 'monitor' : 'window',
-            // Request high quality capture
             width: { ideal: 1920, max: 3840 },
             height: { ideal: 1080, max: 2160 },
             frameRate: { ideal: 30, max: 60 },
@@ -76,7 +75,6 @@ export function HomePage() {
             mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: source.id,
-              // Request high quality capture
               minWidth: 1280,
               maxWidth: 3840,
               minHeight: 720,
@@ -129,7 +127,6 @@ export function HomePage() {
 
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          // Request high quality capture
           width: { ideal: 1920, max: 3840 },
           height: { ideal: 1080, max: 2160 },
           frameRate: { ideal: 30, max: 60 },

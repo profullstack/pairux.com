@@ -39,7 +39,7 @@ const QUALITY_PRESETS: Record<
 > = {
   '720p': { width: 1280, height: 720, bitrate: 4_000_000 }, // 4 Mbps for crisp 720p
   '1080p': { width: 1920, height: 1080, bitrate: 8_000_000 }, // 8 Mbps for crisp 1080p
-  '4k': { width: 3840, height: 2160, bitrate: 25_000_000 }, // 25 Mbps for 4K
+  '4k': { width: 3840, height: 2160, bitrate: 20_000_000 }, // 20 Mbps for 4K
 };
 
 // Minimum space warning threshold (in bytes) - 500MB
@@ -132,6 +132,22 @@ export function useRecording(options: UseRecordingOptions = {}) {
 
         if (existingStream) {
           // Use existing stream (e.g., from Wayland getDisplayMedia)
+          // Apply resolution constraints to ensure standard dimensions
+          try {
+            await existingStream.getVideoTracks()[0].applyConstraints({
+              width: { max: preset.width, ideal: preset.width },
+              height: { max: preset.height, ideal: preset.height },
+            });
+            console.log(
+              '[Recording] Applied resolution constraints:',
+              preset.width,
+              'x',
+              preset.height
+            );
+          } catch (constraintError) {
+            console.warn('[Recording] Could not apply resolution constraints:', constraintError);
+          }
+
           stream = existingStream;
           ownsStream = false;
 

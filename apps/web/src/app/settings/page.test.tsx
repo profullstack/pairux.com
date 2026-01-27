@@ -62,7 +62,7 @@ describe('SettingsPage', () => {
   describe('loading settings', () => {
     it('should load settings from localStorage', () => {
       const savedSettings = {
-        recording: { defaultQuality: '720p' },
+        recording: { defaultQuality: '4k' },
         capture: { defaultQuality: '4k', includeAudio: false },
         session: { defaultMaxParticipants: 10 },
         appearance: { theme: 'dark' },
@@ -74,7 +74,7 @@ describe('SettingsPage', () => {
       // Check recording quality - find by text then get the select
       const recordingSelects = screen.getAllByRole('combobox');
       const recordingSelect = recordingSelects[0] as HTMLSelectElement;
-      expect(recordingSelect.value).toBe('720p');
+      expect(recordingSelect.value).toBe('4k');
 
       // Check capture quality
       const captureSelect = recordingSelects[1] as HTMLSelectElement;
@@ -128,10 +128,10 @@ describe('SettingsPage', () => {
 
       const selects = screen.getAllByRole('combobox');
       const captureSelect = selects[1]!;
-      fireEvent.change(captureSelect, { target: { value: '4k' } });
+      fireEvent.change(captureSelect, { target: { value: '720p' } });
 
       const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}');
-      expect(saved.capture.defaultQuality).toBe('4k');
+      expect(saved.capture.defaultQuality).toBe('720p');
     });
 
     it('should save max participants to localStorage', async () => {

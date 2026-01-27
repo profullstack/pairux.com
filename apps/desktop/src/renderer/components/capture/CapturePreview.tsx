@@ -147,7 +147,7 @@ export function CapturePreview({
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (session !== null && stream !== null && !isHosting) {
       console.log('[CapturePreview] Starting WebRTC hosting for session:', session.id);
-      startHosting();
+      void startHosting();
     }
   }, [session, stream, isHosting, startHosting]);
 

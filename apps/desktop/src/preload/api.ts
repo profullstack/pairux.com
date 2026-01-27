@@ -83,6 +83,11 @@ export interface IPCChannels {
     return: Promise<void>;
   };
 
+  'auth:getToken': {
+    args: undefined;
+    return: { token: string | null };
+  };
+
   // Session channels
   'session:create': {
     args: CreateSessionSettings | undefined;

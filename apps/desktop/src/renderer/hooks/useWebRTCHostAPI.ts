@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { API_BASE_URL } from '../../shared/config';
+import { getElectronAPI } from '@/lib/ipc';
 import type {
   ConnectionState,
   NetworkQuality,
@@ -77,7 +78,7 @@ interface UseWebRTCHostAPIReturn {
   viewers: Map<string, ViewerConnection>;
   controllingViewer: string | null;
   error: string | null;
-  startHosting: () => void;
+  startHosting: () => Promise<void>;
   stopHosting: () => void;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
@@ -104,6 +105,7 @@ export function useWebRTCHostAPI({
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
+  const authTokenRef = useRef<string | null>(null);
 
   // Keep callback refs updated
   const onControlRequestRef = useRef(onControlRequest);
@@ -117,9 +119,14 @@ export function useWebRTCHostAPI({
   const sendSignal = useCallback(
     async (signal: SignalMessage) => {
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (authTokenRef.current) {
+          headers.Authorization = `Bearer ${authTokenRef.current}`;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/signal`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(signal),
         });
 
@@ -171,9 +178,14 @@ export function useWebRTCHostAPI({
         });
 
         // Report to API
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (authTokenRef.current) {
+          headers.Authorization = `Bearer ${authTokenRef.current}`;
+        }
+
         await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             participantId: hostId,
             role: 'host',
@@ -480,7 +492,7 @@ export function useWebRTCHostAPI({
   );
 
   // Start hosting
-  const startHosting = useCallback(() => {
+  const startHosting = useCallback(async () => {
     if (!localStream) {
       setError('No stream available. Please start screen sharing first.');
       return;
@@ -488,9 +500,29 @@ export function useWebRTCHostAPI({
 
     console.log('[WebRTCHost] Starting hosting for session:', sessionId);
 
+    // Get auth token for API authentication
+    try {
+      const api = getElectronAPI();
+      const { token } = await api.invoke('auth:getToken', undefined);
+      authTokenRef.current = token;
+      console.log('[WebRTCHost] Auth token retrieved:', token ? 'yes' : 'no');
+    } catch (err) {
+      console.error('[WebRTCHost] Failed to get auth token:', err);
+      setError('Failed to authenticate. Please log in again.');
+      return;
+    }
+
+    // Build SSE URL with token (EventSource doesn't support custom headers)
+    const sseParams = new URLSearchParams({
+      participantId: hostId,
+    });
+    if (authTokenRef.current) {
+      sseParams.set('token', authTokenRef.current);
+    }
+
     // Connect to SSE stream for signals
     const eventSource = new EventSource(
-      `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?participantId=${hostId}`
+      `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?${sseParams.toString()}`
     );
 
     eventSourceRef.current = eventSource;

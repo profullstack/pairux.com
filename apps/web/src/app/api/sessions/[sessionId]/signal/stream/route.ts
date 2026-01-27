@@ -1,4 +1,6 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@pairux/shared-types';
 import { z } from 'zod';
 
 // Type for session (until Supabase types are regenerated)
@@ -11,6 +13,7 @@ interface Session {
 // Query params schema
 const querySchema = z.object({
   participantId: z.string().optional(),
+  token: z.string().optional(), // Bearer token for desktop app (EventSource doesn't support headers)
 });
 
 // Heartbeat interval (30 seconds)
@@ -26,6 +29,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const parseResult = querySchema.safeParse({
       participantId: searchParams.get('participantId') ?? undefined,
+      token: searchParams.get('token') ?? undefined,
     });
 
     if (!parseResult.success) {
@@ -35,9 +39,37 @@ export async function GET(
       );
     }
 
-    const { participantId } = parseResult.data;
-    const supabase = await createClient();
-    const { user } = await getAuthenticatedUser(supabase);
+    const { participantId, token } = parseResult.data;
+
+    // Handle authentication - support both cookie-based (web) and token-based (desktop)
+    let supabase;
+    let user = null;
+
+    if (token) {
+      // Desktop app: authenticate with Bearer token from query param
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!url || !key) {
+        return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      supabase = createSupabaseClient<Database>(url, key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+
+      const { data } = await supabase.auth.getUser(token);
+      user = data.user;
+    } else {
+      // Web browser: use cookie-based auth
+      supabase = await createClient();
+      const authResult = await getAuthenticatedUser(supabase);
+      user = authResult.user;
+    }
 
     // Verify session exists and is active
     const { data: sessionData } = await supabase

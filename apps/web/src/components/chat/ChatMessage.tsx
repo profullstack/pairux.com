@@ -50,7 +50,7 @@ function renderWithMentions(
           isOwnMessage
             ? 'rounded bg-white/20 px-1 text-white/90'
             : isCurrentUser
-              ? 'text-primary-600 bg-primary-100 rounded px-1'
+              ? 'text-primary-400 bg-primary-900/50 rounded px-1'
               : 'text-primary-600'
         }`}
       >
@@ -128,10 +128,10 @@ export const ChatMessage = memo(function ChatMessage({
     return (
       <div className="flex items-center justify-center gap-2 px-4 py-2">
         <Info className="h-3 w-3 text-gray-400" />
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-gray-400">
           <Linkify options={linkifyOptions}>{message.content}</Linkify>
         </span>
-        <span className="text-xs text-gray-400">{formatTime(message.created_at)}</span>
+        <span className="text-xs text-gray-500">{formatTime(message.created_at)}</span>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export const ChatMessage = memo(function ChatMessage({
   return (
     <div
       className={`flex gap-3 px-4 py-2 ${isOwnMessage ? 'flex-row-reverse' : ''} ${
-        isMentioned && !isOwnMessage ? 'bg-yellow-50' : ''
+        isMentioned && !isOwnMessage ? 'bg-yellow-900/20' : ''
       }`}
       data-testid="chat-message"
     >
@@ -155,12 +155,12 @@ export const ChatMessage = memo(function ChatMessage({
       {/* Message content */}
       <div className={`flex max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-medium text-gray-700">{message.display_name}</span>
-          <span className="text-xs text-gray-400">{formatTime(message.created_at)}</span>
+          <span className="text-sm font-medium text-gray-300">{message.display_name}</span>
+          <span className="text-xs text-gray-500">{formatTime(message.created_at)}</span>
         </div>
         <div
           className={`mt-1 rounded-lg px-3 py-2 ${
-            isOwnMessage ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-900'
+            isOwnMessage ? 'bg-primary-500 text-white' : 'bg-gray-800 text-gray-100'
           }`}
         >
           <p className="text-sm break-words whitespace-pre-wrap">

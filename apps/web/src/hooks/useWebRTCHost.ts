@@ -96,12 +96,17 @@ interface UseWebRTCHostReturn {
   viewers: Map<string, ViewerConnection>;
   controllingViewer: string | null;
   error: string | null;
-  startHosting: () => void;
+  startHosting: () => Promise<void>;
   stopHosting: () => void;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
   muteViewer: (viewerId: string, muted: boolean) => void;
+  // Host microphone
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
+  micStream: MediaStream | null;
 }
 
 export function useWebRTCHost({
@@ -118,11 +123,14 @@ export function useWebRTCHost({
   const [error, setError] = useState<string | null>(null);
   const [viewers, setViewers] = useState<Map<string, ViewerConnection>>(new Map());
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [hasMic, setHasMic] = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hostMicStreamRef = useRef<MediaStream | null>(null);
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
@@ -329,6 +337,14 @@ export function useWebRTCHost({
               // Some browsers may not support all parameters
             });
           }
+        });
+      }
+
+      // Add host mic audio track so viewers hear the host
+      const hostMic = hostMicStreamRef.current;
+      if (hostMic) {
+        hostMic.getAudioTracks().forEach((track) => {
+          pc.addTrack(track, hostMic);
         });
       }
 
@@ -563,10 +579,24 @@ export function useWebRTCHost({
   );
 
   // Start hosting
-  const startHosting = useCallback(() => {
+  const startHosting = useCallback(async () => {
     if (!localStream) {
       setError('No stream available. Please start screen sharing first.');
       return;
+    }
+
+    // Capture host microphone before setting up signaling
+    try {
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      hostMicStreamRef.current = micStream;
+      setHasMic(true);
+      setMicEnabled(true);
+      console.log('[WebRTCHost] Host microphone captured');
+    } catch (err: unknown) {
+      console.warn('[WebRTCHost] Could not access microphone, hosting without audio:', err);
+      hostMicStreamRef.current = null;
+      setHasMic(false);
+      setMicEnabled(false);
     }
 
     const supabase = createClient();
@@ -629,12 +659,35 @@ export function useWebRTCHost({
     collectStatsAndAdjust,
   ]);
 
+  // Toggle host microphone
+  const toggleMic = useCallback(() => {
+    const micStream = hostMicStreamRef.current;
+    if (!micStream) return;
+
+    const tracks = micStream.getAudioTracks();
+    if (tracks.length === 0) return;
+
+    const newEnabled = !micEnabled;
+    tracks.forEach((track) => {
+      track.enabled = newEnabled;
+    });
+    setMicEnabled(newEnabled);
+  }, [micEnabled]);
+
   // Stop hosting
   const stopHosting = useCallback(() => {
     // Stop adaptive bitrate monitoring
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
+    }
+
+    // Stop host mic tracks
+    if (hostMicStreamRef.current) {
+      hostMicStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      hostMicStreamRef.current = null;
     }
 
     // Close all viewer connections
@@ -655,6 +708,8 @@ export function useWebRTCHost({
     }
 
     setIsHosting(false);
+    setMicEnabled(false);
+    setHasMic(false);
   }, []);
 
   // Cleanup on unmount
@@ -805,5 +860,10 @@ export function useWebRTCHost({
     revokeControl,
     kickViewer,
     muteViewer,
+    // Host microphone
+    micEnabled,
+    hasMic,
+    toggleMic,
+    micStream: hostMicStreamRef.current,
   };
 }

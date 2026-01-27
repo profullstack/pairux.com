@@ -31,19 +31,19 @@ export const ParticipantList = memo(function ParticipantList({
   };
 
   return (
-    <div className="border-b border-gray-200">
+    <div className="border-b border-gray-700">
       {/* Header */}
       <button
         onClick={() => {
           setIsExpanded(!isExpanded);
         }}
-        className="flex w-full items-center justify-between px-4 py-2 transition-colors hover:bg-gray-50"
+        className="flex w-full items-center justify-between px-4 py-2 transition-colors hover:bg-gray-800"
         aria-expanded={isExpanded}
       >
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Participants</span>
-          <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+          <Users className="h-4 w-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Participants</span>
+          <span className="rounded-full bg-gray-700 px-1.5 py-0.5 text-xs text-gray-400">
             {participants.length}
           </span>
         </div>
@@ -62,7 +62,7 @@ export const ParticipantList = memo(function ParticipantList({
               <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
             </div>
           ) : participants.length === 0 ? (
-            <div className="py-4 text-center text-sm text-gray-500">No participants yet</div>
+            <div className="py-4 text-center text-sm text-gray-400">No participants yet</div>
           ) : (
             participants.map((participant) => (
               <ParticipantItem

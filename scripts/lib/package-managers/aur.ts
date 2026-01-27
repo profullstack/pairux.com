@@ -209,7 +209,7 @@ pkgname = ${PACKAGE_NAME}
         // Package doesn't exist yet, create it
         this.logger.info('Creating new AUR package...');
         mkdirSync(repoDir, { recursive: true });
-        execSync('git init', { cwd: repoDir, env, stdio: 'pipe' });
+        execSync('git init -b master', { cwd: repoDir, env, stdio: 'pipe' });
         execSync(`git remote add origin ${AUR_SSH_HOST}:${PACKAGE_NAME}.git`, {
           cwd: repoDir,
           env,

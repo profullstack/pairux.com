@@ -74,7 +74,32 @@ function createMockStream(): MediaStream {
   } as unknown as MediaStream;
 }
 
+// Create mock mic stream with controllable audio tracks
+interface MockMicTrack {
+  kind: string;
+  enabled: boolean;
+  stop: ReturnType<typeof vi.fn>;
+}
+
+type MockMicStream = MediaStream & { _audioTracks: MockMicTrack[] };
+
+function createMockMicStream(): MockMicStream {
+  const micTrack: MockMicTrack = {
+    kind: 'audio',
+    enabled: true,
+    stop: vi.fn(),
+  };
+  return {
+    _audioTracks: [micTrack],
+    getTracks: () => [micTrack],
+    getVideoTracks: () => [],
+    getAudioTracks: () => [micTrack],
+  } as unknown as MockMicStream;
+}
+
 describe('useWebRTCHost', () => {
+  let mockGetUserMedia: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
     (globalThis as Record<string, unknown>).RTCPeerConnection = MockRTCPeerConnection;
@@ -92,6 +117,18 @@ describe('useWebRTCHost', () => {
       play: vi.fn().mockResolvedValue(undefined),
       pause: vi.fn(),
     }));
+
+    // Mock navigator.mediaDevices.getUserMedia for mic capture
+    mockGetUserMedia = vi.fn().mockResolvedValue(createMockMicStream());
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        mediaDevices: {
+          getUserMedia: mockGetUserMedia,
+        },
+      },
+      writable: true,
+      configurable: true,
+    });
 
     // Reset channel mocks
     mockChannel.on.mockReturnThis();
@@ -129,14 +166,14 @@ describe('useWebRTCHost', () => {
     const { result } = renderHook(() => useWebRTCHost({ ...defaultOptions, localStream: null }));
 
     act(() => {
-      result.current.startHosting();
+      void result.current.startHosting();
     });
 
     expect(result.current.error).toBe('No stream available. Please start screen sharing first.');
   });
 
   describe('startHosting', () => {
-    it('should set isHosting when channel subscribes', () => {
+    it('should set isHosting when channel subscribes', async () => {
       // Mock subscribe to call callback with 'SUBSCRIBED'
       mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
         callback('SUBSCRIBED');
@@ -145,8 +182,8 @@ describe('useWebRTCHost', () => {
 
       const { result } = renderHook(() => useWebRTCHost(defaultOptions));
 
-      act(() => {
-        result.current.startHosting();
+      await act(async () => {
+        await result.current.startHosting();
       });
 
       expect(result.current.isHosting).toBe(true);
@@ -185,6 +222,122 @@ describe('useWebRTCHost', () => {
       // Viewers is a Map
       expect(result.current.viewers).toBeInstanceOf(Map);
       expect(result.current.viewers.size).toBe(0);
+    });
+  });
+
+  describe('host microphone', () => {
+    it('should initialize mic state as disabled', () => {
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      expect(result.current.micEnabled).toBe(false);
+      expect(result.current.hasMic).toBe(false);
+      expect(result.current.micStream).toBeNull();
+      expect(result.current.toggleMic).toBeInstanceOf(Function);
+    });
+
+    it('should capture mic when startHosting is called', async () => {
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true, video: false });
+      expect(result.current.hasMic).toBe(true);
+      expect(result.current.micEnabled).toBe(true);
+    });
+
+    it('should host without mic when getUserMedia fails', async () => {
+      mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      // Should still be hosting despite mic failure
+      expect(result.current.isHosting).toBe(true);
+      expect(result.current.hasMic).toBe(false);
+      expect(result.current.micEnabled).toBe(false);
+      expect(result.current.micStream).toBeNull();
+    });
+
+    it('should toggle mic audio track enabled state', async () => {
+      const mockMicStream = createMockMicStream();
+      mockGetUserMedia.mockResolvedValue(mockMicStream);
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      expect(result.current.micEnabled).toBe(true);
+
+      // Toggle mic off
+      act(() => {
+        result.current.toggleMic();
+      });
+
+      expect(result.current.micEnabled).toBe(false);
+      expect(mockMicStream._audioTracks[0]!.enabled).toBe(false);
+
+      // Toggle mic back on
+      act(() => {
+        result.current.toggleMic();
+      });
+
+      expect(result.current.micEnabled).toBe(true);
+      expect(mockMicStream._audioTracks[0]!.enabled).toBe(true);
+    });
+
+    it('should do nothing when toggleMic is called without a mic', () => {
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      // Should not throw when no mic is available
+      act(() => {
+        result.current.toggleMic();
+      });
+
+      expect(result.current.micEnabled).toBe(false);
+    });
+
+    it('should stop mic tracks when stopHosting is called', async () => {
+      const mockMicStream = createMockMicStream();
+      mockGetUserMedia.mockResolvedValue(mockMicStream);
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      expect(result.current.hasMic).toBe(true);
+
+      act(() => {
+        result.current.stopHosting();
+      });
+
+      // Mic tracks should have been stopped
+      expect(mockMicStream._audioTracks[0]!.stop).toHaveBeenCalled();
     });
   });
 });

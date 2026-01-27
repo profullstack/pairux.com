@@ -167,9 +167,9 @@ export function ChatMessageInput({
   const showCharCount = content.length > maxLength * 0.8;
 
   return (
-    <form onSubmit={handleFormSubmit} className="border-t border-gray-200 p-3">
+    <form onSubmit={handleFormSubmit} className="border-t border-gray-700 p-3">
       {error && (
-        <div className="mb-2 rounded bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>
+        <div className="mb-2 rounded bg-red-900/30 px-3 py-2 text-sm text-red-400">{error}</div>
       )}
 
       <div className="flex items-end gap-2">
@@ -182,7 +182,7 @@ export function ChatMessageInput({
             disabled={disabled || isSending}
             placeholder="Type a message... (use @ to mention)"
             rows={1}
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full resize-none rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-800 disabled:opacity-50"
             data-testid="chat-input"
           />
 
@@ -220,7 +220,7 @@ export function ChatMessageInput({
         </button>
       </div>
 
-      <p className="mt-1 text-xs text-gray-400">Press Enter to send, Shift+Enter for new line</p>
+      <p className="mt-1 text-xs text-gray-500">Press Enter to send, Shift+Enter for new line</p>
     </form>
   );
 }

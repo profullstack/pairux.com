@@ -224,7 +224,9 @@
       "Bash(pnpm turbo run typecheck:*)",
       "Bash(pnpm turbo run lint:*)",
       "Bash(pnpm precommit:*)",
-      "Bash(pnpm --filter @pairux/web test -- --run src/app/api/sessions/[sessionId]/signal/stream/route.test.ts)"
+      "Bash(pnpm --filter @pairux/web test -- --run src/app/api/sessions/[sessionId]/signal/stream/route.test.ts)",
+      "Bash(pnpm --filter @pairux/web test)",
+      "Bash(pnpm --filter @pairux/web test -- --reporter=verbose)"
     ],
     "deny": [
       "Bash(npm *)",

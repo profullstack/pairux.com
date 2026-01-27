@@ -49,7 +49,19 @@ export function CapturePreview({
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [showParticipants, setShowParticipants] = useState(false);
-  const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
+  const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>(() => {
+    const saved = localStorage.getItem('pairux-settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as { recording?: { defaultQuality?: RecordingQuality } };
+        return parsed.recording?.defaultQuality ?? '1080p';
+      } catch {
+        return '1080p';
+      }
+    }
+    return '1080p';
+  });
+  const [includeAudio, setIncludeAudio] = useState(true);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
@@ -249,12 +261,12 @@ export function CapturePreview({
     await startRecording(source.id, {
       quality: recordingQuality,
       format: 'webm',
-      includeAudio: false,
+      includeAudio,
       // Pass the existing stream so we don't need to create a new one
       // This is especially important for Wayland where the source ID isn't a valid chromeMediaSourceId
       existingStream: stream,
     });
-  }, [source, recordingQuality, startRecording, stream]);
+  }, [source, recordingQuality, includeAudio, startRecording, stream]);
 
   const handleStopRecording = useCallback(async () => {
     await stopRecording();
@@ -335,10 +347,21 @@ export function CapturePreview({
                     className="rounded bg-background px-2 py-1 text-xs"
                     title="Recording quality - affects file size and bitrate"
                   >
-                    <option value="720p">720p (2.5 Mbps)</option>
-                    <option value="1080p">1080p (5 Mbps)</option>
-                    <option value="4k">4K (15 Mbps)</option>
+                    <option value="720p">720p</option>
+                    <option value="1080p">1080p</option>
+                    <option value="4k">4K</option>
                   </select>
+                  <button
+                    onClick={() => {
+                      setIncludeAudio(!includeAudio);
+                    }}
+                    className={`rounded px-2 py-1 text-xs ${
+                      includeAudio ? 'bg-primary text-primary-foreground' : 'bg-background'
+                    }`}
+                    title={includeAudio ? 'Audio enabled' : 'Audio disabled'}
+                  >
+                    {includeAudio ? '🔊' : '🔇'}
+                  </button>
                   <button
                     onClick={() => void handleStartRecording()}
                     className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"

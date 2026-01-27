@@ -88,7 +88,7 @@ PrivacyUrl: https://pairux.com/privacy
 PackageName: PairUX
 PackageUrl: https://pairux.com
 License: MIT
-LicenseUrl: https://github.com/profullstack/pairux.com/blob/main/LICENSE
+LicenseUrl: https://github.com/profullstack/pairux.com/blob/master/LICENSE
 ShortDescription: Collaborative screen sharing with remote control
 Description: |-
   PairUX enables real-time screen sharing with simultaneous local and remote

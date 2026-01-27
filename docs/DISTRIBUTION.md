@@ -232,7 +232,7 @@ export default {
     if (path === '/' || path === '/sh') {
       // Unix installer
       const script = await fetch(
-        'https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.sh'
+        'https://raw.githubusercontent.com/pairux/pairux/master/scripts/install.sh'
       );
       return new Response(script.body, {
         headers: { 'Content-Type': 'text/plain' },
@@ -242,7 +242,7 @@ export default {
     if (path === '/windows' || path === '/ps1') {
       // Windows installer
       const script = await fetch(
-        'https://raw.githubusercontent.com/pairux/pairux/main/scripts/install.ps1'
+        'https://raw.githubusercontent.com/pairux/pairux/master/scripts/install.ps1'
       );
       return new Response(script.body, {
         headers: { 'Content-Type': 'text/plain' },
@@ -459,7 +459,7 @@ PrivacyUrl: https://pairux.com/privacy
 PackageName: PairUX
 PackageUrl: https://pairux.com
 License: MIT
-LicenseUrl: https://github.com/profullstack/pairux.com/blob/main/LICENSE
+LicenseUrl: https://github.com/profullstack/pairux.com/blob/master/LICENSE
 ShortDescription: Collaborative screen sharing with remote control
 Description: PairUX enables real-time screen sharing with simultaneous local and remote mouse/keyboard control.
 Tags:

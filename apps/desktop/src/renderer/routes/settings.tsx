@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Video, Users, Info, FolderOpen } from 'lucide-react';
+import {
+  ArrowLeft,
+  Monitor,
+  Video,
+  Users,
+  Info,
+  FolderOpen,
+  Cloud,
+  Loader2,
+  Check,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
-import type { RecordingQuality, RecordingFormat } from '@/hooks/useRecording';
+import type { RecordingQuality } from '@/hooks/useRecording';
+import { APP_URL } from '../../shared/config';
 
 interface AppSettings {
   recording: {
     defaultQuality: RecordingQuality;
-    defaultFormat: RecordingFormat;
   };
   session: {
     defaultMaxParticipants: number;
@@ -20,7 +30,6 @@ interface AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
   recording: {
     defaultQuality: '1080p',
-    defaultFormat: 'webm',
   },
   session: {
     defaultMaxParticipants: 10,
@@ -37,8 +46,11 @@ export function SettingsPage() {
     platform: string;
     version: string;
   } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // Load settings from localStorage
+  // Load settings from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('pairux-settings');
     if (saved) {
@@ -56,10 +68,41 @@ export function SettingsPage() {
     }
   }, []);
 
-  // Save settings to localStorage
-  const saveSettings = (newSettings: AppSettings) => {
+  // Update settings locally (marks as having changes)
+  const updateSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
     localStorage.setItem('pairux-settings', JSON.stringify(newSettings));
+    setHasChanges(true);
+    setSaveSuccess(false);
+  };
+
+  // Save settings to cloud
+  const handleSaveToCloud = async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${APP_URL}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ settings }),
+      });
+
+      if (response.ok) {
+        setSaveSuccess(true);
+        setHasChanges(false);
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 3000);
+      } else {
+        console.error('Failed to save settings to cloud');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Load platform info and recordings path
@@ -87,15 +130,41 @@ export function SettingsPage() {
   return (
     <div className="flex flex-1 flex-col p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
-        <button
-          onClick={() => void navigate('/')}
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
-        <h1 className="text-2xl font-semibold">Settings</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => void navigate('/')}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+          <h1 className="text-2xl font-semibold">Settings</h1>
+        </div>
+
+        {/* Save to Cloud button */}
+        {user && (
+          <button
+            onClick={() => void handleSaveToCloud()}
+            disabled={isSaving || (!hasChanges && !saveSuccess)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              saveSuccess
+                ? 'bg-green-600 text-white'
+                : hasChanges
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'bg-muted text-muted-foreground'
+            } disabled:opacity-50`}
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : saveSuccess ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Cloud className="h-4 w-4" />
+            )}
+            {saveSuccess ? 'Saved!' : 'Save to Cloud'}
+          </button>
+        )}
       </div>
 
       <div className="grid max-w-3xl gap-6">
@@ -143,7 +212,7 @@ export function SettingsPage() {
               <select
                 value={settings.recording.defaultQuality}
                 onChange={(e) => {
-                  saveSettings({
+                  updateSettings({
                     ...settings,
                     recording: {
                       ...settings.recording,
@@ -159,29 +228,6 @@ export function SettingsPage() {
               </select>
               <p className="mt-1 text-xs text-muted-foreground">
                 Higher quality uses more disk space and CPU
-              </p>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">Default Format</label>
-              <select
-                value={settings.recording.defaultFormat}
-                onChange={(e) => {
-                  saveSettings({
-                    ...settings,
-                    recording: {
-                      ...settings.recording,
-                      defaultFormat: e.target.value as RecordingFormat,
-                    },
-                  });
-                }}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="webm">WebM (Recommended)</option>
-                <option value="mp4">MP4</option>
-              </select>
-              <p className="mt-1 text-xs text-muted-foreground">
-                WebM offers better compression, MP4 has wider compatibility
               </p>
             </div>
 
@@ -216,7 +262,7 @@ export function SettingsPage() {
               <select
                 value={settings.session.defaultMaxParticipants}
                 onChange={(e) => {
-                  saveSettings({
+                  updateSettings({
                     ...settings,
                     session: {
                       ...settings.session,
@@ -242,7 +288,7 @@ export function SettingsPage() {
               </div>
               <button
                 onClick={() => {
-                  saveSettings({
+                  updateSettings({
                     ...settings,
                     session: {
                       ...settings.session,

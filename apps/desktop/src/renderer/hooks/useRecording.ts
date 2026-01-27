@@ -58,6 +58,7 @@ export function useRecording(options: UseRecordingOptions = {}) {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const spaceCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -127,11 +128,38 @@ export function useRecording(options: UseRecordingOptions = {}) {
 
         let stream: MediaStream;
         let ownsStream = false;
+        let micStream: MediaStream | null = null;
 
         if (existingStream) {
           // Use existing stream (e.g., from Wayland getDisplayMedia)
           stream = existingStream;
           ownsStream = false;
+
+          // If audio is requested, get microphone stream and add to recording
+          if (includeAudio) {
+            try {
+              micStream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false,
+              });
+              micStreamRef.current = micStream; // Store for cleanup
+              // Create a new stream combining video from existing and audio from mic
+              const combinedStream = new MediaStream();
+              existingStream.getVideoTracks().forEach((track) => {
+                combinedStream.addTrack(track);
+              });
+              micStream.getAudioTracks().forEach((track) => {
+                combinedStream.addTrack(track);
+              });
+              stream = combinedStream;
+              console.log('[Recording] Added microphone audio to stream');
+            } catch (micError) {
+              console.warn(
+                '[Recording] Failed to get microphone, recording without audio:',
+                micError
+              );
+            }
+          }
         } else {
           // Get media stream from the source
           // Electron's desktopCapturer requires non-standard mandatory constraints
@@ -205,6 +233,11 @@ export function useRecording(options: UseRecordingOptions = {}) {
             track.stop();
           });
           streamRef.current = null;
+          // Clean up mic stream
+          micStreamRef.current?.getTracks().forEach((track) => {
+            track.stop();
+          });
+          micStreamRef.current = null;
         };
 
         mediaRecorderRef.current = mediaRecorder;
@@ -415,6 +448,9 @@ export function useRecording(options: UseRecordingOptions = {}) {
       if (mediaRecorderRef.current && state.isRecording) {
         mediaRecorderRef.current.stop();
         streamRef.current?.getTracks().forEach((track) => {
+          track.stop();
+        });
+        micStreamRef.current?.getTracks().forEach((track) => {
           track.stop();
         });
       }

@@ -201,7 +201,8 @@ export function initializeTray(trayCallbacks: TrayCallbacks): Tray {
   tray.on('click', () => {
     if (process.platform === 'linux') {
       // On Linux, explicitly pop up the context menu on click
-      tray?.popUpContextMenu(contextMenu);
+      // Build fresh menu to ensure it reflects current state
+      tray?.popUpContextMenu(buildContextMenu());
     } else {
       // On Windows/macOS, single-click shows window
       callbacks?.onShowWindow();

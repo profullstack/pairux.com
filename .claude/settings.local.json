@@ -219,7 +219,8 @@
       "Bash(do)",
       "Bash(done)",
       "Bash(pnpm lint-staged:*)",
-      "Bash(npx lint-staged)"
+      "Bash(npx lint-staged)",
+      "Bash(pnpm --filter web typecheck:*)"
     ],
     "deny": [
       "Bash(npm *)",

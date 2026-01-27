@@ -23,7 +23,7 @@ export function TitleBar() {
       } pr-4`}
     >
       <div className="no-drag flex items-center gap-2">
-        <img src="/favicon.svg" alt="PairUX" className="h-5 w-auto" />
+        <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="PairUX" className="h-6 w-auto" />
       </div>
 
       <div className="flex-1" />

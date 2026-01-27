@@ -80,7 +80,7 @@ export class ChocolateyPackageManager extends BasePackageManager {
     <owners>profullstack</owners>
     <projectUrl>https://pairux.com</projectUrl>
     <iconUrl>https://pairux.com/logo.svg</iconUrl>
-    <licenseUrl>https://github.com/profullstack/pairux.com/blob/main/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/profullstack/pairux.com/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/profullstack/pairux.com</projectSourceUrl>
     <docsUrl>https://pairux.com/docs</docsUrl>

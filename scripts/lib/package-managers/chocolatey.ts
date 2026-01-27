@@ -265,12 +265,51 @@ https://github.com/profullstack/pairux.com
           cwd: tempDir,
           stdio: 'pipe',
         });
-      } catch {
-        // Try nuget push as fallback
-        execSync(`nuget push ${nupkgFile} -Source ${CHOCOLATEY_API_URL} -ApiKey ${apiKey}`, {
-          cwd: tempDir,
-          stdio: 'pipe',
-        });
+      } catch (chocoError) {
+        const errorMessage = chocoError instanceof Error ? chocoError.message : String(chocoError);
+
+        // Check if this is a pending submission error (403)
+        if (
+          errorMessage.includes('previous version in a submitted state') ||
+          errorMessage.includes('403')
+        ) {
+          const packageUrl = `https://community.chocolatey.org/packages/${PACKAGE_ID}`;
+          this.logger.success(`Previous version pending review: ${packageUrl}`);
+          return {
+            packageManager: this.name,
+            status: 'success',
+            message: `Previous version pending review on Chocolatey: ${packageUrl}`,
+            url: packageUrl,
+          };
+        }
+
+        // Try nuget push as fallback for other errors
+        try {
+          execSync(`nuget push ${nupkgFile} -Source ${CHOCOLATEY_API_URL} -ApiKey ${apiKey}`, {
+            cwd: tempDir,
+            stdio: 'pipe',
+          });
+        } catch (nugetError) {
+          const nugetErrorMessage =
+            nugetError instanceof Error ? nugetError.message : String(nugetError);
+
+          // Also check nuget error for pending submission
+          if (
+            nugetErrorMessage.includes('previous version in a submitted state') ||
+            nugetErrorMessage.includes('403')
+          ) {
+            const packageUrl = `https://community.chocolatey.org/packages/${PACKAGE_ID}`;
+            this.logger.success(`Previous version pending review: ${packageUrl}`);
+            return {
+              packageManager: this.name,
+              status: 'success',
+              message: `Previous version pending review on Chocolatey: ${packageUrl}`,
+              url: packageUrl,
+            };
+          }
+
+          throw nugetError;
+        }
       }
 
       this.logger.success(`Pushed ${PACKAGE_ID} ${release.version} to Chocolatey`);

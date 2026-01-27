@@ -217,7 +217,9 @@
       "Bash(gh pr close:*)",
       "Bash(for pr in 333835 333887 333888 333890)",
       "Bash(do)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(pnpm lint-staged:*)",
+      "Bash(npx lint-staged)"
     ],
     "deny": [
       "Bash(npm *)",

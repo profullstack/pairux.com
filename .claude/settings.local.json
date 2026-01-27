@@ -220,7 +220,10 @@
       "Bash(done)",
       "Bash(pnpm lint-staged:*)",
       "Bash(npx lint-staged)",
-      "Bash(pnpm --filter web typecheck:*)"
+      "Bash(pnpm --filter web typecheck:*)",
+      "Bash(pnpm turbo run typecheck:*)",
+      "Bash(pnpm turbo run lint:*)",
+      "Bash(pnpm precommit:*)"
     ],
     "deny": [
       "Bash(npm *)",

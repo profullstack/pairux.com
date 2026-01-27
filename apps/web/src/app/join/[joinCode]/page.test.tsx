@@ -186,7 +186,7 @@ describe('JoinPage', () => {
           if (options?.method === 'POST') {
             return Promise.resolve({
               ok: true,
-              json: () => Promise.resolve({ data: { participant_id: 'p-123' } }),
+              json: () => Promise.resolve({ data: { id: 'p-123', session_id: 'session-123' } }),
             } as Response);
           }
           return Promise.resolve({
@@ -210,8 +210,9 @@ describe('JoinPage', () => {
       await user.type(screen.getByLabelText('Your Name'), 'Test User');
       await user.click(screen.getByRole('button', { name: 'Join Session' }));
 
+      // Guests are redirected to the public view page with their participant ID
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/session/session-123');
+        expect(mockPush).toHaveBeenCalledWith('/view/session-123?p=p-123');
       });
     });
 

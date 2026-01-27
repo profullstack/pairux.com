@@ -32,14 +32,14 @@ interface UseRecordingOptions {
   onSpaceWarning?: (availableGb: number) => void;
 }
 
-// Quality presets for video constraints
+// Quality presets for video constraints (optimized for screen recording with text)
 const QUALITY_PRESETS: Record<
   RecordingQuality,
   { width: number; height: number; bitrate: number }
 > = {
-  '720p': { width: 1280, height: 720, bitrate: 2_500_000 },
-  '1080p': { width: 1920, height: 1080, bitrate: 5_000_000 },
-  '4k': { width: 3840, height: 2160, bitrate: 15_000_000 },
+  '720p': { width: 1280, height: 720, bitrate: 4_000_000 }, // 4 Mbps for crisp 720p
+  '1080p': { width: 1920, height: 1080, bitrate: 8_000_000 }, // 8 Mbps for crisp 1080p
+  '4k': { width: 3840, height: 2160, bitrate: 25_000_000 }, // 25 Mbps for 4K
 };
 
 // Minimum space warning threshold (in bytes) - 500MB

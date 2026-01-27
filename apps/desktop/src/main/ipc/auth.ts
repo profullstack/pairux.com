@@ -131,6 +131,15 @@ export function registerAuthHandlers(): void {
     return { valid: true, user: stored.user };
   });
 
+  // Get access token for API calls (used by renderer for SSE connections)
+  ipcMain.handle('auth:getToken', (): { token: string | null } => {
+    const stored = getStoredAuth();
+    if (!stored || isAuthExpired(stored)) {
+      return { token: null };
+    }
+    return { token: stored.accessToken };
+  });
+
   // Open external URL (for signup/forgot password)
   ipcMain.handle('auth:openExternal', async (_event, url: string): Promise<void> => {
     // For signup/forgot password, open the web app

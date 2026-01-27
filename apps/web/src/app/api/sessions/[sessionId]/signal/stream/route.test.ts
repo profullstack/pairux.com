@@ -1,25 +1,46 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
+const mockCreateSupabaseClient = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: (...args: unknown[]) => mockCreateSupabaseClient(...args),
+}));
+
 import { createClient } from '@/lib/supabase/server';
 
 describe('GET /api/sessions/[sessionId]/signal/stream', () => {
+  const originalEnv = { ...process.env };
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    // Set up env vars for token auth tests
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
   });
 
-  const createRequest = (sessionId: string, participantId?: string) => {
-    const url = participantId
-      ? `http://localhost/api/sessions/${sessionId}/signal/stream?participantId=${participantId}`
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  const createRequest = (
+    sessionId: string,
+    options?: { participantId?: string; token?: string }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.participantId) params.set('participantId', options.participantId);
+    if (options?.token) params.set('token', options.token);
+    const queryString = params.toString();
+    const url = queryString
+      ? `http://localhost/api/sessions/${sessionId}/signal/stream?${queryString}`
       : `http://localhost/api/sessions/${sessionId}/signal/stream`;
     return new Request(url, {
       method: 'GET',
@@ -150,9 +171,12 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
     mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
-    const response = await GET(createRequest('test-session-id', 'guest-participant-id'), {
-      params: Promise.resolve({ sessionId: 'test-session-id' }),
-    });
+    const response = await GET(
+      createRequest('test-session-id', { participantId: 'guest-participant-id' }),
+      {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      }
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('text/event-stream');
@@ -233,5 +257,121 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
       { event: 'leave' },
       expect.any(Function)
     );
+  });
+
+  // Token-based authentication tests (for desktop app)
+  describe('token-based authentication', () => {
+    it('returns SSE stream for authenticated host via token', async () => {
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser }, error: null }),
+        },
+      });
+      mockCreateSupabaseClient.mockReturnValue(mockSupabase);
+
+      const response = await GET(createRequest('test-session-id', { token: 'valid-token' }), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+      // Verify createSupabaseClient was called with token in headers
+      expect(mockCreateSupabaseClient).toHaveBeenCalledWith(
+        'https://test.supabase.co',
+        'test-anon-key',
+        expect.objectContaining({
+          auth: { persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: 'Bearer valid-token' } },
+        })
+      );
+    });
+
+    it('returns 500 when env vars missing for token auth', async () => {
+      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+      const response = await GET(createRequest('test-session-id', { token: 'some-token' }), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(body.error).toBe('Server configuration error');
+    });
+
+    it('returns 401 when token is invalid and no participantId', async () => {
+      const otherUserSession = { ...mockSession, host_user_id: 'other-user-id' };
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: otherUserSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        auth: {
+          getUser: vi
+            .fn()
+            .mockResolvedValue({ data: { user: null }, error: { message: 'Invalid token' } }),
+        },
+      });
+      mockCreateSupabaseClient.mockReturnValue(mockSupabase);
+
+      const response = await GET(createRequest('test-session-id', { token: 'invalid-token' }), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(body.error).toBe('Authentication required');
+    });
+
+    it('allows token auth with participantId as fallback', async () => {
+      const otherUserSession = { ...mockSession, host_user_id: 'other-user-id' };
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: otherUserSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        },
+      });
+      mockCreateSupabaseClient.mockReturnValue(mockSupabase);
+
+      // Token is invalid but participantId provided as fallback
+      const response = await GET(
+        createRequest('test-session-id', { token: 'invalid-token', participantId: 'guest-id' }),
+        { params: Promise.resolve({ sessionId: 'test-session-id' }) }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+    });
   });
 });

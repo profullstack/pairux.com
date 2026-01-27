@@ -1,6 +1,5 @@
 import { BrowserWindow, shell, session, desktopCapturer, nativeImage } from 'electron';
 import { join } from 'path';
-import { detectDisplayServer } from './platform';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -14,7 +13,7 @@ function getIconPath(): string {
   return join(__dirname, '../../resources/icon.png');
 }
 
-export async function createMainWindow(): Promise<BrowserWindow> {
+export async function createMainWindow(isWayland: boolean): Promise<BrowserWindow> {
   // Load the window icon
   const iconPath = getIconPath();
   const icon = nativeImage.createFromPath(iconPath);
@@ -54,9 +53,11 @@ export async function createMainWindow(): Promise<BrowserWindow> {
   // routes through the PipeWire portal for native screen capture.
   // desktopCapturer.getSources() returns placeholder entries on Wayland
   // that only capture the cursor, not actual screen content.
-  const displayServer = detectDisplayServer();
+  console.log(
+    `[Main] Window: isWayland=${String(isWayland)}, XDG_SESSION_TYPE=${process.env.XDG_SESSION_TYPE ?? 'unset'}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY ?? 'unset'}`
+  );
 
-  if (displayServer !== 'wayland') {
+  if (!isWayland) {
     session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
       console.log('[Main] Display media request received');
 

@@ -47,7 +47,7 @@ export class AURPackageManager extends BasePackageManager {
     // Find the AppImage for x86_64
     const appImage = this.findAsset(
       release,
-      (a) => a.name.includes('x64') && a.name.endsWith('.AppImage')
+      (a) => a.name.includes('x86_64') && a.name.endsWith('.AppImage')
     );
 
     const sha256 = appImage?.sha256 ?? 'SKIP';
@@ -64,7 +64,7 @@ depends=('gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 
 provides=('pairux')
 conflicts=('pairux' 'pairux-git')
 options=('!strip')
-source=("PairUX-\${pkgver}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/PairUX-\${pkgver}-x64.AppImage")
+source=("PairUX-\${pkgver}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v\${pkgver}/PairUX-\${pkgver}-x86_64.AppImage")
 sha256sums=('${sha256}')
 
 package() {
@@ -129,7 +129,7 @@ DESKTOP
 \tconflicts = pairux
 \tconflicts = pairux-git
 \toptions = !strip
-\tsource = PairUX-${version}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x64.AppImage
+\tsource = PairUX-${version}.AppImage::https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x86_64.AppImage
 
 pkgname = ${PACKAGE_NAME}
 `;

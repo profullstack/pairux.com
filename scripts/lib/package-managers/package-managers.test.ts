@@ -57,8 +57,8 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
         sha256: 'GHI789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
       },
       {
-        name: `PairUX-${version}-x64.AppImage`,
-        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x64.AppImage`,
+        name: `PairUX-${version}-x86_64.AppImage`,
+        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x86_64.AppImage`,
         size: 95000000,
         contentType: 'application/octet-stream',
         sha256: 'JKL012ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
@@ -78,7 +78,7 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
         'GHI789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
       ],
       [
-        `PairUX-${version}-x64.AppImage`,
+        `PairUX-${version}-x86_64.AppImage`,
         'JKL012ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
       ],
     ]),

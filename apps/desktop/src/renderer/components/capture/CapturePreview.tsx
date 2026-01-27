@@ -15,12 +15,18 @@ import {
   FolderOpen,
   AlertTriangle,
 } from 'lucide-react';
-import type { CaptureSource, Session } from '@pairux/shared-types';
+import type {
+  CaptureSource,
+  Session,
+  InputMessage,
+  CursorPositionMessage,
+} from '@pairux/shared-types';
 import { APP_URL } from '../../../shared/config';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
 import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
+import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import {
   SharingIndicator,
   RecordingIndicator,
@@ -108,6 +114,52 @@ export function CapturePreview({
   // Remote cursors for showing viewer cursor positions
   const { cursors: remoteCursors } = useRemoteCursors();
 
+  // WebRTC hosting for streaming to viewers
+  const {
+    isHosting,
+    viewerCount,
+    error: hostingError,
+    startHosting,
+    stopHosting,
+  } = useWebRTCHostAPI({
+    sessionId: session?.id ?? '',
+    hostId: currentUserId ?? session?.id ?? '',
+    localStream: stream,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    allowControl: Boolean(session?.settings?.allowControl),
+    onViewerJoined: (viewerId) => {
+      console.log('[CapturePreview] Viewer joined:', viewerId);
+    },
+    onViewerLeft: (viewerId) => {
+      console.log('[CapturePreview] Viewer left:', viewerId);
+    },
+    onInputReceived: (_viewerId: string, _input: InputMessage) => {
+      // TODO: Handle remote input injection
+      console.log('[CapturePreview] Input received from viewer');
+    },
+    onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
+      // TODO: Update remote cursor position
+    },
+  });
+
+  // Start WebRTC hosting when session is created
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (session !== null && stream !== null && !isHosting) {
+      console.log('[CapturePreview] Starting WebRTC hosting for session:', session.id);
+      startHosting();
+    }
+  }, [session, stream, isHosting, startHosting]);
+
+  // Stop hosting when component unmounts or capture stops
+  useEffect(() => {
+    return () => {
+      if (isHosting) {
+        stopHosting();
+      }
+    };
+  }, [isHosting, stopHosting]);
+
   // Find participant with control granted
   const participantWithControl = useMemo(() => {
     return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
@@ -173,11 +225,15 @@ export function CapturePreview({
   }, [initialSession, createdSession, isCreating, createSession]);
 
   const handleStop = useCallback(async () => {
+    // Stop WebRTC hosting first
+    if (isHosting) {
+      stopHosting();
+    }
     if (session) {
       await endSession();
     }
     onStop();
-  }, [session, endSession, onStop]);
+  }, [session, endSession, onStop, isHosting, stopHosting]);
 
   const handleCopyLink = useCallback(async () => {
     if (!session) return;
@@ -433,6 +489,13 @@ export function CapturePreview({
           </div>
         )}
 
+        {/* Hosting error */}
+        {hostingError && (
+          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Streaming error: {hostingError}
+          </div>
+        )}
+
         {/* Space warning */}
         {spaceWarning !== null && (
           <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
@@ -469,7 +532,8 @@ export function CapturePreview({
 
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                {activeParticipants.length} viewer{activeParticipants.length !== 1 ? 's' : ''}
+                {viewerCount} connected{viewerCount !== 1 ? '' : ''}
+                {activeParticipants.length > 0 && ` (${String(activeParticipants.length)} joined)`}
               </div>
             </div>
 

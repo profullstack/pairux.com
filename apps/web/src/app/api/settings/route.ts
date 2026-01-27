@@ -21,7 +21,7 @@ export async function GET() {
       .from('profiles')
       .select('settings')
       .eq('id', user.id)
-      .single<ProfileWithSettings>();
+      .single();
 
     if (error) {
       console.error('Failed to fetch settings:', error);
@@ -29,7 +29,8 @@ export async function GET() {
     }
 
     // profile.settings may be null/undefined, default to empty object
-    const settings = profile.settings ?? {};
+    const settings =
+      ((profile as ProfileWithSettings | null)?.settings as Record<string, unknown> | null) ?? {};
     return successResponse({ settings });
   } catch (error) {
     return handleApiError(error);

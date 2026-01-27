@@ -14,8 +14,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # Skip release commits (they're already validated before tagging)
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,8 +42,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    # Skip release commits (they're already validated before tagging)
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

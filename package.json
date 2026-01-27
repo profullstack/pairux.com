@@ -44,9 +44,9 @@
     "db:studio": "turbo run db:studio",
     "supabase:update-emails": "npx tsx scripts/supabase-update-emails.ts",
     "setup:env": "node scripts/setup-env.mjs",
-    "setup:hooks": "git config core.hooksPath .githooks && echo '✅ Git hooks configured'",
+    "setup:hooks": "git config core.hooksPath .githooks && git config push.followTags true && echo '✅ Git hooks and push.followTags configured'",
     "setup": "pnpm setup:env && pnpm setup:hooks",
-    "postinstall": "node scripts/setup-env.mjs && git config core.hooksPath .githooks 2>/dev/null || true"
+    "postinstall": "node scripts/setup-env.mjs && git config core.hooksPath .githooks && git config push.followTags true 2>/dev/null || true"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",

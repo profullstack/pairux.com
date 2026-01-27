@@ -48,41 +48,36 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     },
   });
 
-  // Handle display media (screen capture) permission requests
-  // On Wayland, skip this handler so Chromium's default getDisplayMedia
-  // routes through the PipeWire portal for native screen capture.
-  // desktopCapturer.getSources() returns placeholder entries on Wayland
-  // that only capture the cursor, not actual screen content.
+  // Handle display media (screen capture) permission requests.
+  // Electron requires setDisplayMediaRequestHandler — without it,
+  // getDisplayMedia() fails with "Not supported in UI".
+  // We run under XWayland (no ozone-platform=wayland), so
+  // desktopCapturer.getSources() returns real screen content.
   console.log(
     `[Main] Window: isWayland=${String(isWayland)}, XDG_SESSION_TYPE=${process.env.XDG_SESSION_TYPE ?? 'unset'}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY ?? 'unset'}`
   );
 
-  if (!isWayland) {
-    session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-      console.log('[Main] Display media request received');
+  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+    console.log('[Main] Display media request received');
 
-      // Get available sources (X11/macOS/Windows)
-      desktopCapturer
-        .getSources({
-          types: ['screen', 'window'],
-        })
-        .then((sources) => {
-          if (sources.length > 0) {
-            console.log('[Main] Granting access to source:', sources[0].name);
-            callback({ video: sources[0] });
-          } else {
-            console.log('[Main] No sources available');
-            callback({});
-          }
-        })
-        .catch((err: unknown) => {
-          console.error('[Main] Failed to get sources:', err);
+    desktopCapturer
+      .getSources({
+        types: ['screen', 'window'],
+      })
+      .then((sources) => {
+        if (sources.length > 0) {
+          console.log('[Main] Granting access to source:', sources[0].name);
+          callback({ video: sources[0] });
+        } else {
+          console.log('[Main] No sources available');
           callback({});
-        });
-    });
-  } else {
-    console.log('[Main] Wayland detected - using native PipeWire portal for screen capture');
-  }
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('[Main] Failed to get sources:', err);
+        callback({});
+      });
+  });
 
   // Handle permission requests
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {

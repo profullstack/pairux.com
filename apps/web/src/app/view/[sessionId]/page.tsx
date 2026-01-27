@@ -224,7 +224,7 @@ export default function GuestSessionViewerPage({
       <div className="flex flex-1 overflow-hidden">
         {/* Video area */}
         <main className="flex flex-1 flex-col">
-          <div ref={videoContainerRef} className="relative flex-1">
+          <div ref={videoContainerRef} className="relative flex-1 bg-black">
             <InputCapture
               enabled={allowControl}
               controlState={controlState}

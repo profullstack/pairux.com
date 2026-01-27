@@ -1,5 +1,6 @@
 import { BrowserWindow, shell, session, desktopCapturer, nativeImage } from 'electron';
 import { join } from 'path';
+import { detectDisplayServer } from './platform';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -49,30 +50,38 @@ export async function createMainWindow(): Promise<BrowserWindow> {
   });
 
   // Handle display media (screen capture) permission requests
-  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    console.log('[Main] Display media request received');
+  // On Wayland, skip this handler so Chromium's default getDisplayMedia
+  // routes through the PipeWire portal for native screen capture.
+  // desktopCapturer.getSources() returns placeholder entries on Wayland
+  // that only capture the cursor, not actual screen content.
+  const displayServer = detectDisplayServer();
 
-    // Get available sources
-    desktopCapturer
-      .getSources({
-        types: ['screen', 'window'],
-      })
-      .then((sources) => {
-        if (sources.length > 0) {
-          // For now, automatically grant access to the first screen
-          // In production, you might want to show a picker
-          console.log('[Main] Granting access to source:', sources[0].name);
-          callback({ video: sources[0] });
-        } else {
-          console.log('[Main] No sources available');
+  if (displayServer !== 'wayland') {
+    session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+      console.log('[Main] Display media request received');
+
+      // Get available sources (X11/macOS/Windows)
+      desktopCapturer
+        .getSources({
+          types: ['screen', 'window'],
+        })
+        .then((sources) => {
+          if (sources.length > 0) {
+            console.log('[Main] Granting access to source:', sources[0].name);
+            callback({ video: sources[0] });
+          } else {
+            console.log('[Main] No sources available');
+            callback({});
+          }
+        })
+        .catch((err: unknown) => {
+          console.error('[Main] Failed to get sources:', err);
           callback({});
-        }
-      })
-      .catch((err: unknown) => {
-        console.error('[Main] Failed to get sources:', err);
-        callback({});
-      });
-  });
+        });
+    });
+  } else {
+    console.log('[Main] Wayland detected - using native PipeWire portal for screen capture');
+  }
 
   // Handle permission requests
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {

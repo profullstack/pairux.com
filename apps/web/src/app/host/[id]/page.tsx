@@ -312,7 +312,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
                       >
                         <option value="720p">720p</option>
                         <option value="1080p">1080p</option>
-                        <option value="4k">4K</option>
+                        <option value="4k">4K (where available)</option>
                       </select>
                       <button
                         type="button"
@@ -422,7 +422,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
                 >
                   <option value="720p">720p (HD)</option>
                   <option value="1080p">1080p (Full HD)</option>
-                  <option value="4k">4K (Ultra HD)</option>
+                  <option value="4k">4K (where available)</option>
                 </select>
                 <span className="text-xs text-gray-500">Higher quality uses more bandwidth</span>
               </div>

@@ -25,7 +25,7 @@ interface UseRecordingOptions {
 const QUALITY_PRESETS: Record<RecordingQuality, { bitrate: number }> = {
   '720p': { bitrate: 2_500_000 },
   '1080p': { bitrate: 5_000_000 },
-  '4k': { bitrate: 15_000_000 },
+  '4k': { bitrate: 12_000_000 },
 };
 
 export function useRecording(options: UseRecordingOptions = {}) {

@@ -169,7 +169,7 @@ export default function SettingsPage() {
                   >
                     <option value="720p">720p (HD)</option>
                     <option value="1080p">1080p (Full HD)</option>
-                    <option value="4k">4K (Ultra HD)</option>
+                    <option value="4k">4K (where available)</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
                     Higher quality recordings are larger in size
@@ -195,7 +195,7 @@ export default function SettingsPage() {
                   >
                     <option value="720p">720p (HD)</option>
                     <option value="1080p">1080p (Full HD)</option>
-                    <option value="4k">4K (Ultra HD)</option>
+                    <option value="4k">4K (where available)</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
                     Higher quality uses more bandwidth for streaming

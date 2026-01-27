@@ -10,6 +10,7 @@ import {
   Cloud,
   Loader2,
   Check,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/stores/auth';
@@ -48,6 +49,7 @@ export function SettingsPage() {
   } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Load settings from localStorage on mount
@@ -74,6 +76,7 @@ export function SettingsPage() {
     localStorage.setItem('pairux-settings', JSON.stringify(newSettings));
     setHasChanges(true);
     setSaveSuccess(false);
+    setSaveError(null);
   };
 
   // Save settings to cloud
@@ -81,6 +84,7 @@ export function SettingsPage() {
     if (!user) return;
 
     setIsSaving(true);
+    setSaveError(null);
     try {
       const response = await fetch(`${APP_URL}/api/settings`, {
         method: 'PUT',
@@ -97,9 +101,11 @@ export function SettingsPage() {
         }, 3000);
       } else {
         console.error('Failed to save settings to cloud');
+        setSaveError('Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
+      setSaveError('Could not connect to server');
     } finally {
       setIsSaving(false);
     }
@@ -166,6 +172,22 @@ export function SettingsPage() {
           </button>
         )}
       </div>
+
+      {/* Error message */}
+      {saveError && (
+        <div className="mb-6 flex max-w-3xl items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{saveError}</span>
+          <button
+            onClick={() => {
+              setSaveError(null);
+            }}
+            className="ml-auto text-xs underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="grid max-w-3xl gap-6">
         {/* Account Section */}

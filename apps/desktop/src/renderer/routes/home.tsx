@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Link2 } from 'lucide-react';
+import { Users, Link2, Loader2 } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
@@ -17,6 +17,7 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [displayServer, setDisplayServer] = useState<DisplayServer>('x11');
   const [isWayland, setIsWayland] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
 
@@ -31,8 +32,12 @@ export function HomePage() {
   }, []);
 
   const handleSourceSelect = async (source: CaptureSource) => {
+    // Prevent multiple concurrent capture attempts
+    if (isCapturing) return;
+
     setSelectedSource(source);
     setError(null);
+    setIsCapturing(true);
 
     try {
       // Stop existing stream
@@ -77,14 +82,24 @@ export function HomePage() {
     } catch (err) {
       console.error('[Renderer] Failed to start capture:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to capture: ${message}`);
+      // Provide more user-friendly error messages
+      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+        setError('Screen capture was canceled or permission denied. Please try again.');
+      } else {
+        setError(`Failed to capture: ${message}`);
+      }
       setSelectedSource(null);
+    } finally {
+      setIsCapturing(false);
     }
   };
 
   // Handle Wayland direct capture (bypasses source picker)
   const handleWaylandCapture = async () => {
+    if (isCapturing) return;
+
     setError(null);
+    setIsCapturing(true);
 
     try {
       if (stream) {
@@ -116,7 +131,13 @@ export function HomePage() {
     } catch (err) {
       console.error('[Renderer] Failed to start Wayland capture:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to capture: ${message}`);
+      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+        setError('Screen capture was canceled or permission denied. Please try again.');
+      } else {
+        setError(`Failed to capture: ${message}`);
+      }
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -147,7 +168,19 @@ export function HomePage() {
       )}
 
       {!stream ? (
-        <>
+        <div className="relative">
+          {/* Loading overlay */}
+          {isCapturing && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  {isWayland ? 'Waiting for system screen picker...' : 'Starting capture...'}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Select a screen or window to share</h1>
             <div className="flex items-center gap-2">
@@ -155,14 +188,16 @@ export function HomePage() {
                 onClick={() => {
                   setShowCreateLinkModal(true);
                 }}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                disabled={isCapturing}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
                 <Link2 className="h-4 w-4" />
                 Create Link
               </button>
               <button
                 onClick={() => void navigate('/join')}
-                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+                disabled={isCapturing}
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
               >
                 <Users className="h-4 w-4" />
                 Join a Session
@@ -180,9 +215,17 @@ export function HomePage() {
                 onClick={() => {
                   void handleWaylandCapture();
                 }}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                disabled={isCapturing}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
-                Open System Screen Picker
+                {isCapturing ? (
+                  <>
+                    <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                    Waiting...
+                  </>
+                ) : (
+                  'Open System Screen Picker'
+                )}
               </button>
             </div>
           )}
@@ -192,7 +235,7 @@ export function HomePage() {
               void handleSourceSelect(source);
             }}
           />
-        </>
+        </div>
       ) : (
         <CapturePreview
           stream={stream}

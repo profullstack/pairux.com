@@ -26,6 +26,7 @@
     "lint:fix": "turbo run lint:fix",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "precommit": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
     "clean": "turbo run clean && rm -rf node_modules .turbo",

@@ -59,6 +59,10 @@ export function HomePage() {
         mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             displaySurface: source.type === 'screen' ? 'monitor' : 'window',
+            // Request high quality capture
+            width: { ideal: 1920, max: 3840 },
+            height: { ideal: 1080, max: 2160 },
+            frameRate: { ideal: 30, max: 60 },
           },
           audio: false,
         });
@@ -72,12 +76,25 @@ export function HomePage() {
             mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: source.id,
+              // Request high quality capture
+              minWidth: 1280,
+              maxWidth: 3840,
+              minHeight: 720,
+              maxHeight: 2160,
+              minFrameRate: 15,
+              maxFrameRate: 60,
             },
           },
         });
       }
 
       console.log('[Renderer] Capture started successfully');
+
+      // Set content hint on video track for screen sharing optimization
+      // 'detail' tells encoder to prioritize sharpness (good for text)
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      videoTrack.contentHint = 'detail';
+
       setStream(mediaStream);
     } catch (err) {
       console.error('[Renderer] Failed to start capture:', err);
@@ -111,12 +128,21 @@ export function HomePage() {
       console.log('[Renderer] Starting Wayland capture with system picker');
 
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+        video: {
+          // Request high quality capture
+          width: { ideal: 1920, max: 3840 },
+          height: { ideal: 1080, max: 2160 },
+          frameRate: { ideal: 30, max: 60 },
+        },
         audio: false,
       });
 
       // Create a synthetic source from the stream
       const track = mediaStream.getVideoTracks()[0];
+
+      // Set content hint for screen sharing optimization
+      // 'detail' tells encoder to prioritize sharpness (good for text)
+      track.contentHint = 'detail';
       const settings = track.getSettings();
 
       setSelectedSource({

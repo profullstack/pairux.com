@@ -70,9 +70,10 @@ ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
 
 # Copy built application
-COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# Public folder must be at apps/web/public since server.js runs from apps/web/
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 # Switch to non-root user
 USER nextjs

@@ -109,16 +109,22 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
         body: JSON.stringify(body),
       });
 
-      const data = (await res.json()) as ApiResponse<unknown>;
+      const data = (await res.json()) as ApiResponse<{ id: string; session_id: string }>;
 
       if (!res.ok) {
         setError(data.error ?? 'Failed to join session');
         return;
       }
 
-      // Redirect to session viewer
-      if (session?.id) {
-        router.push(`/session/${session.id}`);
+      // Redirect to appropriate viewer
+      if (session?.id && data.data) {
+        if (user) {
+          // Authenticated users go to protected session page
+          router.push(`/session/${session.id}`);
+        } else {
+          // Guests go to public view page with participant token
+          router.push(`/view/${session.id}?p=${data.data.id}`);
+        }
       }
     } catch {
       setError('Failed to join session');

@@ -12,7 +12,7 @@ import type {
   KickMessage,
 } from '@pairux/shared-types';
 
-// Adaptive bitrate encoding presets
+// Adaptive bitrate encoding presets (optimized for screen sharing with text)
 interface BitratePreset {
   maxBitrate: number; // bps
   scaleResolutionDownBy: number;
@@ -21,23 +21,23 @@ interface BitratePreset {
 
 const BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
   excellent: {
-    maxBitrate: 2_500_000, // 2.5 Mbps
+    maxBitrate: 8_000_000, // 8 Mbps - crisp text at high resolutions
     scaleResolutionDownBy: 1,
-    maxFramerate: 30,
+    maxFramerate: 60,
   },
   good: {
-    maxBitrate: 1_500_000, // 1.5 Mbps
+    maxBitrate: 4_000_000, // 4 Mbps - good 1080p quality
     scaleResolutionDownBy: 1,
     maxFramerate: 30,
   },
   poor: {
-    maxBitrate: 800_000, // 800 Kbps
-    scaleResolutionDownBy: 2,
+    maxBitrate: 1_500_000, // 1.5 Mbps
+    scaleResolutionDownBy: 1.5,
     maxFramerate: 24,
   },
   bad: {
-    maxBitrate: 400_000, // 400 Kbps
-    scaleResolutionDownBy: 4,
+    maxBitrate: 600_000, // 600 Kbps
+    scaleResolutionDownBy: 2,
     maxFramerate: 15,
   },
 };
@@ -255,10 +255,34 @@ export function useWebRTCHost({
         iceCandidatePoolSize: 10,
       });
 
-      // Add local stream tracks
+      // Add local stream tracks with screen sharing optimizations
       if (localStream) {
         localStream.getTracks().forEach((track) => {
-          pc.addTrack(track, localStream);
+          // Set content hint for video tracks to optimize for screen content (text/graphics)
+          if (track.kind === 'video') {
+            // 'detail' hint tells encoder to prioritize sharpness over smoothness
+            track.contentHint = 'detail';
+          }
+
+          const sender = pc.addTrack(track, localStream);
+
+          // Configure video sender with high-quality encoding parameters
+          if (track.kind === 'video') {
+            const params = sender.getParameters();
+            // Set initial encoding to excellent quality preset
+            const preset = BITRATE_PRESETS.excellent;
+            const encoding = params.encodings[0];
+            if (encoding) {
+              encoding.maxBitrate = preset.maxBitrate;
+              encoding.maxFramerate = preset.maxFramerate;
+              // Priority: high for screen sharing
+              encoding.priority = 'high';
+              encoding.networkPriority = 'high';
+            }
+            void sender.setParameters(params).catch(() => {
+              // Some browsers may not support all parameters
+            });
+          }
         });
       }
 

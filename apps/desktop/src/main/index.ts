@@ -6,6 +6,10 @@ import { registerIpcHandlers } from './ipc';
 import { initializeTray, destroyTray, getTraySession } from './tray';
 import { initializeMenu, showAboutDialog } from './platform';
 
+// Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
+// Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
+app.setName('pairux');
+
 // Load environment variables from .env file
 // In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
 // In prod: app.getAppPath() points to the app resources
@@ -33,14 +37,9 @@ if (process.platform === 'linux') {
   // Enable PipeWire for Wayland screen capture
   app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
 
-  // Use native Wayland backend for proper KDE/GNOME integration
-  // (tray icons, window decorations, taskbar). Screen capture is handled
-  // by setDisplayMediaRequestHandler + desktopCapturer.getSources()
-  // routed through PipeWire via WebRTCPipeWireCapturer.
-  if (isWayland) {
-    app.commandLine.appendSwitch('ozone-platform', 'wayland');
-    app.commandLine.appendSwitch('enable-wayland-ime');
-  }
+  // NOTE: ozone-platform and wayland-ime are passed as real CLI args
+  // in the dev script (package.json) and AppImage wrapper, because
+  // Chromium reads them during early init before Node.js runs.
 
   // Enable hardware acceleration
   app.commandLine.appendSwitch('enable-gpu-rasterization');

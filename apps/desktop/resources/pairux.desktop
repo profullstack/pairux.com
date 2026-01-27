@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=PairUX
+Comment=Screen sharing with remote control
+Exec=pairux %U
+Icon=pairux
+Type=Application
+Categories=Network;RemoteAccess;
+StartupWMClass=pairux
+StartupNotify=true

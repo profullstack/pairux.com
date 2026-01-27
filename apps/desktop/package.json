@@ -11,7 +11,7 @@
   },
   "main": "dist/main/index.js",
   "scripts": {
-    "dev": "electron-vite dev -- --no-sandbox",
+    "dev": "electron-vite dev -- --no-sandbox --ozone-platform-hint=auto --enable-wayland-ime --class=pairux",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",

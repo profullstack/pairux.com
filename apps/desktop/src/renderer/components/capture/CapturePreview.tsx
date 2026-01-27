@@ -14,6 +14,8 @@ import {
   Play,
   FolderOpen,
   AlertTriangle,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import type {
   CaptureSource,
@@ -21,7 +23,8 @@ import type {
   InputMessage,
   CursorPositionMessage,
 } from '@pairux/shared-types';
-import { APP_URL } from '../../../shared/config';
+import { APP_URL, API_BASE_URL } from '../../../shared/config';
+import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
 import { useSession } from '@/hooks/useSession';
@@ -79,6 +82,7 @@ export function CapturePreview({
     error,
     createSession,
     endSession,
+    refreshSession,
     setSession,
   } = useSession();
 
@@ -219,10 +223,28 @@ export function CapturePreview({
 
   // Auto-create session when capture starts (only if no initial session)
   useEffect(() => {
-    if (!initialSession && !createdSession && !isCreating) {
+    if (!initialSession && !createdSession && !isCreating && !error) {
       void createSession({ allowGuestControl: false, maxParticipants: 5 });
     }
-  }, [initialSession, createdSession, isCreating, createSession]);
+  }, [initialSession, createdSession, isCreating, error, createSession]);
+
+  // Poll for participant updates while session is active
+  const refreshSessionRef = useRef(refreshSession);
+  refreshSessionRef.current = refreshSession;
+
+  useEffect(() => {
+    if (!session?.id) return;
+
+    void refreshSessionRef.current();
+
+    const interval = setInterval(() => {
+      void refreshSessionRef.current();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [session?.id]);
 
   const handleStop = useCallback(async () => {
     // Stop WebRTC hosting first
@@ -252,7 +274,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
+          `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -274,7 +296,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
+          `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -296,7 +318,7 @@ export function CapturePreview({
       if (!session) return;
       try {
         const response = await fetch(
-          `${APP_URL}/api/sessions/${session.id}/participants/${participantId}`,
+          `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}`,
           {
             method: 'DELETE',
           }
@@ -362,34 +384,28 @@ export function CapturePreview({
 
           <div className="flex items-center gap-2">
             {/* Participants toggle */}
-            <button
+            <Button
+              variant={showParticipants ? 'default' : 'secondary'}
+              size="sm"
               onClick={() => {
                 setShowParticipants(!showParticipants);
               }}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                showParticipants
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
             >
-              <Users className="h-4 w-4" />
+              <Users />
               Participants
-            </button>
+            </Button>
 
             {/* Chat toggle */}
-            <button
+            <Button
+              variant={showChat ? 'default' : 'secondary'}
+              size="sm"
               onClick={() => {
                 setShowChat(!showChat);
               }}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                showChat
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
             >
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare />
               Chat
-            </button>
+            </Button>
 
             {/* Recording controls */}
             <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
@@ -400,78 +416,76 @@ export function CapturePreview({
                     onChange={(e) => {
                       setRecordingQuality(e.target.value as RecordingQuality);
                     }}
-                    className="rounded bg-background px-2 py-1 text-xs"
+                    className="h-9 rounded-md bg-background px-2 text-sm"
                     title="Recording quality - affects file size and bitrate"
                   >
                     <option value="720p">720p</option>
                     <option value="1080p">1080p</option>
                     <option value="4k">4K (where available)</option>
                   </select>
-                  <button
+                  <Button
+                    variant={includeAudio ? 'default' : 'secondary'}
+                    size="sm"
                     onClick={() => {
                       setIncludeAudio(!includeAudio);
                     }}
-                    className={`rounded px-2 py-1 text-xs ${
-                      includeAudio ? 'bg-primary text-primary-foreground' : 'bg-background'
-                    }`}
                     title={includeAudio ? 'Audio enabled' : 'Audio disabled'}
                   >
-                    {includeAudio ? '🔊' : '🔇'}
-                  </button>
-                  <button
+                    {includeAudio ? <Volume2 /> : <VolumeX />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-red-600 text-white hover:bg-red-700"
                     onClick={() => void handleStartRecording()}
-                    className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
                     title="Start recording to local file"
                   >
-                    <Circle className="h-3 w-3 fill-current" />
+                    <Circle className="!size-3 fill-current" />
                     Record
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <span className="flex items-center gap-1.5 px-2 font-mono text-sm">
+                  <span className="flex h-9 items-center gap-1.5 px-2 font-mono text-sm">
                     <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
                     {formatDuration(duration)}
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9"
                     onClick={() => void handleTogglePause()}
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background"
                     title={isPaused ? 'Resume' : 'Pause'}
                   >
-                    {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                  </button>
-                  <button
-                    onClick={() => void handleStopRecording()}
-                    className="flex items-center gap-1.5 rounded-md bg-muted-foreground/20 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted-foreground/30"
-                  >
-                    <StopCircle className="h-3 w-3" />
+                    {isPaused ? <Play /> : <Pause />}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => void handleStopRecording()}>
+                    <StopCircle />
                     Stop
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9"
                     onClick={() => void openRecordingsFolder()}
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background"
                     title="Open recordings folder"
                   >
-                    <FolderOpen className="h-4 w-4" />
-                  </button>
+                    <FolderOpen />
+                  </Button>
                 </>
               )}
             </div>
 
             {/* Stop sharing button */}
-            <button
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={() => void handleStop()}
               disabled={isEnding || isRecording}
-              className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
               title={isRecording ? 'Stop recording first' : undefined}
             >
-              {isEnding ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <StopCircle className="h-4 w-4" />
-              )}
+              {isEnding ? <Loader2 className="animate-spin" /> : <StopCircle />}
               Stop Sharing
-            </button>
+            </Button>
           </div>
         </div>
 

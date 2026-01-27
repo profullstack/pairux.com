@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
+import { CORS_HEADERS } from '@/lib/cors';
 
 const mockGetAuthenticatedUser = vi.fn();
 const mockCreateSupabaseClient = vi.fn();
@@ -372,6 +373,83 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
 
       expect(response.status).toBe(200);
       expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+    });
+  });
+
+  // CORS headers tests (desktop app uses file:// origin)
+  describe('CORS headers', () => {
+    it('includes CORS headers on SSE stream response', async () => {
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+      for (const [key, value] of Object.entries(CORS_HEADERS)) {
+        expect(response.headers.get(key)).toBe(value);
+      }
+    });
+
+    it('includes CORS headers on error responses', async () => {
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('nonexistent'), {
+        params: Promise.resolve({ sessionId: 'nonexistent' }),
+      });
+
+      expect(response.status).toBe(404);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    });
+
+    it('includes CORS headers on 401 response', async () => {
+      const otherUserSession = { ...mockSession, host_user_id: 'other-user-id' };
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: otherUserSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     });
   });
 });

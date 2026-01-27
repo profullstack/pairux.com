@@ -1,6 +1,7 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@pairux/shared-types';
+import { CORS_HEADERS } from '@/lib/cors';
 import { z } from 'zod';
 
 // Type for session (until Supabase types are regenerated)
@@ -35,7 +36,7 @@ export async function GET(
     if (!parseResult.success) {
       return new Response(
         JSON.stringify({ error: parseResult.error.errors[0]?.message ?? 'Invalid parameters' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
       );
     }
 
@@ -53,7 +54,7 @@ export async function GET(
       if (!url || !key) {
         return new Response(JSON.stringify({ error: 'Server configuration error' }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
         });
       }
 
@@ -83,14 +84,14 @@ export async function GET(
     if (!session) {
       return new Response(JSON.stringify({ error: 'Session not found' }), {
         status: 404,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
     if (session.status === 'ended') {
       return new Response(JSON.stringify({ error: 'Session has ended' }), {
         status: 410,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
@@ -101,7 +102,7 @@ export async function GET(
     if (!subscriberId && !isHost) {
       return new Response(JSON.stringify({ error: 'Authentication required' }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
@@ -243,13 +244,14 @@ export async function GET(
         'Cache-Control': 'no-cache, no-transform',
         Connection: 'keep-alive',
         'X-Accel-Buffering': 'no',
+        ...CORS_HEADERS,
       },
     });
   } catch (error) {
     console.error('Signal stream error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     });
   }
 }

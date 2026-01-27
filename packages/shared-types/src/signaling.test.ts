@@ -94,6 +94,61 @@ describe('Signaling Types', () => {
       };
       expect(revoke.type).toBe('control-revoke');
     });
+
+    it('should create kick message', () => {
+      const kick: ControlMessage = {
+        type: 'kick',
+        timestamp: Date.now(),
+      };
+      expect(kick.type).toBe('kick');
+    });
+
+    it('should create kick message with reason', () => {
+      const kick: ControlMessage = {
+        type: 'kick',
+        reason: 'Disruptive behavior',
+        timestamp: Date.now(),
+      };
+      expect(kick.type).toBe('kick');
+      expect((kick as { reason?: string }).reason).toBe('Disruptive behavior');
+    });
+
+    it('should create mute message', () => {
+      const mute: ControlMessage = {
+        type: 'mute',
+        participantId: 'viewer-123',
+        muted: true,
+        timestamp: Date.now(),
+      };
+      expect(mute.type).toBe('mute');
+      expect((mute as { participantId: string }).participantId).toBe('viewer-123');
+      expect((mute as { muted: boolean }).muted).toBe(true);
+    });
+
+    it('should create unmute message', () => {
+      const unmute: ControlMessage = {
+        type: 'mute',
+        participantId: 'viewer-456',
+        muted: false,
+        timestamp: Date.now(),
+      };
+      expect(unmute.type).toBe('mute');
+      expect((unmute as { muted: boolean }).muted).toBe(false);
+    });
+
+    it('should handle control message union type including mute and kick', () => {
+      const messages: ControlMessage[] = [
+        { type: 'control-request', participantId: '1', timestamp: 1 },
+        { type: 'control-grant', participantId: '2', timestamp: 2 },
+        { type: 'control-revoke', participantId: '3', timestamp: 3 },
+        { type: 'kick', timestamp: 4 },
+        { type: 'mute', participantId: '5', muted: true, timestamp: 5 },
+      ];
+
+      expect(messages).toHaveLength(5);
+      expect(messages[3]?.type).toBe('kick');
+      expect(messages[4]?.type).toBe('mute');
+    });
   });
 
   describe('ConnectionState', () => {

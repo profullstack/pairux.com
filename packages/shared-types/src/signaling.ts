@@ -65,12 +65,21 @@ export interface KickMessage {
   timestamp: number;
 }
 
+// Mute message (host force-mutes/unmutes a participant)
+export interface MuteMessage {
+  type: 'mute';
+  participantId: string;
+  muted: boolean;
+  timestamp: number;
+}
+
 // Union type for control messages
 export type ControlMessage =
   | ControlRequestMessage
   | ControlGrantMessage
   | ControlRevokeMessage
-  | KickMessage;
+  | KickMessage
+  | MuteMessage;
 
 // Cursor position message (for multi-cursor overlay)
 export interface CursorPositionMessage {

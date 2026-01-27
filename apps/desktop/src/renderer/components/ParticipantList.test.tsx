@@ -354,4 +354,183 @@ describe('ParticipantList', () => {
       });
     });
   });
+
+  describe('Mute Actions', () => {
+    it('shows mute button when onMuteParticipant is provided and isHost', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={vi.fn()}
+          mutedParticipants={new Set<string>()}
+        />
+      );
+
+      expect(screen.getByTitle('Mute participant')).toBeInTheDocument();
+    });
+
+    it('does not show mute button when onMuteParticipant is not provided', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
+    });
+
+    it('shows unmute button for muted participants', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={vi.fn()}
+          mutedParticipants={new Set<string>(['user-1'])}
+        />
+      );
+
+      expect(screen.getByTitle('Unmute participant')).toBeInTheDocument();
+    });
+
+    it('calls onMuteParticipant with user_id and true when muting', () => {
+      const onMuteParticipant = vi.fn();
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={onMuteParticipant}
+          mutedParticipants={new Set<string>()}
+        />
+      );
+
+      fireEvent.click(screen.getByTitle('Mute participant'));
+      expect(onMuteParticipant).toHaveBeenCalledWith('user-1', true);
+    });
+
+    it('calls onMuteParticipant with user_id and false when unmuting', () => {
+      const onMuteParticipant = vi.fn();
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={onMuteParticipant}
+          mutedParticipants={new Set<string>(['user-1'])}
+        />
+      );
+
+      fireEvent.click(screen.getByTitle('Unmute participant'));
+      expect(onMuteParticipant).toHaveBeenCalledWith('user-1', false);
+    });
+
+    it('does not show mute button for host participant', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: 'user-1',
+          display_name: 'Host',
+          role: 'host',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={vi.fn()}
+          mutedParticipants={new Set<string>()}
+        />
+      );
+
+      expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
+    });
+
+    it('does not show mute button for participant with null user_id', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          user_id: null,
+          display_name: 'Anonymous',
+          role: 'viewer',
+        }),
+      ];
+
+      render(
+        <ParticipantList
+          participants={participants}
+          isHost={true}
+          onGrantControl={vi.fn()}
+          onRevokeControl={vi.fn()}
+          onKickParticipant={vi.fn()}
+          onMuteParticipant={vi.fn()}
+          mutedParticipants={new Set<string>()}
+        />
+      );
+
+      expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
+    });
+  });
 });

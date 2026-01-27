@@ -2,7 +2,16 @@
 
 import { useState, useEffect, use, useId, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Users, MessageSquare, Settings, LogOut, Loader2, AlertCircle } from 'lucide-react';
+import {
+  Users,
+  MessageSquare,
+  Settings,
+  LogOut,
+  Loader2,
+  AlertCircle,
+  Mic,
+  MicOff,
+} from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import type { ConnectionState, CursorPositionMessage } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
@@ -77,6 +86,10 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
     releaseControl,
     sendInput,
     sendCursorPosition,
+    // Microphone
+    micEnabled,
+    hasMic,
+    toggleMic,
   } = useWebRTC({
     sessionId,
     participantId,
@@ -229,6 +242,27 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
                 onReleaseControl={releaseControl}
               />
             )}
+            {/* Mic toggle */}
+            <button
+              type="button"
+              onClick={toggleMic}
+              disabled={!hasMic}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                micEnabled
+                  ? 'bg-green-700 text-white hover:bg-green-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              } disabled:opacity-50`}
+              title={
+                !hasMic
+                  ? 'No microphone available'
+                  : micEnabled
+                    ? 'Mute microphone'
+                    : 'Unmute microphone'
+              }
+            >
+              {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+              {micEnabled ? 'Mic On' : 'Mic Off'}
+            </button>
             <button
               type="button"
               className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"

@@ -16,6 +16,7 @@ import type {
   CursorPositionMessage,
   ControlMessage,
   KickMessage,
+  MuteMessage,
 } from '@pairux/shared-types';
 
 // Adaptive bitrate encoding presets
@@ -49,6 +50,9 @@ export interface ViewerConnection {
   controlState: 'view-only' | 'requested' | 'granted';
   networkQuality: NetworkQuality;
   currentPreset: NetworkQuality;
+  audioTrack: MediaStreamTrack | null;
+  audioElement: HTMLAudioElement | null;
+  isMuted: boolean;
 }
 
 interface SignalMessage {
@@ -83,13 +87,14 @@ interface UseWebRTCHostAPIReturn {
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
+  muteViewer: (viewerId: string, muted: boolean) => void;
 }
 
 export function useWebRTCHostAPI({
   sessionId,
   hostId,
   localStream,
-  allowControl = false,
+  allowControl: _allowControl = false,
   onViewerJoined,
   onViewerLeft,
   onControlRequest,
@@ -282,6 +287,44 @@ export function useWebRTCHostAPI({
     }
   }, []);
 
+  // Relay a viewer's audio track to all other connected viewers via renegotiation
+  const relayAudioToOtherViewers = useCallback(
+    async (sourceViewerId: string, audioTrack: MediaStreamTrack) => {
+      const audioStream = new MediaStream([audioTrack]);
+
+      for (const [otherId, otherViewer] of viewersRef.current.entries()) {
+        if (otherId === sourceViewerId) continue;
+        if (
+          otherViewer.connectionState !== 'connected' &&
+          otherViewer.connectionState !== 'connecting'
+        )
+          continue;
+
+        try {
+          otherViewer.peerConnection.addTrack(audioTrack, audioStream);
+          console.log(`[WebRTCHost] Added ${sourceViewerId}'s audio to ${otherId}, renegotiating`);
+
+          // Renegotiate
+          const offer = await otherViewer.peerConnection.createOffer();
+          await otherViewer.peerConnection.setLocalDescription(offer);
+
+          if (offer.sdp) {
+            await sendSignal({
+              type: 'offer',
+              sdp: offer.sdp,
+              senderId: hostId,
+              targetId: otherId,
+              timestamp: Date.now(),
+            });
+          }
+        } catch (err) {
+          console.error(`[WebRTCHost] Failed to relay audio to ${otherId}:`, err);
+        }
+      }
+    },
+    [hostId, sendSignal]
+  );
+
   // Create peer connection for a viewer
   const createPeerConnection = useCallback(
     (viewerId: string): RTCPeerConnection => {
@@ -316,6 +359,41 @@ export function useWebRTCHostAPI({
           }
         });
       }
+
+      // Add existing viewers' audio tracks to this new viewer's PC
+      for (const [otherId, otherViewer] of viewersRef.current.entries()) {
+        if (otherId === viewerId) continue;
+        if (otherViewer.audioTrack && !otherViewer.isMuted) {
+          const audioStream = new MediaStream([otherViewer.audioTrack]);
+          pc.addTrack(otherViewer.audioTrack, audioStream);
+        }
+      }
+
+      // Handle incoming tracks from viewer (their mic audio)
+      pc.ontrack = (event) => {
+        if (event.track.kind === 'audio') {
+          console.log(`[WebRTCHost] Received audio track from viewer: ${viewerId}`);
+          const viewer = viewersRef.current.get(viewerId);
+          if (viewer) {
+            viewer.audioTrack = event.track;
+
+            // Play viewer audio locally for host to hear
+            const audioEl = new Audio();
+            audioEl.srcObject = new MediaStream([event.track]);
+            audioEl.autoplay = true;
+            audioEl.volume = 1.0;
+            void audioEl.play().catch((err: unknown) => {
+              console.warn('[WebRTCHost] Failed to play viewer audio:', err);
+            });
+            viewer.audioElement = audioEl;
+
+            setViewers(new Map(viewersRef.current));
+
+            // Relay this viewer's audio to all other viewers
+            void relayAudioToOtherViewers(viewerId, event.track);
+          }
+        }
+      };
 
       // Handle ICE candidates
       pc.onicecandidate = (event) => {
@@ -365,36 +443,34 @@ export function useWebRTCHostAPI({
         }
       };
 
-      // Create data channel for control
-      if (allowControl) {
-        const dc = pc.createDataChannel('control', { ordered: true });
+      // Always create data channel for control and mute commands
+      const dc = pc.createDataChannel('control', { ordered: true });
 
-        dc.onopen = () => {
-          const viewer = viewersRef.current.get(viewerId);
-          if (viewer) {
-            viewer.dataChannel = dc;
-            setViewers(new Map(viewersRef.current));
-          }
-        };
+      dc.onopen = () => {
+        const viewer = viewersRef.current.get(viewerId);
+        if (viewer) {
+          viewer.dataChannel = dc;
+          setViewers(new Map(viewersRef.current));
+        }
+      };
 
-        dc.onclose = () => {
-          const viewer = viewersRef.current.get(viewerId);
-          if (viewer) {
-            viewer.dataChannel = null;
-            viewer.controlState = 'view-only';
-            setViewers(new Map(viewersRef.current));
-            setControllingViewer((prev) => (prev === viewerId ? null : prev));
-          }
-        };
+      dc.onclose = () => {
+        const viewer = viewersRef.current.get(viewerId);
+        if (viewer) {
+          viewer.dataChannel = null;
+          viewer.controlState = 'view-only';
+          setViewers(new Map(viewersRef.current));
+          setControllingViewer((prev) => (prev === viewerId ? null : prev));
+        }
+      };
 
-        dc.onmessage = (event: MessageEvent<string>) => {
-          handleDataChannelMessage(viewerId, event);
-        };
-      }
+      dc.onmessage = (event: MessageEvent<string>) => {
+        handleDataChannelMessage(viewerId, event);
+      };
 
       return pc;
     },
-    [localStream, hostId, allowControl, handleDataChannelMessage, sendSignal]
+    [localStream, hostId, handleDataChannelMessage, sendSignal, relayAudioToOtherViewers]
   );
 
   // Remove a viewer
@@ -403,6 +479,11 @@ export function useWebRTCHostAPI({
       const viewer = viewersRef.current.get(viewerId);
       if (viewer) {
         console.log('[WebRTCHost] Removing viewer:', viewerId);
+        // Clean up audio element
+        if (viewer.audioElement) {
+          viewer.audioElement.pause();
+          viewer.audioElement.srcObject = null;
+        }
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
         setViewers(new Map(viewersRef.current));
@@ -432,6 +513,9 @@ export function useWebRTCHostAPI({
         controlState: 'view-only',
         networkQuality: 'good',
         currentPreset: 'good',
+        audioTrack: null,
+        audioElement: null,
+        isMuted: false,
       };
 
       viewersRef.current.set(viewerId, viewer);
@@ -622,6 +706,10 @@ export function useWebRTCHostAPI({
     }
 
     viewersRef.current.forEach((viewer) => {
+      if (viewer.audioElement) {
+        viewer.audioElement.pause();
+        viewer.audioElement.srcObject = null;
+      }
       viewer.peerConnection.close();
     });
     viewersRef.current.clear();
@@ -716,6 +804,12 @@ export function useWebRTCHostAPI({
         setControllingViewer(null);
       }
 
+      // Clean up audio element
+      if (viewer.audioElement) {
+        viewer.audioElement.pause();
+        viewer.audioElement.srcObject = null;
+      }
+
       viewer.peerConnection.close();
       viewersRef.current.delete(viewerId);
       setViewers(new Map(viewersRef.current));
@@ -723,6 +817,31 @@ export function useWebRTCHostAPI({
     },
     [controllingViewer, onViewerLeft]
   );
+
+  // Mute/unmute a viewer
+  const muteViewer = useCallback((viewerId: string, muted: boolean) => {
+    const viewer = viewersRef.current.get(viewerId);
+    if (!viewer) return;
+
+    // Send mute command via data channel
+    if (viewer.dataChannel?.readyState === 'open') {
+      const message: MuteMessage = {
+        type: 'mute',
+        participantId: viewerId,
+        muted,
+        timestamp: Date.now(),
+      };
+      viewer.dataChannel.send(JSON.stringify(message));
+    }
+
+    // Mute local audio playback for host
+    if (viewer.audioElement) {
+      viewer.audioElement.muted = muted;
+    }
+
+    viewer.isMuted = muted;
+    setViewers(new Map(viewersRef.current));
+  }, []);
 
   return {
     isHosting,
@@ -735,5 +854,6 @@ export function useWebRTCHostAPI({
     grantControl,
     revokeControl,
     kickViewer,
+    muteViewer,
   };
 }

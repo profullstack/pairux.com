@@ -151,29 +151,36 @@ export function useRecording(options: UseRecordingOptions = {}) {
           stream = existingStream;
           ownsStream = false;
 
-          // If audio is requested, get microphone stream and add to recording
+          // If audio is requested, use existing audio tracks if available,
+          // otherwise capture a separate microphone stream
           if (includeAudio) {
-            try {
-              micStream = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: false,
-              });
-              micStreamRef.current = micStream; // Store for cleanup
-              // Create a new stream combining video from existing and audio from mic
-              const combinedStream = new MediaStream();
-              existingStream.getVideoTracks().forEach((track) => {
-                combinedStream.addTrack(track);
-              });
-              micStream.getAudioTracks().forEach((track) => {
-                combinedStream.addTrack(track);
-              });
-              stream = combinedStream;
-              console.log('[Recording] Added microphone audio to stream');
-            } catch (micError) {
-              console.warn(
-                '[Recording] Failed to get microphone, recording without audio:',
-                micError
-              );
+            const existingAudioTracks = existingStream.getAudioTracks();
+            if (existingAudioTracks.length > 0) {
+              // Stream already has audio (e.g., mic added during capture for WebRTC streaming)
+              console.log('[Recording] Using existing audio tracks from stream');
+            } else {
+              try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                  audio: true,
+                  video: false,
+                });
+                micStreamRef.current = micStream; // Store for cleanup
+                // Create a new stream combining video from existing and audio from mic
+                const combinedStream = new MediaStream();
+                existingStream.getVideoTracks().forEach((track) => {
+                  combinedStream.addTrack(track);
+                });
+                micStream.getAudioTracks().forEach((track) => {
+                  combinedStream.addTrack(track);
+                });
+                stream = combinedStream;
+                console.log('[Recording] Added microphone audio to stream');
+              } catch (micError) {
+                console.warn(
+                  '[Recording] Failed to get microphone, recording without audio:',
+                  micError
+                );
+              }
             }
           }
         } else {

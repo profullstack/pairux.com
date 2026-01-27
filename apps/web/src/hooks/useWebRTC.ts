@@ -12,6 +12,7 @@ import type {
   ControlStateUI,
   CursorPositionMessage,
   KickMessage,
+  MuteMessage,
 } from '@pairux/shared-types';
 
 // ICE server configuration
@@ -58,6 +59,10 @@ interface UseWebRTCReturn {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   sendCursorPosition: (x: number, y: number, visible: boolean) => void;
+  // Microphone
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
 }
 
 export function useWebRTC({
@@ -76,8 +81,11 @@ export function useWebRTC({
   const [error, setError] = useState<string | null>(null);
   const [controlState, setControlState] = useState<ControlStateUI>('view-only');
   const [dataChannelReady, setDataChannelReady] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [hasMic, setHasMic] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -117,7 +125,8 @@ export function useWebRTC({
       const message = JSON.parse(event.data) as
         | ControlMessage
         | CursorPositionMessage
-        | KickMessage;
+        | KickMessage
+        | MuteMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -138,6 +147,17 @@ export function useWebRTC({
             disconnectRef.current?.();
             onKickedRef.current?.(message.reason);
             break;
+          case 'mute': {
+            // Host force-muted/unmuted this viewer's mic
+            const micStream = micStreamRef.current;
+            if (micStream) {
+              micStream.getAudioTracks().forEach((track) => {
+                track.enabled = !message.muted;
+              });
+              setMicEnabled(!message.muted);
+            }
+            break;
+          }
         }
       }
     } catch {
@@ -386,10 +406,10 @@ export function useWebRTC({
       iceCandidatePoolSize: 10,
     });
 
-    // Handle incoming tracks (video stream from host)
+    // Handle incoming tracks (video + audio from host and relayed viewers)
     pc.ontrack = (event) => {
       const stream = event.streams[0];
-      if (event.track.kind === 'video' && stream) {
+      if (stream) {
         setRemoteStream(stream);
         onStreamReady?.(stream);
       }
@@ -479,6 +499,14 @@ export function useWebRTC({
       peerConnectionRef.current = null;
     }
 
+    // Stop mic tracks
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      micStreamRef.current = null;
+    }
+
     // Unsubscribe from channel
     if (channelRef.current) {
       void channelRef.current.unsubscribe();
@@ -490,14 +518,46 @@ export function useWebRTC({
     setQualityMetrics(null);
     setDataChannelReady(false);
     setControlState('view-only');
+    setMicEnabled(false);
+    setHasMic(false);
   }, []);
 
   // Keep disconnect ref updated for use in data channel handler
   disconnectRef.current = disconnect;
 
+  // Toggle microphone
+  const toggleMic = useCallback(() => {
+    const micStream = micStreamRef.current;
+    if (!micStream) return;
+
+    const tracks = micStream.getAudioTracks();
+    if (tracks.length === 0) return;
+
+    const newEnabled = !micEnabled;
+    tracks.forEach((track) => {
+      track.enabled = newEnabled;
+    });
+    setMicEnabled(newEnabled);
+  }, [micEnabled]);
+
   // Initialize connection
   const initialize = useCallback(() => {
     const supabase = createClient();
+
+    // Capture microphone for sending audio to host
+    void navigator.mediaDevices
+      .getUserMedia({ audio: true, video: false })
+      .then((micStream) => {
+        micStreamRef.current = micStream;
+        setHasMic(true);
+        setMicEnabled(true);
+        console.log('[WebRTC] Microphone captured for viewer audio');
+      })
+      .catch((err: unknown) => {
+        console.warn('[WebRTC] Could not access microphone, joining without audio:', err);
+        setHasMic(false);
+        setMicEnabled(false);
+      });
 
     // Create signaling channel
     const channel = supabase.channel(`session:${sessionId}`, {
@@ -525,6 +585,14 @@ export function useWebRTC({
           // Create peer connection
           const pc = createPeerConnection();
           peerConnectionRef.current = pc;
+
+          // Add mic tracks to peer connection so they're included in the SDP answer
+          const micStream = micStreamRef.current;
+          if (micStream) {
+            micStream.getAudioTracks().forEach((track) => {
+              pc.addTrack(track, micStream);
+            });
+          }
 
           // Track presence
           void channel.track({
@@ -570,5 +638,9 @@ export function useWebRTC({
     releaseControl,
     sendInput,
     sendCursorPosition,
+    // Microphone
+    micEnabled,
+    hasMic,
+    toggleMic,
   };
 }

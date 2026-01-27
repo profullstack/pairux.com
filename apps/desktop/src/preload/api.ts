@@ -308,6 +308,7 @@ export interface IPCEvents {
   'recording:space-warning': { availableGb: number };
   'tray:end-session': undefined;
   'tray:toggle-pause': undefined;
+  navigate: string;
 }
 
 // Type helpers for the API

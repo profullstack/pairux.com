@@ -64,7 +64,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md border-border">
       <CardHeader className="space-y-1 text-center">
         <div className="mb-4 flex justify-center">
-          <img src="/logo.svg" alt="PairUX" className="h-12 w-12" />
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="PairUX" className="h-12 w-12" />
         </div>
         <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
         <CardDescription>Sign in to your PairUX account</CardDescription>

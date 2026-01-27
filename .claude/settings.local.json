@@ -214,7 +214,10 @@
       "Bash(gh pr view:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh pr list:*)",
-      "Bash(gh pr close:*)"
+      "Bash(gh pr close:*)",
+      "Bash(for pr in 333835 333887 333888 333890)",
+      "Bash(do)",
+      "Bash(done)"
     ],
     "deny": [
       "Bash(npm *)",

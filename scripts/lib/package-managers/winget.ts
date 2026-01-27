@@ -112,6 +112,44 @@ ManifestVersion: 1.10.0
     });
   }
 
+  /**
+   * Close any existing open PRs for this package before submitting a new one
+   */
+  private async closeExistingPRs(forkOwner: string): Promise<void> {
+    try {
+      // Search for open PRs from our fork that match PairUX
+      const searchQuery = `repo:${WINGET_OWNER}/${WINGET_REPO} is:pr is:open author:${forkOwner} ${PACKAGE_IDENTIFIER} in:title`;
+      const searchResult = await this.githubRequest<{
+        items: { number: number; title: string }[];
+      }>(`/search/issues?q=${encodeURIComponent(searchQuery)}`);
+
+      for (const pr of searchResult.items) {
+        this.logger.info(`Closing superseded PR #${pr.number}: ${pr.title}`);
+        try {
+          // Add a comment explaining why we're closing
+          await this.githubRequest(
+            `/repos/${WINGET_OWNER}/${WINGET_REPO}/issues/${pr.number}/comments`,
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                body: 'Closing this PR as a newer version is being submitted.',
+              }),
+            }
+          );
+          // Close the PR
+          await this.githubRequest(`/repos/${WINGET_OWNER}/${WINGET_REPO}/pulls/${pr.number}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ state: 'closed' }),
+          });
+        } catch (error) {
+          this.logger.warn(`Failed to close PR #${pr.number}: ${error}`);
+        }
+      }
+    } catch (error) {
+      this.logger.warn(`Failed to search for existing PRs: ${error}`);
+    }
+  }
+
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
     // Check if already exists
     if (await this.checkExisting(release.version)) {
@@ -156,6 +194,9 @@ ManifestVersion: 1.10.0
     // Get our username
     const user = await this.githubRequest<{ login: string }>('/user');
     const forkOwner = user.login;
+
+    // Close any existing open PRs before creating a new one
+    await this.closeExistingPRs(forkOwner);
 
     // Check if fork exists, if not create it
     const forkExists = await this.repoExists(forkOwner, WINGET_REPO);

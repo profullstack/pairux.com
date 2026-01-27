@@ -541,23 +541,23 @@ export function useWebRTC({
   }, [micEnabled]);
 
   // Initialize connection
-  const initialize = useCallback(() => {
+  const initialize = useCallback(async () => {
     const supabase = createClient();
 
-    // Capture microphone for sending audio to host
-    void navigator.mediaDevices
-      .getUserMedia({ audio: true, video: false })
-      .then((micStream) => {
-        micStreamRef.current = micStream;
-        setHasMic(true);
-        setMicEnabled(true);
-        console.log('[WebRTC] Microphone captured for viewer audio');
-      })
-      .catch((err: unknown) => {
-        console.warn('[WebRTC] Could not access microphone, joining without audio:', err);
-        setHasMic(false);
-        setMicEnabled(false);
-      });
+    // Capture microphone BEFORE setting up the peer connection
+    // so mic tracks are available when the SDP answer is created
+    try {
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micStreamRef.current = micStream;
+      setHasMic(true);
+      setMicEnabled(true);
+      console.log('[WebRTC] Microphone captured for viewer audio');
+    } catch (err: unknown) {
+      console.warn('[WebRTC] Could not access microphone, joining without audio:', err);
+      micStreamRef.current = null;
+      setHasMic(false);
+      setMicEnabled(false);
+    }
 
     // Create signaling channel
     const channel = supabase.channel(`session:${sessionId}`, {
@@ -611,12 +611,12 @@ export function useWebRTC({
   const reconnect = useCallback(() => {
     reconnectAttemptsRef.current = 0;
     disconnect();
-    initialize();
+    void initialize();
   }, [disconnect, initialize]);
 
   // Initialize on mount
   useEffect(() => {
-    initialize();
+    void initialize();
 
     return () => {
       disconnect();

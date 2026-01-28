@@ -260,7 +260,7 @@ pkgname = ${PACKAGE_NAME}
 
       // Push to AUR
       this.logger.info('Pushing to AUR...');
-      execSync('git push origin master', { cwd: repoDir, env, stdio: 'pipe' });
+      execSync('git push origin HEAD:master', { cwd: repoDir, env, stdio: 'pipe' });
 
       return {
         packageManager: this.name,

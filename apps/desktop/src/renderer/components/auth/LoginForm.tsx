@@ -61,7 +61,7 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md border-border">
+    <Card className="max-w-md border-border w-full">
       <CardHeader className="space-y-1 text-center">
         <div className="mb-4 flex justify-center">
           <img
@@ -85,7 +85,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Mail className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
                 id="email"
                 type="email"
@@ -114,7 +114,7 @@ export function LoginForm() {
               </button>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Lock className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -132,7 +132,7 @@ export function LoginForm() {
                 onClick={() => {
                   setShowPassword(!showPassword);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="right-3 text-muted-foreground hover:text-foreground absolute top-1/2 -translate-y-1/2"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -144,12 +144,12 @@ export function LoginForm() {
             {isLoading ? 'Signing in...' : 'Sign in'}
           </Button>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground text-center">
             Don&apos;t have an account?{' '}
             <button
               type="button"
               onClick={openSignup}
-              className="inline-flex items-center gap-1 text-primary hover:underline"
+              className="gap-1 text-primary inline-flex items-center hover:underline"
             >
               Sign up on web <ExternalLink className="h-3 w-3" />
             </button>

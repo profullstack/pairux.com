@@ -196,6 +196,28 @@ export interface SessionStatusResult {
   has_active_media: boolean;
 }
 
+// Push subscription table
+export interface PushSubscription {
+  id: string;
+  user_id: string | null;
+  participant_id: string | null;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_agent: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PushSubscriptionInsert {
+  user_id?: string | null;
+  participant_id?: string | null;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_agent?: string | null;
+}
+
 // Database schema type for Supabase client
 export interface Database {
   public: {
@@ -224,6 +246,11 @@ export interface Database {
         Row: MediaSession;
         Insert: MediaSessionInsert;
         Update: MediaSessionUpdate;
+      };
+      push_subscriptions: {
+        Row: PushSubscription;
+        Insert: PushSubscriptionInsert;
+        Update: never;
       };
     };
     Functions: {
@@ -338,6 +365,20 @@ export interface Database {
       mark_stale_participants: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      upsert_push_subscription: {
+        Args: {
+          p_endpoint: string;
+          p_p256dh: string;
+          p_auth: string;
+          p_user_agent?: string;
+          p_participant_id?: string;
+        };
+        Returns: PushSubscription;
+      };
+      remove_push_subscription: {
+        Args: { p_endpoint: string };
+        Returns: boolean;
       };
     };
   };

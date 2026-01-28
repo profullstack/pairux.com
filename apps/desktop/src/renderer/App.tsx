@@ -124,9 +124,9 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen flex-col">
       <TitleBar />
-      <main className="flex flex-1 flex-col p-6">
+      <main className="p-6 flex flex-1 flex-col">
         {error && (
           <div className="mb-4 rounded-lg bg-destructive/10 p-4 text-destructive">
             {error}
@@ -155,7 +155,7 @@ function App() {
                   onClick={() => {
                     void handleWaylandCapture();
                   }}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   Open System Screen Picker
                 </button>

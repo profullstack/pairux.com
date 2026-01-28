@@ -83,13 +83,13 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
   const joinUrl = session ? `${APP_URL}/join/${session.join_code}` : '';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <Card className="relative z-10 w-full max-w-md border-border">
+    <div className="inset-0 fixed z-50 flex items-center justify-center">
+      <div className="inset-0 bg-black/50 absolute" onClick={onClose} />
+      <Card className="max-w-md border-border relative z-10 w-full">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="gap-3 flex items-center">
+              <div className="h-10 w-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                 <Link2 className="h-5 w-5" />
               </div>
               <div>
@@ -108,7 +108,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
               {error}
               <Button
                 variant="link"
-                className="ml-2 h-auto p-0 text-destructive"
+                className="ml-2 p-0 text-destructive h-auto"
                 onClick={() => void createSession()}
               >
                 Try again
@@ -117,7 +117,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
           )}
 
           {isCreating && (
-            <div className="flex flex-col items-center justify-center py-8">
+            <div className="py-8 flex flex-col items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="mt-4 text-sm text-muted-foreground">Creating session...</p>
             </div>
@@ -128,13 +128,13 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
               {/* Mode Selection */}
               <div className="space-y-3">
                 <p className="text-sm font-medium text-foreground">Connection Mode</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="gap-3 grid grid-cols-2">
                   <button
                     type="button"
                     onClick={() => {
                       setMode('p2p');
                     }}
-                    className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                    className={`gap-2 rounded-lg p-4 flex flex-col items-center border-2 transition-colors ${
                       mode === 'p2p'
                         ? 'border-primary bg-primary/10'
                         : 'border-border hover:border-muted-foreground/50'
@@ -159,7 +159,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
                     onClick={() => {
                       setMode('sfu');
                     }}
-                    className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                    className={`gap-2 rounded-lg p-4 flex flex-col items-center border-2 transition-colors ${
                       mode === 'sfu'
                         ? 'border-primary bg-primary/10'
                         : 'border-border hover:border-muted-foreground/50'
@@ -180,7 +180,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="gap-2 pt-2 flex">
                 <Button variant="outline" onClick={onClose} className="flex-1">
                   Cancel
                 </Button>
@@ -203,8 +203,8 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Join URL</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 truncate rounded-lg bg-muted px-3 py-2 text-sm">
+                <div className="gap-2 flex items-center">
+                  <code className="rounded-lg bg-muted px-3 py-2 text-sm flex-1 truncate">
                     {joinUrl}
                   </code>
                   <Button
@@ -222,14 +222,14 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-muted/50 p-3">
+              <div className="rounded-lg border-border bg-muted/50 p-3 border">
                 <p className="text-sm text-muted-foreground">
                   Share this link with others. They can join and wait for you to start sharing your
                   screen.
                 </p>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="gap-2 pt-2 flex">
                 <Button variant="outline" onClick={onClose} className="flex-1">
                   Close
                 </Button>

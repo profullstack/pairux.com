@@ -29,19 +29,19 @@ export const ParticipantList = memo(function ParticipantList({
   };
 
   return (
-    <div className="border-b border-border">
+    <div className="border-border border-b">
       {/* Header */}
       <button
         onClick={() => {
           setIsExpanded(!isExpanded);
         }}
-        className="flex w-full items-center justify-between px-4 py-2 transition-colors hover:bg-muted"
+        className="px-4 py-2 hover:bg-muted flex w-full items-center justify-between transition-colors"
         aria-expanded={isExpanded}
       >
-        <div className="flex items-center gap-2">
+        <div className="gap-2 flex items-center">
           <Users className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Participants</span>
-          <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+          <span className="bg-muted px-1.5 py-0.5 text-xs text-muted-foreground rounded-full">
             {participants.length}
           </span>
         </div>
@@ -54,13 +54,13 @@ export const ParticipantList = memo(function ParticipantList({
 
       {/* Participant list */}
       {isExpanded && (
-        <div className="max-h-48 overflow-y-auto px-1 pb-2">
+        <div className="max-h-48 px-1 pb-2 overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center py-4">
+            <div className="py-4 flex items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : participants.length === 0 ? (
-            <div className="py-4 text-center text-sm text-muted-foreground">
+            <div className="py-4 text-sm text-muted-foreground text-center">
               No participants yet
             </div>
           ) : (

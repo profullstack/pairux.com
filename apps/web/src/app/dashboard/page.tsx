@@ -232,13 +232,13 @@ export default function DashboardPage() {
                     <Settings className="h-5 w-5 text-gray-400" />
                     <span className="text-gray-600">Account Settings</span>
                   </Link>
-                  <button
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg p-2 text-left opacity-50"
+                  <Link
+                    href="/settings#notifications"
+                    className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-gray-50"
                   >
                     <Bell className="h-5 w-5 text-gray-400" />
-                    <span className="text-gray-600">Notifications (Coming Soon)</span>
-                  </button>
+                    <span className="text-gray-600">Notifications</span>
+                  </Link>
                 </div>
               </div>
             </div>

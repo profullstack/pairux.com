@@ -96,7 +96,29 @@ export const chatHistorySchema = z.object({
   before: z.string().datetime().optional(), // For pagination - get messages before this timestamp
 });
 
+// Push subscription schema
+export const pushSubscriptionSchema = z.object({
+  endpoint: z.string().url('Invalid endpoint URL'),
+  keys: z.object({
+    p256dh: z.string().min(1, 'p256dh key is required'),
+    auth: z.string().min(1, 'Auth key is required'),
+  }),
+  participantId: z.string().uuid('Invalid participant ID').optional(),
+});
+
+// Notification preferences schema
+export const notificationPreferencesSchema = z.object({
+  pushEnabled: z.boolean().default(true),
+  controlRequest: z.boolean().default(true),
+  chatMessage: z.boolean().default(true),
+  participantJoined: z.boolean().default(true),
+  participantLeft: z.boolean().default(true),
+  hostDisconnected: z.boolean().default(true),
+});
+
 // Type exports
+export type PushSubscriptionInput = z.infer<typeof pushSubscriptionSchema>;
+export type NotificationPreferences = z.infer<typeof notificationPreferencesSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

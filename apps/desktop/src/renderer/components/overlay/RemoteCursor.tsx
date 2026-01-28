@@ -132,7 +132,7 @@ export function RemoteCursor({
       {/* Participant label */}
       {showLabel && (
         <div
-          className="ml-4 mt-1 whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-medium text-white shadow-md"
+          className="ml-4 mt-1 rounded px-1.5 py-0.5 text-xs font-medium text-white shadow-md whitespace-nowrap"
           style={{ backgroundColor: color }}
         >
           {cursor.displayName}
@@ -168,7 +168,7 @@ export function RemoteCursorsContainer({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden"
+      className="inset-0 pointer-events-none absolute overflow-hidden"
       data-testid="remote-cursors-container"
     >
       {cursors.map((cursor) => (

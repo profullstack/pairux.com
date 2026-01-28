@@ -61,6 +61,25 @@ export async function POST(request: Request) {
       return errorResponse(error.message, 400);
     }
 
+    // Fire push notification to other participants (non-blocking)
+    if (data && !recipientId) {
+      const senderName = (data as { display_name?: string }).display_name ?? 'Someone';
+      void import('@/lib/push').then(({ sendPushToSession }) => {
+        void sendPushToSession(
+          sessionId,
+          'chatMessage',
+          {
+            title: 'New Message',
+            body: `${senderName}: ${content.substring(0, 100)}`,
+            url: `/session/${sessionId}`,
+            tag: `chat-${sessionId}`,
+          },
+          user?.id ? [user.id] : [],
+          participantId ? [participantId] : []
+        );
+      });
+    }
+
     return successResponse(data, 201);
   } catch (error) {
     return handleApiError(error);

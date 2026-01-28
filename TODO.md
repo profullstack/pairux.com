@@ -82,7 +82,7 @@
   - [x] Service worker for offline shell
   - [x] Web app manifest
   - [x] Install prompt
-  - [ ] Push notification support (future)
+  - [x] Push notification support (future)
 
 ---
 

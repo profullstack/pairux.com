@@ -145,13 +145,13 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6">
+    <div className="p-6 flex flex-1 flex-col">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="gap-4 flex items-center">
           <button
             onClick={() => void navigate('/')}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground flex items-center transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -164,7 +164,7 @@ export function SettingsPage() {
           <button
             onClick={() => void handleSaveToCloud()}
             disabled={isSaving || (!hasChanges && !saveSuccess)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`gap-2 rounded-lg px-4 py-2 text-sm font-medium flex items-center transition-colors ${
               saveSuccess
                 ? 'bg-green-600 text-white'
                 : hasChanges
@@ -186,25 +186,25 @@ export function SettingsPage() {
 
       {/* Error message */}
       {saveError && (
-        <div className="mb-6 flex max-w-3xl items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="mb-6 max-w-3xl gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive flex items-center">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span>{saveError}</span>
           <button
             onClick={() => {
               setSaveError(null);
             }}
-            className="ml-auto text-xs underline"
+            className="text-xs ml-auto underline"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      <div className="grid max-w-3xl gap-6">
+      <div className="max-w-3xl gap-6 grid">
         {/* Account Section */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
+            <div className="gap-2 flex items-center">
               <Monitor className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">Account</CardTitle>
             </div>
@@ -233,7 +233,7 @@ export function SettingsPage() {
         {/* Recording Settings */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
+            <div className="gap-2 flex items-center">
               <Video className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">Recording</CardTitle>
             </div>
@@ -241,7 +241,7 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium">Default Quality</label>
+              <label className="mb-2 text-sm font-medium block">Default Quality</label>
               <select
                 value={settings.recording.defaultQuality}
                 onChange={(e) => {
@@ -253,7 +253,7 @@ export function SettingsPage() {
                     },
                   });
                 }}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="rounded-md border-border bg-background px-3 py-2 text-sm focus:ring-primary w-full border focus:ring-2 focus:outline-none"
               >
                 <option value="720p">720p (HD)</option>
                 <option value="1080p">1080p (Full HD)</option>
@@ -264,14 +264,14 @@ export function SettingsPage() {
               </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+            <div className="rounded-lg bg-muted/50 p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Recordings Folder</p>
                 <p className="text-xs text-muted-foreground">{recordingsPath || 'Loading...'}</p>
               </div>
               <button
                 onClick={() => void handleOpenRecordingsFolder()}
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/10"
+                className="gap-2 rounded-md px-3 py-1.5 text-sm text-primary hover:bg-primary/10 flex items-center transition-colors"
               >
                 <FolderOpen className="h-4 w-4" />
                 Open
@@ -283,7 +283,7 @@ export function SettingsPage() {
         {/* Session Defaults */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
+            <div className="gap-2 flex items-center">
               <Users className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">Session Defaults</CardTitle>
             </div>
@@ -291,7 +291,7 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium">Maximum Participants</label>
+              <label className="mb-2 text-sm font-medium block">Maximum Participants</label>
               <select
                 value={settings.session.defaultMaxParticipants}
                 onChange={(e) => {
@@ -303,7 +303,7 @@ export function SettingsPage() {
                     },
                   });
                 }}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="rounded-md border-border bg-background px-3 py-2 text-sm focus:ring-primary w-full border focus:ring-2 focus:outline-none"
               >
                 <option value={5}>5 participants</option>
                 <option value={10}>10 participants</option>
@@ -329,12 +329,12 @@ export function SettingsPage() {
                     },
                   });
                 }}
-                className={`relative h-6 w-11 rounded-full transition-colors ${
+                className={`h-6 w-11 relative rounded-full transition-colors ${
                   settings.session.allowGuestControlByDefault ? 'bg-primary' : 'bg-muted'
                 }`}
               >
                 <span
-                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  className={`left-0.5 top-0.5 h-5 w-5 bg-white shadow absolute rounded-full transition-transform ${
                     settings.session.allowGuestControlByDefault ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -346,7 +346,7 @@ export function SettingsPage() {
         {/* About */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
+            <div className="gap-2 flex items-center">
               <Info className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">About</CardTitle>
             </div>

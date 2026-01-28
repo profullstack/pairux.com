@@ -43,6 +43,7 @@
     "db:push": "turbo run db:push",
     "db:studio": "turbo run db:studio",
     "supabase:update-emails": "npx tsx scripts/supabase-update-emails.ts",
+    "generate-vapid-keys": "node scripts/generate-vapid-keys.mjs",
     "setup:env": "node scripts/setup-env.mjs",
     "setup:hooks": "git config core.hooksPath .githooks && git config push.followTags true && echo '✅ Git hooks and push.followTags configured'",
     "setup": "pnpm setup:env && pnpm setup:hooks",

@@ -43,15 +43,15 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
   const windows = sources.filter((s) => s.type === 'window');
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="gap-4 flex flex-col">
       {/* Tab bar */}
-      <div className="flex items-center gap-2">
-        <div className="flex rounded-lg bg-muted p-1">
+      <div className="gap-2 flex items-center">
+        <div className="rounded-lg bg-muted p-1 flex">
           <button
             onClick={() => {
               setActiveTab('screen');
             }}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            className={`gap-2 rounded-md px-4 py-2 text-sm font-medium flex items-center transition-colors ${
               activeTab === 'screen'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -64,7 +64,7 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
             onClick={() => {
               setActiveTab('window');
             }}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            className={`gap-2 rounded-md px-4 py-2 text-sm font-medium flex items-center transition-colors ${
               activeTab === 'window'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -82,7 +82,7 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
             void loadSources();
           }}
           disabled={loading}
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+          className="gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground flex items-center transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -94,19 +94,19 @@ export function SourcePicker({ onSelect }: SourcePickerProps) {
 
       {/* Loading state */}
       {loading && !sources.length && (
-        <div className="flex items-center justify-center py-12">
+        <div className="py-12 flex items-center justify-center">
           <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {/* Source grid */}
       {!loading && filteredSources.length === 0 && (
-        <div className="py-12 text-center text-muted-foreground">
+        <div className="py-12 text-muted-foreground text-center">
           No {activeTab === 'screen' ? 'screens' : 'windows'} available
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="gap-4 lg:grid-cols-3 xl:grid-cols-4 grid grid-cols-2">
         {filteredSources.map((source) => (
           <SourceCard key={source.id} source={source} onSelect={onSelect} />
         ))}

@@ -90,6 +90,34 @@ export async function POST(request: Request, { params }: RouteParams) {
       return errorResponse(error.message, 400);
     }
 
+    // Notify host that a participant joined (non-blocking)
+    if (data) {
+      const participant = data as {
+        display_name?: string;
+        session_id?: string;
+      };
+      const participantSessionId = participant.session_id;
+      if (participantSessionId) {
+        void import('@/lib/push').then(async ({ sendPushToUser }) => {
+          const { data: session } = await supabase
+            .from('sessions')
+            .select('host_user_id')
+            .eq('id', participantSessionId)
+            .single();
+
+          const hostId = (session as { host_user_id?: string } | null)?.host_user_id;
+          if (hostId) {
+            void sendPushToUser(hostId, 'participantJoined', {
+              title: 'Participant Joined',
+              body: `${participant.display_name ?? 'Someone'} joined your session`,
+              url: `/session/${participantSessionId}`,
+              tag: `join-${participantSessionId}`,
+            });
+          }
+        });
+      }
+    }
+
     return successResponse(data);
   } catch (error) {
     return handleApiError(error);

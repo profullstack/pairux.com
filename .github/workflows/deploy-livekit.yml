@@ -6,7 +6,6 @@ on:
       - master
     paths:
       - 'apps/livekit/**'
-      - '!apps/livekit/package.json'
   workflow_dispatch:
 
 concurrency:

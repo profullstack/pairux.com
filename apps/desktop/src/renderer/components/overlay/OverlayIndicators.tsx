@@ -39,16 +39,16 @@ export function OverlayIndicators({
 
   return (
     <div
-      className={`absolute ${positionClasses[position]} gap-2 flex flex-col ${className}`}
+      className={`absolute ${positionClasses[position]} flex flex-col gap-2 ${className}`}
       data-testid="overlay-indicators"
     >
       {/* Live/Sharing indicator */}
       {isSharing && (
         <div
-          className="gap-2 bg-black/70 px-3 py-1.5 flex items-center rounded-full"
+          className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5"
           data-testid="sharing-indicator"
         >
-          <span className="h-2 w-2 animate-pulse bg-red-500 rounded-full" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
           <span className="text-xs font-medium text-white">LIVE</span>
         </div>
       )}
@@ -75,7 +75,7 @@ interface RecordingIndicatorProps {
 export function RecordingIndicator({ isPaused, duration }: RecordingIndicatorProps) {
   return (
     <div
-      className="gap-2 bg-red-600/90 px-3 py-1.5 flex items-center rounded-full"
+      className="flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1.5"
       data-testid="recording-indicator"
     >
       <Circle className={`h-2 w-2 fill-white text-white ${!isPaused ? 'animate-pulse' : ''}`} />
@@ -96,7 +96,7 @@ interface ControlActiveIndicatorProps {
 export function ControlActiveIndicator({ participant }: ControlActiveIndicatorProps) {
   return (
     <div
-      className="gap-2 bg-green-600/90 px-3 py-1.5 flex items-center rounded-full"
+      className="flex items-center gap-2 rounded-full bg-green-600/90 px-3 py-1.5"
       data-testid="control-active-indicator"
     >
       <Monitor className="h-3 w-3 text-white" />
@@ -111,12 +111,12 @@ export function ControlActiveIndicator({ participant }: ControlActiveIndicatorPr
 export function SharingIndicator({ isLive = false }: { isLive?: boolean }) {
   return (
     <div
-      className="gap-2 bg-black/70 px-3 py-1.5 flex items-center rounded-full"
+      className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5"
       data-testid="sharing-indicator"
     >
       {isLive ? (
         <>
-          <span className="h-2 w-2 animate-pulse bg-red-500 rounded-full" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
           <span className="text-xs font-medium text-white">LIVE</span>
         </>
       ) : (

@@ -36,6 +36,13 @@ export interface ChatMessageInputProps {
   disabled?: boolean;
   maxLength?: number;
   participants?: SessionParticipant[];
+  onTyping?: () => void;
+  onStopTyping?: () => void;
+}
+
+export interface TypingUser {
+  participantId: string;
+  displayName: string;
 }
 
 export interface ParticipantListProps {

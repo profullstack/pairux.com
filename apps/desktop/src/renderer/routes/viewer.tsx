@@ -68,7 +68,7 @@ export function ViewerPage() {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
           <p className="mt-4 text-sm text-muted-foreground">Loading session...</p>
         </div>
       </div>
@@ -77,16 +77,16 @@ export function ViewerPage() {
 
   if (error && !session) {
     return (
-      <div className="p-6 flex flex-1 items-center justify-center">
-        <div className="max-w-md rounded-lg border-border bg-card p-6 w-full border text-center">
-          <div className="h-12 w-12 bg-destructive/10 mx-auto flex items-center justify-center rounded-full">
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <AlertCircle className="h-6 w-6 text-destructive" />
           </div>
           <h2 className="mt-4 text-lg font-semibold">Session Error</h2>
           <p className="mt-2 text-sm text-muted-foreground">{error}</p>
           <button
             onClick={() => void navigate('/join')}
-            className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Back to Join
           </button>
@@ -98,10 +98,10 @@ export function ViewerPage() {
   return (
     <div className="flex flex-1">
       {/* Main content */}
-      <div className="gap-4 p-6 flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col gap-4 p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="gap-3 flex items-center">
+          <div className="flex items-center gap-3">
             <Monitor className="h-5 w-5 text-primary" />
             <div>
               <h2 className="text-lg font-semibold">Viewing Session</h2>
@@ -111,13 +111,13 @@ export function ViewerPage() {
             </div>
           </div>
 
-          <div className="gap-2 flex items-center">
+          <div className="flex items-center gap-2">
             {/* Chat toggle */}
             <button
               onClick={() => {
                 setShowChat(!showChat);
               }}
-              className={`gap-2 rounded-lg px-3 py-2 text-sm font-medium flex items-center transition-colors ${
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 showChat
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -131,7 +131,7 @@ export function ViewerPage() {
             <button
               onClick={handleLeave}
               disabled={leaving}
-              className="gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 flex items-center transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
             >
               {leaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -152,13 +152,13 @@ export function ViewerPage() {
 
         {/* Session info bar */}
         {session && (
-          <div className="rounded-lg bg-muted px-4 py-3 flex items-center justify-between">
-            <div className="gap-4 flex items-center">
-              <div className="gap-2 flex items-center">
+          <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <span className="font-mono text-sm font-medium">{session.join_code}</span>
               </div>
 
-              <div className="gap-1.5 text-sm text-muted-foreground flex items-center">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
                 {activeParticipants.length} participant
                 {activeParticipants.length !== 1 ? 's' : ''}
@@ -166,7 +166,7 @@ export function ViewerPage() {
             </div>
 
             <span
-              className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                 session.status === 'active'
                   ? 'bg-green-500/10 text-green-500'
                   : 'bg-yellow-500/10 text-yellow-500'
@@ -178,10 +178,10 @@ export function ViewerPage() {
         )}
 
         {/* Video viewer placeholder */}
-        <div className="rounded-lg border-border bg-black relative flex-1 overflow-hidden border">
+        <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black">
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <Monitor className="h-16 w-16 text-muted-foreground/30 mx-auto" />
+              <Monitor className="mx-auto h-16 w-16 text-muted-foreground/30" />
               <p className="mt-4 text-lg font-medium text-muted-foreground">
                 Waiting for host to share screen...
               </p>
@@ -192,8 +192,8 @@ export function ViewerPage() {
           </div>
 
           {/* Connection indicator */}
-          <div className="left-4 top-4 gap-2 bg-black/70 px-3 py-1.5 absolute flex items-center rounded-full">
-            <span className="h-2 w-2 animate-pulse bg-yellow-500 rounded-full" />
+          <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
             <span className="text-xs font-medium text-white">CONNECTING</span>
           </div>
         </div>

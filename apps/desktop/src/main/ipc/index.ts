@@ -6,6 +6,7 @@ import { registerChatHandlers } from './chat';
 import { registerInputHandlers } from './input';
 import { registerPermissionHandlers } from './permissions';
 import { registerRecordingHandlers } from './recording';
+import { registerStreamingHandlers } from './streaming';
 import { registerTrayHandlers } from './tray';
 import { registerPlatformHandlers } from './platform';
 import type { CaptureSource } from '@pairux/shared-types';
@@ -30,6 +31,9 @@ export function registerIpcHandlers(): void {
 
   // Register recording handlers
   registerRecordingHandlers();
+
+  // Register streaming handlers
+  registerStreamingHandlers();
 
   // Register tray handlers
   registerTrayHandlers();

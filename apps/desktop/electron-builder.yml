@@ -24,6 +24,7 @@ extraResources:
 asar: true
 asarUnpack:
   - '**/*.node'
+  - '**/ffmpeg-installer/**'
 
 mac:
   category: public.app-category.productivity

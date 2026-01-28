@@ -120,7 +120,7 @@
   - [x] Text input with send button
   - [x] Enter to send, Shift+Enter for newline
   - [x] Character limit (500)
-  - [ ] Typing indicator (optional)
+  - [x] Typing indicator (optional)
 
 - [x] **Message Types**
   - [x] Text messages
@@ -162,24 +162,24 @@
   - [x] Recording duration display
   - [x] Storage space warning
 
-- [ ] **RTMP Live Streaming**
-  - [ ] Add/edit/remove RTMP destinations
-  - [ ] Multiple simultaneous streams (YouTube, Twitch, Facebook, custom)
-  - [ ] Stream key secure storage (Electron safeStorage)
-  - [ ] Platform presets (YouTube, Twitch, Facebook)
-  - [ ] Encoder settings (H.264/AAC)
-    - [ ] Video bitrate (2500-6000 kbps)
-    - [ ] Resolution (720p/1080p)
-    - [ ] Framerate (30/60 fps)
-    - [ ] Keyframe interval (2 sec default)
-    - [ ] Audio bitrate (128-320 kbps)
-  - [ ] Start/stop individual streams
-  - [ ] Start/stop all streams
-  - [ ] Stream status indicators (connecting/live/error)
-  - [ ] Stream duration display
-  - [ ] Bitrate monitoring
-  - [ ] Auto-reconnect on disconnect (3 attempts)
-  - [ ] Error handling (auth failed, bandwidth, disconnected)
+- [x] **RTMP Live Streaming**
+  - [x] Add/edit/remove RTMP destinations
+  - [x] Multiple simultaneous streams (YouTube, Twitch, Facebook, custom)
+  - [x] Stream key secure storage (Electron safeStorage)
+  - [x] Platform presets (YouTube, Twitch, Facebook)
+  - [x] Encoder settings (H.264/AAC)
+    - [x] Video bitrate (2500-6000 kbps)
+    - [x] Resolution (720p/1080p)
+    - [x] Framerate (30/60 fps)
+    - [x] Keyframe interval (2 sec default)
+    - [x] Audio bitrate (128-320 kbps)
+  - [x] Start/stop individual streams
+  - [x] Start/stop all streams
+  - [x] Stream status indicators (connecting/live/error)
+  - [x] Stream duration display
+  - [x] Bitrate monitoring
+  - [x] Auto-reconnect on disconnect (3 attempts)
+  - [x] Error handling (auth failed, bandwidth, disconnected)
 
 - [x] **WebRTC Streaming**
   - [x] Peer connection management

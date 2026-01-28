@@ -120,7 +120,7 @@ export function ChatPanel({
     return (
       <button
         onClick={handleToggle}
-        className="w-12 border-border bg-background hover:bg-muted flex h-full flex-col items-center justify-center border-l"
+        className="flex h-full w-12 flex-col items-center justify-center border-l border-border bg-background hover:bg-muted"
         title="Open chat"
       >
         <MessageSquare className="h-5 w-5 text-muted-foreground" />
@@ -130,10 +130,10 @@ export function ChatPanel({
   }
 
   return (
-    <div className="w-80 border-border bg-background flex h-full flex-col border-l">
+    <div className="flex h-full w-80 flex-col border-l border-border bg-background">
       {/* Header */}
-      <div className="border-border px-4 py-3 flex items-center justify-between border-b">
-        <div className="gap-2 flex items-center">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-muted-foreground" />
           <h2 className="font-medium">Chat</h2>
           {/* Connection status */}
@@ -155,12 +155,12 @@ export function ChatPanel({
 
       {/* Error banner */}
       {error && (
-        <div className="gap-2 border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive flex items-center border-b">
+        <div className="flex items-center gap-2 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span className="flex-1">{error}</span>
           <button
             onClick={reconnect}
-            className="gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-destructive/20 flex items-center"
+            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-destructive/20"
           >
             <RefreshCw className="h-3 w-3" />
             Retry
@@ -183,7 +183,7 @@ export function ChatPanel({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="text-muted-foreground flex h-full items-center justify-center">
+          <div className="flex h-full items-center justify-center text-muted-foreground">
             <p className="text-sm">No messages yet</p>
           </div>
         ) : (
@@ -192,7 +192,7 @@ export function ChatPanel({
               <button
                 onClick={() => void loadMore()}
                 disabled={isLoading}
-                className="gap-2 py-2 text-sm text-muted-foreground hover:text-foreground flex w-full items-center justify-center disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -219,14 +219,14 @@ export function ChatPanel({
       </div>
 
       {/* Message input */}
-      <div className="border-border p-3 border-t">
+      <div className="border-t border-border p-3">
         {sendError && (
           <div className="mb-2 rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {sendError}
           </div>
         )}
 
-        <div className="gap-2 flex items-end">
+        <div className="flex items-end gap-2">
           <div className="relative flex-1">
             <textarea
               value={inputValue}
@@ -237,14 +237,14 @@ export function ChatPanel({
               disabled={!isConnected || isSending}
               placeholder="Type a message..."
               rows={1}
-              className="rounded-lg border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:ring-primary block w-full resize-none border focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="block w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
               style={{ minHeight: '40px', maxHeight: '120px' }}
             />
 
             {/* Character count */}
             {inputValue.length > MAX_MESSAGE_LENGTH * 0.8 && (
               <span
-                className={`bottom-2 right-2 text-xs absolute ${
+                className={`absolute bottom-2 right-2 text-xs ${
                   inputValue.length > MAX_MESSAGE_LENGTH
                     ? 'text-destructive'
                     : 'text-muted-foreground'
@@ -263,7 +263,7 @@ export function ChatPanel({
               isSending ||
               !isConnected
             }
-            className="h-10 w-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary flex flex-shrink-0 items-center justify-center transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

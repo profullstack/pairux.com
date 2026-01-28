@@ -5,7 +5,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync, rmSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -125,6 +125,14 @@ Distribution structure:
       const distsDir = join(repoDir, 'dists/stable/main/binary-amd64');
       mkdirSync(poolDir, { recursive: true });
       mkdirSync(distsDir, { recursive: true });
+
+      // Remove old .deb files to keep only the latest version
+      if (existsSync(poolDir)) {
+        const oldDebs = readdirSync(poolDir).filter((f) => f.endsWith('.deb'));
+        for (const oldDeb of oldDebs) {
+          rmSync(join(poolDir, oldDeb));
+        }
+      }
 
       // Download the .deb file
       this.logger.info('Downloading .deb package...');

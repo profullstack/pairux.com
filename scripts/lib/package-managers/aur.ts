@@ -250,9 +250,17 @@ pkgname = ${PACKAGE_NAME}
         // Already named master
       }
 
-      // Push to AUR (force push to handle any history divergence)
+      // Rebase on top of remote to ensure fast-forward push
+      // (AUR rejects force pushes)
+      try {
+        execSync('git pull --rebase origin master', { cwd: repoDir, env, stdio: 'pipe' });
+      } catch {
+        // May fail if remote is empty or no tracking branch
+      }
+
+      // Push to AUR
       this.logger.info('Pushing to AUR...');
-      execSync('git push --force origin HEAD:master', { cwd: repoDir, env, stdio: 'pipe' });
+      execSync('git push origin master', { cwd: repoDir, env, stdio: 'pipe' });
 
       return {
         packageManager: this.name,

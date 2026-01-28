@@ -200,30 +200,14 @@ pkgname = ${PACKAGE_NAME}
 
       // Clone the AUR repo
       this.logger.info('Cloning AUR repository...');
-      let isNewRepo = false;
       try {
-        const cloneOutput = execSync(
-          `git clone ${AUR_SSH_HOST}:${PACKAGE_NAME}.git ${repoDir} 2>&1`,
-          { env, encoding: 'utf-8' }
-        );
-        // git clone of empty repos succeeds but warns
-        if (cloneOutput.includes('empty repository')) {
-          this.logger.info('Cloned empty AUR repository');
-          isNewRepo = true;
-        }
+        execSync(`git clone ${AUR_SSH_HOST}:${PACKAGE_NAME}.git ${repoDir}`, {
+          env,
+          stdio: 'pipe',
+        });
       } catch {
         // Package doesn't exist yet, create it
         this.logger.info('Creating new AUR package...');
-        mkdirSync(repoDir, { recursive: true });
-        isNewRepo = true;
-      }
-
-      // For new/empty repos, initialize with master branch
-      if (isNewRepo) {
-        // Remove any empty clone dir and start fresh
-        if (existsSync(repoDir)) {
-          rmSync(repoDir, { recursive: true, force: true });
-        }
         mkdirSync(repoDir, { recursive: true });
         execSync('git init -b master', { cwd: repoDir, env, stdio: 'pipe' });
         execSync(`git remote add origin ${AUR_SSH_HOST}:${PACKAGE_NAME}.git`, {
@@ -259,10 +243,6 @@ pkgname = ${PACKAGE_NAME}
         };
       }
 
-      // Log branch state for diagnostics
-      const branchInfo = execSync('git branch -a', { cwd: repoDir, encoding: 'utf-8' }).trim();
-      this.logger.info(`Git branches: ${branchInfo}`);
-
       // Ensure branch is named master (AUR requires it)
       try {
         execSync('git branch -M master', { cwd: repoDir, env, stdio: 'pipe' });
@@ -270,9 +250,9 @@ pkgname = ${PACKAGE_NAME}
         // Already named master
       }
 
-      // Push to AUR
+      // Push to AUR (force push to handle any history divergence)
       this.logger.info('Pushing to AUR...');
-      execSync('git push -u origin HEAD:master', { cwd: repoDir, env, stdio: 'pipe' });
+      execSync('git push --force origin master', { cwd: repoDir, env, stdio: 'pipe' });
 
       return {
         packageManager: this.name,

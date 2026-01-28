@@ -29,19 +29,25 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ secrets.DROPLET_SFU_PORT || 22 }} ${{ secrets.DROPLET_SFU_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy setup script
+      - name: Load env and deploy
         env:
           SSH_HOST: ${{ secrets.DROPLET_SFU_HOST }}
           SSH_PORT: ${{ secrets.DROPLET_SFU_PORT || 22 }}
           SSH_USER: ${{ secrets.DROPLET_SFU_USER }}
-          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
-          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
+          # Write ENV_FILE and source LIVEKIT vars
+          echo "$ENV_FILE" > /tmp/.env
+          source <(grep -E '^LIVEKIT_API_(KEY|SECRET)=' /tmp/.env)
+
           # Copy setup script to droplet
           scp -P $SSH_PORT apps/livekit/setup-livekit-server.sh $SSH_USER@$SSH_HOST:/tmp/
 
-          # Run setup script
+          # Run setup script with values from ENV_FILE
           ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo bash /tmp/setup-livekit-server.sh '$LIVEKIT_API_KEY' '$LIVEKIT_API_SECRET' '' 'sfu.pairux.com'"
+
+          # Cleanup
+          rm -f /tmp/.env
 
       - name: Verify LiveKit server
         env:
@@ -56,3 +62,4 @@ jobs:
         if: always()
         run: |
           rm -f ~/.ssh/id_rsa
+          rm -f /tmp/.env

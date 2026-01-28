@@ -13,9 +13,17 @@ import {
   MicOff,
 } from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import type { ConnectionState, CursorPositionMessage } from '@pairux/shared-types';
+import type {
+  ConnectionState,
+  CursorPositionMessage,
+  QualityMetrics,
+  NetworkQuality,
+  ControlStateUI,
+  InputEvent,
+} from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
 import { useWebRTC } from '@/hooks/useWebRTC';
+import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import {
   ControlRequestButton,
   ControlStatusIndicator,
@@ -40,6 +48,7 @@ interface SessionData {
   id: string;
   join_code: string;
   status: string;
+  mode?: 'p2p' | 'sfu';
   settings: {
     quality?: string;
     allowControl?: boolean;
@@ -56,58 +65,9 @@ interface ApiResponse<T> {
 
 export default function SessionViewerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
-  const participantId = useId(); // Temporary participant ID for WebRTC
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-  const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
-  const videoContainerRef = useRef<HTMLDivElement>(null);
-
-  const togglePanel = useCallback((panel: SidebarPanel) => {
-    setActivePanel((current) => (current === panel ? null : panel));
-  }, []);
-
-  // Handle cursor updates from other participants
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Initialize WebRTC connection
-  const {
-    connectionState,
-    remoteStream,
-    qualityMetrics,
-    networkQuality,
-    error: webrtcError,
-    reconnect,
-    // Remote control
-    controlState,
-    dataChannelReady,
-    requestControl,
-    releaseControl,
-    sendInput,
-    sendCursorPosition,
-    // Microphone
-    micEnabled,
-    hasMic,
-    toggleMic,
-  } = useWebRTC({
-    sessionId,
-    participantId,
-    onCursorUpdate: handleCursorUpdate,
-  });
-
-  // Check if control is allowed for this session
-  const allowControl = session?.settings.allowControl ?? false;
 
   useEffect(() => {
     async function fetchSession() {
@@ -174,6 +134,140 @@ export default function SessionViewerPage({ params }: { params: Promise<{ id: st
     );
   }
 
+  // Branch on session mode
+  if (session.mode === 'sfu') {
+    return <SFUSessionViewer sessionId={sessionId} session={session} />;
+  }
+
+  return <P2PSessionViewer sessionId={sessionId} session={session} />;
+}
+
+// --- Mode-specific wrapper components ---
+
+interface SessionViewerWrapperProps {
+  sessionId: string;
+  session: SessionData;
+}
+
+function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
+  const participantId = useId();
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+
+  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
+    setRemoteCursors((prev) => {
+      const next = new Map(prev);
+      if (cursor.visible) {
+        next.set(cursor.participantId, cursor);
+      } else {
+        next.delete(cursor.participantId);
+      }
+      return next;
+    });
+  }, []);
+
+  const hookResult = useWebRTC({
+    sessionId,
+    participantId,
+    onCursorUpdate: handleCursorUpdate,
+  });
+
+  return (
+    <SessionViewerContent
+      sessionId={sessionId}
+      session={session}
+      participantId={participantId}
+      remoteCursors={remoteCursors}
+      {...hookResult}
+    />
+  );
+}
+
+function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
+  const participantId = useId();
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+
+  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
+    setRemoteCursors((prev) => {
+      const next = new Map(prev);
+      if (cursor.visible) {
+        next.set(cursor.participantId, cursor);
+      } else {
+        next.delete(cursor.participantId);
+      }
+      return next;
+    });
+  }, []);
+
+  const hookResult = useWebRTCSFU({
+    sessionId,
+    participantId,
+    onCursorUpdate: handleCursorUpdate,
+  });
+
+  return (
+    <SessionViewerContent
+      sessionId={sessionId}
+      session={session}
+      participantId={participantId}
+      remoteCursors={remoteCursors}
+      {...hookResult}
+    />
+  );
+}
+
+// --- Shared viewer content ---
+
+interface SessionViewerContentProps {
+  sessionId: string;
+  session: SessionData;
+  participantId: string;
+  remoteCursors: Map<string, CursorPositionMessage>;
+  connectionState: ConnectionState;
+  remoteStream: MediaStream | null;
+  qualityMetrics: QualityMetrics | null;
+  networkQuality: NetworkQuality;
+  error: string | null;
+  reconnect: () => void;
+  controlState: ControlStateUI;
+  dataChannelReady: boolean;
+  requestControl: () => void;
+  releaseControl: () => void;
+  sendInput: (event: InputEvent) => void;
+  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
+}
+
+function SessionViewerContent({
+  sessionId,
+  session,
+  participantId,
+  remoteCursors,
+  connectionState,
+  remoteStream,
+  qualityMetrics,
+  networkQuality,
+  error: webrtcError,
+  reconnect,
+  controlState,
+  dataChannelReady,
+  requestControl,
+  releaseControl,
+  sendInput,
+  sendCursorPosition,
+  micEnabled,
+  hasMic,
+  toggleMic,
+}: SessionViewerContentProps) {
+  const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  const togglePanel = useCallback((panel: SidebarPanel) => {
+    setActivePanel((current) => (current === panel ? null : panel));
+  }, []);
+
+  const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
 
   return (

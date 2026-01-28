@@ -22,7 +22,10 @@
         "SUPABASE_SERVICE_ROLE_KEY",
         "TURN_SERVER_URL",
         "TURN_SERVER_USERNAME",
-        "TURN_SERVER_CREDENTIAL"
+        "TURN_SERVER_CREDENTIAL",
+        "LIVEKIT_API_KEY",
+        "LIVEKIT_API_SECRET",
+        "NEXT_PUBLIC_LIVEKIT_URL"
       ]
     },
     "lint": {

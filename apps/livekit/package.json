@@ -1,0 +1,12 @@
+{
+  "name": "@pairux/livekit",
+  "version": "0.2.16",
+  "private": true,
+  "description": "PairUX LiveKit SFU Server",
+  "scripts": {
+    "start": "echo 'LiveKit server runs via Docker'",
+    "docker:build": "docker build -t pairux-livekit .",
+    "docker:run": "docker run -d --name pairux-livekit -p 7880:7880 -p 7881:7881 -p 7882:7882/udp -e LIVEKIT_KEYS=\"devkey: secret\" pairux-livekit",
+    "dev": "docker compose up"
+  }
+}

@@ -20,6 +20,7 @@ interface SessionRow {
   id: string;
   join_code: string;
   status: string;
+  mode: string;
   settings: Record<string, unknown>;
   created_at: string;
   session_participants: ParticipantRow[];
@@ -63,6 +64,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         id,
         join_code,
         status,
+        mode,
         settings,
         created_at,
         session_participants (
@@ -91,6 +93,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         id: session.id,
         join_code: session.join_code,
         status: session.status,
+        mode: session.mode,
         settings: session.settings,
         created_at: session.created_at,
         session_participants: activeParticipants,

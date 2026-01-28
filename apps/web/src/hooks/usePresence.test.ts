@@ -286,6 +286,8 @@ describe('useMediaSession', () => {
         p_room_id: 'test-session',
         p_mode: 'p2p',
         p_capture_source: null,
+        p_sfu_endpoint: null,
+        p_sfu_room_id: null,
       });
       expect(result.current.mediaSessionId).toBe('media-session-123');
       expect(result.current.isActive).toBe(true);

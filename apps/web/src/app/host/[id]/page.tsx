@@ -27,6 +27,7 @@ import { ChatPanel } from '@/components/chat/ChatPanel';
 import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
+import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
 import type { SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
 
@@ -34,6 +35,7 @@ interface SessionData {
   id: string;
   join_code: string;
   status: string;
+  mode?: 'p2p' | 'sfu';
   host_user_id: string;
   settings: {
     quality?: string;
@@ -49,12 +51,123 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Common type for both P2P and SFU host hooks (subset used by this page)
+type HostHookFn = (options: {
+  sessionId: string;
+  hostId: string;
+  localStream: MediaStream | null;
+  onViewerJoined?: (viewerId: string) => void;
+  onViewerLeft?: (viewerId: string) => void;
+}) => {
+  isHosting: boolean;
+  viewerCount: number;
+  error: string | null;
+  startHosting: () => Promise<void>;
+  stopHosting: () => void;
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
+  micStream: MediaStream | null;
+};
+
 export default function HostSessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
-  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Fetch session details
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`);
+        const data = (await res.json()) as ApiResponse<SessionData>;
+
+        if (!res.ok) {
+          setError(data.error ?? 'Session not found');
+          return;
+        }
+
+        if (data.data) {
+          setSession(data.data);
+        }
+      } catch {
+        setError('Failed to load session');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchSession();
+  }, [sessionId]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" />
+          <p className="mt-4 text-sm text-gray-400">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div className="flex min-h-screen flex-col bg-gray-900">
+        <header className="border-b border-gray-800 bg-gray-900">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-14 items-center">
+              <Logo size="sm" variant="light" />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex flex-1 items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-900/50">
+              <AlertCircle className="h-6 w-6 text-red-400" />
+            </div>
+            <h1 className="mt-4 text-xl font-semibold text-white">Session Not Found</h1>
+            <p className="mt-2 text-sm text-gray-400">{error}</p>
+            <Link
+              href="/"
+              className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
+            >
+              Go to Homepage
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Branch on session mode — use key to force remount when mode differs
+  const useHostHook: HostHookFn =
+    session.mode === 'sfu' ? (useWebRTCHostSFU as HostHookFn) : (useWebRTCHost as HostHookFn);
+
+  return (
+    <HostContent
+      key={session.mode ?? 'p2p'}
+      session={session}
+      sessionId={sessionId}
+      useHostHook={useHostHook}
+    />
+  );
+}
+
+// --- Host content with pluggable WebRTC hook ---
+
+function HostContent({
+  session,
+  sessionId,
+  useHostHook,
+}: {
+  session: SessionData;
+  sessionId: string;
+  useHostHook: HostHookFn;
+}) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -88,7 +201,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     },
   });
 
-  // WebRTC host hook
+  // WebRTC host hook (P2P or SFU depending on session mode)
   const {
     isHosting,
     viewerCount,
@@ -99,9 +212,9 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
     hasMic,
     toggleMic,
     micStream,
-  } = useWebRTCHost({
+  } = useHostHook({
     sessionId,
-    hostId: session?.host_user_id ?? sessionId,
+    hostId: session.host_user_id,
     localStream: stream,
     onViewerJoined: (viewerId) => {
       console.log('Viewer joined:', viewerId);
@@ -110,31 +223,6 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
       console.log('Viewer left:', viewerId);
     },
   });
-
-  // Fetch session details
-  useEffect(() => {
-    async function fetchSession() {
-      try {
-        const res = await fetch(`/api/sessions/${sessionId}`);
-        const data = (await res.json()) as ApiResponse<SessionData>;
-
-        if (!res.ok) {
-          setError(data.error ?? 'Session not found');
-          return;
-        }
-
-        if (data.data) {
-          setSession(data.data);
-        }
-      } catch {
-        setError('Failed to load session');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void fetchSession();
-  }, [sessionId]);
 
   // Start hosting when stream is available
   useEffect(() => {
@@ -152,8 +240,6 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 
   // Copy join link to clipboard
   const copyJoinLink = useCallback(async () => {
-    if (!session) return;
-
     const joinUrl = `${window.location.origin}/join/${session.join_code}`;
     try {
       await navigator.clipboard.writeText(joinUrl);
@@ -223,7 +309,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 
   // Handle end session
   const handleEndSession = useCallback(async () => {
-    if (!session || isEnding) return;
+    if (isEnding) return;
 
     setIsEnding(true);
     try {
@@ -244,47 +330,6 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
       router.push('/');
     }
   }, [session, sessionId, isEnding, stopCapture, stopHosting, router]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" />
-          <p className="mt-4 text-sm text-gray-400">Loading session...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !session) {
-    return (
-      <div className="flex min-h-screen flex-col bg-gray-900">
-        <header className="border-b border-gray-800 bg-gray-900">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-14 items-center">
-              <Logo size="sm" variant="light" />
-            </div>
-          </div>
-        </header>
-
-        <main className="flex flex-1 items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-8 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-900/50">
-              <AlertCircle className="h-6 w-6 text-red-400" />
-            </div>
-            <h1 className="mt-4 text-xl font-semibold text-white">Session Not Found</h1>
-            <p className="mt-2 text-sm text-gray-400">{error}</p>
-            <Link
-              href="/"
-              className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
-            >
-              Go to Homepage
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   const displayError = captureError ?? hostingError ?? recordingError;
 
@@ -539,7 +584,9 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Mode</p>
-                    <p className="text-sm text-white">View Only (Web)</p>
+                    <p className="text-sm text-white">
+                      {session.mode === 'sfu' ? 'SFU (LiveKit)' : 'P2P'} — View Only (Web)
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Viewers</p>

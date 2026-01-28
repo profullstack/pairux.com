@@ -22,6 +22,8 @@
     "clsx": "^2.1.0",
     "linkify-react": "^4.3.2",
     "linkifyjs": "^4.3.2",
+    "livekit-client": "^2.17.0",
+    "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.468.0",
     "next": "^16.1.4",
     "react": "^19.0.0",

@@ -225,12 +225,16 @@ interface UseMediaSessionOptions {
   sessionId: string;
   mode?: SessionMode;
   captureSource?: CaptureSourceInfo;
+  sfuEndpoint?: string | null;
+  sfuRoomId?: string | null;
 }
 
 export function useMediaSession({
   sessionId,
   mode = 'p2p',
   captureSource,
+  sfuEndpoint,
+  sfuRoomId,
 }: UseMediaSessionOptions) {
   const supabase = createClient();
   const [mediaSessionId, setMediaSessionId] = useState<string | null>(null);
@@ -243,6 +247,8 @@ export function useMediaSession({
         p_room_id: sessionId,
         p_mode: mode,
         p_capture_source: captureSource ?? null,
+        p_sfu_endpoint: mode === 'sfu' ? (sfuEndpoint ?? null) : null,
+        p_sfu_room_id: mode === 'sfu' ? (sfuRoomId ?? `session-${sessionId}`) : null,
       })) as RpcResponse<MediaSession>;
 
       if (error) {
@@ -260,7 +266,7 @@ export function useMediaSession({
       console.error('[MediaSession] Error starting:', error);
       return null;
     }
-  }, [supabase, sessionId, mode, captureSource]);
+  }, [supabase, sessionId, mode, captureSource, sfuEndpoint, sfuRoomId]);
 
   const pauseMediaSession = useCallback(async () => {
     if (!mediaSessionId) return null;

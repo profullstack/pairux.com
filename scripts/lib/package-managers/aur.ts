@@ -243,6 +243,14 @@ pkgname = ${PACKAGE_NAME}
         };
       }
 
+      // Ensure branch is named master (AUR requires it)
+      // After cloning an empty repo, git may default to 'main' instead
+      try {
+        execSync('git branch -M master', { cwd: repoDir, env, stdio: 'pipe' });
+      } catch {
+        // Already named master
+      }
+
       // Push to AUR
       this.logger.info('Pushing to AUR...');
       execSync('git push -u origin master', { cwd: repoDir, env, stdio: 'pipe' });

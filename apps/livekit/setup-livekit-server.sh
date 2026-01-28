@@ -262,48 +262,48 @@ else
   skip "Caddy already installed"
 fi
 
+info "Writing landing page..."
+mkdir -p /var/www/pairux-sfu
+cat > /var/www/pairux-sfu/index.html << 'INDEXEOF'
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PairUX SFU Server</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .container { text-align: center; padding: 2rem; }
+    h1 { color: #4fc3f7; font-size: 2rem; margin-bottom: 0.5rem; }
+    .status { color: #66bb6a; font-size: 1.2rem; }
+    .info { color: #888; margin-top: 1.5rem; font-size: 0.9rem; }
+    a { color: #4fc3f7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PairUX SFU Server</h1>
+    <p class="status">LiveKit is running</p>
+    <p class="info">Selective Forwarding Unit for <a href="https://pairux.com">pairux.com</a></p>
+  </div>
+</body>
+</html>
+INDEXEOF
+
 info "Updating Caddyfile..."
-cat > /etc/caddy/Caddyfile << 'CADDYEOF'
-DOMAIN_PLACEHOLDER {
-  @browser {
-    header Accept *text/html*
-    not header Connection *Upgrade*
+cat > /etc/caddy/Caddyfile << EOF
+${DOMAIN} {
+  @landing {
     path /
+    not header Connection *Upgrade*
   }
-
-  handle @browser {
-    header Content-Type text/html
-    respond <<HTML
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>PairUX SFU Server</title>
-        <style>
-          body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-          .container { text-align: center; padding: 2rem; }
-          h1 { color: #4fc3f7; font-size: 2rem; margin-bottom: 0.5rem; }
-          .status { color: #66bb6a; font-size: 1.2rem; }
-          .info { color: #888; margin-top: 1.5rem; font-size: 0.9rem; }
-          a { color: #4fc3f7; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>PairUX SFU Server</h1>
-          <p class="status">LiveKit is running</p>
-          <p class="info">Selective Forwarding Unit for <a href="https://pairux.com">pairux.com</a></p>
-        </div>
-      </body>
-      </html>
-    HTML
+  handle @landing {
+    root * /var/www/pairux-sfu
+    file_server
   }
-
-  reverse_proxy localhost:7880
+  handle {
+    reverse_proxy localhost:7880
+  }
 }
-CADDYEOF
-
-# Replace domain placeholder
-sed -i "s/DOMAIN_PLACEHOLDER/${DOMAIN}/" /etc/caddy/Caddyfile
+EOF
 
 systemctl enable caddy >/dev/null 2>&1
 if systemctl restart caddy; then

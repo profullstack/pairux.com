@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'apps/livekit/**'
+      - '.github/workflows/deploy-livekit.yml'
   workflow_dispatch:
 
 concurrency:

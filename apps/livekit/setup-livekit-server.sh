@@ -270,7 +270,11 @@ ${DOMAIN} {
 EOF
 
 systemctl enable caddy >/dev/null 2>&1
-systemctl restart caddy
+if systemctl restart caddy; then
+  success "Caddy started (TLS will auto-provision for $DOMAIN)"
+else
+  warn "Caddy failed to start - ensure DNS for $DOMAIN points to this server, then run: systemctl restart caddy"
+fi
 
 # ===========================================
 # LiveKit Server (Docker)

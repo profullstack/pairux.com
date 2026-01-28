@@ -217,13 +217,25 @@ pkgname = ${PACKAGE_NAME}
         });
       }
 
-      // Write PKGBUILD and .SRCINFO
-      writeFileSync(join(repoDir, 'PKGBUILD'), pkgbuild);
-      writeFileSync(join(repoDir, '.SRCINFO'), srcinfo);
+      // Ensure we're on a master branch (clone may leave us in detached HEAD)
+      try {
+        execSync('git checkout -B master origin/master', { cwd: repoDir, env, stdio: 'pipe' });
+      } catch {
+        // No remote master yet, create local master from current HEAD
+        try {
+          execSync('git checkout -b master', { cwd: repoDir, env, stdio: 'pipe' });
+        } catch {
+          // Already on master
+        }
+      }
 
       // Configure git
       execSync('git config user.email "hello@pairux.com"', { cwd: repoDir, env, stdio: 'pipe' });
       execSync('git config user.name "PairUX Bot"', { cwd: repoDir, env, stdio: 'pipe' });
+
+      // Write PKGBUILD and .SRCINFO
+      writeFileSync(join(repoDir, 'PKGBUILD'), pkgbuild);
+      writeFileSync(join(repoDir, '.SRCINFO'), srcinfo);
 
       // Stage and commit
       execSync('git add PKGBUILD .SRCINFO', { cwd: repoDir, env, stdio: 'pipe' });
@@ -243,24 +255,9 @@ pkgname = ${PACKAGE_NAME}
         };
       }
 
-      // Ensure branch is named master (AUR requires it)
-      try {
-        execSync('git branch -M master', { cwd: repoDir, env, stdio: 'pipe' });
-      } catch {
-        // Already named master
-      }
-
-      // Rebase on top of remote to ensure fast-forward push
-      // (AUR rejects force pushes)
-      try {
-        execSync('git pull --rebase origin master', { cwd: repoDir, env, stdio: 'pipe' });
-      } catch {
-        // May fail if remote is empty or no tracking branch
-      }
-
       // Push to AUR
       this.logger.info('Pushing to AUR...');
-      execSync('git push origin HEAD:master', { cwd: repoDir, env, stdio: 'pipe' });
+      execSync('git push origin master', { cwd: repoDir, env, stdio: 'pipe' });
 
       return {
         packageManager: this.name,

@@ -5,6 +5,7 @@ import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
 import { initializeTray, destroyTray, getTraySession } from './tray';
 import { initializeMenu, showAboutDialog } from './platform';
+import { setMainWindow as setStreamingMainWindow } from './streaming';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
@@ -72,8 +73,10 @@ let mainWindow: BrowserWindow | null = null;
 
 async function createWindow(): Promise<void> {
   mainWindow = await createMainWindow(isWayland);
+  setStreamingMainWindow(mainWindow);
 
   mainWindow.on('closed', () => {
+    setStreamingMainWindow(null);
     mainWindow = null;
   });
 }

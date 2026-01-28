@@ -301,6 +301,81 @@ export interface IPCChannels {
     args: undefined;
     return: { success: boolean };
   };
+
+  // RTMP Streaming channels
+  'rtmp:getDestinations': {
+    args: undefined;
+    return: RTMPDestinationInfo[];
+  };
+
+  'rtmp:addDestination': {
+    args: {
+      destination: {
+        name: string;
+        platform: StreamPlatform;
+        rtmpUrl: string;
+        enabled: boolean;
+        encoderSettings: EncoderSettings;
+      };
+      streamKey: string;
+    };
+    return: RTMPDestinationInfo;
+  };
+
+  'rtmp:updateDestination': {
+    args: {
+      id: string;
+      updates: Partial<{
+        name: string;
+        platform: StreamPlatform;
+        rtmpUrl: string;
+        enabled: boolean;
+        encoderSettings: EncoderSettings;
+      }>;
+      newStreamKey?: string;
+    };
+    return: RTMPDestinationInfo | null;
+  };
+
+  'rtmp:removeDestination': {
+    args: { id: string };
+    return: boolean;
+  };
+
+  'rtmp:startStream': {
+    args: { destinationId: string };
+    return: { success: boolean; error?: string };
+  };
+
+  'rtmp:stopStream': {
+    args: { destinationId: string };
+    return: { success: boolean; error?: string };
+  };
+
+  'rtmp:startAll': {
+    args: undefined;
+    return: { success: boolean; started: number; errors: string[] };
+  };
+
+  'rtmp:stopAll': {
+    args: undefined;
+    return: { success: boolean; stopped: number };
+  };
+
+  'rtmp:writeChunk': {
+    args: ArrayBuffer;
+    return: { success: boolean };
+  };
+
+  'rtmp:getStatus': {
+    args: { destinationId?: string } | undefined;
+    return: RTMPStreamState | RTMPStreamState[];
+  };
+
+  'rtmp:getPlatformPreset': {
+    args: { platform: StreamPlatform };
+    return: { rtmpUrl: string; encoderSettings: EncoderSettings } | null;
+  };
 }
 
 // Event channels (main -> renderer)
@@ -315,6 +390,57 @@ export interface IPCEvents {
   'tray:end-session': undefined;
   'tray:toggle-pause': undefined;
   navigate: string;
+
+  // RTMP Streaming events
+  'rtmp:streamStatusChanged': {
+    destinationId: string;
+    status: StreamStatus;
+    error?: string;
+  };
+  'rtmp:streamStats': {
+    destinationId: string;
+    bitrate: number;
+    fps: number;
+    duration: number;
+  };
+  'rtmp:streamError': {
+    destinationId: string;
+    error: string;
+    isRecoverable: boolean;
+  };
+}
+
+// RTMP Streaming types
+export type StreamPlatform = 'youtube' | 'twitch' | 'facebook' | 'custom';
+export type StreamStatus = 'idle' | 'connecting' | 'live' | 'reconnecting' | 'error' | 'stopped';
+
+export interface EncoderSettings {
+  videoBitrate: number;
+  resolution: '720p' | '1080p';
+  framerate: 30 | 60;
+  keyframeInterval: number;
+  audioBitrate: number;
+}
+
+export interface RTMPDestinationInfo {
+  id: string;
+  name: string;
+  platform: StreamPlatform;
+  rtmpUrl: string;
+  streamKeyId: string;
+  enabled: boolean;
+  encoderSettings: EncoderSettings;
+}
+
+export interface RTMPStreamState {
+  destinationId: string;
+  status: StreamStatus;
+  startTime: number | null;
+  duration: number;
+  bitrate: number;
+  fps: number;
+  reconnectAttempts: number;
+  error: string | null;
 }
 
 // Type helpers for the API

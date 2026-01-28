@@ -16,8 +16,10 @@ import type { SessionParticipant } from '@pairux/shared-types';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatMessageInput } from './ChatMessageInput';
 import { ParticipantList } from './ParticipantList';
+import { TypingIndicator } from './TypingIndicator';
 import { useChat } from './useChat';
 import { useParticipants } from './useParticipants';
+import { useTypingIndicator } from './useTypingIndicator';
 import type { ChatPanelProps } from './types';
 
 export function ChatPanel({
@@ -38,6 +40,13 @@ export function ChatPanel({
 
   const { participants, isLoading: participantsLoading } = useParticipants({
     sessionId,
+  });
+
+  const currentParticipant = participants.find((p) => p.id === participantId);
+  const { emitTyping, stopTyping, typingUsers } = useTypingIndicator({
+    sessionId,
+    participantId,
+    displayName: currentParticipant?.display_name,
   });
 
   const [unreadCount, setUnreadCount] = useState(0);
@@ -179,11 +188,16 @@ export function ChatPanel({
         }}
       />
 
+      {/* Typing indicator */}
+      <TypingIndicator typingUsers={typingUsers} />
+
       {/* Message input */}
       <ChatMessageInput
         onSend={handleSendMessage}
         disabled={!isConnected}
         participants={participants}
+        onTyping={emitTyping}
+        onStopTyping={stopTyping}
       />
     </div>
   );

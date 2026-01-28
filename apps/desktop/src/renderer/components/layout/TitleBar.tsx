@@ -18,11 +18,11 @@ export function TitleBar() {
 
   return (
     <header
-      className={`drag-region h-10 border-border bg-card flex shrink-0 items-center border-b ${
+      className={`drag-region flex h-10 shrink-0 items-center border-b border-border bg-card ${
         isMac ? 'pl-20' : 'pl-4'
       } pr-4`}
     >
-      <div className="no-drag gap-2 flex items-center">
+      <div className="no-drag flex items-center gap-2">
         <img
           src={`${import.meta.env.BASE_URL}logo.light.svg`}
           alt="PairUX"
@@ -38,7 +38,7 @@ export function TitleBar() {
             onClick={() => {
               setShowMenu(!showMenu);
             }}
-            className="gap-2 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground flex items-center transition-colors"
+            className="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <User className="h-3.5 w-3.5" />
             <span className="max-w-[120px] truncate">{user.email}</span>
@@ -49,16 +49,16 @@ export function TitleBar() {
             <>
               {/* Backdrop to close menu */}
               <div
-                className="inset-0 fixed z-40"
+                className="fixed inset-0 z-40"
                 onClick={() => {
                   setShowMenu(false);
                 }}
               />
 
               {/* Dropdown menu */}
-              <div className="right-0 mt-1 w-48 rounded-md border-border bg-card py-1 shadow-lg absolute top-full z-50 border">
-                <div className="border-border px-3 py-2 border-b">
-                  <p className="text-sm font-medium truncate">{user.email}</p>
+              <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-border bg-card py-1 shadow-lg">
+                <div className="border-b border-border px-3 py-2">
+                  <p className="truncate text-sm font-medium">{user.email}</p>
                   <p className="text-xs text-muted-foreground">Signed in</p>
                 </div>
                 <button
@@ -66,7 +66,7 @@ export function TitleBar() {
                     setShowMenu(false);
                     void navigate('/settings');
                   }}
-                  className="gap-2 px-3 py-2 text-sm hover:bg-muted flex w-full items-center transition-colors"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted"
                 >
                   <Settings className="h-4 w-4" />
                   Settings
@@ -76,7 +76,7 @@ export function TitleBar() {
                     setShowMenu(false);
                     void handleLogout();
                   }}
-                  className="gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted flex w-full items-center transition-colors"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive transition-colors hover:bg-muted"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out

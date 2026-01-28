@@ -14,6 +14,8 @@ export function ChatMessageInput({
   disabled = false,
   maxLength = DEFAULT_MAX_LENGTH,
   participants = [],
+  onTyping,
+  onStopTyping,
 }: ChatMessageInputProps) {
   const [content, setContent] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -54,8 +56,10 @@ export function ChatMessageInput({
           setShowMentions(false);
         }
       }
+
+      onTyping?.();
     },
-    [participants]
+    [participants, onTyping]
   );
 
   // Handle mention selection
@@ -94,6 +98,7 @@ export function ChatMessageInput({
 
       try {
         await onSend(trimmedContent);
+        onStopTyping?.();
         setContent('');
         // Reset textarea height
         if (textareaRef.current) {
@@ -105,7 +110,7 @@ export function ChatMessageInput({
         setIsSending(false);
       }
     },
-    [content, isSending, disabled, onSend]
+    [content, isSending, disabled, onSend, onStopTyping]
   );
 
   // Get filtered participants for autocomplete

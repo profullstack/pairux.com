@@ -123,15 +123,15 @@ export function JoinPage() {
   };
 
   return (
-    <div className="bg-background flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       {/* Simple drag region for window control */}
       <div className="drag-region h-8 w-full" />
 
-      <div className="p-6 flex flex-1 items-center justify-center">
-        <Card className="max-w-md border-border w-full">
+      <div className="flex flex-1 items-center justify-center p-6">
+        <Card className="w-full max-w-md border-border">
           <CardHeader className="space-y-1 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="h-12 w-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <Monitor className="h-6 w-6" />
               </div>
             </div>
@@ -164,16 +164,16 @@ export function JoinPage() {
                       setJoinCode(parseJoinInput(e.target.value));
                     }}
                     placeholder="ABC123 or paste link"
-                    className="font-mono text-lg text-center"
+                    className="text-center font-mono text-lg"
                     autoFocus
                     required
                   />
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-center text-xs text-muted-foreground">
                     Enter the 6-character code or paste a join link
                   </p>
                 </div>
 
-                <div className="gap-2 flex">
+                <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
@@ -187,13 +187,13 @@ export function JoinPage() {
             ) : (
               <>
                 <div className="mb-6 rounded-lg bg-muted p-4">
-                  <div className="text-sm flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Session Code</span>
                     <span className="font-mono font-semibold">{session.join_code}</span>
                   </div>
-                  <div className="mt-2 text-sm flex items-center justify-between">
+                  <div className="mt-2 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Participants</span>
-                    <span className="gap-1 flex items-center">
+                    <span className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
                       {session.participant_count} / {session.settings.maxParticipants ?? 5}
                     </span>
@@ -206,7 +206,7 @@ export function JoinPage() {
                       Your Name {user && <span className="text-muted-foreground">(optional)</span>}
                     </Label>
                     <div className="relative">
-                      <User className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
+                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         id="displayName"
                         type="text"
@@ -226,7 +226,7 @@ export function JoinPage() {
                     </p>
                   </div>
 
-                  <div className="gap-2 flex">
+                  <div className="flex gap-2">
                     <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Back

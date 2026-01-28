@@ -29,8 +29,10 @@ import { APP_URL, API_BASE_URL } from '../../../shared/config';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
+import { StreamControls, StreamIndicator } from '@/components/streaming';
 import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
+import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import {
   SharingIndicator,
@@ -116,6 +118,21 @@ export function CapturePreview({
     },
     onSpaceWarning: (gb) => {
       setSpaceWarning(gb);
+    },
+  });
+
+  const {
+    destinations,
+    streamStatuses,
+    isAnyStreaming,
+    activeStreamCount,
+    startStream,
+    stopStream,
+    startAllStreams,
+    stopAllStreams,
+  } = useRTMPStreaming({
+    onStreamError: (destId, err) => {
+      console.error(`[CapturePreview] Stream ${destId} error:`, err);
     },
   });
 
@@ -255,7 +272,11 @@ export function CapturePreview({
   }, [session?.id]);
 
   const handleStop = useCallback(async () => {
-    // Stop WebRTC hosting first
+    // Stop all RTMP streams first
+    if (isAnyStreaming) {
+      await stopAllStreams();
+    }
+    // Stop WebRTC hosting
     if (isHosting) {
       stopHosting();
     }
@@ -263,7 +284,7 @@ export function CapturePreview({
       await endSession();
     }
     onStop();
-  }, [session, endSession, onStop, isHosting, stopHosting]);
+  }, [session, endSession, onStop, isHosting, stopHosting, isAnyStreaming, stopAllStreams]);
 
   const handleCopyLink = useCallback(async () => {
     if (!session) return;
@@ -401,10 +422,10 @@ export function CapturePreview({
   return (
     <div className="flex flex-1">
       {/* Main content */}
-      <div className="gap-4 flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="gap-3 flex items-center">
+          <div className="flex items-center gap-3">
             {isScreen ? (
               <Monitor className="h-5 w-5 text-primary" />
             ) : (
@@ -418,7 +439,7 @@ export function CapturePreview({
             </div>
           </div>
 
-          <div className="gap-2 flex items-center">
+          <div className="flex items-center gap-2">
             {/* Participants toggle */}
             <Button
               variant={showParticipants ? 'default' : 'secondary'}
@@ -444,7 +465,7 @@ export function CapturePreview({
             </Button>
 
             {/* Recording controls */}
-            <div className="gap-1 rounded-lg bg-muted px-2 py-1 flex items-center">
+            <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
               {!isRecording ? (
                 <>
                   <select
@@ -481,7 +502,7 @@ export function CapturePreview({
                 </>
               ) : (
                 <>
-                  <span className="h-9 gap-1.5 px-2 font-mono text-sm flex items-center">
+                  <span className="flex h-9 items-center gap-1.5 px-2 font-mono text-sm">
                     <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
                     {formatDuration(duration)}
                   </span>
@@ -511,13 +532,33 @@ export function CapturePreview({
               )}
             </div>
 
+            {/* Streaming controls */}
+            {destinations.length > 0 && (
+              <StreamControls
+                stream={stream}
+                destinations={destinations}
+                streamStatuses={streamStatuses}
+                isAnyStreaming={isAnyStreaming}
+                onStartStream={startStream}
+                onStopStream={stopStream}
+                onStartAll={startAllStreams}
+                onStopAll={stopAllStreams}
+              />
+            )}
+
             {/* Stop sharing button */}
             <Button
               variant="destructive"
               size="sm"
               onClick={() => void handleStop()}
-              disabled={isEnding || isRecording}
-              title={isRecording ? 'Stop recording first' : undefined}
+              disabled={isEnding || isRecording || isAnyStreaming}
+              title={
+                isRecording
+                  ? 'Stop recording first'
+                  : isAnyStreaming
+                    ? 'Stop streaming first'
+                    : undefined
+              }
             >
               {isEnding ? <Loader2 className="animate-spin" /> : <StopCircle />}
               Stop Sharing
@@ -548,7 +589,7 @@ export function CapturePreview({
 
         {/* Space warning */}
         {spaceWarning !== null && (
-          <div className="gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 flex items-center">
+          <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
             <AlertTriangle className="h-4 w-4" />
             Low disk space: {spaceWarning.toFixed(1)} GB remaining
           </div>
@@ -556,16 +597,16 @@ export function CapturePreview({
 
         {/* Session info bar */}
         {session ? (
-          <div className="rounded-lg bg-muted px-4 py-3 flex items-center justify-between">
-            <div className="gap-4 flex items-center">
-              <div className="gap-2 flex items-center">
+          <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <Share2 className="h-4 w-4 text-primary" />
                 <span className="font-mono text-sm font-medium">{session.join_code}</span>
               </div>
 
               <button
                 onClick={() => void handleCopyLink()}
-                className="gap-1.5 rounded-md bg-background px-3 py-1.5 text-sm font-medium hover:bg-background/80 flex items-center transition-colors"
+                className="flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background/80"
               >
                 {copied ? (
                   <>
@@ -580,7 +621,7 @@ export function CapturePreview({
                 )}
               </button>
 
-              <div className="gap-1.5 text-sm text-muted-foreground flex items-center">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
                 {viewerCount} connected{viewerCount !== 1 ? '' : ''}
                 {activeParticipants.length > 0 && ` (${String(activeParticipants.length)} joined)`}
@@ -611,7 +652,7 @@ export function CapturePreview({
             </span>
           </div>
         ) : isCreating ? (
-          <div className="gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground flex items-center justify-center">
+          <div className="flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             Creating session...
           </div>
@@ -620,7 +661,7 @@ export function CapturePreview({
         {/* Video preview */}
         <div
           ref={videoContainerRef}
-          className="rounded-lg border-border bg-black relative flex-1 overflow-hidden border"
+          className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black"
         >
           <video
             ref={videoRef}
@@ -631,7 +672,7 @@ export function CapturePreview({
           />
 
           {/* Live/Preview indicator */}
-          <div className="left-4 top-4 gap-2 absolute flex flex-col">
+          <div className="absolute left-4 top-4 flex flex-col gap-2">
             <SharingIndicator isLive={!!session} />
             {/* Control Active indicator */}
             {participantWithControl && (
@@ -641,8 +682,23 @@ export function CapturePreview({
 
           {/* Recording indicator */}
           {isRecording && (
-            <div className="right-4 top-4 absolute">
+            <div className="absolute right-4 top-4">
               <RecordingIndicator isPaused={isPaused} duration={duration} />
+            </div>
+          )}
+
+          {/* Streaming indicator */}
+          {isAnyStreaming && (
+            <div className={`absolute right-4 ${isRecording ? 'top-12' : 'top-4'}`}>
+              <StreamIndicator
+                activeCount={activeStreamCount}
+                totalDuration={Math.max(
+                  ...Array.from(streamStatuses.values())
+                    .filter((s) => s.status === 'live')
+                    .map((s) => s.duration),
+                  0
+                )}
+              />
             </div>
           )}
 
@@ -657,7 +713,7 @@ export function CapturePreview({
 
       {/* Participants panel */}
       {session && showParticipants && (
-        <div className="w-72 border-border bg-background p-4 shrink-0 border-l">
+        <div className="w-72 shrink-0 border-l border-border bg-background p-4">
           <ParticipantList
             participants={participants}
             currentUserId={currentUserId}

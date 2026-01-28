@@ -15,6 +15,15 @@ vi.mock('./useParticipants', () => ({
   useParticipants: vi.fn(),
 }));
 
+// Mock the useTypingIndicator hook
+vi.mock('./useTypingIndicator', () => ({
+  useTypingIndicator: vi.fn(() => ({
+    emitTyping: vi.fn(),
+    stopTyping: vi.fn(),
+    typingUsers: [],
+  })),
+}));
+
 import { useChat } from './useChat';
 import { useParticipants } from './useParticipants';
 

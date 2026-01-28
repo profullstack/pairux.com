@@ -141,7 +141,7 @@ export const ChatMessage = memo(function ChatMessage({
 
   if (isSystem) {
     return (
-      <div className="gap-2 px-4 py-2 flex items-center justify-center">
+      <div className="flex items-center justify-center gap-2 px-4 py-2">
         <Info className="h-3 w-3 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">
           <Linkify options={linkifyOptions}>{message.content}</Linkify>
@@ -155,20 +155,20 @@ export const ChatMessage = memo(function ChatMessage({
 
   return (
     <div
-      className={`gap-3 px-4 py-2 flex ${isOwnMessage ? 'flex-row-reverse' : ''} ${
+      className={`flex gap-3 px-4 py-2 ${isOwnMessage ? 'flex-row-reverse' : ''} ${
         isMentioned && !isOwnMessage ? 'bg-yellow-500/10' : ''
       }`}
     >
       {/* Avatar */}
       <div
-        className={`h-8 w-8 flex flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
+        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
       >
         <User className="h-4 w-4 text-white" />
       </div>
 
       {/* Message content */}
       <div className={`flex max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        <div className="gap-2 flex items-baseline">
+        <div className="flex items-baseline gap-2">
           <span className="text-sm font-medium">{message.display_name}</span>
           <span className="text-xs text-muted-foreground">{formatTime(message.created_at)}</span>
         </div>
@@ -177,7 +177,7 @@ export const ChatMessage = memo(function ChatMessage({
             isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'
           }`}
         >
-          <p className="text-sm break-words whitespace-pre-wrap">
+          <p className="whitespace-pre-wrap break-words text-sm">
             {renderWithMentions(message.content, isOwnMessage, currentUserDisplayName)}
           </p>
         </div>

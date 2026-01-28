@@ -98,23 +98,27 @@ export async function POST(request: Request, { params }: RouteParams) {
       };
       const participantSessionId = participant.session_id;
       if (participantSessionId) {
-        void import('@/lib/push').then(async ({ sendPushToUser }) => {
-          const { data: session } = await supabase
-            .from('sessions')
-            .select('host_user_id')
-            .eq('id', participantSessionId)
-            .single();
+        void import('@/lib/push')
+          .then(async ({ sendPushToUser }) => {
+            const { data: session } = await supabase
+              .from('sessions')
+              .select('host_user_id')
+              .eq('id', participantSessionId)
+              .single();
 
-          const hostId = (session as { host_user_id?: string } | null)?.host_user_id;
-          if (hostId) {
-            void sendPushToUser(hostId, 'participantJoined', {
-              title: 'Participant Joined',
-              body: `${participant.display_name ?? 'Someone'} joined your session`,
-              url: `/session/${participantSessionId}`,
-              tag: `join-${participantSessionId}`,
-            });
-          }
-        });
+            const hostId = (session as { host_user_id?: string } | null)?.host_user_id;
+            if (hostId) {
+              void sendPushToUser(hostId, 'participantJoined', {
+                title: 'Participant Joined',
+                body: `${participant.display_name ?? 'Someone'} joined your session`,
+                url: `/session/${participantSessionId}`,
+                tag: `join-${participantSessionId}`,
+              });
+            }
+          })
+          .catch(() => {
+            // Non-critical: push notification failed silently
+          });
       }
     }
 

@@ -19,6 +19,13 @@ vi.mock('@/components/footer', () => ({
   Footer: () => <footer data-testid="footer">Footer</footer>,
 }));
 
+// Mock NotificationPreferences (uses fetch and service worker APIs)
+vi.mock('@/components/notifications/NotificationPreferences', () => ({
+  NotificationPreferences: () => (
+    <div data-testid="notification-preferences">Notification Preferences</div>
+  ),
+}));
+
 const SETTINGS_KEY = 'pairux-web-settings';
 
 describe('SettingsPage', () => {

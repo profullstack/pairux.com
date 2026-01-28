@@ -36,14 +36,14 @@ export const ParticipantItem = memo(function ParticipantItem({
   const avatarColor = stringToColor(participant.display_name);
 
   return (
-    <div className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-muted">
+    <div className="group gap-2 rounded-md px-3 py-2 hover:bg-muted flex items-center">
       {/* Avatar */}
       <div
-        className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
+        className={`h-7 w-7 relative flex flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
       >
         <User className="h-3.5 w-3.5 text-white" />
         {isHost && (
-          <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400">
+          <div className="-right-1 -top-1 h-4 w-4 bg-yellow-400 absolute flex items-center justify-center rounded-full">
             <Crown className="h-2.5 w-2.5 text-yellow-800" />
           </div>
         )}
@@ -51,8 +51,8 @@ export const ParticipantItem = memo(function ParticipantItem({
 
       {/* Name and role */}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-medium">{participant.display_name}</span>
+        <div className="gap-1.5 flex items-center">
+          <span className="text-sm font-medium truncate">{participant.display_name}</span>
           {isCurrentUser && <span className="text-xs text-muted-foreground">(you)</span>}
         </div>
         {isHost && <span className="text-xs text-muted-foreground">Host</span>}
@@ -64,7 +64,7 @@ export const ParticipantItem = memo(function ParticipantItem({
           onClick={() => {
             onStartDM(participant);
           }}
-          className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
           title={`Message ${participant.display_name}`}
         >
           <MessageCircle className="h-4 w-4" />

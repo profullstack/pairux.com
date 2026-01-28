@@ -49,7 +49,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-muted-foreground/30;
+    @apply bg-muted-foreground/30 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {

@@ -49,6 +49,29 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return errorResponse(updateError.message ?? 'Failed to update control state', 400);
     }
 
+    // If control was requested, notify the host via push (non-blocking)
+    if (control_state === 'requested') {
+      void import('@/lib/push').then(async ({ sendPushToUser }) => {
+        const { data: session } = await supabase
+          .from('sessions')
+          .select('host_user_id')
+          .eq('id', sessionId)
+          .single();
+
+        const hostId = (session as { host_user_id?: string } | null)?.host_user_id;
+        if (hostId) {
+          const name =
+            (updatedParticipant as { display_name?: string }).display_name ?? 'A participant';
+          void sendPushToUser(hostId, 'controlRequest', {
+            title: 'Control Request',
+            body: `${name} wants to control your screen`,
+            url: `/session/${sessionId}`,
+            tag: `control-${sessionId}`,
+          });
+        }
+      });
+    }
+
     return successResponse(updatedParticipant);
   } catch (error) {
     return handleApiError(error);

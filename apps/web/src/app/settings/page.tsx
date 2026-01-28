@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, Video, Users, Palette, Info, ArrowLeft, Check } from 'lucide-react';
+import { User, Video, Users, Palette, Info, ArrowLeft, Check, Bell } from 'lucide-react';
 import { HeaderClient } from '@/components/header-client';
 import { Footer } from '@/components/footer';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import type { RecordingQuality } from '@/hooks/useRecording';
 import type { CaptureQuality } from '@/hooks/useScreenCapture';
 
@@ -289,6 +290,24 @@ export default function SettingsPage() {
                     . Web sessions are view-only.
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Notifications */}
+            <div id="notifications" className="rounded-xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-100 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary-100 flex h-10 w-10 items-center justify-center rounded-lg">
+                    <Bell className="text-primary-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-gray-900">Notifications</h2>
+                    <p className="text-sm text-gray-500">Push notification preferences</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <NotificationPreferences />
               </div>
             </div>
 

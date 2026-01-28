@@ -14,10 +14,10 @@ export function SourceCard({ source, onSelect }: SourceCardProps) {
       onClick={() => {
         onSelect(source);
       }}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary hover:ring-2 hover:ring-primary/20"
+      className="group rounded-lg border-border bg-card hover:border-primary hover:ring-primary/20 flex flex-col overflow-hidden border transition-all hover:ring-2"
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video w-full overflow-hidden bg-muted">
+      <div className="aspect-video bg-muted relative w-full overflow-hidden">
         {source.thumbnail ? (
           <img
             src={source.thumbnail}
@@ -35,21 +35,21 @@ export function SourceCard({ source, onSelect }: SourceCardProps) {
         )}
 
         {/* Overlay on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-          <span className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+        <div className="inset-0 bg-black/50 absolute flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="bg-primary px-4 py-2 text-sm font-medium text-primary-foreground rounded-full">
             Select
           </span>
         </div>
       </div>
 
       {/* Name */}
-      <div className="flex items-center gap-2 p-3">
+      <div className="gap-2 p-3 flex items-center">
         {isScreen ? (
-          <Monitor className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Monitor className="h-4 w-4 text-muted-foreground shrink-0" />
         ) : (
-          <AppWindow className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <AppWindow className="h-4 w-4 text-muted-foreground shrink-0" />
         )}
-        <span className="truncate text-sm font-medium">{source.name}</span>
+        <span className="text-sm font-medium truncate">{source.name}</span>
       </div>
     </button>
   );

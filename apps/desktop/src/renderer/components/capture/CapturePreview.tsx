@@ -401,10 +401,10 @@ export function CapturePreview({
   return (
     <div className="flex flex-1">
       {/* Main content */}
-      <div className="flex flex-1 flex-col gap-4">
+      <div className="gap-4 flex flex-1 flex-col">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="gap-3 flex items-center">
             {isScreen ? (
               <Monitor className="h-5 w-5 text-primary" />
             ) : (
@@ -418,7 +418,7 @@ export function CapturePreview({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="gap-2 flex items-center">
             {/* Participants toggle */}
             <Button
               variant={showParticipants ? 'default' : 'secondary'}
@@ -444,7 +444,7 @@ export function CapturePreview({
             </Button>
 
             {/* Recording controls */}
-            <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
+            <div className="gap-1 rounded-lg bg-muted px-2 py-1 flex items-center">
               {!isRecording ? (
                 <>
                   <select
@@ -481,7 +481,7 @@ export function CapturePreview({
                 </>
               ) : (
                 <>
-                  <span className="flex h-9 items-center gap-1.5 px-2 font-mono text-sm">
+                  <span className="h-9 gap-1.5 px-2 font-mono text-sm flex items-center">
                     <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
                     {formatDuration(duration)}
                   </span>
@@ -548,7 +548,7 @@ export function CapturePreview({
 
         {/* Space warning */}
         {spaceWarning !== null && (
-          <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
+          <div className="gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 flex items-center">
             <AlertTriangle className="h-4 w-4" />
             Low disk space: {spaceWarning.toFixed(1)} GB remaining
           </div>
@@ -556,16 +556,16 @@ export function CapturePreview({
 
         {/* Session info bar */}
         {session ? (
-          <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-muted px-4 py-3 flex items-center justify-between">
+            <div className="gap-4 flex items-center">
+              <div className="gap-2 flex items-center">
                 <Share2 className="h-4 w-4 text-primary" />
                 <span className="font-mono text-sm font-medium">{session.join_code}</span>
               </div>
 
               <button
                 onClick={() => void handleCopyLink()}
-                className="flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background/80"
+                className="gap-1.5 rounded-md bg-background px-3 py-1.5 text-sm font-medium hover:bg-background/80 flex items-center transition-colors"
               >
                 {copied ? (
                   <>
@@ -580,7 +580,7 @@ export function CapturePreview({
                 )}
               </button>
 
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="gap-1.5 text-sm text-muted-foreground flex items-center">
                 <Users className="h-4 w-4" />
                 {viewerCount} connected{viewerCount !== 1 ? '' : ''}
                 {activeParticipants.length > 0 && ` (${String(activeParticipants.length)} joined)`}
@@ -611,7 +611,7 @@ export function CapturePreview({
             </span>
           </div>
         ) : isCreating ? (
-          <div className="flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
+          <div className="gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground flex items-center justify-center">
             <Loader2 className="h-4 w-4 animate-spin" />
             Creating session...
           </div>
@@ -620,7 +620,7 @@ export function CapturePreview({
         {/* Video preview */}
         <div
           ref={videoContainerRef}
-          className="relative flex-1 overflow-hidden rounded-lg border border-border bg-black"
+          className="rounded-lg border-border bg-black relative flex-1 overflow-hidden border"
         >
           <video
             ref={videoRef}
@@ -631,7 +631,7 @@ export function CapturePreview({
           />
 
           {/* Live/Preview indicator */}
-          <div className="absolute left-4 top-4 flex flex-col gap-2">
+          <div className="left-4 top-4 gap-2 absolute flex flex-col">
             <SharingIndicator isLive={!!session} />
             {/* Control Active indicator */}
             {participantWithControl && (
@@ -641,7 +641,7 @@ export function CapturePreview({
 
           {/* Recording indicator */}
           {isRecording && (
-            <div className="absolute right-4 top-4">
+            <div className="right-4 top-4 absolute">
               <RecordingIndicator isPaused={isPaused} duration={duration} />
             </div>
           )}
@@ -657,7 +657,7 @@ export function CapturePreview({
 
       {/* Participants panel */}
       {session && showParticipants && (
-        <div className="w-72 shrink-0 border-l border-border bg-background p-4">
+        <div className="w-72 border-border bg-background p-4 shrink-0 border-l">
           <ParticipantList
             participants={participants}
             currentUserId={currentUserId}

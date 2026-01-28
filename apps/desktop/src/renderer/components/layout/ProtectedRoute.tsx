@@ -25,8 +25,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Show loading state while checking session
   if (isLoading || !initialCheckDone) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="gap-4 flex flex-col items-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>

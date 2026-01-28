@@ -248,7 +248,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6">
+    <div className="p-6 flex flex-1 flex-col">
       {error && (
         <div className="mb-4 rounded-lg bg-destructive/10 p-4 text-destructive">
           {error}
@@ -267,8 +267,8 @@ export function HomePage() {
         <div className="relative">
           {/* Loading overlay */}
           {isCapturing && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-3">
+            <div className="inset-0 rounded-lg bg-background/80 backdrop-blur-sm absolute z-10 flex items-center justify-center">
+              <div className="gap-3 flex flex-col items-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">
                   {isWayland ? 'Waiting for system screen picker...' : 'Starting capture...'}
@@ -279,13 +279,13 @@ export function HomePage() {
 
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Select a screen or window to share</h1>
-            <div className="flex items-center gap-2">
+            <div className="gap-2 flex items-center">
               <button
                 onClick={() => {
                   setShowCreateLinkModal(true);
                 }}
                 disabled={isCapturing}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 flex items-center transition-colors disabled:opacity-50"
               >
                 <Link2 className="h-4 w-4" />
                 Create Link
@@ -293,7 +293,7 @@ export function HomePage() {
               <button
                 onClick={() => void navigate('/join')}
                 disabled={isCapturing}
-                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+                className="gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 flex items-center transition-colors disabled:opacity-50"
               >
                 <Users className="h-4 w-4" />
                 Join a Session
@@ -311,11 +311,11 @@ export function HomePage() {
                   void handleWaylandCapture();
                 }}
                 disabled={isCapturing}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {isCapturing ? (
                   <>
-                    <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
                     Waiting...
                   </>
                 ) : (

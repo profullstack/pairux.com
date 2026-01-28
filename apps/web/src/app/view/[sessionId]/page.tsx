@@ -5,9 +5,17 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Users, MessageSquare, Settings, LogOut, Loader2, AlertCircle } from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import type { ConnectionState, CursorPositionMessage } from '@pairux/shared-types';
+import type {
+  ConnectionState,
+  CursorPositionMessage,
+  QualityMetrics,
+  NetworkQuality,
+  ControlStateUI,
+  InputEvent,
+} from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
 import { useWebRTC } from '@/hooks/useWebRTC';
+import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import {
   ControlRequestButton,
   ControlStatusIndicator,
@@ -28,6 +36,7 @@ interface SessionData {
   id: string;
   join_code: string;
   status: string;
+  mode?: 'p2p' | 'sfu';
   settings: {
     quality?: string;
     allowControl?: boolean;
@@ -60,45 +69,6 @@ export default function GuestSessionViewerPage({
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-  const videoContainerRef = useRef<HTMLDivElement>(null);
-
-  // Handle cursor updates from other participants
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Initialize WebRTC connection
-  const {
-    connectionState,
-    remoteStream,
-    qualityMetrics,
-    networkQuality,
-    error: webrtcError,
-    reconnect,
-    // Remote control
-    controlState,
-    dataChannelReady,
-    requestControl,
-    releaseControl,
-    sendInput,
-    sendCursorPosition,
-  } = useWebRTC({
-    sessionId,
-    participantId: participantId ?? '',
-    onCursorUpdate: handleCursorUpdate,
-  });
-
-  // Check if control is allowed for this session
-  const allowControl = session?.settings.allowControl ?? false;
 
   useEffect(() => {
     async function fetchGuestSession() {
@@ -142,7 +112,7 @@ export default function GuestSessionViewerPage({
     );
   }
 
-  if (error || !session || !participant) {
+  if (error || !session || !participant || !participantId) {
     return (
       <div className="flex min-h-screen flex-col bg-gray-900">
         <header className="border-b border-gray-800 bg-gray-900">
@@ -172,6 +142,138 @@ export default function GuestSessionViewerPage({
     );
   }
 
+  // Branch on session mode — render separate components so each can call its own hook
+  if (session.mode === 'sfu') {
+    return (
+      <SFUGuestViewer
+        sessionId={sessionId}
+        session={session}
+        participant={participant}
+        participantId={participantId}
+      />
+    );
+  }
+
+  return (
+    <P2PGuestViewer
+      sessionId={sessionId}
+      session={session}
+      participant={participant}
+      participantId={participantId}
+    />
+  );
+}
+
+// --- Mode-specific wrapper components (each calls its own hook) ---
+
+interface GuestViewerProps {
+  sessionId: string;
+  session: SessionData;
+  participant: Participant;
+  participantId: string;
+}
+
+function P2PGuestViewer({ sessionId, session, participant, participantId }: GuestViewerProps) {
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+
+  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
+    setRemoteCursors((prev) => {
+      const next = new Map(prev);
+      if (cursor.visible) {
+        next.set(cursor.participantId, cursor);
+      } else {
+        next.delete(cursor.participantId);
+      }
+      return next;
+    });
+  }, []);
+
+  const hookResult = useWebRTC({
+    sessionId,
+    participantId,
+    onCursorUpdate: handleCursorUpdate,
+  });
+
+  return (
+    <GuestViewerContent
+      session={session}
+      participant={participant}
+      remoteCursors={remoteCursors}
+      {...hookResult}
+    />
+  );
+}
+
+function SFUGuestViewer({ sessionId, session, participant, participantId }: GuestViewerProps) {
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
+
+  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
+    setRemoteCursors((prev) => {
+      const next = new Map(prev);
+      if (cursor.visible) {
+        next.set(cursor.participantId, cursor);
+      } else {
+        next.delete(cursor.participantId);
+      }
+      return next;
+    });
+  }, []);
+
+  const hookResult = useWebRTCSFU({
+    sessionId,
+    participantId,
+    onCursorUpdate: handleCursorUpdate,
+  });
+
+  return (
+    <GuestViewerContent
+      session={session}
+      participant={participant}
+      remoteCursors={remoteCursors}
+      {...hookResult}
+    />
+  );
+}
+
+// --- Shared viewer content (all JSX lives here) ---
+
+interface GuestViewerContentProps {
+  session: SessionData;
+  participant: Participant;
+  remoteCursors: Map<string, CursorPositionMessage>;
+  connectionState: ConnectionState;
+  remoteStream: MediaStream | null;
+  qualityMetrics: QualityMetrics | null;
+  networkQuality: NetworkQuality;
+  error: string | null;
+  reconnect: () => void;
+  controlState: ControlStateUI;
+  dataChannelReady: boolean;
+  requestControl: () => void;
+  releaseControl: () => void;
+  sendInput: (event: InputEvent) => void;
+  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
+}
+
+function GuestViewerContent({
+  session,
+  participant,
+  remoteCursors,
+  connectionState,
+  remoteStream,
+  qualityMetrics,
+  networkQuality,
+  error: webrtcError,
+  reconnect,
+  controlState,
+  dataChannelReady,
+  requestControl,
+  releaseControl,
+  sendInput,
+  sendCursorPosition,
+}: GuestViewerContentProps) {
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
 
   return (

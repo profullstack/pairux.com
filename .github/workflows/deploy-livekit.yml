@@ -1,0 +1,58 @@
+name: Deploy LiveKit SFU Server
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'apps/livekit/**'
+      - '!apps/livekit/package.json'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-livekit
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to LiveKit Droplet
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SFU_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.DROPLET_SFU_PORT || 22 }} ${{ secrets.DROPLET_SFU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy setup script
+        env:
+          SSH_HOST: ${{ secrets.DROPLET_SFU_HOST }}
+          SSH_PORT: ${{ secrets.DROPLET_SFU_PORT || 22 }}
+          SSH_USER: ${{ secrets.DROPLET_SFU_USER }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        run: |
+          # Copy setup script to droplet
+          scp -P $SSH_PORT apps/livekit/setup-livekit-server.sh $SSH_USER@$SSH_HOST:/tmp/
+
+          # Run setup script
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo bash /tmp/setup-livekit-server.sh '$LIVEKIT_API_KEY' '$LIVEKIT_API_SECRET' '' 'sfu.pairux.com'"
+
+      - name: Verify LiveKit server
+        env:
+          SSH_HOST: ${{ secrets.DROPLET_SFU_HOST }}
+          SSH_PORT: ${{ secrets.DROPLET_SFU_PORT || 22 }}
+          SSH_USER: ${{ secrets.DROPLET_SFU_USER }}
+        run: |
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo docker compose -f /opt/pairux-livekit/docker-compose.yml ps"
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo docker compose -f /opt/pairux-livekit/docker-compose.yml logs --tail=10"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa

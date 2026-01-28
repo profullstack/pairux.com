@@ -349,7 +349,7 @@ pnpm dev
 - [x] Screen sharing
 - [x] Remote control
 - [x] Package manager distribution
-- [x] Multi-viewer support (up to 5 for p2p, 100k for SNF)
+- [x] Multi-viewer support (up to 5 for p2p, 100k for SFU)
 - [x] Session recording
 - [x] Chat and annotations
 

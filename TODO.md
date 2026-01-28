@@ -278,21 +278,21 @@
 
 ## 📡 Signaling & Real-time
 
-- [ ] **Supabase Realtime Channels**
-  - [ ] Session presence channel
-  - [ ] Signaling channel (SDP/ICE)
-  - [ ] Control state channel
-  - [ ] Chat channel
+- [x] **Supabase Realtime Channels**
+  - [x] Session presence channel
+  - [x] Signaling channel (SDP/ICE)
+  - [x] Control state channel
+  - [x] Chat channel
 
-- [ ] **WebRTC Signaling**
-  - [ ] Offer/answer exchange
-  - [ ] ICE candidate exchange
-  - [ ] Renegotiation handling
+- [x] **WebRTC Signaling**
+  - [x] Offer/answer exchange
+  - [x] ICE candidate exchange
+  - [x] Renegotiation handling
 
-- [ ] **TURN Server**
-  - [ ] Self-hosted coturn setup
-  - [ ] Credential generation
-  - [ ] Fallback handling
+- [x] **TURN Server**
+  - [x] Self-hosted coturn setup
+  - [x] Credential generation
+  - [x] Fallback handling
 
 ---
 
@@ -359,11 +359,11 @@
 
 ### SFU vs P2P Behavior
 
-- [ ] **P2P Mode**
-  - [ ] Media streams drop on host disconnect
-  - [ ] Room stays alive for chat/presence
-  - [ ] Reconnect requires SDP renegotiation
-  - [ ] Participants not kicked
+- [x] **P2P Mode**
+  - [x] Media streams drop on host disconnect
+  - [x] Room stays alive for chat/presence
+  - [x] Reconnect requires SDP renegotiation
+  - [x] Participants not kicked
 
 - [ ] **SFU Mode (Better UX)**
   - [ ] SFU keeps viewer connections alive
@@ -375,27 +375,27 @@
 
 ## 📦 Distribution
 
-- [ ] **Build Pipeline**
-  - [ ] electron-builder configuration
-  - [ ] Multi-platform builds (mac/win/linux)
-  - [ ] Code signing setup
+- [x] **Build Pipeline**
+  - [x] electron-builder configuration
+  - [x] Multi-platform builds (mac/win/linux)
+  - [x] Code signing setup
 
-- [ ] **Package Managers**
-  - [ ] Homebrew cask formula
-  - [ ] WinGet manifest
-  - [ ] APT repository
-  - [ ] AUR PKGBUILD
+- [x] **Package Managers**
+  - [x] Homebrew cask formula
+  - [x] WinGet manifest
+  - [x] APT repository
+  - [x] AUR PKGBUILD
 
-- [ ] **Shell Installers**
-  - [ ] Unix installer script (install.sh)
-  - [ ] Windows installer script (install.ps1)
+- [x] **Shell Installers**
+  - [x] Unix installer script (install.sh)
+  - [x] Windows installer script (install.ps1)
   - [ ] Host at install.pairux.sh
   - [ ] Cloudflare Workers routing
 
-- [ ] **Release Automation**
-  - [ ] GitHub Releases
-  - [ ] Changelog generation
-  - [ ] SHA256 checksums
+- [x] **Release Automation**
+  - [x] GitHub Releases
+  - [x] Changelog generation
+  - [x] SHA256 checksums
   - [ ] Auto-update mechanism
 
 ---
@@ -407,10 +407,10 @@
   - [x] State management (usePresence, useInputInjection hooks)
   - [x] API route handlers
 
-- [ ] **Integration Tests**
-  - [ ] Auth flows
-  - [ ] Session lifecycle
-  - [ ] Chat functionality
+- [x] **Integration Tests**
+  - [x] Auth flows
+  - [x] Session lifecycle
+  - [x] Chat functionality
 
 - [ ] **E2E Tests** (future)
   - [ ] Full session flow

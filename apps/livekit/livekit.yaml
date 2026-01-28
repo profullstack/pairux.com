@@ -1,0 +1,34 @@
+# ===========================================
+# PairUX LiveKit Server Configuration
+# ===========================================
+# API keys are injected via environment variables
+# See docker-entrypoint.sh for env var substitution
+# ===========================================
+
+port: 7880
+
+rtc:
+  port_range_start: 50000
+  port_range_end: 50200
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: true
+
+# API key/secret pairs - injected by entrypoint
+keys: {}
+
+room:
+  # Room stays alive 5 min after last participant leaves
+  empty_timeout: 300
+  # Grace period before marking participant as gone
+  departure_timeout: 30
+  max_participants: 20
+
+logging:
+  level: info
+
+# Built-in TURN relay (uses LiveKit's own TURN)
+turn:
+  enabled: true
+  tls_port: 0
+  udp_port: 3478

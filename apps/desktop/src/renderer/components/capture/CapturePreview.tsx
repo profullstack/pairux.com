@@ -34,6 +34,7 @@ import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
+import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import {
   SharingIndicator,
   RecordingIndicator,
@@ -142,7 +143,10 @@ export function CapturePreview({
   // Remote cursors for showing viewer cursor positions
   const { cursors: remoteCursors } = useRemoteCursors();
 
-  // WebRTC hosting for streaming to viewers
+  // Select the right WebRTC host hook based on session mode
+  const useHostHook = initialSession?.mode === 'sfu' ? useWebRTCHostSFUAPI : useWebRTCHostAPI;
+
+  // WebRTC hosting for streaming to viewers (P2P or SFU)
   const {
     isHosting,
     viewerCount,
@@ -150,7 +154,7 @@ export function CapturePreview({
     startHosting,
     stopHosting,
     muteViewer,
-  } = useWebRTCHostAPI({
+  } = useHostHook({
     sessionId: session?.id ?? '',
     hostId: currentUserId ?? session?.id ?? '',
     localStream: stream,

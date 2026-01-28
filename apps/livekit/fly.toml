@@ -1,0 +1,65 @@
+# ===========================================
+# PairUX LiveKit SFU Server - Fly.io Configuration
+# ===========================================
+# Fly.io supports UDP ports required for WebRTC
+#
+# SETUP INSTRUCTIONS:
+# 1. Install flyctl: curl -L https://fly.io/install.sh | sh
+# 2. Login: fly auth login
+# 3. Create app: fly apps create pairux-livekit
+# 4. Set secrets:
+#    fly secrets set LIVEKIT_API_KEY="your-api-key"
+#    fly secrets set LIVEKIT_API_SECRET="your-api-secret"
+# 5. Deploy: fly deploy
+# 6. Allocate IP: fly ips allocate-v4
+# 7. Add DNS: livekit.pairux.com -> allocated IP
+#
+# Cost: ~$5-10/month for shared-cpu-1x with 512MB RAM
+# ===========================================
+
+app = "pairux-livekit"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 7880
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+# RTC over TCP
+[[services]]
+  protocol = "tcp"
+  internal_port = 7881
+  [[services.ports]]
+    port = 7881
+
+# RTC over UDP
+[[services]]
+  protocol = "udp"
+  internal_port = 7882
+  [[services.ports]]
+    port = 7882
+
+# Built-in TURN UDP
+[[services]]
+  protocol = "udp"
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+# WebRTC media port range
+[[services]]
+  protocol = "udp"
+  internal_port = 50000
+  [[services.ports]]
+    port = 50000
+    end_port = 50200
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

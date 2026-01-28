@@ -263,11 +263,47 @@ else
 fi
 
 info "Updating Caddyfile..."
-cat > /etc/caddy/Caddyfile << EOF
-${DOMAIN} {
+cat > /etc/caddy/Caddyfile << 'CADDYEOF'
+DOMAIN_PLACEHOLDER {
+  @browser {
+    header Accept *text/html*
+    not header Connection *Upgrade*
+    path /
+  }
+
+  handle @browser {
+    header Content-Type text/html
+    respond <<HTML
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>PairUX SFU Server</title>
+        <style>
+          body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+          .container { text-align: center; padding: 2rem; }
+          h1 { color: #4fc3f7; font-size: 2rem; margin-bottom: 0.5rem; }
+          .status { color: #66bb6a; font-size: 1.2rem; }
+          .info { color: #888; margin-top: 1.5rem; font-size: 0.9rem; }
+          a { color: #4fc3f7; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>PairUX SFU Server</h1>
+          <p class="status">LiveKit is running</p>
+          <p class="info">Selective Forwarding Unit for <a href="https://pairux.com">pairux.com</a></p>
+        </div>
+      </body>
+      </html>
+    HTML
+  }
+
   reverse_proxy localhost:7880
 }
-EOF
+CADDYEOF
+
+# Replace domain placeholder
+sed -i "s/DOMAIN_PLACEHOLDER/${DOMAIN}/" /etc/caddy/Caddyfile
 
 systemctl enable caddy >/dev/null 2>&1
 if systemctl restart caddy; then

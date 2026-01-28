@@ -129,6 +129,7 @@ function main() {
     'apps/desktop/package.json',
     'apps/installer/package.json',
     'apps/turn/package.json',
+    'apps/livekit/package.json',
     'packages/shared-types/package.json',
   ];
 

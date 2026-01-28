@@ -252,7 +252,7 @@ pkgname = ${PACKAGE_NAME}
 
       // Push to AUR (force push to handle any history divergence)
       this.logger.info('Pushing to AUR...');
-      execSync('git push --force origin master', { cwd: repoDir, env, stdio: 'pipe' });
+      execSync('git push --force origin HEAD:master', { cwd: repoDir, env, stdio: 'pipe' });
 
       return {
         packageManager: this.name,

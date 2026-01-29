@@ -109,6 +109,9 @@ jobs:
           # Windows signing
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
 
+      - name: Write .env file
+        run: echo "${{ secrets.ENV_FILE }}" > apps/desktop/.env
+
       - name: Package desktop app
         working-directory: apps/desktop
         run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never

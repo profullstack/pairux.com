@@ -110,7 +110,9 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
 
       - name: Write .env file
-        run: echo "${{ secrets.ENV_FILE }}" > apps/desktop/.env
+        run: printenv ENV_FILE > apps/desktop/.env
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
 
       - name: Package desktop app
         working-directory: apps/desktop

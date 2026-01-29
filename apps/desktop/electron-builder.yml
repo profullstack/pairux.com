@@ -20,6 +20,8 @@ extraResources:
     to: icons
     filter:
       - '**/*'
+  - from: .env
+    to: .env
 
 asar: true
 asarUnpack:

@@ -81,10 +81,6 @@ export function CapturePreview({
     return '1080p';
   });
   const [includeAudio, setIncludeAudio] = useState(true);
-  const [micEnabled, setMicEnabled] = useState(() => {
-    // Mic is enabled if the stream has audio tracks
-    return stream ? stream.getAudioTracks().length > 0 : false;
-  });
   const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
@@ -162,6 +158,9 @@ export function CapturePreview({
     publishStream: hostPublishStream,
     unpublishStream: hostUnpublishStream,
     muteViewer,
+    micEnabled: hostMicEnabled,
+    hasMic: hostHasMic,
+    toggleMic: hostToggleMic,
   } = useHostHook({
     sessionId: session?.id ?? '',
     hostId: currentUserId ?? session?.id ?? '',
@@ -506,19 +505,6 @@ export function CapturePreview({
     [muteViewer]
   );
 
-  const handleToggleMic = useCallback(() => {
-    if (!stream) return;
-    const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) return;
-    const newEnabled = !micEnabled;
-    audioTracks.forEach((track) => {
-      track.enabled = newEnabled;
-    });
-    setMicEnabled(newEnabled);
-  }, [stream, micEnabled]);
-
-  const hasMic = stream ? stream.getAudioTracks().length > 0 : false;
-
   const isScreen = source?.type === 'screen';
   const activeParticipants = participants.filter((p) => !p.left_at);
 
@@ -774,20 +760,20 @@ export function CapturePreview({
 
               {/* Microphone toggle for streaming audio */}
               <Button
-                variant={micEnabled ? 'default' : 'secondary'}
+                variant={hostMicEnabled ? 'default' : 'secondary'}
                 size="sm"
-                onClick={handleToggleMic}
-                disabled={!hasMic}
+                onClick={hostToggleMic}
+                disabled={!hostHasMic}
                 title={
-                  !hasMic
+                  !hostHasMic
                     ? 'No microphone available'
-                    : micEnabled
+                    : hostMicEnabled
                       ? 'Mute microphone'
                       : 'Unmute microphone'
                 }
               >
-                {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-                {micEnabled ? 'Mic On' : 'Mic Off'}
+                {hostMicEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                {hostMicEnabled ? 'Mic On' : 'Mic Off'}
               </Button>
             </div>
 

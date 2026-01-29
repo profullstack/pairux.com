@@ -453,5 +453,75 @@ describe('useWebRTCHostAPI', () => {
 
       consoleWarnSpy.mockRestore();
     });
+
+    it('should buffer ICE candidates received before answer and drain after', async () => {
+      const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      const es = MockEventSource.instances[0];
+
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      // Simulate a viewer joining
+      await act(async () => {
+        es.emit(
+          'presence-join',
+          JSON.stringify({
+            presences: [{ user_id: 'viewer-1', role: 'viewer' }],
+          })
+        );
+      });
+
+      await act(async () => {
+        await vi.waitFor(() => {
+          expect(result.current.viewerCount).toBe(1);
+        });
+      });
+
+      const viewer = result.current.viewers.get('viewer-1');
+      expect(viewer).toBeDefined();
+      const mockPC = viewer?.peerConnection as unknown as MockRTCPeerConnection;
+
+      // Send ICE candidate BEFORE answer (remote description not set)
+      await act(async () => {
+        es.emit(
+          'signal',
+          JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'buffered-candidate' },
+            senderId: 'viewer-1',
+            targetId: 'host-1',
+            timestamp: Date.now(),
+          })
+        );
+      });
+
+      // Now send the answer — should drain buffered candidates
+      await act(async () => {
+        es.emit(
+          'signal',
+          JSON.stringify({
+            type: 'answer',
+            sdp: 'answer-sdp',
+            senderId: 'viewer-1',
+            targetId: 'host-1',
+            timestamp: Date.now(),
+          })
+        );
+      });
+
+      // After answer, setRemoteDescription should have been called
+      expect(mockPC.setRemoteDescription).toHaveBeenCalledWith({
+        type: 'answer',
+        sdp: 'answer-sdp',
+      });
+      // And addIceCandidate should have been called for the buffered candidate
+      expect(mockPC.addIceCandidate).toHaveBeenCalled();
+    });
   });
 });

@@ -27,9 +27,20 @@ export function VideoViewer({
 
     if (stream) {
       video.srcObject = stream;
-      video.play().catch((err: unknown) => {
-        console.error('[VideoViewer] Failed to play:', err);
-      });
+      video.muted = false;
+      video
+        .play()
+        .then(() => {
+          // Unmuted playback succeeded
+        })
+        .catch(() => {
+          // Unmuted play blocked — retry muted so the video at least renders
+          console.warn('[VideoViewer] Unmuted autoplay blocked, retrying muted');
+          video.muted = true;
+          video.play().catch((err: unknown) => {
+            console.error('[VideoViewer] Failed to play even muted:', err);
+          });
+        });
     } else {
       video.srcObject = null;
     }

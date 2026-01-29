@@ -452,4 +452,127 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     });
   });
+
+  // ICE server configuration tests
+  describe('ICE servers in connected event', () => {
+    it('includes STUN servers in connected event', async () => {
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+
+      // Read the first chunk from the stream to get the connected event
+      const reader = response.body!.getReader();
+      const { value } = await reader.read();
+      const text = new TextDecoder().decode(value);
+
+      // The connected event should contain iceServers with at least STUN
+      expect(text).toContain('event: connected');
+      expect(text).toContain('iceServers');
+      expect(text).toContain('stun:stun.l.google.com:19302');
+      reader.releaseLock();
+    });
+
+    it('includes TURN server when env vars are set', async () => {
+      process.env.TURN_SERVER_URL = 'turn:turn.example.com:3478';
+      process.env.TURN_SERVER_USERNAME = 'testuser';
+      process.env.TURN_SERVER_CREDENTIAL = 'testcred';
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+
+      const reader = response.body!.getReader();
+      const { value } = await reader.read();
+      const text = new TextDecoder().decode(value);
+
+      expect(text).toContain('turn:turn.example.com:3478');
+      expect(text).toContain('testuser');
+      reader.releaseLock();
+    });
+
+    it('does not include TURN server when env vars are missing', async () => {
+      delete process.env.TURN_SERVER_URL;
+      delete process.env.TURN_SERVER_USERNAME;
+      delete process.env.TURN_SERVER_CREDENTIAL;
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+
+      const reader = response.body!.getReader();
+      const { value } = await reader.read();
+      const text = new TextDecoder().decode(value);
+
+      // Should have STUN but no TURN
+      expect(text).toContain('stun:stun.l.google.com:19302');
+      expect(text).not.toContain('turn:');
+      reader.releaseLock();
+    });
+  });
 });

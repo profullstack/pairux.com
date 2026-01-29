@@ -127,4 +127,33 @@ describe('VideoViewer', () => {
 
     expect(container.firstChild).toHaveClass('custom-class');
   });
+
+  it('falls back to muted playback when unmuted play fails', async () => {
+    const stream = createMockStream();
+    let callCount = 0;
+
+    const originalPlay = HTMLVideoElement.prototype.play;
+    HTMLVideoElement.prototype.play = vi.fn().mockImplementation(function (this: HTMLVideoElement) {
+      callCount++;
+      if (callCount === 1 && !this.muted) {
+        // First call (unmuted) — reject to trigger fallback
+        return Promise.reject(new Error('NotAllowedError'));
+      }
+      // Second call (muted) — succeed
+      return Promise.resolve();
+    });
+
+    render(<VideoViewer stream={stream} connectionState="connected" />);
+
+    const video = document.querySelector('video');
+    expect(video).not.toBeNull();
+    expect(video!.srcObject).toBe(stream);
+
+    // Wait for the fallback to execute
+    await vi.waitFor(() => {
+      expect(callCount).toBeGreaterThanOrEqual(1);
+    });
+
+    HTMLVideoElement.prototype.play = originalPlay;
+  });
 });

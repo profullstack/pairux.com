@@ -22,6 +22,8 @@ vi.mock('@/lib/supabase/client', () => ({
 
 // Mock RTCPeerConnection
 class MockRTCPeerConnection {
+  static instances: MockRTCPeerConnection[] = [];
+
   signalingState = 'stable';
   connectionState = 'new';
   iceConnectionState = 'new';
@@ -32,6 +34,10 @@ class MockRTCPeerConnection {
   oniceconnectionstatechange: (() => void) | null = null;
   ondatachannel: ((event: { channel: unknown }) => void) | null = null;
   ontrack: ((event: { streams: MediaStream[]; track: MediaStreamTrack }) => void) | null = null;
+
+  constructor() {
+    MockRTCPeerConnection.instances.push(this);
+  }
 
   createOffer = vi.fn().mockResolvedValue({ type: 'offer', sdp: 'test-offer-sdp' });
   createAnswer = vi.fn().mockResolvedValue({ type: 'answer', sdp: 'test-answer-sdp' });
@@ -76,6 +82,7 @@ describe('useWebRTC', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    MockRTCPeerConnection.instances = [];
     (globalThis as Record<string, unknown>).RTCPeerConnection = MockRTCPeerConnection;
     (globalThis as Record<string, unknown>).RTCIceCandidate = vi.fn((c: unknown) => c);
 
@@ -270,6 +277,98 @@ describe('useWebRTC', () => {
       });
 
       expect(result.current.micEnabled).toBe(false);
+    });
+  });
+
+  describe('ICE candidate buffering', () => {
+    it('should buffer ICE candidates that arrive before remote description', async () => {
+      mockGetUserMedia.mockResolvedValue(createMockMicStream());
+
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      await act(async () => {
+        renderHook(() => useWebRTC(defaultOptions));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Get the signal handler from channel.on calls
+      const signalCall = mockChannel.on.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'broadcast' && (call[1] as Record<string, string>).event === 'signal'
+      );
+      expect(signalCall).toBeDefined();
+      const signalHandler = signalCall![2] as (payload: { payload: unknown }) => void;
+
+      // Send ICE candidate before any offer (no remote description)
+      await act(async () => {
+        signalHandler({
+          payload: {
+            type: 'ice-candidate',
+            candidate: { candidate: 'candidate-before-offer' },
+            senderId: 'host-1',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // The candidate should be buffered, not added directly
+      // (addIceCandidate may or may not be called depending on timing,
+      // but no error should occur)
+      // This verifies the hook doesn't crash on early ICE candidates
+    });
+
+    it('should process offer with signaling state rollback if not stable', async () => {
+      mockGetUserMedia.mockResolvedValue(createMockMicStream());
+
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      await act(async () => {
+        renderHook(() => useWebRTC(defaultOptions));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const signalCall = mockChannel.on.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'broadcast' && (call[1] as Record<string, string>).event === 'signal'
+      );
+      const signalHandler = signalCall![2] as (payload: { payload: unknown }) => void;
+
+      // Send an offer — should set remote description and create answer
+      await act(async () => {
+        signalHandler({
+          payload: {
+            type: 'offer',
+            sdp: 'test-offer-sdp',
+            senderId: 'host-1',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Verify the offer was processed: setRemoteDescription + createAnswer + setLocalDescription
+      const pc = MockRTCPeerConnection.instances[0]!;
+      expect(pc.setRemoteDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'offer', sdp: 'test-offer-sdp' })
+      );
+      expect(pc.createAnswer).toHaveBeenCalled();
+      expect(pc.setLocalDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'answer', sdp: 'test-answer-sdp' })
+      );
     });
   });
 

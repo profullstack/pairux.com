@@ -20,6 +20,29 @@ const querySchema = z.object({
 // Heartbeat interval (30 seconds)
 const HEARTBEAT_INTERVAL = 30000;
 
+// Build ICE servers config including TURN (if available) so clients don't
+// need to hardcode credentials.
+function getIceServers(): RTCIceServer[] {
+  const servers: RTCIceServer[] = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ];
+
+  const turnUrl = process.env.TURN_SERVER_URL;
+  const turnUser = process.env.TURN_SERVER_USERNAME;
+  const turnCred = process.env.TURN_SERVER_CREDENTIAL;
+
+  if (turnUrl && turnUser && turnCred) {
+    servers.push({
+      urls: turnUrl,
+      username: turnUser,
+      credential: turnCred,
+    });
+  }
+
+  return servers;
+}
+
 // GET /api/sessions/[sessionId]/signal/stream - SSE stream for WebRTC signaling
 export async function GET(
   request: Request,
@@ -113,8 +136,8 @@ export async function GET(
 
     const stream = new ReadableStream({
       start(controller) {
-        // Send initial connection event
-        const connectEvent = `event: connected\ndata: ${JSON.stringify({ sessionId, subscriberId, isHost })}\n\n`;
+        // Send initial connection event (includes ICE servers so clients get TURN config)
+        const connectEvent = `event: connected\ndata: ${JSON.stringify({ sessionId, subscriberId, isHost, iceServers: getIceServers() })}\n\n`;
         controller.enqueue(encoder.encode(connectEvent));
 
         // Set up heartbeat to keep connection alive

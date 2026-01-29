@@ -28,6 +28,7 @@ import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture'
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
+import { useAudioMixer } from '@/hooks/useAudioMixer';
 import type { SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
 
@@ -51,6 +52,12 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Minimal viewer info needed for audio mixing
+interface HostedViewer {
+  audioTrack: MediaStreamTrack | null;
+  isMuted: boolean;
+}
+
 // Common type for both P2P and SFU host hooks (subset used by this page)
 type HostHookFn = (options: {
   sessionId: string;
@@ -61,6 +68,7 @@ type HostHookFn = (options: {
 }) => {
   isHosting: boolean;
   viewerCount: number;
+  viewers: Map<string, HostedViewer>;
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
@@ -205,6 +213,7 @@ function HostContent({
   const {
     isHosting,
     viewerCount,
+    viewers: hostedViewers,
     error: hostingError,
     startHosting,
     stopHosting,
@@ -223,6 +232,56 @@ function HostContent({
       console.log('Viewer left:', viewerId);
     },
   });
+
+  // Audio mixer: combines host mic + all viewer audio into one stream for recording
+  const {
+    mixedStream,
+    addTrack: mixerAddTrack,
+    removeTrack: mixerRemoveTrack,
+    setTrackMuted: mixerSetTrackMuted,
+    dispose: disposeMixer,
+  } = useAudioMixer();
+
+  // Add host mic audio to the mixer
+  useEffect(() => {
+    if (micStream) {
+      const firstAudioTrack = micStream.getAudioTracks()[0];
+      if (firstAudioTrack) {
+        mixerAddTrack('host-mic', firstAudioTrack);
+      }
+    }
+    return () => {
+      mixerRemoveTrack('host-mic');
+    };
+  }, [micStream, mixerAddTrack, mixerRemoveTrack]);
+
+  // Sync viewer audio tracks into the mixer as viewers join/leave
+  useEffect(() => {
+    const currentViewerIds = new Set<string>();
+
+    for (const [viewerId, viewer] of hostedViewers.entries()) {
+      if (viewer.audioTrack) {
+        currentViewerIds.add(viewerId);
+        mixerAddTrack(viewerId, viewer.audioTrack);
+        mixerSetTrackMuted(viewerId, viewer.isMuted);
+      }
+    }
+
+    return () => {
+      for (const viewerId of currentViewerIds) {
+        if (!hostedViewers.has(viewerId)) {
+          mixerRemoveTrack(viewerId);
+        }
+      }
+    };
+  }, [hostedViewers, mixerAddTrack, mixerRemoveTrack, mixerSetTrackMuted]);
+
+  // Clean up mixer when component unmounts
+  useEffect(() => {
+    return () => {
+      disposeMixer();
+    };
+  }, [disposeMixer]);
 
   // Start hosting when stream is available
   useEffect(() => {
@@ -266,19 +325,27 @@ function HostContent({
     if (!stream) return;
     setRecordingBlob(null);
 
-    // Create combined stream: screen video + mic audio
+    // Build a recording stream that includes video + mixed audio (host mic + viewer audio).
+    // The mixer's output is a live AudioContext graph, so viewers joining/leaving during
+    // recording are automatically included without needing to restart MediaRecorder.
     const combinedStream = new MediaStream();
     stream.getVideoTracks().forEach((track) => {
       combinedStream.addTrack(track);
     });
-    if (micStream) {
+    if (mixedStream) {
+      // Use mixer output (host mic + all viewer audio combined)
+      mixedStream.getAudioTracks().forEach((track) => {
+        combinedStream.addTrack(track);
+      });
+    } else if (micStream) {
+      // Fallback: mixer not ready, use raw mic only
       micStream.getAudioTracks().forEach((track) => {
         combinedStream.addTrack(track);
       });
     }
 
     startRecording(combinedStream, { quality: recordingQuality });
-  }, [stream, micStream, recordingQuality, startRecording]);
+  }, [stream, micStream, mixedStream, recordingQuality, startRecording]);
 
   // Handle stop recording
   const handleStopRecording = useCallback(() => {

@@ -48,8 +48,6 @@ win:
       arch:
         - x64
         - arm64
-  signingHashAlgorithms:
-    - sha256
 
 linux:
   target:

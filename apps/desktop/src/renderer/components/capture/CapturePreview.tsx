@@ -35,6 +35,7 @@ import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/use
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
+import { useAudioMixer } from '@/hooks/useAudioMixer';
 import {
   SharingIndicator,
   RecordingIndicator,
@@ -150,6 +151,7 @@ export function CapturePreview({
   const {
     isHosting,
     viewerCount,
+    viewers: hostedViewers,
     error: hostingError,
     startHosting,
     stopHosting,
@@ -174,6 +176,57 @@ export function CapturePreview({
       // TODO: Update remote cursor position
     },
   });
+
+  // Audio mixer: combines host mic + all viewer audio into one stream for recording
+  const {
+    mixedStream,
+    addTrack: mixerAddTrack,
+    removeTrack: mixerRemoveTrack,
+    setTrackMuted: mixerSetTrackMuted,
+    dispose: disposeMixer,
+  } = useAudioMixer();
+
+  // Add host mic audio to the mixer
+  useEffect(() => {
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      mixerAddTrack('host-mic', audioTracks[0]);
+    }
+    return () => {
+      mixerRemoveTrack('host-mic');
+    };
+  }, [stream, mixerAddTrack, mixerRemoveTrack]);
+
+  // Sync viewer audio tracks into the mixer as viewers join/leave
+  useEffect(() => {
+    const currentViewerIds = new Set<string>();
+
+    for (const [viewerId, viewer] of hostedViewers.entries()) {
+      if (viewer.audioTrack) {
+        currentViewerIds.add(viewerId);
+        mixerAddTrack(viewerId, viewer.audioTrack);
+        mixerSetTrackMuted(viewerId, viewer.isMuted);
+      }
+    }
+
+    // Remove tracks for viewers no longer present
+    // (handled automatically by useAudioMixer when viewer is removed from the map,
+    //  but we also clean up explicitly for tracks that disappeared)
+    return () => {
+      for (const viewerId of currentViewerIds) {
+        if (!hostedViewers.has(viewerId)) {
+          mixerRemoveTrack(viewerId);
+        }
+      }
+    };
+  }, [hostedViewers, mixerAddTrack, mixerRemoveTrack, mixerSetTrackMuted]);
+
+  // Clean up mixer when component unmounts
+  useEffect(() => {
+    return () => {
+      disposeMixer();
+    };
+  }, [disposeMixer]);
 
   // Start WebRTC hosting when session is created
   useEffect(() => {
@@ -369,15 +422,33 @@ export function CapturePreview({
   const handleStartRecording = useCallback(async () => {
     if (!source) return;
     setSpaceWarning(null);
+
+    // Build a recording stream that includes video + mixed audio (host mic + viewer audio).
+    // The mixer's output is a live AudioContext graph, so viewers joining/leaving during
+    // recording are automatically included without needing to restart MediaRecorder.
+    let recordingStream: MediaStream;
+    if (includeAudio && mixedStream) {
+      recordingStream = new MediaStream();
+      // Video from the screen capture
+      stream.getVideoTracks().forEach((track) => {
+        recordingStream.addTrack(track);
+      });
+      // Audio from the mixer (host mic + all viewer audio combined)
+      mixedStream.getAudioTracks().forEach((track) => {
+        recordingStream.addTrack(track);
+      });
+    } else {
+      recordingStream = stream;
+    }
+
     await startRecording(source.id, {
       quality: recordingQuality,
       format: 'webm',
       includeAudio,
-      // Pass the existing stream so we don't need to create a new one
-      // This is especially important for Wayland where the source ID isn't a valid chromeMediaSourceId
-      existingStream: stream,
+      // Pass the combined stream — Wayland-safe and includes all participant audio
+      existingStream: recordingStream,
     });
-  }, [source, recordingQuality, includeAudio, startRecording, stream]);
+  }, [source, recordingQuality, includeAudio, startRecording, stream, mixedStream]);
 
   const handleStopRecording = useCallback(async () => {
     await stopRecording();

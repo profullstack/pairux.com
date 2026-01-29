@@ -26,8 +26,8 @@ import type {
 const STATS_INTERVAL = 30000; // 30 seconds
 const STATS_DISPLAY_INTERVAL = 2000; // 2 seconds for UI metrics
 
-// ICE server configuration
-const ICE_SERVERS: RTCIceServer[] = [
+// Default ICE servers (STUN only — overridden with TURN from the SSE connected event)
+const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
@@ -100,6 +100,13 @@ export function useWebRTCViewerAPI({
   const inputSequenceRef = useRef(0);
   const isConnectingRef = useRef(false);
   const maxReconnectAttempts = 3;
+
+  // ICE servers received from the SSE connected event (includes TURN)
+  const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
+  // Buffer ICE candidates that arrive before remote description is set
+  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  // Serialize signaling message processing to prevent race conditions
+  const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   // Callback refs to avoid circular dependencies
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
@@ -390,8 +397,8 @@ export function useWebRTCViewerAPI({
     }
   }, [sessionId, participantId]);
 
-  // Handle signaling messages from SSE
-  const handleSignalMessage = useCallback(
+  // Process a single signaling message (called sequentially via signalQueueRef)
+  const processSignalMessage = useCallback(
     async (message: SignalMessage) => {
       const pc = peerConnectionRef.current;
       if (!pc) return;
@@ -399,6 +406,15 @@ export function useWebRTCViewerAPI({
       try {
         switch (message.type) {
           case 'offer': {
+            // If we're not in 'stable' state (e.g. already processing an offer),
+            // rollback first so we can accept the new offer.
+            if (pc.signalingState !== 'stable') {
+              console.warn(
+                `[WebRTCViewer] Received offer in ${pc.signalingState} state — rolling back`
+              );
+              await pc.setLocalDescription({ type: 'rollback' });
+            }
+
             await pc.setRemoteDescription({
               type: 'offer',
               sdp: message.sdp,
@@ -416,12 +432,29 @@ export function useWebRTCViewerAPI({
                 timestamp: Date.now(),
               });
             }
+
+            // Drain any ICE candidates that arrived before remote description was set
+            const pending = pendingCandidatesRef.current;
+            if (pending.length > 0) {
+              console.log(
+                `[WebRTCViewer] Draining ${String(pending.length)} buffered ICE candidates`
+              );
+              pendingCandidatesRef.current = [];
+              for (const candidate of pending) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              }
+            }
             break;
           }
 
           case 'ice-candidate': {
             if (message.candidate?.candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+              // Buffer if remote description not yet set
+              if (!pc.remoteDescription) {
+                pendingCandidatesRef.current.push(message.candidate);
+              } else {
+                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+              }
             }
             break;
           }
@@ -432,6 +465,14 @@ export function useWebRTCViewerAPI({
       }
     },
     [participantId, sendSignal]
+  );
+
+  // Handle signaling messages from SSE — serialized via promise chain
+  const handleSignalMessage = useCallback(
+    (message: SignalMessage) => {
+      signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message));
+    },
+    [processSignalMessage]
   );
 
   // Handle connection failure with retry
@@ -474,7 +515,7 @@ export function useWebRTCViewerAPI({
   // Create and configure peer connection
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection({
-      iceServers: ICE_SERVERS,
+      iceServers: iceServersRef.current,
       iceCandidatePoolSize: 10,
     });
 
@@ -637,18 +678,6 @@ export function useWebRTCViewerAPI({
       setMicEnabled(false);
     }
 
-    // Create peer connection
-    const pc = createPeerConnection();
-    peerConnectionRef.current = pc;
-
-    // Add mic tracks to peer connection for SDP negotiation
-    const micStream = micStreamRef.current;
-    if (micStream) {
-      micStream.getAudioTracks().forEach((track) => {
-        pc.addTrack(track, micStream);
-      });
-    }
-
     // Build SSE URL with token
     const sseParams = new URLSearchParams({
       participantId,
@@ -669,12 +698,39 @@ export function useWebRTCViewerAPI({
       isConnectingRef.current = false;
       setConnectionState('connecting');
       setError(null);
+
+      // Use ICE servers from the server (includes TURN) if provided
+      try {
+        const data = JSON.parse(event.data as string) as {
+          iceServers?: RTCIceServer[];
+        };
+        if (data.iceServers && data.iceServers.length > 0) {
+          iceServersRef.current = data.iceServers;
+          console.log('[WebRTCViewer] Received ICE servers from server:', data.iceServers.length);
+        }
+      } catch {
+        // Use default ICE servers
+      }
+
+      // Create peer connection AFTER receiving ICE servers (includes TURN)
+      pendingCandidatesRef.current = [];
+      signalQueueRef.current = Promise.resolve();
+      const pc = createPeerConnection();
+      peerConnectionRef.current = pc;
+
+      // Add mic tracks to peer connection for SDP negotiation
+      const micStream = micStreamRef.current;
+      if (micStream) {
+        micStream.getAudioTracks().forEach((track) => {
+          pc.addTrack(track, micStream);
+        });
+      }
     });
 
     eventSource.addEventListener('signal', (event) => {
       try {
         const signal = JSON.parse(event.data as string) as SignalMessage;
-        void handleSignalMessage(signal);
+        handleSignalMessage(signal);
       } catch (err) {
         console.error('[WebRTCViewer] Failed to parse signal:', err);
       }

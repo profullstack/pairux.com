@@ -36,8 +36,8 @@ const BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
 // Stats collection and reporting interval
 const STATS_INTERVAL = 30000; // 30 seconds
 
-// ICE server configuration
-const ICE_SERVERS: RTCIceServer[] = [
+// Default ICE servers (STUN only — overridden with TURN from the SSE connected event)
+const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
@@ -90,6 +90,9 @@ interface UseWebRTCHostAPIReturn {
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
   muteViewer: (viewerId: string, muted: boolean) => void;
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
 }
 
 export function useWebRTCHostAPI({
@@ -107,6 +110,8 @@ export function useWebRTCHostAPI({
   const [error, setError] = useState<string | null>(null);
   const [viewers, setViewers] = useState<Map<string, ViewerConnection>>(new Map());
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [hasMic, setHasMic] = useState(false);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
@@ -115,6 +120,12 @@ export function useWebRTCHostAPI({
   const authTokenRef = useRef<string | null>(null);
   const isStartingRef = useRef(false);
   const localStreamRef = useRef<MediaStream | null>(localStream);
+  const hostMicStreamRef = useRef<MediaStream | null>(null);
+
+  // ICE servers received from the SSE connected event (includes TURN)
+  const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
+  // Buffer ICE candidates per viewer until their remote description is set
+  const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 
   // Keep refs updated
   localStreamRef.current = localStream;
@@ -335,7 +346,7 @@ export function useWebRTCHostAPI({
       console.log('[WebRTCHost] Creating peer connection for viewer:', viewerId);
 
       const pc = new RTCPeerConnection({
-        iceServers: ICE_SERVERS,
+        iceServers: iceServersRef.current,
         iceCandidatePoolSize: 10,
       });
 
@@ -372,6 +383,14 @@ export function useWebRTCHostAPI({
           const audioStream = new MediaStream([otherViewer.audioTrack]);
           pc.addTrack(otherViewer.audioTrack, audioStream);
         }
+      }
+
+      // Add host mic track so the viewer can hear the host
+      const hostMic = hostMicStreamRef.current;
+      if (hostMic) {
+        hostMic.getAudioTracks().forEach((track) => {
+          pc.addTrack(track, hostMic);
+        });
       }
 
       // Handle incoming tracks from viewer (their mic audio)
@@ -481,6 +500,7 @@ export function useWebRTCHostAPI({
         }
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
+        pendingCandidatesRef.current.delete(viewerId);
         setViewers(new Map(viewersRef.current));
         onViewerLeft?.(viewerId);
       }
@@ -562,6 +582,18 @@ export function useWebRTCHostAPI({
               type: 'answer',
               sdp: signal.sdp,
             });
+
+            // Drain any ICE candidates that arrived before the answer
+            const pending = pendingCandidatesRef.current.get(viewerId);
+            if (pending && pending.length > 0) {
+              console.log(
+                `[WebRTCHost] Draining ${String(pending.length)} buffered ICE candidates for ${viewerId}`
+              );
+              pendingCandidatesRef.current.delete(viewerId);
+              for (const candidate of pending) {
+                await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+              }
+            }
           }
           break;
         }
@@ -569,7 +601,14 @@ export function useWebRTCHostAPI({
         case 'ice-candidate': {
           const viewer = viewersRef.current.get(viewerId);
           if (viewer && signal.candidate?.candidate) {
-            await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            // Buffer if remote description not yet set
+            if (!viewer.peerConnection.remoteDescription) {
+              const pending = pendingCandidatesRef.current.get(viewerId) ?? [];
+              pending.push(signal.candidate);
+              pendingCandidatesRef.current.set(viewerId, pending);
+            } else {
+              await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            }
           }
           break;
         }
@@ -579,6 +618,21 @@ export function useWebRTCHostAPI({
   );
 
   // Start hosting (sets up SSE signaling -- screen sharing is optional)
+  // Toggle host microphone
+  const toggleMic = useCallback(() => {
+    const micStream = hostMicStreamRef.current;
+    if (!micStream) return;
+
+    const tracks = micStream.getAudioTracks();
+    if (tracks.length === 0) return;
+
+    const newEnabled = !micEnabled;
+    tracks.forEach((track) => {
+      track.enabled = newEnabled;
+    });
+    setMicEnabled(newEnabled);
+  }, [micEnabled]);
+
   const startHosting = useCallback(async () => {
     // Prevent concurrent startHosting calls
     if (isStartingRef.current || eventSourceRef.current) {
@@ -601,6 +655,18 @@ export function useWebRTCHostAPI({
       return;
     }
 
+    // Capture host microphone before connecting
+    try {
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      hostMicStreamRef.current = micStream;
+      setHasMic(true);
+      setMicEnabled(true);
+    } catch {
+      console.warn('[WebRTCHost] No microphone available — continuing without host mic');
+      setHasMic(false);
+      setMicEnabled(false);
+    }
+
     // Build SSE URL with token (EventSource doesn't support custom headers)
     const sseParams = new URLSearchParams({
       participantId: hostId,
@@ -621,6 +687,19 @@ export function useWebRTCHostAPI({
       isStartingRef.current = false;
       setIsHosting(true);
       setError(null);
+
+      // Use ICE servers from the server (includes TURN) if provided
+      try {
+        const data = JSON.parse(event.data as string) as {
+          iceServers?: RTCIceServer[];
+        };
+        if (data.iceServers && data.iceServers.length > 0) {
+          iceServersRef.current = data.iceServers;
+          console.log('[WebRTCHost] Received ICE servers from server:', data.iceServers.length);
+        }
+      } catch {
+        // Use default ICE servers
+      }
     });
 
     eventSource.addEventListener('signal', (event) => {
@@ -697,6 +776,16 @@ export function useWebRTCHostAPI({
     viewersRef.current.clear();
     setViewers(new Map());
     setIsHosting(false);
+
+    // Clean up host mic
+    if (hostMicStreamRef.current) {
+      hostMicStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      hostMicStreamRef.current = null;
+    }
+    setMicEnabled(false);
+    setHasMic(false);
   }, []);
 
   // Publish a screen share stream to all connected viewers
@@ -913,5 +1002,8 @@ export function useWebRTCHostAPI({
     revokeControl,
     kickViewer,
     muteViewer,
+    micEnabled,
+    hasMic,
+    toggleMic,
   };
 }

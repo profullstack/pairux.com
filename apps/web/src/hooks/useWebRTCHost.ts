@@ -134,6 +134,8 @@ export function useWebRTCHost({
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
   const localStreamRef = useRef<MediaStream | null>(localStream);
+  // Buffer ICE candidates per viewer until their remote description is set
+  const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
@@ -482,6 +484,7 @@ export function useWebRTCHost({
         }
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
+        pendingCandidatesRef.current.delete(viewerId);
         setViewers(new Map(viewersRef.current));
         onViewerLeft?.(viewerId);
       }
@@ -515,6 +518,18 @@ export function useWebRTCHost({
               type: 'answer',
               sdp: message.sdp,
             });
+
+            // Drain any ICE candidates that arrived before the answer
+            const pending = pendingCandidatesRef.current.get(viewerId);
+            if (pending && pending.length > 0) {
+              console.log(
+                `[WebRTCHost] Draining ${String(pending.length)} buffered ICE candidates for ${viewerId}`
+              );
+              pendingCandidatesRef.current.delete(viewerId);
+              for (const candidate of pending) {
+                await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+              }
+            }
           }
           break;
         }
@@ -522,7 +537,14 @@ export function useWebRTCHost({
         case 'ice-candidate': {
           const viewer = viewersRef.current.get(viewerId);
           if (viewer && message.candidate.candidate) {
-            await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+            // Buffer if remote description not yet set
+            if (!viewer.peerConnection.remoteDescription) {
+              const pending = pendingCandidatesRef.current.get(viewerId) ?? [];
+              pending.push(message.candidate);
+              pendingCandidatesRef.current.set(viewerId, pending);
+            } else {
+              await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+            }
           }
           break;
         }

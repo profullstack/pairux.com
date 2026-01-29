@@ -93,6 +93,11 @@ export function useWebRTC({
   const inputSequenceRef = useRef(0);
   const maxReconnectAttempts = 3;
 
+  // Buffer ICE candidates that arrive before remote description is set
+  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  // Serialize signaling message processing to prevent race conditions
+  const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
+
   // Use refs to avoid circular dependencies in callbacks
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const onControlStateChangeRef = useRef(onControlStateChange);
@@ -309,8 +314,8 @@ export function useWebRTC({
     }
   }, [calculateNetworkQuality]);
 
-  // Handle signaling messages
-  const handleSignalMessage = useCallback(
+  // Process a single signaling message (called sequentially via signalQueueRef)
+  const processSignalMessage = useCallback(
     async (message: SignalMessage) => {
       const pc = peerConnectionRef.current;
       if (!pc) return;
@@ -318,6 +323,13 @@ export function useWebRTC({
       try {
         switch (message.type) {
           case 'offer': {
+            // If we're not in 'stable' state (e.g. already processing an offer),
+            // rollback first so we can accept the new offer.
+            if (pc.signalingState !== 'stable') {
+              console.warn(`[WebRTC] Received offer in ${pc.signalingState} state — rolling back`);
+              await pc.setLocalDescription({ type: 'rollback' });
+            }
+
             await pc.setRemoteDescription({
               type: 'offer',
               sdp: message.sdp,
@@ -339,12 +351,27 @@ export function useWebRTC({
                 } satisfies SignalMessage,
               });
             }
+
+            // Drain any ICE candidates that arrived before remote description was set
+            const pending = pendingCandidatesRef.current;
+            if (pending.length > 0) {
+              console.log(`[WebRTC] Draining ${String(pending.length)} buffered ICE candidates`);
+              pendingCandidatesRef.current = [];
+              for (const candidate of pending) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              }
+            }
             break;
           }
 
           case 'ice-candidate': {
             if (message.candidate.candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+              // Buffer if remote description not yet set
+              if (!pc.remoteDescription) {
+                pendingCandidatesRef.current.push(message.candidate);
+              } else {
+                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+              }
             }
             break;
           }
@@ -355,6 +382,14 @@ export function useWebRTC({
       }
     },
     [participantId]
+  );
+
+  // Handle signaling messages — serialized via promise chain
+  const handleSignalMessage = useCallback(
+    (message: SignalMessage) => {
+      signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message));
+    },
+    [processSignalMessage]
   );
 
   // Handle connection failure with retry logic
@@ -575,7 +610,7 @@ export function useWebRTC({
         const message = payload as SignalMessage;
         // Only process messages not from self
         if (message.senderId !== participantId) {
-          void handleSignalMessage(message);
+          handleSignalMessage(message);
         }
       })
       .subscribe((status: string) => {

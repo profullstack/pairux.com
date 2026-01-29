@@ -71,6 +71,10 @@ interface UseWebRTCHostSFUAPIReturn {
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
   muteViewer: (viewerId: string, muted: boolean) => void;
+  // Host microphone
+  micEnabled: boolean;
+  hasMic: boolean;
+  toggleMic: () => void;
 }
 
 export function useWebRTCHostSFUAPI({
@@ -87,10 +91,13 @@ export function useWebRTCHostSFUAPI({
   const [error, setError] = useState<string | null>(null);
   const [viewers, setViewers] = useState<Map<string, ViewerConnection>>(new Map());
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [hasMic, setHasMic] = useState(false);
 
   const roomRef = useRef<Room | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const authTokenRef = useRef<string | null>(null);
+  const hostMicStreamRef = useRef<MediaStream | null>(null);
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
@@ -191,9 +198,38 @@ export function useWebRTCHostSFUAPI({
     onViewerLeftRef.current?.(identity);
   }, []);
 
+  // Toggle host microphone
+  const toggleMic = useCallback(() => {
+    const micStream = hostMicStreamRef.current;
+    if (!micStream) return;
+
+    const tracks = micStream.getAudioTracks();
+    if (tracks.length === 0) return;
+
+    const newEnabled = !micEnabled;
+    tracks.forEach((track) => {
+      track.enabled = newEnabled;
+    });
+    setMicEnabled(newEnabled);
+  }, [micEnabled]);
+
   // Start hosting (sets up LiveKit room and voice -- screen sharing is optional)
   const startHosting = useCallback(async () => {
     try {
+      // Capture host microphone before connecting
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        hostMicStreamRef.current = micStream;
+        setHasMic(true);
+        setMicEnabled(true);
+        console.log('[WebRTCHostSFUAPI] Host microphone captured');
+      } catch (err: unknown) {
+        console.warn('[WebRTCHostSFUAPI] Could not access microphone:', err);
+        hostMicStreamRef.current = null;
+        setHasMic(false);
+        setMicEnabled(false);
+      }
+
       // Get auth token from Electron
       const api = getElectronAPI();
       const { token } = await api.invoke('auth:getToken', undefined);
@@ -272,6 +308,16 @@ export function useWebRTCHostSFUAPI({
         addViewer(participant);
       }
 
+      // Publish host mic to the room
+      const micStream = hostMicStreamRef.current;
+      if (micStream) {
+        for (const track of micStream.getAudioTracks()) {
+          await room.localParticipant.publishTrack(track, {
+            source: Track.Source.Microphone,
+          });
+        }
+      }
+
       setIsHosting(true);
       setError(null);
     } catch (err) {
@@ -335,6 +381,14 @@ export function useWebRTCHostSFUAPI({
       roomRef.current = null;
     }
 
+    // Stop host mic tracks
+    if (hostMicStreamRef.current) {
+      hostMicStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      hostMicStreamRef.current = null;
+    }
+
     viewersRef.current.forEach((viewer) => {
       if (viewer.audioElement) {
         viewer.audioElement.pause();
@@ -345,6 +399,8 @@ export function useWebRTCHostSFUAPI({
     setViewers(new Map());
 
     setIsHosting(false);
+    setMicEnabled(false);
+    setHasMic(false);
   }, []);
 
   // Cleanup on unmount
@@ -487,6 +543,10 @@ export function useWebRTCHostSFUAPI({
     unpublishStream,
     grantControl,
     revokeControl,
+    // Host microphone
+    micEnabled,
+    hasMic,
+    toggleMic,
     kickViewer,
     muteViewer,
   };

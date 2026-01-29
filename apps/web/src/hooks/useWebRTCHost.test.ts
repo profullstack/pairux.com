@@ -341,4 +341,49 @@ describe('useWebRTCHost', () => {
       expect(mockMicStream._audioTracks[0]!.stop).toHaveBeenCalled();
     });
   });
+
+  describe('ICE candidate buffering', () => {
+    it('should export pendingCandidatesRef functionality (no crash on early ICE)', async () => {
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      expect(result.current.isHosting).toBe(true);
+
+      // Simulate a viewer signal with ICE candidate before answer
+      // Get the signal handler from channel.on calls
+      const signalCall = mockChannel.on.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'broadcast' && (call[1] as Record<string, string>).event === 'signal'
+      );
+
+      // If the channel was set up, verify the hook handles early ICE candidates
+      if (signalCall) {
+        const signalHandler = signalCall[2] as (payload: { payload: unknown }) => void;
+
+        // Send ICE candidate for a non-existent viewer — should not crash
+        await act(async () => {
+          signalHandler({
+            payload: {
+              type: 'ice-candidate',
+              candidate: { candidate: 'early-candidate' },
+              senderId: 'unknown-viewer',
+              targetId: 'host-1',
+              timestamp: Date.now(),
+            },
+          });
+          await Promise.resolve();
+        });
+
+        expect(result.current.error).toBeNull();
+      }
+    });
+  });
 });

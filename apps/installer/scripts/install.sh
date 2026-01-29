@@ -213,16 +213,74 @@ install_linux() {
     # Create wrapper script that handles sandbox issues
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
-    cat > "$BIN_DIR/pairux" << 'WRAPPER'
+    cat > "$BIN_DIR/pairux" << WRAPPER
 #!/bin/bash
 # PairUX launcher
 # ELECTRON_DISABLE_SANDBOX is required for AppImages without SUID chrome-sandbox
-APPIMAGE="$HOME/.pairux/PairUX.AppImage"
-if [ -x "$APPIMAGE" ]; then
+
+VERSION="$version"
+APPIMAGE="\$HOME/.pairux/PairUX.AppImage"
+INSTALL_DIR="\$HOME/.pairux"
+BIN_DIR="\$HOME/.local/bin"
+DESKTOP_FILE="\$HOME/.local/share/applications/pairux.desktop"
+ICON_FILE="\$HOME/.local/share/icons/hicolor/256x256/apps/pairux.png"
+
+case "\${1-}" in
+    -h|--help)
+        echo "Usage: pairux [options]"
+        echo ""
+        echo "PairUX - collaborative screen sharing desktop app"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help       Show this help message"
+        echo "  -v, --version    Show version number"
+        echo "  uninstall        Remove PairUX completely"
+        exit 0
+        ;;
+    -v|--version)
+        echo "pairux \$VERSION"
+        exit 0
+        ;;
+    uninstall)
+        echo "Uninstalling PairUX..."
+        echo ""
+
+        # Kill running instances
+        pkill -f "PairUX.AppImage" 2>/dev/null && echo "  Stopped running instance"
+
+        # Remove AppImage and install directory
+        if [ -d "\$INSTALL_DIR" ]; then
+            rm -rf "\$INSTALL_DIR"
+            echo "  Removed \$INSTALL_DIR"
+        fi
+
+        # Remove desktop entry
+        if [ -f "\$DESKTOP_FILE" ]; then
+            rm -f "\$DESKTOP_FILE"
+            echo "  Removed desktop entry"
+            update-desktop-database "\$HOME/.local/share/applications" 2>/dev/null || true
+        fi
+
+        # Remove icon
+        if [ -f "\$ICON_FILE" ]; then
+            rm -f "\$ICON_FILE"
+            echo "  Removed icon"
+        fi
+
+        # Remove this launcher script last
+        echo "  Removed \$BIN_DIR/pairux"
+        echo ""
+        echo "PairUX has been uninstalled."
+        rm -f "\$BIN_DIR/pairux"
+        exit 0
+        ;;
+esac
+
+if [ -x "\$APPIMAGE" ]; then
     export ELECTRON_DISABLE_SANDBOX=1
-    exec "$APPIMAGE" "$@"
+    exec "\$APPIMAGE" "\$@"
 else
-    echo "Error: PairUX AppImage not found at $APPIMAGE"
+    echo "Error: PairUX AppImage not found at \$APPIMAGE"
     echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"
     exit 1
 fi

@@ -25,6 +25,7 @@ const tableOfContents = [
   { id: 'control', title: 'Remote Control' },
   { id: 'security', title: 'Security' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
+  { id: 'uninstalling', title: 'Uninstalling' },
   { id: 'faq', title: 'FAQ' },
 ];
 
@@ -68,6 +69,11 @@ const faqs = [
     question: 'Can I share audio?',
     answer:
       'Audio sharing is on our roadmap but not yet implemented. Currently, PairUX is focused on visual screen sharing and control.',
+  },
+  {
+    question: 'How do I uninstall PairUX?',
+    answer:
+      'Run "pairux uninstall" to completely remove PairUX, including the desktop app, launcher script, desktop entry, and icon. On macOS, you can also drag PairUX from Applications to the Trash.',
   },
 ];
 
@@ -355,6 +361,41 @@ export default function DocsPage() {
                       <li>Close bandwidth-heavy applications</li>
                       <li>Try lowering the quality setting in preferences</li>
                     </ul>
+                  </section>
+
+                  {/* Uninstalling */}
+                  <section id="uninstalling" className="mt-12">
+                    <h2>Uninstalling</h2>
+
+                    <h3>Linux</h3>
+                    <p>Run the built-in uninstall command to remove everything:</p>
+                    <pre>
+                      <code>pairux uninstall</code>
+                    </pre>
+                    <p>This removes the AppImage, launcher script, desktop entry, and icon.</p>
+                    <p>To uninstall manually:</p>
+                    <pre>
+                      <code>{`rm -rf ~/.pairux
+rm -f ~/.local/bin/pairux
+rm -f ~/.local/share/applications/pairux.desktop
+rm -f ~/.local/share/icons/hicolor/256x256/apps/pairux.png`}</code>
+                    </pre>
+
+                    <h3>macOS</h3>
+                    <p>
+                      Drag <strong>PairUX.app</strong> from your Applications folder to the Trash.
+                      To also remove the CLI launcher:
+                    </p>
+                    <pre>
+                      <code>rm -f ~/.local/bin/pairux</code>
+                    </pre>
+
+                    <h3>Windows</h3>
+                    <p>
+                      Open <strong>Settings → Apps → Installed apps</strong>, find PairUX, and click{' '}
+                      <strong>Uninstall</strong>. Alternatively, run the uninstaller from the Start
+                      Menu.
+                    </p>
                   </section>
 
                   {/* FAQ */}

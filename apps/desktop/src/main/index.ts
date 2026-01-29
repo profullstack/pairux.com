@@ -11,13 +11,11 @@ import { setMainWindow as setStreamingMainWindow } from './streaming';
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
 app.setName('pairux');
 
-// Load environment variables from .env file
-// In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
-// In prod: extraResources places .env in the resources directory
-const envPath = app.isPackaged
-  ? resolve(process.resourcesPath, '.env')
-  : resolve(__dirname, '../../.env');
-config({ path: envPath });
+// Load environment variables from .env file in development only.
+// In production, env vars are injected at build time by electron-vite.
+if (!app.isPackaged) {
+  config({ path: resolve(__dirname, '../../.env') });
+}
 
 // Detect display server (X11 vs Wayland)
 const isWayland =

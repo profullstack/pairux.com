@@ -94,6 +94,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-tools rpm
 
+      - name: Write .env file
+        run: printenv ENV_FILE > apps/desktop/.env
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+
       - name: Build desktop app
         run: pnpm --filter @pairux/desktop build
         env:
@@ -108,11 +113,6 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Windows signing
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-
-      - name: Write .env file
-        run: printenv ENV_FILE > apps/desktop/.env
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
 
       - name: Package desktop app
         working-directory: apps/desktop

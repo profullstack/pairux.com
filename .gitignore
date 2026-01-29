@@ -179,3 +179,4 @@ debug.log
 *.local
 local/
 .local/
+squashfs-root/

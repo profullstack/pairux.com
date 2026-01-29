@@ -41,6 +41,7 @@
     "@nut-tree-fork/node-mac-permissions": "^2.2.1"
   },
   "devDependencies": {
+    "@electron/notarize": "^3.1.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@pairux/shared-types": "workspace:*",
     "@testing-library/jest-dom": "^6.6.0",

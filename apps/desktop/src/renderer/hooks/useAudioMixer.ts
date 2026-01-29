@@ -11,8 +11,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface AudioSource {
   id: string;
+  trackId: string;
   sourceNode: MediaStreamAudioSourceNode;
   gainNode: GainNode;
+  playback: boolean;
 }
 
 export function useAudioMixer() {
@@ -47,9 +49,25 @@ export function useAudioMixer() {
   }, []);
 
   // Add an audio track to the mix
+  // When playback is true, the track is also routed to speakers (ctx.destination)
+  // If a track with the same id already exists but the underlying MediaStreamTrack
+  // changed (e.g. SFU re-published after unmute), the old source is replaced.
   const addTrack = useCallback(
-    (id: string, track: MediaStreamTrack) => {
-      if (sourcesRef.current.has(id)) return;
+    (id: string, track: MediaStreamTrack, playback = false) => {
+      const existing = sourcesRef.current.get(id);
+      if (existing) {
+        // Same underlying track — nothing to do
+        if (existing.trackId === track.id) return;
+        // Track changed (e.g. SFU re-publish after unmute) — tear down old source
+        try {
+          existing.gainNode.disconnect();
+          existing.sourceNode.disconnect();
+        } catch {
+          // Already disconnected
+        }
+        sourcesRef.current.delete(id);
+        console.log(`[AudioMixer] Replacing stale track: ${id}`);
+      }
 
       const result = ensureContext();
       if (!result) return;
@@ -65,10 +83,17 @@ export function useAudioMixer() {
       gainNode.gain.value = 1.0;
 
       sourceNode.connect(gainNode);
+      // Always connect to recording destination
       gainNode.connect(destination);
+      // Also connect to speakers when playback is enabled (e.g. viewer audio)
+      if (playback) {
+        gainNode.connect(ctx.destination);
+      }
 
-      sourcesRef.current.set(id, { id, sourceNode, gainNode });
-      console.log(`[AudioMixer] Added track: ${id} (${String(sourcesRef.current.size)} sources)`);
+      sourcesRef.current.set(id, { id, trackId: track.id, sourceNode, gainNode, playback });
+      console.log(
+        `[AudioMixer] Added track: ${id} (${String(sourcesRef.current.size)} sources, playback=${String(playback)})`
+      );
     },
     [ensureContext]
   );
@@ -94,6 +119,10 @@ export function useAudioMixer() {
     const source = sourcesRef.current.get(id);
     if (source) {
       source.gainNode.gain.value = muted ? 0 : 1;
+      // Resume context if it auto-suspended while tracks were muted
+      if (!muted && audioContextRef.current?.state === 'suspended') {
+        void audioContextRef.current.resume();
+      }
     }
   }, []);
 

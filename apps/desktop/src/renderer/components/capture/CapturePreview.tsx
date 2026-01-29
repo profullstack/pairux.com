@@ -190,7 +190,7 @@ export function CapturePreview({
   useEffect(() => {
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length > 0) {
-      mixerAddTrack('host-mic', audioTracks[0]);
+      mixerAddTrack('host-mic', audioTracks[0], false);
     }
     return () => {
       mixerRemoveTrack('host-mic');
@@ -204,7 +204,7 @@ export function CapturePreview({
     for (const [viewerId, viewer] of hostedViewers.entries()) {
       if (viewer.audioTrack) {
         currentViewerIds.add(viewerId);
-        mixerAddTrack(viewerId, viewer.audioTrack);
+        mixerAddTrack(viewerId, viewer.audioTrack, true);
         mixerSetTrackMuted(viewerId, viewer.isMuted);
       }
     }

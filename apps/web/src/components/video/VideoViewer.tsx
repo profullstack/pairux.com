@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
+import { Maximize2, Minimize2, Volume2, VolumeX, Mic } from 'lucide-react';
 import { ConnectionStatus } from './ConnectionStatus';
 import { QualityIndicator } from './QualityIndicator';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
@@ -139,6 +139,7 @@ export function VideoViewer({
   }, [toggleFullscreen, toggleMute, isFullscreen]);
 
   const isStreaming = connectionState === 'connected' && stream !== null;
+  const isVoiceOnly = connectionState === 'connected' && stream === null;
 
   return (
     <div
@@ -151,6 +152,17 @@ export function VideoViewer({
     >
       {/* Video element — muted state is controlled imperatively for iOS compat */}
       <video ref={videoRef} className="h-full w-full object-contain" autoPlay playsInline />
+
+      {/* Voice-only placeholder: connected but no screen share active */}
+      {isVoiceOnly && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
+            <Mic className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="mt-4 text-sm font-medium text-gray-300">No screen is being shared</p>
+          <p className="mt-1 text-xs text-gray-500">Voice session active</p>
+        </div>
+      )}
 
       {/* iOS autoplay: tap to enable audio */}
       {needsAudioGesture && isStreaming && (

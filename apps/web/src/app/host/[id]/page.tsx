@@ -67,6 +67,8 @@ type HostHookFn = (options: {
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
+  publishStream: (stream: MediaStream) => Promise<void>;
+  unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
@@ -215,6 +217,8 @@ function HostContent({
     error: hostingError,
     startHosting,
     stopHosting,
+    publishStream,
+    unpublishStream,
     grantControl,
     revokeControl,
     kickViewer,
@@ -287,19 +291,26 @@ function HostContent({
     };
   }, [disposeMixer]);
 
-  // Start hosting when stream is available
+  // Start hosting (voice channel) as soon as session is loaded -- no stream required
   useEffect(() => {
-    if (stream && !isHosting) {
+    if (!isHosting) {
       void startHosting();
     }
-  }, [stream, isHosting, startHosting]);
+  }, [isHosting, startHosting]);
 
-  // Stop hosting when stream ends
+  // Publish screen share stream when capture starts
+  useEffect(() => {
+    if (stream && isHosting) {
+      void publishStream(stream);
+    }
+  }, [stream, isHosting, publishStream]);
+
+  // Unpublish screen share when capture stops (session stays alive)
   useEffect(() => {
     if (!stream && isHosting) {
-      stopHosting();
+      void unpublishStream();
     }
-  }, [stream, isHosting, stopHosting]);
+  }, [stream, isHosting, unpublishStream]);
 
   // Copy join link to clipboard
   const copyJoinLink = useCallback(async () => {
@@ -315,14 +326,13 @@ function HostContent({
     }
   }, [session]);
 
-  // Handle stop sharing
+  // Handle stop screen sharing (session stays alive for voice)
   const handleStopSharing = useCallback(() => {
     if (isRecording) {
       stopRecording();
     }
     stopCapture();
-    stopHosting();
-  }, [isRecording, stopRecording, stopCapture, stopHosting]);
+  }, [isRecording, stopRecording, stopCapture]);
 
   // Handle start recording
   const handleStartRecording = useCallback(() => {
@@ -416,9 +426,15 @@ function HostContent({
                 <span className="rounded-full bg-green-900/50 px-2 py-0.5 text-xs font-medium text-green-400">
                   Hosting
                 </span>
-                {captureState !== 'active' && (
-                  <span className="text-sm text-gray-500">(View Only)</span>
-                )}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    captureState === 'active'
+                      ? 'bg-blue-900/50 text-blue-400'
+                      : 'bg-gray-800 text-gray-400'
+                  }`}
+                >
+                  {captureState === 'active' ? 'Screen Sharing' : 'Voice Only'}
+                </span>
               </div>
             </div>
 
@@ -651,7 +667,7 @@ function HostContent({
                   <div>
                     <p className="text-xs text-gray-500">Status</p>
                     <p className="text-sm text-white">
-                      {captureState === 'active' ? 'Sharing Screen' : 'Ready to Share'}
+                      {captureState === 'active' ? 'Sharing Screen' : 'Voice Only'}
                     </p>
                   </div>
                   <div>

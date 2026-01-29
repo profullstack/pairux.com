@@ -45,9 +45,11 @@ import {
 } from '@/components/overlay';
 
 interface CapturePreviewProps {
-  stream: MediaStream;
+  stream: MediaStream | null;
   source: CaptureSource | null;
   onStop: () => void;
+  onStopCapture?: () => void;
+  onStartCapture?: () => void;
   currentUserId?: string;
   initialSession?: Session | null;
 }
@@ -56,6 +58,8 @@ export function CapturePreview({
   stream,
   source,
   onStop,
+  onStopCapture,
+  onStartCapture,
   currentUserId,
   initialSession,
 }: CapturePreviewProps) {
@@ -79,7 +83,7 @@ export function CapturePreview({
   const [includeAudio, setIncludeAudio] = useState(true);
   const [micEnabled, setMicEnabled] = useState(() => {
     // Mic is enabled if the stream has audio tracks
-    return stream.getAudioTracks().length > 0;
+    return stream ? stream.getAudioTracks().length > 0 : false;
   });
   const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
@@ -155,6 +159,8 @@ export function CapturePreview({
     error: hostingError,
     startHosting,
     stopHosting,
+    publishStream: hostPublishStream,
+    unpublishStream: hostUnpublishStream,
     muteViewer,
   } = useHostHook({
     sessionId: session?.id ?? '',
@@ -188,6 +194,7 @@ export function CapturePreview({
 
   // Add host mic audio to the mixer
   useEffect(() => {
+    if (!stream) return;
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length > 0) {
       mixerAddTrack('host-mic', audioTracks[0], false);
@@ -228,16 +235,29 @@ export function CapturePreview({
     };
   }, [disposeMixer]);
 
-  // Start WebRTC hosting when session is created
+  // Start hosting (voice channel) when session is available -- no stream required
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (session !== null && stream !== null && !isHosting) {
+    if (session !== null && !isHosting) {
       console.log('[CapturePreview] Starting WebRTC hosting for session:', session.id);
       void startHosting();
     }
-  }, [session, stream, isHosting, startHosting]);
+  }, [session, isHosting, startHosting]);
 
-  // Stop hosting when component unmounts or capture stops
+  // Publish screen share stream when capture starts
+  useEffect(() => {
+    if (stream && isHosting) {
+      void hostPublishStream(stream);
+    }
+  }, [stream, isHosting, hostPublishStream]);
+
+  // Unpublish screen share when capture stops (session stays alive)
+  useEffect(() => {
+    if (!stream && isHosting) {
+      void hostUnpublishStream();
+    }
+  }, [stream, isHosting, hostUnpublishStream]);
+
+  // Stop hosting when component unmounts
   useEffect(() => {
     return () => {
       if (isHosting) {
@@ -253,6 +273,7 @@ export function CapturePreview({
 
   // Get source dimensions for cursor scaling
   const sourceDimensions = useMemo(() => {
+    if (!stream) return { width: 1920, height: 1080 };
     const tracks = stream.getVideoTracks();
     const track = tracks.length > 0 ? tracks[0] : undefined;
     const settings = track?.getSettings();
@@ -328,7 +349,13 @@ export function CapturePreview({
     };
   }, [session?.id]);
 
-  const handleStop = useCallback(async () => {
+  // Stop screen sharing only (session continues with voice)
+  const handleStopScreenShare = useCallback(() => {
+    onStopCapture?.();
+  }, [onStopCapture]);
+
+  // End the entire session (nuclear option)
+  const handleEndSession = useCallback(async () => {
     // Stop all RTMP streams first
     if (isAnyStreaming) {
       await stopAllStreams();
@@ -420,7 +447,7 @@ export function CapturePreview({
   );
 
   const handleStartRecording = useCallback(async () => {
-    if (!source) return;
+    if (!source || !stream) return;
     setSpaceWarning(null);
 
     // Build a recording stream that includes video + mixed audio (host mic + viewer audio).
@@ -480,6 +507,7 @@ export function CapturePreview({
   );
 
   const handleToggleMic = useCallback(() => {
+    if (!stream) return;
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) return;
     const newEnabled = !micEnabled;
@@ -489,7 +517,7 @@ export function CapturePreview({
     setMicEnabled(newEnabled);
   }, [stream, micEnabled]);
 
-  const hasMic = stream.getAudioTracks().length > 0;
+  const hasMic = stream ? stream.getAudioTracks().length > 0 : false;
 
   const isScreen = source?.type === 'screen';
   const activeParticipants = participants.filter((p) => !p.left_at);
@@ -501,15 +529,23 @@ export function CapturePreview({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {isScreen ? (
-              <Monitor className="h-5 w-5 text-primary" />
+            {stream ? (
+              isScreen ? (
+                <Monitor className="h-5 w-5 text-primary" />
+              ) : (
+                <AppWindow className="h-5 w-5 text-primary" />
+              )
             ) : (
-              <AppWindow className="h-5 w-5 text-primary" />
+              <Mic className="h-5 w-5 text-primary" />
             )}
             <div>
-              <h2 className="text-lg font-semibold">{source?.name ?? 'Capturing'}</h2>
+              <h2 className="text-lg font-semibold">
+                {source?.name ?? (stream ? 'Capturing' : 'Voice Session')}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                {isScreen ? 'Screen' : 'Window'} capture active
+                {stream
+                  ? `${isScreen ? 'Screen' : 'Window'} capture active`
+                  : 'Voice only — no screen shared'}
               </p>
             </div>
           </div>
@@ -539,76 +575,82 @@ export function CapturePreview({
               Chat
             </Button>
 
-            {/* Recording controls */}
-            <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
-              {!isRecording ? (
-                <>
-                  <select
-                    value={recordingQuality}
-                    onChange={(e) => {
-                      setRecordingQuality(e.target.value as RecordingQuality);
-                    }}
-                    className="h-9 rounded-md bg-background px-2 text-sm"
-                    title="Recording quality - affects file size and bitrate"
-                  >
-                    <option value="720p">720p</option>
-                    <option value="1080p">1080p</option>
-                    <option value="4k">4K (where available)</option>
-                  </select>
-                  <Button
-                    variant={includeAudio ? 'default' : 'secondary'}
-                    size="sm"
-                    onClick={() => {
-                      setIncludeAudio(!includeAudio);
-                    }}
-                    title={includeAudio ? 'Audio enabled' : 'Audio disabled'}
-                  >
-                    {includeAudio ? <Volume2 /> : <VolumeX />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-red-600 text-white hover:bg-red-700"
-                    onClick={() => void handleStartRecording()}
-                    title="Start recording to local file"
-                  >
-                    <Circle className="!size-3 fill-current" />
-                    Record
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <span className="flex h-9 items-center gap-1.5 px-2 font-mono text-sm">
-                    <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
-                    {formatDuration(duration)}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => void handleTogglePause()}
-                    title={isPaused ? 'Resume' : 'Pause'}
-                  >
-                    {isPaused ? <Play /> : <Pause />}
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => void handleStopRecording()}>
-                    <StopCircle />
-                    Stop
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => void openRecordingsFolder()}
-                    title="Open recordings folder"
-                  >
-                    <FolderOpen />
-                  </Button>
-                </>
-              )}
-            </div>
+            {/* Recording controls (only when screen sharing) */}
+            {stream && (
+              <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
+                {!isRecording ? (
+                  <>
+                    <select
+                      value={recordingQuality}
+                      onChange={(e) => {
+                        setRecordingQuality(e.target.value as RecordingQuality);
+                      }}
+                      className="h-9 rounded-md bg-background px-2 text-sm"
+                      title="Recording quality - affects file size and bitrate"
+                    >
+                      <option value="720p">720p</option>
+                      <option value="1080p">1080p</option>
+                      <option value="4k">4K (where available)</option>
+                    </select>
+                    <Button
+                      variant={includeAudio ? 'default' : 'secondary'}
+                      size="sm"
+                      onClick={() => {
+                        setIncludeAudio(!includeAudio);
+                      }}
+                      title={includeAudio ? 'Audio enabled' : 'Audio disabled'}
+                    >
+                      {includeAudio ? <Volume2 /> : <VolumeX />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      onClick={() => void handleStartRecording()}
+                      title="Start recording to local file"
+                    >
+                      <Circle className="!size-3 fill-current" />
+                      Record
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex h-9 items-center gap-1.5 px-2 font-mono text-sm">
+                      <Circle className="h-2 w-2 animate-pulse fill-red-500 text-red-500" />
+                      {formatDuration(duration)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => void handleTogglePause()}
+                      title={isPaused ? 'Resume' : 'Pause'}
+                    >
+                      {isPaused ? <Play /> : <Pause />}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => void handleStopRecording()}
+                    >
+                      <StopCircle />
+                      Stop
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => void openRecordingsFolder()}
+                      title="Open recordings folder"
+                    >
+                      <FolderOpen />
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
 
-            {/* Streaming controls */}
-            {destinations.length > 0 && (
+            {/* Streaming controls (only when screen sharing) */}
+            {stream && destinations.length > 0 && (
               <StreamControls
                 stream={stream}
                 destinations={destinations}
@@ -621,22 +663,50 @@ export function CapturePreview({
               />
             )}
 
-            {/* Stop sharing button */}
+            {/* Share Screen button (when no stream) */}
+            {!stream && onStartCapture && (
+              <Button variant="default" size="sm" onClick={onStartCapture}>
+                <Monitor className="h-4 w-4" />
+                Share Screen
+              </Button>
+            )}
+
+            {/* Stop Sharing button (only when actively sharing) */}
+            {stream && onStopCapture && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleStopScreenShare}
+                disabled={isRecording || isAnyStreaming}
+                title={
+                  isRecording
+                    ? 'Stop recording first'
+                    : isAnyStreaming
+                      ? 'Stop streaming first'
+                      : 'Stop screen sharing'
+                }
+              >
+                <StopCircle />
+                Stop Sharing
+              </Button>
+            )}
+
+            {/* End Session button (always visible) */}
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => void handleStop()}
+              onClick={() => void handleEndSession()}
               disabled={isEnding || isRecording || isAnyStreaming}
               title={
                 isRecording
                   ? 'Stop recording first'
                   : isAnyStreaming
                     ? 'Stop streaming first'
-                    : undefined
+                    : 'End session and disconnect all participants'
               }
             >
               {isEnding ? <Loader2 className="animate-spin" /> : <StopCircle />}
-              Stop Sharing
+              End Session
             </Button>
           </div>
         </div>
@@ -721,10 +791,13 @@ export function CapturePreview({
               </Button>
             </div>
 
-            <span className="font-mono text-sm text-muted-foreground">
-              {stream.getVideoTracks()[0]?.getSettings().width ?? 0} x{' '}
-              {stream.getVideoTracks()[0]?.getSettings().height ?? 0}
-            </span>
+            {stream && (
+              <span className="font-mono text-sm text-muted-foreground">
+                {stream.getVideoTracks()[0]?.getSettings().width ?? 0} x{' '}
+                {stream.getVideoTracks()[0]?.getSettings().height ?? 0}
+              </span>
+            )}
+            {!stream && <span className="text-sm text-muted-foreground">Voice Only</span>}
           </div>
         ) : isCreating ? (
           <div className="flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
@@ -743,8 +816,27 @@ export function CapturePreview({
             autoPlay
             playsInline
             muted
-            className="h-full w-full object-contain"
+            className={`h-full w-full object-contain ${!stream ? 'hidden' : ''}`}
           />
+
+          {/* Voice-only placeholder when no screen is shared */}
+          {!stream && (
+            <div className="flex h-full flex-col items-center justify-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
+                <Mic className="h-8 w-8 text-gray-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-300">No screen is being shared</p>
+                <p className="mt-1 text-xs text-gray-500">Voice session active</p>
+              </div>
+              {onStartCapture && (
+                <Button variant="secondary" size="sm" onClick={onStartCapture} className="mt-2">
+                  <Monitor className="h-4 w-4" />
+                  Share Screen
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Live/Preview indicator */}
           <div className="absolute left-4 top-4 flex flex-col gap-2">

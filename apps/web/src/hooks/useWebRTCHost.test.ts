@@ -162,14 +162,15 @@ describe('useWebRTCHost', () => {
     expect(result.current.muteViewer).toBeInstanceOf(Function);
   });
 
-  it('should set error when no stream available', () => {
+  it('should start hosting without a stream (voice-only session)', () => {
     const { result } = renderHook(() => useWebRTCHost({ ...defaultOptions, localStream: null }));
 
     act(() => {
       void result.current.startHosting();
     });
 
-    expect(result.current.error).toBe('No stream available. Please start screen sharing first.');
+    // Should not set an error — voice-only sessions are now supported
+    expect(result.current.error).toBeNull();
   });
 
   describe('startHosting', () => {

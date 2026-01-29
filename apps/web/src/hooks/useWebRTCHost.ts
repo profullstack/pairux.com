@@ -98,6 +98,8 @@ interface UseWebRTCHostReturn {
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
+  publishStream: (stream: MediaStream) => Promise<void>;
+  unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
@@ -131,11 +133,13 @@ export function useWebRTCHost({
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(localStream);
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
 
   // Keep refs updated
+  localStreamRef.current = localStream;
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
@@ -309,16 +313,17 @@ export function useWebRTCHost({
         iceCandidatePoolSize: 10,
       });
 
-      // Add local stream tracks with screen sharing optimizations
-      if (localStream) {
-        localStream.getTracks().forEach((track) => {
+      // Add local stream tracks with screen sharing optimizations (if currently sharing)
+      const currentStream = localStreamRef.current;
+      if (currentStream) {
+        currentStream.getTracks().forEach((track) => {
           // Set content hint for video tracks to optimize for screen content (text/graphics)
           if (track.kind === 'video') {
             // 'detail' hint tells encoder to prioritize sharpness over smoothness
             track.contentHint = 'detail';
           }
 
-          const sender = pc.addTrack(track, localStream);
+          const sender = pc.addTrack(track, currentStream);
 
           // Configure video sender with high-quality encoding parameters
           if (track.kind === 'video') {
@@ -463,7 +468,7 @@ export function useWebRTCHost({
 
       return pc;
     },
-    [localStream, hostId, handleDataChannelMessage, relayAudioToOtherViewers]
+    [hostId, handleDataChannelMessage, relayAudioToOtherViewers]
   );
 
   // Remove a viewer
@@ -578,13 +583,8 @@ export function useWebRTCHost({
     [hostId, createPeerConnection, onViewerJoined, removeViewer]
   );
 
-  // Start hosting
+  // Start hosting (sets up signaling channel and voice -- screen sharing is optional)
   const startHosting = useCallback(async () => {
-    if (!localStream) {
-      setError('No stream available. Please start screen sharing first.');
-      return;
-    }
-
     // Capture host microphone before setting up signaling
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -652,7 +652,6 @@ export function useWebRTCHost({
   }, [
     sessionId,
     hostId,
-    localStream,
     handleSignalMessage,
     handleViewerJoin,
     removeViewer,
@@ -712,6 +711,89 @@ export function useWebRTCHost({
     setHasMic(false);
   }, []);
 
+  // Publish a screen share stream to all connected viewers
+  const publishStream = useCallback(
+    async (stream: MediaStream) => {
+      localStreamRef.current = stream;
+
+      // Add stream tracks to all existing viewer peer connections and renegotiate
+      for (const viewer of viewersRef.current.values()) {
+        if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+          continue;
+
+        try {
+          stream.getTracks().forEach((track) => {
+            if (track.kind === 'video') {
+              track.contentHint = 'detail';
+            }
+            viewer.peerConnection.addTrack(track, stream);
+          });
+
+          // Renegotiate so viewer receives the new tracks
+          const offer = await viewer.peerConnection.createOffer();
+          await viewer.peerConnection.setLocalDescription(offer);
+
+          if (offer.sdp) {
+            void channelRef.current?.send({
+              type: 'broadcast',
+              event: 'signal',
+              payload: {
+                type: 'offer',
+                sdp: offer.sdp,
+                senderId: hostId,
+                targetId: viewer.id,
+                timestamp: Date.now(),
+              },
+            });
+          }
+        } catch (err) {
+          console.error(`[WebRTCHost] Failed to publish stream to ${viewer.id}:`, err);
+        }
+      }
+    },
+    [hostId]
+  );
+
+  // Unpublish the screen share stream (remove video tracks) without closing connections
+  const unpublishStream = useCallback(async () => {
+    localStreamRef.current = null;
+
+    for (const viewer of viewersRef.current.values()) {
+      if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+        continue;
+
+      try {
+        // Remove video senders (keep audio -- mic stays)
+        const senders = viewer.peerConnection.getSenders();
+        for (const sender of senders) {
+          if (sender.track?.kind === 'video') {
+            viewer.peerConnection.removeTrack(sender);
+          }
+        }
+
+        // Renegotiate so viewer sees track removal
+        const offer = await viewer.peerConnection.createOffer();
+        await viewer.peerConnection.setLocalDescription(offer);
+
+        if (offer.sdp) {
+          void channelRef.current?.send({
+            type: 'broadcast',
+            event: 'signal',
+            payload: {
+              type: 'offer',
+              sdp: offer.sdp,
+              senderId: hostId,
+              targetId: viewer.id,
+              timestamp: Date.now(),
+            },
+          });
+        }
+      } catch (err) {
+        console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
+      }
+    }
+  }, [hostId]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -719,7 +801,7 @@ export function useWebRTCHost({
     };
   }, [stopHosting]);
 
-  // Update stream when it changes (add/remove tracks)
+  // Update stream when it changes via prop (add/replace tracks)
   useEffect(() => {
     if (!localStream || !isHosting) return;
 
@@ -856,6 +938,8 @@ export function useWebRTCHost({
     error,
     startHosting,
     stopHosting,
+    publishStream,
+    unpublishStream,
     grantControl,
     revokeControl,
     kickViewer,

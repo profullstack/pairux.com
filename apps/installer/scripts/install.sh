@@ -278,6 +278,9 @@ esac
 
 if [ -x "\$APPIMAGE" ]; then
     export ELECTRON_DISABLE_SANDBOX=1
+    # Unset ELECTRON_RUN_AS_NODE — VSCode's integrated terminal sets this,
+    # which prevents Electron from exposing its API (app, BrowserWindow, etc.)
+    unset ELECTRON_RUN_AS_NODE
     exec "\$APPIMAGE" "\$@"
 else
     echo "Error: PairUX AppImage not found at \$APPIMAGE"

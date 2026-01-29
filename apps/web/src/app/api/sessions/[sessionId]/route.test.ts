@@ -91,7 +91,7 @@ describe('DELETE /api/sessions/[sessionId]', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  it('ends session for authenticated host', async () => {
+  it('host leaves session for authenticated host', async () => {
     const mockSupabase = createMockSupabaseClient({
       rpc: vi.fn().mockResolvedValue({
         data: { success: true },
@@ -108,7 +108,7 @@ describe('DELETE /api/sessions/[sessionId]', () => {
     await response.json(); // consume response body
 
     expect(response.status).toBe(200);
-    expect(mockSupabase.rpc).toHaveBeenCalledWith('end_session', {
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('host_leave_session', {
       p_session_id: 'test-session-id',
     });
   });

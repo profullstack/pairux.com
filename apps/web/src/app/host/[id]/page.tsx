@@ -14,6 +14,7 @@ import {
   Eye,
   MessageSquare,
   Circle,
+  RefreshCw,
   Pause,
   Play,
   StopCircle,
@@ -176,8 +177,10 @@ function HostContent({
   useHostHook: HostHookFn;
 }) {
   const router = useRouter();
+  const [currentSession, setCurrentSession] = useState(session);
   const [copied, setCopied] = useState(false);
-  const [isEnding, setIsEnding] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [captureQuality, setCaptureQuality] = useState<CaptureQuality>('1080p');
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
@@ -314,7 +317,7 @@ function HostContent({
 
   // Copy join link to clipboard
   const copyJoinLink = useCallback(async () => {
-    const joinUrl = `${window.location.origin}/join/${session.join_code}`;
+    const joinUrl = `${window.location.origin}/join/${currentSession.join_code}`;
     try {
       await navigator.clipboard.writeText(joinUrl);
       setCopied(true);
@@ -324,7 +327,7 @@ function HostContent({
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, [session]);
+  }, [currentSession]);
 
   // Handle stop screen sharing (session stays alive for voice)
   const handleStopSharing = useCallback(() => {
@@ -388,11 +391,11 @@ function HostContent({
     void startCapture({ quality: captureQuality });
   }, [startCapture, captureQuality]);
 
-  // Handle end session
-  const handleEndSession = useCallback(async () => {
-    if (isEnding) return;
+  // Handle leave session (room stays alive for viewers)
+  const handleLeaveSession = useCallback(async () => {
+    if (isLeaving) return;
 
-    setIsEnding(true);
+    setIsLeaving(true);
     try {
       stopCapture();
       stopHosting();
@@ -402,15 +405,41 @@ function HostContent({
       });
 
       if (!res.ok) {
-        console.error('Failed to end session');
+        console.error('Failed to leave session');
       }
 
       router.push('/');
     } catch (err) {
-      console.error('Error ending session:', err);
+      console.error('Error leaving session:', err);
       router.push('/');
     }
-  }, [sessionId, isEnding, stopCapture, stopHosting, router]);
+  }, [sessionId, isLeaving, stopCapture, stopHosting, router]);
+
+  // Handle regenerating join code (invalidates old invite URL)
+  const handleRegenerateCode = useCallback(async () => {
+    if (isRegenerating) return;
+
+    setIsRegenerating(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/regenerate-code`, {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        const result = (await res.json()) as ApiResponse<SessionData>;
+        if (result.data) {
+          const newJoinCode = result.data.join_code;
+          setCurrentSession((prev) => ({ ...prev, join_code: newJoinCode }));
+        }
+      } else {
+        console.error('Failed to regenerate join code');
+      }
+    } catch (err) {
+      console.error('Error regenerating code:', err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [sessionId, isRegenerating]);
 
   const displayError = captureError ?? hostingError ?? recordingError;
 
@@ -547,20 +576,20 @@ function HostContent({
                 {viewerCount} {viewerCount === 1 ? 'viewer' : 'viewers'}
               </div>
 
-              {/* End session button */}
+              {/* Leave session button */}
               <button
                 type="button"
-                onClick={() => void handleEndSession()}
-                disabled={isEnding || isRecording}
+                onClick={() => void handleLeaveSession()}
+                disabled={isLeaving || isRecording}
                 title={isRecording ? 'Stop recording first' : undefined}
                 className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
               >
-                {isEnding ? (
+                {isLeaving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <LogOut className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">End</span>
+                <span className="hidden sm:inline">Leave</span>
               </button>
             </div>
           </div>
@@ -608,7 +637,9 @@ function HostContent({
               <div className="flex items-center gap-3">
                 <div>
                   <p className="text-xs text-gray-500">Join Code</p>
-                  <p className="font-mono text-lg font-bold text-white">{session.join_code}</p>
+                  <p className="font-mono text-lg font-bold text-white">
+                    {currentSession.join_code}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -638,6 +669,24 @@ function HostContent({
                 >
                   <Share2 className="h-4 w-4" />
                   Share Session
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        'This will invalidate the current join link. Anyone with the old link will no longer be able to join. Continue?'
+                      )
+                    ) {
+                      void handleRegenerateCode();
+                    }
+                  }}
+                  disabled={isRegenerating}
+                  className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
+                  title="Generate a new join code, invalidating the old link"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                  Reset Invite Link
                 </button>
               </div>
             </div>

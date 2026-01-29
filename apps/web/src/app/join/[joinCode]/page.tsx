@@ -210,6 +210,25 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                   <span className="font-mono font-semibold text-gray-900">{session.join_code}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Status</span>
+                  <span
+                    className={`flex items-center gap-1 font-medium ${
+                      session.status === 'active' ? 'text-green-600' : 'text-orange-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${
+                        session.status === 'active' ? 'bg-green-500' : 'bg-orange-500'
+                      }`}
+                    />
+                    {session.status === 'active'
+                      ? 'Host is sharing'
+                      : session.status === 'paused'
+                        ? 'Host not currently present'
+                        : 'Waiting for host'}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-sm">
                   <span className="text-gray-600">Participants</span>
                   <span className="flex items-center gap-1 text-gray-900">
                     <Users className="h-4 w-4" />

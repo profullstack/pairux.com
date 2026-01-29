@@ -30,6 +30,14 @@ vi.mock('@/hooks/useWebRTC', () => ({
   useWebRTC: () => mockUseWebRTC,
 }));
 
+vi.mock('@/hooks/useSessionPresence', () => ({
+  useSessionPresence: () => ({
+    status: 'active',
+    currentHostId: 'host-123',
+    hostOnline: true,
+  }),
+}));
+
 vi.mock('@/components/chat/ChatPanel', () => ({
   ChatPanel: ({ sessionId }: { sessionId: string }) => (
     <div data-testid="chat-panel">Chat for {sessionId}</div>
@@ -38,6 +46,10 @@ vi.mock('@/components/chat/ChatPanel', () => ({
 
 vi.mock('@/components/session/SessionSettingsPanel', () => ({
   SessionSettingsPanel: () => <div data-testid="session-settings-panel">Settings Panel</div>,
+}));
+
+vi.mock('@/components/session/HostPresenceIndicator', () => ({
+  HostPresenceIndicator: () => null,
 }));
 
 // Create a stable promise that resolves immediately

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useId, useRef, useCallback } from 'react';
+import { useState, useEffect, use, useId, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -32,6 +32,8 @@ import {
 } from '@/components/control';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import { SessionSettingsPanel } from '@/components/session/SessionSettingsPanel';
+import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicator';
+import { useSessionPresence } from '@/hooks/useSessionPresence';
 import { Logo } from '@/components/Logo';
 
 type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
@@ -263,12 +265,27 @@ function SessionViewerContent({
   const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
+  // Track host presence in real-time
+  const { status: sessionStatus, currentHostId, hostOnline } = useSessionPresence(sessionId);
+  const prevHostOnline = useRef(hostOnline);
+
+  // Auto-reconnect when host returns
+  useEffect(() => {
+    if (hostOnline && !prevHostOnline.current) {
+      reconnect();
+    }
+    prevHostOnline.current = hostOnline;
+  }, [hostOnline, reconnect]);
+
   const togglePanel = useCallback((panel: SidebarPanel) => {
     setActivePanel((current) => (current === panel ? null : panel));
   }, []);
 
   const allowControl = session.settings.allowControl ?? false;
-  const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
+  const activeParticipants = useMemo(
+    () => session.session_participants.filter((p) => p.role !== 'left'),
+    [session.session_participants]
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
@@ -306,6 +323,9 @@ function SessionViewerContent({
         {/* Video area */}
         <main className="flex flex-1 flex-col">
           <div ref={videoContainerRef} className="relative flex-1 bg-black">
+            {!hostOnline && (
+              <HostPresenceIndicator sessionStatus={sessionStatus} currentHostId={currentHostId} />
+            )}
             <InputCapture
               enabled={allowControl}
               controlState={controlState}

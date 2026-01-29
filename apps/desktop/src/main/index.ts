@@ -13,9 +13,9 @@ app.setName('pairux');
 
 // Load environment variables from .env file
 // In dev: __dirname is dist/main, so go up 2 levels to apps/desktop/.env (symlink to root)
-// In prod: app.getAppPath() points to the app resources
+// In prod: extraResources places .env in the resources directory
 const envPath = app.isPackaged
-  ? resolve(app.getAppPath(), '.env')
+  ? resolve(process.resourcesPath, '.env')
   : resolve(__dirname, '../../.env');
 config({ path: envPath });
 

@@ -38,6 +38,9 @@
     "zod": "^3.24.0",
     "zustand": "^4.5.0"
   },
+  "optionalDependencies": {
+    "@nut-tree-fork/node-mac-permissions": "^2.2.1"
+  },
   "devDependencies": {
     "@pairux/shared-types": "workspace:*",
     "@testing-library/jest-dom": "^6.6.0",

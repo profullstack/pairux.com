@@ -2,12 +2,15 @@
  * RTMP streaming module - manages ffmpeg child processes for live streaming
  */
 
-import { type ChildProcess, spawn } from 'child_process';
+import { type ChildProcess, spawn, execSync } from 'child_process';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { app, type BrowserWindow } from 'electron';
 import type { RTMPDestinationInfo, RTMPStreamState, EncoderSettings } from '../../preload/api';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg') as { path: string };
+// undefined = not resolved yet, null = resolved but not found, string = path
+let _ffmpegPath: string | null | undefined = undefined;
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 const RECONNECT_BASE_DELAY = 2000;
@@ -36,12 +39,64 @@ function sendEvent(event: string, data: unknown): void {
   }
 }
 
-export function getFFmpegPath(): string {
-  let ffmpegPath = ffmpegInstaller.path;
-  if (app.isPackaged) {
-    ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked');
+/**
+ * Resolve ffmpeg binary path using a cascade:
+ * 1. Installer-provisioned: ~/.pairux/bin/ffmpeg (or %LOCALAPPDATA%\PairUX\bin\ffmpeg.exe)
+ * 2. System PATH: which ffmpeg / where ffmpeg
+ * 3. Dev-only fallback: @ffmpeg-installer/ffmpeg npm package
+ * Returns null if ffmpeg is not available.
+ */
+export function getFFmpegPath(): string | null {
+  if (_ffmpegPath !== undefined) {
+    return _ffmpegPath;
   }
-  return ffmpegPath;
+
+  // 1. Check installer-provisioned path
+  const installerPath =
+    process.platform === 'win32'
+      ? join(
+          process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'),
+          'PairUX',
+          'bin',
+          'ffmpeg.exe'
+        )
+      : join(homedir(), '.pairux', 'bin', 'ffmpeg');
+
+  if (existsSync(installerPath)) {
+    _ffmpegPath = installerPath;
+    console.log(`[Streaming] Using installer ffmpeg: ${installerPath}`);
+    return _ffmpegPath;
+  }
+
+  // 2. Check system PATH
+  try {
+    const cmd = process.platform === 'win32' ? 'where ffmpeg' : 'which ffmpeg';
+    const result = execSync(cmd, { encoding: 'utf8', timeout: 3000 }).trim().split('\n')[0].trim();
+    if (result && existsSync(result)) {
+      _ffmpegPath = result;
+      console.log(`[Streaming] Using system ffmpeg: ${result}`);
+      return _ffmpegPath;
+    }
+  } catch {
+    // Not found in PATH
+  }
+
+  // 3. Dev-only fallback: @ffmpeg-installer/ffmpeg npm package
+  if (!app.isPackaged) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg') as { path: string };
+      _ffmpegPath = ffmpegInstaller.path;
+      console.log(`[Streaming] Using npm ffmpeg: ${_ffmpegPath}`);
+      return _ffmpegPath;
+    } catch {
+      // Package not available
+    }
+  }
+
+  console.warn('[Streaming] ffmpeg not found — streaming features will be unavailable');
+  _ffmpegPath = null;
+  return null;
 }
 
 function getResolution(resolution: '720p' | '1080p'): string {
@@ -174,6 +229,12 @@ function spawnFFmpeg(
 ): { success: boolean; error?: string } {
   try {
     const ffmpegPath = getFFmpegPath();
+    if (!ffmpegPath) {
+      return {
+        success: false,
+        error: 'ffmpeg is not installed. Please reinstall PairUX or install ffmpeg manually.',
+      };
+    }
     const args = buildFFmpegArgs(destination.encoderSettings, destination.rtmpUrl, streamKey);
 
     const proc = spawn(ffmpegPath, args, {

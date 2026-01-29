@@ -26,7 +26,6 @@
     "clean": "rm -rf dist out node_modules"
   },
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@nut-tree-fork/nut-js": "^4.2.6",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
@@ -42,6 +41,7 @@
     "@nut-tree-fork/node-mac-permissions": "^2.2.1"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@pairux/shared-types": "workspace:*",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",

@@ -90,7 +90,7 @@ check_dependencies() {
     fi
 }
 
-# Download file
+# Download file (silent — for metadata fetches)
 download() {
     local url="$1"
     local output="$2"
@@ -99,6 +99,18 @@ download() {
         curl -fsSL "$url" -o "$output"
     elif command -v wget &> /dev/null; then
         wget -q "$url" -O "$output"
+    fi
+}
+
+# Download file with progress bar (for large binaries)
+download_with_progress() {
+    local url="$1"
+    local output="$2"
+
+    if command -v curl &> /dev/null; then
+        curl -fL --progress-bar "$url" -o "$output"
+    elif command -v wget &> /dev/null; then
+        wget --progress=bar:force:noscroll "$url" -O "$output" 2>&1
     fi
 }
 
@@ -153,6 +165,63 @@ get_download_url() {
     echo "https://github.com/${GITHUB_REPO}/releases/download/v${version}/${filename}"
 }
 
+# Get ffmpeg download URL for platform (extracted from @ffmpeg-installer during CI)
+get_ffmpeg_url() {
+    local platform="$1"
+    local version="$2"
+    local os arch
+
+    os=$(echo "$platform" | cut -d'-' -f1)
+    arch=$(echo "$platform" | cut -d'-' -f2)
+
+    # CI maps: darwin->mac, linux->linux, windows->win
+    local ci_platform
+    case "$os" in
+        darwin) ci_platform="mac";;
+        linux)  ci_platform="linux";;
+        *)      return 1;;
+    esac
+
+    echo "https://github.com/${GITHUB_REPO}/releases/download/v${version}/ffmpeg-${ci_platform}-${arch}.gz"
+}
+
+# Install ffmpeg binary for RTMP streaming support
+install_ffmpeg() {
+    local platform="$1"
+    local version="$2"
+
+    local ffmpeg_url
+    ffmpeg_url=$(get_ffmpeg_url "$platform" "$version") || {
+        warn "ffmpeg not available for this platform (streaming will use system ffmpeg if available)"
+        return 0
+    }
+
+    local ffmpeg_bin_dir="${INSTALL_DIR}/bin"
+    local ffmpeg_path="${ffmpeg_bin_dir}/ffmpeg"
+
+    info "Installing ffmpeg for streaming support..."
+    mkdir -p "$ffmpeg_bin_dir"
+
+    local temp_file
+    temp_file=$(mktemp)
+
+    if download_with_progress "$ffmpeg_url" "$temp_file"; then
+        gunzip -c "$temp_file" > "$ffmpeg_path" 2>/dev/null
+        chmod +x "$ffmpeg_path"
+        rm -f "$temp_file"
+
+        if "$ffmpeg_path" -version &> /dev/null; then
+            success "ffmpeg installed"
+        else
+            warn "ffmpeg binary may not be compatible — streaming will fall back to system ffmpeg"
+            rm -f "$ffmpeg_path"
+        fi
+    else
+        warn "Could not download ffmpeg — streaming will use system ffmpeg if available"
+        rm -f "$temp_file"
+    fi
+}
+
 # Install on macOS
 install_macos() {
     local version="$1"
@@ -168,7 +237,7 @@ install_macos() {
     info "Downloading PairUX ${version} for macOS ${arch}..."
     local archive_path="${temp_dir}/PairUX.zip"
 
-    download "$download_url" "$archive_path" || error "Failed to download PairUX"
+    download_with_progress "$download_url" "$archive_path" || error "Failed to download PairUX"
 
     info "Extracting..."
     # Use ditto to preserve macOS file attributes, permissions, and code signing
@@ -206,7 +275,7 @@ install_linux() {
     local appimage_path="${INSTALL_DIR}/PairUX.AppImage"
 
     mkdir -p "$INSTALL_DIR"
-    download "$download_url" "$appimage_path" || error "Failed to download PairUX"
+    download_with_progress "$download_url" "$appimage_path" || error "Failed to download PairUX"
 
     chmod +x "$appimage_path"
 
@@ -352,6 +421,8 @@ install_pairux() {
             error "Unsupported operating system: $os"
             ;;
     esac
+
+    install_ffmpeg "$platform" "$version"
 }
 
 # Add to PATH if needed

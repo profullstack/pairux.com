@@ -120,6 +120,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract ffmpeg binary
+        shell: bash
+        run: |
+          FFMPEG_PATH=$(node -e "try { console.log(require('@ffmpeg-installer/ffmpeg').path) } catch(e) { process.exit(1) }")
+          if [ -n "$FFMPEG_PATH" ] && [ -f "$FFMPEG_PATH" ]; then
+            EXT=""
+            if [ "${{ matrix.platform }}" = "win" ]; then EXT=".exe"; fi
+            cp "$FFMPEG_PATH" "apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
+            gzip "apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
+            echo "Extracted ffmpeg to ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}.gz"
+          else
+            echo "WARNING: ffmpeg binary not found for this platform"
+          fi
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -131,6 +145,7 @@ jobs:
             apps/desktop/out/*.AppImage
             apps/desktop/out/*.deb
             apps/desktop/out/*.rpm
+            apps/desktop/out/*.gz
           retention-days: 7
 
   release:

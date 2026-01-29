@@ -206,6 +206,48 @@ function New-StartMenuShortcut {
     }
 }
 
+# Install ffmpeg binary for RTMP streaming support
+function Install-FFmpeg {
+    param(
+        [string]$Version
+    )
+
+    $ffmpegBinDir = Join-Path $InstallDir 'bin'
+    $ffmpegPath = Join-Path $ffmpegBinDir 'ffmpeg.exe'
+    $ffmpegUrl = "https://github.com/$GitHubRepo/releases/download/v$Version/ffmpeg-win-x64.exe.gz"
+
+    Write-Info 'Installing ffmpeg for streaming support...'
+
+    $tempFile = Join-Path $env:TEMP "ffmpeg-$(Get-Random).gz"
+
+    try {
+        $ProgressPreference = 'Continue'
+        Invoke-WebRequest -Uri $ffmpegUrl -OutFile $tempFile -UseBasicParsing
+
+        New-Item -ItemType Directory -Path $ffmpegBinDir -Force | Out-Null
+
+        # Decompress gzip
+        $inStream = [System.IO.File]::OpenRead($tempFile)
+        $gzipStream = New-Object System.IO.Compression.GZipStream($inStream, [System.IO.Compression.CompressionMode]::Decompress)
+        $outStream = [System.IO.File]::Create($ffmpegPath)
+        $gzipStream.CopyTo($outStream)
+        $outStream.Close()
+        $gzipStream.Close()
+        $inStream.Close()
+
+        Write-Success 'ffmpeg installed'
+    }
+    catch {
+        Write-Warning "Could not install ffmpeg: $_"
+        Write-Warning 'Streaming features will use system ffmpeg if available'
+    }
+    finally {
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 # Main
 function Main {
     Show-Banner
@@ -219,6 +261,7 @@ function Main {
     Write-Info "Latest version: $version"
 
     Install-PairUX -Platform $platform -Version $version
+    Install-FFmpeg -Version $version
     Add-ToPath
     New-DesktopShortcut
     New-StartMenuShortcut

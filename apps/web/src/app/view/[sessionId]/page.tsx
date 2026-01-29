@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Users, MessageSquare, Settings, LogOut, Loader2, AlertCircle } from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicator';
+import { useSessionPresence } from '@/hooks/useSessionPresence';
 import type {
   ConnectionState,
   CursorPositionMessage,
@@ -276,6 +278,18 @@ function GuestViewerContent({
   const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
 
+  // Track host presence in real-time
+  const { status: sessionStatus, currentHostId, hostOnline } = useSessionPresence(session.id);
+  const prevHostOnline = useRef(hostOnline);
+
+  // Auto-reconnect when host returns
+  useEffect(() => {
+    if (hostOnline && !prevHostOnline.current) {
+      reconnect();
+    }
+    prevHostOnline.current = hostOnline;
+  }, [hostOnline, reconnect]);
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
       {/* Header */}
@@ -318,6 +332,9 @@ function GuestViewerContent({
         {/* Video area */}
         <main className="flex flex-1 flex-col">
           <div ref={videoContainerRef} className="relative flex-1 bg-black">
+            {!hostOnline && (
+              <HostPresenceIndicator sessionStatus={sessionStatus} currentHostId={currentHostId} />
+            )}
             <InputCapture
               enabled={allowControl}
               controlState={controlState}

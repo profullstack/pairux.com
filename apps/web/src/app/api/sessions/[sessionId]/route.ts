@@ -32,7 +32,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/sessions/[sessionId] - End a session
+// DELETE /api/sessions/[sessionId] - Host leaves session (room stays alive)
 export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
     const { sessionId } = await params;
@@ -45,14 +45,14 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return errorResponse('Authentication required', 401);
     }
 
-    // End session using RPC function
+    // Host leaves session — room persists for viewers to keep chatting
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any)('end_session', {
+    const { data, error } = await (supabase.rpc as any)('host_leave_session', {
       p_session_id: sessionId,
     });
 
     if (error) {
-      console.error('End session error:', error);
+      console.error('Leave session error:', error);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
     }

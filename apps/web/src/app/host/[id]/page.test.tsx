@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { Suspense } from 'react';
 import HostSessionPage from './page';
 import type { ViewerConnection } from '@/hooks/useWebRTCHost';
@@ -331,6 +331,85 @@ describe('HostSessionPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/SFU/)).toBeInTheDocument();
+    });
+  });
+
+  it('should show Leave button instead of End', async () => {
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Leave')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('End')).not.toBeInTheDocument();
+  });
+
+  it('should show Reset Invite Link button', async () => {
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Reset Invite Link')).toBeInTheDocument();
+    });
+  });
+
+  it('should call DELETE API when Leave is clicked', async () => {
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Leave')).toBeInTheDocument();
+    });
+
+    // Clear the initial fetch mock
+    vi.mocked(global.fetch).mockClear();
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ data: {} }),
+    } as Response);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Leave'));
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/sessions/session-1',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+  });
+
+  it('should regenerate join code and update display', async () => {
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('ABC123')).toBeInTheDocument();
+    });
+
+    // Mock confirm dialog
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    // Mock the regenerate API response
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { ...mockSessionData, join_code: 'XYZ789' } }),
+    } as Response);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Reset Invite Link'));
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/sessions/session-1/regenerate-code',
+        expect.objectContaining({ method: 'POST' })
+      );
     });
   });
 });

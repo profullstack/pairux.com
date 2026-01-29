@@ -30,18 +30,38 @@ export function VideoViewer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [needsAudioGesture, setNeedsAudioGesture] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Attach stream to video element
+  // On iOS Safari, unmuted autoplay is blocked. We try unmuted first, and if
+  // that fails we fall back to muted playback + a "Tap for audio" overlay.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (stream) {
       video.srcObject = stream;
-      video.play().catch((err: unknown) => {
-        console.error('Failed to play video:', err);
-      });
+      video.muted = false;
+      video
+        .play()
+        .then(() => {
+          setIsMuted(false);
+          setNeedsAudioGesture(false);
+        })
+        .catch(() => {
+          // Unmuted play blocked (iOS) — retry muted
+          video.muted = true;
+          setIsMuted(true);
+          video
+            .play()
+            .then(() => {
+              setNeedsAudioGesture(true);
+            })
+            .catch((err: unknown) => {
+              console.error('Failed to play video:', err);
+            });
+        });
     } else {
       video.srcObject = null;
     }
@@ -75,12 +95,13 @@ export function VideoViewer({
     }
   }, []);
 
-  // Toggle mute
+  // Toggle mute (also clears the iOS audio gesture banner)
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
     if (video) {
       video.muted = !video.muted;
       setIsMuted(video.muted);
+      setNeedsAudioGesture(false);
     }
   }, []);
 
@@ -128,14 +149,22 @@ export function VideoViewer({
         if (isStreaming) setShowControls(false);
       }}
     >
-      {/* Video element */}
-      <video
-        ref={videoRef}
-        className="h-full w-full object-contain"
-        autoPlay
-        playsInline
-        muted={isMuted}
-      />
+      {/* Video element — muted state is controlled imperatively for iOS compat */}
+      <video ref={videoRef} className="h-full w-full object-contain" autoPlay playsInline />
+
+      {/* iOS autoplay: tap to enable audio */}
+      {needsAudioGesture && isStreaming && (
+        <button
+          type="button"
+          className="absolute top-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white backdrop-blur transition-opacity hover:bg-black/90"
+          onClick={toggleMute}
+        >
+          <span className="flex items-center gap-2">
+            <VolumeX className="h-4 w-4" />
+            Tap to enable audio
+          </span>
+        </button>
+      )}
 
       {/* Connection status overlay */}
       <ConnectionStatus connectionState={connectionState} error={error} onReconnect={onReconnect} />

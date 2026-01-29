@@ -25,6 +25,8 @@ asar: true
 asarUnpack:
   - '**/*.node'
 
+afterSign: scripts/notarize.cjs
+
 mac:
   category: public.app-category.productivity
   target:

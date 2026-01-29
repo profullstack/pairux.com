@@ -253,14 +253,6 @@ export function useWebRTCHostSFUAPI({
           if (viewer) {
             viewer.audioTrack = track.mediaStreamTrack;
 
-            const audioEl = new Audio();
-            audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
-            audioEl.autoplay = true;
-            audioEl.volume = 1.0;
-            void audioEl.play().catch((err: unknown) => {
-              console.warn('[WebRTCHostSFUAPI] Failed to play viewer audio:', err);
-            });
-            viewer.audioElement = audioEl;
             setViewers(new Map(viewersRef.current));
           }
         }

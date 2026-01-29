@@ -22,11 +22,12 @@ import {
   MicOff,
 } from 'lucide-react';
 import { VideoPreview } from '@/components/video';
-import { ParticipantList } from '@/components/chat/ParticipantList';
+import { HostParticipantList } from '@/components/participants/HostParticipantList';
 import { ChatPanel } from '@/components/chat/ChatPanel';
+import { useParticipants } from '@/components/chat/useParticipants';
 import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
-import { useWebRTCHost } from '@/hooks/useWebRTCHost';
+import { useWebRTCHost, type ViewerConnection } from '@/hooks/useWebRTCHost';
 import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
 import type { SessionParticipant } from '@pairux/shared-types';
@@ -52,12 +53,6 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Minimal viewer info needed for audio mixing
-interface HostedViewer {
-  audioTrack: MediaStreamTrack | null;
-  isMuted: boolean;
-}
-
 // Common type for both P2P and SFU host hooks (subset used by this page)
 type HostHookFn = (options: {
   sessionId: string;
@@ -68,10 +63,13 @@ type HostHookFn = (options: {
 }) => {
   isHosting: boolean;
   viewerCount: number;
-  viewers: Map<string, HostedViewer>;
+  viewers: Map<string, ViewerConnection>;
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
+  grantControl: (viewerId: string) => void;
+  revokeControl: (viewerId: string) => void;
+  kickViewer: (viewerId: string) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -217,6 +215,9 @@ function HostContent({
     error: hostingError,
     startHosting,
     stopHosting,
+    grantControl,
+    revokeControl,
+    kickViewer,
     micEnabled,
     hasMic,
     toggleMic,
@@ -232,6 +233,9 @@ function HostContent({
       console.log('Viewer left:', viewerId);
     },
   });
+
+  // Live participant list with realtime updates
+  const { participants: liveParticipants } = useParticipants({ sessionId });
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {
@@ -396,7 +400,7 @@ function HostContent({
       console.error('Error ending session:', err);
       router.push('/');
     }
-  }, [session, sessionId, isEnding, stopCapture, stopHosting, router]);
+  }, [sessionId, isEnding, stopCapture, stopHosting, router]);
 
   const displayError = captureError ?? hostingError ?? recordingError;
 
@@ -628,15 +632,16 @@ function HostContent({
         <aside className="hidden w-72 flex-shrink-0 border-l border-gray-800 bg-gray-900 lg:block">
           <div className="flex h-full flex-col">
             {/* Participants section */}
-            {session.session_participants && session.session_participants.length > 0 && (
-              <div className="border-b border-gray-800">
-                <ParticipantList
-                  participants={session.session_participants.filter((p) => !p.left_at)}
-                  currentUserId={session.host_user_id}
-                  defaultExpanded={true}
-                />
-              </div>
-            )}
+            <div className="border-b border-gray-800 p-4">
+              <HostParticipantList
+                participants={liveParticipants}
+                viewers={hostedViewers}
+                currentUserId={session.host_user_id}
+                onGrantControl={grantControl}
+                onRevokeControl={revokeControl}
+                onKickParticipant={kickViewer}
+              />
+            </div>
 
             <div className="flex-1 overflow-y-auto p-4">
               {/* Session info */}

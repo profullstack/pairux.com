@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Monitor, Loader2, AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Monitor, Loader2, AlertCircle, RefreshCw, Wifi, WifiOff, Mic } from 'lucide-react';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 
 interface VideoViewerProps {
@@ -36,6 +36,7 @@ export function VideoViewer({
   }, [stream]);
 
   const isStreaming = stream !== null && connectionState === 'connected';
+  const isVoiceOnly = connectionState === 'connected' && stream === null;
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
   const isFailed = connectionState === 'failed';
   const isDisconnected = connectionState === 'disconnected';
@@ -52,8 +53,23 @@ export function VideoViewer({
         className={`h-full w-full object-contain ${isStreaming ? '' : 'hidden'}`}
       />
 
+      {/* Voice-only placeholder: connected but no screen share */}
+      {isVoiceOnly && (
+        <div className="flex h-full items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
+              <Mic className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="mt-4 text-sm font-medium text-muted-foreground">
+              No screen is being shared
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/70">Voice session active</p>
+          </div>
+        </div>
+      )}
+
       {/* Waiting for stream overlay */}
-      {!isStreaming && !isFailed && !isDisconnected && (
+      {!isStreaming && !isVoiceOnly && !isFailed && !isDisconnected && (
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
             {isConnecting ? (

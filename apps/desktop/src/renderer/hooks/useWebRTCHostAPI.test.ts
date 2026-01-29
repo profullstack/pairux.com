@@ -175,7 +175,7 @@ describe('useWebRTCHostAPI', () => {
       expect(MockEventSource.instances).toHaveLength(1);
     });
 
-    it('should set error when no stream is available', async () => {
+    it('should start hosting without a stream (voice-only session)', async () => {
       const { result } = renderHook(() =>
         useWebRTCHostAPI({ ...defaultOptions, localStream: null })
       );
@@ -184,8 +184,17 @@ describe('useWebRTCHostAPI', () => {
         await result.current.startHosting();
       });
 
-      expect(result.current.error).toBe('No stream available. Please start screen sharing first.');
-      expect(MockEventSource.instances).toHaveLength(0);
+      // EventSource should be created (no stream guard anymore)
+      expect(MockEventSource.instances).toHaveLength(1);
+      expect(result.current.error).toBeNull();
+
+      // Simulate connected event
+      const es = MockEventSource.instances[0];
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      expect(result.current.isHosting).toBe(true);
     });
   });
 

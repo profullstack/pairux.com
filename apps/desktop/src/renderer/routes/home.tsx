@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Link2, Loader2 } from 'lucide-react';
+import { Users, Link2, Loader2, Mic } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
@@ -64,6 +64,7 @@ export function HomePage() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
 
   // Get platform info on mount
   useEffect(() => {
@@ -152,6 +153,7 @@ export function HomePage() {
       }
 
       setStream(mediaStream);
+      setSessionActive(true);
     } catch (err) {
       console.error('[Renderer] Failed to start capture:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -224,6 +226,7 @@ export function HomePage() {
 
       console.log('[Renderer] Wayland capture started:', settings);
       setStream(mediaStream);
+      setSessionActive(true);
     } catch (err) {
       console.error('[Renderer] Failed to start Wayland capture:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -237,13 +240,83 @@ export function HomePage() {
     }
   };
 
-  const handleStopCapture = () => {
+  // Stop screen sharing only (session continues with voice)
+  const handleStopScreenShare = () => {
     if (stream) {
       stream.getTracks().forEach((track) => {
         track.stop();
       });
       setStream(null);
       setSelectedSource(null);
+    }
+  };
+
+  // End session entirely (called by CapturePreview's onStop)
+  const handleEndSessionCleanup = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setStream(null);
+      setSelectedSource(null);
+    }
+    setSessionActive(false);
+    setPreCreatedSession(null);
+  };
+
+  // Start/restart screen capture from within an active session
+  const handleStartCaptureInSession = async () => {
+    if (isCapturing) return;
+    setIsCapturing(true);
+
+    try {
+      if (stream) {
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+
+      const mediaStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920, max: 3840 },
+          height: { ideal: 1080, max: 2160 },
+          frameRate: { ideal: 30, max: 60 },
+        },
+        audio: false,
+      });
+
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      videoTrack.contentHint = 'detail';
+      await constrainTrackToQualitySetting(videoTrack);
+
+      setSelectedSource({
+        id: videoTrack.id,
+        name: videoTrack.label || 'Screen',
+        type: 'screen',
+        thumbnail: undefined,
+      });
+
+      // Add microphone audio
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micStream.getAudioTracks().forEach((t) => {
+          mediaStream.addTrack(t);
+        });
+      } catch {
+        // No mic available
+      }
+
+      setStream(mediaStream);
+    } catch (err) {
+      console.error('[Home] Failed to start capture in session:', err);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+        setError('Screen capture was canceled or permission denied.');
+      } else {
+        setError(`Failed to capture: ${message}`);
+      }
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -263,7 +336,7 @@ export function HomePage() {
         </div>
       )}
 
-      {!stream ? (
+      {!stream && !sessionActive ? (
         <div className="relative">
           {/* Loading overlay */}
           {isCapturing && (
@@ -289,6 +362,16 @@ export function HomePage() {
               >
                 <Link2 className="h-4 w-4" />
                 Create Link
+              </button>
+              <button
+                onClick={() => {
+                  setSessionActive(true);
+                }}
+                disabled={isCapturing}
+                className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 disabled:opacity-50"
+              >
+                <Mic className="h-4 w-4" />
+                Start Voice Session
               </button>
               <button
                 onClick={() => void navigate('/join')}
@@ -340,7 +423,11 @@ export function HomePage() {
         <CapturePreview
           stream={stream}
           source={selectedSource}
-          onStop={handleStopCapture}
+          onStop={handleEndSessionCleanup}
+          onStopCapture={handleStopScreenShare}
+          onStartCapture={() => {
+            void handleStartCaptureInSession();
+          }}
           currentUserId={user?.id}
           initialSession={preCreatedSession}
         />
@@ -353,6 +440,7 @@ export function HomePage() {
         }}
         onStartSharing={(session) => {
           setPreCreatedSession(session);
+          setSessionActive(true);
           setShowCreateLinkModal(false);
         }}
       />

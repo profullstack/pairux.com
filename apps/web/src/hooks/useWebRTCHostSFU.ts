@@ -55,6 +55,8 @@ interface UseWebRTCHostSFUReturn {
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
+  publishStream: (stream: MediaStream) => Promise<void>;
+  unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
@@ -185,13 +187,8 @@ export function useWebRTCHostSFU({
     onViewerLeftRef.current?.(identity);
   }, []);
 
-  // Start hosting
+  // Start hosting (sets up LiveKit room and voice -- screen sharing is optional)
   const startHosting = useCallback(async () => {
-    if (!localStream) {
-      setError('No stream available. Please start screen sharing first.');
-      return;
-    }
-
     try {
       // Fetch LiveKit token
       const tokenRes = await fetch('/api/livekit/token', {
@@ -266,25 +263,6 @@ export function useWebRTCHostSFU({
       // Connect to LiveKit
       await room.connect(data.url || LIVEKIT_URL, data.token);
 
-      // Publish screen share tracks
-      for (const track of localStream.getTracks()) {
-        if (track.kind === 'video') {
-          track.contentHint = 'detail';
-          await room.localParticipant.publishTrack(track, {
-            source: Track.Source.ScreenShare,
-            simulcast: false,
-            videoEncoding: {
-              maxBitrate: 8_000_000,
-              maxFramerate: 60,
-            },
-          });
-        } else if (track.kind === 'audio') {
-          await room.localParticipant.publishTrack(track, {
-            source: Track.Source.ScreenShareAudio,
-          });
-        }
-      }
-
       // Capture and publish host microphone
       try {
         await room.localParticipant.setMicrophoneEnabled(true);
@@ -306,7 +284,7 @@ export function useWebRTCHostSFU({
       console.error('[WebRTCHostSFU] Failed to start hosting:', err);
       setError(err instanceof Error ? err.message : 'Failed to start hosting');
     }
-  }, [sessionId, hostId, localStream, addViewer, removeViewer, handleDataReceived]);
+  }, [sessionId, hostId, addViewer, removeViewer, handleDataReceived]);
 
   // Stop hosting
   const stopHosting = useCallback(() => {
@@ -336,6 +314,48 @@ export function useWebRTCHostSFU({
     setHasMic(false);
   }, []);
 
+  // Publish a screen share stream to the LiveKit room
+  const publishStream = useCallback(async (stream: MediaStream) => {
+    const room = roomRef.current;
+    if (room?.state !== LKConnectionState.Connected) {
+      console.warn('[WebRTCHostSFU] Cannot publish stream: room not connected');
+      return;
+    }
+
+    for (const track of stream.getTracks()) {
+      if (track.kind === 'video') {
+        track.contentHint = 'detail';
+        await room.localParticipant.publishTrack(track, {
+          source: Track.Source.ScreenShare,
+          simulcast: false,
+          videoEncoding: {
+            maxBitrate: 8_000_000,
+            maxFramerate: 60,
+          },
+        });
+      } else if (track.kind === 'audio') {
+        await room.localParticipant.publishTrack(track, {
+          source: Track.Source.ScreenShareAudio,
+        });
+      }
+    }
+  }, []);
+
+  // Unpublish screen share tracks (room stays connected, mic stays enabled)
+  const unpublishStream = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+
+    const pubs = Array.from(room.localParticipant.trackPublications.values());
+    for (const pub of pubs) {
+      if (pub.source === Track.Source.ScreenShare || pub.source === Track.Source.ScreenShareAudio) {
+        if (pub.track) {
+          await room.localParticipant.unpublishTrack(pub.track);
+        }
+      }
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -343,7 +363,7 @@ export function useWebRTCHostSFU({
     };
   }, [stopHosting]);
 
-  // Update published tracks when stream changes
+  // Update published tracks when stream changes via prop
   useEffect(() => {
     if (!localStream || !isHosting) return;
 
@@ -490,6 +510,8 @@ export function useWebRTCHostSFU({
     error,
     startHosting,
     stopHosting,
+    publishStream,
+    unpublishStream,
     grantControl,
     revokeControl,
     kickViewer,

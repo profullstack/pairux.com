@@ -17,6 +17,7 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/build/**',
       'eslint.config.js',
+      'apps/mobile/*.js',
     ],
   },
 
@@ -64,6 +65,26 @@ export default tseslint.config(
   // Desktop app specific rules
   {
     files: ['apps/desktop/**/*.{ts,tsx}'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+    rules: {
+      ...reactPlugin.configs.recommended.rules,
+      ...reactPlugin.configs['jsx-runtime'].rules,
+      ...reactHooksPlugin.configs.recommended.rules,
+      'react/prop-types': 'off',
+    },
+  },
+
+  // Mobile app specific rules
+  {
+    files: ['apps/mobile/**/*.{ts,tsx}'],
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,

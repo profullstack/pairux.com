@@ -252,9 +252,94 @@ install_macos() {
 
     mv "${temp_dir}/PairUX.app" "${APPLICATIONS_DIR}/"
 
-    # Create CLI symlink
+    # Create CLI wrapper script
+    info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
-    ln -sf "${APPLICATIONS_DIR}/PairUX.app/Contents/MacOS/PairUX" "$BIN_DIR/pairux"
+    cat > "$BIN_DIR/pairux" << WRAPPER
+#!/bin/bash
+# PairUX launcher (macOS)
+
+VERSION="$version"
+APP_PATH="/Applications/PairUX.app"
+APP_BIN="\$APP_PATH/Contents/MacOS/PairUX"
+BIN_DIR="\$HOME/.local/bin"
+
+case "\${1-}" in
+    -h|--help)
+        echo "Usage: pairux [options]"
+        echo ""
+        echo "PairUX - collaborative screen sharing desktop app"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help       Show this help message"
+        echo "  -v, --version    Show version number"
+        echo "  update           Check for updates and install the latest version"
+        echo "  uninstall        Remove PairUX completely"
+        exit 0
+        ;;
+    -v|--version)
+        echo "pairux \$VERSION"
+        exit 0
+        ;;
+    update)
+        echo "Checking for updates..."
+
+        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+
+        if [ -z "\$LATEST" ]; then
+            LATEST=\$(curl -fsSL "https://installer.pairux.com/api/version" 2>/dev/null || echo "")
+        fi
+
+        if [ -z "\$LATEST" ]; then
+            echo "Error: Failed to check for updates. Check your internet connection."
+            exit 1
+        fi
+
+        echo "  Current version: \$VERSION"
+        echo "  Latest version:  \$LATEST"
+
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo ""
+            echo "PairUX is already up to date."
+            exit 0
+        fi
+
+        echo ""
+        echo "Updating PairUX to v\$LATEST..."
+        curl -fsSL https://installer.pairux.com/install.sh | bash
+        exit \$?
+        ;;
+    uninstall)
+        echo "Uninstalling PairUX..."
+        echo ""
+
+        # Kill running instances
+        pkill -f "PairUX" 2>/dev/null && echo "  Stopped running instance"
+
+        # Remove app bundle
+        if [ -d "\$APP_PATH" ]; then
+            rm -rf "\$APP_PATH"
+            echo "  Removed \$APP_PATH"
+        fi
+
+        # Remove this launcher script last
+        echo "  Removed \$BIN_DIR/pairux"
+        echo ""
+        echo "PairUX has been uninstalled."
+        rm -f "\$BIN_DIR/pairux"
+        exit 0
+        ;;
+esac
+
+if [ -x "\$APP_BIN" ]; then
+    exec "\$APP_BIN" "\$@"
+else
+    echo "Error: PairUX app not found at \$APP_PATH"
+    echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"
+    exit 1
+fi
+WRAPPER
+    chmod +x "$BIN_DIR/pairux"
 
     success "PairUX ${version} installed to ${APPLICATIONS_DIR}/PairUX.app"
 }
@@ -303,6 +388,7 @@ case "\${1-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message"
         echo "  -v, --version    Show version number"
+        echo "  update           Check for updates and install the latest version"
         echo "  uninstall        Remove PairUX completely"
         exit 0
         ;;
@@ -342,6 +428,34 @@ case "\${1-}" in
         echo "PairUX has been uninstalled."
         rm -f "\$BIN_DIR/pairux"
         exit 0
+        ;;
+    update)
+        echo "Checking for updates..."
+
+        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+
+        if [ -z "\$LATEST" ]; then
+            LATEST=\$(curl -fsSL "https://installer.pairux.com/api/version" 2>/dev/null || echo "")
+        fi
+
+        if [ -z "\$LATEST" ]; then
+            echo "Error: Failed to check for updates. Check your internet connection."
+            exit 1
+        fi
+
+        echo "  Current version: \$VERSION"
+        echo "  Latest version:  \$LATEST"
+
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo ""
+            echo "PairUX is already up to date."
+            exit 0
+        fi
+
+        echo ""
+        echo "Updating PairUX to v\$LATEST..."
+        curl -fsSL https://installer.pairux.com/install.sh | bash
+        exit \$?
         ;;
 esac
 

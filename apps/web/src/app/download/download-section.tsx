@@ -223,6 +223,16 @@ export function DownloadSection() {
             <p className="mt-4 text-center text-xs text-gray-500">
               Automatically downloads the latest version for your platform
             </p>
+
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <p className="text-center text-sm text-gray-600">
+                After installing, use{' '}
+                <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pairux update</code> to
+                upgrade and{' '}
+                <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pairux uninstall</code>{' '}
+                to remove.
+              </p>
+            </div>
           </div>
         </div>
 

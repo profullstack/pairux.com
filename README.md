@@ -190,6 +190,18 @@ chmod +x PairUX-*.AppImage
 
 </details>
 
+### CLI Usage
+
+Once installed, the `pairux` command is available in your terminal:
+
+```bash
+pairux                # Launch the desktop app
+pairux update         # Check for updates and install the latest version
+pairux uninstall      # Remove PairUX completely
+pairux --version      # Show installed version
+pairux --help         # Show help
+```
+
 ### Join as a Viewer (No Install Required!)
 
 Just open the session link in any modern browser. The viewer is a **Progressive Web App (PWA)** — you can install it for quick access without downloading anything.

@@ -50,7 +50,7 @@ export const metadata: Metadata = {
       'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/banner.png',
         width: 1200,
         height: 630,
         alt: 'PairUX - Collaborative Screen Sharing',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: 'PairUX - Collaborative Screen Sharing with Remote Control',
     description:
       'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
-    images: ['/og-image.png'],
+    images: ['/banner.png'],
   },
   robots: {
     index: true,

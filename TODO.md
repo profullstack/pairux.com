@@ -418,6 +418,31 @@
 
 ---
 
+## 🌐 Proxy Support
+
+> **Goal:** Allow users in restrictive network environments to route traffic through HTTP, HTTPS, or SOCKS5 proxies.
+
+- [ ] **User Settings UI**
+  - [ ] Proxy toggle (enable/disable)
+  - [ ] Proxy type selector (HTTP / HTTPS / SOCKS5)
+  - [ ] Host, port, and optional auth (username/password) fields
+  - [ ] "Test Connection" button to validate proxy reachability
+  - [ ] Secure credential storage (Electron safeStorage)
+
+- [ ] **Proxy Integration**
+  - [ ] Route WebRTC signaling traffic through configured proxy
+  - [ ] Route TURN/STUN requests through proxy when possible
+  - [ ] Route API/SSE (chat, presence) requests through proxy
+  - [ ] SOCKS5 support for TCP-level tunneling
+  - [ ] Environment variable fallback (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`)
+
+- [ ] **Censorship Circumvention Considerations**
+  - [ ] Domain-fronting awareness in documentation
+  - [ ] Obfuscation-friendly TURN configuration guidance
+  - [ ] Document known working setups for restricted regions
+
+---
+
 ## 📊 Analytics & Monitoring (Post-MVP)
 
 - [ ] Session metrics

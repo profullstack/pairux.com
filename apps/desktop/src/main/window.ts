@@ -28,7 +28,12 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     // macOS: hidden inset for native look with traffic lights
     // Windows: custom title bar overlay (no custom titlebar needed since renderer shows TitleBar)
     // Linux: native titlebar (renderer TitleBar is hidden on Linux to avoid double title bar)
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : process.platform === 'win32' ? 'hidden' : 'default',
+    titleBarStyle:
+      process.platform === 'darwin'
+        ? 'hiddenInset'
+        : process.platform === 'win32'
+          ? 'hidden'
+          : 'default',
     titleBarOverlay:
       process.platform === 'win32'
         ? {

@@ -3,7 +3,7 @@
  * Ensures rooms survive host disconnection for SFU mode
  */
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type {
   Session,
@@ -45,7 +45,9 @@ export function usePresence({
   onHostOffline,
   onHostOnline,
 }: UsePresenceOptions) {
-  const supabase = createClient();
+  // Memoize the Supabase client so it's not recreated on every render
+
+  const supabase = useMemo(() => createClient(), []);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hostCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [presenceState, setPresenceState] = useState<PresenceState>({
@@ -236,7 +238,7 @@ export function useMediaSession({
   sfuEndpoint,
   sfuRoomId,
 }: UseMediaSessionOptions) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [mediaSessionId, setMediaSessionId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(false);
 
@@ -350,7 +352,7 @@ export function useMediaSession({
  * Hook for host transfer functionality
  */
 export function useHostTransfer(sessionId: string) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const transferHost = useCallback(
     async (newHostParticipantId: string) => {

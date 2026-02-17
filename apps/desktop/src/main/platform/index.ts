@@ -15,7 +15,7 @@ export type { MenuCallbacks } from './menu';
 // ============================================================================
 
 export type Platform = 'darwin' | 'win32' | 'linux';
-export type DisplayServer = 'x11' | 'wayland' | 'unknown';
+export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos' | 'unknown';
 
 export interface PlatformInfo {
   platform: Platform;
@@ -34,6 +34,14 @@ export interface PlatformInfo {
  * Detect the Linux display server (X11 or Wayland)
  */
 export function detectDisplayServer(): DisplayServer {
+  if (process.platform === 'darwin') {
+    return 'macos';
+  }
+
+  if (process.platform === 'win32') {
+    return 'windows';
+  }
+
   if (process.platform !== 'linux') {
     return 'unknown';
   }
@@ -267,12 +275,13 @@ export function restartWithElevation(): void {
   const exePath = app.getPath('exe');
   const args = process.argv.slice(1);
 
-  // Use PowerShell to request elevation
+  // Use PowerShell to request elevation — escape each argument individually
+  const escapedArgs = args.map((a) => `'${a.replace(/'/g, "''")}'`).join(', ');
   spawn(
     'powershell.exe',
     [
       '-Command',
-      `Start-Process -FilePath "${exePath}" -ArgumentList "${args.join(' ')}" -Verb RunAs`,
+      `Start-Process -FilePath '${exePath.replace(/'/g, "''")}' -ArgumentList ${escapedArgs} -Verb RunAs`,
     ],
     {
       detached: true,

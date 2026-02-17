@@ -98,6 +98,9 @@ export function useWebRTCViewerSFUAPI({
   const roomRef = useRef<Room | null>(null);
   const inputSequenceRef = useRef(0);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Track previous bytesReceived for delta-based bitrate calculation
+  const prevBytesReceivedRef = useRef(0);
+  const prevStatsTimestampRef = useRef(0);
 
   const onControlStateChangeRef = useRef(onControlStateChange);
   const onCursorUpdateRef = useRef(onCursorUpdate);
@@ -270,7 +273,15 @@ export function useWebRTCViewerSFUAPI({
             if (packetsReceived > 0) {
               packetLoss = (packetsLost / (packetsReceived + packetsLost)) * 100;
             }
-            bitrate = bytesReceived * 8;
+            // Calculate bitrate as delta (bits per second) instead of cumulative total
+            const now = Date.now();
+            const elapsed = (now - prevStatsTimestampRef.current) / 1000;
+            if (prevStatsTimestampRef.current > 0 && elapsed > 0) {
+              const deltaBytes = bytesReceived - prevBytesReceivedRef.current;
+              bitrate = (deltaBytes * 8) / elapsed;
+            }
+            prevBytesReceivedRef.current = bytesReceived;
+            prevStatsTimestampRef.current = now;
 
             const metrics: QualityMetrics = { bitrate, frameRate, packetLoss, roundTripTime };
             setQualityMetrics(metrics);

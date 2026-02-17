@@ -23,7 +23,7 @@
     "package:mac": "pnpm build && electron-builder --mac",
     "package:win": "pnpm build && electron-builder --win",
     "package:linux": "pnpm build && electron-builder --linux",
-    "clean": "rm -rf dist out node_modules"
+    "clean": "node -e \"const fs=require('fs');['dist','out','node_modules'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch{}})\""
   },
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",

@@ -17,12 +17,13 @@ export async function getBearerToken(): Promise<string | null> {
   return null;
 }
 
-// Store bearer token for the current request context
-let currentBearerToken: string | null = null;
-
 /**
  * Create a Supabase client for server-side use.
  * Supports both cookie-based auth (web browser) and Bearer token auth (desktop app).
+ *
+ * Returns both the client and the bearer token (if any) so that
+ * getAuthenticatedUser can use it without a module-level mutable variable
+ * (which would be a race condition in a concurrent server environment).
  */
 export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -33,11 +34,10 @@ export async function createClient() {
   }
 
   // Check for Bearer token in Authorization header (desktop app)
-  currentBearerToken = await getBearerToken();
+  const bearerToken = await getBearerToken();
 
-  if (currentBearerToken) {
+  if (bearerToken) {
     // Desktop app: create client with Bearer token
-    // Note: We store the token and use it in getAuthenticatedUser()
     const supabase = createSupabaseClient<Database>(url, key, {
       auth: {
         persistSession: false,
@@ -45,10 +45,13 @@ export async function createClient() {
       },
       global: {
         headers: {
-          Authorization: `Bearer ${currentBearerToken}`,
+          Authorization: `Bearer ${bearerToken}`,
         },
       },
     });
+
+    // Attach the bearer token to the client instance for later use
+    (supabase as unknown as { _bearerToken: string })._bearerToken = bearerToken;
 
     return supabase;
   }
@@ -81,12 +84,16 @@ export async function createClient() {
 /**
  * Get the authenticated user from the Supabase client.
  * Handles both cookie-based auth (web) and Bearer token auth (desktop app).
+ *
+ * The bearer token is retrieved from the client instance (set in createClient)
+ * to avoid a module-level mutable variable race condition.
  */
 export async function getAuthenticatedUser(
   supabase: Awaited<ReturnType<typeof createClient>>
 ): Promise<{ user: User | null; error: Error | null }> {
-  // If we have a Bearer token, use it directly with getUser()
-  const bearerToken = currentBearerToken ?? (await getBearerToken());
+  // Check if the client has a bearer token attached (from createClient)
+  const bearerToken =
+    (supabase as unknown as { _bearerToken?: string })._bearerToken ?? (await getBearerToken());
 
   if (bearerToken) {
     const { data, error } = await supabase.auth.getUser(bearerToken);

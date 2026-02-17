@@ -389,29 +389,45 @@ export function stopStream(destinationId: string): { success: boolean; error?: s
   if (stream.reconnectTimer) clearTimeout(stream.reconnectTimer);
   if (stream.stableTimer) clearTimeout(stream.stableTimer);
 
-  // Graceful shutdown: close stdin then SIGTERM
+  // Graceful shutdown: close stdin first
   try {
     stream.process.stdin?.end();
   } catch {
     // ignore
   }
 
-  setTimeout(() => {
-    try {
-      stream.process.kill('SIGTERM');
-    } catch {
-      // ignore
-    }
-  }, 1000);
+  // On Windows, SIGTERM/SIGKILL don't work properly — use taskkill instead
+  if (process.platform === 'win32') {
+    const pid = stream.process.pid;
+    setTimeout(() => {
+      try {
+        if (pid) {
+          spawn('taskkill', ['/pid', String(pid), '/f', '/t'], {
+            stdio: 'ignore',
+          });
+        }
+      } catch {
+        // ignore
+      }
+    }, 1000);
+  } else {
+    setTimeout(() => {
+      try {
+        stream.process.kill('SIGTERM');
+      } catch {
+        // ignore
+      }
+    }, 1000);
 
-  // Force kill after 5 seconds
-  setTimeout(() => {
-    try {
-      stream.process.kill('SIGKILL');
-    } catch {
-      // ignore
-    }
-  }, 5000);
+    // Force kill after 5 seconds
+    setTimeout(() => {
+      try {
+        stream.process.kill('SIGKILL');
+      } catch {
+        // ignore
+      }
+    }, 5000);
+  }
 
   console.log(`[Streaming] Stopping stream: ${stream.destination.name}`);
   return { success: true };

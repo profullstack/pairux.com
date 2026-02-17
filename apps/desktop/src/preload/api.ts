@@ -55,6 +55,10 @@ export interface IPCChannels {
       appVersion: string;
       displayServer: DisplayServer;
       isWayland: boolean;
+      isX11: boolean;
+      isElevated: boolean;
+      hasScreenCaptureSupport: boolean;
+      hasInputInjectionSupport: boolean;
     };
   };
 
@@ -81,7 +85,7 @@ export interface IPCChannels {
 
   'auth:openExternal': {
     args: string;
-    return: Promise<void>;
+    return: undefined;
   };
 
   'auth:getToken': {

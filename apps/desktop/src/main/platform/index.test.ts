@@ -87,9 +87,14 @@ describe('Platform Module', () => {
   });
 
   describe('detectDisplayServer', () => {
-    it('should return "unknown" on non-Linux platforms', () => {
+    it('should return "macos" on macOS', () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' });
-      expect(detectDisplayServer()).toBe('unknown');
+      expect(detectDisplayServer()).toBe('macos');
+    });
+
+    it('should return "windows" on Windows', () => {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      expect(detectDisplayServer()).toBe('windows');
     });
 
     it('should detect Wayland when XDG_SESSION_TYPE is wayland', () => {

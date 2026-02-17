@@ -9,8 +9,8 @@ function getIconPath(): string {
     // Development: use resources folder relative to dist/main
     return join(__dirname, '../../resources/icon.png');
   }
-  // Production: icon is in resources folder of the packaged app
-  return join(__dirname, '../../resources/icon.png');
+  // Production: icon is in the app's resources directory
+  return join(process.resourcesPath, 'icon.png');
 }
 
 export async function createMainWindow(isWayland: boolean): Promise<BrowserWindow> {
@@ -26,9 +26,9 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     show: false,
     icon: icon.isEmpty() ? undefined : icon,
     // macOS: hidden inset for native look with traffic lights
-    // Windows: custom title bar overlay
-    // Linux: default titlebar to show window controls and menu
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    // Windows: custom title bar overlay (no custom titlebar needed since renderer shows TitleBar)
+    // Linux: native titlebar (renderer TitleBar is hidden on Linux to avoid double title bar)
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : process.platform === 'win32' ? 'hidden' : 'default',
     titleBarOverlay:
       process.platform === 'win32'
         ? {

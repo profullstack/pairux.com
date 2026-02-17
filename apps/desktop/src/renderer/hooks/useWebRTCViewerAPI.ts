@@ -100,6 +100,9 @@ export function useWebRTCViewerAPI({
   const inputSequenceRef = useRef(0);
   const isConnectingRef = useRef(false);
   const maxReconnectAttempts = 3;
+  // Track previous bytesReceived for delta-based bitrate calculation
+  const prevBytesReceivedRef = useRef(0);
+  const prevStatsTimestampRef = useRef(0);
 
   // ICE servers received from the SSE connected event (includes TURN)
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
@@ -319,7 +322,15 @@ export function useWebRTCViewerAPI({
         packetLoss = (packetsLost / (packetsReceived + packetsLost)) * 100;
       }
 
-      bitrate = bytesReceived * 8;
+      // Calculate bitrate as delta (bits per second) instead of cumulative total
+      const now = Date.now();
+      const elapsed = (now - prevStatsTimestampRef.current) / 1000;
+      if (prevStatsTimestampRef.current > 0 && elapsed > 0) {
+        const deltaBytes = bytesReceived - prevBytesReceivedRef.current;
+        bitrate = (deltaBytes * 8) / elapsed;
+      }
+      prevBytesReceivedRef.current = bytesReceived;
+      prevStatsTimestampRef.current = now;
 
       const metrics: QualityMetrics = { bitrate, frameRate, packetLoss, roundTripTime };
       setQualityMetrics(metrics);
@@ -710,6 +721,16 @@ export function useWebRTCViewerAPI({
         }
       } catch {
         // Use default ICE servers
+      }
+
+      // Close existing peer connection before creating a new one (prevents leak on SSE reconnect)
+      if (peerConnectionRef.current) {
+        try {
+          peerConnectionRef.current.close();
+        } catch {
+          // Ignore
+        }
+        peerConnectionRef.current = null;
       }
 
       // Create peer connection AFTER receiving ICE servers (includes TURN)

@@ -92,13 +92,26 @@ export function useRecording(options: UseRecordingOptions = {}) {
     }
   }, [electronAPI, onSpaceWarning]);
 
-  // Update duration timer
+  // Track recording/paused state in refs to avoid stale closures in setInterval
+  const isRecordingRef = useRef(false);
+  const isPausedRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    isRecordingRef.current = state.isRecording;
+  }, [state.isRecording]);
+
+  useEffect(() => {
+    isPausedRef.current = state.isPaused;
+  }, [state.isPaused]);
+
+  // Update duration timer — uses refs to avoid stale closure in setInterval
   const updateDuration = useCallback(() => {
-    if (!state.isRecording || state.isPaused) return;
+    if (!isRecordingRef.current || isPausedRef.current) return;
 
     const elapsed = Date.now() - startTimeRef.current - pausedDurationRef.current;
     setState((prev) => ({ ...prev, duration: Math.floor(elapsed / 1000) }));
-  }, [state.isRecording, state.isPaused]);
+  }, []);
 
   // Start recording
   const startRecording = useCallback(
@@ -465,11 +478,15 @@ export function useRecording(options: UseRecordingOptions = {}) {
     }
   }, [electronAPI]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount — uses refs to avoid stale state in cleanup closure
   useEffect(() => {
     return () => {
-      if (mediaRecorderRef.current && state.isRecording) {
-        mediaRecorderRef.current.stop();
+      if (mediaRecorderRef.current && isRecordingRef.current) {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {
+          // Already stopped
+        }
         streamRef.current?.getTracks().forEach((track) => {
           track.stop();
         });
@@ -484,7 +501,7 @@ export function useRecording(options: UseRecordingOptions = {}) {
         clearInterval(spaceCheckIntervalRef.current);
       }
     };
-  }, [state.isRecording]);
+  }, []);
 
   return {
     // State

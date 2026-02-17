@@ -7,9 +7,15 @@ import { useAuthStore } from '@/stores/auth';
 export function TitleBar() {
   const platform = isElectron() ? getElectronAPI().platform : 'unknown';
   const isMac = platform === 'darwin';
+  const isLinux = platform === 'linux';
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+
+  // Linux uses native title bar, so don't render the custom one (avoids double title bar)
+  if (isLinux) {
+    return null;
+  }
 
   const handleLogout = async () => {
     await logout();

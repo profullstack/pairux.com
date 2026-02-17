@@ -26,6 +26,7 @@ import type {
   CursorPositionMessage,
 } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../../shared/config';
+import { getElectronAPI } from '@/lib/ipc';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
@@ -65,6 +66,20 @@ export function CapturePreview({
 }: CapturePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const authTokenRef = useRef<string | null>(null);
+
+  // Fetch auth token once on mount for API calls
+  useEffect(() => {
+    const api = getElectronAPI();
+    api
+      .invoke('auth:getToken', undefined)
+      .then(({ token }) => {
+        authTokenRef.current = token;
+      })
+      .catch(() => {
+        // Ignore - non-critical
+      });
+  }, []);
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -144,10 +159,39 @@ export function CapturePreview({
   // Remote cursors for showing viewer cursor positions
   const { cursors: remoteCursors } = useRemoteCursors();
 
-  // Select the right WebRTC host hook based on session mode
-  const useHostHook = initialSession?.mode === 'sfu' ? useWebRTCHostSFUAPI : useWebRTCHostAPI;
+  // Determine mode once — do NOT conditionally call hooks
+  const isSFU = initialSession?.mode === 'sfu';
 
-  // WebRTC hosting for streaming to viewers (P2P or SFU)
+  const hostHookOptions = useMemo(
+    () => ({
+      sessionId: session?.id ?? '',
+      hostId: currentUserId ?? session?.id ?? '',
+      localStream: stream,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      allowControl: Boolean(session?.settings?.allowControl),
+      onViewerJoined: (viewerId: string) => {
+        console.log('[CapturePreview] Viewer joined:', viewerId);
+      },
+      onViewerLeft: (viewerId: string) => {
+        console.log('[CapturePreview] Viewer left:', viewerId);
+      },
+      onInputReceived: (_viewerId: string, _input: InputMessage) => {
+        // TODO: Handle remote input injection
+        console.log('[CapturePreview] Input received from viewer');
+      },
+      onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
+        // TODO: Update remote cursor position
+      },
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    [session?.id, currentUserId, stream, session?.settings?.allowControl]
+  );
+
+  // Always call both hooks (Rules of Hooks) — use results from the active one
+  const p2pHost = useWebRTCHostAPI(hostHookOptions);
+  const sfuHost = useWebRTCHostSFUAPI(hostHookOptions);
+
+  // Pick the result based on mode
   const {
     isHosting,
     viewerCount,
@@ -161,26 +205,7 @@ export function CapturePreview({
     micEnabled: hostMicEnabled,
     hasMic: hostHasMic,
     toggleMic: hostToggleMic,
-  } = useHostHook({
-    sessionId: session?.id ?? '',
-    hostId: currentUserId ?? session?.id ?? '',
-    localStream: stream,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    allowControl: Boolean(session?.settings?.allowControl),
-    onViewerJoined: (viewerId) => {
-      console.log('[CapturePreview] Viewer joined:', viewerId);
-    },
-    onViewerLeft: (viewerId) => {
-      console.log('[CapturePreview] Viewer left:', viewerId);
-    },
-    onInputReceived: (_viewerId: string, _input: InputMessage) => {
-      // TODO: Handle remote input injection
-      console.log('[CapturePreview] Input received from viewer');
-    },
-    onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
-      // TODO: Update remote cursor position
-    },
-  });
+  } = isSFU ? sfuHost : p2pHost;
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {
@@ -215,14 +240,11 @@ export function CapturePreview({
       }
     }
 
-    // Remove tracks for viewers no longer present
-    // (handled automatically by useAudioMixer when viewer is removed from the map,
-    //  but we also clean up explicitly for tracks that disappeared)
+    // On cleanup, remove all tracks that were added in this effect run.
+    // This ensures tracks are cleaned up when viewers leave or the effect re-runs.
     return () => {
       for (const viewerId of currentViewerIds) {
-        if (!hostedViewers.has(viewerId)) {
-          mixerRemoveTrack(viewerId);
-        }
+        mixerRemoveTrack(viewerId);
       }
     };
   }, [hostedViewers, mixerAddTrack, mixerRemoveTrack, mixerSetTrackMuted]);
@@ -381,6 +403,15 @@ export function CapturePreview({
   }, [session]);
 
   // Participant management actions
+  // Build headers with auth token for API calls
+  const getAuthHeaders = useCallback((): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (authTokenRef.current) {
+      headers.Authorization = `Bearer ${authTokenRef.current}`;
+    }
+    return headers;
+  }, []);
+
   const handleGrantControl = useCallback(
     async (participantId: string) => {
       if (!session) return;
@@ -389,7 +420,7 @@ export function CapturePreview({
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ control_state: 'granted' }),
           }
         );
@@ -400,7 +431,7 @@ export function CapturePreview({
         console.error('Error granting control:', err);
       }
     },
-    [session]
+    [session, getAuthHeaders]
   );
 
   const handleRevokeControl = useCallback(
@@ -411,7 +442,7 @@ export function CapturePreview({
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ control_state: 'view-only' }),
           }
         );
@@ -422,7 +453,7 @@ export function CapturePreview({
         console.error('Error revoking control:', err);
       }
     },
-    [session]
+    [session, getAuthHeaders]
   );
 
   const handleKickParticipant = useCallback(
@@ -433,6 +464,7 @@ export function CapturePreview({
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}`,
           {
             method: 'DELETE',
+            headers: getAuthHeaders(),
           }
         );
         if (!response.ok) {
@@ -442,7 +474,7 @@ export function CapturePreview({
         console.error('Error kicking participant:', err);
       }
     },
-    [session]
+    [session, getAuthHeaders]
   );
 
   const handleStartRecording = useCallback(async () => {

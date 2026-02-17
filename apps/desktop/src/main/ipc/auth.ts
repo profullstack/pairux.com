@@ -26,6 +26,13 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> | undefined),
     };
+
+    // Attach Bearer token from secure storage if available
+    const stored = getStoredAuth();
+    if (stored && !isAuthExpired(stored)) {
+      headers.Authorization = `Bearer ${stored.accessToken}`;
+    }
+
     const response = await fetch(url, {
       ...options,
       headers,

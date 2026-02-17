@@ -133,6 +133,8 @@ export async function GET(
     const encoder = new TextEncoder();
     let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
     let isStreamClosed = false;
+    // Hoist channel reference so cancel() can clean it up
+    let channelRef: ReturnType<typeof supabase.channel> | null = null;
 
     const stream = new ReadableStream({
       start(controller) {
@@ -242,6 +244,9 @@ export async function GET(
             }
           });
 
+        // Store channel reference for cancel() cleanup
+        channelRef = channel;
+
         // Handle client disconnect via AbortSignal
         request.signal.addEventListener('abort', () => {
           isStreamClosed = true;
@@ -258,6 +263,9 @@ export async function GET(
       cancel() {
         isStreamClosed = true;
         if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (channelRef) {
+          void supabase.removeChannel(channelRef);
+        }
       },
     });
 

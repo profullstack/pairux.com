@@ -5,7 +5,15 @@
  * via expo-secure-store. Auto-restores session on mount.
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getStoredAuth, isAuthExpired, clearStoredAuth } from '@/lib/secure-storage';
+import {
+  getStoredAuth,
+  isAuthExpired,
+  clearStoredAuth,
+  storeCredentials,
+  getStoredCredentials,
+  clearStoredCredentials,
+  type StoredCredentials,
+} from '@/lib/secure-storage';
 import { authApi } from '@/lib/api/auth';
 
 interface AuthUser {
@@ -17,6 +25,9 @@ interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  rememberMe: boolean;
+  setRememberMe: (value: boolean) => void;
+  getRememberedCredentials: () => Promise<StoredCredentials | null>;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   signup: (params: {
     email: string;
@@ -32,6 +43,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Restore session from secure storage on mount
   useEffect(() => {
@@ -53,16 +65,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void restore();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await authApi.login(email, password);
-    if (result.error) {
-      return { error: result.error };
-    }
-    if (result.data) {
-      setUser(result.data.user);
-    }
-    return {};
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await authApi.login(email, password);
+      if (result.error) {
+        return { error: result.error };
+      }
+      if (result.data) {
+        setUser(result.data.user);
+        if (rememberMe) {
+          await storeCredentials({ email, password });
+        } else {
+          await clearStoredCredentials();
+        }
+      }
+      return {};
+    },
+    [rememberMe]
+  );
 
   const signup = useCallback(
     async (params: { email: string; password: string; firstName: string; lastName: string }) => {
@@ -75,6 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const getRememberedCreds = useCallback(async () => {
+    return getStoredCredentials();
+  }, []);
+
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
@@ -86,6 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        rememberMe,
+        setRememberMe,
+        getRememberedCredentials: getRememberedCreds,
         login,
         signup,
         logout,

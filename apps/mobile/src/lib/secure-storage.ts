@@ -37,3 +37,30 @@ export function isAuthExpired(auth: StoredAuth): boolean {
   // Consider expired if within 5 minutes of expiry
   return Date.now() >= auth.expiresAt - 5 * 60 * 1000;
 }
+
+// --- Remembered credentials (separate from session tokens) ---
+
+const CREDENTIALS_KEY = 'pairux_credentials';
+
+export interface StoredCredentials {
+  email: string;
+  password: string;
+}
+
+export async function storeCredentials(credentials: StoredCredentials): Promise<void> {
+  await SecureStore.setItemAsync(CREDENTIALS_KEY, JSON.stringify(credentials));
+}
+
+export async function getStoredCredentials(): Promise<StoredCredentials | null> {
+  const data = await SecureStore.getItemAsync(CREDENTIALS_KEY);
+  if (!data) return null;
+  try {
+    return JSON.parse(data) as StoredCredentials;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearStoredCredentials(): Promise<void> {
+  await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
+}

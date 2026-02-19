@@ -1,5 +1,13 @@
 import { ipcMain, shell } from 'electron';
-import { storeAuth, getStoredAuth, clearStoredAuth, isAuthExpired } from '../auth/secure-storage';
+import {
+  storeAuth,
+  getStoredAuth,
+  clearStoredAuth,
+  isAuthExpired,
+  storeCredentials,
+  getStoredCredentials,
+  clearStoredCredentials,
+} from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../shared/config';
 
@@ -145,6 +153,44 @@ export function registerAuthHandlers(): void {
       return { token: null };
     }
     return { token: stored.accessToken };
+  });
+
+  // Remember me: store credentials
+  ipcMain.handle(
+    'auth:setRememberedCredentials',
+    (_event, args: { email: string; password: string }): { success: boolean } => {
+      try {
+        storeCredentials({ email: args.email, password: args.password });
+        return { success: true };
+      } catch (error) {
+        console.error('[Auth] Failed to store credentials:', error);
+        return { success: false };
+      }
+    }
+  );
+
+  // Remember me: get credentials
+  ipcMain.handle(
+    'auth:getRememberedCredentials',
+    (): { credentials: { email: string; password: string } | null } => {
+      try {
+        return { credentials: getStoredCredentials() };
+      } catch (error) {
+        console.error('[Auth] Failed to get stored credentials:', error);
+        return { credentials: null };
+      }
+    }
+  );
+
+  // Remember me: clear credentials
+  ipcMain.handle('auth:clearRememberedCredentials', (): { success: boolean } => {
+    try {
+      clearStoredCredentials();
+      return { success: true };
+    } catch (error) {
+      console.error('[Auth] Failed to clear stored credentials:', error);
+      return { success: false };
+    }
   });
 
   // Open external URL (for signup/forgot password)

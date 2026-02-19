@@ -93,6 +93,21 @@ export interface IPCChannels {
     return: { token: string | null };
   };
 
+  'auth:setRememberedCredentials': {
+    args: { email: string; password: string };
+    return: { success: boolean };
+  };
+
+  'auth:getRememberedCredentials': {
+    args: undefined;
+    return: { credentials: { email: string; password: string } | null };
+  };
+
+  'auth:clearRememberedCredentials': {
+    args: undefined;
+    return: { success: boolean };
+  };
+
   // Session channels
   'session:create': {
     args: CreateSessionSettings | undefined;

@@ -3,6 +3,7 @@ import { getStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { Session, SessionParticipant } from '@pairux/shared-types';
 import type { CreateSessionSettings } from '../../preload/api';
 import { API_BASE_URL } from '../../shared/config';
+import { formatNetworkError } from './network-error';
 
 interface ApiResponse<T> {
   data?: T;
@@ -66,7 +67,7 @@ export function registerSessionHandlers(): void {
         return { success: true, session: data.data };
       } catch (err) {
         console.error('[Session] Create session error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );
@@ -99,7 +100,7 @@ export function registerSessionHandlers(): void {
         return { success: true };
       } catch (err) {
         console.error('[Session] End session error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );
@@ -144,7 +145,7 @@ export function registerSessionHandlers(): void {
         };
       } catch (err) {
         console.error('[Session] Get session error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );
@@ -206,7 +207,7 @@ export function registerSessionHandlers(): void {
         return { success: true, session: data.data };
       } catch (err) {
         console.error('[Session] Lookup session error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );
@@ -253,7 +254,7 @@ export function registerSessionHandlers(): void {
         return { success: true, participant: data.data };
       } catch (err) {
         console.error('[Session] Join session error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );

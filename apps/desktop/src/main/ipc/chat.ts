@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import { getStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { ChatMessage } from '@pairux/shared-types';
 import { API_BASE_URL } from '../../shared/config';
+import { formatNetworkError } from './network-error';
 
 interface ApiResponse<T> {
   data?: T;
@@ -64,7 +65,7 @@ export function registerChatHandlers(): void {
         return { success: true, message: data.data };
       } catch (err) {
         console.error('[Chat] Send message error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );
@@ -119,7 +120,7 @@ export function registerChatHandlers(): void {
         };
       } catch (err) {
         console.error('[Chat] Get history error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );

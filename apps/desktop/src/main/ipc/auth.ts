@@ -10,6 +10,7 @@ import {
 } from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../shared/config';
+import { formatNetworkError } from './network-error';
 
 export interface AuthUser {
   id: string;
@@ -57,7 +58,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     console.error(`[Auth] API request failed:`, error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Network error',
+      error: formatNetworkError(error),
     };
   }
 }
@@ -100,7 +101,7 @@ export function registerAuthHandlers(): void {
         return { success: true, user: { id: user.id, email: user.email } };
       } catch (err) {
         console.error('[Auth] Login error:', err);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        return { success: false, error: formatNetworkError(err) };
       }
     }
   );

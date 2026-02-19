@@ -85,6 +85,7 @@ export function useWebRTC({
   const [hasMic, setHasMic] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
@@ -444,7 +445,15 @@ export function useWebRTC({
     // Handle incoming tracks (video + audio from host and relayed viewers)
     pc.ontrack = (event) => {
       const stream = event.streams[0];
-      if (stream) {
+      if (!stream) return;
+
+      const current = remoteStreamRef.current;
+      const currentHasVideo = Boolean(current && current.getVideoTracks().length > 0);
+      const incomingHasVideo = stream.getVideoTracks().length > 0;
+
+      // Avoid replacing an active video stream with a later audio-only stream.
+      if (!current || (!currentHasVideo && incomingHasVideo)) {
+        remoteStreamRef.current = stream;
         setRemoteStream(stream);
         onStreamReady?.(stream);
       }
@@ -492,6 +501,7 @@ export function useWebRTC({
         }
         case 'closed':
           setConnectionState('disconnected');
+          remoteStreamRef.current = null;
           setRemoteStream(null);
           onStreamEnded?.();
           break;
@@ -548,6 +558,7 @@ export function useWebRTC({
       channelRef.current = null;
     }
 
+    remoteStreamRef.current = null;
     setRemoteStream(null);
     setConnectionState('disconnected');
     setQualityMetrics(null);

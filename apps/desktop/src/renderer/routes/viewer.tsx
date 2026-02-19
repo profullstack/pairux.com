@@ -112,9 +112,8 @@ export function ViewerPage() {
     return null;
   }
 
-  // Find this user's participant entry
-  const myParticipant = participants.find((p) => p.user_id === user.id && p.role === 'viewer');
-  const participantId = myParticipant?.id ?? user.id;
+  // Signaling IDs use auth user IDs (presence + sender/target IDs), not session_participants IDs.
+  const participantId = user.id;
 
   // Branch on session mode
   if (session.mode === 'sfu') {

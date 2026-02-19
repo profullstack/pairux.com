@@ -494,7 +494,15 @@ if [ -x "\$APPIMAGE" ]; then
     # Unset ELECTRON_RUN_AS_NODE — VSCode's integrated terminal sets this,
     # which prevents Electron from exposing its API (app, BrowserWindow, etc.)
     unset ELECTRON_RUN_AS_NODE
-    exec "\$APPIMAGE" "\$@"
+
+    # If FUSE is unavailable (common in restricted/containerized environments),
+    # fall back to extract-and-run mode so the AppImage can still launch.
+    if [ -r /dev/fuse ] && [ -w /dev/fuse ]; then
+        exec "\$APPIMAGE" "\$@"
+    else
+        export APPIMAGE_EXTRACT_AND_RUN=1
+        exec "\$APPIMAGE" "\$@"
+    fi
 else
     echo "Error: PairUX AppImage not found at \$APPIMAGE"
     echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"

@@ -210,10 +210,12 @@ install_ffmpeg() {
         chmod +x "$ffmpeg_path"
         rm -f "$temp_file"
 
-        if "$ffmpeg_path" -version &> /dev/null; then
+        # Don't execute ffmpeg here: on macOS this can block during first-run
+        # security checks and make the installer appear hung.
+        if [ -s "$ffmpeg_path" ]; then
             success "ffmpeg installed"
         else
-            warn "ffmpeg binary may not be compatible — streaming will fall back to system ffmpeg"
+            warn "ffmpeg install verification failed — streaming will fall back to system ffmpeg"
             rm -f "$ffmpeg_path"
         fi
     else

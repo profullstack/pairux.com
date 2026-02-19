@@ -81,6 +81,7 @@ export function CapturePreview({
       });
   }, []);
   const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [showParticipants, setShowParticipants] = useState(false);
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>(() => {
@@ -399,6 +400,16 @@ export function CapturePreview({
     setCopied(true);
     setTimeout(() => {
       setCopied(false);
+    }, 2000);
+  }, [session]);
+
+  const handleCopyCode = useCallback(async () => {
+    if (!session) return;
+
+    await navigator.clipboard.writeText(session.join_code);
+    setCopiedCode(true);
+    setTimeout(() => {
+      setCopiedCode(false);
     }, 2000);
   }, [session]);
 
@@ -764,7 +775,14 @@ export function CapturePreview({
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Share2 className="h-4 w-4 text-primary" />
-                <span className="font-mono text-sm font-medium">{session.join_code}</span>
+                <button
+                  onClick={() => void handleCopyCode()}
+                  className="font-mono text-sm font-medium hover:underline"
+                  title="Copy join code"
+                >
+                  {session.join_code}
+                </button>
+                {copiedCode && <span className="text-xs text-green-500">Copied</span>}
               </div>
 
               <button

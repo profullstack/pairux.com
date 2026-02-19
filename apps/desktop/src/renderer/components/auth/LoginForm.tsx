@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,26 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/';
+
+  useEffect(() => {
+    async function loadRememberedCredentials() {
+      try {
+        const api = getElectronAPI();
+        const result = await api.invoke('auth:getRememberedCredentials', undefined);
+        if (result.credentials) {
+          setEmail(result.credentials.email);
+          setPassword(result.credentials.password);
+          setRememberMe(true);
+        }
+      } catch {
+        // Not in Electron or failed to load
+      }
+    }
+    void loadRememberedCredentials();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +54,16 @@ export function LoginForm() {
 
     const success = await login(email, password);
     if (success) {
+      try {
+        const api = getElectronAPI();
+        if (rememberMe) {
+          await api.invoke('auth:setRememberedCredentials', { email, password });
+        } else {
+          await api.invoke('auth:clearRememberedCredentials', undefined);
+        }
+      } catch {
+        // Non-critical — don't block login
+      }
       void navigate(from, { replace: true });
     } else {
       setError('Invalid email or password');
@@ -137,6 +165,24 @@ export function LoginForm() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => {
+                setRememberMe(e.target.checked);
+              }}
+              className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+            />
+            <Label
+              htmlFor="remember-me"
+              className="cursor-pointer text-sm font-normal text-muted-foreground"
+            >
+              Remember me
+            </Label>
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>

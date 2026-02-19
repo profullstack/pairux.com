@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-misused-promises */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Key } from 'lucide-react';
@@ -17,6 +17,21 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('pairux_remember_me') === 'true';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const remembered = localStorage.getItem('pairux_remember_me') === 'true';
+    if (remembered) {
+      const savedEmail = localStorage.getItem('pairux_remembered_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +50,14 @@ export function LoginForm() {
       if (!res.ok) {
         setError(data.error || 'Failed to sign in');
         return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem('pairux_remember_me', 'true');
+        localStorage.setItem('pairux_remembered_email', email);
+      } else {
+        localStorage.removeItem('pairux_remember_me');
+        localStorage.removeItem('pairux_remembered_email');
       }
 
       trackLogin({ method: 'email' });
@@ -117,6 +140,21 @@ export function LoginForm() {
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          id="remember-me"
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(e) => {
+            setRememberMe(e.target.checked);
+          }}
+          className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+        />
+        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+          Remember me
+        </label>
       </div>
 
       <button

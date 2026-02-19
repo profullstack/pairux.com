@@ -137,6 +137,85 @@ function Install-PairUX {
     }
 }
 
+# Create pairux CLI launcher for update/upgrade/uninstall/remove
+function New-CliLauncher {
+    param(
+        [string]$Version
+    )
+
+    New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
+    $launcherPath = Join-Path $BinDir 'pairux.cmd'
+
+    $content = @"
+@echo off
+setlocal
+set "VERSION=$Version"
+set "INSTALL_DIR=$InstallDir"
+set "INSTALLER_URL=$InstallerUrl"
+set "APP_EXE=%INSTALL_DIR%\pairux.exe"
+set "UNINSTALLER=%INSTALL_DIR%\Uninstall PairUX.exe"
+set "BIN_DIR=$BinDir"
+
+if /I "%~1"=="-h" goto :help
+if /I "%~1"=="--help" goto :help
+if /I "%~1"=="-v" goto :version
+if /I "%~1"=="--version" goto :version
+if /I "%~1"=="update" goto :update
+if /I "%~1"=="upgrade" goto :update
+if /I "%~1"=="uninstall" goto :uninstall
+if /I "%~1"=="remove" goto :uninstall
+goto :run
+
+:help
+echo Usage: pairux [options]
+echo.
+echo PairUX - collaborative screen sharing desktop app
+echo.
+echo Options:
+echo   -h, --help        Show this help message
+echo   -v, --version     Show version number
+echo   update^|upgrade   Check for updates and install the latest version
+echo   uninstall^|remove Remove PairUX completely
+exit /b 0
+
+:version
+echo pairux %VERSION%
+exit /b 0
+
+:update
+echo Checking for updates...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm '%INSTALLER_URL%/install.ps1' | iex"
+exit /b %ERRORLEVEL%
+
+:uninstall
+echo Uninstalling PairUX...
+taskkill /IM pairux.exe /F >nul 2>nul
+if exist "%UNINSTALLER%" (
+  start /wait "" "%UNINSTALLER%" /S
+)
+if exist "%INSTALL_DIR%" (
+  rmdir /S /Q "%INSTALL_DIR%" >nul 2>nul
+)
+if exist "%BIN_DIR%\pairux.cmd" (
+  del /F /Q "%BIN_DIR%\pairux.cmd" >nul 2>nul
+)
+echo PairUX has been uninstalled.
+exit /b 0
+
+:run
+if exist "%APP_EXE%" (
+  start "" "%APP_EXE%" %*
+  exit /b 0
+)
+echo Error: PairUX app not found at %APP_EXE%
+echo Please reinstall: irm %INSTALLER_URL%/install.ps1 ^| iex
+exit /b 1
+"@
+
+    Set-Content -Path $launcherPath -Value $content -Encoding Ascii
+    Write-Info "CLI launcher created at $launcherPath"
+}
+
 # Add to PATH
 function Add-ToPath {
     $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -262,6 +341,7 @@ function Main {
 
     Install-PairUX -Platform $platform -Version $version
     Install-FFmpeg -Version $version
+    New-CliLauncher -Version $version
     Add-ToPath
     New-DesktopShortcut
     New-StartMenuShortcut

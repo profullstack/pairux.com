@@ -260,8 +260,10 @@ install_macos() {
 # PairUX launcher (macOS)
 
 VERSION="$version"
+INSTALLER_URL="$INSTALLER_URL"
 APP_PATH="/Applications/PairUX.app"
 APP_BIN="\$APP_PATH/Contents/MacOS/PairUX"
+INSTALL_DIR="\$HOME/.pairux"
 BIN_DIR="\$HOME/.local/bin"
 
 case "\${1-}" in
@@ -273,15 +275,15 @@ case "\${1-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message"
         echo "  -v, --version    Show version number"
-        echo "  update           Check for updates and install the latest version"
-        echo "  uninstall        Remove PairUX completely"
+        echo "  update|upgrade   Check for updates and install the latest version"
+        echo "  uninstall|remove Remove PairUX completely"
         exit 0
         ;;
     -v|--version)
         echo "pairux \$VERSION"
         exit 0
         ;;
-    update)
+    update|upgrade)
         echo "Checking for updates..."
 
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
@@ -306,10 +308,17 @@ case "\${1-}" in
 
         echo ""
         echo "Updating PairUX to v\$LATEST..."
-        curl -fsSL https://installer.pairux.com/install.sh | bash
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsSL "\$INSTALLER_URL/install.sh" | bash
+        elif command -v wget >/dev/null 2>&1; then
+            wget -qO- "\$INSTALLER_URL/install.sh" | bash
+        else
+            echo "Error: curl or wget is required for updates."
+            exit 1
+        fi
         exit \$?
         ;;
-    uninstall)
+    uninstall|remove)
         echo "Uninstalling PairUX..."
         echo ""
 
@@ -318,8 +327,19 @@ case "\${1-}" in
 
         # Remove app bundle
         if [ -d "\$APP_PATH" ]; then
-            rm -rf "\$APP_PATH"
-            echo "  Removed \$APP_PATH"
+            if rm -rf "\$APP_PATH" 2>/dev/null; then
+                echo "  Removed \$APP_PATH"
+            elif command -v sudo >/dev/null 2>&1 && sudo rm -rf "\$APP_PATH"; then
+                echo "  Removed \$APP_PATH (with sudo)"
+            else
+                echo "  Failed to remove \$APP_PATH (permission denied)"
+            fi
+        fi
+
+        # Remove support directory used for bundled ffmpeg
+        if [ -d "\$INSTALL_DIR" ]; then
+            rm -rf "\$INSTALL_DIR"
+            echo "  Removed \$INSTALL_DIR"
         fi
 
         # Remove this launcher script last
@@ -373,6 +393,7 @@ install_linux() {
 # ELECTRON_DISABLE_SANDBOX is required for AppImages without SUID chrome-sandbox
 
 VERSION="$version"
+INSTALLER_URL="$INSTALLER_URL"
 APPIMAGE="\$HOME/.pairux/PairUX.AppImage"
 INSTALL_DIR="\$HOME/.pairux"
 BIN_DIR="\$HOME/.local/bin"
@@ -388,15 +409,15 @@ case "\${1-}" in
         echo "Options:"
         echo "  -h, --help       Show this help message"
         echo "  -v, --version    Show version number"
-        echo "  update           Check for updates and install the latest version"
-        echo "  uninstall        Remove PairUX completely"
+        echo "  update|upgrade   Check for updates and install the latest version"
+        echo "  uninstall|remove Remove PairUX completely"
         exit 0
         ;;
     -v|--version)
         echo "pairux \$VERSION"
         exit 0
         ;;
-    uninstall)
+    uninstall|remove)
         echo "Uninstalling PairUX..."
         echo ""
 
@@ -429,7 +450,7 @@ case "\${1-}" in
         rm -f "\$BIN_DIR/pairux"
         exit 0
         ;;
-    update)
+    update|upgrade)
         echo "Checking for updates..."
 
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
@@ -454,7 +475,14 @@ case "\${1-}" in
 
         echo ""
         echo "Updating PairUX to v\$LATEST..."
-        curl -fsSL https://installer.pairux.com/install.sh | bash
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsSL "\$INSTALLER_URL/install.sh" | bash
+        elif command -v wget >/dev/null 2>&1; then
+            wget -qO- "\$INSTALLER_URL/install.sh" | bash
+        else
+            echo "Error: curl or wget is required for updates."
+            exit 1
+        fi
         exit \$?
         ;;
 esac

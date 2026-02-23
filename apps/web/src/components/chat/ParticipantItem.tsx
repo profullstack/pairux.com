@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { User, Crown, MessageCircle } from 'lucide-react';
 import type { SessionParticipant } from '@pairux/shared-types';
 
@@ -8,9 +8,14 @@ interface ParticipantItemProps {
   participant: SessionParticipant;
   isCurrentUser: boolean;
   onStartDM?: (participant: SessionParticipant) => void;
+  isHostContext?: boolean;
+  isMuted?: boolean;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }
 
-// Generate a consistent color from a string (same as ChatMessage)
 function stringToColor(str: string): string {
   const colors = [
     'bg-blue-500',
@@ -33,51 +38,137 @@ export const ParticipantItem = memo(function ParticipantItem({
   participant,
   isCurrentUser,
   onStartDM,
+  isHostContext = false,
+  isMuted = false,
+  onGrantControl,
+  onRevokeControl,
+  onKickParticipant,
+  onMuteParticipant,
 }: ParticipantItemProps) {
-  const isHost = participant.role === 'host';
+  const isParticipantHost = participant.role === 'host';
   const avatarColor = stringToColor(participant.display_name);
+  const canModerate = isHostContext && !isCurrentUser && !isParticipantHost;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (menuRef.current?.contains(event.target as Node)) return;
+      setMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  const openContextMenu = (event: ReactMouseEvent) => {
+    if (!canModerate) return;
+    event.preventDefault();
+    setMenuPos({ x: event.clientX, y: event.clientY });
+    setMenuOpen(true);
+  };
 
   return (
-    <div
-      className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-800"
-      data-testid="participant-item"
-    >
-      {/* Avatar */}
+    <>
       <div
-        className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
+        className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-800"
+        data-testid="participant-item"
+        onContextMenu={openContextMenu}
       >
-        <User className="h-3.5 w-3.5 text-white" />
-        {isHost && (
-          <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400">
-            <Crown className="h-2.5 w-2.5 text-yellow-800" />
+        <div
+          className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
+        >
+          <User className="h-3.5 w-3.5 text-white" />
+          {isParticipantHost && (
+            <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400">
+              <Crown className="h-2.5 w-2.5 text-yellow-800" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="truncate text-sm font-medium text-gray-300">
+              {participant.display_name}
+            </span>
+            {isCurrentUser && <span className="text-xs text-gray-500">(you)</span>}
           </div>
+          {isParticipantHost && <span className="text-xs text-gray-400">Host</span>}
+        </div>
+
+        {!isCurrentUser && onStartDM && (
+          <button
+            onClick={() => {
+              onStartDM(participant);
+            }}
+            className="rounded-md p-1.5 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-700 hover:text-gray-300"
+            aria-label={`Message ${participant.display_name}`}
+            title={`Message ${participant.display_name}`}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
         )}
       </div>
 
-      {/* Name and role */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-medium text-gray-300">
-            {participant.display_name}
-          </span>
-          {isCurrentUser && <span className="text-xs text-gray-500">(you)</span>}
-        </div>
-        {isHost && <span className="text-xs text-gray-400">Host</span>}
-      </div>
-
-      {/* DM button - only show for other participants */}
-      {!isCurrentUser && onStartDM && (
-        <button
-          onClick={() => {
-            onStartDM(participant);
-          }}
-          className="rounded-md p-1.5 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-700 hover:text-gray-300"
-          aria-label={`Message ${participant.display_name}`}
-          title={`Message ${participant.display_name}`}
+      {menuOpen && canModerate && (
+        <div
+          ref={menuRef}
+          className="fixed z-50 min-w-44 rounded-md border border-gray-700 bg-gray-900 p-1 shadow-xl"
+          style={{ left: menuPos.x, top: menuPos.y }}
         >
-          <MessageCircle className="h-4 w-4" />
-        </button>
+          {participant.control_state === 'granted' ? (
+            <button
+              type="button"
+              className="block w-full rounded px-3 py-2 text-left text-sm text-gray-200 hover:bg-gray-800"
+              onClick={() => {
+                onRevokeControl?.(participant);
+                setMenuOpen(false);
+              }}
+            >
+              Revoke control
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="block w-full rounded px-3 py-2 text-left text-sm text-gray-200 hover:bg-gray-800"
+              onClick={() => {
+                onGrantControl?.(participant);
+                setMenuOpen(false);
+              }}
+            >
+              Grant control
+            </button>
+          )}
+          <button
+            type="button"
+            className="block w-full rounded px-3 py-2 text-left text-sm text-gray-200 hover:bg-gray-800"
+            onClick={() => {
+              onMuteParticipant?.(participant, !isMuted);
+              setMenuOpen(false);
+            }}
+          >
+            {isMuted ? 'Unmute participant' : 'Mute participant'}
+          </button>
+          <button
+            type="button"
+            className="block w-full rounded px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
+            onClick={() => {
+              onKickParticipant?.(participant);
+              setMenuOpen(false);
+            }}
+          >
+            Remove participant
+          </button>
+        </div>
       )}
-    </div>
+    </>
   );
 });

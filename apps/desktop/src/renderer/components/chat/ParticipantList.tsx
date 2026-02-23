@@ -10,6 +10,12 @@ interface ParticipantListProps {
   isLoading?: boolean;
   onStartDM?: (participant: SessionParticipant) => void;
   defaultExpanded?: boolean;
+  isHost?: boolean;
+  mutedParticipants?: Set<string>;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }
 
 export const ParticipantList = memo(function ParticipantList({
@@ -19,6 +25,12 @@ export const ParticipantList = memo(function ParticipantList({
   isLoading = false,
   onStartDM,
   defaultExpanded = true,
+  isHost = false,
+  mutedParticipants,
+  onGrantControl,
+  onRevokeControl,
+  onKickParticipant,
+  onMuteParticipant,
 }: ParticipantListProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -70,6 +82,12 @@ export const ParticipantList = memo(function ParticipantList({
                 participant={participant}
                 isCurrentUser={isCurrentUser(participant)}
                 onStartDM={onStartDM}
+                isHostContext={isHost}
+                isMuted={Boolean(mutedParticipants?.has(participant.user_id ?? participant.id))}
+                onGrantControl={onGrantControl}
+                onRevokeControl={onRevokeControl}
+                onKickParticipant={onKickParticipant}
+                onMuteParticipant={onMuteParticipant}
               />
             ))
           )}

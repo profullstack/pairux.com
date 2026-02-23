@@ -73,6 +73,7 @@ type HostHookFn = (options: {
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
+  muteViewer: (viewerId: string, muted: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -225,6 +226,7 @@ function HostContent({
     grantControl,
     revokeControl,
     kickViewer,
+    muteViewer,
     micEnabled,
     hasMic,
     toggleMic,
@@ -243,6 +245,59 @@ function HostContent({
 
   // Live participant list with realtime updates
   const { participants: liveParticipants } = useParticipants({ sessionId });
+  const [mutedParticipantTargets, setMutedParticipantTargets] = useState<Set<string>>(new Set());
+
+  const resolveViewerTargetId = useCallback(
+    (participant: SessionParticipant): string | null => {
+      const candidates = [participant.user_id, participant.id].filter(
+        (value): value is string => typeof value === 'string' && value.length > 0
+      );
+      for (const candidate of candidates) {
+        if (hostedViewers.has(candidate)) return candidate;
+      }
+      return candidates[0] ?? null;
+    },
+    [hostedViewers]
+  );
+
+  const handleMuteParticipant = useCallback(
+    (participant: SessionParticipant, muted: boolean) => {
+      const viewerId = resolveViewerTargetId(participant);
+      if (!viewerId) return;
+      muteViewer(viewerId, muted);
+      setMutedParticipantTargets((prev) => {
+        const next = new Set(prev);
+        if (muted) next.add(viewerId);
+        else next.delete(viewerId);
+        return next;
+      });
+    },
+    [muteViewer, resolveViewerTargetId]
+  );
+
+  const handleGrantControlParticipant = useCallback(
+    (participant: SessionParticipant) => {
+      const viewerId = resolveViewerTargetId(participant);
+      if (viewerId) grantControl(viewerId);
+    },
+    [grantControl, resolveViewerTargetId]
+  );
+
+  const handleRevokeControlParticipant = useCallback(
+    (participant: SessionParticipant) => {
+      const viewerId = resolveViewerTargetId(participant);
+      if (viewerId) revokeControl(viewerId);
+    },
+    [revokeControl, resolveViewerTargetId]
+  );
+
+  const handleKickParticipant = useCallback(
+    (participant: SessionParticipant) => {
+      const viewerId = resolveViewerTargetId(participant);
+      if (viewerId) kickViewer(viewerId);
+    },
+    [kickViewer, resolveViewerTargetId]
+  );
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {
@@ -705,6 +760,8 @@ function HostContent({
                 onGrantControl={grantControl}
                 onRevokeControl={revokeControl}
                 onKickParticipant={kickViewer}
+                onMuteParticipant={muteViewer}
+                mutedParticipants={mutedParticipantTargets}
               />
             </div>
 
@@ -780,6 +837,13 @@ function HostContent({
           <ChatPanel
             sessionId={session.id}
             participantId={session.host_user_id}
+            currentUserId={session.host_user_id}
+            isHost={true}
+            mutedParticipants={mutedParticipantTargets}
+            onGrantControl={handleGrantControlParticipant}
+            onRevokeControl={handleRevokeControlParticipant}
+            onKickParticipant={handleKickParticipant}
+            onMuteParticipant={handleMuteParticipant}
             isCollapsed={false}
             onToggleCollapse={() => {
               setShowChat(false);

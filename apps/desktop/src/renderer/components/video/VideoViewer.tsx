@@ -31,18 +31,59 @@ export function VideoViewer({
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [requiresUnmute, setRequiresUnmute] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    const handleLoadedMetadata = () => {
+      console.log('[VideoViewer] loadedmetadata', {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        readyState: video.readyState,
+        muted: video.muted,
+      });
+    };
+    const handlePlaying = () => {
+      console.log('[VideoViewer] playing', {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        readyState: video.readyState,
+        currentTime: video.currentTime,
+        muted: video.muted,
+      });
+    };
+    const handleStalled = () => {
+      console.warn('[VideoViewer] stalled');
+    };
+    const handleWaiting = () => {
+      console.warn('[VideoViewer] waiting');
+    };
+    const handleError = () => {
+      console.error('[VideoViewer] media error', video.error);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('stalled', handleStalled);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('error', handleError);
+
     if (stream) {
+      setRequiresUnmute(false);
+      console.log('[VideoViewer] Attaching stream', {
+        streamId: stream.id,
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+      });
       video.srcObject = stream;
       video.muted = isMuted;
       video
         .play()
         .then(() => {
-          // Playback succeeded
+          setRequiresUnmute(false);
+          console.log('[VideoViewer] play() succeeded (unmuted)');
         })
         .catch(() => {
           // Unmuted play blocked — retry muted so the video at least renders
@@ -52,10 +93,22 @@ export function VideoViewer({
           video.play().catch((err: unknown) => {
             console.error('[VideoViewer] Failed to play even muted:', err);
           });
+          if (stream.getAudioTracks().length > 0) {
+            setRequiresUnmute(true);
+          }
         });
     } else {
+      setRequiresUnmute(false);
+      console.log('[VideoViewer] Clearing stream');
       video.srcObject = null;
     }
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('stalled', handleStalled);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('error', handleError);
+    };
   }, [stream, isMuted]);
 
   const toggleMute = useCallback(() => {
@@ -64,11 +117,14 @@ export function VideoViewer({
 
     video.muted = !video.muted;
     setIsMuted(video.muted);
+    if (!video.muted) {
+      setRequiresUnmute(false);
+    }
   }, []);
 
-  const hasVideoTrack = !!stream && stream.getVideoTracks().length > 0;
-  const hasAudioTrack = !!stream && stream.getAudioTracks().length > 0;
-  const isStreaming = connectionState === 'connected' && hasVideoTrack;
+  const hasVideoTrack = Boolean(stream && stream.getVideoTracks().length > 0);
+  const hasAudioTrack = Boolean(stream && stream.getAudioTracks().length > 0);
+  const isStreaming = hasVideoTrack && connectionState === 'connected';
   const isVoiceOnly = connectionState === 'connected' && !hasVideoTrack;
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
   const isFailed = connectionState === 'failed';
@@ -85,6 +141,31 @@ export function VideoViewer({
         playsInline
         className={`h-full w-full object-contain ${isStreaming ? '' : 'hidden'}`}
       />
+
+      {requiresUnmute && hasAudioTrack && (isStreaming || isVoiceOnly) && (
+        <div className="absolute bottom-4 right-4 z-20">
+          <button
+            type="button"
+            onClick={() => {
+              const video = videoRef.current;
+              if (!video) return;
+              video.muted = false;
+              void video
+                .play()
+                .then(() => {
+                  setRequiresUnmute(false);
+                  console.log('[VideoViewer] Audio unmuted after user gesture');
+                })
+                .catch((err: unknown) => {
+                  console.error('[VideoViewer] Failed to unmute/play after user gesture:', err);
+                });
+            }}
+            className="rounded-full border border-white/20 bg-black/70 px-3 py-2 text-xs font-medium text-white backdrop-blur hover:bg-black/80"
+          >
+            Unmute audio
+          </button>
+        </div>
+      )}
 
       {/* Voice-only placeholder: connected but no screen share */}
       {isVoiceOnly && (

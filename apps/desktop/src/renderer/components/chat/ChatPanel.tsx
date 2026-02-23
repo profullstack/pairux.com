@@ -16,6 +16,7 @@ import { ParticipantList } from './ParticipantList';
 import { useChat } from './useChat';
 import { useParticipants } from './useParticipants';
 import type { ChatMessage as ChatMessageType } from '@pairux/shared-types';
+import type { SessionParticipant } from '@pairux/shared-types';
 
 interface ChatPanelProps {
   sessionId: string;
@@ -23,6 +24,12 @@ interface ChatPanelProps {
   participantId?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  isHost?: boolean;
+  mutedParticipants?: Set<string>;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }
 
 const MAX_MESSAGE_LENGTH = 500;
@@ -33,6 +40,12 @@ export function ChatPanel({
   participantId,
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
+  isHost = false,
+  mutedParticipants,
+  onGrantControl,
+  onRevokeControl,
+  onKickParticipant,
+  onMuteParticipant,
 }: ChatPanelProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed ?? internalCollapsed;
@@ -174,6 +187,12 @@ export function ChatPanel({
         currentUserId={currentUserId}
         currentParticipantId={participantId}
         isLoading={participantsLoading}
+        isHost={isHost}
+        mutedParticipants={mutedParticipants}
+        onGrantControl={onGrantControl}
+        onRevokeControl={onRevokeControl}
+        onKickParticipant={onKickParticipant}
+        onMuteParticipant={onMuteParticipant}
       />
 
       {/* Message list */}

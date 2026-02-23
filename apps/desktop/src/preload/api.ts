@@ -62,6 +62,11 @@ export interface IPCChannels {
     };
   };
 
+  'platform:toggle-devtools': {
+    args: undefined;
+    return: { success: boolean; isOpen?: boolean; error?: string };
+  };
+
   // Auth channels
   'auth:login': {
     args: { email: string; password: string };

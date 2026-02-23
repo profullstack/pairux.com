@@ -206,6 +206,116 @@ describe('POST /api/sessions/[sessionId]/signal', () => {
     expect(body.error).toBe('Not authorized to send signals in this session');
   });
 
+  it('allows authenticated viewer signaling with senderId=user.id when user is an active participant', async () => {
+    const otherUserSession = { ...mockSession, host_user_id: 'host-user-id' };
+    let callCount = 0;
+
+    const mockChannel = {
+      subscribe: vi.fn().mockImplementation((callback) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      }),
+      send: vi.fn().mockResolvedValue('ok'),
+    };
+
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Session lookup
+          return Promise.resolve({ data: otherUserSession, error: null });
+        }
+        if (callCount === 2) {
+          // Participant lookup by signal.senderId (user.id) misses
+          return Promise.resolve({ data: null, error: { code: 'PGRST116' } });
+        }
+        // Participant lookup by user_id succeeds
+        return Promise.resolve({ data: { id: 'participant-row-id' }, error: null });
+      }),
+    });
+
+    const mockSupabase = createMockSupabaseClient({
+      from: mockFrom,
+      channel: vi.fn().mockReturnValue(mockChannel),
+      removeChannel: vi.fn().mockResolvedValue('ok'),
+    });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await POST(createRequest('test-session-id', validSignal), {
+      params: Promise.resolve({ sessionId: 'test-session-id' }),
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.sent).toBe(true);
+    expect(mockChannel.send).toHaveBeenCalled();
+  });
+
+  it('allows authenticated viewer signaling when desktop posts a stale local senderId', async () => {
+    const otherUserSession = { ...mockSession, host_user_id: 'host-user-id' };
+    let callCount = 0;
+
+    const mockChannel = {
+      subscribe: vi.fn().mockImplementation((callback) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      }),
+      send: vi.fn().mockResolvedValue('ok'),
+    };
+
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Session lookup
+          return Promise.resolve({ data: otherUserSession, error: null });
+        }
+        if (callCount === 2) {
+          // Participant lookup by stale senderId misses
+          return Promise.resolve({ data: null, error: { code: 'PGRST116' } });
+        }
+        // Fallback auth by authenticated user_id succeeds
+        return Promise.resolve({ data: { id: 'participant-row-id' }, error: null });
+      }),
+    });
+
+    const mockSupabase = createMockSupabaseClient({
+      from: mockFrom,
+      channel: vi.fn().mockReturnValue(mockChannel),
+      removeChannel: vi.fn().mockResolvedValue('ok'),
+    });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await POST(
+      createRequest('test-session-id', {
+        ...validSignal,
+        senderId: 'desktop-local-participant-id',
+      }),
+      {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.sent).toBe(true);
+    expect(mockChannel.send).toHaveBeenCalledWith({
+      type: 'broadcast',
+      event: 'signal',
+      payload: expect.objectContaining({
+        senderId: mockUser.id,
+      }),
+    });
+  });
+
   it('returns 400 for invalid signal type', async () => {
     const invalidSignal = {
       type: 'invalid-type',

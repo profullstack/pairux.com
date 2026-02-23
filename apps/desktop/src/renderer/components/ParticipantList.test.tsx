@@ -508,7 +508,7 @@ describe('ParticipantList', () => {
       expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
     });
 
-    it('does not show mute button for participant with null user_id', () => {
+    it('shows mute button for participant with null user_id using participant id fallback', () => {
       const participants = [
         createMockParticipant({
           id: 'p-1',
@@ -530,7 +530,7 @@ describe('ParticipantList', () => {
         />
       );
 
-      expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
+      expect(screen.getByTitle('Mute participant')).toBeInTheDocument();
     });
   });
 });

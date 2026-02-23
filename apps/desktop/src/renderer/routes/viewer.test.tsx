@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ViewerPage } from './viewer';
 import type { Session, SessionParticipant } from '@pairux/shared-types';
@@ -72,16 +72,18 @@ const mockSFUHookResult = {
 };
 
 vi.mock('@/hooks/useWebRTCViewerAPI', () => ({
-  useWebRTCViewerAPI: (opts: { onKicked?: () => void }) => {
+  useWebRTCViewerAPI: (opts: { onKicked?: () => void; onPresenceChange?: () => void }) => {
     // Store callback for testing
     (mockP2PHookResult as Record<string, unknown>)._onKicked = opts.onKicked;
+    (mockP2PHookResult as Record<string, unknown>)._onPresenceChange = opts.onPresenceChange;
     return mockP2PHookResult;
   },
 }));
 
 vi.mock('@/hooks/useWebRTCViewerSFUAPI', () => ({
-  useWebRTCViewerSFUAPI: (opts: { onKicked?: () => void }) => {
+  useWebRTCViewerSFUAPI: (opts: { onKicked?: () => void; onPresenceChange?: () => void }) => {
     (mockSFUHookResult as Record<string, unknown>)._onKicked = opts.onKicked;
+    (mockSFUHookResult as Record<string, unknown>)._onPresenceChange = opts.onPresenceChange;
     return mockSFUHookResult;
   },
 }));
@@ -403,5 +405,48 @@ describe('ViewerPage', () => {
     expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
 
     setIntervalSpy.mockRestore();
+  });
+
+  it('refreshes participant list immediately on presence change', async () => {
+    mockInvoke
+      .mockResolvedValueOnce({
+        success: true,
+        session: makeSession(),
+        participants: makeParticipants(),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        session: makeSession(),
+        participants: [
+          ...makeParticipants(),
+          {
+            id: 'part-viewer-2',
+            session_id: 'session-1',
+            user_id: 'user-2',
+            role: 'viewer',
+            display_name: 'Viewer Two',
+            control_state: 'view-only',
+            is_backup_host: false,
+            connection_status: 'connected',
+            last_seen_at: null,
+            joined_at: new Date().toISOString(),
+            left_at: null,
+          } satisfies SessionParticipant,
+        ],
+      });
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('2 participants')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      (mockP2PHookResult as unknown as { _onPresenceChange?: () => void })._onPresenceChange?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('3 participants')).toBeInTheDocument();
+    });
   });
 });

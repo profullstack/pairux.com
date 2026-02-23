@@ -49,6 +49,7 @@ interface UseWebRTCViewerAPIOptions {
   onControlStateChange?: (state: ControlStateUI) => void;
   onCursorUpdate?: (cursor: CursorPositionMessage) => void;
   onKicked?: (reason?: string) => void;
+  onPresenceChange?: () => void;
 }
 
 interface UseWebRTCViewerAPIReturn {
@@ -78,6 +79,7 @@ export function useWebRTCViewerAPI({
   onControlStateChange,
   onCursorUpdate,
   onKicked,
+  onPresenceChange,
 }: UseWebRTCViewerAPIOptions): UseWebRTCViewerAPIReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -120,11 +122,13 @@ export function useWebRTCViewerAPI({
   const onControlStateChangeRef = useRef(onControlStateChange);
   const onCursorUpdateRef = useRef(onCursorUpdate);
   const onKickedRef = useRef(onKicked);
+  const onPresenceChangeRef = useRef(onPresenceChange);
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
 
   onControlStateChangeRef.current = onControlStateChange;
   onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
+  onPresenceChangeRef.current = onPresenceChange;
 
   const getSignalSenderId = useCallback(() => signalSenderIdRef.current, []);
 
@@ -880,6 +884,7 @@ export function useWebRTCViewerAPI({
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string; role: string }[];
         };
+        onPresenceChangeRef.current?.();
         for (const presence of presences) {
           if (presence.role === 'host') {
             console.log('[WebRTCViewer] Host is present:', presence.user_id);
@@ -895,6 +900,7 @@ export function useWebRTCViewerAPI({
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string; role: string }[];
         };
+        onPresenceChangeRef.current?.();
         for (const presence of presences) {
           if (presence.role === 'host') {
             console.log('[WebRTCViewer] Host left');

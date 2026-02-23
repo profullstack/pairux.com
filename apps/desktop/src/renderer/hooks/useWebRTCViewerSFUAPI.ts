@@ -40,6 +40,7 @@ interface UseWebRTCViewerSFUAPIOptions {
   onControlStateChange?: (state: ControlStateUI) => void;
   onCursorUpdate?: (cursor: CursorPositionMessage) => void;
   onKicked?: (reason?: string) => void;
+  onPresenceChange?: () => void;
 }
 
 interface UseWebRTCViewerSFUAPIReturn {
@@ -84,6 +85,7 @@ export function useWebRTCViewerSFUAPI({
   onControlStateChange,
   onCursorUpdate,
   onKicked,
+  onPresenceChange,
 }: UseWebRTCViewerSFUAPIOptions): UseWebRTCViewerSFUAPIReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -106,6 +108,7 @@ export function useWebRTCViewerSFUAPI({
   const onControlStateChangeRef = useRef(onControlStateChange);
   const onCursorUpdateRef = useRef(onCursorUpdate);
   const onKickedRef = useRef(onKicked);
+  const onPresenceChangeRef = useRef(onPresenceChange);
   const onStreamReadyRef = useRef(onStreamReady);
   const onStreamEndedRef = useRef(onStreamEnded);
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
@@ -113,6 +116,7 @@ export function useWebRTCViewerSFUAPI({
   onControlStateChangeRef.current = onControlStateChange;
   onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
+  onPresenceChangeRef.current = onPresenceChange;
   onStreamReadyRef.current = onStreamReady;
   onStreamEndedRef.current = onStreamEnded;
 
@@ -445,6 +449,7 @@ export function useWebRTCViewerSFUAPI({
 
       // Detect host disconnect/reconnect
       room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+        onPresenceChangeRef.current?.();
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
           if (meta.role === 'host') {
@@ -456,6 +461,7 @@ export function useWebRTCViewerSFUAPI({
       });
 
       room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+        onPresenceChangeRef.current?.();
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
           if (meta.role === 'host') {

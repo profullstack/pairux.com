@@ -201,9 +201,11 @@ export function CapturePreview({
       allowControl: Boolean(session?.settings?.allowControl),
       onViewerJoined: (viewerId: string) => {
         console.log('[CapturePreview] Viewer joined:', viewerId);
+        void refreshSession();
       },
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
+        void refreshSession();
       },
       onInputReceived: (_viewerId: string, input: InputMessage) => {
         void injectEvent(input.event);
@@ -212,8 +214,14 @@ export function CapturePreview({
         // TODO: Update remote cursor position
       },
     }),
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    [session?.id, currentUserId, stream, session?.settings?.allowControl, injectEvent]
+    [
+      session?.id,
+      currentUserId,
+      stream,
+      session?.settings.allowControl,
+      injectEvent,
+      refreshSession,
+    ]
   );
 
   // Always call both hooks (Rules of Hooks) — use results from the active one
@@ -1085,6 +1093,7 @@ export function CapturePreview({
         <ChatPanel
           sessionId={session.id}
           currentUserId={currentUserId}
+          participants={participants.filter((p) => !p.left_at)}
           isHost={canModerateSession}
           mutedParticipants={mutedParticipants}
           onGrantControl={

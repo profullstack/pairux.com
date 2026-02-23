@@ -20,6 +20,20 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+function isActiveParticipant(participant: SessionParticipant): boolean {
+  const role = participant.role as SessionParticipant['role'] | 'left';
+  return !participant.left_at && role !== 'left';
+}
+
+function sortParticipants(participants: SessionParticipant[]): SessionParticipant[] {
+  participants.sort((a, b) => {
+    if (a.role === 'host' && b.role !== 'host') return -1;
+    if (b.role === 'host' && a.role !== 'host') return 1;
+    return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
+  });
+  return participants;
+}
+
 export function useParticipants({ sessionId }: UseParticipantsOptions): UseParticipantsReturn {
   const [participants, setParticipants] = useState<SessionParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,15 +52,9 @@ export function useParticipants({ sessionId }: UseParticipantsOptions): UseParti
       }
 
       if (data.data?.session_participants) {
-        // Filter to only active participants (no left_at)
-        const active = data.data.session_participants.filter((p) => !p.left_at);
-        // Sort: host first, then by joined_at
-        active.sort((a, b) => {
-          if (a.role === 'host' && b.role !== 'host') return -1;
-          if (b.role === 'host' && a.role !== 'host') return 1;
-          return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
-        });
-        setParticipants(active);
+        setParticipants(
+          sortParticipants(data.data.session_participants.filter(isActiveParticipant))
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch participants');
@@ -73,29 +81,26 @@ export function useParticipants({ sessionId }: UseParticipantsOptions): UseParti
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const newParticipant = payload.new as SessionParticipant;
-            if (!newParticipant.left_at) {
+            if (isActiveParticipant(newParticipant)) {
               setParticipants((prev) => {
                 // Avoid duplicates
                 if (prev.some((p) => p.id === newParticipant.id)) return prev;
-                // Insert in correct position (host first, then by join time)
-                const updated = [...prev, newParticipant];
-                updated.sort((a, b) => {
-                  if (a.role === 'host' && b.role !== 'host') return -1;
-                  if (b.role === 'host' && a.role !== 'host') return 1;
-                  return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
-                });
-                return updated;
+                return sortParticipants([...prev, newParticipant]);
               });
             }
           } else if (payload.eventType === 'UPDATE') {
             const updated = payload.new as SessionParticipant;
             setParticipants((prev) => {
               // If participant left, remove them
-              if (updated.left_at) {
+              if (!isActiveParticipant(updated)) {
                 return prev.filter((p) => p.id !== updated.id);
               }
-              // Otherwise update their data
-              return prev.map((p) => (p.id === updated.id ? updated : p));
+
+              const exists = prev.some((p) => p.id === updated.id);
+              const next = exists
+                ? prev.map((p) => (p.id === updated.id ? updated : p))
+                : [...prev, updated];
+              return sortParticipants(next);
             });
           } else {
             // DELETE event

@@ -415,6 +415,27 @@ export function useWebRTCViewerAPI({
       const pc = peerConnectionRef.current;
       if (!pc) return;
 
+      const addIceCandidateSafely = async (candidateInit: RTCIceCandidateInit) => {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidateInit));
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          const isStaleMidCandidate =
+            msg.includes('no media section with that mid found') ||
+            msg.includes('Invalid candidate. Mid');
+
+          if (isStaleMidCandidate) {
+            console.warn('[WebRTCViewer] Ignoring stale ICE candidate for superseded m-line', {
+              sdpMid: candidateInit.sdpMid ?? null,
+              sdpMLineIndex: candidateInit.sdpMLineIndex ?? null,
+            });
+            return;
+          }
+
+          throw err;
+        }
+      };
+
       try {
         switch (message.type) {
           case 'offer': {
@@ -425,6 +446,14 @@ export function useWebRTCViewerAPI({
                 `[WebRTCViewer] Received offer in ${pc.signalingState} state — rolling back`
               );
               await pc.setLocalDescription({ type: 'rollback' });
+            }
+
+            // Drop buffered candidates from prior offers; mids can change across renegotiation.
+            if (pendingCandidatesRef.current.length > 0) {
+              console.log(
+                `[WebRTCViewer] Clearing ${String(pendingCandidatesRef.current.length)} buffered ICE candidates before applying new offer`
+              );
+              pendingCandidatesRef.current = [];
             }
 
             await pc.setRemoteDescription({
@@ -453,7 +482,7 @@ export function useWebRTCViewerAPI({
               );
               pendingCandidatesRef.current = [];
               for (const candidate of pending) {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                await addIceCandidateSafely(candidate);
               }
             }
             break;
@@ -465,7 +494,7 @@ export function useWebRTCViewerAPI({
               if (!pc.remoteDescription) {
                 pendingCandidatesRef.current.push(message.candidate);
               } else {
-                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+                await addIceCandidateSafely(message.candidate);
               }
             }
             break;

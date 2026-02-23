@@ -1,6 +1,6 @@
 {
   "name": "@pairux/installer",
-  "version": "0.5.35",
+  "version": "0.5.36",
   "private": true,
   "description": "PairUX Desktop App Installer Service",
   "type": "module",

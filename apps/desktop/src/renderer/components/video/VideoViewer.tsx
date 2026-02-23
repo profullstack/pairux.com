@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Monitor, Loader2, AlertCircle, RefreshCw, Wifi, WifiOff, Mic } from 'lucide-react';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 
@@ -20,6 +20,7 @@ export function VideoViewer({
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [requiresUnmute, setRequiresUnmute] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -59,6 +60,7 @@ export function VideoViewer({
     video.addEventListener('error', handleError);
 
     if (stream) {
+      setRequiresUnmute(false);
       console.log('[VideoViewer] Attaching stream', {
         streamId: stream.id,
         videoTracks: stream.getVideoTracks().length,
@@ -69,6 +71,7 @@ export function VideoViewer({
       video
         .play()
         .then(() => {
+          setRequiresUnmute(false);
           console.log('[VideoViewer] play() succeeded (unmuted)');
         })
         .catch(() => {
@@ -78,8 +81,12 @@ export function VideoViewer({
           video.play().catch((err: unknown) => {
             console.error('[VideoViewer] Failed to play even muted:', err);
           });
+          if (stream.getAudioTracks().length > 0) {
+            setRequiresUnmute(true);
+          }
         });
     } else {
+      setRequiresUnmute(false);
       console.log('[VideoViewer] Clearing stream');
       video.srcObject = null;
     }
@@ -94,6 +101,7 @@ export function VideoViewer({
   }, [stream]);
 
   const hasVideoTrack = Boolean(stream && stream.getVideoTracks().length > 0);
+  const hasAudioTrack = Boolean(stream && stream.getAudioTracks().length > 0);
   const isStreaming = hasVideoTrack && connectionState === 'connected';
   const isVoiceOnly = connectionState === 'connected' && !hasVideoTrack;
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
@@ -111,6 +119,31 @@ export function VideoViewer({
         playsInline
         className={`h-full w-full object-contain ${isStreaming ? '' : 'hidden'}`}
       />
+
+      {requiresUnmute && hasAudioTrack && (isStreaming || isVoiceOnly) && (
+        <div className="absolute bottom-4 right-4 z-20">
+          <button
+            type="button"
+            onClick={() => {
+              const video = videoRef.current;
+              if (!video) return;
+              video.muted = false;
+              void video
+                .play()
+                .then(() => {
+                  setRequiresUnmute(false);
+                  console.log('[VideoViewer] Audio unmuted after user gesture');
+                })
+                .catch((err: unknown) => {
+                  console.error('[VideoViewer] Failed to unmute/play after user gesture:', err);
+                });
+            }}
+            className="rounded-full border border-white/20 bg-black/70 px-3 py-2 text-xs font-medium text-white backdrop-blur hover:bg-black/80"
+          >
+            Unmute audio
+          </button>
+        </div>
+      )}
 
       {/* Voice-only placeholder: connected but no screen share */}
       {isVoiceOnly && (

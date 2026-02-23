@@ -1,9 +1,13 @@
 /**
  * Input injection module using @nut-tree-fork/nut-js
  * Handles mouse and keyboard input injection for remote control
+ *
+ * The native nut-js module is loaded lazily (via dynamic import) so that the
+ * heavy libnut.node addon is only initialised when input injection is actually
+ * needed.  This avoids "open dir error" crashes on Linux when the AppImage's
+ * working directory does not exist at startup.
  */
 
-import { mouse, keyboard, Button, Key, screen } from '@nut-tree-fork/nut-js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -13,10 +17,25 @@ import type {
   MouseButton,
 } from '@pairux/shared-types';
 
-// Configure nut.js for low latency
-mouse.config.autoDelayMs = 0;
-mouse.config.mouseSpeed = 10000; // Very fast movement
-keyboard.config.autoDelayMs = 0;
+// Helper that performs the one-time dynamic import and configures nut-js
+async function loadNut() {
+  const nut = await import('@nut-tree-fork/nut-js');
+  nut.mouse.config.autoDelayMs = 0;
+  nut.mouse.config.mouseSpeed = 10000; // Very fast movement
+  nut.keyboard.config.autoDelayMs = 0;
+  return nut;
+}
+
+// Derive a type from the helper so we never need `typeof import(...)`
+type NutModule = Awaited<ReturnType<typeof loadNut>>;
+
+// Memoised promise – avoids non-null assertions and double-init races
+let _nutPromise: ReturnType<typeof loadNut> | null = null;
+
+function getNut(): ReturnType<typeof loadNut> {
+  _nutPromise ??= loadNut();
+  return _nutPromise;
+}
 
 // Track if input injection is enabled (for safety)
 let injectionEnabled = false;
@@ -30,6 +49,7 @@ let screenHeight = 1080;
  */
 export async function initInputInjector(): Promise<void> {
   try {
+    const { screen } = await getNut();
     const screenSize = await screen.width();
     const heightSize = await screen.height();
     screenWidth = screenSize;
@@ -88,7 +108,7 @@ function toAbsoluteCoords(relX: number, relY: number): { x: number; y: number } 
 /**
  * Map mouse button string to nut.js Button enum
  */
-function mapMouseButton(button: MouseButton): Button {
+function mapMouseButton(button: MouseButton, Button: NutModule['Button']) {
   switch (button) {
     case 'left':
       return Button.LEFT;
@@ -105,9 +125,13 @@ function mapMouseButton(button: MouseButton): Button {
  * Map key code to nut.js Key enum
  * Handles both character keys and special keys
  */
-function mapKey(key: string, code: string): Key | string {
+function mapKey(
+  key: string,
+  code: string,
+  Key: NutModule['Key']
+): NutModule['Key'][keyof NutModule['Key']] | string {
   // Special keys mapping
-  const specialKeys: Record<string, Key> = {
+  const specialKeys: Record<string, NutModule['Key'][keyof NutModule['Key']]> = {
     Enter: Key.Enter,
     Tab: Key.Tab,
     Escape: Key.Escape,
@@ -175,6 +199,7 @@ function mapKey(key: string, code: string): Key | string {
  * Handle mouse move event
  */
 async function handleMouseMove(event: MouseMoveEvent): Promise<void> {
+  const { mouse } = await getNut();
   const { x, y } = toAbsoluteCoords(event.x, event.y);
   await mouse.setPosition({ x, y });
 }
@@ -183,8 +208,9 @@ async function handleMouseMove(event: MouseMoveEvent): Promise<void> {
  * Handle mouse button event
  */
 async function handleMouseButton(event: MouseButtonEvent): Promise<void> {
+  const { mouse, Button } = await getNut();
   const { x, y } = toAbsoluteCoords(event.x, event.y);
-  const button = mapMouseButton(event.button);
+  const button = mapMouseButton(event.button, Button);
 
   // Move to position first
   await mouse.setPosition({ x, y });
@@ -209,6 +235,7 @@ async function handleMouseButton(event: MouseButtonEvent): Promise<void> {
  * Handle mouse scroll event
  */
 async function handleMouseScroll(event: MouseScrollEvent): Promise<void> {
+  const { mouse } = await getNut();
   const { x, y } = toAbsoluteCoords(event.x, event.y);
 
   // Move to position first
@@ -239,11 +266,12 @@ async function handleMouseScroll(event: MouseScrollEvent): Promise<void> {
  * Handle keyboard event
  */
 async function handleKeyboard(event: KbEvent): Promise<void> {
-  const key = mapKey(event.key, event.code);
+  const { keyboard, Key } = await getNut();
+  const key = mapKey(event.key, event.code, Key);
   const { modifiers } = event;
 
   // Build list of modifier keys to hold
-  const modifierKeys: Key[] = [];
+  const modifierKeys: NutModule['Key'][keyof NutModule['Key']][] = [];
   if (modifiers.ctrl) modifierKeys.push(Key.LeftControl);
   if (modifiers.alt) modifierKeys.push(Key.LeftAlt);
   if (modifiers.shift) modifierKeys.push(Key.LeftShift);
@@ -343,6 +371,8 @@ export async function emergencyStop(): Promise<void> {
   disableInjection();
 
   try {
+    const { keyboard, mouse, Key, Button } = await getNut();
+
     // Release common modifier keys
     await keyboard.releaseKey(Key.LeftControl);
     await keyboard.releaseKey(Key.LeftAlt);

@@ -28,16 +28,58 @@ function getIceServers(): RTCIceServer[] {
     { urls: 'stun:stun1.l.google.com:19302' },
   ];
 
-  const turnUrl = process.env.TURN_SERVER_URL;
+  const turnUrls = [
+    process.env.TURN_SERVER_URL,
+    process.env.TURNS_SERVER_URL,
+    process.env.TURN_SERVER_IP_URL,
+    process.env.TURNS_SERVER_IP_URL,
+  ];
   const turnUser = process.env.TURN_SERVER_USERNAME;
   const turnCred = process.env.TURN_SERVER_CREDENTIAL;
 
-  if (turnUrl && turnUser && turnCred) {
-    servers.push({
-      urls: turnUrl,
-      username: turnUser,
-      credential: turnCred,
-    });
+  if (turnUser && turnCred) {
+    const uniqueTurnUrls = [...new Set(turnUrls.filter((url): url is string => Boolean(url)))];
+
+    if (uniqueTurnUrls.length > 0) {
+      servers.push({
+        urls: uniqueTurnUrls,
+        username: turnUser,
+        credential: turnCred,
+      });
+    }
+  }
+
+  const publicTurnUrls = [
+    process.env.NEXT_PUBLIC_TURN_URL,
+    process.env.NEXT_PUBLIC_TURNS_URL,
+    process.env.NEXT_PUBLIC_TURN_IP_URL,
+    process.env.NEXT_PUBLIC_TURNS_IP_URL,
+  ];
+  const publicTurnUser = process.env.NEXT_PUBLIC_TURN_USERNAME;
+  const publicTurnCred = process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
+
+  if (publicTurnUser && publicTurnCred) {
+    const uniquePublicTurnUrls = [
+      ...new Set(publicTurnUrls.filter((url): url is string => Boolean(url))),
+    ];
+
+    if (uniquePublicTurnUrls.length > 0) {
+      // Add public TURN entries as a fallback if server-side TURN envs are not configured
+      // in the runtime environment serving SSE.
+      const hasMatchingServerTurnEntry = servers.some((server) => {
+        if (!('username' in server) || !('credential' in server)) return false;
+        const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+        return urls.some((url) => uniquePublicTurnUrls.includes(url));
+      });
+
+      if (!hasMatchingServerTurnEntry) {
+        servers.push({
+          urls: uniquePublicTurnUrls,
+          username: publicTurnUser,
+          credential: publicTurnCred,
+        });
+      }
+    }
   }
 
   return servers;

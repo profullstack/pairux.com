@@ -1,6 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, Loader2, LogOut, MessageSquare, AlertCircle, Mic, MicOff } from 'lucide-react';
+import {
+  Users,
+  Loader2,
+  LogOut,
+  MessageSquare,
+  AlertCircle,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import { ChatPanel } from '@/components/chat';
 import { VideoViewer } from '@/components/video/VideoViewer';
 import { useAuthStore } from '@/stores/auth';
@@ -216,6 +226,7 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(true);
   const [leaving, setLeaving] = useState(false);
+  const [speakerMuted, setSpeakerMuted] = useState(false);
 
   const {
     connectionState,
@@ -253,6 +264,21 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setSpeakerMuted((prev) => !prev);
+              }}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                speakerMuted
+                  ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  : 'bg-blue-700 text-white hover:bg-blue-600'
+              }`}
+              title={speakerMuted ? 'Turn speaker on' : 'Turn speaker off'}
+            >
+              {speakerMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {speakerMuted ? 'Speaker Off' : 'Speaker On'}
+            </button>
+
             {/* Mic toggle */}
             <button
               onClick={toggleMic}
@@ -341,6 +367,9 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           connectionState={connectionState}
           error={webrtcError}
           onReconnect={reconnect}
+          speakerMuted={speakerMuted}
+          onSpeakerMutedChange={setSpeakerMuted}
+          showSpeakerToggle={false}
           className="flex-1"
         />
       </div>

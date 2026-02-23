@@ -21,6 +21,8 @@ import {
   Download,
   Mic,
   MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { VideoPreview } from '@/components/video';
 import { HostParticipantList } from '@/components/participants/HostParticipantList';
@@ -186,6 +188,7 @@ function HostContent({
   const [captureQuality, setCaptureQuality] = useState<CaptureQuality>('1080p');
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
+  const [speakerMuted, setSpeakerMuted] = useState(false);
 
   // Screen capture hook
   const {
@@ -298,6 +301,14 @@ function HostContent({
     },
     [kickViewer, resolveViewerTargetId]
   );
+
+  useEffect(() => {
+    for (const viewer of hostedViewers.values()) {
+      if (viewer.audioElement) {
+        viewer.audioElement.muted = speakerMuted || viewer.isMuted;
+      }
+    }
+  }, [hostedViewers, speakerMuted]);
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {
@@ -588,6 +599,24 @@ function HostContent({
               )}
 
               {/* Mic toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSpeakerMuted((prev) => !prev);
+                }}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  speakerMuted
+                    ? 'border border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'bg-blue-700 text-white hover:bg-blue-600'
+                }`}
+                title={speakerMuted ? 'Turn speaker on' : 'Turn speaker off'}
+              >
+                {speakerMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                <span className="hidden sm:inline">
+                  {speakerMuted ? 'Speaker Off' : 'Speaker On'}
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={toggleMic}

@@ -13,6 +13,9 @@ interface VideoViewerProps {
   networkQuality: NetworkQuality;
   error: string | null;
   onReconnect?: (() => void) | undefined;
+  speakerMuted?: boolean | undefined;
+  onSpeakerMutedChange?: ((muted: boolean) => void) | undefined;
+  showSpeakerToggle?: boolean | undefined;
   className?: string;
 }
 
@@ -23,17 +26,31 @@ export function VideoViewer({
   networkQuality,
   error,
   onReconnect,
+  speakerMuted,
+  onSpeakerMutedChange,
+  showSpeakerToggle = true,
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [localMuted, setLocalMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [needsAudioGesture, setNeedsAudioGesture] = useState(false);
+  const isMuted = speakerMuted ?? localMuted;
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasVideoTrack = !!stream && stream.getVideoTracks().length > 0;
   const hasAudioTrack = !!stream && stream.getAudioTracks().length > 0;
+
+  const setMutedState = useCallback(
+    (muted: boolean) => {
+      onSpeakerMutedChange?.(muted);
+      if (speakerMuted === undefined) {
+        setLocalMuted(muted);
+      }
+    },
+    [onSpeakerMutedChange, speakerMuted]
+  );
 
   // Attach stream to video element
   // On iOS Safari, unmuted autoplay is blocked. We try unmuted first, and if
@@ -49,11 +66,12 @@ export function VideoViewer({
         .play()
         .then(() => {
           setNeedsAudioGesture(false);
+          setMutedState(false);
         })
         .catch(() => {
           // Unmuted play blocked (iOS) — retry muted
           video.muted = true;
-          setIsMuted(true);
+          setMutedState(true);
           video
             .play()
             .then(() => {
@@ -66,7 +84,7 @@ export function VideoViewer({
     } else {
       video.srcObject = null;
     }
-  }, [stream, isMuted]);
+  }, [stream, isMuted, setMutedState]);
 
   // Handle fullscreen changes
   useEffect(() => {
@@ -101,10 +119,10 @@ export function VideoViewer({
     const video = videoRef.current;
     if (video) {
       video.muted = !video.muted;
-      setIsMuted(video.muted);
+      setMutedState(video.muted);
       setNeedsAudioGesture(false);
     }
-  }, []);
+  }, [setMutedState]);
 
   // Auto-hide controls
   const handleMouseMove = useCallback(() => {
@@ -180,7 +198,7 @@ export function VideoViewer({
       )}
 
       {/* Voice-only speaker toggle */}
-      {isVoiceOnly && hasAudioTrack && (
+      {showSpeakerToggle && isVoiceOnly && hasAudioTrack && (
         <button
           type="button"
           className="absolute top-4 right-4 z-20 rounded-lg bg-black/60 p-2 text-white backdrop-blur transition-colors hover:bg-black/80"
@@ -208,14 +226,16 @@ export function VideoViewer({
             {/* Control buttons */}
             <div className="flex items-center gap-2">
               {/* Mute toggle */}
-              <button
-                type="button"
-                onClick={toggleMute}
-                className="rounded-lg bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
-                title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
-              >
-                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-              </button>
+              {showSpeakerToggle && (
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="rounded-lg bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+                  title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
+                >
+                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </button>
+              )}
 
               {/* Fullscreen toggle */}
               <button

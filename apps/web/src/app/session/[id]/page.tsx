@@ -11,6 +11,8 @@ import {
   AlertCircle,
   Mic,
   MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import type {
@@ -263,6 +265,7 @@ function SessionViewerContent({
   toggleMic,
 }: SessionViewerContentProps) {
   const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
+  const [speakerMuted, setSpeakerMuted] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
   // Track host presence in real-time
@@ -340,6 +343,9 @@ function SessionViewerContent({
                 networkQuality={networkQuality}
                 error={webrtcError}
                 onReconnect={reconnect}
+                speakerMuted={speakerMuted}
+                onSpeakerMutedChange={setSpeakerMuted}
+                showSpeakerToggle={false}
                 className="h-full"
               />
             </InputCapture>
@@ -357,6 +363,21 @@ function SessionViewerContent({
               />
             )}
             {/* Mic toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setSpeakerMuted((prev) => !prev);
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                speakerMuted
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-blue-700 text-white hover:bg-blue-600'
+              }`}
+              title={speakerMuted ? 'Turn speaker on' : 'Turn speaker off'}
+            >
+              {speakerMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {speakerMuted ? 'Speaker Off' : 'Speaker On'}
+            </button>
             <button
               type="button"
               onClick={toggleMic}

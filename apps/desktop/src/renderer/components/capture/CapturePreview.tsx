@@ -98,6 +98,7 @@ export function CapturePreview({
   });
   const [includeAudio, setIncludeAudio] = useState(true);
   const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
+  const [speakerMuted, setSpeakerMuted] = useState(false);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
@@ -259,6 +260,14 @@ export function CapturePreview({
       disposeMixer();
     };
   }, [disposeMixer]);
+
+  useEffect(() => {
+    for (const viewer of hostedViewers.values()) {
+      if (viewer.audioElement) {
+        viewer.audioElement.muted = speakerMuted || viewer.isMuted;
+      }
+    }
+  }, [hostedViewers, speakerMuted]);
 
   // Start hosting (voice channel) when session is available -- no stream required
   useEffect(() => {
@@ -883,6 +892,17 @@ export function CapturePreview({
               </div>
 
               {/* Microphone toggle for streaming audio */}
+              <Button
+                variant={speakerMuted ? 'secondary' : 'default'}
+                size="sm"
+                onClick={() => {
+                  setSpeakerMuted((prev) => !prev);
+                }}
+                title={speakerMuted ? 'Turn speaker on' : 'Turn speaker off'}
+              >
+                {speakerMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {speakerMuted ? 'Speaker Off' : 'Speaker On'}
+              </Button>
               <Button
                 variant={hostMicEnabled ? 'default' : 'secondary'}
                 size="sm"

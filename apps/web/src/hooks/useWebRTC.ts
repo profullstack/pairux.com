@@ -37,6 +37,7 @@ if (
 interface UseWebRTCOptions {
   sessionId: string;
   participantId: string;
+  useApiSignalPost?: boolean;
   onStreamReady?: (stream: MediaStream) => void;
   onStreamEnded?: () => void;
   onControlStateChange?: (state: ControlStateUI) => void;
@@ -68,6 +69,7 @@ interface UseWebRTCReturn {
 export function useWebRTC({
   sessionId,
   participantId,
+  useApiSignalPost = false,
   onStreamReady,
   onStreamEnded,
   onControlStateChange,
@@ -93,6 +95,35 @@ export function useWebRTC({
   const reconnectAttemptsRef = useRef(0);
   const inputSequenceRef = useRef(0);
   const maxReconnectAttempts = 3;
+
+  const sendSignal = useCallback(
+    async (payload: SignalMessage) => {
+      if (useApiSignalPost) {
+        try {
+          const response = await fetch(`/api/sessions/${sessionId}/signal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            console.error('[WebRTC] Failed to send signal:', await response.text());
+          }
+        } catch (err) {
+          console.error('[WebRTC] Error sending signal:', err);
+        }
+        return;
+      }
+
+      void channelRef.current?.send({
+        type: 'broadcast',
+        event: 'signal',
+        payload,
+      });
+    },
+    [sessionId, useApiSignalPost]
+  );
 
   // Buffer ICE candidates that arrive before remote description is set
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
@@ -341,15 +372,11 @@ export function useWebRTC({
 
             // Send answer back via signaling channel
             if (answer.sdp) {
-              void channelRef.current?.send({
-                type: 'broadcast',
-                event: 'signal',
-                payload: {
-                  type: 'answer',
-                  sdp: answer.sdp,
-                  senderId: participantId,
-                  timestamp: Date.now(),
-                } satisfies SignalMessage,
+              void sendSignal({
+                type: 'answer',
+                sdp: answer.sdp,
+                senderId: participantId,
+                timestamp: Date.now(),
               });
             }
 
@@ -410,15 +437,11 @@ export function useWebRTC({
           await pc.setLocalDescription(offer);
 
           if (offer.sdp) {
-            void channelRef.current?.send({
-              type: 'broadcast',
-              event: 'signal',
-              payload: {
-                type: 'offer',
-                sdp: offer.sdp,
-                senderId: participantId,
-                timestamp: Date.now(),
-              } satisfies SignalMessage,
+            void sendSignal({
+              type: 'offer',
+              sdp: offer.sdp,
+              senderId: participantId,
+              timestamp: Date.now(),
             });
           }
         } catch {
@@ -462,15 +485,11 @@ export function useWebRTC({
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        void channelRef.current?.send({
-          type: 'broadcast',
-          event: 'signal',
-          payload: {
-            type: 'ice-candidate',
-            candidate: event.candidate.toJSON(),
-            senderId: participantId,
-            timestamp: Date.now(),
-          } satisfies SignalMessage,
+        void sendSignal({
+          type: 'ice-candidate',
+          candidate: event.candidate.toJSON(),
+          senderId: participantId,
+          timestamp: Date.now(),
         });
       }
     };
@@ -522,7 +541,7 @@ export function useWebRTC({
     };
 
     return pc;
-  }, [participantId, onStreamReady, onStreamEnded, setupDataChannel]);
+  }, [participantId, onStreamReady, onStreamEnded, setupDataChannel, sendSignal]);
 
   // Disconnect
   const disconnect = useCallback(() => {

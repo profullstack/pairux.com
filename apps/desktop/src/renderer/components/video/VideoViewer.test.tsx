@@ -8,11 +8,12 @@ describe('VideoViewer', () => {
     vi.clearAllMocks();
   });
 
-  const createMockStream = (): MediaStream => {
+  const createMockStream = (trackKinds: ('audio' | 'video')[] = ['video']): MediaStream => {
+    const tracks = trackKinds.map((kind, i) => ({ id: `${kind}-${String(i)}`, kind }));
     return {
-      getTracks: vi.fn().mockReturnValue([]),
-      getVideoTracks: vi.fn().mockReturnValue([]),
-      getAudioTracks: vi.fn().mockReturnValue([]),
+      getTracks: vi.fn().mockReturnValue(tracks),
+      getVideoTracks: vi.fn().mockReturnValue(tracks.filter((t) => t.kind === 'video')),
+      getAudioTracks: vi.fn().mockReturnValue(tracks.filter((t) => t.kind === 'audio')),
     } as unknown as MediaStream;
   };
 
@@ -153,6 +154,23 @@ describe('VideoViewer', () => {
     await vi.waitFor(() => {
       expect(callCount).toBeGreaterThanOrEqual(1);
     });
+
+    HTMLVideoElement.prototype.play = originalPlay;
+  });
+
+  it('renders speaker toggle for audio streams and toggles output mute', () => {
+    const stream = createMockStream(['video', 'audio']);
+    const originalPlay = HTMLVideoElement.prototype.play;
+    HTMLVideoElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+
+    render(<VideoViewer stream={stream} connectionState="connected" />);
+
+    const button = screen.getByTitle('Turn speaker off');
+    expect(button).toBeInTheDocument();
+
+    fireEvent.click(button);
+
+    expect(screen.getByTitle('Turn speaker on')).toBeInTheDocument();
 
     HTMLVideoElement.prototype.play = originalPlay;
   });

@@ -32,6 +32,8 @@ export function VideoViewer({
   const [showControls, setShowControls] = useState(true);
   const [needsAudioGesture, setNeedsAudioGesture] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasVideoTrack = !!stream && stream.getVideoTracks().length > 0;
+  const hasAudioTrack = !!stream && stream.getAudioTracks().length > 0;
 
   // Attach stream to video element
   // On iOS Safari, unmuted autoplay is blocked. We try unmuted first, and if
@@ -42,11 +44,10 @@ export function VideoViewer({
 
     if (stream) {
       video.srcObject = stream;
-      video.muted = false;
+      video.muted = isMuted;
       video
         .play()
         .then(() => {
-          setIsMuted(false);
           setNeedsAudioGesture(false);
         })
         .catch(() => {
@@ -65,7 +66,7 @@ export function VideoViewer({
     } else {
       video.srcObject = null;
     }
-  }, [stream]);
+  }, [stream, isMuted]);
 
   // Handle fullscreen changes
   useEffect(() => {
@@ -138,8 +139,8 @@ export function VideoViewer({
     };
   }, [toggleFullscreen, toggleMute, isFullscreen]);
 
-  const isStreaming = connectionState === 'connected' && stream !== null;
-  const isVoiceOnly = connectionState === 'connected' && stream === null;
+  const isStreaming = connectionState === 'connected' && hasVideoTrack;
+  const isVoiceOnly = connectionState === 'connected' && !hasVideoTrack;
 
   return (
     <div
@@ -175,6 +176,18 @@ export function VideoViewer({
             <VolumeX className="h-4 w-4" />
             Tap to enable audio
           </span>
+        </button>
+      )}
+
+      {/* Voice-only speaker toggle */}
+      {isVoiceOnly && hasAudioTrack && (
+        <button
+          type="button"
+          className="absolute top-4 right-4 z-20 rounded-lg bg-black/60 p-2 text-white backdrop-blur transition-colors hover:bg-black/80"
+          onClick={toggleMute}
+          title={isMuted ? 'Turn speaker on (M)' : 'Turn speaker off (M)'}
+        >
+          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </button>
       )}
 

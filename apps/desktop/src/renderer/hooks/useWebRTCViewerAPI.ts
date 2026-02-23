@@ -111,6 +111,9 @@ export function useWebRTCViewerAPI({
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   // Serialize signaling message processing to prevent race conditions
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
+  // Use the server-assigned subscriber ID for signaling POSTs (desktop token auth can differ
+  // from the locally generated participantId used to open the SSE stream).
+  const signalSenderIdRef = useRef(participantId);
 
   // Callback refs to avoid circular dependencies
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
@@ -122,6 +125,8 @@ export function useWebRTCViewerAPI({
   onControlStateChangeRef.current = onControlStateChange;
   onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
+
+  const getSignalSenderId = useCallback(() => signalSenderIdRef.current, []);
 
   // Calculate network quality from metrics
   const calculateNetworkQuality = useCallback((metrics: QualityMetrics): NetworkQuality => {
@@ -468,7 +473,7 @@ export function useWebRTCViewerAPI({
               await sendSignal({
                 type: 'answer',
                 sdp: answer.sdp,
-                senderId: participantId,
+                senderId: getSignalSenderId(),
                 targetId: message.senderId,
                 timestamp: Date.now(),
               });
@@ -505,7 +510,7 @@ export function useWebRTCViewerAPI({
         setError('Failed to process signaling message');
       }
     },
-    [participantId, sendSignal]
+    [getSignalSenderId, sendSignal]
   );
 
   // Handle signaling messages from SSE — serialized via promise chain
@@ -536,7 +541,7 @@ export function useWebRTCViewerAPI({
             await sendSignal({
               type: 'offer',
               sdp: offer.sdp,
-              senderId: participantId,
+              senderId: getSignalSenderId(),
               timestamp: Date.now(),
             });
           }
@@ -549,7 +554,7 @@ export function useWebRTCViewerAPI({
       setConnectionState('failed');
       setError('Connection failed after multiple attempts');
     }
-  }, [participantId, sendSignal]);
+  }, [getSignalSenderId, sendSignal]);
 
   handleConnectionFailureRef.current = handleConnectionFailure;
 
@@ -644,7 +649,7 @@ export function useWebRTCViewerAPI({
         void sendSignal({
           type: 'ice-candidate',
           candidate: event.candidate.toJSON(),
-          senderId: participantId,
+          senderId: getSignalSenderId(),
           timestamp: Date.now(),
         });
       }
@@ -693,7 +698,7 @@ export function useWebRTCViewerAPI({
     };
 
     return pc;
-  }, [participantId, onStreamReady, onStreamEnded, sendSignal, setupDataChannel]);
+  }, [getSignalSenderId, onStreamReady, onStreamEnded, sendSignal, setupDataChannel]);
 
   // Disconnect and clean up
   const disconnect = useCallback(() => {
@@ -814,8 +819,20 @@ export function useWebRTCViewerAPI({
       // Use ICE servers from the server (includes TURN) if provided
       try {
         const data = JSON.parse(event.data as string) as {
+          subscriberId?: string;
           iceServers?: RTCIceServer[];
         };
+        if (data.subscriberId) {
+          signalSenderIdRef.current = data.subscriberId;
+          if (data.subscriberId !== participantId) {
+            console.log(
+              '[WebRTCViewer] Using server-assigned signaling senderId:',
+              data.subscriberId
+            );
+          }
+        } else {
+          signalSenderIdRef.current = participantId;
+        }
         if (data.iceServers && data.iceServers.length > 0) {
           iceServersRef.current = data.iceServers;
           console.log('[WebRTCViewer] Received ICE servers from server:', data.iceServers.length);

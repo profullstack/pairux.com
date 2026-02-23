@@ -171,7 +171,6 @@ export function VideoViewer({
                 .play()
                 .then(() => {
                   setRequiresUnmute(false);
-                  setMutedState(false);
                   console.log('[VideoViewer] Audio unmuted after user gesture');
                 })
                 .catch((err: unknown) => {

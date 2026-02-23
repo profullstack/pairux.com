@@ -246,7 +246,7 @@ interface SessionViewerContentProps {
 function SessionViewerContent({
   sessionId,
   session,
-  participantId,
+  participantId: _participantId,
   remoteCursors,
   connectionState,
   remoteStream,
@@ -478,7 +478,6 @@ function SessionViewerContent({
             {activePanel === 'chat' && (
               <ChatPanel
                 sessionId={sessionId}
-                participantId={participantId}
                 isCollapsed={false}
                 onToggleCollapse={() => {
                   setActivePanel(null);

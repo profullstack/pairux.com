@@ -454,6 +454,17 @@ export function useWebRTCHostAPI({
           if (viewer) {
             viewer.audioTrack = event.track;
 
+            // Play viewer audio locally so the host can hear participants
+            const audioEl = new Audio();
+            audioEl.srcObject = new MediaStream([event.track]);
+            audioEl.autoplay = true;
+            audioEl.volume = 1.0;
+            audioEl.muted = viewer.isMuted;
+            void audioEl.play().catch((err: unknown) => {
+              console.warn('[WebRTCHost] Failed to play viewer audio:', err);
+            });
+            viewer.audioElement = audioEl;
+
             setViewers(new Map(viewersRef.current));
 
             // Relay this viewer's audio to all other viewers

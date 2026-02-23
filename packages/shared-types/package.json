@@ -1,6 +1,6 @@
 {
   "name": "@pairux/shared-types",
-  "version": "0.5.27",
+  "version": "0.5.28",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

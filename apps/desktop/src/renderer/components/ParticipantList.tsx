@@ -188,14 +188,13 @@ export function ParticipantList({
                   <div className="flex gap-1">
                     {/* Mute/Unmute button */}
                     {onMuteParticipant &&
-                      participant.user_id &&
                       (() => {
-                        const userId = participant.user_id;
-                        const isMutedNow = mutedParticipants?.has(userId) ?? false;
+                        const targetId = participant.user_id ?? participant.id;
+                        const isMutedNow = mutedParticipants?.has(targetId) ?? false;
                         return (
                           <button
                             onClick={() => {
-                              onMuteParticipant(userId, !isMutedNow);
+                              onMuteParticipant(targetId, !isMutedNow);
                             }}
                             disabled={loadingAction !== null}
                             className={`rounded p-1.5 transition-colors disabled:opacity-50 ${

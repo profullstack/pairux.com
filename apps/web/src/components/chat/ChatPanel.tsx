@@ -28,6 +28,13 @@ export function ChatPanel({
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
   className = '',
+  currentUserId = null,
+  isHost = false,
+  mutedParticipants,
+  onGrantControl,
+  onRevokeControl,
+  onKickParticipant,
+  onMuteParticipant,
 }: ChatPanelProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed ?? internalCollapsed;
@@ -170,9 +177,16 @@ export function ChatPanel({
       {!dmRecipient && (
         <ParticipantList
           participants={participants}
+          currentUserId={currentUserId}
           currentParticipantId={participantId ?? null}
           isLoading={participantsLoading}
           onStartDM={handleStartDM}
+          isHost={isHost}
+          {...(mutedParticipants ? { mutedParticipants } : {})}
+          {...(onGrantControl ? { onGrantControl } : {})}
+          {...(onRevokeControl ? { onRevokeControl } : {})}
+          {...(onKickParticipant ? { onKickParticipant } : {})}
+          {...(onMuteParticipant ? { onMuteParticipant } : {})}
         />
       )}
 

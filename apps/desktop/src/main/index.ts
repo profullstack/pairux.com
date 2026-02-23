@@ -12,6 +12,50 @@ import { setMainWindow as setStreamingMainWindow } from './streaming';
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
 app.setName('pairux');
 
+function normalizeWorkingDirectory(): void {
+  try {
+    // This throws ENOENT if the shell launched us from a deleted directory.
+    process.cwd();
+    return;
+  } catch (error) {
+    console.warn('[Main] Invalid startup working directory, switching to a safe path:', error);
+  }
+
+  const candidates = [
+    process.env.HOME,
+    process.env.USERPROFILE,
+    (() => {
+      try {
+        return app.getPath('home');
+      } catch {
+        return undefined;
+      }
+    })(),
+    (() => {
+      try {
+        return app.getPath('temp');
+      } catch {
+        return undefined;
+      }
+    })(),
+    process.platform === 'win32' ? 'C:\\' : '/',
+  ].filter((value): value is string => Boolean(value));
+
+  for (const dir of candidates) {
+    try {
+      process.chdir(dir);
+      console.log('[Main] Working directory reset to:', dir);
+      return;
+    } catch {
+      // Try next candidate.
+    }
+  }
+
+  console.error('[Main] Failed to reset working directory; continuing with invalid cwd');
+}
+
+normalizeWorkingDirectory();
+
 // Load environment variables from .env file in development only.
 // In production, env vars are injected at build time by electron-vite.
 if (!app.isPackaged) {

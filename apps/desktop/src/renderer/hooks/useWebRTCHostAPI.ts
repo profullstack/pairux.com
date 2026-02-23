@@ -45,6 +45,7 @@ const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
 export interface ViewerConnection {
   id: string;
   peerConnection: RTCPeerConnection;
+  hostAudioSender: RTCRtpSender | null;
   dataChannel: RTCDataChannel | null;
   connectionState: ConnectionState;
   controlState: 'view-only' | 'requested' | 'granted';
@@ -136,6 +137,36 @@ export function useWebRTCHostAPI({
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
 
+  const getPreferredHostAudioTrack = useCallback(
+    (streamOverride?: MediaStream | null): MediaStreamTrack | null => {
+      const stream = streamOverride ?? localStreamRef.current;
+      const streamAudioTrack = stream?.getAudioTracks()[0] ?? null;
+      if (streamAudioTrack) return streamAudioTrack;
+      return hostMicStreamRef.current?.getAudioTracks()[0] ?? null;
+    },
+    []
+  );
+
+  const syncHostAudioSender = useCallback(
+    async (viewer: ViewerConnection, preferredTrack: MediaStreamTrack | null) => {
+      const pc = viewer.peerConnection;
+
+      if (preferredTrack) {
+        if (viewer.hostAudioSender) {
+          if (viewer.hostAudioSender.track?.id !== preferredTrack.id) {
+            await viewer.hostAudioSender.replaceTrack(preferredTrack);
+          }
+        } else {
+          viewer.hostAudioSender = pc.addTrack(preferredTrack, new MediaStream([preferredTrack]));
+        }
+      } else if (viewer.hostAudioSender) {
+        pc.removeTrack(viewer.hostAudioSender);
+        viewer.hostAudioSender = null;
+      }
+    },
+    []
+  );
+
   // Send signal via API
   const sendSignal = useCallback(
     async (signal: SignalMessage) => {
@@ -177,14 +208,18 @@ export function useWebRTCHostAPI({
         let frameRate: number | undefined;
         let frameWidth: number | undefined;
         let frameHeight: number | undefined;
+        let framesEncoded: number | undefined;
+        let videoSenderStatsCount = 0;
 
         stats.forEach((report: RTCStatsReport[keyof RTCStatsReport] & Record<string, unknown>) => {
           if (report.type === 'outbound-rtp' && report.kind === 'video') {
+            videoSenderStatsCount += 1;
             bytesSent += (report.bytesSent as number | undefined) ?? 0;
             packetsSent += (report.packetsSent as number | undefined) ?? 0;
             frameRate = report.framesPerSecond as number | undefined;
             frameWidth = report.frameWidth as number | undefined;
             frameHeight = report.frameHeight as number | undefined;
+            framesEncoded = report.framesEncoded as number | undefined;
           }
           if (report.type === 'inbound-rtp') {
             bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
@@ -197,6 +232,25 @@ export function useWebRTCHostAPI({
             roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
           }
         });
+
+        if (videoSenderStatsCount > 0) {
+          console.log('[WebRTCHost] Video outbound stats', {
+            viewerId: viewer.id,
+            connectionState: viewer.connectionState,
+            bytesSent,
+            packetsSent,
+            framesEncoded: framesEncoded ?? null,
+            frameRate: frameRate ?? null,
+            frameWidth: frameWidth ?? null,
+            frameHeight: frameHeight ?? null,
+            roundTripTimeMs: roundTripTime ?? null,
+          });
+        } else {
+          console.warn('[WebRTCHost] No outbound video stats for viewer', {
+            viewerId: viewer.id,
+            connectionState: viewer.connectionState,
+          });
+        }
 
         // Report to API
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -342,7 +396,7 @@ export function useWebRTCHostAPI({
 
   // Create peer connection for a viewer
   const createPeerConnection = useCallback(
-    (viewerId: string): RTCPeerConnection => {
+    (viewerId: string): { pc: RTCPeerConnection; hostAudioSender: RTCRtpSender | null } => {
       console.log('[WebRTCHost] Creating peer connection for viewer:', viewerId);
 
       const pc = new RTCPeerConnection({
@@ -353,26 +407,23 @@ export function useWebRTCHostAPI({
       // Add local stream tracks (if currently sharing)
       const currentStream = localStreamRef.current;
       if (currentStream) {
-        currentStream.getTracks().forEach((track) => {
-          if (track.kind === 'video') {
-            track.contentHint = 'detail';
-          }
+        // Screen-share publishing only uses video tracks here; host mic is handled separately.
+        currentStream.getVideoTracks().forEach((track) => {
+          track.contentHint = 'detail';
           const sender = pc.addTrack(track, currentStream);
 
-          if (track.kind === 'video') {
-            const params = sender.getParameters();
-            const preset = BITRATE_PRESETS.excellent;
-            const encoding = params.encodings[0];
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (encoding !== undefined) {
-              encoding.maxBitrate = preset.maxBitrate;
-              encoding.maxFramerate = preset.maxFramerate;
-              encoding.priority = 'high';
-              encoding.networkPriority = 'high';
-            }
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            void sender.setParameters(params).catch(() => {});
+          const params = sender.getParameters();
+          const preset = BITRATE_PRESETS.excellent;
+          const encoding = params.encodings[0];
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (encoding !== undefined) {
+            encoding.maxBitrate = preset.maxBitrate;
+            encoding.maxFramerate = preset.maxFramerate;
+            encoding.priority = 'high';
+            encoding.networkPriority = 'high';
           }
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          void sender.setParameters(params).catch(() => {});
         });
       }
 
@@ -386,11 +437,13 @@ export function useWebRTCHostAPI({
       }
 
       // Add host mic track so the viewer can hear the host
-      const hostMic = hostMicStreamRef.current;
-      if (hostMic) {
-        hostMic.getAudioTracks().forEach((track) => {
-          pc.addTrack(track, hostMic);
-        });
+      let hostAudioSender: RTCRtpSender | null = null;
+      const preferredHostAudioTrack = getPreferredHostAudioTrack(currentStream);
+      if (preferredHostAudioTrack) {
+        hostAudioSender = pc.addTrack(
+          preferredHostAudioTrack,
+          new MediaStream([preferredHostAudioTrack])
+        );
       }
 
       // Handle incoming tracks from viewer (their mic audio)
@@ -482,9 +535,15 @@ export function useWebRTCHostAPI({
         handleDataChannelMessage(viewerId, event);
       };
 
-      return pc;
+      return { pc, hostAudioSender };
     },
-    [hostId, handleDataChannelMessage, sendSignal, relayAudioToOtherViewers]
+    [
+      getPreferredHostAudioTrack,
+      hostId,
+      handleDataChannelMessage,
+      sendSignal,
+      relayAudioToOtherViewers,
+    ]
   );
 
   // Remove a viewer
@@ -518,11 +577,12 @@ export function useWebRTCHostAPI({
 
       console.log('[WebRTCHost] Viewer joining:', viewerId);
 
-      const pc = createPeerConnection(viewerId);
+      const { pc, hostAudioSender } = createPeerConnection(viewerId);
 
       const viewer: ViewerConnection = {
         id: viewerId,
         peerConnection: pc,
+        hostAudioSender,
         dataChannel: null,
         connectionState: 'connecting',
         controlState: 'view-only',
@@ -792,22 +852,67 @@ export function useWebRTCHostAPI({
   const publishStream = useCallback(
     async (stream: MediaStream) => {
       localStreamRef.current = stream;
+      const videoTracks = stream.getVideoTracks();
+      const preferredHostAudioTrack = getPreferredHostAudioTrack(stream);
+      console.log('[WebRTCHost] Publishing stream:', {
+        videoTracks: videoTracks.length,
+        audioTracks: stream.getAudioTracks().length,
+      });
+      for (const track of videoTracks) {
+        console.log('[WebRTCHost] Publish video track', {
+          id: track.id,
+          label: track.label,
+          muted: track.muted,
+          readyState: track.readyState,
+          settings: track.getSettings(),
+        });
+        track.onmute = () => {
+          console.warn('[WebRTCHost] Video track muted', {
+            id: track.id,
+            readyState: track.readyState,
+          });
+        };
+        track.onunmute = () => {
+          console.log('[WebRTCHost] Video track unmuted', {
+            id: track.id,
+            readyState: track.readyState,
+          });
+        };
+        track.onended = () => {
+          console.warn('[WebRTCHost] Video track ended', { id: track.id });
+        };
+      }
 
       for (const viewer of viewersRef.current.values()) {
         if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
           continue;
 
         try {
-          stream.getTracks().forEach((track) => {
-            if (track.kind === 'video') {
-              track.contentHint = 'detail';
+          const pc = viewer.peerConnection;
+          await syncHostAudioSender(viewer, preferredHostAudioTrack);
+          const existingVideoSenders = pc
+            .getSenders()
+            .filter((sender) => sender.track?.kind === 'video');
+
+          // Replace existing video sender(s) instead of adding duplicate transceivers on every republish.
+          for (const [index, track] of videoTracks.entries()) {
+            track.contentHint = 'detail';
+            const existingSender = existingVideoSenders.at(index);
+            if (existingSender) {
+              await existingSender.replaceTrack(track);
+            } else {
+              pc.addTrack(track, stream);
             }
-            viewer.peerConnection.addTrack(track, stream);
-          });
+          }
+
+          // Remove any stale video senders if the new stream has fewer video tracks.
+          for (const staleSender of existingVideoSenders.slice(videoTracks.length)) {
+            pc.removeTrack(staleSender);
+          }
 
           // Renegotiate so viewer receives the new tracks
-          const offer = await viewer.peerConnection.createOffer();
-          await viewer.peerConnection.setLocalDescription(offer);
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
 
           if (offer.sdp) {
             await sendSignal({
@@ -823,7 +928,7 @@ export function useWebRTCHostAPI({
         }
       }
     },
-    [hostId, sendSignal]
+    [getPreferredHostAudioTrack, hostId, sendSignal, syncHostAudioSender]
   );
 
   // Unpublish the screen share stream (remove video tracks) without closing connections
@@ -835,13 +940,15 @@ export function useWebRTCHostAPI({
         continue;
 
       try {
-        // Remove video senders (keep audio -- mic stays)
+        // Remove video senders (keep audio path active)
         const senders = viewer.peerConnection.getSenders();
         for (const sender of senders) {
           if (sender.track?.kind === 'video') {
             viewer.peerConnection.removeTrack(sender);
           }
         }
+
+        await syncHostAudioSender(viewer, getPreferredHostAudioTrack(null));
 
         // Renegotiate so viewer sees track removal
         const offer = await viewer.peerConnection.createOffer();
@@ -860,7 +967,7 @@ export function useWebRTCHostAPI({
         console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
       }
     }
-  }, [hostId, sendSignal]);
+  }, [getPreferredHostAudioTrack, hostId, sendSignal, syncHostAudioSender]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -871,20 +978,10 @@ export function useWebRTCHostAPI({
 
   // Update stream when it changes via prop
   useEffect(() => {
-    if (!localStream || !isHosting) return;
-
-    viewersRef.current.forEach((viewer) => {
-      const senders = viewer.peerConnection.getSenders();
-      localStream.getTracks().forEach((track) => {
-        const existingSender = senders.find((s) => s.track?.kind === track.kind);
-        if (existingSender) {
-          void existingSender.replaceTrack(track);
-        } else {
-          viewer.peerConnection.addTrack(track, localStream);
-        }
-      });
-    });
-  }, [localStream, isHosting]);
+    // Keep ref in sync so newly joining viewers get the current screen stream in createPeerConnection().
+    // Actual publishing/renegotiation happens through publishStream()/unpublishStream().
+    localStreamRef.current = localStream;
+  }, [localStream]);
 
   // Grant control
   const grantControl = useCallback(

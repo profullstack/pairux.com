@@ -531,12 +531,13 @@ describe('useWebRTCViewerAPI', () => {
         await Promise.resolve();
       });
 
-      // After the offer is processed, the buffered candidate should have been drained
+      // After the offer is processed, buffered candidates from the prior offer context
+      // are cleared to avoid applying stale mids during renegotiation.
       expect(pc.setRemoteDescription).toHaveBeenCalledWith({
         type: 'offer',
         sdp: 'mock-sdp-offer',
       });
-      expect(pc.addIceCandidate).toHaveBeenCalled();
+      expect(pc.addIceCandidate).not.toHaveBeenCalled();
     });
 
     it('should directly add ICE candidate when remote description exists', async () => {

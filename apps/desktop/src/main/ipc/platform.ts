@@ -2,7 +2,7 @@
  * IPC handlers for platform-specific features
  */
 
-import { ipcMain, app, shell } from 'electron';
+import { ipcMain, app, shell, BrowserWindow } from 'electron';
 import {
   getPlatformInfo,
   checkPipeWireAvailable,
@@ -93,6 +93,23 @@ export function registerPlatformHandlers(): void {
   ipcMain.handle('platform:show-in-folder', (_event, path: string) => {
     shell.showItemInFolder(path);
     return { success: true };
+  });
+
+  // Toggle DevTools for the focused window (available in production for support/debugging)
+  ipcMain.handle('platform:toggle-devtools', () => {
+    const windows = BrowserWindow.getAllWindows();
+    const focusedWindow = BrowserWindow.getFocusedWindow() ?? windows.at(0);
+    if (!focusedWindow) {
+      return { success: false, error: 'No window available' };
+    }
+
+    if (focusedWindow.webContents.isDevToolsOpened()) {
+      focusedWindow.webContents.closeDevTools();
+    } else {
+      focusedWindow.webContents.openDevTools({ mode: 'detach' });
+    }
+
+    return { success: true, isOpen: focusedWindow.webContents.isDevToolsOpened() };
   });
 
   console.log('[IPC] Platform handlers registered');

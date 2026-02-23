@@ -47,6 +47,16 @@ warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+warn_existing_launcher() {
+    local launcher="$BIN_DIR/pairux"
+    if [ -L "$launcher" ]; then
+        local target
+        target=$(readlink "$launcher" 2>/dev/null || echo "unknown")
+        warn "Found legacy symlink launcher at $launcher -> $target"
+        warn "Replacing it with the managed PairUX wrapper script"
+    fi
+}
+
 error() {
     echo -e "${RED}[ERROR]${NC} $1"
     exit 1
@@ -260,6 +270,7 @@ install_macos() {
     # Create CLI wrapper script
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    warn_existing_launcher
     # Remove any existing symlink so we don't follow it into the app bundle
     # and overwrite the real Electron binary
     rm -f "$BIN_DIR/pairux"
@@ -308,14 +319,13 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo ""
-            echo "PairUX is already up to date."
-            exit 0
-        fi
-
         echo ""
-        echo "Updating PairUX to v\$LATEST..."
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo "PairUX is already on the latest version."
+            echo "Re-running installer to repair launcher/app integration..."
+        else
+            echo "Updating PairUX to v\$LATEST..."
+        fi
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then
@@ -350,6 +360,19 @@ case "\${1-}" in
             echo "  Removed \$INSTALL_DIR"
         fi
 
+        # Remove app data/cache/logs for a full uninstall
+        for path in \
+            "\$HOME/Library/Application Support/pairux" \
+            "\$HOME/Library/Caches/pairux" \
+            "\$HOME/Library/Logs/pairux" \
+            "\$HOME/Library/Saved Application State/com.profullstack.pairux.savedState"
+        do
+            if [ -e "\$path" ]; then
+                rm -rf "\$path" 2>/dev/null || true
+                echo "  Removed \$path"
+            fi
+        done
+
         # Remove this launcher script last
         echo "  Removed \$BIN_DIR/pairux"
         echo ""
@@ -360,6 +383,9 @@ case "\${1-}" in
 esac
 
 if [ -x "\$APP_BIN" ]; then
+    # Launch from a stable working directory. A deleted caller cwd can break
+    # Electron startup with confusing "open dir" errors.
+    cd "\$HOME" 2>/dev/null || cd / 2>/dev/null || true
     # Check for macOS quarantine attribute which causes the app to hang silently
     if xattr -p com.apple.quarantine "\$APP_PATH" &>/dev/null; then
         echo ""
@@ -414,6 +440,7 @@ install_linux() {
     # Create wrapper script that handles sandbox issues
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    warn_existing_launcher
     # Remove any existing symlink so we don't follow it and overwrite the AppImage
     rm -f "$BIN_DIR/pairux"
     cat > "$BIN_DIR/pairux" << WRAPPER
@@ -459,6 +486,19 @@ case "\${1-}" in
             echo "  Removed \$INSTALL_DIR"
         fi
 
+        # Remove app data/cache/logs for a full uninstall
+        for path in \
+            "\$HOME/.config/pairux" \
+            "\$HOME/.cache/pairux" \
+            "\$HOME/.local/share/pairux" \
+            "\$HOME/.local/state/pairux"
+        do
+            if [ -e "\$path" ]; then
+                rm -rf "\$path" 2>/dev/null || true
+                echo "  Removed \$path"
+            fi
+        done
+
         # Remove desktop entry
         if [ -f "\$DESKTOP_FILE" ]; then
             rm -f "\$DESKTOP_FILE"
@@ -496,14 +536,13 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo ""
-            echo "PairUX is already up to date."
-            exit 0
-        fi
-
         echo ""
-        echo "Updating PairUX to v\$LATEST..."
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo "PairUX is already on the latest version."
+            echo "Re-running installer to repair launcher/app integration..."
+        else
+            echo "Updating PairUX to v\$LATEST..."
+        fi
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then
@@ -521,6 +560,10 @@ if [ -x "\$APPIMAGE" ]; then
     # Unset ELECTRON_RUN_AS_NODE — VSCode's integrated terminal sets this,
     # which prevents Electron from exposing its API (app, BrowserWindow, etc.)
     unset ELECTRON_RUN_AS_NODE
+    # Launch from a stable working directory. If the caller's cwd was deleted
+    # (common with terminals in temp/build dirs), Electron/AppImage startup can
+    # emit "open dir error: No such file or directory" on Linux.
+    cd "\$HOME" 2>/dev/null || cd / 2>/dev/null || true
 
     # If FUSE is unavailable or inaccessible (common in restricted/containerized
     # environments), fall back to extract-and-run mode so the AppImage can still

@@ -202,6 +202,9 @@ export function CapturePreview({
     stopHosting,
     publishStream: hostPublishStream,
     unpublishStream: hostUnpublishStream,
+    grantControl,
+    revokeControl,
+    kickViewer,
     muteViewer,
     micEnabled: hostMicEnabled,
     hasMic: hostHasMic,
@@ -265,12 +268,35 @@ export function CapturePreview({
     }
   }, [session, isHosting, startHosting]);
 
-  // Publish screen share stream when capture starts
+  // Publish screen share stream when capture starts.
+  // Use the mixer output when available so live WebRTC matches recording audio
+  // behavior (host mic + any routed audio sources).
   useEffect(() => {
     if (stream && isHosting) {
-      void hostPublishStream(stream);
+      const publishStream = new MediaStream();
+
+      stream.getVideoTracks().forEach((track) => {
+        publishStream.addTrack(track);
+      });
+
+      const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
+      const fallbackAudioTracks = stream.getAudioTracks();
+      const selectedAudioTracks =
+        mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
+
+      selectedAudioTracks.forEach((track) => {
+        publishStream.addTrack(track);
+      });
+
+      console.log('[CapturePreview] Publishing live stream to viewers', {
+        videoTracks: publishStream.getVideoTracks().length,
+        audioTracks: publishStream.getAudioTracks().length,
+        audioSource: mixedAudioTracks.length > 0 ? 'mixer' : 'capture-stream',
+      });
+
+      void hostPublishStream(publishStream);
     }
-  }, [stream, isHosting, hostPublishStream]);
+  }, [stream, mixedStream, isHosting, hostPublishStream]);
 
   // Unpublish screen share when capture stops (session stays alive)
   useEffect(() => {
@@ -423,6 +449,24 @@ export function CapturePreview({
     return headers;
   }, []);
 
+  const resolveViewerTargetId = useCallback(
+    (participantId: string): string | null => {
+      const participant = participants.find((p) => p.id === participantId);
+      if (!participant) return null;
+
+      const candidates = [participant.user_id, participant.id].filter(
+        (value): value is string => typeof value === 'string' && value.length > 0
+      );
+
+      for (const candidate of candidates) {
+        if (hostedViewers.has(candidate)) return candidate;
+      }
+
+      return candidates[0] ?? null;
+    },
+    [participants, hostedViewers]
+  );
+
   const handleGrantControl = useCallback(
     async (participantId: string) => {
       if (!session) return;
@@ -437,12 +481,22 @@ export function CapturePreview({
         );
         if (!response.ok) {
           console.error('Failed to grant control');
+          return;
+        }
+
+        const viewerId = resolveViewerTargetId(participantId);
+        if (viewerId) {
+          grantControl(viewerId);
+        } else {
+          console.warn('[CapturePreview] Could not resolve viewer target for grant control', {
+            participantId,
+          });
         }
       } catch (err) {
         console.error('Error granting control:', err);
       }
     },
-    [session, getAuthHeaders]
+    [session, getAuthHeaders, resolveViewerTargetId, grantControl]
   );
 
   const handleRevokeControl = useCallback(
@@ -459,12 +513,22 @@ export function CapturePreview({
         );
         if (!response.ok) {
           console.error('Failed to revoke control');
+          return;
+        }
+
+        const viewerId = resolveViewerTargetId(participantId);
+        if (viewerId) {
+          revokeControl(viewerId);
+        } else {
+          console.warn('[CapturePreview] Could not resolve viewer target for revoke control', {
+            participantId,
+          });
         }
       } catch (err) {
         console.error('Error revoking control:', err);
       }
     },
-    [session, getAuthHeaders]
+    [session, getAuthHeaders, resolveViewerTargetId, revokeControl]
   );
 
   const handleKickParticipant = useCallback(
@@ -480,12 +544,22 @@ export function CapturePreview({
         );
         if (!response.ok) {
           console.error('Failed to kick participant');
+          return;
+        }
+
+        const viewerId = resolveViewerTargetId(participantId);
+        if (viewerId) {
+          kickViewer(viewerId);
+        } else {
+          console.warn('[CapturePreview] Could not resolve viewer target for kick', {
+            participantId,
+          });
         }
       } catch (err) {
         console.error('Error kicking participant:', err);
       }
     },
-    [session, getAuthHeaders]
+    [session, getAuthHeaders, resolveViewerTargetId, kickViewer]
   );
 
   const handleStartRecording = useCallback(async () => {
@@ -533,14 +607,14 @@ export function CapturePreview({
   }, [isPaused, pauseRecording, resumeRecording]);
 
   const handleMuteParticipant = useCallback(
-    (participantUserId: string, muted: boolean) => {
-      muteViewer(participantUserId, muted);
+    (participantIdentity: string, muted: boolean) => {
+      muteViewer(participantIdentity, muted);
       setMutedParticipants((prev) => {
         const next = new Set(prev);
         if (muted) {
-          next.add(participantUserId);
+          next.add(participantIdentity);
         } else {
-          next.delete(participantUserId);
+          next.delete(participantIdentity);
         }
         return next;
       });
@@ -936,6 +1010,22 @@ export function CapturePreview({
         <ChatPanel
           sessionId={session.id}
           currentUserId={currentUserId}
+          isHost={true}
+          mutedParticipants={mutedParticipants}
+          onGrantControl={(participant) => {
+            void handleGrantControl(participant.id);
+          }}
+          onRevokeControl={(participant) => {
+            void handleRevokeControl(participant.id);
+          }}
+          onKickParticipant={(participant) => {
+            void handleKickParticipant(participant.id);
+          }}
+          onMuteParticipant={(participant, muted) => {
+            const targetId =
+              resolveViewerTargetId(participant.id) ?? participant.user_id ?? participant.id;
+            handleMuteParticipant(targetId, muted);
+          }}
           isCollapsed={!showChat}
           onToggleCollapse={() => {
             setShowChat(!showChat);

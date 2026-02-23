@@ -254,9 +254,15 @@ install_macos() {
 
     mv "${temp_dir}/PairUX.app" "${APPLICATIONS_DIR}/"
 
+    # Remove quarantine attribute so Gatekeeper doesn't block the app
+    xattr -cr "${APPLICATIONS_DIR}/PairUX.app" 2>/dev/null || true
+
     # Create CLI wrapper script
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    # Remove any existing symlink so we don't follow it into the app bundle
+    # and overwrite the real Electron binary
+    rm -f "$BIN_DIR/pairux"
     cat > "$BIN_DIR/pairux" << WRAPPER
 #!/bin/bash
 # PairUX launcher (macOS)
@@ -354,6 +360,25 @@ case "\${1-}" in
 esac
 
 if [ -x "\$APP_BIN" ]; then
+    # Check for macOS quarantine attribute which causes the app to hang silently
+    if xattr -p com.apple.quarantine "\$APP_PATH" &>/dev/null; then
+        echo ""
+        echo "PairUX is blocked by macOS Gatekeeper (quarantine)."
+        echo ""
+        echo "To fix this, run:"
+        echo "  xattr -cr /Applications/PairUX.app"
+        echo ""
+        echo "Or go to System Settings > Privacy & Security and click 'Open Anyway'."
+        echo ""
+        echo "Attempting to remove quarantine automatically..."
+        if xattr -cr "\$APP_PATH" 2>/dev/null; then
+            echo "Done! Launching PairUX..."
+            echo ""
+        else
+            echo "Could not remove automatically. Please run the command above manually."
+            exit 1
+        fi
+    fi
     exec "\$APP_BIN" "\$@"
 else
     echo "Error: PairUX app not found at \$APP_PATH"
@@ -389,6 +414,8 @@ install_linux() {
     # Create wrapper script that handles sandbox issues
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    # Remove any existing symlink so we don't follow it and overwrite the AppImage
+    rm -f "$BIN_DIR/pairux"
     cat > "$BIN_DIR/pairux" << WRAPPER
 #!/bin/bash
 # PairUX launcher

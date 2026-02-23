@@ -37,6 +37,7 @@ import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
+import { useInputInjection } from '@/hooks/useInputInjection';
 import {
   SharingIndicator,
   RecordingIndicator,
@@ -157,12 +158,39 @@ export function CapturePreview({
 
   // Use initialSession if provided, otherwise use created session
   const session = initialSession ?? createdSession;
+  const canModerateSession = Boolean(
+    session &&
+    currentUserId &&
+    (session.host_user_id === currentUserId || session.current_host_id === currentUserId)
+  );
+  const canManageParticipantControl = Boolean(session);
 
   // Remote cursors for showing viewer cursor positions
   const { cursors: remoteCursors } = useRemoteCursors();
 
   // Determine mode once — do NOT conditionally call hooks
   const isSFU = initialSession?.mode === 'sfu';
+
+  // Find participant with control granted (used to enable host-side input injection)
+  const participantWithControl = useMemo(() => {
+    return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
+  }, [participants]);
+
+  const inputScreenSize = useMemo(() => {
+    if (!stream) return undefined;
+    const tracks = stream.getVideoTracks();
+    const track = tracks.length > 0 ? tracks[0] : undefined;
+    const settings = track?.getSettings();
+    const width = settings?.width;
+    const height = settings?.height;
+    if (!width || !height) return undefined;
+    return { width, height };
+  }, [stream]);
+
+  const { injectEvent } = useInputInjection({
+    enabled: Boolean(participantWithControl),
+    screenSize: inputScreenSize,
+  });
 
   const hostHookOptions = useMemo(
     () => ({
@@ -177,16 +205,15 @@ export function CapturePreview({
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
       },
-      onInputReceived: (_viewerId: string, _input: InputMessage) => {
-        // TODO: Handle remote input injection
-        console.log('[CapturePreview] Input received from viewer');
+      onInputReceived: (_viewerId: string, input: InputMessage) => {
+        void injectEvent(input.event);
       },
       onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
         // TODO: Update remote cursor position
       },
     }),
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    [session?.id, currentUserId, stream, session?.settings?.allowControl]
+    [session?.id, currentUserId, stream, session?.settings?.allowControl, injectEvent]
   );
 
   // Always call both hooks (Rules of Hooks) — use results from the active one
@@ -323,11 +350,6 @@ export function CapturePreview({
     };
   }, [isHosting, stopHosting]);
 
-  // Find participant with control granted
-  const participantWithControl = useMemo(() => {
-    return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
-  }, [participants]);
-
   // Get source dimensions for cursor scaling
   const sourceDimensions = useMemo(() => {
     if (!stream) return { width: 1920, height: 1080 };
@@ -421,11 +443,20 @@ export function CapturePreview({
     if (isHosting) {
       stopHosting();
     }
-    if (session) {
+    if (session && canModerateSession) {
       await endSession();
     }
     onStop();
-  }, [session, endSession, onStop, isHosting, stopHosting, isAnyStreaming, stopAllStreams]);
+  }, [
+    session,
+    canModerateSession,
+    endSession,
+    onStop,
+    isHosting,
+    stopHosting,
+    isAnyStreaming,
+    stopAllStreams,
+  ]);
 
   const handleCopyLink = useCallback(async () => {
     if (!session) return;
@@ -569,6 +600,29 @@ export function CapturePreview({
       }
     },
     [session, getAuthHeaders, resolveViewerTargetId, kickViewer]
+  );
+
+  const handleTransferHost = useCallback(
+    async (participantId: string) => {
+      if (!session) return;
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/host`,
+          {
+            method: 'PATCH',
+            headers: getAuthHeaders(),
+          }
+        );
+        if (!response.ok) {
+          console.error('Failed to transfer host');
+          return;
+        }
+        await refreshSession();
+      } catch (err) {
+        console.error('Error transferring host:', err);
+      }
+    },
+    [session, getAuthHeaders, refreshSession]
   );
 
   const handleStartRecording = useCallback(async () => {
@@ -1015,11 +1069,12 @@ export function CapturePreview({
             participants={participants}
             currentUserId={currentUserId}
             sessionId={session.id}
-            isHost={true}
-            onGrantControl={handleGrantControl}
-            onRevokeControl={handleRevokeControl}
-            onKickParticipant={handleKickParticipant}
-            onMuteParticipant={handleMuteParticipant}
+            isHost={canModerateSession}
+            onGrantControl={canManageParticipantControl ? handleGrantControl : undefined}
+            onRevokeControl={canManageParticipantControl ? handleRevokeControl : undefined}
+            onKickParticipant={canModerateSession ? handleKickParticipant : undefined}
+            onTransferHost={canModerateSession ? handleTransferHost : undefined}
+            onMuteParticipant={canManageParticipantControl ? handleMuteParticipant : undefined}
             mutedParticipants={mutedParticipants}
           />
         </div>
@@ -1030,22 +1085,38 @@ export function CapturePreview({
         <ChatPanel
           sessionId={session.id}
           currentUserId={currentUserId}
-          isHost={true}
+          isHost={canModerateSession}
           mutedParticipants={mutedParticipants}
-          onGrantControl={(participant) => {
-            void handleGrantControl(participant.id);
-          }}
-          onRevokeControl={(participant) => {
-            void handleRevokeControl(participant.id);
-          }}
-          onKickParticipant={(participant) => {
-            void handleKickParticipant(participant.id);
-          }}
-          onMuteParticipant={(participant, muted) => {
-            const targetId =
-              resolveViewerTargetId(participant.id) ?? participant.user_id ?? participant.id;
-            handleMuteParticipant(targetId, muted);
-          }}
+          onGrantControl={
+            canManageParticipantControl
+              ? (participant) => {
+                  void handleGrantControl(participant.id);
+                }
+              : undefined
+          }
+          onRevokeControl={
+            canManageParticipantControl
+              ? (participant) => {
+                  void handleRevokeControl(participant.id);
+                }
+              : undefined
+          }
+          onKickParticipant={
+            canModerateSession
+              ? (participant) => {
+                  void handleKickParticipant(participant.id);
+                }
+              : undefined
+          }
+          onMuteParticipant={
+            canManageParticipantControl
+              ? (participant, muted) => {
+                  const targetId =
+                    resolveViewerTargetId(participant.id) ?? participant.user_id ?? participant.id;
+                  handleMuteParticipant(targetId, muted);
+                }
+              : undefined
+          }
           isCollapsed={!showChat}
           onToggleCollapse={() => {
             setShowChat(!showChat);

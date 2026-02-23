@@ -21,6 +21,7 @@ interface ParticipantListProps {
   onGrantControl?: (participantId: string) => Promise<void>;
   onRevokeControl?: (participantId: string) => Promise<void>;
   onKickParticipant?: (participantId: string) => Promise<void>;
+  onTransferHost?: (participantId: string) => Promise<void>;
   onMuteParticipant?: (participantId: string, muted: boolean) => void;
   mutedParticipants?: Set<string>;
 }
@@ -81,6 +82,7 @@ export function ParticipantList({
   onGrantControl,
   onRevokeControl,
   onKickParticipant,
+  onTransferHost,
   onMuteParticipant,
   mutedParticipants,
 }: ParticipantListProps) {
@@ -126,6 +128,19 @@ export function ParticipantList({
     [onKickParticipant]
   );
 
+  const handleTransferHost = useCallback(
+    async (participantId: string) => {
+      if (!onTransferHost) return;
+      setLoadingAction(`host-${participantId}`);
+      try {
+        await onTransferHost(participantId);
+      } finally {
+        setLoadingAction(null);
+      }
+    },
+    [onTransferHost]
+  );
+
   if (activeParticipants.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
@@ -150,7 +165,13 @@ export function ParticipantList({
         {activeParticipants.map((participant) => {
           const isCurrentUser = participant.user_id === currentUserId;
           const isParticipantHost = participant.role === 'host';
-          const showActions = isHost && !isParticipantHost && !isCurrentUser;
+          const hasAnyActions =
+            Boolean(onGrantControl) ||
+            Boolean(onRevokeControl) ||
+            Boolean(onKickParticipant) ||
+            Boolean(onTransferHost) ||
+            Boolean(onMuteParticipant);
+          const showActions = (isHost || hasAnyActions) && !isParticipantHost && !isCurrentUser;
 
           return (
             <div
@@ -215,50 +236,69 @@ export function ParticipantList({
                       })()}
 
                     {/* Grant/Revoke control button */}
-                    {participant.control_state === 'granted' ? (
+                    {(participant.control_state === 'granted' ? onRevokeControl : onGrantControl) &&
+                      (participant.control_state === 'granted' ? (
+                        <button
+                          onClick={() => void handleRevokeControl(participant.id)}
+                          disabled={loadingAction !== null}
+                          className="rounded p-1.5 text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"
+                          title="Revoke control"
+                          aria-label="Revoke control"
+                        >
+                          {loadingAction === `revoke-${participant.id}` ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Shield className="h-4 w-4" />
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => void handleGrantControl(participant.id)}
+                          disabled={loadingAction !== null}
+                          className="rounded p-1.5 text-green-500 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                          title="Grant control"
+                          aria-label="Grant control"
+                        >
+                          {loadingAction === `grant-${participant.id}` ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Shield className="h-4 w-4" />
+                          )}
+                        </button>
+                      ))}
+
+                    {/* Kick button */}
+                    {onKickParticipant && (
                       <button
-                        onClick={() => void handleRevokeControl(participant.id)}
+                        onClick={() => void handleKick(participant.id)}
                         disabled={loadingAction !== null}
-                        className="rounded p-1.5 text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"
-                        title="Revoke control"
-                        aria-label="Revoke control"
+                        className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive disabled:opacity-50"
+                        title="Remove participant"
+                        aria-label="Remove participant"
                       >
-                        {loadingAction === `revoke-${participant.id}` ? (
+                        {loadingAction === `kick-${participant.id}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Shield className="h-4 w-4" />
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => void handleGrantControl(participant.id)}
-                        disabled={loadingAction !== null}
-                        className="rounded p-1.5 text-green-500 transition-colors hover:bg-green-500/20 disabled:opacity-50"
-                        title="Grant control"
-                        aria-label="Grant control"
-                      >
-                        {loadingAction === `grant-${participant.id}` ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Shield className="h-4 w-4" />
+                          <UserX className="h-4 w-4" />
                         )}
                       </button>
                     )}
 
-                    {/* Kick button */}
-                    <button
-                      onClick={() => void handleKick(participant.id)}
-                      disabled={loadingAction !== null}
-                      className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive disabled:opacity-50"
-                      title="Remove participant"
-                      aria-label="Remove participant"
-                    >
-                      {loadingAction === `kick-${participant.id}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <UserX className="h-4 w-4" />
-                      )}
-                    </button>
+                    {onTransferHost && (
+                      <button
+                        onClick={() => void handleTransferHost(participant.id)}
+                        disabled={loadingAction !== null}
+                        className="rounded p-1.5 text-yellow-500 transition-colors hover:bg-yellow-500/20 disabled:opacity-50"
+                        title="Make host"
+                        aria-label="Make host"
+                      >
+                        {loadingAction === `host-${participant.id}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Crown className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

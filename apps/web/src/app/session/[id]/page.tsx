@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Share2,
   Loader2,
   AlertCircle,
   Mic,
@@ -310,6 +311,14 @@ function SessionViewerContent({
             <div className="flex items-center gap-3">
               <ConnectionStatusBadge connectionState={connectionState} />
               {allowControl && <ControlStatusIndicator controlState={controlState} />}
+              <Link
+                href={`/host/${sessionId}`}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+                title="Share your screen in this session"
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Share Screen</span>
+              </Link>
               <Link
                 href="/"
                 className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"

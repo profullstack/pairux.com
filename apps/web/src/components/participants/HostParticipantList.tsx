@@ -8,12 +8,14 @@ import type { ViewerConnection } from '@/hooks/useWebRTCHost';
 interface HostParticipantListProps {
   participants: SessionParticipant[];
   viewers: Map<string, ViewerConnection>;
-  currentUserId?: string;
+  currentUserId?: string | undefined;
+  canModerateActions?: boolean | undefined;
   onGrantControl: (viewerId: string) => void;
   onRevokeControl: (viewerId: string) => void;
   onKickParticipant: (viewerId: string) => void;
-  onMuteParticipant?: (viewerId: string, muted: boolean) => void;
-  mutedParticipants?: Set<string>;
+  onTransferHost?: ((viewerId: string) => void) | undefined;
+  onMuteParticipant?: ((viewerId: string, muted: boolean) => void) | undefined;
+  mutedParticipants?: Set<string> | undefined;
 }
 
 interface EnhancedParticipant extends SessionParticipant {
@@ -57,14 +59,18 @@ const HostParticipantItem = memo(function HostParticipantItem({
   onGrantControl,
   onRevokeControl,
   onKick,
+  onTransferHost,
   onMuteParticipant,
   isMuted,
+  canModerateActions,
 }: {
   participant: EnhancedParticipant;
   isCurrentUser: boolean;
+  canModerateActions: boolean;
   onGrantControl: (viewerId: string) => void;
   onRevokeControl: (viewerId: string) => void;
   onKick: (viewerId: string) => void;
+  onTransferHost?: (viewerId: string) => void;
   onMuteParticipant?: (viewerId: string, muted: boolean) => void;
   isMuted: boolean;
 }) {
@@ -122,7 +128,7 @@ const HostParticipantItem = memo(function HostParticipantItem({
         )}
 
         {/* Action buttons (only for non-host participants) */}
-        {!isHost && !isCurrentUser && (
+        {canModerateActions && !isHost && !isCurrentUser && (
           <div className="flex gap-1">
             {/* Mute button */}
             <button
@@ -176,6 +182,20 @@ const HostParticipantItem = memo(function HostParticipantItem({
             >
               <UserX className="h-4 w-4" />
             </button>
+
+            {onTransferHost && (
+              <button
+                onClick={() => {
+                  if (participant.viewerId) onTransferHost(participant.viewerId);
+                }}
+                disabled={!participant.viewerId}
+                className="rounded p-1.5 text-yellow-400 transition-colors hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Make host"
+                aria-label="Make host"
+              >
+                <Crown className="h-4 w-4" />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -187,9 +207,11 @@ export const HostParticipantList = memo(function HostParticipantList({
   participants,
   viewers,
   currentUserId,
+  canModerateActions = true,
   onGrantControl,
   onRevokeControl,
   onKickParticipant,
+  onTransferHost,
   onMuteParticipant,
   mutedParticipants,
 }: HostParticipantListProps) {
@@ -269,9 +291,11 @@ export const HostParticipantList = memo(function HostParticipantList({
             key={participant.id}
             participant={participant}
             isCurrentUser={participant.user_id === currentUserId}
+            canModerateActions={canModerateActions}
             onGrantControl={onGrantControl}
             onRevokeControl={onRevokeControl}
             onKick={onKickParticipant}
+            {...(onTransferHost ? { onTransferHost } : {})}
             {...(onMuteParticipant ? { onMuteParticipant } : {})}
             isMuted={Boolean(participant.viewerId && mutedParticipants?.has(participant.viewerId))}
           />

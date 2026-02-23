@@ -289,6 +289,17 @@ describe('ViewerPage', () => {
     });
   });
 
+  it('should show Share Screen button and navigate to presenter mode', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Share Screen/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Share Screen/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/?shareSessionId=session-1');
+  });
+
   it('should call toggleMic when mic button is clicked', async () => {
     renderWithRouter();
 

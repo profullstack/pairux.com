@@ -42,6 +42,7 @@ interface SessionData {
   status: string;
   mode?: 'p2p' | 'sfu';
   host_user_id: string;
+  current_host_id?: string | null;
   settings: {
     quality?: string;
     allowControl?: boolean;
@@ -54,6 +55,10 @@ interface SessionData {
 interface ApiResponse<T> {
   data?: T;
   error?: string;
+}
+
+interface AuthSessionResponse {
+  user: { id: string } | null;
 }
 
 // Common type for both P2P and SFU host hooks (subset used by this page)
@@ -85,6 +90,7 @@ type HostHookFn = (options: {
 export default function HostSessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
   const [session, setSession] = useState<SessionData | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -92,8 +98,12 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     async function fetchSession() {
       try {
-        const res = await fetch(`/api/sessions/${sessionId}`);
+        const [res, authRes] = await Promise.all([
+          fetch(`/api/sessions/${sessionId}`),
+          fetch('/api/auth/session'),
+        ]);
         const data = (await res.json()) as ApiResponse<SessionData>;
+        const authData = (await authRes.json()) as ApiResponse<AuthSessionResponse>;
 
         if (!res.ok) {
           setError(data.error ?? 'Session not found');
@@ -103,6 +113,7 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
         if (data.data) {
           setSession(data.data);
         }
+        setCurrentUserId(authData.data?.user?.id ?? null);
       } catch {
         setError('Failed to load session');
       } finally {
@@ -160,9 +171,10 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 
   return (
     <HostContent
-      key={session.mode ?? 'p2p'}
+      key={`${session.mode ?? 'p2p'}:${currentUserId ?? 'anon'}`}
       session={session}
       sessionId={sessionId}
+      currentUserId={currentUserId}
       useHostHook={useHostHook}
     />
   );
@@ -173,10 +185,12 @@ export default function HostSessionPage({ params }: { params: Promise<{ id: stri
 function HostContent({
   session,
   sessionId,
+  currentUserId,
   useHostHook,
 }: {
   session: SessionData;
   sessionId: string;
+  currentUserId: string | null;
   useHostHook: HostHookFn;
 }) {
   const router = useRouter();
@@ -189,6 +203,10 @@ function HostContent({
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const [speakerMuted, setSpeakerMuted] = useState(false);
+  const publisherId = currentUserId ?? currentSession.host_user_id;
+  const canModerateSession =
+    currentUserId === currentSession.host_user_id ||
+    currentUserId === (currentSession.current_host_id ?? null);
 
   // Screen capture hook
   const {
@@ -236,7 +254,7 @@ function HostContent({
     micStream,
   } = useHostHook({
     sessionId,
-    hostId: session.host_user_id,
+    hostId: publisherId,
     localStream: stream,
     onViewerJoined: (viewerId) => {
       console.log('Viewer joined:', viewerId);
@@ -300,6 +318,34 @@ function HostContent({
       if (viewerId) kickViewer(viewerId);
     },
     [kickViewer, resolveViewerTargetId]
+  );
+
+  const handleTransferHostParticipant = useCallback(
+    async (participant: SessionParticipant) => {
+      if (!canModerateSession) return;
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/participants/${participant.id}/host`, {
+          method: 'PATCH',
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          console.error('Failed to transfer host:', data.error ?? res.statusText);
+          return;
+        }
+
+        // Refresh session metadata (current_host_id) and participant roles in UI.
+        const refreshed = await fetch(`/api/sessions/${sessionId}`);
+        if (refreshed.ok) {
+          const data = (await refreshed.json()) as ApiResponse<SessionData>;
+          if (data.data) {
+            setCurrentSession(data.data);
+          }
+        }
+      } catch (err) {
+        console.error('Error transferring host:', err);
+      }
+    },
+    [canModerateSession, sessionId]
   );
 
   useEffect(() => {
@@ -466,6 +512,11 @@ function HostContent({
       stopCapture();
       stopHosting();
 
+      if (!canModerateSession) {
+        router.push(`/session/${sessionId}`);
+        return;
+      }
+
       const res = await fetch(`/api/sessions/${sessionId}`, {
         method: 'DELETE',
       });
@@ -479,7 +530,7 @@ function HostContent({
       console.error('Error leaving session:', err);
       router.push('/');
     }
-  }, [sessionId, isLeaving, stopCapture, stopHosting, router]);
+  }, [sessionId, isLeaving, stopCapture, stopHosting, router, canModerateSession]);
 
   // Handle regenerating join code (invalidates old invite URL)
   const handleRegenerateCode = useCallback(async () => {
@@ -754,24 +805,26 @@ function HostContent({
                   <Share2 className="h-4 w-4" />
                   Share Session
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (
-                      confirm(
-                        'This will invalidate the current join link. Anyone with the old link will no longer be able to join. Continue?'
-                      )
-                    ) {
-                      void handleRegenerateCode();
-                    }
-                  }}
-                  disabled={isRegenerating}
-                  className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
-                  title="Generate a new join code, invalidating the old link"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                  Reset Invite Link
-                </button>
+                {canModerateSession && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          'This will invalidate the current join link. Anyone with the old link will no longer be able to join. Continue?'
+                        )
+                      ) {
+                        void handleRegenerateCode();
+                      }
+                    }}
+                    disabled={isRegenerating}
+                    className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 disabled:opacity-50"
+                    title="Generate a new join code, invalidating the old link"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                    Reset Invite Link
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -785,10 +838,21 @@ function HostContent({
               <HostParticipantList
                 participants={liveParticipants}
                 viewers={hostedViewers}
-                currentUserId={session.host_user_id}
+                currentUserId={currentUserId ?? undefined}
+                canModerateActions={canModerateSession}
                 onGrantControl={grantControl}
                 onRevokeControl={revokeControl}
                 onKickParticipant={kickViewer}
+                onTransferHost={
+                  canModerateSession
+                    ? (viewerId) => {
+                        const participant = liveParticipants.find(
+                          (p) => p.user_id === viewerId || p.id === viewerId
+                        );
+                        if (participant) void handleTransferHostParticipant(participant);
+                      }
+                    : undefined
+                }
                 onMuteParticipant={muteViewer}
                 mutedParticipants={mutedParticipantTargets}
               />
@@ -865,14 +929,14 @@ function HostContent({
         {showChat && (
           <ChatPanel
             sessionId={session.id}
-            participantId={session.host_user_id}
-            currentUserId={session.host_user_id}
-            isHost={true}
+            participantId={publisherId}
+            currentUserId={publisherId}
+            isHost={canModerateSession}
             mutedParticipants={mutedParticipantTargets}
-            onGrantControl={handleGrantControlParticipant}
-            onRevokeControl={handleRevokeControlParticipant}
-            onKickParticipant={handleKickParticipant}
-            onMuteParticipant={handleMuteParticipant}
+            onGrantControl={canModerateSession ? handleGrantControlParticipant : undefined}
+            onRevokeControl={canModerateSession ? handleRevokeControlParticipant : undefined}
+            onKickParticipant={canModerateSession ? handleKickParticipant : undefined}
+            onMuteParticipant={canModerateSession ? handleMuteParticipant : undefined}
             isCollapsed={false}
             onToggleCollapse={() => {
               setShowChat(false);

@@ -12,15 +12,15 @@ export interface ChatPanelProps {
   sessionId: string;
   participantId?: string; // For guests
   isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
-  className?: string;
-  currentUserId?: string | null;
-  isHost?: boolean;
-  mutedParticipants?: Set<string>;
-  onGrantControl?: (participant: SessionParticipant) => void;
-  onRevokeControl?: (participant: SessionParticipant) => void;
-  onKickParticipant?: (participant: SessionParticipant) => void;
-  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
+  onToggleCollapse?: (() => void) | undefined;
+  className?: string | undefined;
+  currentUserId?: string | null | undefined;
+  isHost?: boolean | undefined;
+  mutedParticipants?: Set<string> | undefined;
+  onGrantControl?: ((participant: SessionParticipant) => void) | undefined;
+  onRevokeControl?: ((participant: SessionParticipant) => void) | undefined;
+  onKickParticipant?: ((participant: SessionParticipant) => void) | undefined;
+  onMuteParticipant?: ((participant: SessionParticipant, muted: boolean) => void) | undefined;
 }
 
 export interface ChatMessageProps {

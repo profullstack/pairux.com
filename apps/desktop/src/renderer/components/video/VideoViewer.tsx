@@ -93,8 +93,9 @@ export function VideoViewer({
     };
   }, [stream]);
 
-  const isStreaming = stream !== null && connectionState === 'connected';
-  const isVoiceOnly = connectionState === 'connected' && stream === null;
+  const hasVideoTrack = Boolean(stream && stream.getVideoTracks().length > 0);
+  const isStreaming = hasVideoTrack && connectionState === 'connected';
+  const isVoiceOnly = connectionState === 'connected' && !hasVideoTrack;
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
   const isFailed = connectionState === 'failed';
   const isDisconnected = connectionState === 'disconnected';

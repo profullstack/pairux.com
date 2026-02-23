@@ -56,6 +56,7 @@ export function SettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isTogglingDevTools, setIsTogglingDevTools] = useState(false);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -145,6 +146,18 @@ export function SettingsPage() {
   const handleOpenRecordingsFolder = async () => {
     if (isElectron()) {
       await getElectronAPI().invoke('recording:openFolder', undefined);
+    }
+  };
+
+  const handleToggleDevTools = async () => {
+    if (!isElectron()) return;
+    setIsTogglingDevTools(true);
+    try {
+      await getElectronAPI().invoke('platform:toggle-devtools', undefined);
+    } catch (error) {
+      console.error('Failed to toggle DevTools:', error);
+    } finally {
+      setIsTogglingDevTools(false);
     }
   };
 
@@ -396,6 +409,18 @@ export function SettingsPage() {
               <span className="text-sm text-muted-foreground">Electron Version</span>
               <span className="text-sm font-medium">{platformInfo?.version ?? 'Loading...'}</span>
             </div>
+            {isElectron() && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => void handleToggleDevTools()}
+                  disabled={isTogglingDevTools}
+                  className="rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted disabled:opacity-50"
+                >
+                  {isTogglingDevTools ? 'Opening…' : 'Toggle Developer Tools'}
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

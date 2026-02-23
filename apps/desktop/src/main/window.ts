@@ -1,4 +1,4 @@
-import { BrowserWindow, shell, session, desktopCapturer, nativeImage, app } from 'electron';
+import { BrowserWindow, shell, session, desktopCapturer, nativeImage } from 'electron';
 import { join } from 'path';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -121,21 +121,6 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
       void shell.openExternal(url);
     }
     return { action: 'deny' };
-  });
-
-  // Hidden DevTools shortcut for packaged builds:
-  // Cmd/Ctrl + Alt + Shift + I
-  mainWindow.webContents.on('before-input-event', (_event, input) => {
-    const isIKey = input.key.toLowerCase() === 'i';
-    const isToggleCombo = (input.control || input.meta) && input.alt && input.shift && isIKey;
-    if (input.type === 'keyDown' && isToggleCombo && app.isPackaged) {
-      if (mainWindow.webContents.isDevToolsOpened()) {
-        mainWindow.webContents.closeDevTools();
-      } else {
-        mainWindow.webContents.openDevTools({ mode: 'detach' });
-      }
-      console.log('[Main] Toggled DevTools via hidden shortcut');
-    }
   });
 
   // Load the app

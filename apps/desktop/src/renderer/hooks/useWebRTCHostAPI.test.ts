@@ -52,6 +52,7 @@ class MockRTCPeerConnection {
   remoteDescription: RTCSessionDescriptionInit | null = null;
   onicecandidate: ((event: { candidate: unknown }) => void) | null = null;
   onconnectionstatechange: (() => void) | null = null;
+  ontrack: ((event: { track: MediaStreamTrack }) => void) | null = null;
 
   createOffer = vi.fn().mockResolvedValue({ type: 'offer', sdp: 'test-sdp' });
   createAnswer = vi.fn().mockResolvedValue({ type: 'answer', sdp: 'test-answer-sdp' });
@@ -113,7 +114,20 @@ describe('useWebRTCHostAPI', () => {
     (globalThis as Record<string, unknown>).EventSource = MockEventSource;
     (globalThis as Record<string, unknown>).RTCPeerConnection = MockRTCPeerConnection;
     (globalThis as Record<string, unknown>).RTCIceCandidate = vi.fn((c: unknown) => c);
+    (globalThis as Record<string, unknown>).MediaStream = vi.fn((tracks: unknown[]) => ({
+      getTracks: () => tracks,
+      getAudioTracks: () => tracks.filter((track) => (track as { kind?: string }).kind === 'audio'),
+      getVideoTracks: () => tracks.filter((track) => (track as { kind?: string }).kind === 'video'),
+    }));
     (globalThis as Record<string, unknown>).fetch = mockFetch;
+    (globalThis as Record<string, unknown>).Audio = vi.fn(() => ({
+      srcObject: null,
+      autoplay: false,
+      volume: 1,
+      muted: false,
+      play: vi.fn().mockResolvedValue(undefined),
+      pause: vi.fn(),
+    }));
   });
 
   afterEach(() => {
@@ -382,6 +396,47 @@ describe('useWebRTCHostAPI', () => {
       // The mock PC should have createDataChannel called
       const mockPC = viewer?.peerConnection as unknown as MockRTCPeerConnection;
       expect(mockPC.createDataChannel).toHaveBeenCalledWith('control', { ordered: true });
+    });
+
+    it('should create a local audio element when a viewer audio track is received', async () => {
+      const { result } = renderHook(() => useWebRTCHostAPI(defaultOptions));
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      const es = MockEventSource.instances[0];
+      act(() => {
+        es.emit('connected', JSON.stringify({ sessionId: 'session-1' }));
+      });
+
+      await act(async () => {
+        es.emit(
+          'presence-join',
+          JSON.stringify({
+            presences: [{ user_id: 'viewer-1', role: 'viewer' }],
+          })
+        );
+      });
+
+      await act(async () => {
+        await vi.waitFor(() => {
+          expect(result.current.viewerCount).toBe(1);
+        });
+      });
+
+      const viewer = result.current.viewers.get('viewer-1');
+      const mockPC = viewer?.peerConnection as unknown as MockRTCPeerConnection;
+      const audioTrack = { kind: 'audio' } as MediaStreamTrack;
+
+      await act(async () => {
+        mockPC.ontrack?.({ track: audioTrack });
+      });
+
+      const updatedViewer = result.current.viewers.get('viewer-1');
+      expect(updatedViewer?.audioTrack).toBe(audioTrack);
+      expect(updatedViewer?.audioElement).toBeTruthy();
+      expect((globalThis as Record<string, unknown>).Audio).toHaveBeenCalled();
     });
   });
 

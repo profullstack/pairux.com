@@ -98,6 +98,36 @@ describe('VideoViewer', () => {
     expect(screen.getByTitle('Turn speaker on (M)')).toBeInTheDocument();
   });
 
+  it('honors controlled speakerMuted state and calls onSpeakerMutedChange', () => {
+    const mockStream = createMockStream(['audio', 'video']);
+    const onSpeakerMutedChange = vi.fn();
+
+    const { rerender } = render(
+      <VideoViewer
+        {...defaultProps}
+        stream={mockStream}
+        connectionState="connected"
+        speakerMuted={false}
+        onSpeakerMutedChange={onSpeakerMutedChange}
+      />
+    );
+
+    fireEvent.click(screen.getByTitle('Mute (M)'));
+    expect(onSpeakerMutedChange).toHaveBeenCalledWith(true);
+
+    rerender(
+      <VideoViewer
+        {...defaultProps}
+        stream={mockStream}
+        connectionState="connected"
+        speakerMuted={true}
+        onSpeakerMutedChange={onSpeakerMutedChange}
+      />
+    );
+
+    expect(screen.getByTitle('Unmute (M)')).toBeInTheDocument();
+  });
+
   it('applies custom className', () => {
     const { container } = render(<VideoViewer {...defaultProps} className="custom-class" />);
     expect(container.firstChild).toHaveClass('custom-class');

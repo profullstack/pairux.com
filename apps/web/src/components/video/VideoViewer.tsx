@@ -66,7 +66,6 @@ export function VideoViewer({
         .play()
         .then(() => {
           setNeedsAudioGesture(false);
-          setMutedState(false);
         })
         .catch(() => {
           // Unmuted play blocked (iOS) — retry muted

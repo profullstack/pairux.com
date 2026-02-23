@@ -12,13 +12,12 @@ vi.mock('electron', () => ({
 }));
 
 vi.mock('../auth/secure-storage', () => ({
-  getStoredAuth: vi.fn().mockReturnValue({
+  getValidAuth: vi.fn().mockResolvedValue({
     accessToken: 'test-token',
     refreshToken: 'test-refresh',
     expiresAt: Date.now() + 3600000,
     user: { id: 'user-1', email: 'test@test.com' },
   }),
-  isAuthExpired: vi.fn().mockReturnValue(false),
 }));
 
 // Mock fetch globally
@@ -79,8 +78,8 @@ describe('Session IPC Handlers', () => {
     });
 
     it('should return error when not authenticated', async () => {
-      const { getStoredAuth } = await import('../auth/secure-storage');
-      (getStoredAuth as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
+      const { getValidAuth } = await import('../auth/secure-storage');
+      (getValidAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       mockHandlers.clear();
       const { registerSessionHandlers } = await import('./session');

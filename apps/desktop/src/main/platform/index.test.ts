@@ -274,6 +274,7 @@ describe('Menu Module', () => {
       onPreferences: vi.fn(),
       onNewSession: vi.fn(),
       onEndSession: vi.fn(),
+      onLogout: vi.fn(),
     };
 
     initializeMenu(callbacks);

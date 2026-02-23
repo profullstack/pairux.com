@@ -14,16 +14,19 @@ vi.mock('electron', () => ({
   },
 }));
 
+const mockStoredAuth = {
+  accessToken: 'test-token',
+  refreshToken: 'test-refresh',
+  expiresAt: Date.now() + 3600000,
+  user: { id: 'user-1', email: 'test@test.com' },
+};
+
 vi.mock('../auth/secure-storage', () => ({
   storeAuth: vi.fn(),
-  getStoredAuth: vi.fn().mockReturnValue({
-    accessToken: 'test-token',
-    refreshToken: 'test-refresh',
-    expiresAt: Date.now() + 3600000,
-    user: { id: 'user-1', email: 'test@test.com' },
-  }),
+  getStoredAuth: vi.fn().mockReturnValue(mockStoredAuth),
   clearStoredAuth: vi.fn(),
   isAuthExpired: vi.fn().mockReturnValue(false),
+  getValidAuth: vi.fn().mockResolvedValue(mockStoredAuth),
 }));
 
 // Mock fetch globally
@@ -111,7 +114,7 @@ describe('Auth IPC Handlers', () => {
       const handler = mockHandlers.get('auth:getSession');
       expect(handler).toBeDefined();
 
-      const result = handler?.();
+      const result = await handler?.();
       expect(result).toEqual({
         user: { id: 'user-1', email: 'test@test.com' },
         profile: null,
@@ -119,15 +122,15 @@ describe('Auth IPC Handlers', () => {
     });
 
     it('should return null when no stored auth', async () => {
-      const { getStoredAuth } = await import('../auth/secure-storage');
-      (getStoredAuth as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
+      const { getValidAuth } = await import('../auth/secure-storage');
+      (getValidAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       mockHandlers.clear();
       const { registerAuthHandlers } = await import('./auth');
       registerAuthHandlers();
 
       const handler = mockHandlers.get('auth:getSession');
-      const result = handler?.();
+      const result = await handler?.();
       expect(result).toEqual({ user: null, profile: null });
     });
   });
@@ -137,26 +140,50 @@ describe('Auth IPC Handlers', () => {
       const handler = mockHandlers.get('auth:validateSession');
       expect(handler).toBeDefined();
 
-      const result = handler?.();
+      const result = await handler?.();
       expect(result).toEqual({
         valid: true,
         user: { id: 'user-1', email: 'test@test.com' },
       });
     });
 
-    it('should clear storage and return invalid when expired', async () => {
-      const { isAuthExpired, clearStoredAuth } = await import('../auth/secure-storage');
+    it('should try refresh and return invalid when expired and refresh fails', async () => {
+      const { isAuthExpired, clearStoredAuth, getValidAuth } =
+        await import('../auth/secure-storage');
       (isAuthExpired as ReturnType<typeof vi.fn>).mockReturnValueOnce(true);
+      (getValidAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       mockHandlers.clear();
       const { registerAuthHandlers } = await import('./auth');
       registerAuthHandlers();
 
       const handler = mockHandlers.get('auth:validateSession');
-      const result = handler?.();
+      const result = await handler?.();
 
       expect(clearStoredAuth).toHaveBeenCalled();
       expect(result).toEqual({ valid: false, user: null });
+    });
+
+    it('should return valid when token is expired but refresh succeeds', async () => {
+      const refreshedAuth = {
+        ...mockStoredAuth,
+        accessToken: 'refreshed-token',
+      };
+      const { isAuthExpired, getValidAuth } = await import('../auth/secure-storage');
+      (isAuthExpired as ReturnType<typeof vi.fn>).mockReturnValueOnce(true);
+      (getValidAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(refreshedAuth);
+
+      mockHandlers.clear();
+      const { registerAuthHandlers } = await import('./auth');
+      registerAuthHandlers();
+
+      const handler = mockHandlers.get('auth:validateSession');
+      const result = await handler?.();
+
+      expect(result).toEqual({
+        valid: true,
+        user: { id: 'user-1', email: 'test@test.com' },
+      });
     });
   });
 

@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { getStoredAuth, isAuthExpired } from '../auth/secure-storage';
+import { getValidAuth } from '../auth/secure-storage';
 import type { Session, SessionParticipant } from '@pairux/shared-types';
 import type { CreateSessionSettings } from '../../preload/api';
 import { API_BASE_URL } from '../../shared/config';
@@ -14,9 +14,9 @@ interface SessionWithParticipants extends Session {
   session_participants?: SessionParticipant[];
 }
 
-function getAuthHeaders(): Record<string, string> | null {
-  const stored = getStoredAuth();
-  if (!stored || isAuthExpired(stored)) {
+async function getAuthHeaders(): Promise<Record<string, string> | null> {
+  const stored = await getValidAuth(API_BASE_URL);
+  if (!stored) {
     return null;
   }
 
@@ -37,7 +37,7 @@ export function registerSessionHandlers(): void {
       settings?: CreateSessionSettings
     ): Promise<{ success: true; session: Session } | { success: false; error: string }> => {
       try {
-        const headers = getAuthHeaders();
+        const headers = await getAuthHeaders();
         if (!headers) {
           return { success: false, error: 'Not authenticated' };
         }
@@ -80,7 +80,7 @@ export function registerSessionHandlers(): void {
       args: { sessionId: string }
     ): Promise<{ success: true } | { success: false; error: string }> => {
       try {
-        const headers = getAuthHeaders();
+        const headers = await getAuthHeaders();
         if (!headers) {
           return { success: false, error: 'Not authenticated' };
         }
@@ -116,7 +116,7 @@ export function registerSessionHandlers(): void {
       | { success: false; error: string }
     > => {
       try {
-        const headers = getAuthHeaders();
+        const headers = await getAuthHeaders();
         if (!headers) {
           return { success: false, error: 'Not authenticated' };
         }
@@ -222,7 +222,7 @@ export function registerSessionHandlers(): void {
       { success: true; participant: SessionParticipant } | { success: false; error: string }
     > => {
       try {
-        const headers = getAuthHeaders();
+        const headers = await getAuthHeaders();
 
         // For desktop app joining, we can be authenticated or provide display name
         const requestHeaders = headers ?? { 'Content-Type': 'application/json' };

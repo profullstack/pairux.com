@@ -319,14 +319,13 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo ""
-            echo "PairUX is already up to date."
-            exit 0
-        fi
-
         echo ""
-        echo "Updating PairUX to v\$LATEST..."
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo "PairUX is already on the latest version."
+            echo "Re-running installer to repair launcher/app integration..."
+        else
+            echo "Updating PairUX to v\$LATEST..."
+        fi
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then
@@ -360,6 +359,19 @@ case "\${1-}" in
             rm -rf "\$INSTALL_DIR"
             echo "  Removed \$INSTALL_DIR"
         fi
+
+        # Remove app data/cache/logs for a full uninstall
+        for path in \
+            "\$HOME/Library/Application Support/pairux" \
+            "\$HOME/Library/Caches/pairux" \
+            "\$HOME/Library/Logs/pairux" \
+            "\$HOME/Library/Saved Application State/com.profullstack.pairux.savedState"
+        do
+            if [ -e "\$path" ]; then
+                rm -rf "\$path" 2>/dev/null || true
+                echo "  Removed \$path"
+            fi
+        done
 
         # Remove this launcher script last
         echo "  Removed \$BIN_DIR/pairux"
@@ -474,6 +486,19 @@ case "\${1-}" in
             echo "  Removed \$INSTALL_DIR"
         fi
 
+        # Remove app data/cache/logs for a full uninstall
+        for path in \
+            "\$HOME/.config/pairux" \
+            "\$HOME/.cache/pairux" \
+            "\$HOME/.local/share/pairux" \
+            "\$HOME/.local/state/pairux"
+        do
+            if [ -e "\$path" ]; then
+                rm -rf "\$path" 2>/dev/null || true
+                echo "  Removed \$path"
+            fi
+        done
+
         # Remove desktop entry
         if [ -f "\$DESKTOP_FILE" ]; then
             rm -f "\$DESKTOP_FILE"
@@ -511,14 +536,13 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo ""
-            echo "PairUX is already up to date."
-            exit 0
-        fi
-
         echo ""
-        echo "Updating PairUX to v\$LATEST..."
+        if [ "\$VERSION" = "\$LATEST" ]; then
+            echo "PairUX is already on the latest version."
+            echo "Re-running installer to repair launcher/app integration..."
+        else
+            echo "Updating PairUX to v\$LATEST..."
+        fi
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then

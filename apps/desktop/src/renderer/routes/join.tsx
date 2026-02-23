@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Monitor, User, Loader2, AlertCircle, Users, ArrowLeft } from 'lucide-react';
 
@@ -46,6 +46,7 @@ export function JoinPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
 
   const [joinCode, setJoinCode] = useState(searchParams.get('code') ?? '');
   const [displayName, setDisplayName] = useState('');
@@ -53,6 +54,18 @@ export function JoinPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
+
+  useEffect(() => {
+    if (displayName.trim()) return;
+
+    const profileName = profile?.display_name?.trim() ?? '';
+    const emailPrefix = user?.email ? user.email.split('@')[0].trim() : '';
+    const preferredName = profileName || emailPrefix;
+
+    if (preferredName) {
+      setDisplayName(preferredName);
+    }
+  }, [profile?.display_name, user?.email, displayName]);
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();

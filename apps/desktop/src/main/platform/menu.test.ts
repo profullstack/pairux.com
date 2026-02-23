@@ -58,6 +58,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       };
 
       initializeMenu(callbacks);
@@ -87,6 +88,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       };
 
       initializeMenu(callbacks);
@@ -111,6 +113,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       };
 
       initializeMenu(callbacks);
@@ -134,6 +137,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       });
 
       const template = vi.mocked(Menu.buildFromTemplate).mock.calls[0][0] as {
@@ -170,6 +174,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       });
 
       const template = vi.mocked(Menu.buildFromTemplate).mock.calls[0][0] as {
@@ -198,6 +203,7 @@ describe('Menu Module', () => {
         onPreferences: vi.fn(),
         onNewSession: vi.fn(),
         onEndSession: vi.fn(),
+        onLogout: vi.fn(),
       });
 
       const template = vi.mocked(Menu.buildFromTemplate).mock.calls[0][0] as {

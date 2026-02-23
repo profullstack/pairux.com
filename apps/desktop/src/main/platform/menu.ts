@@ -12,6 +12,7 @@ export interface MenuCallbacks {
   onPreferences: () => void;
   onNewSession: () => void;
   onEndSession: () => void;
+  onLogout: () => void;
   onCheckForUpdates?: () => void;
 }
 
@@ -88,6 +89,11 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
         label: 'End Session',
         accelerator: 'Cmd+W',
         click: () => menuCallbacks?.onEndSession(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Log Out',
+        click: () => menuCallbacks?.onLogout(),
       },
     ],
   };
@@ -183,6 +189,11 @@ function buildDefaultMenu(): MenuItemConstructorOptions[] {
         label: 'Settings',
         accelerator: 'Ctrl+,',
         click: () => menuCallbacks?.onPreferences(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Log Out',
+        click: () => menuCallbacks?.onLogout(),
       },
       { type: 'separator' },
       {

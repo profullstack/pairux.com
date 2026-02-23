@@ -5,6 +5,7 @@ import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
 import { initializeTray, destroyTray, getTraySession } from './tray';
 import { initializeMenu, showAboutDialog } from './platform';
+import { clearStoredAuth, clearStoredCredentials } from './auth/secure-storage';
 import { setMainWindow as setStreamingMainWindow } from './streaming';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
@@ -142,6 +143,15 @@ void app.whenReady().then(async () => {
     onEndSession: () => {
       if (mainWindow) {
         mainWindow.webContents.send('tray:end-session');
+      }
+    },
+    onLogout: () => {
+      clearStoredAuth();
+      clearStoredCredentials();
+      if (mainWindow) {
+        mainWindow.webContents.send('navigate', '/login');
+        mainWindow.show();
+        mainWindow.focus();
       }
     },
   });

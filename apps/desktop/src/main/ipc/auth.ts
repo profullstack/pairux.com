@@ -7,6 +7,7 @@ import {
   storeCredentials,
   getStoredCredentials,
   clearStoredCredentials,
+  getValidAuth,
 } from '../auth/secure-storage';
 import type { Profile } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../shared/config';
@@ -36,9 +37,9 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       ...(options.headers as Record<string, string> | undefined),
     };
 
-    // Attach Bearer token from secure storage if available
-    const stored = getStoredAuth();
-    if (stored && !isAuthExpired(stored)) {
+    // Attach Bearer token from secure storage, auto-refreshing if expired
+    const stored = await getValidAuth(API_BASE_URL);
+    if (stored) {
       headers.Authorization = `Bearer ${stored.accessToken}`;
     }
 
@@ -120,37 +121,47 @@ export function registerAuthHandlers(): void {
     }
   });
 
-  // Get session handler
-  ipcMain.handle('auth:getSession', (): { user: AuthUser | null; profile: Profile | null } => {
-    const stored = getStoredAuth();
-    if (!stored || isAuthExpired(stored)) {
-      return { user: null, profile: null };
+  // Get session handler (auto-refreshes expired tokens)
+  ipcMain.handle(
+    'auth:getSession',
+    async (): Promise<{ user: AuthUser | null; profile: Profile | null }> => {
+      const stored = await getValidAuth(API_BASE_URL);
+      if (!stored) {
+        return { user: null, profile: null };
+      }
+
+      return { user: stored.user, profile: null };
     }
+  );
 
-    // Return stored user info
-    // Profile would need to be fetched separately if needed
-    return { user: stored.user, profile: null };
-  });
+  // Validate session (check if still valid, auto-refreshing if needed)
+  ipcMain.handle(
+    'auth:validateSession',
+    async (): Promise<{ valid: boolean; user: AuthUser | null }> => {
+      const stored = getStoredAuth();
+      if (!stored) {
+        return { valid: false, user: null };
+      }
 
-  // Validate session (check if still valid)
-  ipcMain.handle('auth:validateSession', (): { valid: boolean; user: AuthUser | null } => {
-    const stored = getStoredAuth();
-    if (!stored) {
-      return { valid: false, user: null };
-    }
+      if (!isAuthExpired(stored)) {
+        return { valid: true, user: stored.user };
+      }
 
-    if (isAuthExpired(stored)) {
+      // Token expired — try to refresh
+      const refreshed = await getValidAuth(API_BASE_URL);
+      if (refreshed) {
+        return { valid: true, user: refreshed.user };
+      }
+
       clearStoredAuth();
       return { valid: false, user: null };
     }
-
-    return { valid: true, user: stored.user };
-  });
+  );
 
   // Get access token for API calls (used by renderer for SSE connections)
-  ipcMain.handle('auth:getToken', (): { token: string | null } => {
-    const stored = getStoredAuth();
-    if (!stored || isAuthExpired(stored)) {
+  ipcMain.handle('auth:getToken', async (): Promise<{ token: string | null }> => {
+    const stored = await getValidAuth(API_BASE_URL);
+    if (!stored) {
       return { token: null };
     }
     return { token: stored.accessToken };

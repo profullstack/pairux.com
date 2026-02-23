@@ -88,6 +88,11 @@
     "webrtc",
     "pair-programming"
   ],
+  "pnpm": {
+    "overrides": {
+      "app-builder-bin": "4.0.0"
+    }
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.0",
     "dotenv": "^17.2.3"

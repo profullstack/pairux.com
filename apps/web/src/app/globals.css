@@ -100,10 +100,15 @@
   animation: shimmer 2s ease-in-out infinite;
 }
 
-/* Typewriter cursor styling */
+/* Typewriter cursor styling — reset -webkit-text-fill-color so the cursor
+   stays visible even when the parent uses bg-clip-text + text-transparent
+   (Chrome hides the cursor otherwise). */
 .type-animation-cursor::after {
   content: '|';
   animation: blink 1s step-end infinite;
+  -webkit-text-fill-color: initial;
+  -webkit-background-clip: initial;
+  background-clip: initial;
   @apply text-primary-600 ml-0.5;
 }
 

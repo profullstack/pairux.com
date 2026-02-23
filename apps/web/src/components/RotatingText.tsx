@@ -27,14 +27,23 @@ const sequence = [
 
 export function RotatingText() {
   return (
-    <TypeAnimation
-      sequence={sequence}
-      wrapper="span"
-      speed={50}
-      deletionSpeed={40}
-      repeat={Infinity}
-      className="from-primary-600 via-accent-500 to-primary-600 animate-gradient-x bg-gradient-to-r bg-[length:200%_auto] bg-clip-text text-transparent"
-      cursor={true}
-    />
+    <span className="inline-flex items-baseline">
+      <TypeAnimation
+        sequence={sequence}
+        wrapper="span"
+        speed={50}
+        deletionSpeed={40}
+        repeat={Infinity}
+        className="from-primary-600 via-accent-500 to-primary-600 animate-gradient-x bg-gradient-to-r bg-[length:200%_auto] bg-clip-text text-transparent"
+        cursor={false}
+      />
+      <span
+        aria-hidden="true"
+        className="text-primary-600 ml-0.5"
+        style={{ animation: 'blink 1s step-end infinite' }}
+      >
+        |
+      </span>
+    </span>
   );
 }

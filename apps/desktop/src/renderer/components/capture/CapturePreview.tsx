@@ -265,12 +265,35 @@ export function CapturePreview({
     }
   }, [session, isHosting, startHosting]);
 
-  // Publish screen share stream when capture starts
+  // Publish screen share stream when capture starts.
+  // Use the mixer output when available so live WebRTC matches recording audio
+  // behavior (host mic + any routed audio sources).
   useEffect(() => {
     if (stream && isHosting) {
-      void hostPublishStream(stream);
+      const publishStream = new MediaStream();
+
+      stream.getVideoTracks().forEach((track) => {
+        publishStream.addTrack(track);
+      });
+
+      const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
+      const fallbackAudioTracks = stream.getAudioTracks();
+      const selectedAudioTracks =
+        mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
+
+      selectedAudioTracks.forEach((track) => {
+        publishStream.addTrack(track);
+      });
+
+      console.log('[CapturePreview] Publishing live stream to viewers', {
+        videoTracks: publishStream.getVideoTracks().length,
+        audioTracks: publishStream.getAudioTracks().length,
+        audioSource: mixedAudioTracks.length > 0 ? 'mixer' : 'capture-stream',
+      });
+
+      void hostPublishStream(publishStream);
     }
-  }, [stream, isHosting, hostPublishStream]);
+  }, [stream, mixedStream, isHosting, hostPublishStream]);
 
   // Unpublish screen share when capture stops (session stays alive)
   useEffect(() => {

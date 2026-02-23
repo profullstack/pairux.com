@@ -14,7 +14,6 @@ COPY livekit.yaml /etc/livekit.yaml
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 USER root
 RUN chmod +x /docker-entrypoint.sh
-USER livekit
 
 # WebSocket signaling (HTTP)
 EXPOSE 7880/tcp

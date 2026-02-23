@@ -177,14 +177,18 @@ export function useWebRTCHostAPI({
         let frameRate: number | undefined;
         let frameWidth: number | undefined;
         let frameHeight: number | undefined;
+        let framesEncoded: number | undefined;
+        let videoSenderStatsCount = 0;
 
         stats.forEach((report: RTCStatsReport[keyof RTCStatsReport] & Record<string, unknown>) => {
           if (report.type === 'outbound-rtp' && report.kind === 'video') {
+            videoSenderStatsCount += 1;
             bytesSent += (report.bytesSent as number | undefined) ?? 0;
             packetsSent += (report.packetsSent as number | undefined) ?? 0;
             frameRate = report.framesPerSecond as number | undefined;
             frameWidth = report.frameWidth as number | undefined;
             frameHeight = report.frameHeight as number | undefined;
+            framesEncoded = report.framesEncoded as number | undefined;
           }
           if (report.type === 'inbound-rtp') {
             bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
@@ -197,6 +201,25 @@ export function useWebRTCHostAPI({
             roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
           }
         });
+
+        if (videoSenderStatsCount > 0) {
+          console.log('[WebRTCHost] Video outbound stats', {
+            viewerId: viewer.id,
+            connectionState: viewer.connectionState,
+            bytesSent,
+            packetsSent,
+            framesEncoded: framesEncoded ?? null,
+            frameRate: frameRate ?? null,
+            frameWidth: frameWidth ?? null,
+            frameHeight: frameHeight ?? null,
+            roundTripTimeMs: roundTripTime ?? null,
+          });
+        } else {
+          console.warn('[WebRTCHost] No outbound video stats for viewer', {
+            viewerId: viewer.id,
+            connectionState: viewer.connectionState,
+          });
+        }
 
         // Report to API
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -794,6 +817,30 @@ export function useWebRTCHostAPI({
         videoTracks: videoTracks.length,
         audioTracks: stream.getAudioTracks().length,
       });
+      for (const track of videoTracks) {
+        console.log('[WebRTCHost] Publish video track', {
+          id: track.id,
+          label: track.label,
+          muted: track.muted,
+          readyState: track.readyState,
+          settings: track.getSettings(),
+        });
+        track.onmute = () => {
+          console.warn('[WebRTCHost] Video track muted', {
+            id: track.id,
+            readyState: track.readyState,
+          });
+        };
+        track.onunmute = () => {
+          console.log('[WebRTCHost] Video track unmuted', {
+            id: track.id,
+            readyState: track.readyState,
+          });
+        };
+        track.onended = () => {
+          console.warn('[WebRTCHost] Video track ended', { id: track.id });
+        };
+      }
 
       for (const viewer of viewersRef.current.values()) {
         if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')

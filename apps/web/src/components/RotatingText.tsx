@@ -34,12 +34,12 @@ export function RotatingText() {
         speed={50}
         deletionSpeed={40}
         repeat={Infinity}
-        className="from-primary-600 via-accent-500 to-primary-600 animate-gradient-x bg-gradient-to-r bg-[length:200%_auto] bg-clip-text text-transparent"
+        className="from-primary-600 via-accent-500 to-primary-600 animate-gradient-x inline-block bg-gradient-to-r bg-[length:200%_auto] bg-clip-text pb-[0.08em] text-transparent"
         cursor={false}
       />
       <span
         aria-hidden="true"
-        className="text-primary-600 ml-0.5"
+        className="text-primary-600 ml-0.5 inline-block pb-[0.08em]"
         style={{ animation: 'blink 1s step-end infinite' }}
       >
         |

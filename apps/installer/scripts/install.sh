@@ -522,9 +522,11 @@ if [ -x "\$APPIMAGE" ]; then
     # which prevents Electron from exposing its API (app, BrowserWindow, etc.)
     unset ELECTRON_RUN_AS_NODE
 
-    # If FUSE is unavailable (common in restricted/containerized environments),
-    # fall back to extract-and-run mode so the AppImage can still launch.
-    if [ -r /dev/fuse ] && [ -w /dev/fuse ]; then
+    # If FUSE is unavailable or inaccessible (common in restricted/containerized
+    # environments), fall back to extract-and-run mode so the AppImage can still
+    # launch. A simple -r/-w check is not enough because /dev/fuse may exist but
+    # still reject open() with EPERM.
+    if [ -r /dev/fuse ] && [ -w /dev/fuse ] && (: <> /dev/fuse) 2>/dev/null; then
         exec "\$APPIMAGE" "\$@"
     else
         export APPIMAGE_EXTRACT_AND_RUN=1

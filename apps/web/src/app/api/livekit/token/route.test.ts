@@ -3,6 +3,9 @@ import { POST } from './route';
 import { createMockSupabaseClient, mockUser } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
+const mockAddGrant = vi.fn();
+const mockToJwt = vi.fn().mockResolvedValue('mock-jwt-token');
+const mockAccessTokenCtor = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
@@ -10,10 +13,13 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('livekit-server-sdk', () => ({
-  AccessToken: vi.fn().mockImplementation(() => ({
-    addGrant: vi.fn(),
-    toJwt: vi.fn().mockResolvedValue('mock-jwt-token'),
-  })),
+  AccessToken: vi.fn().mockImplementation((...args: unknown[]) => {
+    mockAccessTokenCtor(...args);
+    return {
+      addGrant: mockAddGrant,
+      toJwt: mockToJwt,
+    };
+  }),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -85,6 +91,42 @@ describe('POST /api/livekit/token', () => {
     expect(body.data.token).toBe('mock-jwt-token');
   });
 
+  it('allows authenticated participant (non-owner) to publish in SFU mode', async () => {
+    const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
+
+    const sessionQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
+    };
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
+    };
+    const mockFrom = vi.fn((table: string) => {
+      if (table === 'sessions') return sessionQuery;
+      if (table === 'session_participants') return participantQuery;
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.token).toBe('mock-jwt-token');
+    expect(mockAddGrant).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canPublish: true,
+      })
+    );
+  });
+
   it('returns 401 for unauthenticated user', async () => {
     const mockSupabase = createMockSupabaseClient({});
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
@@ -135,13 +177,24 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns 403 when non-host claims host', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
+    const sessionQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
         data: { ...sfuSession, host_user_id: 'other-user-id' },
         error: null,
       }),
+    };
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    };
+    const mockFrom = vi.fn((table: string) => {
+      if (table === 'sessions') return sessionQuery;
+      if (table === 'session_participants') return participantQuery;
+      throw new Error(`Unexpected table ${table}`);
     });
     const mockSupabase = createMockSupabaseClient({ from: mockFrom });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
@@ -151,7 +204,7 @@ describe('POST /api/livekit/token', () => {
     const body = await response.json();
 
     expect(response.status).toBe(403);
-    expect(body.error).toBe('Only the session host can publish');
+    expect(body.error).toBe('Not authorized for this session');
   });
 
   it('returns 400 for ended session', async () => {

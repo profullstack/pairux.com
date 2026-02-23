@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Link2, Loader2, Mic } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
@@ -55,6 +55,7 @@ async function constrainTrackToQualitySetting(track: MediaStreamTrack): Promise<
 
 export function HomePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -65,6 +66,7 @@ export function HomePage() {
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
+  const [loadingExistingSession, setLoadingExistingSession] = useState(false);
 
   // Get platform info on mount
   useEffect(() => {
@@ -75,6 +77,33 @@ export function HomePage() {
       setIsWayland(info.isWayland);
     });
   }, []);
+
+  // Resume an existing session for "share screen as viewer/presenter" flows.
+  useEffect(() => {
+    const shareSessionId = searchParams.get('shareSessionId');
+    if (!shareSessionId || preCreatedSession || sessionActive || loadingExistingSession) return;
+
+    setLoadingExistingSession(true);
+    setError(null);
+
+    const api = getElectronAPI();
+    void api
+      .invoke('session:get', { sessionId: shareSessionId })
+      .then((result) => {
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setPreCreatedSession(result.session);
+        setSessionActive(true);
+      })
+      .catch(() => {
+        setError('Failed to load session');
+      })
+      .finally(() => {
+        setLoadingExistingSession(false);
+      });
+  }, [searchParams, preCreatedSession, sessionActive, loadingExistingSession]);
 
   const handleSourceSelect = async (source: CaptureSource) => {
     // Prevent multiple concurrent capture attempts
@@ -339,12 +368,16 @@ export function HomePage() {
       {!stream && !sessionActive ? (
         <div className="relative">
           {/* Loading overlay */}
-          {isCapturing && (
+          {(isCapturing || loadingExistingSession) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">
-                  {isWayland ? 'Waiting for system screen picker...' : 'Starting capture...'}
+                  {loadingExistingSession
+                    ? 'Loading session...'
+                    : isWayland
+                      ? 'Waiting for system screen picker...'
+                      : 'Starting capture...'}
                 </p>
               </div>
             </div>
@@ -357,7 +390,7 @@ export function HomePage() {
                 onClick={() => {
                   setShowCreateLinkModal(true);
                 }}
-                disabled={isCapturing}
+                disabled={isCapturing || loadingExistingSession}
                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
                 <Link2 className="h-4 w-4" />
@@ -367,7 +400,7 @@ export function HomePage() {
                 onClick={() => {
                   setSessionActive(true);
                 }}
-                disabled={isCapturing}
+                disabled={isCapturing || loadingExistingSession}
                 className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 disabled:opacity-50"
               >
                 <Mic className="h-4 w-4" />
@@ -375,7 +408,7 @@ export function HomePage() {
               </button>
               <button
                 onClick={() => void navigate('/join')}
-                disabled={isCapturing}
+                disabled={isCapturing || loadingExistingSession}
                 className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
               >
                 <Users className="h-4 w-4" />
@@ -393,7 +426,7 @@ export function HomePage() {
                 onClick={() => {
                   void handleWaylandCapture();
                 }}
-                disabled={isCapturing}
+                disabled={isCapturing || loadingExistingSession}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
                 {isCapturing ? (

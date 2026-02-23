@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageSquare,
   AlertCircle,
+  Share2,
   Mic,
   MicOff,
   Volume2,
@@ -264,6 +265,17 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                void navigate(`/?shareSessionId=${session.id}`);
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+              title="Share your screen in this session"
+            >
+              <Share2 className="h-4 w-4" />
+              Share Screen
+            </button>
+
             <button
               onClick={() => {
                 setSpeakerMuted((prev) => !prev);

@@ -248,7 +248,7 @@ describe('ParticipantList', () => {
       expect(screen.queryByTitle('Remove participant')).not.toBeInTheDocument();
     });
 
-    it('does not show actions when isHost is false', () => {
+    it('does not show actions when isHost is false and no action callbacks are provided', () => {
       const participants = [
         createMockParticipant({
           id: 'p-1',
@@ -257,15 +257,7 @@ describe('ParticipantList', () => {
         }),
       ];
 
-      render(
-        <ParticipantList
-          participants={participants}
-          isHost={false}
-          onGrantControl={vi.fn()}
-          onRevokeControl={vi.fn()}
-          onKickParticipant={vi.fn()}
-        />
-      );
+      render(<ParticipantList participants={participants} isHost={false} />);
 
       expect(screen.queryByTitle('Grant control')).not.toBeInTheDocument();
       expect(screen.queryByTitle('Remove participant')).not.toBeInTheDocument();
@@ -352,6 +344,41 @@ describe('ParticipantList', () => {
       await waitFor(() => {
         expect(onKickParticipant).toHaveBeenCalledWith('p-1');
       });
+    });
+
+    it('shows and calls make host button when onTransferHost is provided', async () => {
+      const onTransferHost = vi.fn().mockResolvedValue(undefined);
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(<ParticipantList participants={participants} onTransferHost={onTransferHost} />);
+
+      expect(screen.getByTitle('Make host')).toBeInTheDocument();
+      fireEvent.click(screen.getByTitle('Make host'));
+
+      await waitFor(() => {
+        expect(onTransferHost).toHaveBeenCalledWith('p-1');
+      });
+    });
+
+    it('hides kick button when only transfer-host is available (presenter, not host)', () => {
+      const participants = [
+        createMockParticipant({
+          id: 'p-1',
+          display_name: 'Viewer',
+          role: 'viewer',
+        }),
+      ];
+
+      render(<ParticipantList participants={participants} onTransferHost={vi.fn()} />);
+
+      expect(screen.getByTitle('Make host')).toBeInTheDocument();
+      expect(screen.queryByTitle('Remove participant')).not.toBeInTheDocument();
     });
   });
 

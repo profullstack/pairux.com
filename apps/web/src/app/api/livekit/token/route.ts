@@ -52,10 +52,28 @@ export async function POST(request: Request) {
       return errorResponse('Session has ended', 400);
     }
 
-    // Verify host claim matches actual host
-    if (isHost && session.host_user_id !== user.id) {
-      return errorResponse('Only the session host can publish', 403);
+    const isSessionOwner = session.host_user_id === user.id;
+
+    // Allow authenticated participants to publish (present/share) without making them host.
+    // Host-only moderation remains gated elsewhere by the real session host ID.
+    let isParticipant = false;
+    if (!isSessionOwner) {
+      const { data: participant } = await supabase
+        .from('session_participants')
+        .select('id')
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id)
+        .is('left_at', null)
+        .single();
+      isParticipant = Boolean(participant);
+
+      if (!isParticipant) {
+        return errorResponse('Not authorized for this session', 403);
+      }
     }
+
+    const canPublish = isSessionOwner || isParticipant;
+    const effectiveIsHost = isHost && isSessionOwner;
 
     const roomName = `session-${sessionId}`;
 
@@ -64,7 +82,7 @@ export async function POST(request: Request) {
       name: participantName,
       ttl: '24h',
       metadata: JSON.stringify({
-        role: isHost ? 'host' : 'viewer',
+        role: effectiveIsHost ? 'host' : 'viewer',
         userId: user.id,
       }),
     });
@@ -72,7 +90,7 @@ export async function POST(request: Request) {
     const grant: VideoGrant = {
       room: roomName,
       roomJoin: true,
-      canPublish: isHost,
+      canPublish,
       canSubscribe: true,
       canPublishData: true,
       canUpdateOwnMetadata: true,

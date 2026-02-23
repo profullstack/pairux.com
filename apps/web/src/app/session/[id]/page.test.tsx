@@ -227,6 +227,22 @@ describe('SessionViewerPage', () => {
       expect(screen.getByRole('link', { name: /Leave/ })).toHaveAttribute('href', '/');
     });
 
+    it('shows share screen link to presenter page', async () => {
+      const params = createResolvedParams('session-123');
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /Share Screen/ })).toBeInTheDocument();
+      });
+      expect(screen.getByRole('link', { name: /Share Screen/ })).toHaveAttribute(
+        'href',
+        '/host/session-123'
+      );
+    });
+
     it('has chat and settings buttons', async () => {
       const params = createResolvedParams('session-123');
 

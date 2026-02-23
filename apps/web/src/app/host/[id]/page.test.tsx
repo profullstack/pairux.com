@@ -147,7 +147,7 @@ const mockSessionData = {
   id: 'session-1',
   join_code: 'ABC123',
   status: 'active',
-  mode: 'p2p' as const,
+  mode: 'p2p',
   host_user_id: 'host-1',
   settings: {
     quality: '1080p',
@@ -158,16 +158,38 @@ const mockSessionData = {
   session_participants: mockLiveParticipants,
 };
 
+function mockFetchSessionAndAuth(userId = 'host-1', sessionData = mockSessionData) {
+  vi.mocked(global.fetch).mockImplementation((input: string | URL | Request) => {
+    const url =
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+
+    if (url.includes('/api/auth/session')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: { user: userId ? { id: userId } : null } }),
+      } as Response);
+    }
+
+    if (url.includes('/api/sessions/')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: sessionData }),
+      } as Response);
+    }
+
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ data: {} }),
+    } as Response);
+  });
+}
+
 describe('HostSessionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     capturedHostParticipantListProps = null;
     mockViewers.clear();
-
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ data: mockSessionData }),
-    } as Response);
+    mockFetchSessionAndAuth();
   });
 
   it('should show loading state initially', async () => {
@@ -183,10 +205,20 @@ describe('HostSessionPage', () => {
   });
 
   it('should show error when session not found', async () => {
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Session not found' }),
-    } as Response);
+    vi.mocked(global.fetch).mockImplementation((input: string | URL | Request) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes('/api/auth/session')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { user: { id: 'host-1' } } }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Session not found' }),
+      } as Response);
+    });
 
     await act(async () => {
       renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
@@ -289,6 +321,18 @@ describe('HostSessionPage', () => {
     expect(mockKickViewer).toHaveBeenCalledWith('viewer-1');
   });
 
+  it('should pass transfer-host handler to HostParticipantList for host/current host', async () => {
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(capturedHostParticipantListProps).not.toBeNull();
+    });
+
+    expect(typeof capturedHostParticipantListProps!.onTransferHost).toBe('function');
+  });
+
   it('should display join code', async () => {
     await act(async () => {
       renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
@@ -320,10 +364,7 @@ describe('HostSessionPage', () => {
   });
 
   it('should show SFU mode for sfu sessions', async () => {
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ data: { ...mockSessionData, mode: 'sfu' } }),
-    } as Response);
+    mockFetchSessionAndAuth('host-1', { ...mockSessionData, mode: 'sfu' });
 
     await act(async () => {
       renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
@@ -366,10 +407,20 @@ describe('HostSessionPage', () => {
 
     // Clear the initial fetch mock
     vi.mocked(global.fetch).mockClear();
-    vi.mocked(global.fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ data: {} }),
-    } as Response);
+    vi.mocked(global.fetch).mockImplementation((input: string | URL | Request) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes('/api/sessions/session-1')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: {} }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: { user: { id: 'host-1' } } }),
+      } as Response);
+    });
 
     await act(async () => {
       fireEvent.click(screen.getByText('Leave'));
@@ -411,5 +462,21 @@ describe('HostSessionPage', () => {
         expect.objectContaining({ method: 'POST' })
       );
     });
+  });
+
+  it('hides moderation-only controls for non-owner presenter', async () => {
+    mockFetchSessionAndAuth('viewer-1');
+
+    await act(async () => {
+      renderWithSuspense(<HostSessionPage params={createResolvedParams('session-1')} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('host-participant-list')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Reset Invite Link')).not.toBeInTheDocument();
+    expect(capturedHostParticipantListProps?.canModerateActions).toBe(false);
+    expect(capturedHostParticipantListProps?.onTransferHost).toBeUndefined();
   });
 });

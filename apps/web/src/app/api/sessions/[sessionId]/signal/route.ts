@@ -84,8 +84,12 @@ export async function POST(
       return errorResponse('Session has ended', 410);
     }
 
-    // Verify sender is a participant or the host
+    // Verify sender is a participant or the host.
+    // For authenticated clients (desktop/web), prefer the authenticated user identity rather
+    // than trusting the posted senderId. Some desktop builds may post a local participant UUID
+    // while the SSE signaling stream uses a server-assigned subscriber/user ID.
     const isHost = user?.id === session.host_user_id;
+    let effectiveSenderId = signal.senderId;
 
     if (!isHost) {
       // Allow either participant-row IDs (legacy/current web paths) or authenticated user IDs
@@ -110,6 +114,24 @@ export async function POST(
           .single();
 
         isAuthorizedParticipant = Boolean(participantByUserId);
+      }
+
+      // If the request is authenticated, authorize based on the authenticated user's active
+      // participation even when the posted senderId does not match exactly (older desktop clients).
+      if (!isAuthorizedParticipant && user?.id) {
+        const { data: participantByAuthenticatedUserId } = await supabase
+          .from('session_participants')
+          .select('id')
+          .eq('session_id', sessionId)
+          .eq('user_id', user.id)
+          .is('left_at', null)
+          .single();
+
+        const isAuthenticatedUserParticipant = Boolean(participantByAuthenticatedUserId);
+        if (isAuthenticatedUserParticipant) {
+          isAuthorizedParticipant = true;
+          effectiveSenderId = user.id;
+        }
       }
 
       if (!isAuthorizedParticipant) {
@@ -141,7 +163,7 @@ export async function POST(
         type: signal.type,
         sdp: signal.sdp,
         candidate: signal.candidate,
-        senderId: signal.senderId,
+        senderId: effectiveSenderId,
         targetId: signal.targetId,
         timestamp: signal.timestamp,
       },

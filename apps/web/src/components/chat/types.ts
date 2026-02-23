@@ -14,6 +14,13 @@ export interface ChatPanelProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   className?: string;
+  currentUserId?: string | null;
+  isHost?: boolean;
+  mutedParticipants?: Set<string>;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }
 
 export interface ChatMessageProps {
@@ -52,10 +59,22 @@ export interface ParticipantListProps {
   isLoading?: boolean;
   onStartDM?: (participant: SessionParticipant) => void;
   defaultExpanded?: boolean;
+  isHost?: boolean;
+  mutedParticipants?: Set<string>;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }
 
 export interface ParticipantItemProps {
   participant: SessionParticipant;
   isCurrentUser: boolean;
   onStartDM?: (participant: SessionParticipant) => void;
+  isHostContext?: boolean;
+  isMuted?: boolean;
+  onGrantControl?: (participant: SessionParticipant) => void;
+  onRevokeControl?: (participant: SessionParticipant) => void;
+  onKickParticipant?: (participant: SessionParticipant) => void;
+  onMuteParticipant?: (participant: SessionParticipant, muted: boolean) => void;
 }

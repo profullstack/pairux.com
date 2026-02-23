@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { Users, Crown, Eye, Monitor, Circle, Shield, UserX } from 'lucide-react';
+import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Mic, MicOff } from 'lucide-react';
 import type { SessionParticipant, ConnectionStatus, ControlState } from '@pairux/shared-types';
 import type { ViewerConnection } from '@/hooks/useWebRTCHost';
 
@@ -12,6 +12,8 @@ interface HostParticipantListProps {
   onGrantControl: (viewerId: string) => void;
   onRevokeControl: (viewerId: string) => void;
   onKickParticipant: (viewerId: string) => void;
+  onMuteParticipant?: (viewerId: string, muted: boolean) => void;
+  mutedParticipants?: Set<string>;
 }
 
 interface EnhancedParticipant extends SessionParticipant {
@@ -55,12 +57,16 @@ const HostParticipantItem = memo(function HostParticipantItem({
   onGrantControl,
   onRevokeControl,
   onKick,
+  onMuteParticipant,
+  isMuted,
 }: {
   participant: EnhancedParticipant;
   isCurrentUser: boolean;
   onGrantControl: (viewerId: string) => void;
   onRevokeControl: (viewerId: string) => void;
   onKick: (viewerId: string) => void;
+  onMuteParticipant?: (viewerId: string, muted: boolean) => void;
+  isMuted: boolean;
 }) {
   const isHost = participant.role === 'host';
   const canControl = participant.viewerId && participant.dataChannelReady;
@@ -118,6 +124,19 @@ const HostParticipantItem = memo(function HostParticipantItem({
         {/* Action buttons (only for non-host participants) */}
         {!isHost && !isCurrentUser && (
           <div className="flex gap-1">
+            {/* Mute button */}
+            <button
+              onClick={() => {
+                if (participant.viewerId) onMuteParticipant?.(participant.viewerId, !isMuted);
+              }}
+              disabled={!participant.viewerId}
+              className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+              title={isMuted ? 'Unmute participant' : 'Mute participant'}
+              aria-label={isMuted ? 'Unmute participant' : 'Mute participant'}
+            >
+              {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
+
             {/* Grant/Revoke control button */}
             {participant.effectiveControlState === 'granted' ? (
               <button
@@ -171,6 +190,8 @@ export const HostParticipantList = memo(function HostParticipantList({
   onGrantControl,
   onRevokeControl,
   onKickParticipant,
+  onMuteParticipant,
+  mutedParticipants,
 }: HostParticipantListProps) {
   // Merge database participants with WebRTC viewer state
   const enhancedParticipants = useMemo((): EnhancedParticipant[] => {
@@ -251,6 +272,8 @@ export const HostParticipantList = memo(function HostParticipantList({
             onGrantControl={onGrantControl}
             onRevokeControl={onRevokeControl}
             onKick={onKickParticipant}
+            {...(onMuteParticipant ? { onMuteParticipant } : {})}
+            isMuted={Boolean(participant.viewerId && mutedParticipants?.has(participant.viewerId))}
           />
         ))}
       </div>

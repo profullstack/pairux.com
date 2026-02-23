@@ -172,6 +172,7 @@ function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   const hookResult = useWebRTC({
     sessionId,
     participantId,
+    useApiSignalPost: true,
     onCursorUpdate: handleCursorUpdate,
   });
 

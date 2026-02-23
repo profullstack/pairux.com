@@ -25,13 +25,51 @@ export function VideoViewer({
     const video = videoRef.current;
     if (!video) return;
 
+    const handleLoadedMetadata = () => {
+      console.log('[VideoViewer] loadedmetadata', {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        readyState: video.readyState,
+        muted: video.muted,
+      });
+    };
+    const handlePlaying = () => {
+      console.log('[VideoViewer] playing', {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        readyState: video.readyState,
+        currentTime: video.currentTime,
+        muted: video.muted,
+      });
+    };
+    const handleStalled = () => {
+      console.warn('[VideoViewer] stalled');
+    };
+    const handleWaiting = () => {
+      console.warn('[VideoViewer] waiting');
+    };
+    const handleError = () => {
+      console.error('[VideoViewer] media error', video.error);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('stalled', handleStalled);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('error', handleError);
+
     if (stream) {
+      console.log('[VideoViewer] Attaching stream', {
+        streamId: stream.id,
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+      });
       video.srcObject = stream;
       video.muted = false;
       video
         .play()
         .then(() => {
-          // Unmuted playback succeeded
+          console.log('[VideoViewer] play() succeeded (unmuted)');
         })
         .catch(() => {
           // Unmuted play blocked — retry muted so the video at least renders
@@ -42,8 +80,17 @@ export function VideoViewer({
           });
         });
     } else {
+      console.log('[VideoViewer] Clearing stream');
       video.srcObject = null;
     }
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('stalled', handleStalled);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('error', handleError);
+    };
   }, [stream]);
 
   const isStreaming = stream !== null && connectionState === 'connected';

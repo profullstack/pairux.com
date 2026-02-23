@@ -534,6 +534,17 @@ export function useWebRTCViewerAPI({
     // Handle incoming tracks (video + audio from host)
     pc.ontrack = (event) => {
       const stream = event.streams[0] as MediaStream | undefined;
+      console.log('[WebRTCViewer] ontrack', {
+        kind: event.track.kind,
+        id: event.track.id,
+        muted: event.track.muted,
+        readyState: event.track.readyState,
+        streamCount: event.streams.length,
+        streamId: stream?.id,
+        streamVideoTracks: stream?.getVideoTracks().length ?? 0,
+        streamAudioTracks: stream?.getAudioTracks().length ?? 0,
+        mid: event.transceiver.mid,
+      });
       if (!stream) return;
 
       const current = remoteStreamRef.current;
@@ -544,6 +555,20 @@ export function useWebRTCViewerAPI({
       if (!current || (!currentHasVideo && incomingHasVideo)) {
         remoteStreamRef.current = stream;
         setRemoteStream(stream);
+        console.log('[WebRTCViewer] Selected remote stream', {
+          streamId: stream.id,
+          videoTracks: stream.getVideoTracks().map((track) => ({
+            id: track.id,
+            muted: track.muted,
+            readyState: track.readyState,
+            settings: track.getSettings(),
+          })),
+          audioTracks: stream.getAudioTracks().map((track) => ({
+            id: track.id,
+            muted: track.muted,
+            readyState: track.readyState,
+          })),
+        });
         onStreamReady?.(stream);
       }
     };

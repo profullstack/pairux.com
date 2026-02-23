@@ -494,8 +494,11 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
       reader.releaseLock();
     });
 
-    it('includes TURN server when env vars are set', async () => {
+    it('includes TURN/TURNS servers and IP fallbacks when env vars are set', async () => {
       process.env.TURN_SERVER_URL = 'turn:turn.example.com:3478';
+      process.env.TURNS_SERVER_URL = 'turns:turn.example.com:5349';
+      process.env.TURN_SERVER_IP_URL = 'turn:203.0.113.10:3478';
+      process.env.TURNS_SERVER_IP_URL = 'turns:203.0.113.10:5349';
       process.env.TURN_SERVER_USERNAME = 'testuser';
       process.env.TURN_SERVER_CREDENTIAL = 'testcred';
 
@@ -530,14 +533,76 @@ describe('GET /api/sessions/[sessionId]/signal/stream', () => {
       const text = new TextDecoder().decode(value);
 
       expect(text).toContain('turn:turn.example.com:3478');
+      expect(text).toContain('turns:turn.example.com:5349');
+      expect(text).toContain('turn:203.0.113.10:3478');
+      expect(text).toContain('turns:203.0.113.10:5349');
       expect(text).toContain('testuser');
+      reader.releaseLock();
+    });
+
+    it('falls back to NEXT_PUBLIC TURN env vars when server TURN vars are unset', async () => {
+      delete process.env.TURN_SERVER_URL;
+      delete process.env.TURNS_SERVER_URL;
+      delete process.env.TURN_SERVER_IP_URL;
+      delete process.env.TURNS_SERVER_IP_URL;
+      delete process.env.TURN_SERVER_USERNAME;
+      delete process.env.TURN_SERVER_CREDENTIAL;
+      process.env.NEXT_PUBLIC_TURN_URL = 'turn:turn.public.example.com:3478';
+      process.env.NEXT_PUBLIC_TURNS_URL = 'turns:turn.public.example.com:5349';
+      process.env.NEXT_PUBLIC_TURN_IP_URL = 'turn:198.51.100.7:3478';
+      process.env.NEXT_PUBLIC_TURN_USERNAME = 'publicuser';
+      process.env.NEXT_PUBLIC_TURN_CREDENTIAL = 'publiccred';
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+      });
+
+      const mockSupabase = createMockSupabaseClient({
+        from: mockFrom,
+        channel: vi.fn().mockReturnValue(mockChannel),
+        removeChannel: vi.fn().mockResolvedValue('ok'),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await GET(createRequest('test-session-id'), {
+        params: Promise.resolve({ sessionId: 'test-session-id' }),
+      });
+
+      expect(response.status).toBe(200);
+
+      const reader = response.body!.getReader();
+      const { value } = await reader.read();
+      const text = new TextDecoder().decode(value);
+
+      expect(text).toContain('turn:turn.public.example.com:3478');
+      expect(text).toContain('turns:turn.public.example.com:5349');
+      expect(text).toContain('turn:198.51.100.7:3478');
+      expect(text).toContain('publicuser');
       reader.releaseLock();
     });
 
     it('does not include TURN server when env vars are missing', async () => {
       delete process.env.TURN_SERVER_URL;
+      delete process.env.TURNS_SERVER_URL;
+      delete process.env.TURN_SERVER_IP_URL;
+      delete process.env.TURNS_SERVER_IP_URL;
       delete process.env.TURN_SERVER_USERNAME;
       delete process.env.TURN_SERVER_CREDENTIAL;
+      delete process.env.NEXT_PUBLIC_TURN_URL;
+      delete process.env.NEXT_PUBLIC_TURNS_URL;
+      delete process.env.NEXT_PUBLIC_TURN_IP_URL;
+      delete process.env.NEXT_PUBLIC_TURNS_IP_URL;
+      delete process.env.NEXT_PUBLIC_TURN_USERNAME;
+      delete process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
 
       const mockChannel = {
         on: vi.fn().mockReturnThis(),

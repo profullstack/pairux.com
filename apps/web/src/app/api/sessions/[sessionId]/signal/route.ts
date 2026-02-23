@@ -88,8 +88,9 @@ export async function POST(
     const isHost = user?.id === session.host_user_id;
 
     if (!isHost) {
-      // Check if sender is a participant
-      const { data: participant } = await supabase
+      // Allow either participant-row IDs (legacy/current web paths) or authenticated user IDs
+      // (desktop SSE subscriber IDs can be the auth user ID).
+      const { data: participantById } = await supabase
         .from('session_participants')
         .select('id')
         .eq('session_id', sessionId)
@@ -97,8 +98,21 @@ export async function POST(
         .is('left_at', null)
         .single();
 
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (!participant) {
+      let isAuthorizedParticipant = Boolean(participantById);
+
+      if (!isAuthorizedParticipant && user?.id && signal.senderId === user.id) {
+        const { data: participantByUserId } = await supabase
+          .from('session_participants')
+          .select('id')
+          .eq('session_id', sessionId)
+          .eq('user_id', user.id)
+          .is('left_at', null)
+          .single();
+
+        isAuthorizedParticipant = Boolean(participantByUserId);
+      }
+
+      if (!isAuthorizedParticipant) {
         return errorResponse('Not authorized to send signals in this session', 403);
       }
     }

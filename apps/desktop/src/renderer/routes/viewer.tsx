@@ -41,6 +41,8 @@ interface ViewerHookResult {
   toggleMic: () => void;
 }
 
+const PARTICIPANT_REFRESH_DEBOUNCE_MS = 250;
+
 export function ViewerPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -50,6 +52,7 @@ export function ViewerPage() {
   const [participants, setParticipants] = useState<SessionParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [lastParticipantRefreshAt, setLastParticipantRefreshAt] = useState(0);
 
   useEffect(() => {
     if (!sessionId) {
@@ -87,6 +90,28 @@ export function ViewerPage() {
       clearInterval(interval);
     };
   }, [sessionId, navigate]);
+
+  const refreshParticipantsNow = useCallback(async () => {
+    if (!sessionId) return;
+    const now = Date.now();
+    if (now - lastParticipantRefreshAt < PARTICIPANT_REFRESH_DEBOUNCE_MS) {
+      return;
+    }
+    setLastParticipantRefreshAt(now);
+    try {
+      const api = getElectronAPI();
+      const result = await api.invoke('session:get', { sessionId });
+      if (!result.success) return;
+      setParticipants(result.participants);
+      setSession(result.session);
+    } catch {
+      // Non-fatal: polling fallback will catch up
+    }
+  }, [sessionId, lastParticipantRefreshAt]);
+
+  const handlePresenceChange = useCallback(() => {
+    void refreshParticipantsNow();
+  }, [refreshParticipantsNow]);
 
   if (loading) {
     return (
@@ -135,6 +160,7 @@ export function ViewerPage() {
         participantId={participantId}
         participants={participants}
         userId={user.id}
+        onPresenceChange={handlePresenceChange}
       />
     );
   }
@@ -146,6 +172,7 @@ export function ViewerPage() {
       participantId={participantId}
       participants={participants}
       userId={user.id}
+      onPresenceChange={handlePresenceChange}
     />
   );
 }
@@ -158,6 +185,7 @@ interface ViewerWrapperProps {
   participantId: string;
   participants: SessionParticipant[];
   userId: string;
+  onPresenceChange: () => void;
 }
 
 function P2PViewer({
@@ -166,6 +194,7 @@ function P2PViewer({
   participantId,
   participants,
   userId,
+  onPresenceChange,
 }: ViewerWrapperProps) {
   const navigate = useNavigate();
 
@@ -175,6 +204,7 @@ function P2PViewer({
     onKicked: () => {
       void navigate('/join');
     },
+    onPresenceChange,
   });
 
   return (
@@ -193,6 +223,7 @@ function SFUViewer({
   participantId,
   participants,
   userId,
+  onPresenceChange,
 }: ViewerWrapperProps) {
   const navigate = useNavigate();
 
@@ -202,6 +233,7 @@ function SFUViewer({
     onKicked: () => {
       void navigate('/join');
     },
+    onPresenceChange,
   });
 
   return (
@@ -391,6 +423,7 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
         <ChatPanel
           sessionId={session.id}
           currentUserId={userId}
+          participants={activeParticipants}
           isCollapsed={!showChat}
           onToggleCollapse={() => {
             setShowChat(!showChat);

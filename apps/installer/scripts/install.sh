@@ -295,6 +295,7 @@ case "\${1-}" in
         echo "  -h, --help       Show this help message"
         echo "  -v, --version    Show version number"
         echo "  update|upgrade   Check for updates and install the latest version"
+        echo "                   Use --force to reinstall when already up to date"
         echo "  uninstall|remove Remove PairUX completely"
         exit 0
         ;;
@@ -304,6 +305,12 @@ case "\${1-}" in
         ;;
     update|upgrade)
         echo "Checking for updates..."
+        FORCE_UPDATE=0
+        for arg in "\${@:2}"; do
+            if [ "\$arg" = "--force" ]; then
+                FORCE_UPDATE=1
+            fi
+        done
 
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
@@ -322,7 +329,11 @@ case "\${1-}" in
         echo ""
         if [ "\$VERSION" = "\$LATEST" ]; then
             echo "PairUX is already on the latest version."
-            echo "Re-running installer to repair launcher/app integration..."
+            if [ "\$FORCE_UPDATE" -ne 1 ]; then
+                echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+                exit 0
+            fi
+            echo "Re-running installer to repair launcher/app integration (--force)..."
         else
             echo "Updating PairUX to v\$LATEST..."
         fi
@@ -466,6 +477,7 @@ case "\${1-}" in
         echo "  -h, --help       Show this help message"
         echo "  -v, --version    Show version number"
         echo "  update|upgrade   Check for updates and install the latest version"
+        echo "                   Use --force to reinstall when already up to date"
         echo "  uninstall|remove Remove PairUX completely"
         exit 0
         ;;
@@ -521,6 +533,12 @@ case "\${1-}" in
         ;;
     update|upgrade)
         echo "Checking for updates..."
+        FORCE_UPDATE=0
+        for arg in "\${@:2}"; do
+            if [ "\$arg" = "--force" ]; then
+                FORCE_UPDATE=1
+            fi
+        done
 
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
@@ -539,7 +557,11 @@ case "\${1-}" in
         echo ""
         if [ "\$VERSION" = "\$LATEST" ]; then
             echo "PairUX is already on the latest version."
-            echo "Re-running installer to repair launcher/app integration..."
+            if [ "\$FORCE_UPDATE" -ne 1 ]; then
+                echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+                exit 0
+            fi
+            echo "Re-running installer to repair launcher/app integration (--force)..."
         else
             echo "Updating PairUX to v\$LATEST..."
         fi

@@ -13,6 +13,19 @@ interface UseParticipantsReturn {
   refetch: () => Promise<void>;
 }
 
+function isActiveParticipant(participant: SessionParticipant): boolean {
+  return !participant.left_at;
+}
+
+function sortParticipants(participants: SessionParticipant[]): SessionParticipant[] {
+  participants.sort((a, b) => {
+    if (a.role === 'host' && b.role !== 'host') return -1;
+    if (b.role === 'host' && a.role !== 'host') return 1;
+    return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
+  });
+  return participants;
+}
+
 // Poll interval for participant updates (in ms)
 const POLL_INTERVAL = 5000;
 
@@ -33,15 +46,7 @@ export function useParticipants({ sessionId }: UseParticipantsOptions): UseParti
         throw new Error(result.error);
       }
 
-      // Filter to only active participants (no left_at)
-      const active = result.participants.filter((p: SessionParticipant) => !p.left_at);
-      // Sort: host first, then by joined_at
-      active.sort((a: SessionParticipant, b: SessionParticipant) => {
-        if (a.role === 'host' && b.role !== 'host') return -1;
-        if (b.role === 'host' && a.role !== 'host') return 1;
-        return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
-      });
-      setParticipants(active);
+      setParticipants(sortParticipants(result.participants.filter(isActiveParticipant)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch participants');
     } finally {

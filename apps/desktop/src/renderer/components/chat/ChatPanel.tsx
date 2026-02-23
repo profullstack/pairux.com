@@ -22,6 +22,7 @@ interface ChatPanelProps {
   sessionId: string;
   currentUserId?: string | null;
   participantId?: string;
+  participants?: SessionParticipant[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   isHost?: boolean;
@@ -38,6 +39,7 @@ export function ChatPanel({
   sessionId,
   currentUserId,
   participantId,
+  participants: participantsProp,
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
   isHost = false,
@@ -56,9 +58,11 @@ export function ChatPanel({
       participantId,
     });
 
-  const { participants, isLoading: participantsLoading } = useParticipants({
+  const { participants: liveParticipants, isLoading: participantsLoading } = useParticipants({
     sessionId,
   });
+  const participants = participantsProp ?? liveParticipants;
+  const participantsLoadingState = participantsProp ? false : participantsLoading;
 
   // Message input state
   const [inputValue, setInputValue] = useState('');
@@ -186,7 +190,7 @@ export function ChatPanel({
         participants={participants}
         currentUserId={currentUserId}
         currentParticipantId={participantId}
-        isLoading={participantsLoading}
+        isLoading={participantsLoadingState}
         isHost={isHost}
         mutedParticipants={mutedParticipants}
         onGrantControl={onGrantControl}

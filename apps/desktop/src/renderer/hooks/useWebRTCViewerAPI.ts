@@ -533,44 +533,80 @@ export function useWebRTCViewerAPI({
 
     // Handle incoming tracks (video + audio from host)
     pc.ontrack = (event) => {
-      const stream = event.streams[0] as MediaStream | undefined;
+      const incomingStream = event.streams[0] as MediaStream | undefined;
       console.log('[WebRTCViewer] ontrack', {
         kind: event.track.kind,
         id: event.track.id,
         muted: event.track.muted,
         readyState: event.track.readyState,
         streamCount: event.streams.length,
-        streamId: stream?.id,
-        streamVideoTracks: stream?.getVideoTracks().length ?? 0,
-        streamAudioTracks: stream?.getAudioTracks().length ?? 0,
+        streamId: incomingStream?.id,
+        streamVideoTracks: incomingStream?.getVideoTracks().length ?? 0,
+        streamAudioTracks: incomingStream?.getAudioTracks().length ?? 0,
         mid: event.transceiver.mid,
       });
-      if (!stream) return;
 
+      // Electron/Chromium may deliver tracks in separate or streamless ontrack events.
+      // Merge tracks into a single composite stream for the desktop viewer.
       const current = remoteStreamRef.current;
-      const currentHasVideo = Boolean(current && current.getVideoTracks().length > 0);
-      const incomingHasVideo = stream.getVideoTracks().length > 0;
+      const composite = current ?? new MediaStream();
 
-      // Keep the stream that contains video if additional audio-only streams arrive later.
-      if (!current || (!currentHasVideo && incomingHasVideo)) {
-        remoteStreamRef.current = stream;
-        setRemoteStream(stream);
-        console.log('[WebRTCViewer] Selected remote stream', {
-          streamId: stream.id,
-          videoTracks: stream.getVideoTracks().map((track) => ({
-            id: track.id,
-            muted: track.muted,
-            readyState: track.readyState,
-            settings: track.getSettings(),
-          })),
-          audioTracks: stream.getAudioTracks().map((track) => ({
-            id: track.id,
-            muted: track.muted,
-            readyState: track.readyState,
-          })),
-        });
-        onStreamReady?.(stream);
+      const addTrackIfMissing = (track: MediaStreamTrack) => {
+        const exists = composite.getTracks().some((existing) => existing.id === track.id);
+        if (!exists) {
+          // Replace stale track of same kind if present (e.g., renegotiation/re-publish).
+          const sameKind = composite.getTracks().find((existing) => existing.kind === track.kind);
+          if (sameKind) {
+            composite.removeTrack(sameKind);
+          }
+          composite.addTrack(track);
+        }
+      };
+
+      if (incomingStream) {
+        incomingStream.getTracks().forEach(addTrackIfMissing);
+      } else {
+        addTrackIfMissing(event.track);
       }
+
+      event.track.onended = () => {
+        console.warn('[WebRTCViewer] Remote track ended', {
+          kind: event.track.kind,
+          id: event.track.id,
+        });
+      };
+      event.track.onmute = () => {
+        console.warn('[WebRTCViewer] Remote track muted', {
+          kind: event.track.kind,
+          id: event.track.id,
+        });
+      };
+      event.track.onunmute = () => {
+        console.log('[WebRTCViewer] Remote track unmuted', {
+          kind: event.track.kind,
+          id: event.track.id,
+        });
+      };
+
+      // Re-emit a fresh stream object so React/video attachment updates when tracks arrive later.
+      const mergedStream = new MediaStream(composite.getTracks());
+      remoteStreamRef.current = mergedStream;
+      setRemoteStream(mergedStream);
+      console.log('[WebRTCViewer] Selected remote stream', {
+        streamId: mergedStream.id,
+        videoTracks: mergedStream.getVideoTracks().map((track) => ({
+          id: track.id,
+          muted: track.muted,
+          readyState: track.readyState,
+          settings: track.getSettings(),
+        })),
+        audioTracks: mergedStream.getAudioTracks().map((track) => ({
+          id: track.id,
+          muted: track.muted,
+          readyState: track.readyState,
+        })),
+      });
+      onStreamReady?.(mergedStream);
     };
 
     // Handle ICE candidates — send via API

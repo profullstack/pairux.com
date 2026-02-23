@@ -467,19 +467,35 @@ export function useWebRTC({
 
     // Handle incoming tracks (video + audio from host and relayed viewers)
     pc.ontrack = (event) => {
-      const stream = event.streams[0];
-      if (!stream) return;
+      const incomingStream = event.streams[0];
 
+      // Browsers may deliver audio/video on separate streams (or streamless) across
+      // renegotiation, which can cause us to drop audio if we simply replace the stream.
       const current = remoteStreamRef.current;
-      const currentHasVideo = Boolean(current && current.getVideoTracks().length > 0);
-      const incomingHasVideo = stream.getVideoTracks().length > 0;
+      const composite = current ?? new MediaStream();
 
-      // Avoid replacing an active video stream with a later audio-only stream.
-      if (!current || (!currentHasVideo && incomingHasVideo)) {
-        remoteStreamRef.current = stream;
-        setRemoteStream(stream);
-        onStreamReady?.(stream);
+      const addTrackIfMissing = (track: MediaStreamTrack) => {
+        const exists = composite.getTracks().some((existing) => existing.id === track.id);
+        if (!exists) {
+          const sameKind = composite.getTracks().find((existing) => existing.kind === track.kind);
+          if (sameKind) {
+            composite.removeTrack(sameKind);
+          }
+          composite.addTrack(track);
+        }
+      };
+
+      if (incomingStream) {
+        incomingStream.getTracks().forEach(addTrackIfMissing);
+      } else {
+        addTrackIfMissing(event.track);
       }
+
+      // Re-emit a fresh stream so the video element updates when tracks arrive later.
+      const mergedStream = new MediaStream(composite.getTracks());
+      remoteStreamRef.current = mergedStream;
+      setRemoteStream(mergedStream);
+      onStreamReady?.(mergedStream);
     };
 
     // Handle ICE candidates

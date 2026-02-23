@@ -98,6 +98,7 @@ export function useWebRTCViewerSFUAPI({
   const roomRef = useRef<Room | null>(null);
   const inputSequenceRef = useRef(0);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const remoteMediaStreamRef = useRef<MediaStream | null>(null);
   // Track previous bytesReceived for delta-based bitrate calculation
   const prevBytesReceivedRef = useRef(0);
   const prevStatsTimestampRef = useRef(0);
@@ -312,6 +313,7 @@ export function useWebRTCViewerSFUAPI({
       roomRef.current = null;
     }
 
+    remoteMediaStreamRef.current = null;
     setRemoteStream(null);
     setConnectionState('disconnected');
     setQualityMetrics(null);
@@ -383,19 +385,47 @@ export function useWebRTCViewerSFUAPI({
       room.on(
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
-          if (track.kind === Track.Kind.Video) {
-            const stream = new MediaStream([track.mediaStreamTrack]);
+          if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
+            const stream = remoteMediaStreamRef.current ?? new MediaStream();
+            remoteMediaStreamRef.current = stream;
+
+            const mediaTrack = track.mediaStreamTrack;
+            const hasTrack = stream.getTracks().some((t) => t.id === mediaTrack.id);
+            if (!hasTrack) {
+              stream.addTrack(mediaTrack);
+            }
+
             setRemoteStream(stream);
-            onStreamReadyRef.current?.(stream);
+
+            if (track.kind === Track.Kind.Video) {
+              onStreamReadyRef.current?.(stream);
+            }
           }
         }
       );
 
       // Track unsubscribed
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
-        if (track.kind === Track.Kind.Video) {
-          setRemoteStream(null);
-          onStreamEndedRef.current?.();
+        if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
+          const stream = remoteMediaStreamRef.current;
+          if (!stream) return;
+
+          const mediaTrack = track.mediaStreamTrack;
+          const existing = stream.getTracks().find((t) => t.id === mediaTrack.id);
+          if (existing) {
+            stream.removeTrack(existing);
+          }
+
+          if (track.kind === Track.Kind.Video && stream.getVideoTracks().length === 0) {
+            onStreamEndedRef.current?.();
+          }
+
+          if (stream.getTracks().length === 0) {
+            remoteMediaStreamRef.current = null;
+            setRemoteStream(null);
+          } else {
+            setRemoteStream(stream);
+          }
         }
       });
 

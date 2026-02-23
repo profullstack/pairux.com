@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { VideoViewer } from './VideoViewer';
 
 // Mock HTMLVideoElement.prototype.play to return a proper promise
@@ -13,6 +13,7 @@ vi.mock('lucide-react', () => ({
   Minimize2: () => <span data-testid="minimize-icon" />,
   Volume2: () => <span data-testid="volume-on-icon" />,
   VolumeX: () => <span data-testid="volume-off-icon" />,
+  Mic: () => <span data-testid="mic-icon" />,
 }));
 
 // Mock child components
@@ -27,6 +28,19 @@ vi.mock('./QualityIndicator', () => ({
 }));
 
 describe('VideoViewer', () => {
+  const createMockStream = (trackKinds: ('audio' | 'video')[]): MediaStream =>
+    ({
+      getTracks: () => trackKinds.map((kind, i) => ({ id: `${kind}-${String(i)}`, kind })),
+      getVideoTracks: () =>
+        trackKinds
+          .filter((kind) => kind === 'video')
+          .map((kind, i) => ({ id: `${kind}-${String(i)}`, kind })),
+      getAudioTracks: () =>
+        trackKinds
+          .filter((kind) => kind === 'audio')
+          .map((kind, i) => ({ id: `${kind}-${String(i)}`, kind })),
+    }) as unknown as MediaStream;
+
   const defaultProps = {
     stream: null,
     connectionState: 'idle' as const,
@@ -62,17 +76,26 @@ describe('VideoViewer', () => {
   });
 
   it('shows controls overlay when connected with stream', () => {
-    const mockStream = {
-      getTracks: () => [],
-      getVideoTracks: () => [],
-      getAudioTracks: () => [],
-    } as unknown as MediaStream;
+    const mockStream = createMockStream(['video']);
 
     render(<VideoViewer {...defaultProps} stream={mockStream} connectionState="connected" />);
 
     // Controls should be visible — mute button shows "Mute (M)" because default is unmuted
     expect(screen.getByTitle('Mute (M)')).toBeInTheDocument();
     expect(screen.getByTitle('Fullscreen (F)')).toBeInTheDocument();
+  });
+
+  it('shows speaker toggle in voice-only mode and toggles mute state', () => {
+    const mockStream = createMockStream(['audio']);
+
+    render(<VideoViewer {...defaultProps} stream={mockStream} connectionState="connected" />);
+
+    const speakerButton = screen.getByTitle('Turn speaker off (M)');
+    expect(speakerButton).toBeInTheDocument();
+
+    fireEvent.click(speakerButton);
+
+    expect(screen.getByTitle('Turn speaker on (M)')).toBeInTheDocument();
   });
 
   it('applies custom className', () => {

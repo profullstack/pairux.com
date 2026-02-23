@@ -20,6 +20,9 @@ class MockMediaStream {
   addTrack(track: unknown) {
     this.tracks.push(track);
   }
+  removeTrack(track: unknown) {
+    this.tracks = this.tracks.filter((t) => t !== track);
+  }
 }
 (globalThis as Record<string, unknown>).MediaStream = MockMediaStream;
 
@@ -260,6 +263,54 @@ describe('useWebRTCViewerSFUAPI', () => {
     });
 
     expect(hookResult!.current.remoteStream).not.toBeNull();
+  });
+
+  it('should merge subscribed audio and video tracks into one remote stream', async () => {
+    let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
+
+    await act(async () => {
+      const { result } = renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      hookResult = result;
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const mockAudioTrack = {
+      kind: 'audio',
+      mediaStreamTrack: { id: 'audio-1', kind: 'audio' },
+    };
+    const mockVideoTrack = {
+      kind: 'video',
+      mediaStreamTrack: { id: 'video-1', kind: 'video' },
+    };
+
+    act(() => {
+      mockRoomInstance.emit('trackSubscribed', mockAudioTrack, {}, { identity: 'host-1' });
+    });
+
+    const firstStream = hookResult!.current.remoteStream;
+    expect(firstStream).not.toBeNull();
+    expect(firstStream?.getAudioTracks()).toHaveLength(1);
+    expect(firstStream?.getVideoTracks()).toHaveLength(0);
+
+    act(() => {
+      mockRoomInstance.emit('trackSubscribed', mockVideoTrack, {}, { identity: 'host-1' });
+    });
+
+    const mergedStream = hookResult!.current.remoteStream;
+    expect(mergedStream).toBe(firstStream);
+    expect(mergedStream?.getAudioTracks()).toHaveLength(1);
+    expect(mergedStream?.getVideoTracks()).toHaveLength(1);
+
+    act(() => {
+      mockRoomInstance.emit('trackUnsubscribed', mockAudioTrack);
+    });
+
+    expect(hookResult!.current.remoteStream).toBe(mergedStream);
+    expect(hookResult!.current.remoteStream?.getAudioTracks()).toHaveLength(0);
+    expect(hookResult!.current.remoteStream?.getVideoTracks()).toHaveLength(1);
   });
 
   it('should clear remoteStream on TrackUnsubscribed for video', async () => {

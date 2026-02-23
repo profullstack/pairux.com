@@ -1,5 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { Monitor, Loader2, AlertCircle, RefreshCw, Wifi, WifiOff, Mic } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  Monitor,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  Mic,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 
 interface VideoViewerProps {
@@ -20,6 +30,7 @@ export function VideoViewer({
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -27,16 +38,17 @@ export function VideoViewer({
 
     if (stream) {
       video.srcObject = stream;
-      video.muted = false;
+      video.muted = isMuted;
       video
         .play()
         .then(() => {
-          // Unmuted playback succeeded
+          // Playback succeeded
         })
         .catch(() => {
           // Unmuted play blocked — retry muted so the video at least renders
           console.warn('[VideoViewer] Unmuted autoplay blocked, retrying muted');
           video.muted = true;
+          setIsMuted(true);
           video.play().catch((err: unknown) => {
             console.error('[VideoViewer] Failed to play even muted:', err);
           });
@@ -44,10 +56,20 @@ export function VideoViewer({
     } else {
       video.srcObject = null;
     }
-  }, [stream]);
+  }, [stream, isMuted]);
 
-  const isStreaming = stream !== null && connectionState === 'connected';
-  const isVoiceOnly = connectionState === 'connected' && stream === null;
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  }, []);
+
+  const hasVideoTrack = !!stream && stream.getVideoTracks().length > 0;
+  const hasAudioTrack = !!stream && stream.getAudioTracks().length > 0;
+  const isStreaming = connectionState === 'connected' && hasVideoTrack;
+  const isVoiceOnly = connectionState === 'connected' && !hasVideoTrack;
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
   const isFailed = connectionState === 'failed';
   const isDisconnected = connectionState === 'disconnected';
@@ -134,6 +156,18 @@ export function VideoViewer({
       <div className="absolute left-4 top-4">
         <ConnectionBadge connectionState={connectionState} />
       </div>
+
+      {/* Speaker toggle */}
+      {(isStreaming || isVoiceOnly) && hasAudioTrack && (
+        <button
+          type="button"
+          onClick={toggleMute}
+          className="absolute right-4 top-4 rounded-lg bg-black/70 p-2 text-white transition-colors hover:bg-black/85"
+          title={isMuted ? 'Turn speaker on' : 'Turn speaker off'}
+        >
+          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+        </button>
+      )}
     </div>
   );
 }

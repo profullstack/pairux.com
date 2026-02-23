@@ -353,26 +353,23 @@ export function useWebRTCHostAPI({
       // Add local stream tracks (if currently sharing)
       const currentStream = localStreamRef.current;
       if (currentStream) {
-        currentStream.getTracks().forEach((track) => {
-          if (track.kind === 'video') {
-            track.contentHint = 'detail';
-          }
+        // Screen-share publishing only uses video tracks here; host mic is handled separately.
+        currentStream.getVideoTracks().forEach((track) => {
+          track.contentHint = 'detail';
           const sender = pc.addTrack(track, currentStream);
 
-          if (track.kind === 'video') {
-            const params = sender.getParameters();
-            const preset = BITRATE_PRESETS.excellent;
-            const encoding = params.encodings[0];
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (encoding !== undefined) {
-              encoding.maxBitrate = preset.maxBitrate;
-              encoding.maxFramerate = preset.maxFramerate;
-              encoding.priority = 'high';
-              encoding.networkPriority = 'high';
-            }
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            void sender.setParameters(params).catch(() => {});
+          const params = sender.getParameters();
+          const preset = BITRATE_PRESETS.excellent;
+          const encoding = params.encodings[0];
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (encoding !== undefined) {
+            encoding.maxBitrate = preset.maxBitrate;
+            encoding.maxFramerate = preset.maxFramerate;
+            encoding.priority = 'high';
+            encoding.networkPriority = 'high';
           }
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          void sender.setParameters(params).catch(() => {});
         });
       }
 
@@ -792,22 +789,41 @@ export function useWebRTCHostAPI({
   const publishStream = useCallback(
     async (stream: MediaStream) => {
       localStreamRef.current = stream;
+      const videoTracks = stream.getVideoTracks();
+      console.log('[WebRTCHost] Publishing stream:', {
+        videoTracks: videoTracks.length,
+        audioTracks: stream.getAudioTracks().length,
+      });
 
       for (const viewer of viewersRef.current.values()) {
         if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
           continue;
 
         try {
-          stream.getTracks().forEach((track) => {
-            if (track.kind === 'video') {
-              track.contentHint = 'detail';
+          const pc = viewer.peerConnection;
+          const existingVideoSenders = pc
+            .getSenders()
+            .filter((sender) => sender.track?.kind === 'video');
+
+          // Replace existing video sender(s) instead of adding duplicate transceivers on every republish.
+          for (const [index, track] of videoTracks.entries()) {
+            track.contentHint = 'detail';
+            const existingSender = existingVideoSenders.at(index);
+            if (existingSender) {
+              await existingSender.replaceTrack(track);
+            } else {
+              pc.addTrack(track, stream);
             }
-            viewer.peerConnection.addTrack(track, stream);
-          });
+          }
+
+          // Remove any stale video senders if the new stream has fewer video tracks.
+          for (const staleSender of existingVideoSenders.slice(videoTracks.length)) {
+            pc.removeTrack(staleSender);
+          }
 
           // Renegotiate so viewer receives the new tracks
-          const offer = await viewer.peerConnection.createOffer();
-          await viewer.peerConnection.setLocalDescription(offer);
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
 
           if (offer.sdp) {
             await sendSignal({
@@ -871,20 +887,10 @@ export function useWebRTCHostAPI({
 
   // Update stream when it changes via prop
   useEffect(() => {
-    if (!localStream || !isHosting) return;
-
-    viewersRef.current.forEach((viewer) => {
-      const senders = viewer.peerConnection.getSenders();
-      localStream.getTracks().forEach((track) => {
-        const existingSender = senders.find((s) => s.track?.kind === track.kind);
-        if (existingSender) {
-          void existingSender.replaceTrack(track);
-        } else {
-          viewer.peerConnection.addTrack(track, localStream);
-        }
-      });
-    });
-  }, [localStream, isHosting]);
+    // Keep ref in sync so newly joining viewers get the current screen stream in createPeerConnection().
+    // Actual publishing/renegotiation happens through publishStream()/unpublishStream().
+    localStreamRef.current = localStream;
+  }, [localStream]);
 
   // Grant control
   const grantControl = useCallback(

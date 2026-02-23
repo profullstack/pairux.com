@@ -47,6 +47,16 @@ warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+warn_existing_launcher() {
+    local launcher="$BIN_DIR/pairux"
+    if [ -L "$launcher" ]; then
+        local target
+        target=$(readlink "$launcher" 2>/dev/null || echo "unknown")
+        warn "Found legacy symlink launcher at $launcher -> $target"
+        warn "Replacing it with the managed PairUX wrapper script"
+    fi
+}
+
 error() {
     echo -e "${RED}[ERROR]${NC} $1"
     exit 1
@@ -260,6 +270,7 @@ install_macos() {
     # Create CLI wrapper script
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    warn_existing_launcher
     # Remove any existing symlink so we don't follow it into the app bundle
     # and overwrite the real Electron binary
     rm -f "$BIN_DIR/pairux"
@@ -360,6 +371,9 @@ case "\${1-}" in
 esac
 
 if [ -x "\$APP_BIN" ]; then
+    # Launch from a stable working directory. A deleted caller cwd can break
+    # Electron startup with confusing "open dir" errors.
+    cd "\$HOME" 2>/dev/null || cd / 2>/dev/null || true
     # Check for macOS quarantine attribute which causes the app to hang silently
     if xattr -p com.apple.quarantine "\$APP_PATH" &>/dev/null; then
         echo ""
@@ -414,6 +428,7 @@ install_linux() {
     # Create wrapper script that handles sandbox issues
     info "Creating launcher script..."
     mkdir -p "$BIN_DIR"
+    warn_existing_launcher
     # Remove any existing symlink so we don't follow it and overwrite the AppImage
     rm -f "$BIN_DIR/pairux"
     cat > "$BIN_DIR/pairux" << WRAPPER
@@ -521,6 +536,10 @@ if [ -x "\$APPIMAGE" ]; then
     # Unset ELECTRON_RUN_AS_NODE — VSCode's integrated terminal sets this,
     # which prevents Electron from exposing its API (app, BrowserWindow, etc.)
     unset ELECTRON_RUN_AS_NODE
+    # Launch from a stable working directory. If the caller's cwd was deleted
+    # (common with terminals in temp/build dirs), Electron/AppImage startup can
+    # emit "open dir error: No such file or directory" on Linux.
+    cd "\$HOME" 2>/dev/null || cd / 2>/dev/null || true
 
     # If FUSE is unavailable or inaccessible (common in restricted/containerized
     # environments), fall back to extract-and-run mode so the AppImage can still

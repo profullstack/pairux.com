@@ -540,11 +540,14 @@ export function CapturePreview({
             participantId,
           });
         }
+
+        // Sync session participants so host-side input injection sees the granted state immediately.
+        await refreshSession();
       } catch (err) {
         console.error('Error granting control:', err);
       }
     },
-    [session, getAuthHeaders, resolveViewerTargetId, grantControl]
+    [session, getAuthHeaders, resolveViewerTargetId, grantControl, refreshSession]
   );
 
   const handleRevokeControl = useCallback(
@@ -572,11 +575,14 @@ export function CapturePreview({
             participantId,
           });
         }
+
+        // Sync session participants so host-side input injection disables immediately.
+        await refreshSession();
       } catch (err) {
         console.error('Error revoking control:', err);
       }
     },
-    [session, getAuthHeaders, resolveViewerTargetId, revokeControl]
+    [session, getAuthHeaders, resolveViewerTargetId, revokeControl, refreshSession]
   );
 
   const handleKickParticipant = useCallback(

@@ -3,6 +3,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import type { ControlState } from '@pairux/shared-types';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import type { Database, Session } from '@pairux/shared-types';
+import { DataPacket_Kind, RoomServiceClient } from 'livekit-server-sdk';
 
 interface RouteParams {
   params: Promise<{ sessionId: string; participantId: string }>;
@@ -12,6 +13,8 @@ interface UpdateControlBody {
   control_state: ControlState;
 }
 
+type ControlSignalState = Extract<ControlState, 'granted' | 'view-only'>;
+
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,6 +23,57 @@ function getSupabaseAdmin() {
   }
   return createSupabaseAdminClient<Database>(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+function normalizeLiveKitServiceUrl(url: string): string {
+  if (url.startsWith('wss://')) return `https://${url.slice('wss://'.length)}`;
+  if (url.startsWith('ws://')) return `http://${url.slice('ws://'.length)}`;
+  return url;
+}
+
+async function sendLiveKitControlSignal(
+  sessionId: string,
+  participantId: string,
+  controlState: ControlSignalState
+): Promise<void> {
+  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+  const livekitApiKey = process.env.LIVEKIT_API_KEY;
+  const livekitApiSecret = process.env.LIVEKIT_API_SECRET;
+
+  if (!livekitUrl || !livekitApiKey || !livekitApiSecret) {
+    console.warn('[ControlAPI] LiveKit control signal skipped (missing config)', {
+      sessionId,
+      participantId,
+      controlState,
+    });
+    return;
+  }
+
+  const roomService = new RoomServiceClient(
+    normalizeLiveKitServiceUrl(livekitUrl),
+    livekitApiKey,
+    livekitApiSecret
+  );
+
+  const payload = new TextEncoder().encode(
+    JSON.stringify({
+      type: controlState === 'granted' ? 'control-grant' : 'control-revoke',
+      participantId,
+      timestamp: Date.now(),
+    })
+  );
+
+  const roomName = `session-${sessionId}`;
+  await roomService.sendData(roomName, payload, DataPacket_Kind.RELIABLE, {
+    destinationIdentities: [participantId],
+  });
+
+  console.info('[ControlAPI] LiveKit control signal sent', {
+    sessionId,
+    participantId,
+    controlState,
+    roomName,
   });
 }
 
@@ -47,10 +101,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const { data: session, error: sessionError } = (await supabase
       .from('sessions')
-      .select('id, host_user_id, current_host_id')
+      .select('id, host_user_id, current_host_id, mode')
       .eq('id', sessionId)
       .single()) as {
-      data: Pick<Session, 'id' | 'host_user_id' | 'current_host_id'> | null;
+      data: (Pick<Session, 'id' | 'host_user_id' | 'current_host_id'> & { mode?: string }) | null;
       error: unknown;
     };
 
@@ -112,6 +166,27 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (updateError) {
       console.error('Update control state error:', updateError);
       return errorResponse(updateError.message ?? 'Failed to update control state', 400);
+    }
+
+    console.info('[ControlAPI] Control state updated', {
+      sessionId,
+      participantId,
+      controlState: control_state,
+      actorUserId: user.id,
+      mode: session.mode,
+    });
+
+    if ((control_state === 'granted' || control_state === 'view-only') && session.mode === 'sfu') {
+      try {
+        await sendLiveKitControlSignal(sessionId, participantId, control_state);
+      } catch (signalError) {
+        console.error('[ControlAPI] Failed to send LiveKit control signal', {
+          sessionId,
+          participantId,
+          controlState: control_state,
+          error: signalError instanceof Error ? signalError.message : String(signalError),
+        });
+      }
     }
 
     // If control was requested, notify the host via push (non-blocking)

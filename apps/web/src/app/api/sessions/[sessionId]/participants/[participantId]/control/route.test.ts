@@ -4,6 +4,13 @@ import { createMockSupabaseClient, mockUser } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
 const mockAdminCreateClient = vi.fn();
+const livekitMocks = vi.hoisted(() => {
+  const sendData = vi.fn();
+  const roomServiceClient = vi.fn(function MockRoomServiceClient() {
+    return { sendData };
+  });
+  return { sendData, roomServiceClient };
+});
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
@@ -12,6 +19,11 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: (...args: unknown[]) => mockAdminCreateClient(...args),
+}));
+
+vi.mock('livekit-server-sdk', () => ({
+  RoomServiceClient: livekitMocks.roomServiceClient,
+  DataPacket_Kind: { RELIABLE: 0 },
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -32,8 +44,14 @@ describe('PATCH /api/sessions/[sessionId]/participants/[participantId]/control',
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    livekitMocks.sendData.mockResolvedValue(undefined);
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key';
+    process.env.NEXT_PUBLIC_LIVEKIT_URL = 'wss://livekit.example.com';
+    process.env.LIVEKIT_API_KEY = 'lk-api-key';
+    process.env.LIVEKIT_API_SECRET = 'lk-api-secret';
   });
 
   it('allows authenticated active participant to grant control', async () => {
@@ -46,7 +64,12 @@ describe('PATCH /api/sessions/[sessionId]/participants/[participantId]/control',
         callCount++;
         if (callCount === 1) {
           return Promise.resolve({
-            data: { id: 'session-1', host_user_id: 'host-user', current_host_id: 'host-user' },
+            data: {
+              id: 'session-1',
+              host_user_id: 'host-user',
+              current_host_id: 'host-user',
+              mode: 'sfu',
+            },
             error: null,
           });
         }
@@ -80,6 +103,20 @@ describe('PATCH /api/sessions/[sessionId]/participants/[participantId]/control',
     expect(response.status).toBe(200);
     expect(body.data.control_state).toBe('granted');
     expect(mockAdminCreateClient).toHaveBeenCalled();
+    expect(livekitMocks.roomServiceClient).toHaveBeenCalledWith(
+      'https://livekit.example.com',
+      'lk-api-key',
+      'lk-api-secret'
+    );
+    expect(livekitMocks.sendData).toHaveBeenCalledTimes(1);
+    const firstSendCall = livekitMocks.sendData.mock.calls[0];
+    expect(firstSendCall).toBeDefined();
+    const [roomName, , kind, options] = firstSendCall!;
+    expect(roomName).toBe('session-session-1');
+    expect(kind).toBe(0);
+    expect(options).toEqual({
+      destinationIdentities: ['p-2'],
+    });
   });
 
   it('rejects non-participant non-host', async () => {
@@ -92,7 +129,12 @@ describe('PATCH /api/sessions/[sessionId]/participants/[participantId]/control',
         callCount++;
         if (callCount === 1) {
           return Promise.resolve({
-            data: { id: 'session-1', host_user_id: 'host-user', current_host_id: 'host-user' },
+            data: {
+              id: 'session-1',
+              host_user_id: 'host-user',
+              current_host_id: 'host-user',
+              mode: 'sfu',
+            },
             error: null,
           });
         }
@@ -109,5 +151,57 @@ describe('PATCH /api/sessions/[sessionId]/participants/[participantId]/control',
 
     expect(response.status).toBe(403);
     expect(body.error).toBe('Not authorized to manage control in this session');
+  });
+
+  it('returns success when LiveKit control signal fails', async () => {
+    let callCount = 0;
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            data: {
+              id: 'session-1',
+              host_user_id: 'host-user',
+              current_host_id: 'host-user',
+              mode: 'sfu',
+            },
+            error: null,
+          });
+        }
+        return Promise.resolve({ data: { id: 'participant-self' }, error: null });
+      }),
+    });
+
+    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const adminUpdateChain = {
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { id: 'p-2', control_state: 'granted', display_name: 'Viewer' },
+        error: null,
+      }),
+    };
+    const adminFrom = vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnValue(adminUpdateChain),
+    });
+    mockAdminCreateClient.mockReturnValue({
+      from: adminFrom,
+    });
+    livekitMocks.sendData.mockRejectedValueOnce(new Error('livekit unavailable'));
+
+    const response = await PATCH(createRequest('granted'), createParams('session-1', 'p-2'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.control_state).toBe('granted');
+    expect(console.error).toHaveBeenCalled();
   });
 });

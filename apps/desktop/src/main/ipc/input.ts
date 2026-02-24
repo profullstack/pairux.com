@@ -9,7 +9,7 @@ import {
   injectInput,
   enableInjection,
   disableInjection,
-  isInjectionEnabled,
+  getInjectionDiagnostics,
   updateScreenSize,
   emergencyStop,
 } from '../input/injector';
@@ -70,7 +70,8 @@ export function registerInputHandlers(): void {
   ipcMain.handle('input:enable', () => {
     enableInjection();
     registerEmergencyShortcut();
-    return { success: true, enabled: true };
+    const diagnostics = getInjectionDiagnostics();
+    return { success: true, ...diagnostics };
   });
 
   // Disable input injection (when control is revoked)
@@ -82,7 +83,7 @@ export function registerInputHandlers(): void {
 
   // Check if injection is enabled
   ipcMain.handle('input:status', () => {
-    return { enabled: isInjectionEnabled() };
+    return getInjectionDiagnostics();
   });
 
   // Update screen size (when capture source changes)

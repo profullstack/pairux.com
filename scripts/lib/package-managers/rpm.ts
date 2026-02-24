@@ -180,6 +180,9 @@ sudo rpm --import https://${this.repoOwner}.github.io/${this.repoName}/RPM-GPG-K
 
 # Install
 sudo dnf install pairux
+
+# Optional (Wayland remote control helpers)
+sudo dnf install xdg-desktop-portal ydotool
 \`\`\`
 
 ### Manual Download

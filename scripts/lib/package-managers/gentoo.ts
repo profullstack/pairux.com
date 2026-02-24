@@ -53,10 +53,15 @@ RDEPEND="
 	dev-libs/nss
 	media-libs/alsa-lib
 	sys-apps/fuse:0
+	sys-apps/xdg-desktop-portal
+	x11-misc/xdg-utils
 	x11-libs/gtk+:3
 	x11-libs/libnotify
 	x11-libs/libXScrnSaver
 	x11-libs/libXtst
+"
+PDEPEND="
+	app-misc/ydotool
 "
 DEPEND=""
 BDEPEND=""
@@ -92,6 +97,11 @@ src_install() {
 }
 
 pkg_postinst() {
+	ewarn "Wayland remote control may also require a compositor portal backend:"
+	ewarn "  KDE: kde-plasma/xdg-desktop-portal-kde"
+	ewarn "  GNOME: gnome-extra/xdg-desktop-portal-gnome"
+	ewarn "  wlroots: gui-libs/xdg-desktop-portal-wlr"
+	ewarn "ydotool requires ydotoold and /dev/uinput access."
 	xdg_desktop_database_update
 	xdg_icon_cache_update
 }

@@ -47,6 +47,10 @@ warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+is_tty() {
+    [ -t 0 ] && [ -t 1 ]
+}
+
 warn_existing_launcher() {
     local launcher="$BIN_DIR/pairux"
     if [ -L "$launcher" ]; then
@@ -97,6 +101,263 @@ check_dependencies() {
 
     if [ ${#missing[@]} -gt 0 ]; then
         error "Missing required dependencies: ${missing[*]}"
+    fi
+}
+
+detect_linux_package_manager() {
+    if command -v apt-get &> /dev/null; then
+        echo "apt"
+    elif command -v dnf &> /dev/null; then
+        echo "dnf"
+    elif command -v yum &> /dev/null; then
+        echo "yum"
+    elif command -v zypper &> /dev/null; then
+        echo "zypper"
+    elif command -v pacman &> /dev/null; then
+        echo "pacman"
+    elif command -v emerge &> /dev/null; then
+        echo "emerge"
+    elif command -v nix &> /dev/null; then
+        echo "nix"
+    else
+        echo "unknown"
+    fi
+}
+
+detect_linux_desktop_family() {
+    local desktop
+    desktop=$(printf '%s %s %s' "${XDG_CURRENT_DESKTOP:-}" "${DESKTOP_SESSION:-}" "${GDMSESSION:-}" | tr '[:upper:]' '[:lower:]')
+
+    case "$desktop" in
+        *kde*|*plasma*)
+            echo "kde"
+            ;;
+        *gnome*)
+            echo "gnome"
+            ;;
+        *hyprland*|*hypr*)
+            echo "hyprland"
+            ;;
+        *sway*|*wlroots*|*river*)
+            echo "wlr"
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
+}
+
+is_wayland_session() {
+    [ "${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "${WAYLAND_DISPLAY:-}" ]
+}
+
+build_wayland_dep_packages() {
+    local pm="$1"
+    local desktop_family="$2"
+    local packages=()
+
+    case "$pm" in
+        apt)
+            packages+=(ydotool xdg-desktop-portal libglib2.0-bin)
+            case "$desktop_family" in
+                kde) packages+=(xdg-desktop-portal-kde) ;;
+                gnome) packages+=(xdg-desktop-portal-gnome) ;;
+                hyprland) packages+=(xdg-desktop-portal-hyprland) ;;
+                wlr) packages+=(xdg-desktop-portal-wlr) ;;
+                *) packages+=(xdg-desktop-portal-gtk) ;;
+            esac
+            ;;
+        dnf|yum)
+            packages+=(ydotool xdg-desktop-portal glib2)
+            case "$desktop_family" in
+                kde) packages+=(xdg-desktop-portal-kde) ;;
+                gnome) packages+=(xdg-desktop-portal-gnome) ;;
+                hyprland) packages+=(xdg-desktop-portal-hyprland) ;;
+                wlr) packages+=(xdg-desktop-portal-wlr) ;;
+                *) packages+=(xdg-desktop-portal-gtk) ;;
+            esac
+            ;;
+        zypper)
+            packages+=(ydotool xdg-desktop-portal glib2-tools)
+            case "$desktop_family" in
+                kde) packages+=(xdg-desktop-portal-kde) ;;
+                gnome) packages+=(xdg-desktop-portal-gnome) ;;
+                wlr) packages+=(xdg-desktop-portal-wlr) ;;
+                *) packages+=(xdg-desktop-portal-gtk) ;;
+            esac
+            ;;
+        pacman)
+            packages+=(ydotool xdg-desktop-portal glib2)
+            case "$desktop_family" in
+                kde) packages+=(xdg-desktop-portal-kde) ;;
+                gnome) packages+=(xdg-desktop-portal-gnome) ;;
+                hyprland) packages+=(xdg-desktop-portal-hyprland) ;;
+                wlr) packages+=(xdg-desktop-portal-wlr) ;;
+                *) packages+=(xdg-desktop-portal-gtk) ;;
+            esac
+            ;;
+        emerge)
+            packages+=(app-misc/ydotool sys-apps/xdg-desktop-portal dev-libs/glib)
+            case "$desktop_family" in
+                kde) packages+=(kde-plasma/xdg-desktop-portal-kde) ;;
+                gnome) packages+=(gnome-extra/xdg-desktop-portal-gnome) ;;
+                wlr|hyprland) packages+=(gui-libs/xdg-desktop-portal-wlr) ;;
+            esac
+            ;;
+        nix)
+            packages+=(nixpkgs#ydotool nixpkgs#xdg-desktop-portal nixpkgs#glib)
+            case "$desktop_family" in
+                kde) packages+=(nixpkgs#xdg-desktop-portal-kde) ;;
+                gnome) packages+=(nixpkgs#xdg-desktop-portal-gnome) ;;
+                hyprland) packages+=(nixpkgs#xdg-desktop-portal-hyprland) ;;
+                wlr) packages+=(nixpkgs#xdg-desktop-portal-wlr) ;;
+                *) packages+=(nixpkgs#xdg-desktop-portal-gtk) ;;
+            esac
+            ;;
+    esac
+
+    printf '%s\n' "${packages[@]}" | awk 'NF && !seen[$0]++'
+}
+
+build_wayland_dep_install_command() {
+    local pm="$1"
+    shift
+    local pkgs=("$@")
+
+    case "$pm" in
+        apt)
+            printf 'sudo apt-get update && sudo apt-get install -y %s' "${pkgs[*]}"
+            ;;
+        dnf)
+            printf 'sudo dnf install -y %s' "${pkgs[*]}"
+            ;;
+        yum)
+            printf 'sudo yum install -y %s' "${pkgs[*]}"
+            ;;
+        zypper)
+            printf 'sudo zypper install -y %s' "${pkgs[*]}"
+            ;;
+        pacman)
+            printf 'sudo pacman -Sy --needed %s' "${pkgs[*]}"
+            ;;
+        emerge)
+            printf 'sudo emerge -av %s' "${pkgs[*]}"
+            ;;
+        nix)
+            printf 'nix profile install %s' "${pkgs[*]}"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+run_linux_dependency_install() {
+    local command_str="$1"
+
+    if [[ "$command_str" == nix\ * ]]; then
+        bash -lc "$command_str"
+        return $?
+    fi
+
+    if [ "$(id -u)" -eq 0 ]; then
+        local root_cmd="${command_str#sudo }"
+        bash -lc "$root_cmd"
+        return $?
+    fi
+
+    if command -v sudo &> /dev/null; then
+        bash -lc "$command_str"
+        return $?
+    fi
+
+    warn "sudo is not installed; cannot auto-install Linux dependencies."
+    return 1
+}
+
+setup_linux_input_dependencies() {
+    if [ "$(uname -s)" != "Linux" ]; then
+        return 0
+    fi
+
+    if ! is_wayland_session; then
+        info "Linux display server is not Wayland; skipping Wayland input dependency setup"
+        return 0
+    fi
+
+    local desktop_family pm
+    desktop_family=$(detect_linux_desktop_family)
+    pm=$(detect_linux_package_manager)
+
+    info "Wayland session detected (${desktop_family}); checking remote control dependencies..."
+
+    local missing_components=()
+    command -v gdbus &> /dev/null || missing_components+=("gdbus")
+    command -v ydotool &> /dev/null || missing_components+=("ydotool")
+    command -v ydotoold &> /dev/null || missing_components+=("ydotoold")
+    command -v xdg-desktop-portal &> /dev/null || missing_components+=("xdg-desktop-portal")
+
+    if [ ${#missing_components[@]} -eq 0 ]; then
+        success "Wayland remote control helper binaries are already installed"
+        return 0
+    fi
+
+    warn "Missing Wayland helper components: ${missing_components[*]}"
+
+    if [ "$pm" = "unknown" ]; then
+        warn "Could not detect a supported Linux package manager"
+        warn "Install: ydotool, xdg-desktop-portal, a desktop portal backend (kde/gnome/wlr), and gdbus"
+        return 0
+    fi
+
+    mapfile -t dep_packages < <(build_wayland_dep_packages "$pm" "$desktop_family")
+    if [ ${#dep_packages[@]} -eq 0 ]; then
+        warn "No package mapping found for package manager: $pm"
+        return 0
+    fi
+
+    local install_cmd
+    install_cmd=$(build_wayland_dep_install_command "$pm" "${dep_packages[@]}") || {
+        warn "Could not build install command for package manager: $pm"
+        return 0
+    }
+
+    info "Suggested package manager command:"
+    echo "  $install_cmd"
+
+    if [ "${PAIRUX_SKIP_LINUX_DEPS:-0}" = "1" ]; then
+        warn "Skipping Linux dependency install (PAIRUX_SKIP_LINUX_DEPS=1)"
+        return 0
+    fi
+
+    local should_install=0
+    if [ "${PAIRUX_AUTO_INSTALL_LINUX_DEPS:-0}" = "1" ]; then
+        should_install=1
+    elif is_tty; then
+        printf "Install Wayland remote control dependencies now? [Y/n] "
+        local reply
+        read -r reply || true
+        case "${reply:-Y}" in
+            n|N|no|NO) should_install=0 ;;
+            *) should_install=1 ;;
+        esac
+    else
+        warn "Non-interactive install detected; not auto-installing Linux dependencies."
+        warn "Re-run with PAIRUX_AUTO_INSTALL_LINUX_DEPS=1 to install automatically."
+        return 0
+    fi
+
+    if [ "$should_install" -ne 1 ]; then
+        info "Skipping Linux dependency install"
+        return 0
+    fi
+
+    info "Installing Linux Wayland remote control dependencies via ${pm}..."
+    if run_linux_dependency_install "$install_cmd"; then
+        success "Linux Wayland dependency installation completed"
+    else
+        warn "Linux dependency install failed. You can run this manually:"
+        echo "  $install_cmd"
     fi
 }
 
@@ -437,6 +698,8 @@ install_linux() {
     temp_dir=$(mktemp -d)
     trap "rm -rf $temp_dir" EXIT
 
+    setup_linux_input_dependencies
+
     local download_url
     download_url=$(get_download_url "linux-${arch}" "$version")
 
@@ -659,6 +922,13 @@ DESKTOP
 
     success "PairUX ${version} installed to ${INSTALL_DIR}"
     info "Desktop entry created - PairUX should appear in your applications menu"
+    if is_wayland_session; then
+        info "Wayland remote control notes:"
+        echo "  - Preferred path: xdg-desktop-portal (KDE/GNOME)"
+        echo "  - Fallback path: ydotool + ydotoold (requires /dev/uinput access)"
+        echo "  - Check portal: systemctl --user status xdg-desktop-portal"
+        echo "  - Check ydotoold socket: ls -l \$XDG_RUNTIME_DIR/.ydotool_socket /tmp/.ydotool_socket"
+    fi
 }
 
 # Download and install

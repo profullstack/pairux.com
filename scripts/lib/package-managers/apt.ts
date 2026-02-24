@@ -191,6 +191,9 @@ echo "deb [signed-by=/usr/share/keyrings/pairux.gpg] https://${this.repoOwner}.g
 # Install
 sudo apt update
 sudo apt install pairux
+
+# Optional (Wayland remote control helpers)
+sudo apt install xdg-desktop-portal ydotool
 \`\`\`
 `;
       writeFileSync(join(repoDir, 'README.md'), readmeContent);
@@ -243,6 +246,7 @@ Architecture: amd64
 Maintainer: PairUX Team <hello@pairux.com>
 Installed-Size: ${String(Math.ceil(size / 1024))}
 Depends: libgtk-3-0, libnotify4, libnss3, libxss1, libxtst6, xdg-utils, libatspi2.0-0, libuuid1
+Recommends: xdg-desktop-portal, ydotool
 Filename: pool/main/p/pairux/pairux_${release.version}_amd64.deb
 Size: ${String(size)}
 Section: net

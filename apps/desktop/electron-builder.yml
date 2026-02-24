@@ -71,9 +71,28 @@ linux:
 
 deb:
   packageName: pairux
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+  # Wayland control helpers (xdg-desktop-portal / ydotool) are intentionally
+  # handled as installer/package-manager specific optional dependencies because
+  # they vary by compositor and distro package naming.
 
 rpm:
   packageName: pairux
+  depends:
+    - gtk3
+    - libnotify
+    - nss
+    - libXScrnSaver
+    - libXtst
+    - xdg-utils
 
 nsis:
   oneClick: false

@@ -30,6 +30,15 @@ export interface AuthUser {
   email: string;
 }
 
+export interface InputInjectionDiagnostics {
+  enabled: boolean;
+  backend: string;
+  backendSupported: boolean;
+  reason?: string;
+  details?: Record<string, unknown>;
+  stats: { received: number; injected: number; errors: number };
+}
+
 // Session settings for creation
 export interface CreateSessionSettings {
   allowGuestControl?: boolean;
@@ -185,7 +194,7 @@ export interface IPCChannels {
 
   'input:enable': {
     args: undefined;
-    return: { success: boolean; enabled: boolean };
+    return: { success: boolean } & InputInjectionDiagnostics;
   };
 
   'input:disable': {
@@ -195,7 +204,7 @@ export interface IPCChannels {
 
   'input:status': {
     args: undefined;
-    return: { enabled: boolean };
+    return: InputInjectionDiagnostics;
   };
 
   'input:updateScreenSize': {

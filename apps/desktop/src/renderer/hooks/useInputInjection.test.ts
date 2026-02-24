@@ -27,9 +27,22 @@ describe('useInputInjection', () => {
         case 'input:init':
           return Promise.resolve({ success: true });
         case 'input:enable':
-          return Promise.resolve({ success: true, enabled: true });
+          return Promise.resolve({
+            success: true,
+            enabled: true,
+            backend: 'nut-js',
+            backendSupported: true,
+            stats: { received: 0, injected: 0, errors: 0 },
+          });
         case 'input:disable':
           return Promise.resolve({ success: true, enabled: false });
+        case 'input:status':
+          return Promise.resolve({
+            enabled: false,
+            backend: 'nut-js',
+            backendSupported: true,
+            stats: { received: 0, injected: 0, errors: 0 },
+          });
         case 'input:inject':
           return Promise.resolve({ success: true });
         case 'input:injectBatch':
@@ -61,12 +74,14 @@ describe('useInputInjection', () => {
 
       expect(result.current.isEnabled).toBe(false);
       expect(result.current.isInitialized).toBe(false);
+      expect(result.current.diagnostics).toBeNull();
 
       await act(async () => {
         await vi.runAllTimersAsync();
       });
 
       expect(result.current.isInitialized).toBe(true);
+      expect(result.current.diagnostics?.backend).toBe('nut-js');
     });
 
     it('should call input:init on mount', async () => {
@@ -100,6 +115,49 @@ describe('useInputInjection', () => {
 
       expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:enable', undefined);
       expect(result.current.isEnabled).toBe(true);
+      expect(result.current.diagnostics?.enabled).toBe(true);
+    });
+
+    it('keeps disabled state and stores diagnostics when backend is unavailable', async () => {
+      mockElectronAPI.invoke.mockImplementation((channel: string) => {
+        switch (channel) {
+          case 'input:init':
+            return Promise.resolve({ success: true });
+          case 'input:status':
+            return Promise.resolve({
+              enabled: false,
+              backend: 'wayland-ydotool',
+              backendSupported: false,
+              reason: 'ydotoold not running',
+              details: { hasYdotoolBinary: true, hasYdotoolSocket: false },
+              stats: { received: 0, injected: 0, errors: 0 },
+            });
+          case 'input:enable':
+            return Promise.resolve({
+              success: true,
+              enabled: false,
+              backend: 'wayland-ydotool',
+              backendSupported: false,
+              reason: 'ydotoold not running',
+              details: { hasYdotoolBinary: true, hasYdotoolSocket: false },
+              stats: { received: 0, injected: 0, errors: 0 },
+            });
+          case 'input:disable':
+            return Promise.resolve({ success: true, enabled: false });
+          default:
+            return Promise.resolve({ success: true });
+        }
+      });
+
+      const { result } = renderHook(() => useInputInjection({ enabled: true }));
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      expect(result.current.isEnabled).toBe(false);
+      expect(result.current.diagnostics?.backend).toBe('wayland-ydotool');
+      expect(result.current.diagnostics?.backendSupported).toBe(false);
     });
 
     it('should disable injection when enabled prop changes to false', async () => {

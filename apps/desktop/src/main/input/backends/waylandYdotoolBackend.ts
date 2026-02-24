@@ -50,6 +50,7 @@ function hasYdotoolBinary(): boolean {
 function findYdotoolSocket(): string | null {
   const candidates = [
     process.env.YDOTOOL_SOCKET,
+    '/run/ydotoold/socket',
     process.env.XDG_RUNTIME_DIR ? `${process.env.XDG_RUNTIME_DIR}/.ydotool_socket` : undefined,
     '/tmp/.ydotool_socket',
   ].filter((value): value is string => Boolean(value));

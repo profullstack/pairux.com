@@ -124,6 +124,31 @@ detect_linux_package_manager() {
     fi
 }
 
+apt_package_exists() {
+    local pkg="$1"
+    command -v apt-cache &> /dev/null && apt-cache show "$pkg" >/dev/null 2>&1
+}
+
+dnf_package_exists() {
+    local pkg="$1"
+    command -v dnf &> /dev/null && dnf info "$pkg" >/dev/null 2>&1
+}
+
+yum_package_exists() {
+    local pkg="$1"
+    command -v yum &> /dev/null && yum info "$pkg" >/dev/null 2>&1
+}
+
+zypper_package_exists() {
+    local pkg="$1"
+    command -v zypper &> /dev/null && zypper --non-interactive info "$pkg" >/dev/null 2>&1
+}
+
+pacman_package_exists() {
+    local pkg="$1"
+    command -v pacman &> /dev/null && pacman -Si "$pkg" >/dev/null 2>&1
+}
+
 detect_linux_desktop_family() {
     local desktop
     desktop=$(printf '%s %s %s' "${XDG_CURRENT_DESKTOP:-}" "${DESKTOP_SESSION:-}" "${GDMSESSION:-}" | tr '[:upper:]' '[:lower:]')
@@ -159,6 +184,9 @@ build_wayland_dep_packages() {
     case "$pm" in
         apt)
             packages+=(ydotool xdg-desktop-portal libglib2.0-bin)
+            if apt_package_exists ydotoold; then
+                packages+=(ydotoold)
+            fi
             case "$desktop_family" in
                 kde) packages+=(xdg-desktop-portal-kde) ;;
                 gnome) packages+=(xdg-desktop-portal-gnome) ;;
@@ -169,6 +197,9 @@ build_wayland_dep_packages() {
             ;;
         dnf|yum)
             packages+=(ydotool xdg-desktop-portal glib2)
+            if { [ "$pm" = "dnf" ] && dnf_package_exists ydotoold; } || { [ "$pm" = "yum" ] && yum_package_exists ydotoold; }; then
+                packages+=(ydotoold)
+            fi
             case "$desktop_family" in
                 kde) packages+=(xdg-desktop-portal-kde) ;;
                 gnome) packages+=(xdg-desktop-portal-gnome) ;;
@@ -179,6 +210,9 @@ build_wayland_dep_packages() {
             ;;
         zypper)
             packages+=(ydotool xdg-desktop-portal glib2-tools)
+            if zypper_package_exists ydotoold; then
+                packages+=(ydotoold)
+            fi
             case "$desktop_family" in
                 kde) packages+=(xdg-desktop-portal-kde) ;;
                 gnome) packages+=(xdg-desktop-portal-gnome) ;;
@@ -188,6 +222,9 @@ build_wayland_dep_packages() {
             ;;
         pacman)
             packages+=(ydotool xdg-desktop-portal glib2)
+            if pacman_package_exists ydotoold; then
+                packages+=(ydotoold)
+            fi
             case "$desktop_family" in
                 kde) packages+=(xdg-desktop-portal-kde) ;;
                 gnome) packages+=(xdg-desktop-portal-gnome) ;;
@@ -275,6 +312,42 @@ run_linux_dependency_install() {
     return 1
 }
 
+start_ydotool_daemon_if_available() {
+    if ! command -v ydotoold &> /dev/null; then
+        return 0
+    fi
+
+    if [ -S "${YDOTOOL_SOCKET:-}" ] || [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
+        info "ydotool socket already present; skipping daemon start"
+        return 0
+    fi
+
+    if ! command -v systemctl &> /dev/null; then
+        warn "ydotoold is installed, but systemctl is unavailable. Start it manually: sudo ydotoold"
+        return 0
+    fi
+
+    local units=("ydotoold" "ydotool")
+    local unit
+    for unit in "${units[@]}"; do
+        if systemctl list-unit-files "${unit}.service" >/dev/null 2>&1; then
+            info "Attempting to enable/start ${unit}.service for Wayland input support..."
+            if [ "$(id -u)" -eq 0 ]; then
+                systemctl enable --now "${unit}.service" >/dev/null 2>&1 || true
+            elif command -v sudo &> /dev/null; then
+                sudo systemctl enable --now "${unit}.service" >/dev/null 2>&1 || true
+            fi
+            break
+        fi
+    done
+
+    if [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
+        success "ydotoold socket detected"
+    else
+        warn "ydotoold installed but no socket detected yet. Start manually if needed: sudo ydotoold"
+    fi
+}
+
 setup_linux_input_dependencies() {
     if [ "$(uname -s)" != "Linux" ]; then
         return 0
@@ -355,6 +428,7 @@ setup_linux_input_dependencies() {
     info "Installing Linux Wayland remote control dependencies via ${pm}..."
     if run_linux_dependency_install "$install_cmd"; then
         success "Linux Wayland dependency installation completed"
+        start_ydotool_daemon_if_available
     else
         warn "Linux dependency install failed. You can run this manually:"
         echo "  $install_cmd"

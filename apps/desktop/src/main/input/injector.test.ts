@@ -6,6 +6,10 @@ import type {
   KeyboardEvent,
 } from '@pairux/shared-types';
 
+vi.mock('../platform', () => ({
+  detectDisplayServer: vi.fn().mockReturnValue('x11'),
+}));
+
 // Mock @nut-tree-fork/nut-js before imports
 // Note: All values must be defined inside the factory since vi.mock is hoisted
 vi.mock('@nut-tree-fork/nut-js', () => {

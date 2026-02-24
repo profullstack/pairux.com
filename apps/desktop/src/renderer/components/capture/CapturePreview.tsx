@@ -187,10 +187,15 @@ export function CapturePreview({
     return { width, height };
   }, [stream]);
 
-  const { injectEvent } = useInputInjection({
+  const { injectEvent, diagnostics: inputDiagnostics } = useInputInjection({
     enabled: Boolean(participantWithControl),
     screenSize: inputScreenSize,
   });
+  const remoteInputCountRef = useRef(0);
+  const showWaylandInputDiagnostics =
+    Boolean(session) &&
+    inputDiagnostics?.backend.startsWith('wayland-') === true &&
+    !inputDiagnostics.backendSupported;
 
   const hostHookOptions = useMemo(
     () => ({
@@ -207,7 +212,17 @@ export function CapturePreview({
         console.log('[CapturePreview] Viewer left:', viewerId);
         void refreshSession();
       },
-      onInputReceived: (_viewerId: string, input: InputMessage) => {
+      onInputReceived: (viewerId: string, input: InputMessage) => {
+        remoteInputCountRef.current += 1;
+        if (remoteInputCountRef.current <= 3 || remoteInputCountRef.current % 100 === 0) {
+          console.log('[CapturePreview] Remote input received', {
+            viewerId,
+            count: remoteInputCountRef.current,
+            type: input.event.type,
+            action: 'action' in input.event ? input.event.action : undefined,
+            grantedParticipantId: participantWithControl?.id ?? null,
+          });
+        }
         void injectEvent(input.event);
       },
       onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
@@ -220,6 +235,7 @@ export function CapturePreview({
       stream,
       session?.settings.allowControl,
       injectEvent,
+      participantWithControl?.id,
       refreshSession,
     ]
   );
@@ -1003,6 +1019,85 @@ export function CapturePreview({
             Creating session...
           </div>
         ) : null}
+
+        {showWaylandInputDiagnostics && (
+          <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div className="space-y-2">
+                <div className="font-medium">Wayland remote control backend unavailable</div>
+                <div className="text-amber-900/90">
+                  {inputDiagnostics.reason ?? 'Wayland input backend is not ready.'}
+                </div>
+                <div className="font-mono text-xs leading-relaxed text-amber-900/90">
+                  Backend: {inputDiagnostics.backend}
+                  {' | '}portalDesktop:{' '}
+                  {String(
+                    (
+                      inputDiagnostics.details as
+                        | {
+                            portalDesktopAvailable?: boolean;
+                            portal?: { details?: { portalDesktopAvailable?: boolean } };
+                          }
+                        | undefined
+                    )?.portalDesktopAvailable ??
+                      (
+                        inputDiagnostics.details as
+                          | { portal?: { details?: { portalDesktopAvailable?: boolean } } }
+                          | undefined
+                      )?.portal?.details?.portalDesktopAvailable
+                  )}
+                  {' | '}hasYdotoolBinary:{' '}
+                  {String(
+                    (
+                      inputDiagnostics.details as
+                        | {
+                            hasYdotoolBinary?: boolean;
+                            ydotool?: { details?: { hasYdotoolBinary?: boolean } };
+                          }
+                        | undefined
+                    )?.hasYdotoolBinary ??
+                      (
+                        inputDiagnostics.details as
+                          | { ydotool?: { details?: { hasYdotoolBinary?: boolean } } }
+                          | undefined
+                      )?.ydotool?.details?.hasYdotoolBinary
+                  )}
+                  {' | '}hasYdotoolSocket:{' '}
+                  {String(
+                    (
+                      inputDiagnostics.details as
+                        | {
+                            hasYdotoolSocket?: boolean;
+                            ydotool?: { details?: { hasYdotoolSocket?: boolean } };
+                          }
+                        | undefined
+                    )?.hasYdotoolSocket ??
+                      (
+                        inputDiagnostics.details as
+                          | { ydotool?: { details?: { hasYdotoolSocket?: boolean } } }
+                          | undefined
+                      )?.ydotool?.details?.hasYdotoolSocket
+                  )}
+                </div>
+                <div className="space-y-1 rounded border border-amber-300/50 bg-white/70 p-2 font-mono text-xs">
+                  <div>
+                    # Preferred path (future PairUX backend): xdg-desktop-portal RemoteDesktop
+                  </div>
+                  <div>systemctl --user status xdg-desktop-portal</div>
+                  <div># Install (Debian/Ubuntu)</div>
+                  <div>sudo apt install ydotool</div>
+                  <div># Start daemon (may require root / uinput access)</div>
+                  <div>sudo systemctl enable --now ydotool</div>
+                  <div># Or foreground debug</div>
+                  <div>sudo ydotoold</div>
+                  <div># Check socket</div>
+                  <div>ls -l $XDG_RUNTIME_DIR/.ydotool_socket /tmp/.ydotool_socket</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Video preview */}
         <div

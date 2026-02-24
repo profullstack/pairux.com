@@ -402,6 +402,15 @@ describe('AURPackageManager', () => {
       expect(pkgbuild).toContain('.AppImage');
       expect(pkgbuild).toContain('github.com/profullstack/pairux.com/releases');
     });
+
+    it('should include Wayland helper optdepends', async () => {
+      const release = createSampleRelease('1.0.0');
+      const pkgbuild = await aur.generateManifest(release);
+
+      expect(pkgbuild).toContain('optdepends=(');
+      expect(pkgbuild).toContain('xdg-desktop-portal');
+      expect(pkgbuild).toContain('ydotool');
+    });
   });
 
   describe('checkExisting', () => {
@@ -506,6 +515,8 @@ describe('GentooPackageManager', () => {
       expect(ebuild).toContain('HOMEPAGE="https://pairux.com"');
       expect(ebuild).toContain('LICENSE="MIT"');
       expect(ebuild).toContain('SLOT="0"');
+      expect(ebuild).toContain('sys-apps/xdg-desktop-portal');
+      expect(ebuild).toContain('app-misc/ydotool');
     });
   });
 });
@@ -528,14 +539,17 @@ describe('NixPackageManager', () => {
   describe('generateManifest', () => {
     it('should generate valid Nix expression', async () => {
       const release = createSampleRelease('1.0.0');
-      const nixExpr = await nix.generateManifest(release);
+      const files = await nix.generateManifest(release);
+      const nixExpr = files['flake.nix'];
 
       expect(nixExpr).toContain('pname = "pairux"');
       expect(nixExpr).toContain('version = "1.0.0"');
-      // Nix uses `meta = with lib;` syntax
-      expect(nixExpr).toContain('meta = with lib;');
+      expect(nixExpr).toContain('meta = with pkgs.lib;');
       expect(nixExpr).toContain('homepage = "https://pairux.com"');
       expect(nixExpr).toContain('license = licenses.mit');
+      expect(nixExpr).toContain('extraPkgs = pkgs: with pkgs;');
+      expect(nixExpr).toContain('xdg-desktop-portal');
+      expect(nixExpr).toContain('ydotool');
     });
   });
 });

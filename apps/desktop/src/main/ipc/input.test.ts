@@ -5,9 +5,15 @@ import type { InputEvent } from '@pairux/shared-types';
 vi.mock('../input/injector', () => ({
   initInputInjector: vi.fn().mockResolvedValue(undefined),
   injectInput: vi.fn().mockResolvedValue(undefined),
-  enableInjection: vi.fn(),
+  enableInjection: vi.fn().mockReturnValue(true),
   disableInjection: vi.fn(),
   isInjectionEnabled: vi.fn().mockReturnValue(false),
+  getInjectionDiagnostics: vi.fn().mockReturnValue({
+    enabled: false,
+    backend: 'nut-js',
+    backendSupported: true,
+    stats: { received: 0, injected: 0, errors: 0 },
+  }),
   updateScreenSize: vi.fn(),
   emergencyStop: vi.fn().mockResolvedValue(undefined),
 }));
@@ -40,7 +46,7 @@ import {
   injectInput,
   enableInjection,
   disableInjection,
-  isInjectionEnabled,
+  getInjectionDiagnostics,
   updateScreenSize,
   emergencyStop,
 } from '../input/injector';
@@ -88,6 +94,12 @@ describe('IPC Input Handlers', () => {
 
   describe('input:enable handler', () => {
     it('should enable injection and register emergency shortcut', () => {
+      vi.mocked(getInjectionDiagnostics).mockReturnValueOnce({
+        enabled: true,
+        backend: 'nut-js',
+        backendSupported: true,
+        stats: { received: 0, injected: 0, errors: 0 },
+      });
       const handler = mockIpcMainHandlers.get('input:enable')!;
 
       const result = handler();
@@ -97,7 +109,8 @@ describe('IPC Input Handlers', () => {
         'CommandOrControl+Shift+Escape',
         expect.any(Function)
       );
-      expect(result).toEqual({ success: true, enabled: true });
+      expect(getInjectionDiagnostics).toHaveBeenCalled();
+      expect(result).toMatchObject({ success: true, enabled: true, backend: 'nut-js' });
     });
   });
 
@@ -114,12 +127,18 @@ describe('IPC Input Handlers', () => {
 
   describe('input:status handler', () => {
     it('should return injection status', () => {
-      vi.mocked(isInjectionEnabled).mockReturnValue(true);
+      vi.mocked(getInjectionDiagnostics).mockReturnValueOnce({
+        enabled: true,
+        backend: 'nut-js',
+        backendSupported: true,
+        stats: { received: 1, injected: 1, errors: 0 },
+      });
       const handler = mockIpcMainHandlers.get('input:status')!;
 
       const result = handler();
 
-      expect(result).toEqual({ enabled: true });
+      expect(getInjectionDiagnostics).toHaveBeenCalled();
+      expect(result).toMatchObject({ enabled: true, backend: 'nut-js' });
     });
   });
 

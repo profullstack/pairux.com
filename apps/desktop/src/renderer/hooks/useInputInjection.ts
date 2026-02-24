@@ -5,6 +5,7 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import type { InputEvent } from '@pairux/shared-types';
+import type { InputInjectionDiagnostics } from '../../preload/api';
 
 interface UseInputInjectionOptions {
   /** Whether injection should be active */
@@ -20,6 +21,8 @@ interface UseInputInjectionReturn {
   isEnabled: boolean;
   /** Whether the system is initialized */
   isInitialized: boolean;
+  /** Backend diagnostics from the main process */
+  diagnostics: InputInjectionDiagnostics | null;
   /** Inject a single input event */
   injectEvent: (event: InputEvent) => Promise<void>;
   /** Inject multiple events in batch */
@@ -38,6 +41,7 @@ export function useInputInjection({
 }: UseInputInjectionOptions): UseInputInjectionReturn {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<InputInjectionDiagnostics | null>(null);
   const pendingEvents = useRef<InputEvent[]>([]);
   const flushTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -46,6 +50,9 @@ export function useInputInjection({
     const init = async () => {
       try {
         await window.electronAPI.invoke('input:init', undefined);
+        const status = await window.electronAPI.invoke('input:status', undefined);
+        setDiagnostics(status);
+        setIsEnabled(status.enabled);
         setIsInitialized(true);
         console.log('[useInputInjection] Initialized');
       } catch (error) {
@@ -81,10 +88,21 @@ export function useInputInjection({
         if (enabled) {
           const result = await window.electronAPI.invoke('input:enable', undefined);
           setIsEnabled(result.enabled);
-          console.log('[useInputInjection] Enabled');
+          setDiagnostics(result);
+          if (result.enabled) {
+            console.log('[useInputInjection] Enabled');
+          } else {
+            console.warn('[useInputInjection] Enable requested, but backend is unavailable', {
+              backend: result.backend,
+              reason: result.reason,
+              details: result.details,
+            });
+          }
         } else {
-          const result = await window.electronAPI.invoke('input:disable', undefined);
-          setIsEnabled(result.enabled);
+          await window.electronAPI.invoke('input:disable', undefined);
+          const status = await window.electronAPI.invoke('input:status', undefined);
+          setDiagnostics(status);
+          setIsEnabled(status.enabled);
           console.log('[useInputInjection] Disabled');
         }
       } catch (error) {
@@ -100,6 +118,7 @@ export function useInputInjection({
     const unsubscribe = window.electronAPI.on('input:emergency-stop', () => {
       console.log('[useInputInjection] Emergency stop received');
       setIsEnabled(false);
+      setDiagnostics((prev) => (prev ? { ...prev, enabled: false } : prev));
       onEmergencyStop?.();
     });
 
@@ -172,6 +191,7 @@ export function useInputInjection({
     try {
       await window.electronAPI.invoke('input:emergencyStop', undefined);
       setIsEnabled(false);
+      setDiagnostics((prev) => (prev ? { ...prev, enabled: false } : prev));
       onEmergencyStop?.();
     } catch (error) {
       console.error('[useInputInjection] Failed to emergency stop:', error);
@@ -194,6 +214,7 @@ export function useInputInjection({
   return {
     isEnabled,
     isInitialized,
+    diagnostics,
     injectEvent,
     injectBatch,
     emergencyStop,

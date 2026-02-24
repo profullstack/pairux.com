@@ -61,6 +61,13 @@ arch=('x86_64')
 url="https://pairux.com"
 license=('MIT')
 depends=('gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'util-linux-libs' 'fuse2')
+optdepends=(
+  'xdg-desktop-portal: Wayland portal-based remote control support'
+  'xdg-desktop-portal-kde: KDE Plasma Wayland portal backend'
+  'xdg-desktop-portal-gnome: GNOME Wayland portal backend'
+  'xdg-desktop-portal-wlr: wlroots-based Wayland portal backend'
+  'ydotool: Wayland fallback input injection backend (requires ydotoold)'
+)
 provides=('pairux')
 conflicts=('pairux' 'pairux-git')
 options=('!strip')
@@ -125,6 +132,11 @@ DESKTOP
 \tdepends = at-spi2-core
 \tdepends = util-linux-libs
 \tdepends = fuse2
+\toptdepends = xdg-desktop-portal: Wayland portal-based remote control support
+\toptdepends = xdg-desktop-portal-kde: KDE Plasma Wayland portal backend
+\toptdepends = xdg-desktop-portal-gnome: GNOME Wayland portal backend
+\toptdepends = xdg-desktop-portal-wlr: wlroots-based Wayland portal backend
+\toptdepends = ydotool: Wayland fallback input injection backend (requires ydotoold)
 \tprovides = pairux
 \tconflicts = pairux
 \tconflicts = pairux-git

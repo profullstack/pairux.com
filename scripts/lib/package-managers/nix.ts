@@ -71,6 +71,11 @@ export class NixPackageManager extends BasePackageManager {
         packages = {
           default = pkgs.appimageTools.wrapType2 {
             inherit pname version src;
+            extraPkgs = pkgs: with pkgs; [
+              xdg-utils
+              xdg-desktop-portal
+              ydotool
+            ];
 
             extraInstallCommands = ''
               install -m 444 -D \${appimageContents}/pairux.desktop $out/share/applications/pairux.desktop
@@ -150,6 +155,8 @@ Add to your \`flake.nix\`:
           environment.systemPackages = [
             pairux.packages.\${pkgs.system}.default
           ];
+          # For Wayland remote control, ensure a compositor portal backend service
+          # is enabled on your system (KDE/GNOME/wlroots-specific).
         })
       ];
     };

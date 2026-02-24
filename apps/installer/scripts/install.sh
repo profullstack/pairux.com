@@ -587,6 +587,20 @@ if [ -x "\$APPIMAGE" ]; then
     # emit "open dir error: No such file or directory" on Linux.
     cd "\$HOME" 2>/dev/null || cd / 2>/dev/null || true
 
+    # AppImage can also fail with the same error when inherited runtime/temp
+    # dirs point to deleted paths (common after terminal multiplexers/shells
+    # survive logouts or tmp cleanup). Sanitize them before exec.
+    if [ -n "\${XDG_RUNTIME_DIR-}" ] && [ ! -d "\$XDG_RUNTIME_DIR" ]; then
+        unset XDG_RUNTIME_DIR
+    fi
+    PAIRUX_TMP_DIR="\$HOME/.pairux/tmp"
+    mkdir -p "\$PAIRUX_TMP_DIR" 2>/dev/null || true
+    if [ -d "\$PAIRUX_TMP_DIR" ] && [ -w "\$PAIRUX_TMP_DIR" ]; then
+        export TMPDIR="\$PAIRUX_TMP_DIR"
+    elif [ -z "\${TMPDIR-}" ] || [ ! -d "\$TMPDIR" ] || [ ! -w "\$TMPDIR" ]; then
+        export TMPDIR="/tmp"
+    fi
+
     # If FUSE is unavailable or inaccessible (common in restricted/containerized
     # environments), fall back to extract-and-run mode so the AppImage can still
     # launch. A simple -r/-w check is not enough because /dev/fuse may exist but

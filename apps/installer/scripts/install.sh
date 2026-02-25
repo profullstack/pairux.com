@@ -342,24 +342,54 @@ start_ydotool_daemon_if_available() {
         return 0
     fi
 
+    info "Attempting to start ydotoold as the current user..."
+    nohup ydotoold >/dev/null 2>&1 &
+    sleep 1
+
+    if [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
+        success "ydotoold socket detected"
+        return 0
+    fi
+
+    # If user-scoped startup failed, fall back to a system-managed service using root.
+    # Some distros ship no ydotoold unit file; in that case use a transient systemd unit.
     local units=("ydotoold" "ydotool")
+    local started_system_unit=0
     for unit in "${units[@]}"; do
         if systemctl list-unit-files "${unit}.service" >/dev/null 2>&1; then
-            info "Attempting to enable/start ${unit}.service for Wayland input support..."
+            info "Attempting to enable/start system service ${unit}.service for Wayland input support..."
             if [ "$(id -u)" -eq 0 ]; then
                 systemctl enable --now "${unit}.service" >/dev/null 2>&1 || true
             elif command -v sudo &> /dev/null; then
                 sudo systemctl enable --now "${unit}.service" >/dev/null 2>&1 || true
             fi
+            started_system_unit=1
             break
         fi
     done
+
+    if [ "$started_system_unit" -eq 0 ] && command -v systemd-run &> /dev/null; then
+        local ydotoold_bin
+        ydotoold_bin="$(command -v ydotoold || true)"
+        if [ -n "$ydotoold_bin" ]; then
+            info "No packaged ydotool service unit found; starting transient systemd service..."
+            if [ "$(id -u)" -eq 0 ]; then
+                systemd-run --unit=pairux-ydotoold --property=Restart=on-failure "$ydotoold_bin" >/dev/null 2>&1 || true
+            elif command -v sudo &> /dev/null; then
+                sudo systemd-run --unit=pairux-ydotoold --property=Restart=on-failure "$ydotoold_bin" >/dev/null 2>&1 || true
+            fi
+            sleep 1
+        fi
+    fi
 
     if [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
         success "ydotoold socket detected"
     else
         warn "ydotoold installed but no socket detected yet. Start manually if needed: sudo ydotoold"
+        return 1
     fi
+
+    return 0
 }
 
 setup_linux_input_dependencies() {
@@ -415,7 +445,11 @@ setup_linux_input_dependencies() {
     info "Installing Linux Wayland remote control dependencies via ${pm}..."
     if run_linux_dependency_install "$install_cmd"; then
         success "Linux Wayland dependency installation completed"
-        start_ydotool_daemon_if_available
+        if ! start_ydotool_daemon_if_available; then
+            warn "Wayland remote control setup is incomplete: ydotoold socket not detected."
+            warn "Aborting installer before launch so this can be fixed first."
+            return 1
+        fi
     else
         warn "Linux dependency install failed. You can run this manually:"
         echo "  $install_cmd"

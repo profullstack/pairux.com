@@ -43,7 +43,8 @@ export function createInputBackend(selection = getInputBackendSelection()): Inpu
     const portalBackend = new WaylandPortalInputBackend();
 
     const ydotoolBackend = new WaylandYdotoolInputBackend();
-    if (ydotoolBackend.supported) {
+    const ydotoolDetails = ydotoolBackend.details as { hasYdotoolBinary?: boolean } | undefined;
+    if (ydotoolBackend.supported || ydotoolDetails?.hasYdotoolBinary) {
       return ydotoolBackend;
     }
 

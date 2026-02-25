@@ -1030,55 +1030,62 @@ export function CapturePreview({
                   {inputDiagnostics.reason ?? 'Wayland input backend is not ready.'}
                 </div>
                 <div className="font-mono text-xs leading-relaxed text-amber-900/90">
-                  Backend: {inputDiagnostics.backend}
-                  {' | '}portalDesktop:{' '}
-                  {String(
-                    (
-                      inputDiagnostics.details as
-                        | {
-                            portalDesktopAvailable?: boolean;
-                            portal?: { details?: { portalDesktopAvailable?: boolean } };
-                          }
-                        | undefined
-                    )?.portalDesktopAvailable ??
+                  {(() => {
+                    const portalDesktop =
+                      (
+                        inputDiagnostics.details as
+                          | {
+                              portalDesktopAvailable?: boolean;
+                              portal?: { details?: { portalDesktopAvailable?: boolean } };
+                            }
+                          | undefined
+                      )?.portalDesktopAvailable ??
                       (
                         inputDiagnostics.details as
                           | { portal?: { details?: { portalDesktopAvailable?: boolean } } }
                           | undefined
-                      )?.portal?.details?.portalDesktopAvailable
-                  )}
-                  {' | '}hasYdotoolBinary:{' '}
-                  {String(
-                    (
-                      inputDiagnostics.details as
-                        | {
-                            hasYdotoolBinary?: boolean;
-                            ydotool?: { details?: { hasYdotoolBinary?: boolean } };
-                          }
-                        | undefined
-                    )?.hasYdotoolBinary ??
+                      )?.portal?.details?.portalDesktopAvailable;
+                    const hasYdotoolBinary =
+                      (
+                        inputDiagnostics.details as
+                          | {
+                              hasYdotoolBinary?: boolean;
+                              ydotool?: { details?: { hasYdotoolBinary?: boolean } };
+                            }
+                          | undefined
+                      )?.hasYdotoolBinary ??
                       (
                         inputDiagnostics.details as
                           | { ydotool?: { details?: { hasYdotoolBinary?: boolean } } }
                           | undefined
-                      )?.ydotool?.details?.hasYdotoolBinary
-                  )}
-                  {' | '}hasYdotoolSocket:{' '}
-                  {String(
-                    (
-                      inputDiagnostics.details as
-                        | {
-                            hasYdotoolSocket?: boolean;
-                            ydotool?: { details?: { hasYdotoolSocket?: boolean } };
-                          }
-                        | undefined
-                    )?.hasYdotoolSocket ??
+                      )?.ydotool?.details?.hasYdotoolBinary;
+                    const hasYdotoolSocket =
+                      (
+                        inputDiagnostics.details as
+                          | {
+                              hasYdotoolSocket?: boolean;
+                              ydotool?: { details?: { hasYdotoolSocket?: boolean } };
+                            }
+                          | undefined
+                      )?.hasYdotoolSocket ??
                       (
                         inputDiagnostics.details as
                           | { ydotool?: { details?: { hasYdotoolSocket?: boolean } } }
                           | undefined
-                      )?.ydotool?.details?.hasYdotoolSocket
-                  )}
+                      )?.ydotool?.details?.hasYdotoolSocket;
+
+                    return (
+                      <>
+                        Backend: {inputDiagnostics.backend}
+                        {' | '}portalDesktop:{' '}
+                        {portalDesktop == null ? 'n/a' : String(portalDesktop)}
+                        {' | '}hasYdotoolBinary:{' '}
+                        {hasYdotoolBinary == null ? 'n/a' : String(hasYdotoolBinary)}
+                        {' | '}hasYdotoolSocket:{' '}
+                        {hasYdotoolSocket == null ? 'n/a' : String(hasYdotoolSocket)}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="space-y-1 rounded border border-amber-300/50 bg-white/70 p-2 font-mono text-xs">
                   <div>

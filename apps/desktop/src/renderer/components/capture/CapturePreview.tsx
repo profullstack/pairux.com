@@ -102,6 +102,7 @@ export function CapturePreview({
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const [waylandInputDiagnosticsDismissed, setWaylandInputDiagnosticsDismissed] = useState(false);
 
   const {
     session: createdSession,
@@ -195,7 +196,8 @@ export function CapturePreview({
   const showWaylandInputDiagnostics =
     Boolean(session) &&
     inputDiagnostics?.backend.startsWith('wayland-') === true &&
-    !inputDiagnostics.backendSupported;
+    !inputDiagnostics.backendSupported &&
+    !waylandInputDiagnosticsDismissed;
 
   const hostHookOptions = useMemo(
     () => ({
@@ -1024,11 +1026,31 @@ export function CapturePreview({
           <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             <div className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <div className="space-y-2">
-                <div className="font-medium">Wayland remote control backend unavailable</div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="font-medium">Wayland remote control backend unavailable</div>
+                  <button
+                    type="button"
+                    className="font-mono text-xs text-amber-900/80 hover:text-amber-950"
+                    onClick={() => {
+                      setWaylandInputDiagnosticsDismissed(true);
+                    }}
+                    aria-label="Dismiss Wayland backend warning"
+                    title="Dismiss"
+                  >
+                    [x]
+                  </button>
+                </div>
                 <div className="text-amber-900/90">
                   {inputDiagnostics.reason ?? 'Wayland input backend is not ready.'}
                 </div>
+                {inputDiagnostics.backend === 'wayland-portal' && (
+                  <div className="text-amber-900/90">
+                    PairUX detected the Wayland portal, but PairUX portal-based input injection is
+                    not implemented yet. This is informational only, not something you can enable in
+                    portal settings today.
+                  </div>
+                )}
                 <div className="font-mono text-xs leading-relaxed text-amber-900/90">
                   {(() => {
                     const portalDesktop =
@@ -1088,18 +1110,63 @@ export function CapturePreview({
                   })()}
                 </div>
                 <div className="space-y-1 rounded border border-amber-300/50 bg-white/70 p-2 font-mono text-xs">
-                  <div>
-                    # Preferred path (future PairUX backend): xdg-desktop-portal RemoteDesktop
-                  </div>
-                  <div>systemctl --user status xdg-desktop-portal</div>
-                  <div># Install (Debian/Ubuntu)</div>
-                  <div>sudo apt install ydotool</div>
-                  <div># Start daemon (may require root / uinput access)</div>
-                  <div>sudo systemctl enable --now ydotool</div>
-                  <div># Or foreground debug</div>
-                  <div>sudo ydotoold</div>
-                  <div># Check socket</div>
-                  <div>ls -l $XDG_RUNTIME_DIR/.ydotool_socket /tmp/.ydotool_socket</div>
+                  {(() => {
+                    const details = inputDiagnostics.details as
+                      | {
+                          ydotoolBinaryPath?: string;
+                          ydotoolSocketPath?: string;
+                          autoStartAttempted?: boolean;
+                          autoStartMethod?: string | null;
+                          autoStartError?: string | null;
+                          currentDesktop?: string;
+                          portalImplDetected?: string | null;
+                          ydotool?: {
+                            details?: {
+                              ydotoolBinaryPath?: string;
+                              ydotoolSocketPath?: string;
+                              autoStartAttempted?: boolean;
+                              autoStartMethod?: string | null;
+                              autoStartError?: string | null;
+                            };
+                          };
+                          portal?: {
+                            details?: {
+                              currentDesktop?: string;
+                              portalImplDetected?: string | null;
+                            };
+                          };
+                        }
+                      | undefined;
+
+                    const ydotoolBinaryPath =
+                      details?.ydotoolBinaryPath ?? details?.ydotool?.details?.ydotoolBinaryPath;
+                    const ydotoolSocketPath =
+                      details?.ydotoolSocketPath ?? details?.ydotool?.details?.ydotoolSocketPath;
+                    const autoStartAttempted =
+                      details?.autoStartAttempted ?? details?.ydotool?.details?.autoStartAttempted;
+                    const autoStartMethod =
+                      details?.autoStartMethod ?? details?.ydotool?.details?.autoStartMethod;
+                    const autoStartError =
+                      details?.autoStartError ?? details?.ydotool?.details?.autoStartError;
+                    const currentDesktop =
+                      details?.currentDesktop ?? details?.portal?.details?.currentDesktop;
+                    const portalImplDetected =
+                      details?.portalImplDetected ?? details?.portal?.details?.portalImplDetected;
+
+                    return (
+                      <>
+                        <div>Path status (auto-detected)</div>
+                        <div>backend={inputDiagnostics.backend}</div>
+                        <div>desktop={currentDesktop ?? 'n/a'}</div>
+                        <div>portalImpl={portalImplDetected ?? 'n/a'}</div>
+                        <div>ydotoolBin={ydotoolBinaryPath ?? 'n/a'}</div>
+                        <div>ydotoolSocket={ydotoolSocketPath ?? 'n/a'}</div>
+                        <div>ydotoolAutoStart={String(autoStartAttempted ?? false)}</div>
+                        <div>ydotoolStartMethod={autoStartMethod ?? 'n/a'}</div>
+                        {autoStartError ? <div>ydotoolStartError={autoStartError}</div> : null}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

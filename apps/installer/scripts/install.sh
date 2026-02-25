@@ -825,6 +825,25 @@ BIN_DIR="\$HOME/.local/bin"
 DESKTOP_FILE="\$HOME/.local/share/applications/pairux.desktop"
 ICON_FILE="\$HOME/.local/share/icons/hicolor/256x256/apps/pairux.png"
 
+cleanup_stale_appimage_mounts() {
+    local mount_root="\$HOME/.pairux/tmp"
+    [ -d "\$mount_root" ] || return 0
+
+    local mount_dir
+    for mount_dir in "\$mount_root"/.mount_PairUX*; do
+        [ -e "\$mount_dir" ] || continue
+
+        # If the mount is stale ("Transport endpoint is not connected"), unmount
+        # and remove it so AppImage extract/run can recover on update.
+        if ! ls -ld "\$mount_dir" >/dev/null 2>&1; then
+            fusermount3 -u -z "\$mount_dir" >/dev/null 2>&1 || \
+                fusermount -u -z "\$mount_dir" >/dev/null 2>&1 || \
+                umount -l "\$mount_dir" >/dev/null 2>&1 || true
+            rm -rf "\$mount_dir" >/dev/null 2>&1 || true
+        fi
+    done
+}
+
 case "\${1-}" in
     -h|--help)
         echo "Usage: pairux [options]"
@@ -923,6 +942,7 @@ case "\${1-}" in
         else
             echo "Updating PairUX to v\$LATEST..."
         fi
+        cleanup_stale_appimage_mounts
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then

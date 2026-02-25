@@ -17,6 +17,7 @@ type SleepFn = (ms: number) => Promise<void>;
 
 interface YdotoolAvailability {
   hasBinary: boolean;
+  binaryPath?: string | null;
   hasSocket: boolean;
   socketPath: string | null;
 }
@@ -66,13 +67,25 @@ function defaultSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function hasYdotoolBinary(): boolean {
+function canExecBinary(command: string): boolean {
   try {
-    execFileSync('ydotool', ['--help'], { stdio: 'ignore' });
+    execFileSync(command, ['--help'], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
   }
+}
+
+function findYdotoolBinary(): string | null {
+  const candidates = [
+    process.env.YDOTOOL_BIN,
+    'ydotool',
+    '/usr/bin/ydotool',
+    '/usr/local/bin/ydotool',
+    '/bin/ydotool',
+  ].filter((value): value is string => Boolean(value));
+
+  return candidates.find((command) => canExecBinary(command)) ?? null;
 }
 
 function findYdotoolSocket(): string | null {
@@ -87,10 +100,11 @@ function findYdotoolSocket(): string | null {
 }
 
 function getYdotoolAvailability(): YdotoolAvailability {
-  const hasBinary = hasYdotoolBinary();
+  const binaryPath = findYdotoolBinary();
   const socketPath = findYdotoolSocket();
   return {
-    hasBinary,
+    hasBinary: Boolean(binaryPath),
+    binaryPath,
     hasSocket: Boolean(socketPath),
     socketPath,
   };
@@ -296,6 +310,7 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   private readonly probeAvailability: AvailabilityProbe;
   private readonly sleep: SleepFn;
   private availability: YdotoolAvailability;
+  private ydotoolCommand = 'ydotool';
   private autoStartAttempted = false;
   private autoStartMethod?: string;
   private autoStartError?: string;
@@ -316,9 +331,11 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
   private applyAvailability(availability: YdotoolAvailability): void {
     this.availability = availability;
+    this.ydotoolCommand = availability.binaryPath ?? 'ydotool';
     this.supported = availability.hasBinary && availability.hasSocket;
     this.details = {
       hasYdotoolBinary: availability.hasBinary,
+      ydotoolBinaryPath: availability.binaryPath ?? null,
       hasYdotoolSocket: availability.hasSocket,
       ydotoolSocketPath: availability.socketPath,
       autoStartAttempted: this.autoStartAttempted,
@@ -393,31 +410,31 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
   private async move(event: MouseMoveEvent): Promise<void> {
     const { x, y } = this.toAbsoluteCoords(event.x, event.y);
-    await this.run('ydotool', ['mousemove', '--absolute', String(x), String(y)]);
+    await this.run(this.ydotoolCommand, ['mousemove', '--absolute', String(x), String(y)]);
   }
 
   private async mouseButton(event: MouseButtonEvent): Promise<void> {
     const { x, y } = this.toAbsoluteCoords(event.x, event.y);
-    await this.run('ydotool', ['mousemove', '--absolute', String(x), String(y)]);
-    await this.run('ydotool', ['click', ...clickCode(event.action, event.button)]);
+    await this.run(this.ydotoolCommand, ['mousemove', '--absolute', String(x), String(y)]);
+    await this.run(this.ydotoolCommand, ['click', ...clickCode(event.action, event.button)]);
   }
 
   private async scroll(event: MouseScrollEvent): Promise<void> {
     const { x, y } = this.toAbsoluteCoords(event.x, event.y);
-    await this.run('ydotool', ['mousemove', '--absolute', String(x), String(y)]);
+    await this.run(this.ydotoolCommand, ['mousemove', '--absolute', String(x), String(y)]);
 
     // ydotool click supports wheel buttons via synthetic click button codes:
     // button 4 (up), 5 (down), 6 (left), 7 (right) => bases 3,4,5,6.
     if (event.deltaY !== 0) {
       const repeat = scrollRepeat(event.deltaY);
       const base = event.deltaY > 0 ? 0x03 : 0x04;
-      await this.run('ydotool', ['click', ...scrollClickCode(base, repeat)]);
+      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, repeat)]);
     }
 
     if (event.deltaX !== 0) {
       const repeat = scrollRepeat(event.deltaX);
       const base = event.deltaX > 0 ? 0x06 : 0x05;
-      await this.run('ydotool', ['click', ...scrollClickCode(base, repeat)]);
+      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, repeat)]);
     }
   }
 
@@ -441,7 +458,7 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     switch (event.action) {
       case 'down': {
         const tokens = [...modifiers.map((m) => keyToken(m, true)), keyToken(keycode, true)];
-        await this.run('ydotool', ['key', ...tokens]);
+        await this.run(this.ydotoolCommand, ['key', ...tokens]);
         break;
       }
       case 'up': {
@@ -452,7 +469,7 @@ export class WaylandYdotoolInputBackend implements InputBackend {
             .reverse()
             .map((m) => keyToken(m, false)),
         ];
-        await this.run('ydotool', ['key', ...tokens]);
+        await this.run(this.ydotoolCommand, ['key', ...tokens]);
         break;
       }
       case 'press': {
@@ -465,7 +482,7 @@ export class WaylandYdotoolInputBackend implements InputBackend {
             .reverse()
             .map((m) => keyToken(m, false)),
         ];
-        await this.run('ydotool', ['key', ...tokens]);
+        await this.run(this.ydotoolCommand, ['key', ...tokens]);
         break;
       }
     }
@@ -498,14 +515,14 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
   async emergencyStop(): Promise<void> {
     if (!this.supported) return;
-    await this.run('ydotool', [
+    await this.run(this.ydotoolCommand, [
       'key',
       keyToken(KEYCODES.ControlLeft, false),
       keyToken(KEYCODES.AltLeft, false),
       keyToken(KEYCODES.ShiftLeft, false),
       keyToken(KEYCODES.MetaLeft, false),
     ]);
-    await this.run('ydotool', [
+    await this.run(this.ydotoolCommand, [
       'click',
       String(0x80 | 0x00),
       String(0x80 | 0x01),

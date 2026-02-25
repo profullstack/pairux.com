@@ -327,8 +327,22 @@ start_ydotool_daemon_if_available() {
         return 0
     fi
 
-    local units=("ydotoold" "ydotool")
+    local user_units=("ydotoold" "ydotool")
     local unit
+    for unit in "${user_units[@]}"; do
+        if systemctl --user list-unit-files "${unit}.service" >/dev/null 2>&1; then
+            info "Attempting to enable/start user service ${unit}.service for Wayland input support..."
+            systemctl --user enable --now "${unit}.service" >/dev/null 2>&1 || true
+            break
+        fi
+    done
+
+    if [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
+        success "ydotoold socket detected"
+        return 0
+    fi
+
+    local units=("ydotoold" "ydotool")
     for unit in "${units[@]}"; do
         if systemctl list-unit-files "${unit}.service" >/dev/null 2>&1; then
             info "Attempting to enable/start ${unit}.service for Wayland input support..."
@@ -397,33 +411,6 @@ setup_linux_input_dependencies() {
 
     info "Suggested package manager command:"
     echo "  $install_cmd"
-
-    if [ "${PAIRUX_SKIP_LINUX_DEPS:-0}" = "1" ]; then
-        warn "Skipping Linux dependency install (PAIRUX_SKIP_LINUX_DEPS=1)"
-        return 0
-    fi
-
-    local should_install=0
-    if [ "${PAIRUX_AUTO_INSTALL_LINUX_DEPS:-0}" = "1" ]; then
-        should_install=1
-    elif is_tty; then
-        printf "Install Wayland remote control dependencies now? [Y/n] "
-        local reply
-        read -r reply || true
-        case "${reply:-Y}" in
-            n|N|no|NO) should_install=0 ;;
-            *) should_install=1 ;;
-        esac
-    else
-        warn "Non-interactive install detected; not auto-installing Linux dependencies."
-        warn "Re-run with PAIRUX_AUTO_INSTALL_LINUX_DEPS=1 to install automatically."
-        return 0
-    fi
-
-    if [ "$should_install" -ne 1 ]; then
-        info "Skipping Linux dependency install"
-        return 0
-    fi
 
     info "Installing Linux Wayland remote control dependencies via ${pm}..."
     if run_linux_dependency_install "$install_cmd"; then

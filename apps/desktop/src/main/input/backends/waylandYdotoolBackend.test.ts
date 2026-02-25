@@ -15,6 +15,40 @@ describe('WaylandYdotoolInputBackend', () => {
     );
   });
 
+  it('attempts to auto-start ydotoold during init when binary exists but socket is missing', async () => {
+    const startDaemon = vi.fn().mockResolvedValue({
+      attempted: true,
+      method: 'systemctl --user start ydotool',
+    });
+    const probeAvailability = vi
+      .fn()
+      .mockReturnValueOnce({ hasBinary: true, hasSocket: false, socketPath: null })
+      .mockReturnValue({ hasBinary: true, hasSocket: true, socketPath: '/run/ydotoold/socket' });
+    const backend = new WaylandYdotoolInputBackend(
+      vi.fn(),
+      { hasBinary: true, hasSocket: false, socketPath: null },
+      {
+        startDaemon,
+        probeAvailability,
+        sleep: vi.fn().mockResolvedValue(undefined),
+      }
+    );
+
+    expect(backend.supported).toBe(false);
+
+    const initResult = await backend.init();
+
+    expect(startDaemon).toHaveBeenCalledTimes(1);
+    expect(backend.supported).toBe(true);
+    expect(initResult).toEqual({ screenWidth: 1920, screenHeight: 1080 });
+    expect(backend.details).toMatchObject({
+      hasYdotoolBinary: true,
+      hasYdotoolSocket: true,
+      ydotoolSocketPath: '/run/ydotoold/socket',
+      autoStartAttempted: true,
+    });
+  });
+
   it('emits mouse move command with absolute coordinates', async () => {
     const run = vi.fn(async (_command: string, _args: string[]) => undefined);
     const backend = new WaylandYdotoolInputBackend(run, {

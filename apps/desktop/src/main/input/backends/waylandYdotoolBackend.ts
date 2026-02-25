@@ -11,11 +11,20 @@ import type {
 import type { InputBackend, InputBackendInitResult } from './types';
 
 type ExecRunner = (command: string, args: string[]) => Promise<void>;
+type DaemonStarter = () => Promise<{ attempted: boolean; method?: string; error?: string }>;
+type AvailabilityProbe = () => YdotoolAvailability;
+type SleepFn = (ms: number) => Promise<void>;
 
 interface YdotoolAvailability {
   hasBinary: boolean;
   hasSocket: boolean;
   socketPath: string | null;
+}
+
+interface YdotoolAutoStartDeps {
+  startDaemon?: DaemonStarter;
+  probeAvailability?: AvailabilityProbe;
+  sleep?: SleepFn;
 }
 
 function toError(error: unknown): Error {
@@ -36,6 +45,25 @@ function defaultExecRunner(command: string, args: string[]): Promise<void> {
         reject(toError(error));
       });
   });
+}
+
+function execFileAsync(command: string, args: string[], timeout = 1500): Promise<void> {
+  return new Promise((resolve, reject) => {
+    import('child_process')
+      .then(({ execFile }) => {
+        execFile(command, args, { timeout }, (error) => {
+          if (error) reject(toError(error));
+          else resolve();
+        });
+      })
+      .catch((error: unknown) => {
+        reject(toError(error));
+      });
+  });
+}
+
+function defaultSleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function hasYdotoolBinary(): boolean {
@@ -66,6 +94,39 @@ function getYdotoolAvailability(): YdotoolAvailability {
     hasSocket: Boolean(socketPath),
     socketPath,
   };
+}
+
+async function defaultStartYdotoolDaemon(): Promise<{
+  attempted: boolean;
+  method?: string;
+  error?: string;
+}> {
+  try {
+    await execFileAsync('systemctl', ['--user', 'start', 'ydotool'], 2000);
+    return { attempted: true, method: 'systemctl --user start ydotool' };
+  } catch (systemctlUserError) {
+    try {
+      const { spawn } = await import('child_process');
+      const child = spawn('ydotoold', [], {
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+      return { attempted: true, method: 'ydotoold (detached)' };
+    } catch (spawnError) {
+      const errorMessage =
+        spawnError instanceof Error
+          ? spawnError.message
+          : systemctlUserError instanceof Error
+            ? systemctlUserError.message
+            : String(systemctlUserError);
+      return {
+        attempted: true,
+        method: 'systemctl --user start ydotool / ydotoold',
+        error: errorMessage,
+      };
+    }
+  }
 }
 
 function buttonBase(button: MouseButton): number {
@@ -225,40 +286,97 @@ function keyToken(code: number, down: boolean): string {
 
 export class WaylandYdotoolInputBackend implements InputBackend {
   readonly name = 'wayland-ydotool';
-  readonly supported: boolean;
-  readonly reason?: string;
-  readonly details?: Record<string, unknown>;
+  supported: boolean;
+  reason?: string;
+  details?: Record<string, unknown>;
   private screenWidth = 1920;
   private screenHeight = 1080;
   private readonly run: ExecRunner;
+  private readonly startDaemon: DaemonStarter;
+  private readonly probeAvailability: AvailabilityProbe;
+  private readonly sleep: SleepFn;
+  private availability: YdotoolAvailability;
+  private autoStartAttempted = false;
+  private autoStartMethod?: string;
+  private autoStartError?: string;
 
   constructor(
     run: ExecRunner = defaultExecRunner,
-    availability: YdotoolAvailability = getYdotoolAvailability()
+    availability: YdotoolAvailability = getYdotoolAvailability(),
+    deps: YdotoolAutoStartDeps = {}
   ) {
     this.run = run;
+    this.startDaemon = deps.startDaemon ?? defaultStartYdotoolDaemon;
+    this.probeAvailability = deps.probeAvailability ?? getYdotoolAvailability;
+    this.sleep = deps.sleep ?? defaultSleep;
+    this.availability = availability;
+    this.supported = false;
+    this.applyAvailability(availability);
+  }
+
+  private applyAvailability(availability: YdotoolAvailability): void {
+    this.availability = availability;
     this.supported = availability.hasBinary && availability.hasSocket;
     this.details = {
       hasYdotoolBinary: availability.hasBinary,
       hasYdotoolSocket: availability.hasSocket,
       ydotoolSocketPath: availability.socketPath,
+      autoStartAttempted: this.autoStartAttempted,
+      autoStartMethod: this.autoStartMethod ?? null,
+      autoStartError: this.autoStartError ?? null,
     };
+
     if (!availability.hasBinary) {
       this.reason = 'Wayland support requires `ydotool` to be installed.';
     } else if (!availability.hasSocket) {
       this.reason = 'Wayland support requires `ydotoold` to be running (no ydotool socket found).';
+    } else {
+      this.reason = undefined;
     }
   }
 
-  init(): Promise<InputBackendInitResult | undefined> {
+  private async attemptAutoStart(): Promise<void> {
+    if (this.autoStartAttempted || !this.availability.hasBinary || this.availability.hasSocket) {
+      return;
+    }
+
+    this.autoStartAttempted = true;
+    const start = await this.startDaemon();
+    this.autoStartMethod = start.method;
+    this.autoStartError = start.error;
+
+    // Give the daemon a brief window to create the socket.
+    for (let i = 0; i < 5; i += 1) {
+      const nextAvailability = this.probeAvailability();
+      this.applyAvailability(nextAvailability);
+      if (nextAvailability.hasSocket) {
+        console.log('[InputInjector] ydotoold auto-start succeeded', {
+          method: this.autoStartMethod,
+          socketPath: nextAvailability.socketPath,
+        });
+        return;
+      }
+      await this.sleep(200);
+    }
+
+    // Refresh details/reason after the final poll in case the daemon never came up.
+    this.applyAvailability(this.probeAvailability());
+  }
+
+  async init(): Promise<InputBackendInitResult | undefined> {
+    if (!this.supported && this.availability.hasBinary) {
+      await this.attemptAutoStart();
+    }
+
     if (!this.supported) {
       console.warn('[InputInjector] ydotool Wayland backend unavailable', {
         reason: this.reason,
         details: this.details,
       });
-      return Promise.resolve(undefined);
+      return undefined;
     }
-    return Promise.resolve({ screenWidth: this.screenWidth, screenHeight: this.screenHeight });
+
+    return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };
   }
 
   updateScreenSize(width: number, height: number): void {

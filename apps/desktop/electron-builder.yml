@@ -64,6 +64,10 @@ linux:
       arch:
         - x64
         - arm64
+    - target: snap
+      arch:
+        - x64
+        - arm64
   category: Network
   maintainer: Profullstack, Inc.
   artifactName: '${productName}-${version}-${arch}.${ext}'
@@ -93,6 +97,26 @@ rpm:
     - libXScrnSaver
     - libXtst
     - xdg-utils
+
+snap:
+  confinement: strict
+  grade: stable
+  summary: Collaborative screen sharing with simultaneous remote control
+  plugs:
+    - default
+    - x11
+    - wayland
+    - audio-record
+    - audio-playback
+    - camera
+    - network
+    - network-bind
+    - desktop
+    - desktop-legacy
+    - opengl
+    - home
+    - removable-media
+    - screen-inhibit-control
 
 nsis:
   oneClick: false

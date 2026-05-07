@@ -64,6 +64,10 @@ linux:
       arch:
         - x64
         - arm64
+    - target: snap
+      arch:
+        - x64
+        - arm64
   category: Network
   maintainer: Profullstack, Inc.
   artifactName: '${productName}-${version}-${arch}.${ext}'
@@ -93,6 +97,26 @@ rpm:
     - libXScrnSaver
     - libXtst
     - xdg-utils
+
+snap:
+  confinement: classic
+  grade: stable
+  summary: Collaborative screen sharing with remote control
+  description: |
+    PairUX is an open-source screen sharing and remote control tool,
+    like Screenhero but built on WebRTC. Collaborate in real-time
+    with simultaneous remote control.
+  environment:
+    TMPDIR: $XDG_RUNTIME_DIR
+  stagePackages:
+    - libgtk-3-0t64
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0t64
+    - libuuid1
 
 nsis:
   oneClick: false

@@ -6,6 +6,43 @@ import * as React from 'react';
 // Make React available globally for JSX
 globalThis.React = React;
 
+// Node v22+ exposes a partial built-in `localStorage`/`sessionStorage` global
+// that throws on `getItem`/`clear` without `--localstorage-file=<path>`. That
+// stub is non-configurable on globalThis and shadows jsdom's Storage, so install
+// a Map-backed Storage implementation that mirrors the Web Storage API.
+function createStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    get length() {
+      return store.size;
+    },
+    clear: () => store.clear(),
+    getItem: (key: string) => (store.has(key) ? (store.get(key) ?? null) : null),
+    key: (index: number) => Array.from(store.keys())[index] ?? null,
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      store.set(key, value);
+    },
+  };
+}
+
+for (const name of ['localStorage', 'sessionStorage'] as const) {
+  Object.defineProperty(globalThis, name, {
+    value: createStorage(),
+    writable: true,
+    configurable: true,
+  });
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, name, {
+      value: (globalThis as unknown as Record<string, Storage>)[name],
+      writable: true,
+      configurable: true,
+    });
+  }
+}
+
 // Ensure console is available and stubbed
 const originalConsole = { ...console };
 beforeEach(() => {
@@ -17,6 +54,8 @@ beforeEach(() => {
     log: vi.fn(),
   });
   global.fetch = vi.fn();
+  globalThis.localStorage.clear();
+  globalThis.sessionStorage.clear();
 });
 
 // Cleanup after each test

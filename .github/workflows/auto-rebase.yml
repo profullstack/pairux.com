@@ -1,0 +1,200 @@
+name: Auto Rebase PRs
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Specific PR number to rebase (leave empty for all open PRs)'
+        required: false
+        default: ''
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Configure git and GitHub auth
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          gh auth setup-git
+
+      - name: Rebase open PRs onto master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER_INPUT: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+
+          MASTER_SHA=$(git rev-parse HEAD)
+          echo "Master HEAD: $MASTER_SHA"
+
+          # Determine which PRs to process
+          if [ -n "${PR_NUMBER_INPUT:-}" ]; then
+            PR_LIST="${PR_NUMBER_INPUT}"
+          else
+            PR_LIST=$(gh pr list --state open --json number --jq '.[].number' | tr '\n' ' ')
+          fi
+
+          echo "PRs to process: $PR_LIST"
+
+          for PR_NUMBER in $PR_LIST; do
+            echo ""
+            echo "=========================================="
+            echo "Processing PR #$PR_NUMBER"
+            echo "=========================================="
+
+            # Get PR details
+            PR_JSON=$(gh pr view "$PR_NUMBER" --json number,headRefName,headRepository,maintainerCanModify,baseRefName 2>/dev/null) || {
+              echo "Failed to get PR #$PR_NUMBER details, skipping"
+              continue
+            }
+
+            HEAD_BRANCH=$(echo "$PR_JSON" | jq -r '.headRefName')
+            FORK_REPO=$(echo "$PR_JSON" | jq -r '.headRepository.nameWithOwner')
+            MAINTAINER_CAN_MODIFY=$(echo "$PR_JSON" | jq -r '.maintainerCanModify')
+            BASE_REF=$(echo "$PR_JSON" | jq -r '.baseRefName')
+
+            echo "  Branch:   $HEAD_BRANCH"
+            echo "  Fork:     $FORK_REPO"
+            echo "  Base:     $BASE_REF"
+            echo "  Maintainer can modify: $MAINTAINER_CAN_MODIFY"
+
+            if [ "$MAINTAINER_CAN_MODIFY" != "true" ]; then
+              echo "  Skipping: maintainerCanModify is not enabled"
+              continue
+            fi
+
+            if [ "$BASE_REF" != "master" ]; then
+              echo "  Skipping: base branch is '$BASE_REF', not master"
+              continue
+            fi
+
+            # Fetch the PR head
+            git fetch origin "refs/pull/$PR_NUMBER/head:pr-temp-$PR_NUMBER" 2>/dev/null || {
+              echo "  Failed to fetch PR #$PR_NUMBER, skipping"
+              continue
+            }
+
+            # Check if rebase is needed
+            MERGE_BASE=$(git merge-base "pr-temp-$PR_NUMBER" HEAD)
+            if [ "$MERGE_BASE" = "$MASTER_SHA" ]; then
+              echo "  Already up to date, skipping"
+              git branch -D "pr-temp-$PR_NUMBER" 2>/dev/null || true
+              continue
+            fi
+
+            echo "  Merge base: ${MERGE_BASE:0:8} (behind master, rebasing...)"
+
+            # Create a working branch for the rebase
+            git checkout -b "rebase-work-$PR_NUMBER" "pr-temp-$PR_NUMBER"
+
+            REBASE_SUCCESS=false
+            CONFLICT_FILES=""
+
+            # Attempt rebase — prefer PR changes on conflict (-X theirs)
+            if git rebase -X theirs master 2>&1; then
+              REBASE_SUCCESS=true
+              echo "  Rebase succeeded (auto-resolved conflicts with PR changes)"
+            else
+              echo "  Rebase failed, checking conflict types..."
+              CONFLICT_FILES=$(git diff --name-only --diff-filter=U 2>/dev/null || true)
+              echo "  Conflicting files: $CONFLICT_FILES"
+
+              # Resolve known auto-resolvable conflicts
+              RESOLVED=true
+              for file in $CONFLICT_FILES; do
+                case "$file" in
+                  pnpm-lock.yaml)
+                    echo "  Resolving pnpm-lock.yaml by regenerating..."
+                    git checkout --theirs pnpm-lock.yaml 2>/dev/null || true
+                    git add pnpm-lock.yaml
+                    ;;
+                  package-lock.json|yarn.lock|bun.lockb)
+                    echo "  Resolving lockfile $file by taking PR version..."
+                    git checkout --theirs "$file" 2>/dev/null || true
+                    git add "$file"
+                    ;;
+                  *)
+                    echo "  Cannot auto-resolve: $file"
+                    RESOLVED=false
+                    ;;
+                esac
+              done
+
+              if $RESOLVED; then
+                if GIT_EDITOR=true git rebase --continue 2>&1; then
+                  REBASE_SUCCESS=true
+                else
+                  echo "  Rebase --continue failed even after resolving known conflicts"
+                  git rebase --abort 2>/dev/null || true
+                  REBASE_SUCCESS=false
+                fi
+              else
+                echo "  Unresolvable conflicts remain, aborting rebase"
+                git rebase --abort 2>/dev/null || true
+              fi
+            fi
+
+            if $REBASE_SUCCESS; then
+              # Regenerate pnpm-lock.yaml if package.json changed
+              if git diff master..HEAD --name-only | grep -q "package.json"; then
+                echo "  package.json changed, regenerating pnpm-lock.yaml..."
+                pnpm install --no-frozen-lockfile 2>/dev/null || true
+                if ! git diff --quiet pnpm-lock.yaml 2>/dev/null; then
+                  git add pnpm-lock.yaml
+                  git commit --amend --no-edit 2>/dev/null || git commit -m "chore: regenerate pnpm-lock.yaml after rebase" 2>/dev/null || true
+                fi
+              fi
+
+              echo "  Pushing rebased branch to $FORK_REPO/$HEAD_BRANCH..."
+              if git push "https://github.com/${FORK_REPO}.git" "HEAD:refs/heads/$HEAD_BRANCH" --force-with-lease 2>&1; then
+                echo "  ✅ PR #$PR_NUMBER successfully rebased onto master"
+                gh pr comment "$PR_NUMBER" \
+                  --body "🤖 **Auto-rebase:** This branch has been automatically rebased onto \`master\` by the CI bot. No conflicts were detected." \
+                  2>/dev/null || true
+              else
+                echo "  ❌ Push to fork failed for PR #$PR_NUMBER (fork may not allow maintainer pushes)"
+                gh pr comment "$PR_NUMBER" \
+                  --body "🤖 **Auto-rebase:** The branch was rebased successfully locally but could not be pushed to the fork. Please enable **'Allow edits from maintainers'** in the PR settings, or rebase manually: \`git fetch upstream master && git rebase upstream/master\`." \
+                  2>/dev/null || true
+              fi
+            else
+              echo "  ❌ PR #$PR_NUMBER has unresolvable conflicts"
+              CONFLICT_LIST=$(echo "$CONFLICT_FILES" | tr '\n' ',' | sed 's/,$//')
+              gh pr comment "$PR_NUMBER" \
+                --body "🤖 **Auto-rebase failed:** This branch has conflicts with \`master\` that cannot be resolved automatically. Conflicting files: \`${CONFLICT_LIST}\`. Please rebase manually: \`git fetch upstream master && git rebase upstream/master\`." \
+                2>/dev/null || true
+            fi
+
+            # Cleanup
+            git checkout master 2>/dev/null || git checkout -
+            git branch -D "rebase-work-$PR_NUMBER" 2>/dev/null || true
+            git branch -D "pr-temp-$PR_NUMBER" 2>/dev/null || true
+          done
+
+          echo ""
+          echo "Done processing all PRs."

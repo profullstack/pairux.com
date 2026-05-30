@@ -25,4 +25,7 @@ EXPOSE 50000-50200/udp
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -q -O /dev/null http://localhost:7880/ || exit 1
 
+# Run as a non-root user (all exposed ports are >1024, so no privileges needed)
+USER 1000
+
 ENTRYPOINT ["/docker-entrypoint.sh"]

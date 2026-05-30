@@ -10,10 +10,8 @@ FROM livekit/livekit-server:latest
 # Copy configuration
 COPY livekit.yaml /etc/livekit.yaml
 
-# Copy entrypoint script
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-USER root
-RUN chmod +x /docker-entrypoint.sh
+# Copy entrypoint script (made executable at copy time, no root switch needed)
+COPY --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
 
 # WebSocket signaling (HTTP)
 EXPOSE 7880/tcp

@@ -180,3 +180,8 @@ debug.log
 local/
 .local/
 squashfs-root/
+
+# ===========================================
+# Claude Code local config (NEVER commit — may contain tokens/secrets)
+# ===========================================
+.claude/

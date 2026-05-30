@@ -114,9 +114,10 @@ export function registerStreamingHandlers(): void {
     return stopAllStreams();
   });
 
-  ipcMain.handle('rtmp:writeChunk', (_event, chunk: ArrayBuffer) => {
+  // Awaits the write so stdin backpressure propagates back to the renderer.
+  ipcMain.handle('rtmp:writeChunk', async (_event, chunk: ArrayBuffer) => {
     const buffer = Buffer.from(chunk);
-    writeStreamChunk(buffer);
+    await writeStreamChunk(buffer);
     return { success: true };
   });
 

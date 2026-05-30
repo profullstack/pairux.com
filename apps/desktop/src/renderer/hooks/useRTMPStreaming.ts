@@ -135,8 +135,10 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
 
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0 && isElectron()) {
-        void event.data.arrayBuffer().then((buffer) => {
-          void getElectronAPI().invoke('rtmp:writeChunk', buffer);
+        // Await the write so ffmpeg stdin backpressure throttles us instead of
+        // buffering encoded chunks in memory when the upstream network is slow.
+        void event.data.arrayBuffer().then(async (buffer) => {
+          await getElectronAPI().invoke('rtmp:writeChunk', buffer);
         });
       }
     };

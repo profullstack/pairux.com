@@ -467,15 +467,40 @@ export function startAllStreams(
   return { success: started > 0, started, errors };
 }
 
-export function writeStreamChunk(chunk: Buffer): void {
+/**
+ * Write an encoded chunk to every active stream's ffmpeg stdin.
+ *
+ * Honors stdin backpressure: when a pipe's buffer is full, `write()` returns
+ * false and we wait for its 'drain' event before resolving. Because the renderer
+ * awaits this call before sending the next chunk, a slow upstream (network /
+ * ffmpeg) throttles the producer instead of buffering chunks in memory unbounded.
+ */
+export async function writeStreamChunk(chunk: Buffer): Promise<void> {
+  const drains: Promise<void>[] = [];
+
   for (const stream of activeStreams.values()) {
     if (stream.state.status === 'live' || stream.state.status === 'connecting') {
+      const stdin = stream.process.stdin;
+      if (!stdin) continue;
       try {
-        stream.process.stdin?.write(chunk);
+        const hasRoom = stdin.write(chunk);
+        if (!hasRoom) {
+          drains.push(
+            new Promise<void>((resolve) => {
+              stdin.once('drain', () => {
+                resolve();
+              });
+            })
+          );
+        }
       } catch {
         // Will be handled by process error/exit events
       }
     }
+  }
+
+  if (drains.length > 0) {
+    await Promise.all(drains);
   }
 }
 

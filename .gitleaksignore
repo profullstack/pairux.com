@@ -1,9 +1,11 @@
-# Known, already-remediated findings (kept out of CI noise).
-# These are hardcoded Supabase keys that were committed and then removed in
-# commit 4a4e92e ("remove hardcoded secrets and update config for production").
-# They no longer exist in the working tree; gitleaks only flags them because it
-# scans full git history. If those keys were ever real production credentials,
-# rotate them — removing them from history does not invalidate a leaked key.
-4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:0
-4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:1
-4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:2
+# Known, already-removed findings (kept out of CI noise).
+#
+# A SUPABASE_ACCESS_TOKEN was committed to .claude/settings.local.json and later
+# removed. gitleaks still flags it because it scans full git history.
+#
+# IMPORTANT: removing a secret from history does NOT invalidate it. If this
+# token was ever a real Supabase access token, ROTATE it in the Supabase
+# dashboard (Account > Access Tokens). .claude/settings.local.json is now
+# gitignored so local settings are never committed again.
+a301ecc80cdc48ccb7a9e3050235089db787701b:.claude/settings.local.json:generic-api-key:91
+f70a3ef1f2770499c3aea1b3e1cf98641eb44e87:.claude/settings.local.json:generic-api-key:91

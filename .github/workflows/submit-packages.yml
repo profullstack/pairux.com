@@ -137,12 +137,14 @@ jobs:
 
       - name: Summary
         if: always()
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
           echo "## Package Submission Summary (Linux)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Package Managers**: ${{ steps.pms.outputs.package_managers }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: $DRY_RUN" >> $GITHUB_STEP_SUMMARY
 
   # Windows job for Chocolatey
   submit-chocolatey:
@@ -172,11 +174,14 @@ jobs:
       - name: Determine version
         id: version
         shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          elif [ -n "${{ github.event.release.tag_name }}" ]; then
-            VERSION="${{ github.event.release.tag_name }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          elif [ -n "$RELEASE_TAG" ]; then
+            VERSION="$RELEASE_TAG"
           else
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           fi
@@ -201,9 +206,10 @@ jobs:
       - name: Submit to Chocolatey
         if: steps.check-key.outputs.has_key == 'true'
         shell: bash
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          DRY_RUN="${{ github.event.inputs.dry_run }}"
 
           ARGS="-v $VERSION -p chocolatey"
 
@@ -220,8 +226,10 @@ jobs:
       - name: Summary
         if: always()
         shell: bash
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
           echo "## Package Submission Summary (Chocolatey)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: $DRY_RUN" >> $GITHUB_STEP_SUMMARY

@@ -17,10 +17,8 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
-      # Report ERROR-severity findings in the log without failing the build.
-      # (Drop `--error` to keep semgrep from exiting non-zero on findings.)
       - run: |
-          semgrep scan --severity ERROR \
+          semgrep scan --error --severity ERROR \
             --config p/javascript \
             --config p/typescript \
             --config p/owasp-top-ten \

@@ -18,6 +18,8 @@ import {
   VolumeX,
   Mic,
   MicOff,
+  Video,
+  VideoOff,
 } from 'lucide-react';
 import type {
   CaptureSource,
@@ -33,6 +35,9 @@ import { ParticipantList } from '@/components/ParticipantList';
 import { StreamControls, StreamIndicator } from '@/components/streaming';
 import { useSession } from '@/hooks/useSession';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
+import { useCamera } from '@/hooks/useCamera';
+import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScreenCameraCompositor';
+import { CameraBubble } from '@/components/capture/CameraBubble';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
@@ -45,6 +50,27 @@ import {
   RemoteCursorsContainer,
   useRemoteCursors,
 } from '@/components/overlay';
+
+const CAMERA_BUBBLE_STORAGE_KEY = 'pairux-camera-bubble';
+// Default: lower-right corner, ~20% of frame height (Loom-style).
+const DEFAULT_BUBBLE_GEOMETRY: BubbleGeometry = { x: 0.84, y: 0.8, size: 0.2 };
+
+function loadBubbleGeometry(): BubbleGeometry {
+  try {
+    const saved = localStorage.getItem(CAMERA_BUBBLE_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<BubbleGeometry>;
+      return {
+        x: typeof parsed.x === 'number' ? parsed.x : DEFAULT_BUBBLE_GEOMETRY.x,
+        y: typeof parsed.y === 'number' ? parsed.y : DEFAULT_BUBBLE_GEOMETRY.y,
+        size: typeof parsed.size === 'number' ? parsed.size : DEFAULT_BUBBLE_GEOMETRY.size,
+      };
+    }
+  } catch {
+    // Ignore parse errors and fall back to defaults.
+  }
+  return DEFAULT_BUBBLE_GEOMETRY;
+}
 
 interface CapturePreviewProps {
   stream: MediaStream | null;
@@ -141,6 +167,34 @@ export function CapturePreview({
       setSpaceWarning(gb);
     },
   });
+
+  // Optional Loom-style camera bubble. Always off by default; fully optional.
+  const camera = useCamera();
+  const [bubbleGeometry, setBubbleGeometry] = useState<BubbleGeometry>(loadBubbleGeometry);
+  const bubbleGeometryRef = useRef(bubbleGeometry);
+  bubbleGeometryRef.current = bubbleGeometry;
+
+  const handleBubbleChange = useCallback((geometry: BubbleGeometry) => {
+    setBubbleGeometry(geometry);
+    try {
+      localStorage.setItem(CAMERA_BUBBLE_STORAGE_KEY, JSON.stringify(geometry));
+    } catch {
+      // Persisting position is best-effort.
+    }
+  }, []);
+
+  // Composite the screen share with the camera bubble. Only active when both a screen
+  // and the camera are present; otherwise we publish/record the raw video track.
+  const compositeStream = useScreenCameraCompositor({
+    screenStream: stream,
+    cameraStream: camera.stream,
+    geometryRef: bubbleGeometryRef,
+    enabled: camera.isEnabled && Boolean(stream),
+  });
+
+  const handleToggleCamera = useCallback(() => {
+    void camera.toggle();
+  }, [camera]);
 
   const {
     destinations,
@@ -330,42 +384,51 @@ export function CapturePreview({
     }
   }, [session, isHosting, startHosting]);
 
-  // Publish screen share stream when capture starts.
+  // The video track presented to viewers and recorded locally:
+  //  - screen + camera -> composited (screen with the bubble baked in)
+  //  - screen only      -> raw screen
+  //  - camera only      -> raw camera (lets people share their face in voice calls)
+  //  - neither          -> none (voice only)
+  const presentationVideoTrack = useMemo(() => {
+    if (compositeStream) return compositeStream.getVideoTracks()[0] ?? null;
+    if (stream) return stream.getVideoTracks()[0] ?? null;
+    if (camera.stream) return camera.stream.getVideoTracks()[0] ?? null;
+    return null;
+  }, [compositeStream, stream, camera.stream]);
+
+  // Publish the presentation track when available.
   // Use the mixer output when available so live WebRTC matches recording audio
   // behavior (host mic + any routed audio sources).
   useEffect(() => {
-    if (stream && isHosting) {
-      const publishStream = new MediaStream();
+    if (!isHosting || !presentationVideoTrack) return;
 
-      stream.getVideoTracks().forEach((track) => {
-        publishStream.addTrack(track);
-      });
+    const publishStream = new MediaStream();
+    publishStream.addTrack(presentationVideoTrack);
 
-      const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
-      const fallbackAudioTracks = stream.getAudioTracks();
-      const selectedAudioTracks =
-        mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
+    const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
+    const fallbackAudioTracks = stream?.getAudioTracks() ?? [];
+    const selectedAudioTracks =
+      mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
 
-      selectedAudioTracks.forEach((track) => {
-        publishStream.addTrack(track);
-      });
+    selectedAudioTracks.forEach((track) => {
+      publishStream.addTrack(track);
+    });
 
-      console.log('[CapturePreview] Publishing live stream to viewers', {
-        videoTracks: publishStream.getVideoTracks().length,
-        audioTracks: publishStream.getAudioTracks().length,
-        audioSource: mixedAudioTracks.length > 0 ? 'mixer' : 'capture-stream',
-      });
+    console.log('[CapturePreview] Publishing live stream to viewers', {
+      videoTracks: publishStream.getVideoTracks().length,
+      audioTracks: publishStream.getAudioTracks().length,
+      audioSource: mixedAudioTracks.length > 0 ? 'mixer' : 'capture-stream',
+    });
 
-      void hostPublishStream(publishStream);
-    }
-  }, [stream, mixedStream, isHosting, hostPublishStream]);
+    void hostPublishStream(publishStream);
+  }, [presentationVideoTrack, mixedStream, isHosting, hostPublishStream, stream]);
 
-  // Unpublish screen share when capture stops (session stays alive)
+  // Unpublish when there is nothing to show (session stays alive)
   useEffect(() => {
-    if (!stream && isHosting) {
+    if (!presentationVideoTrack && isHosting) {
       void hostUnpublishStream();
     }
-  }, [stream, isHosting, hostUnpublishStream]);
+  }, [presentationVideoTrack, isHosting, hostUnpublishStream]);
 
   // Stop hosting when component unmounts
   useEffect(() => {
@@ -661,18 +724,24 @@ export function CapturePreview({
     if (!source || !stream) return;
     setSpaceWarning(null);
 
+    // Record the same video the viewers see — the composited track (screen + camera
+    // bubble) when the camera is on, otherwise the raw screen track.
+    const screenVideoTrack = stream.getVideoTracks()[0];
+    const videoTrack = presentationVideoTrack ?? screenVideoTrack;
+    const usingComposite = videoTrack !== screenVideoTrack;
+
     // Build a recording stream that includes video + mixed audio (host mic + viewer audio).
     // The mixer's output is a live AudioContext graph, so viewers joining/leaving during
     // recording are automatically included without needing to restart MediaRecorder.
     let recordingStream: MediaStream;
-    if (includeAudio && mixedStream) {
+    if (includeAudio || usingComposite) {
       recordingStream = new MediaStream();
-      // Video from the screen capture
-      stream.getVideoTracks().forEach((track) => {
-        recordingStream.addTrack(track);
-      });
-      // Audio from the mixer (host mic + all viewer audio combined)
-      mixedStream.getAudioTracks().forEach((track) => {
+      recordingStream.addTrack(videoTrack);
+      // Audio from the mixer (host mic + all viewer audio combined), falling back to
+      // the screen capture's own audio tracks.
+      const audioTracks =
+        includeAudio && mixedStream ? mixedStream.getAudioTracks() : stream.getAudioTracks();
+      audioTracks.forEach((track) => {
         recordingStream.addTrack(track);
       });
     } else {
@@ -686,7 +755,15 @@ export function CapturePreview({
       // Pass the combined stream — Wayland-safe and includes all participant audio
       existingStream: recordingStream,
     });
-  }, [source, recordingQuality, includeAudio, startRecording, stream, mixedStream]);
+  }, [
+    source,
+    recordingQuality,
+    includeAudio,
+    startRecording,
+    stream,
+    mixedStream,
+    presentationVideoTrack,
+  ]);
 
   const handleStopRecording = useCallback(async () => {
     await stopRecording();
@@ -771,6 +848,30 @@ export function CapturePreview({
             >
               <MessageSquare />
               Chat
+            </Button>
+
+            {/* Camera bubble toggle (optional, off by default) */}
+            <Button
+              variant={camera.isEnabled ? 'default' : 'secondary'}
+              size="sm"
+              onClick={handleToggleCamera}
+              disabled={camera.isStarting || isRecording}
+              title={
+                isRecording
+                  ? 'Stop recording to change the camera'
+                  : camera.isEnabled
+                    ? 'Turn camera off'
+                    : 'Turn camera on (drag the bubble to reposition)'
+              }
+            >
+              {camera.isStarting ? (
+                <Loader2 className="animate-spin" />
+              ) : camera.isEnabled ? (
+                <Video />
+              ) : (
+                <VideoOff />
+              )}
+              Camera
             </Button>
 
             {/* Recording controls (only when screen sharing) */}
@@ -920,6 +1021,13 @@ export function CapturePreview({
         {recordingError && (
           <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
             Recording error: {recordingError}
+          </div>
+        )}
+
+        {/* Camera error */}
+        {camera.error && (
+          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Camera error: {camera.error}
           </div>
         )}
 
@@ -1242,6 +1350,20 @@ export function CapturePreview({
             containerDimensions={containerDimensions}
             sourceDimensions={sourceDimensions}
           />
+
+          {/* Loom-style camera bubble (optional) */}
+          {camera.isEnabled && camera.stream && (
+            <CameraBubble
+              stream={camera.stream}
+              containerWidth={containerDimensions.width}
+              containerHeight={containerDimensions.height}
+              videoWidth={stream ? sourceDimensions.width : 0}
+              videoHeight={stream ? sourceDimensions.height : 0}
+              geometry={bubbleGeometry}
+              onChange={handleBubbleChange}
+              onClose={camera.disable}
+            />
+          )}
         </div>
       </div>
 

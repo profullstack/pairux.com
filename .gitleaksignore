@@ -1,0 +1,9 @@
+# Known, already-remediated findings (kept out of CI noise).
+# These are hardcoded Supabase keys that were committed and then removed in
+# commit 4a4e92e ("remove hardcoded secrets and update config for production").
+# They no longer exist in the working tree; gitleaks only flags them because it
+# scans full git history. If those keys were ever real production credentials,
+# rotate them — removing them from history does not invalidate a leaked key.
+4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:0
+4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:1
+4a4e92ec1cdc3d12c55cfb5adca4565507f1a48a:supabase/config.toml:generic-api-key:2

@@ -982,8 +982,13 @@ if [ -x "\$APPIMAGE" ]; then
     # If FUSE is unavailable or inaccessible (common in restricted/containerized
     # environments), fall back to extract-and-run mode so the AppImage can still
     # launch. A simple -r/-w check is not enough because /dev/fuse may exist but
-    # still reject open() with EPERM.
-    if [ -r /dev/fuse ] && [ -w /dev/fuse ] && (: <> /dev/fuse) 2>/dev/null; then
+    # still reject open() with EPERM. It is also not enough on its own: /dev/fuse
+    # can be fully accessible while the fusermount/fusermount3 helper (libfuse2)
+    # is missing or not setuid, in which case the AppImage runtime fails to mount
+    # and exits with "open dir error: No such file or directory". Require a usable
+    # fusermount helper too; otherwise fall back to extract-and-run.
+    if [ -r /dev/fuse ] && [ -w /dev/fuse ] && (: <> /dev/fuse) 2>/dev/null \
+        && { command -v fusermount3 >/dev/null 2>&1 || command -v fusermount >/dev/null 2>&1; }; then
         exec "\$APPIMAGE" "\$@"
     else
         export APPIMAGE_EXTRACT_AND_RUN=1

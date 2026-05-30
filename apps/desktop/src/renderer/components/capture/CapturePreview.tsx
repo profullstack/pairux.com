@@ -317,6 +317,7 @@ export function CapturePreview({
     micEnabled: hostMicEnabled,
     hasMic: hostHasMic,
     toggleMic: hostToggleMic,
+    hostMicStream,
   } = isSFU ? sfuHost : p2pHost;
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
@@ -328,17 +329,20 @@ export function CapturePreview({
     dispose: disposeMixer,
   } = useAudioMixer();
 
-  // Add host mic audio to the mixer
+  // Add host mic audio to the mixer.
+  // Source from the host's dedicated mic stream (alive for the whole session)
+  // rather than the screen stream, so the host stays audible to viewers and in
+  // recordings whether or not a screen is being shared.
   useEffect(() => {
-    if (!stream) return;
-    const audioTracks = stream.getAudioTracks();
+    if (!hostMicStream) return;
+    const audioTracks = hostMicStream.getAudioTracks();
     if (audioTracks.length > 0) {
       mixerAddTrack('host-mic', audioTracks[0], false);
     }
     return () => {
       mixerRemoveTrack('host-mic');
     };
-  }, [stream, mixerAddTrack, mixerRemoveTrack]);
+  }, [hostMicStream, mixerAddTrack, mixerRemoveTrack]);
 
   // Sync viewer audio tracks into the mixer as viewers join/leave
   useEffect(() => {

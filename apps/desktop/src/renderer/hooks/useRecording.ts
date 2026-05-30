@@ -278,8 +278,9 @@ export function useRecording(options: UseRecordingOptions = {}) {
 
         mediaRecorderRef.current = mediaRecorder;
 
-        // Start the MediaRecorder (request data every second)
-        mediaRecorder.start(1000);
+        // Request data every 250ms so encoded frames are flushed to disk
+        // frequently rather than accumulating in memory between callbacks.
+        mediaRecorder.start(250);
 
         // Initialize state
         startTimeRef.current = Date.now();

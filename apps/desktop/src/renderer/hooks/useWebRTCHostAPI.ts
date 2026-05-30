@@ -94,6 +94,8 @@ interface UseWebRTCHostAPIReturn {
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
+  /** The host's dedicated microphone stream — alive whenever hosting, independent of screen sharing. */
+  hostMicStream: MediaStream | null;
 }
 
 export function useWebRTCHostAPI({
@@ -113,6 +115,7 @@ export function useWebRTCHostAPI({
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [hostMicStream, setHostMicStream] = useState<MediaStream | null>(null);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
@@ -730,10 +733,12 @@ export function useWebRTCHostAPI({
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       hostMicStreamRef.current = micStream;
+      setHostMicStream(micStream);
       setHasMic(true);
       setMicEnabled(true);
     } catch {
       console.warn('[WebRTCHost] No microphone available — continuing without host mic');
+      setHostMicStream(null);
       setHasMic(false);
       setMicEnabled(false);
     }
@@ -855,6 +860,7 @@ export function useWebRTCHostAPI({
       });
       hostMicStreamRef.current = null;
     }
+    setHostMicStream(null);
     setMicEnabled(false);
     setHasMic(false);
   }, []);
@@ -1113,5 +1119,6 @@ export function useWebRTCHostAPI({
     micEnabled,
     hasMic,
     toggleMic,
+    hostMicStream,
   };
 }

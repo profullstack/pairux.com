@@ -35,10 +35,11 @@ export function registerRecordingHandlers(): void {
     return stopRecording();
   });
 
-  // Write recording chunk (from renderer's MediaRecorder)
-  ipcMain.handle('recording:writeChunk', (_event, chunk: ArrayBuffer) => {
+  // Write recording chunk (from renderer's MediaRecorder).
+  // Awaits the write so backpressure propagates back to the renderer.
+  ipcMain.handle('recording:writeChunk', async (_event, chunk: ArrayBuffer) => {
     const buffer = Buffer.from(chunk);
-    const success = writeRecordingChunk(buffer);
+    const success = await writeRecordingChunk(buffer);
     return { success };
   });
 

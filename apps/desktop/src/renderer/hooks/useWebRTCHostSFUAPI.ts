@@ -75,6 +75,8 @@ interface UseWebRTCHostSFUAPIReturn {
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
+  /** The host's dedicated microphone stream — alive whenever hosting, independent of screen sharing. */
+  hostMicStream: MediaStream | null;
 }
 
 export function useWebRTCHostSFUAPI({
@@ -93,6 +95,7 @@ export function useWebRTCHostSFUAPI({
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [hostMicStream, setHostMicStream] = useState<MediaStream | null>(null);
 
   const roomRef = useRef<Room | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
@@ -220,12 +223,14 @@ export function useWebRTCHostSFUAPI({
       try {
         const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         hostMicStreamRef.current = micStream;
+        setHostMicStream(micStream);
         setHasMic(true);
         setMicEnabled(true);
         console.log('[WebRTCHostSFUAPI] Host microphone captured');
       } catch (err: unknown) {
         console.warn('[WebRTCHostSFUAPI] Could not access microphone:', err);
         hostMicStreamRef.current = null;
+        setHostMicStream(null);
         setHasMic(false);
         setMicEnabled(false);
       }
@@ -420,6 +425,7 @@ export function useWebRTCHostSFUAPI({
       });
       hostMicStreamRef.current = null;
     }
+    setHostMicStream(null);
 
     viewersRef.current.forEach((viewer) => {
       if (viewer.audioElement) {
@@ -579,6 +585,7 @@ export function useWebRTCHostSFUAPI({
     micEnabled,
     hasMic,
     toggleMic,
+    hostMicStream,
     kickViewer,
     muteViewer,
   };

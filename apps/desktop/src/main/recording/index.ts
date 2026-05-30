@@ -80,19 +80,33 @@ export function startRecording(options?: { customPath?: string; format?: 'webm' 
 }
 
 /**
- * Write recording data chunk
+ * Write a recording data chunk to disk.
+ *
+ * Honors stream backpressure: when the OS write buffer is full, `write()` returns
+ * false and we wait for the 'drain' event before resolving. Because the renderer
+ * awaits this call before sending the next chunk, a slow disk throttles the
+ * producer instead of letting unwritten chunks pile up in memory unbounded.
  */
-export function writeRecordingChunk(chunk: Buffer): boolean {
+export function writeRecordingChunk(chunk: Buffer): Promise<boolean> {
   if (!isRecording || !fileHandle) {
-    return false;
+    return Promise.resolve(false);
   }
 
   try {
-    fileHandle.write(chunk);
-    return true;
+    const handle = fileHandle;
+    const hasRoom = handle.write(chunk);
+    if (hasRoom) {
+      return Promise.resolve(true);
+    }
+    // Buffer full — wait for it to drain to disk before accepting more.
+    return new Promise<boolean>((resolve) => {
+      handle.once('drain', () => {
+        resolve(true);
+      });
+    });
   } catch (error) {
     console.error('[Recording] Failed to write chunk:', error);
-    return false;
+    return Promise.resolve(false);
   }
 }
 

@@ -71,11 +71,14 @@ jobs:
 
       - name: Determine version
         id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          elif [ -n "${{ github.event.release.tag_name }}" ]; then
-            VERSION="${{ github.event.release.tag_name }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          elif [ -n "$RELEASE_TAG" ]; then
+            VERSION="$RELEASE_TAG"
           else
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           fi
@@ -86,8 +89,10 @@ jobs:
 
       - name: Determine package managers
         id: pms
+        env:
+          INPUT_PACKAGE_MANAGERS: ${{ github.event.inputs.package_managers }}
         run: |
-          INPUT_PMS="${{ github.event.inputs.package_managers }}"
+          INPUT_PMS="$INPUT_PACKAGE_MANAGERS"
           if [ -z "$INPUT_PMS" ]; then
             INPUT_PMS="all"
           fi
@@ -104,10 +109,11 @@ jobs:
 
       - name: Submit to package managers
         if: steps.pms.outputs.package_managers != ''
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           PMS="${{ steps.pms.outputs.package_managers }}"
-          DRY_RUN="${{ github.event.inputs.dry_run }}"
 
           ARGS="-v $VERSION"
 

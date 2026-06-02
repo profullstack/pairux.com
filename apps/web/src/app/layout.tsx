@@ -112,6 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           data-domain="pairux.com"
           strategy="afterInteractive"
         />
+              <Script data-site="77cf2148-c41b-47af-8326-ab4676fa0b81" src="https://crawlproof.com/stats.js" strategy="afterInteractive" />
       </body>
     </html>
   );

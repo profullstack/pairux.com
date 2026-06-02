@@ -25,6 +25,7 @@ export const metadata: Metadata = {
   title: 'Features',
   description:
     'Explore all the features of PairUX: real-time screen sharing, remote control, multi-cursor collaboration, cross-platform support, and more.',
+  alternates: { canonical: 'https://pairux.com/features' },
 };
 
 const mainFeatures = [

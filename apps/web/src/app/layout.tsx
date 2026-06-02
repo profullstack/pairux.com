@@ -98,10 +98,31 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'PairUX',
+  url: 'https://pairux.com',
+  logo: 'https://pairux.com/logo.svg',
+  description:
+    'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
+  email: 'hello@pairux.com',
+  legalName: 'Profullstack, Inc.',
+  sameAs: [
+    'https://github.com/profullstack/pairux.com',
+    'https://x.com/profullstackinc',
+    'https://discord.gg/U7dEXfBA3s',
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
         {children}
         <PWAInstallButton />
         {/* Datafast Analytics */}
@@ -112,7 +133,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           data-domain="pairux.com"
           strategy="afterInteractive"
         />
-              <Script data-site="77cf2148-c41b-47af-8326-ab4676fa0b81" src="https://crawlproof.com/stats.js" strategy="afterInteractive" />
+        <Script
+          data-site="77cf2148-c41b-47af-8326-ab4676fa0b81"
+          src="https://crawlproof.com/stats.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer';
 export const metadata: Metadata = {
   title: 'Blog',
   description: 'News, updates, and tutorials from the PairUX team.',
+  alternates: { canonical: 'https://pairux.com/blog' },
 };
 
 export default function BlogPage() {

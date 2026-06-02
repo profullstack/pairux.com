@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer';
 export const metadata: Metadata = {
   title: 'About',
   description: 'Learn about PairUX - the open source collaborative screen sharing tool.',
+  alternates: { canonical: 'https://pairux.com/about' },
 };
 
 export default function AboutPage() {

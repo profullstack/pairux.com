@@ -47,12 +47,12 @@ const footerLinks = {
     },
     {
       name: 'WinGet (Windows)',
-      href: 'https://github.com/microsoft/winget-pkgs/tree/master/manifests/p/PairUX/PairUX',
+      href: 'https://github.com/profullstack/pairux.com/releases',
       external: true,
     },
     {
       name: 'Chocolatey (Windows)',
-      href: 'https://community.chocolatey.org/packages/pairux',
+      href: 'https://github.com/profullstack/pairux.com/releases',
       external: true,
     },
     { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux-bin', external: true },

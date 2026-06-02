@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: 'Documentation',
   description:
     'Learn how to use PairUX: installation guides, system requirements, security information, and frequently asked questions.',
+  alternates: { canonical: 'https://pairux.com/docs' },
 };
 
 const tableOfContents = [

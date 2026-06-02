@@ -1,0 +1,53 @@
+# PairUX - Collaborative Screen Sharing with Remote Control
+
+> Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.
+
+PairUX is an open-source desktop application for collaborative screen sharing with simultaneous remote mouse and keyboard control. Built on WebRTC (DTLS-SRTP), it delivers end-to-end encrypted P2P and SFU relay connections. Viewers can join from any modern browser — no install required.
+
+Made by Profullstack, Inc. Contact: hello@pairux.com
+
+## Key Pages
+
+- [Homepage](https://pairux.com/) — Product overview, features, and CTAs
+- [Features](https://pairux.com/features) — Detailed feature breakdown
+- [Download](https://pairux.com/download) — Desktop app for macOS, Windows, Linux
+- [Pricing](https://pairux.com/pricing) — Free, Pro ($12/mo), Team ($49/mo) — flat-rate, no per-seat fees
+- [Documentation](https://pairux.com/docs) — Getting started, system requirements, security, FAQ
+- [About](https://pairux.com/about) — Company mission and background
+- [Changelog](https://pairux.com/changelog) — Release history
+- [Blog](https://pairux.com/blog) — Articles and product updates
+- [Privacy Policy](https://pairux.com/privacy) — Data collection and practices
+- [Terms of Service](https://pairux.com/terms) — Usage terms
+- [GitHub Repository](https://github.com/profullstack/pairux.com) — Source code (MIT license)
+
+## Pricing Summary
+
+- **Free** ($0/forever): 2 participants + 5 viewers, P2P, screen sharing, remote control, E2E encryption, community support
+- **Pro** ($12/month): 10 participants + 50 viewers, 100 viewer-hours/month included, SFU relay, HD 1080p, priority support
+- **Team** ($49/month): Unlimited participants, 500 viewer-hours/month included, dedicated SFU, 4K screen sharing, admin controls
+
+Overage rates: $0.08/hr (720p), $0.12/hr (1080p), $0.20/hr (4K).
+
+## Key Differentiators
+
+- Open source under MIT license — fully auditable at github.com/profullstack/pairux.com
+- No per-seat pricing — flat rate per team, 40-70% cheaper than Zoom/Teams
+- End-to-end encrypted — WebRTC DTLS-SRTP, media never touches our servers
+- Simultaneous input — host and viewer can control the screen at the same time
+- PWA viewer — no install required for viewers, any modern browser works
+- Cross-platform desktop apps — macOS, Windows, Linux
+
+## Install Methods
+
+Homebrew, WinGet, Scoop, Chocolatey, AUR, APT, RPM, Gentoo, Nix, and direct download.
+Shell: `curl -fsSL https://installer.pairux.com/install.sh | bash`
+
+## Company
+
+- Name: Profullstack, Inc.
+- Product: PairUX
+- License: MIT
+- Email: hello@pairux.com
+- GitHub: https://github.com/profullstack/pairux.com
+- Discord: https://discord.gg/U7dEXfBA3s
+- X: https://x.com/profullstackinc

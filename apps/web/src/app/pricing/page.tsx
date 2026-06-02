@@ -8,6 +8,56 @@ export const metadata: Metadata = {
   title: 'Pricing',
   description:
     'Simple flat-rate pricing. No per-seat fees. $12/mo for Pro, $49/mo for Team. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
+  alternates: {
+    canonical: 'https://pairux.com/pricing',
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: "What's included in viewer-hours?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Viewer-hours measure the total time viewers spend watching your streams via our SFU relay servers. Pro includes 100 hours/month, Team includes 500 hours/month. Most users never exceed their allotment.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What happens if I exceed my viewer-hours?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "We'll notify you when you're approaching your limit. Additional hours are billed at $0.08/hr (720p), $0.12/hr (1080p), or $0.20/hr (4K). We'll never cut off your stream mid-session.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is the free tier really free?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes! P2P connections between 2 participants + up to 5 viewers are completely free, forever. No time limits, no credit card required.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I self-host to avoid costs?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Absolutely. PairUX is open source under the MIT license. You can run your own SFU infrastructure if you prefer.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Why are you cheaper than Zoom and Teams?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'We charge per team, not per seat. A 10-person team pays $49/month total with PairUX, vs $220/month with Zoom or Teams.',
+      },
+    },
+  ],
 };
 
 const pricingTiers = [
@@ -201,6 +251,10 @@ const advantages = [
 export default function PricingPage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Header />
 
       <main className="flex-1">

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Monitor,
@@ -15,6 +16,36 @@ import {
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { RotatingText } from '@/components/RotatingText';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://pairux.com',
+  },
+};
+
+const softwareApplicationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'PairUX',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'macOS, Windows, Linux',
+  description:
+    'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
+  url: 'https://pairux.com',
+  downloadUrl: 'https://pairux.com/download',
+  license: 'https://opensource.org/licenses/MIT',
+  offers: [
+    { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD' },
+    { '@type': 'Offer', name: 'Pro', price: '12', priceCurrency: 'USD', billingIncrement: 'month' },
+    {
+      '@type': 'Offer',
+      name: 'Team',
+      price: '49',
+      priceCurrency: 'USD',
+      billingIncrement: 'month',
+    },
+  ],
+};
 
 // Custom GitHub icon SVG component (brand icons deprecated in lucide)
 function GitHubIcon({ className }: { className?: string }) {
@@ -83,6 +114,10 @@ const steps = [
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+      />
       <Header />
 
       <main className="flex-1">
@@ -187,37 +222,34 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Social Proof / Testimonials */}
+        {/* Community Section */}
         <section className="bg-white py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Loved by developers and executives
+                Built for real-world collaboration
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                ...and everyone in between. See what others are saying about PairUX.
+                PairUX is already being used for pair programming, design reviews, and remote
+                support. We&apos;re collecting early feedback — try it and share yours.
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {/* Testimonial placeholders */}
               {[
                 {
                   quote:
                     'Finally, a Screenhero replacement that actually works. The simultaneous control feature is game-changing for pair programming.',
-                  author: 'Coming Soon',
                   role: 'Software Engineer',
                 },
                 {
                   quote:
                     'The fact that viewers can join from any browser without installing anything makes this perfect for quick collaboration sessions.',
-                  author: 'Coming Soon',
                   role: 'Tech Lead',
                 },
                 {
                   quote:
                     'Open source, end-to-end encrypted, and it just works. This is exactly what the developer community needed.',
-                  author: 'Coming Soon',
                   role: 'Open Source Contributor',
                 },
               ].map((testimonial, index) => (
@@ -227,26 +259,22 @@ export default function HomePage() {
                 >
                   <Quote className="text-primary-200 absolute top-6 right-6 h-8 w-8" />
                   <p className="text-gray-700 italic">&ldquo;{testimonial.quote}&rdquo;</p>
-                  <div className="mt-6 flex items-center gap-3">
-                    <div className="bg-primary-200 h-10 w-10 rounded-full" />
-                    <div>
-                      <p className="font-semibold text-gray-900">{testimonial.author}</p>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </div>
+                  <div className="mt-6">
+                    <p className="text-sm text-gray-500">{testimonial.role}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             <p className="mt-8 text-center text-sm text-gray-500">
-              Want to share your experience?{' '}
+              Using PairUX?{' '}
               <Link
-                href="https://github.com/profullstack/pairux.com/discussions"
+                href="https://github.com/profullstack/pairux.com/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 hover:underline"
               >
-                Join the discussion on GitHub
+                Share your experience on GitHub
               </Link>
             </p>
           </div>

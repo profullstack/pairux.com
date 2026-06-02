@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Download',
   description:
     'Download PairUX for macOS, Windows, or Linux. Available via Homebrew, WinGet, APT, and direct download.',
+  alternates: { canonical: 'https://pairux.com/download' },
 };
 
 export default function DownloadPage() {

@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer';
 export const metadata: Metadata = {
   title: 'Changelog',
   description: 'See what&apos;s new in PairUX. Release notes and version history.',
+  alternates: { canonical: 'https://pairux.com/changelog' },
 };
 
 const releases = [

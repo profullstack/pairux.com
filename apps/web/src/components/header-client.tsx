@@ -20,6 +20,7 @@ const navigation = [
   { name: 'Features', href: '/features' },
   { name: 'Download', href: '/download' },
   { name: 'Docs', href: '/docs' },
+  { name: 'Blog', href: '/blog' },
   { name: 'Pricing', href: '/pricing' },
 ];
 

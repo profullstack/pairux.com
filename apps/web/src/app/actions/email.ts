@@ -48,7 +48,7 @@ export async function sendBulkEmail(input: {
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) return { ok: false, error: 'RESEND_API_KEY is not configured.' };
 
-  const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <noreply@pairux.com>';
+  const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <hello@pairux.com>';
 
   // Fetch all user emails via the admin auth API (service role bypasses RLS).
   const svc = serviceClient();

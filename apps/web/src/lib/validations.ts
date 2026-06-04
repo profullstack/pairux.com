@@ -76,6 +76,11 @@ export const createSessionSchema = z.object({
   allowGuestControl: z.boolean().default(false),
   maxParticipants: z.number().min(1).max(10).default(5),
   mode: z.enum(['p2p', 'sfu']).default('p2p'),
+  joinCode: z
+    .string()
+    .length(6, 'Join code must be 6 characters')
+    .regex(/^[A-Za-z0-9]+$/, 'Join code must be letters and numbers only')
+    .optional(),
 });
 
 // Chat message schema
@@ -115,6 +120,28 @@ export const notificationPreferencesSchema = z.object({
   participantLeft: z.boolean().default(true),
   hostDisconnected: z.boolean().default(true),
 });
+
+// Schedule a meeting
+export const scheduleMeetingSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
+  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  scheduledAt: z.string().datetime('Invalid date/time'),
+  durationMinutes: z.number().int().min(15).max(480).default(60),
+  inviteeEmails: z
+    .array(z.string().email('Invalid email address'))
+    .max(50, 'Maximum 50 invitees')
+    .optional(),
+});
+
+export const updateScheduledMeetingSchema = z.object({
+  title: z.string().min(1).max(120).optional(),
+  description: z.string().max(500).optional(),
+  scheduled_at: z.string().datetime().optional(),
+  duration_minutes: z.number().int().min(15).max(480).optional(),
+});
+
+export type ScheduleMeetingInput = z.infer<typeof scheduleMeetingSchema>;
+export type UpdateScheduledMeetingInput = z.infer<typeof updateScheduledMeetingSchema>;
 
 // Type exports
 export type PushSubscriptionInput = z.infer<typeof pushSubscriptionSchema>;

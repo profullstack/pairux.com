@@ -18,15 +18,18 @@ export async function POST(request: Request) {
     }
 
     // Create session using RPC function
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any)('create_session', {
+
+    const rpcParams: Record<string, unknown> = {
       p_settings: {
         quality: 'medium',
         allowControl: settings.allowGuestControl,
         maxParticipants: settings.maxParticipants,
       },
       p_mode: settings.mode,
-    });
+    };
+    if (settings.joinCode) rpcParams.p_join_code = settings.joinCode;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('create_session', rpcParams);
 
     if (error) {
       console.error('Create session error:', error);

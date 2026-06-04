@@ -305,6 +305,9 @@ importers:
       '@profullstack/autoblog':
         specifier: github:profullstack/autoblog#75e54af
         version: https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af
+      '@profullstack/emailer':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@serwist/next':
         specifier: ^9.5.0
         version: 9.5.0(next@16.1.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
@@ -2352,6 +2355,9 @@ packages:
     resolution: {tarball: https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af}
     version: 0.4.0
     engines: {node: '>=18'}
+
+  '@profullstack/emailer@1.0.1':
+    resolution: {integrity: sha512-/uhHJJGH+1xSSz3mJn6X+m6aruYjMD3JOaRp/d4R/YWlzpy07H9z0/JUleIyRyBPNmaANSIwjTZ7aVjaukOEpg==}
 
   '@radix-ui/react-compose-refs@1.0.0':
     resolution: {integrity: sha512-0KaSv6sx787/hK3eF53iOkiSLwAGlFMx5lotrqD2pTjB18KbybKoEIgkNZTKC60YECDQTKGTRcDBILwZVqVKvA==}
@@ -10467,6 +10473,8 @@ snapshots:
     optional: true
 
   '@profullstack/autoblog@https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af': {}
+
+  '@profullstack/emailer@1.0.1': {}
 
   '@radix-ui/react-compose-refs@1.0.0(react@19.2.3)':
     dependencies:

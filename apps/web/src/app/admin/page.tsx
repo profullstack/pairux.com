@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { IntegrationsManager } from './integrations-form';
+import { EmailComposer } from './email-composer';
 
 export const metadata: Metadata = {
   title: 'Admin - PairUX',
@@ -87,6 +88,16 @@ export default async function AdminPage() {
               </p>
             </div>
             <IntegrationsManager initial={integrations as any} />
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Email users</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Compose an HTML email and send it to all registered users via Resend.
+              </p>
+            </div>
+            <EmailComposer />
           </section>
 
           <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">

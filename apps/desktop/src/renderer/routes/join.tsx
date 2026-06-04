@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Monitor, User, Loader2, AlertCircle, Users, ArrowLeft } from 'lucide-react';
+import {
+  Monitor,
+  User,
+  Loader2,
+  AlertCircle,
+  Users,
+  ArrowLeft,
+  Calendar,
+  Clock,
+} from 'lucide-react';
 
 /**
  * Parse a join code from user input. Handles both raw codes and full URLs.
@@ -22,6 +31,109 @@ function parseJoinInput(input: string): string {
     .replace(/[^A-Z0-9]/g, '')
     .slice(0, 6);
 }
+
+function fmtIcs(d: Date): string {
+  return d
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z');
+}
+
+function buildGoogleCalendarUrl(
+  title: string,
+  description: string | null,
+  startIso: string,
+  durationMinutes: number,
+  joinUrl: string
+): string {
+  const start = new Date(startIso);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  const details = [description, `Join at: ${joinUrl}`].filter(Boolean).join('\n\n');
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${fmtIcs(start)}/${fmtIcs(end)}`,
+    details,
+    location: joinUrl,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function buildOutlookUrl(
+  title: string,
+  description: string | null,
+  startIso: string,
+  durationMinutes: number,
+  joinUrl: string
+): string {
+  const start = new Date(startIso);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  const body = [description, `Join at: ${joinUrl}`].filter(Boolean).join('\n\n');
+  const params = new URLSearchParams({
+    subject: title,
+    startdt: start.toISOString(),
+    enddt: end.toISOString(),
+    body,
+    location: joinUrl,
+  });
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+}
+
+function downloadIcs(
+  title: string,
+  description: string | null,
+  startIso: string,
+  durationMinutes: number,
+  joinUrl: string
+): void {
+  const start = new Date(startIso);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  const desc = [description, `Join at: ${joinUrl}`].filter(Boolean).join('\\n\\n');
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//PairUX//EN',
+    'BEGIN:VEVENT',
+    `DTSTART:${fmtIcs(start)}`,
+    `DTEND:${fmtIcs(end)}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${desc}`,
+    `LOCATION:${joinUrl}`,
+    `URL:${joinUrl}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${title.replace(/[^a-z0-9]/gi, '-')}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatScheduledTime(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+}
+
+function formatCountdown(iso: string): string {
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return 'Starting now';
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  if (days > 0) return `Starts in ${String(days)}d ${String(hours)}h`;
+  if (hours > 0) return `Starts in ${String(hours)}h ${String(mins)}m`;
+  return `Starts in ${String(mins)}m`;
+}
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,6 +154,18 @@ interface SessionInfo {
   participant_count: number;
 }
 
+interface ScheduledSessionInfo {
+  id: string;
+  join_code: string;
+  title: string;
+  description: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  invitees: { name: string | null; rsvp_status: string }[];
+}
+
+const API_BASE = 'https://pairux.com';
+
 export function JoinPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,9 +175,12 @@ export function JoinPage() {
   const [joinCode, setJoinCode] = useState(searchParams.get('code') ?? '');
   const [displayName, setDisplayName] = useState('');
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [scheduled, setScheduled] = useState<ScheduledSessionInfo | null>(null);
+  const [countdown, setCountdown] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (displayName.trim()) return;
@@ -67,6 +194,40 @@ export function JoinPage() {
     }
   }, [profile?.display_name, user?.email, displayName]);
 
+  // Countdown + polling when a scheduled session is shown
+  useEffect(() => {
+    if (!scheduled) {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+      return;
+    }
+
+    setCountdown(formatCountdown(scheduled.scheduled_at));
+    const tick = setInterval(() => {
+      setCountdown(formatCountdown(scheduled.scheduled_at));
+    }, 30000);
+
+    pollRef.current = setInterval(() => {
+      const api = getElectronAPI();
+      void api
+        .invoke('session:lookup', { joinCode: scheduled.join_code })
+        .then((result) => {
+          if (result.success && 'session' in result) {
+            setSession(result.session);
+            setScheduled(null);
+          }
+        })
+        .catch(() => undefined);
+    }, 30000);
+
+    return () => {
+      clearInterval(tick);
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [scheduled]);
+
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
@@ -74,6 +235,7 @@ export function JoinPage() {
     setError('');
     setLoading(true);
     setSession(null);
+    setScheduled(null);
 
     try {
       const api = getElectronAPI();
@@ -84,7 +246,11 @@ export function JoinPage() {
         return;
       }
 
-      setSession(result.session);
+      if ('scheduledSession' in result) {
+        setScheduled(result.scheduledSession);
+      } else {
+        setSession(result.session);
+      }
     } catch {
       setError('Failed to lookup session');
     } finally {
@@ -127,13 +293,162 @@ export function JoinPage() {
   };
 
   const handleBack = () => {
-    if (session) {
+    if (session || scheduled) {
       setSession(null);
+      setScheduled(null);
       setError('');
     } else {
       void navigate('/');
     }
   };
+
+  const openExternal = (url: string) => {
+    const api = getElectronAPI();
+    void api.invoke('auth:openExternal', url);
+  };
+
+  // Scheduled session view
+  if (scheduled) {
+    const joinUrl = `${API_BASE}/join/${scheduled.join_code}`;
+    const accepted = scheduled.invitees.filter((i) => i.rsvp_status === 'accepted');
+    const named = scheduled.invitees.filter((i) => i.name);
+
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <div className="drag-region h-8 w-full" />
+        <div className="flex flex-1 items-center justify-center p-6">
+          <Card className="w-full max-w-md border-border">
+            <CardHeader className="space-y-1 text-center">
+              <div className="mb-2 flex justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100">
+                  <Calendar className="h-6 w-6 text-indigo-600" />
+                </div>
+              </div>
+              <CardTitle className="text-xl font-semibold">{scheduled.title}</CardTitle>
+              <CardDescription className="font-medium text-indigo-500">{countdown}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg bg-muted p-4 text-sm space-y-2">
+                <div className="flex items-start gap-2 text-foreground">
+                  <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>{formatScheduledTime(scheduled.scheduled_at)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>
+                    {scheduled.duration_minutes < 60
+                      ? `${String(scheduled.duration_minutes)} minutes`
+                      : `${String(scheduled.duration_minutes / 60)} hour${scheduled.duration_minutes > 60 ? 's' : ''}`}
+                  </span>
+                </div>
+                {scheduled.invitees.length > 0 && (
+                  <div className="flex items-start gap-2 text-foreground">
+                    <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div>
+                      <span>
+                        {String(scheduled.invitees.length)} invited
+                        {accepted.length > 0 && (
+                          <span className="ml-1 text-green-600">
+                            · {String(accepted.length)} accepted
+                          </span>
+                        )}
+                      </span>
+                      {named.length > 0 && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {named.map((i) => i.name).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {scheduled.description && (
+                  <p className="border-t border-border pt-3 text-xs text-muted-foreground">
+                    {scheduled.description}
+                  </p>
+                )}
+              </div>
+
+              <p className="text-center text-xs text-muted-foreground">
+                This page will automatically update when the host starts the session.
+              </p>
+
+              <div className="rounded-lg border border-border bg-muted p-3 text-center">
+                <p className="text-xs text-muted-foreground">Join code</p>
+                <p className="mt-0.5 font-mono text-lg font-bold tracking-widest">
+                  {scheduled.join_code}
+                </p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-center text-xs font-medium text-muted-foreground">
+                  Add to Calendar
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openExternal(
+                        buildGoogleCalendarUrl(
+                          scheduled.title,
+                          scheduled.description,
+                          scheduled.scheduled_at,
+                          scheduled.duration_minutes,
+                          joinUrl
+                        )
+                      );
+                    }}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium transition-colors hover:bg-muted"
+                  >
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    Google
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openExternal(
+                        buildOutlookUrl(
+                          scheduled.title,
+                          scheduled.description,
+                          scheduled.scheduled_at,
+                          scheduled.duration_minutes,
+                          joinUrl
+                        )
+                      );
+                    }}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium transition-colors hover:bg-muted"
+                  >
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    Outlook
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadIcs(
+                        scheduled.title,
+                        scheduled.description,
+                        scheduled.scheduled_at,
+                        scheduled.duration_minutes,
+                        joinUrl
+                      );
+                    }}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium transition-colors hover:bg-muted"
+                  >
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    Apple / iCal
+                  </button>
+                </div>
+              </div>
+
+              <Button type="button" variant="outline" onClick={handleBack} className="w-full">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

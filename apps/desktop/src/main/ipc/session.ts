@@ -163,12 +163,20 @@ export function registerSessionHandlers(): void {
             id: string;
             join_code: string;
             status: string;
-            settings: {
-              quality?: string;
-              allowControl?: boolean;
-              maxParticipants?: number;
-            };
+            settings: { quality?: string; allowControl?: boolean; maxParticipants?: number };
             participant_count: number;
+          };
+        }
+      | {
+          success: true;
+          scheduledSession: {
+            id: string;
+            join_code: string;
+            title: string;
+            description: string | null;
+            scheduled_at: string;
+            duration_minutes: number;
+            invitees: { name: string | null; rsvp_status: string }[];
           };
         }
       | { success: false; error: string }
@@ -176,23 +184,28 @@ export function registerSessionHandlers(): void {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/sessions/join/${args.joinCode.toUpperCase()}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          }
+          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         );
 
-        const data = (await response.json()) as ApiResponse<{
-          id: string;
-          join_code: string;
-          status: string;
-          settings: {
-            quality?: string;
-            allowControl?: boolean;
-            maxParticipants?: number;
-          };
-          participant_count: number;
-        }>;
+        const data = (await response.json()) as ApiResponse<
+          | {
+              scheduled: true;
+              id: string;
+              join_code: string;
+              title: string;
+              description: string | null;
+              scheduled_at: string;
+              duration_minutes: number;
+              invitees: { name: string | null; rsvp_status: string }[];
+            }
+          | {
+              id: string;
+              join_code: string;
+              status: string;
+              settings: { quality?: string; allowControl?: boolean; maxParticipants?: number };
+              participant_count: number;
+            }
+        >;
 
         if (!response.ok) {
           console.error('[Session] Lookup session error:', data);
@@ -201,6 +214,11 @@ export function registerSessionHandlers(): void {
 
         if (!data.data) {
           return { success: false, error: 'Invalid response from server' };
+        }
+
+        if ('scheduled' in data.data) {
+          console.log('[Session] Scheduled session found:', data.data.id);
+          return { success: true, scheduledSession: data.data };
         }
 
         console.log('[Session] Session found:', data.data.id);

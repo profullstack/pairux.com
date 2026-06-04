@@ -161,6 +161,18 @@ export interface IPCChannels {
             participant_count: number;
           };
         }
+      | {
+          success: true;
+          scheduledSession: {
+            id: string;
+            join_code: string;
+            title: string;
+            description: string | null;
+            scheduled_at: string;
+            duration_minutes: number;
+            invitees: { name: string | null; rsvp_status: string }[];
+          };
+        }
       | { success: false; error: string };
   };
 

@@ -14,6 +14,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
 interface SessionInfo {
   id: string;
@@ -64,71 +65,6 @@ function formatScheduledTime(iso: string): string {
     minute: '2-digit',
     timeZoneName: 'short',
   });
-}
-
-function buildGoogleCalendarUrl(s: ScheduledSessionInfo, joinUrl: string): string {
-  const start = new Date(s.scheduled_at);
-  const end = new Date(start.getTime() + s.duration_minutes * 60000);
-  const fmt = (d: Date) =>
-    d
-      .toISOString()
-      .replace(/[-:]/g, '')
-      .replace(/\.\d{3}Z$/, 'Z');
-  const details = [s.description, `Join at: ${joinUrl}`].filter(Boolean).join('\n\n');
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: s.title,
-    dates: `${fmt(start)}/${fmt(end)}`,
-    details,
-    location: joinUrl,
-  });
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-function buildOutlookUrl(s: ScheduledSessionInfo, joinUrl: string): string {
-  const start = new Date(s.scheduled_at);
-  const end = new Date(start.getTime() + s.duration_minutes * 60000);
-  const body = [s.description, `Join at: ${joinUrl}`].filter(Boolean).join('\n\n');
-  const params = new URLSearchParams({
-    subject: s.title,
-    startdt: start.toISOString(),
-    enddt: end.toISOString(),
-    body,
-    location: joinUrl,
-  });
-  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
-}
-
-function downloadIcs(s: ScheduledSessionInfo, joinUrl: string): void {
-  const start = new Date(s.scheduled_at);
-  const end = new Date(start.getTime() + s.duration_minutes * 60000);
-  const fmt = (d: Date) =>
-    d
-      .toISOString()
-      .replace(/[-:]/g, '')
-      .replace(/\.\d{3}Z$/, 'Z');
-  const desc = [s.description, `Join at: ${joinUrl}`].filter(Boolean).join('\\n\\n');
-  const ics = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//PairUX//EN',
-    'BEGIN:VEVENT',
-    `DTSTART:${fmt(start)}`,
-    `DTEND:${fmt(end)}`,
-    `SUMMARY:${s.title}`,
-    `DESCRIPTION:${desc}`,
-    `LOCATION:${joinUrl}`,
-    `URL:${joinUrl}`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n');
-  const blob = new Blob([ics], { type: 'text/calendar' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${s.title.replace(/[^a-z0-9]/gi, '-')}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 function formatCountdown(iso: string): string {
@@ -362,10 +298,13 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                 </p>
                 <div className="flex gap-2">
                   <a
-                    href={buildGoogleCalendarUrl(
-                      scheduled,
-                      `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${scheduled.join_code}`
-                    )}
+                    href={buildGoogleCalendarUrl({
+                      title: scheduled.title,
+                      description: scheduled.description,
+                      startIso: scheduled.scheduled_at,
+                      durationMinutes: scheduled.duration_minutes,
+                      joinUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${scheduled.join_code}`,
+                    })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
@@ -374,10 +313,13 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                     Google
                   </a>
                   <a
-                    href={buildOutlookUrl(
-                      scheduled,
-                      `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${scheduled.join_code}`
-                    )}
+                    href={buildOutlookUrl({
+                      title: scheduled.title,
+                      description: scheduled.description,
+                      startIso: scheduled.scheduled_at,
+                      durationMinutes: scheduled.duration_minutes,
+                      joinUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${scheduled.join_code}`,
+                    })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
@@ -388,10 +330,13 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                   <button
                     type="button"
                     onClick={() => {
-                      downloadIcs(
-                        scheduled,
-                        `${window.location.origin}/join/${scheduled.join_code}`
-                      );
+                      downloadIcs({
+                        title: scheduled.title,
+                        description: scheduled.description,
+                        startIso: scheduled.scheduled_at,
+                        durationMinutes: scheduled.duration_minutes,
+                        joinUrl: `${window.location.origin}/join/${scheduled.join_code}`,
+                      });
                     }}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
                   >

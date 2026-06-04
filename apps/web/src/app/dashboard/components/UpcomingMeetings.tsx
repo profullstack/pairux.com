@@ -12,6 +12,7 @@ import {
   CalendarPlus,
   CheckCircle,
 } from 'lucide-react';
+import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
 interface Invitee {
   id: string;
@@ -85,6 +86,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [calendarOpenId, setCalendarOpenId] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -242,6 +244,74 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                         {session.join_code}
                       </Link>
                     )}
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setCalendarOpenId(calendarOpenId === session.id ? null : session.id);
+                        }}
+                        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-500"
+                        title="Add to calendar"
+                      >
+                        <Calendar className="h-4 w-4" />
+                      </button>
+                      {calendarOpenId === session.id && (
+                        <div className="absolute top-full right-0 z-10 mt-1 w-36 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+                          <a
+                            href={buildGoogleCalendarUrl({
+                              title: session.title,
+                              description: session.description,
+                              startIso: session.scheduled_at,
+                              durationMinutes: session.duration_minutes,
+                              joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                            })}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              setCalendarOpenId(null);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                            Google
+                          </a>
+                          <a
+                            href={buildOutlookUrl({
+                              title: session.title,
+                              description: session.description,
+                              startIso: session.scheduled_at,
+                              durationMinutes: session.duration_minutes,
+                              joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                            })}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              setCalendarOpenId(null);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                            Outlook
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              downloadIcs({
+                                title: session.title,
+                                description: session.description,
+                                startIso: session.scheduled_at,
+                                durationMinutes: session.duration_minutes,
+                                joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                              });
+                              setCalendarOpenId(null);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                            Apple / iCal
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <button
                       onClick={() => void handleCancel(session.id)}
                       disabled={cancellingId === session.id}

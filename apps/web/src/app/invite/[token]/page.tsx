@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Calendar, Clock, User, ExternalLink, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
 interface InviteData {
   invitee: {
@@ -202,6 +203,61 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
               Join Meeting
               <ExternalLink className="h-4 w-4" />
             </Link>
+          </div>
+        )}
+
+        {/* Add to Calendar */}
+        {!isCancelled && (
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="mb-3 text-sm font-medium text-gray-700">Add to Calendar</p>
+            <div className="flex gap-2">
+              <a
+                href={buildGoogleCalendarUrl({
+                  title: meeting.title,
+                  description: meeting.description,
+                  startIso: meeting.scheduledAt,
+                  durationMinutes: meeting.durationMinutes,
+                  joinUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${meeting.joinCode}`,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                Google
+              </a>
+              <a
+                href={buildOutlookUrl({
+                  title: meeting.title,
+                  description: meeting.description,
+                  startIso: meeting.scheduledAt,
+                  durationMinutes: meeting.durationMinutes,
+                  joinUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://pairux.com'}/join/${meeting.joinCode}`,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                Outlook
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  downloadIcs({
+                    title: meeting.title,
+                    description: meeting.description,
+                    startIso: meeting.scheduledAt,
+                    durationMinutes: meeting.durationMinutes,
+                    joinUrl: `${window.location.origin}/join/${meeting.joinCode}`,
+                  });
+                }}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                Apple / iCal
+              </button>
+            </div>
           </div>
         )}
 

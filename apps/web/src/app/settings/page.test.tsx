@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import SettingsPage from './page';
+import { SettingsContent } from './settings-content';
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -41,7 +41,7 @@ describe('SettingsPage', () => {
 
   describe('rendering', () => {
     it('should render settings page with all sections', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       expect(screen.getByText('Settings')).toBeInTheDocument();
       expect(screen.getByText('Account')).toBeInTheDocument();
@@ -52,14 +52,14 @@ describe('SettingsPage', () => {
     });
 
     it('should render header and footer', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       expect(screen.getByTestId('header')).toBeInTheDocument();
       expect(screen.getByTestId('footer')).toBeInTheDocument();
     });
 
     it('should render back link to dashboard', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const backLink = screen.getByRole('link', { name: /back/i });
       expect(backLink).toHaveAttribute('href', '/dashboard');
@@ -76,7 +76,7 @@ describe('SettingsPage', () => {
       };
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(savedSettings));
 
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       // Check recording quality - find by text then get the select
       const recordingSelects = screen.getAllByRole('combobox');
@@ -93,7 +93,7 @@ describe('SettingsPage', () => {
     });
 
     it('should use default settings when localStorage is empty', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const selects = screen.getAllByRole('combobox');
       const recordingSelect = selects[0] as HTMLSelectElement;
@@ -110,7 +110,7 @@ describe('SettingsPage', () => {
       localStorage.setItem(SETTINGS_KEY, 'invalid json');
 
       // Should not throw and should use defaults
-      expect(() => render(<SettingsPage />)).not.toThrow();
+      expect(() => render(<SettingsContent user={null} />)).not.toThrow();
 
       const selects = screen.getAllByRole('combobox');
       const recordingSelect = selects[0] as HTMLSelectElement;
@@ -120,7 +120,7 @@ describe('SettingsPage', () => {
 
   describe('saving settings', () => {
     it('should save recording quality to localStorage', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const selects = screen.getAllByRole('combobox');
       const recordingSelect = selects[0]!;
@@ -131,7 +131,7 @@ describe('SettingsPage', () => {
     });
 
     it('should save capture quality to localStorage', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const selects = screen.getAllByRole('combobox');
       const captureSelect = selects[1]!;
@@ -142,7 +142,7 @@ describe('SettingsPage', () => {
     });
 
     it('should save max participants to localStorage', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const selects = screen.getAllByRole('combobox');
       const participantsSelect = selects[2]!;
@@ -153,7 +153,7 @@ describe('SettingsPage', () => {
     });
 
     it('should toggle include audio setting', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       // Find the audio toggle button (the one near "Include System Audio" text)
       const audioSection = screen.getByText(/include system audio/i).closest('div');
@@ -167,7 +167,7 @@ describe('SettingsPage', () => {
     });
 
     it('should show saved indicator after saving', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const selects = screen.getAllByRole('combobox');
       fireEvent.change(selects[0]!, { target: { value: '720p' } });
@@ -178,7 +178,7 @@ describe('SettingsPage', () => {
 
   describe('theme selection', () => {
     it('should save theme to localStorage', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const darkButton = screen.getByRole('button', { name: /^dark$/i });
       fireEvent.click(darkButton);
@@ -188,7 +188,7 @@ describe('SettingsPage', () => {
     });
 
     it('should highlight selected theme', async () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const darkButton = screen.getByRole('button', { name: /^dark$/i });
       fireEvent.click(darkButton);
@@ -200,7 +200,7 @@ describe('SettingsPage', () => {
 
   describe('account section', () => {
     it('should show sign in and create account links', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute('href', '/login');
       expect(screen.getByRole('link', { name: /create account/i })).toHaveAttribute(
@@ -212,7 +212,7 @@ describe('SettingsPage', () => {
 
   describe('about section', () => {
     it('should display application info', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       expect(screen.getByText('PairUX Web')).toBeInTheDocument();
       expect(screen.getByText('Browser / PWA')).toBeInTheDocument();
@@ -220,7 +220,7 @@ describe('SettingsPage', () => {
     });
 
     it('should have link to download desktop app', () => {
-      render(<SettingsPage />);
+      render(<SettingsContent user={null} />);
 
       const downloadLinks = screen.getAllByRole('link', { name: /desktop app/i });
       expect(downloadLinks.length).toBeGreaterThan(0);

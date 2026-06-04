@@ -56,8 +56,10 @@ export async function POST(req: NextRequest) {
         maxLinkDensity: Number.POSITIVE_INFINITY,
         bannedTerms: integration.banned_terms ?? [],
       },
-      minQualityScore: integration.min_quality_score ?? undefined,
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? undefined,
+      ...(integration.min_quality_score != null
+        ? { minQualityScore: integration.min_quality_score }
+        : {}),
+      ...(process.env.ANTHROPIC_API_KEY ? { anthropicApiKey: process.env.ANTHROPIC_API_KEY } : {}),
     }
   );
   if (!gate.ok) {

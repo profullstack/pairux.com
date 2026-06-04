@@ -3,10 +3,15 @@ import { GET, POST } from './route';
 import { createMockSupabaseClient, mockUser, mockSession } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
+const mockServiceClient = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
+}));
+
+vi.mock('@/lib/supabase/service', () => ({
+  serviceClient: () => mockServiceClient(),
 }));
 
 import { createClient } from '@/lib/supabase/server';
@@ -117,6 +122,8 @@ describe('GET /api/sessions/join/[joinCode]', () => {
 
     const mockSupabase = createMockSupabaseClient({ from: mockFrom });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    // Service client also finds no scheduled session
+    mockServiceClient.mockReturnValue(createMockSupabaseClient({ from: mockFrom }));
 
     const request = new Request('http://localhost/api/sessions/join/INVALID');
     const response = await GET(request, createParams('INVALID'));

@@ -1,4 +1,5 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
+import { serviceClient } from '@/lib/supabase/service';
 import { guestJoinSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 
@@ -22,7 +23,42 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return errorResponse('Session not found or has ended', 404);
+        // No live session — check if this is a scheduled (pending) meeting
+        const svc = serviceClient();
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+        const { data: scheduled } = await (svc as any)
+          .from('scheduled_sessions')
+          .select(
+            'id, join_code, title, description, scheduled_at, duration_minutes, status, scheduled_session_invitees(name, rsvp_status)'
+          )
+          .eq('join_code', joinCode.toUpperCase())
+          .eq('status', 'pending')
+          .single();
+
+        if (!scheduled) {
+          return errorResponse('Session not found or has ended', 404);
+        }
+
+        const invitees: { name: string | null; rsvp_status: string }[] = Array.isArray(
+          scheduled.scheduled_session_invitees
+        )
+          ? (scheduled.scheduled_session_invitees as any[]).map((i: any) => ({
+              name: (i.name as string | null) ?? null,
+              rsvp_status: i.rsvp_status as string,
+            }))
+          : [];
+
+        return successResponse({
+          scheduled: true,
+          id: scheduled.id as string,
+          join_code: scheduled.join_code as string,
+          title: scheduled.title as string,
+          description: (scheduled.description as string | null) ?? null,
+          scheduled_at: scheduled.scheduled_at as string,
+          duration_minutes: scheduled.duration_minutes as number,
+          invitees,
+        });
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
       }
       console.error('Lookup session error:', error);
       return errorResponse(error.message, 400);

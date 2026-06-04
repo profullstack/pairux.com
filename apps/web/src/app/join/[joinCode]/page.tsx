@@ -3,7 +3,16 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { User, Loader2, AlertCircle, Users, Monitor, CheckCircle } from 'lucide-react';
+import {
+  User,
+  Loader2,
+  AlertCircle,
+  Users,
+  Monitor,
+  CheckCircle,
+  Calendar,
+  Clock,
+} from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 interface SessionInfo {
@@ -16,6 +25,17 @@ interface SessionInfo {
     maxParticipants?: number;
   };
   participant_count: number;
+}
+
+interface ScheduledSessionInfo {
+  scheduled: true;
+  id: string;
+  join_code: string;
+  title: string;
+  description: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  invitees: { name: string | null; rsvp_status: string }[];
 }
 
 interface UserProfile {
@@ -34,10 +54,35 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+function formatScheduledTime(iso: string): string {
+  const date = new Date(iso);
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+}
+
+function formatCountdown(iso: string): string {
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return 'Starting now';
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  if (days > 0) return `Starts in ${String(days)}d ${String(hours)}h`;
+  if (hours > 0) return `Starts in ${String(hours)}h ${String(mins)}m`;
+  return `Starts in ${String(mins)}m`;
+}
+
 export default function JoinPage({ params }: { params: Promise<{ joinCode: string }> }) {
   const { joinCode } = use(params);
   const router = useRouter();
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [scheduled, setScheduled] = useState<ScheduledSessionInfo | null>(null);
+  const [countdown, setCountdown] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -55,7 +100,6 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
           if (data.data) {
             setUser(data.data.user);
             setProfile(data.data.profile);
-            // Pre-fill display name for authenticated users
             if (data.data.profile?.display_name) {
               setDisplayName(data.data.profile.display_name);
             }
@@ -73,7 +117,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
     async function lookupSession() {
       try {
         const res = await fetch(`/api/sessions/join/${joinCode}`);
-        const data = (await res.json()) as ApiResponse<SessionInfo>;
+        const data = (await res.json()) as ApiResponse<SessionInfo | ScheduledSessionInfo>;
 
         if (!res.ok) {
           setError(data.error ?? 'Session not found');
@@ -81,7 +125,9 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
           return;
         }
 
-        if (data.data) {
+        if (data.data && 'scheduled' in data.data) {
+          setScheduled(data.data);
+        } else if (data.data) {
           setSession(data.data);
         }
       } catch {
@@ -93,6 +139,31 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
 
     void lookupSession();
   }, [joinCode]);
+
+  // Countdown ticker + polling for live session when scheduled
+  useEffect(() => {
+    if (!scheduled) return;
+    setCountdown(formatCountdown(scheduled.scheduled_at));
+    const tick = setInterval(() => {
+      setCountdown(formatCountdown(scheduled.scheduled_at));
+    }, 30000);
+    // Poll every 30s to detect when the host starts the session
+    const poll = setInterval(() => {
+      void fetch(`/api/sessions/join/${joinCode}`)
+        .then((r) => r.json())
+        .then((d: ApiResponse<SessionInfo | ScheduledSessionInfo>) => {
+          if (d.data && !('scheduled' in d.data)) {
+            setSession(d.data);
+            setScheduled(null);
+          }
+        })
+        .catch(() => undefined);
+    }, 30000);
+    return () => {
+      clearInterval(tick);
+      clearInterval(poll);
+    };
+  }, [scheduled, joinCode]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -141,6 +212,87 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
           <Loader2 className="text-primary-600 mx-auto h-8 w-8 animate-spin" />
           <p className="mt-4 text-sm text-gray-600">Looking up session...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (scheduled) {
+    const accepted = scheduled.invitees.filter((i) => i.rsvp_status === 'accepted');
+    const named = scheduled.invitees.filter((i) => i.name);
+    return (
+      <div className="flex min-h-screen flex-col">
+        <header className="border-b border-gray-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center">
+              <Logo size="sm" />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex flex-1 items-center justify-center bg-gray-50 px-4 py-12">
+          <div className="w-full max-w-md">
+            <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+              <div className="mb-6 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
+                  <Calendar className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h1 className="mt-4 text-2xl font-bold text-gray-900">{scheduled.title}</h1>
+                <p className="mt-1 text-sm font-medium text-indigo-600">{countdown}</p>
+              </div>
+
+              <div className="space-y-3 rounded-lg bg-gray-50 p-4 text-sm">
+                <div className="flex items-start gap-2 text-gray-700">
+                  <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                  <span>{formatScheduledTime(scheduled.scheduled_at)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Clock className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span>
+                    {scheduled.duration_minutes < 60
+                      ? `${String(scheduled.duration_minutes)} minutes`
+                      : `${String(scheduled.duration_minutes / 60)} hour${scheduled.duration_minutes > 60 ? 's' : ''}`}
+                  </span>
+                </div>
+                {scheduled.invitees.length > 0 && (
+                  <div className="flex items-start gap-2 text-gray-700">
+                    <Users className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                    <div>
+                      <span>
+                        {String(scheduled.invitees.length)} invited
+                        {accepted.length > 0 && (
+                          <span className="ml-1 text-green-600">
+                            · {String(accepted.length)} accepted
+                          </span>
+                        )}
+                      </span>
+                      {named.length > 0 && (
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {named.map((i) => i.name).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {scheduled.description && (
+                  <p className="border-t border-gray-200 pt-3 text-xs text-gray-500">
+                    {scheduled.description}
+                  </p>
+                )}
+              </div>
+
+              <p className="mt-6 text-center text-xs text-gray-400">
+                This page will automatically update when the host starts the session.
+              </p>
+
+              <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3 text-center">
+                <p className="text-xs text-gray-500">Join code</p>
+                <p className="mt-0.5 font-mono text-lg font-bold tracking-widest text-gray-900">
+                  {scheduled.join_code}
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

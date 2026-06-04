@@ -109,6 +109,99 @@ describe('GET /api/sessions/join/[joinCode]', () => {
     await GET(request, createParams('abc123'));
   });
 
+  it('returns scheduled session when no live session exists', async () => {
+    const scheduledData = {
+      id: 'sched-1',
+      join_code: 'ABC123',
+      title: 'Team Standup',
+      description: 'Daily sync',
+      scheduled_at: '2026-06-05T10:00:00.000Z',
+      duration_minutes: 30,
+      scheduled_session_invitees: [
+        { name: 'Alice', rsvp_status: 'accepted' },
+        { name: null, rsvp_status: 'pending' },
+      ],
+    };
+
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Row not found' },
+      }),
+    });
+
+    const mockServiceFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: scheduledData, error: null }),
+    });
+
+    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockServiceClient.mockReturnValue(createMockSupabaseClient({ from: mockServiceFrom }));
+
+    const request = new Request('http://localhost/api/sessions/join/ABC123');
+    const response = await GET(request, createParams('ABC123'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.scheduled).toBe(true);
+    expect(body.data.id).toBe('sched-1');
+    expect(body.data.join_code).toBe('ABC123');
+    expect(body.data.title).toBe('Team Standup');
+    expect(body.data.description).toBe('Daily sync');
+    expect(body.data.scheduled_at).toBe('2026-06-05T10:00:00.000Z');
+    expect(body.data.duration_minutes).toBe(30);
+    expect(body.data.invitees).toEqual([
+      { name: 'Alice', rsvp_status: 'accepted' },
+      { name: null, rsvp_status: 'pending' },
+    ]);
+  });
+
+  it('returns scheduled session with empty invitees when none exist', async () => {
+    const scheduledData = {
+      id: 'sched-2',
+      join_code: 'XYZ789',
+      title: 'Solo Session',
+      description: null,
+      scheduled_at: '2026-06-06T14:00:00.000Z',
+      duration_minutes: 60,
+      scheduled_session_invitees: [],
+    };
+
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Row not found' },
+      }),
+    });
+
+    const mockServiceFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: scheduledData, error: null }),
+    });
+
+    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockServiceClient.mockReturnValue(createMockSupabaseClient({ from: mockServiceFrom }));
+
+    const request = new Request('http://localhost/api/sessions/join/XYZ789');
+    const response = await GET(request, createParams('XYZ789'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.scheduled).toBe(true);
+    expect(body.data.description).toBeNull();
+    expect(body.data.invitees).toEqual([]);
+  });
+
   it('returns 404 for non-existent or ended session', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),

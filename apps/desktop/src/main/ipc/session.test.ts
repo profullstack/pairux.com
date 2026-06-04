@@ -209,5 +209,84 @@ describe('Session IPC Handlers', () => {
       expect(calledUrl).toContain('/api/sessions/join/ABC123');
       expect(result).toEqual(expect.objectContaining({ success: true }));
     });
+
+    it('should return scheduledSession when API returns a pending scheduled session', async () => {
+      const scheduledData = {
+        scheduled: true,
+        id: 'sched-1',
+        join_code: 'ABC123',
+        title: 'Team Standup',
+        description: 'Daily sync',
+        scheduled_at: '2026-06-05T10:00:00.000Z',
+        duration_minutes: 30,
+        invitees: [{ name: 'Alice', rsvp_status: 'accepted' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: scheduledData }),
+      });
+
+      const handler = mockHandlers.get('session:lookup');
+      const result = await handler?.({}, { joinCode: 'ABC123' });
+
+      expect(result).toEqual({ success: true, scheduledSession: scheduledData });
+      expect(result).not.toHaveProperty('session');
+    });
+
+    it('should return session (not scheduledSession) for a live session', async () => {
+      const liveSession = {
+        id: 'session-1',
+        join_code: 'ABC123',
+        status: 'active',
+        settings: { maxParticipants: 5 },
+        participant_count: 2,
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: liveSession }),
+      });
+
+      const handler = mockHandlers.get('session:lookup');
+      const result = await handler?.({}, { joinCode: 'ABC123' });
+
+      expect(result).toEqual({ success: true, session: liveSession });
+      expect(result).not.toHaveProperty('scheduledSession');
+    });
+
+    it('should uppercase join code before hitting API', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              id: 's-1',
+              join_code: 'ABC123',
+              status: 'active',
+              settings: {},
+              participant_count: 0,
+            },
+          }),
+      });
+
+      const handler = mockHandlers.get('session:lookup');
+      await handler?.({}, { joinCode: 'abc123' });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('/api/sessions/join/ABC123');
+    });
+
+    it('should return error when session not found', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Session not found' }),
+      });
+
+      const handler = mockHandlers.get('session:lookup');
+      const result = await handler?.({}, { joinCode: 'NOPE00' });
+
+      expect(result).toEqual({ success: false, error: 'Session not found' });
+    });
   });
 });

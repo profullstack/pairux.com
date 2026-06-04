@@ -260,6 +260,130 @@ describe('JoinPage', () => {
     });
   });
 
+  describe('Scheduled session flow', () => {
+    const mockScheduledData = {
+      scheduled: true,
+      id: 'sched-123',
+      join_code: 'ABC123',
+      title: 'Team Standup',
+      description: 'Daily sync meeting',
+      scheduled_at: new Date(Date.now() + 3 * 3600000).toISOString(),
+      duration_minutes: 30,
+      invitees: [
+        { name: 'Alice', rsvp_status: 'accepted' },
+        { name: 'Bob', rsvp_status: 'pending' },
+      ],
+    };
+
+    beforeEach(() => {
+      vi.mocked(global.fetch).mockImplementation((url) => {
+        if (urlToString(url).includes('/api/auth/session')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ data: { user: null, profile: null } }),
+          } as Response);
+        }
+        if (urlToString(url).includes('/api/sessions/join/ABC123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ data: mockScheduledData }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+    });
+
+    it('shows session title and countdown', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Team Standup' })).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/Starts in/)).toBeInTheDocument();
+    });
+
+    it('shows invitee count and names', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/2 invited/)).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/1 accepted/)).toBeInTheDocument();
+      expect(screen.getByText('Alice, Bob')).toBeInTheDocument();
+    });
+
+    it('shows the join code', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('ABC123')).toBeInTheDocument();
+      });
+    });
+
+    it('shows Add to Calendar section with all three options', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Add to Calendar')).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('link', { name: /Google/ })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Outlook/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apple \/ iCal/ })).toBeInTheDocument();
+    });
+
+    it('Google Calendar link points to calendar.google.com with session title', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /Google/ })).toBeInTheDocument();
+      });
+
+      const link = screen.getByRole('link', { name: /Google/ });
+      const href = link.getAttribute('href') ?? '';
+      expect(href).toContain('calendar.google.com');
+      expect(href).toContain('Team');
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toContain('noopener');
+    });
+
+    it('does not show a join form for scheduled sessions', async () => {
+      const params = createResolvedParams('ABC123');
+
+      await act(async () => {
+        renderWithSuspense(<JoinPage params={params} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Team Standup' })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('button', { name: 'Join Session' })).not.toBeInTheDocument();
+    });
+  });
+
   describe('Authenticated user flow', () => {
     const mockSessionData = {
       id: 'session-123',

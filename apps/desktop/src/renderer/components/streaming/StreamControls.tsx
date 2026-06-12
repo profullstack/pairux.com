@@ -8,6 +8,8 @@ interface StreamControlsProps {
   destinations: RTMPDestinationInfo[];
   streamStatuses: Map<string, RTMPStreamState>;
   isAnyStreaming: boolean;
+  /** Master "Live stream to RTMP server(s)" toggle from Settings. */
+  liveStreamEnabled: boolean;
   onStartStream: (
     destinationId: string,
     stream: MediaStream
@@ -42,6 +44,7 @@ export function StreamControls({
   destinations,
   streamStatuses,
   isAnyStreaming,
+  liveStreamEnabled,
   onStartStream: _onStartStream,
   onStopStream,
   onStartAll,
@@ -50,6 +53,11 @@ export function StreamControls({
   const enabledDestinations = destinations.filter((d) => d.enabled);
 
   if (enabledDestinations.length === 0) return null;
+
+  // When live streaming is toggled off, hide "Go Live" entirely so a call can't
+  // be streamed by accident. Active streams still render their stop controls so
+  // anything already live can always be stopped.
+  if (!isAnyStreaming && !liveStreamEnabled) return null;
 
   return (
     <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">

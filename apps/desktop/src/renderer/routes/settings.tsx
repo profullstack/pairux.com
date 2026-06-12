@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StreamDestinations } from '@/components/streaming';
+import { LIVE_STREAM_CHANGED_EVENT } from '@/lib/liveStream';
 import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
 import type { RecordingQuality } from '@/hooks/useRecording';
@@ -29,6 +30,9 @@ interface AppSettings {
     defaultMaxParticipants: number;
     allowGuestControlByDefault: boolean;
   };
+  streaming: {
+    liveStreamEnabled: boolean;
+  };
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -38,6 +42,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   session: {
     defaultMaxParticipants: 10,
     allowGuestControlByDefault: false,
+  },
+  streaming: {
+    // Opt-in: going live to YouTube/Twitch is off by default so a routine call
+    // is never streamed by accident.
+    liveStreamEnabled: false,
   },
 };
 
@@ -69,6 +78,7 @@ export function SettingsPage() {
           ...parsed,
           recording: { ...prev.recording, ...parsed.recording },
           session: { ...prev.session, ...parsed.session },
+          streaming: { ...prev.streaming, ...parsed.streaming },
         }));
       } catch {
         // Ignore parse errors
@@ -80,6 +90,9 @@ export function SettingsPage() {
   const updateSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
     localStorage.setItem('pairux-settings', JSON.stringify(newSettings));
+    // Notify same-window listeners (e.g. the capture screen's Go Live control)
+    // since the `storage` event only fires in other windows.
+    window.dispatchEvent(new Event(LIVE_STREAM_CHANGED_EVENT));
     setHasChanges(true);
     setSaveSuccess(false);
     setSaveError(null);
@@ -306,7 +319,39 @@ export function SettingsPage() {
             </div>
             <CardDescription>Configure RTMP streaming destinations</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Live stream to RTMP server(s)</p>
+                <p className="text-xs text-muted-foreground">
+                  When on, you can “Go Live” to the enabled destinations below (YouTube, Twitch,
+                  …). When off, streaming is disabled so calls aren’t broadcast by accident.
+                </p>
+              </div>
+              <button
+                aria-label="Toggle live streaming"
+                aria-pressed={settings.streaming.liveStreamEnabled}
+                onClick={() => {
+                  updateSettings({
+                    ...settings,
+                    streaming: {
+                      ...settings.streaming,
+                      liveStreamEnabled: !settings.streaming.liveStreamEnabled,
+                    },
+                  });
+                }}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  settings.streaming.liveStreamEnabled ? 'bg-primary' : 'bg-muted'
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    settings.streaming.liveStreamEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
             <StreamDestinations
               destinations={destinations}
               onAdd={addDestination}

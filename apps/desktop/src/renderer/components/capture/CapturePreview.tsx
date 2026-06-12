@@ -39,6 +39,7 @@ import { useCamera } from '@/hooks/useCamera';
 import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScreenCameraCompositor';
 import { CameraBubble } from '@/components/capture/CameraBubble';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
+import { useLiveStreamEnabled } from '@/lib/liveStream';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
@@ -210,6 +211,8 @@ export function CapturePreview({
       console.error(`[CapturePreview] Stream ${destId} error:`, err);
     },
   });
+
+  const liveStreamEnabled = useLiveStreamEnabled();
 
   // Use initialSession if provided, otherwise use created session
   const session = initialSession ?? createdSession;
@@ -959,6 +962,7 @@ export function CapturePreview({
                 destinations={destinations}
                 streamStatuses={streamStatuses}
                 isAnyStreaming={isAnyStreaming}
+                liveStreamEnabled={liveStreamEnabled}
                 onStartStream={startStream}
                 onStopStream={stopStream}
                 onStartAll={startAllStreams}

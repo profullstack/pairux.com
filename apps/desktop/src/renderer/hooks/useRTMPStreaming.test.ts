@@ -65,9 +65,38 @@ const mockDestinations = [
   },
 ];
 
+// The desktop test env doesn't ship a working localStorage; install a stub so
+// the live-stream toggle (read via localStorage) is controllable in tests.
+const localStorageStub = (() => {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string): string | null => store.get(key) ?? null,
+    setItem: (key: string, value: string): void => {
+      store.set(key, value);
+    },
+    removeItem: (key: string): void => {
+      store.delete(key);
+    },
+    clear: (): void => {
+      store.clear();
+    },
+  };
+})();
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: localStorageStub,
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
+
+  // Live streaming is gated by the Settings toggle; enable it for start tests.
+  localStorageStub.clear();
+  localStorageStub.setItem(
+    'pairux-settings',
+    JSON.stringify({ streaming: { liveStreamEnabled: true } })
+  );
 
   (
     window as unknown as {
@@ -315,6 +344,33 @@ describe('useRTMPStreaming', () => {
       });
 
       expect(mockElectronAPI.invoke).toHaveBeenCalledWith('rtmp:startAll', undefined);
+    });
+
+    it('refuses to start when live streaming is disabled in Settings', async () => {
+      localStorageStub.setItem(
+        'pairux-settings',
+        JSON.stringify({ streaming: { liveStreamEnabled: false } })
+      );
+      const mockStream = new MediaStream();
+      const { result } = renderHook(() => useRTMPStreaming());
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      await act(async () => {
+        const all = await result.current.startAllStreams(mockStream);
+        expect(all.success).toBe(false);
+        expect(all.started).toBe(0);
+
+        const single = await result.current.startStream('dest-1', mockStream);
+        expect(single.success).toBe(false);
+      });
+
+      expect(mockElectronAPI.invoke).not.toHaveBeenCalledWith('rtmp:startAll', undefined);
+      expect(mockElectronAPI.invoke).not.toHaveBeenCalledWith('rtmp:startStream', {
+        destinationId: 'dest-1',
+      });
     });
 
     it('should stop all streams', async () => {

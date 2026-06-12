@@ -4,6 +4,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
+import { isLiveStreamEnabled } from '@/lib/liveStream';
+
+const LIVE_STREAM_DISABLED_MESSAGE = 'Live streaming is turned off in Settings';
 import type {
   RTMPDestinationInfo,
   RTMPStreamState,
@@ -166,6 +169,9 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
       stream: MediaStream
     ): Promise<{ success: boolean; error?: string }> => {
       if (!isElectron()) return { success: false, error: 'Not in Electron' };
+      if (!isLiveStreamEnabled()) {
+        return { success: false, error: LIVE_STREAM_DISABLED_MESSAGE };
+      }
 
       if (!mediaRecorderRef.current) {
         startMediaCapture(stream);
@@ -209,6 +215,9 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   const startAllStreams = useCallback(
     async (stream: MediaStream) => {
       if (!isElectron()) return { success: false, started: 0, errors: ['Not in Electron'] };
+      if (!isLiveStreamEnabled()) {
+        return { success: false, started: 0, errors: [LIVE_STREAM_DISABLED_MESSAGE] };
+      }
 
       if (!mediaRecorderRef.current) {
         startMediaCapture(stream);

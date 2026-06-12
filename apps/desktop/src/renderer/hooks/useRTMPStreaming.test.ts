@@ -512,7 +512,7 @@ describe('useRTMPStreaming', () => {
       expect(result.current.isAnyStreaming).toBe(true);
     });
 
-    it('should not count non-live streams as active', async () => {
+    it('counts only live streams in activeStreamCount but treats connecting as streaming', async () => {
       let statusHandler: ((data: unknown) => void) | undefined;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -539,8 +539,11 @@ describe('useRTMPStreaming', () => {
         statusHandler?.({ destinationId: 'dest-2', status: 'error' });
       });
 
+      // activeStreamCount tracks only fully-live streams...
       expect(result.current.activeStreamCount).toBe(0);
-      expect(result.current.isAnyStreaming).toBe(false);
+      // ...but a connecting stream still counts as "streaming" so the UI shows
+      // status/stop controls instead of a misleading "Go Live".
+      expect(result.current.isAnyStreaming).toBe(true);
     });
   });
 

@@ -430,6 +430,23 @@ export function CapturePreview({
     void hostPublishStream(publishStream);
   }, [presentationVideoTrack, mixedStream, isHosting, hostPublishStream, stream]);
 
+  // The stream handed to the RTMP broadcast. Critically this carries the *mixed*
+  // audio (host mic + every viewer) — the same track published to viewers and
+  // recorded — instead of the raw screen capture, which has no call audio. The
+  // mixer's output track is stable, so late joiners are included automatically.
+  const broadcastStream = useMemo(() => {
+    if (!presentationVideoTrack) return null;
+    const composed = new MediaStream();
+    composed.addTrack(presentationVideoTrack);
+    const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
+    const fallbackAudioTracks = stream?.getAudioTracks() ?? [];
+    const audioTracks = mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
+    audioTracks.forEach((track) => {
+      composed.addTrack(track);
+    });
+    return composed;
+  }, [presentationVideoTrack, mixedStream, stream]);
+
   // Unpublish when there is nothing to show (session stays alive)
   useEffect(() => {
     if (!presentationVideoTrack && isHosting) {
@@ -955,10 +972,11 @@ export function CapturePreview({
               </div>
             )}
 
-            {/* Streaming controls (only when screen sharing) */}
-            {stream && destinations.length > 0 && (
+            {/* Streaming controls — broadcast the presentation video + mixed
+                call audio (not the silent raw screen capture). */}
+            {broadcastStream && destinations.length > 0 && (
               <StreamControls
-                stream={stream}
+                stream={broadcastStream}
                 destinations={destinations}
                 streamStatuses={streamStatuses}
                 isAnyStreaming={isAnyStreaming}

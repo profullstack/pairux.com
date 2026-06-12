@@ -65,6 +65,7 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   const [error, setError] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const statusPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // --- Destination Management ---
@@ -127,11 +128,35 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   const startMediaCapture = useCallback((stream: MediaStream) => {
     if (mediaRecorderRef.current) return;
 
+    // RTMP targets (YouTube/Twitch) require an audio track. A screen-share
+    // without system/mic audio would otherwise produce a video-only stream that
+    // the platform silently refuses to make live — mix in a silent track.
+    let captureStream = stream;
+    if (stream.getAudioTracks().length === 0) {
+      try {
+        const ctx = new AudioContext();
+        const dest = ctx.createMediaStreamDestination();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        oscillator.connect(gain);
+        gain.connect(dest);
+        oscillator.start();
+        audioContextRef.current = ctx;
+        captureStream = new MediaStream([
+          ...stream.getVideoTracks(),
+          ...dest.stream.getAudioTracks(),
+        ]);
+      } catch (err) {
+        console.warn('[useRTMPStreaming] Could not add silent audio track:', err);
+      }
+    }
+
     const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
       ? 'video/webm;codecs=vp9'
       : 'video/webm';
 
-    const mediaRecorder = new MediaRecorder(stream, {
+    const mediaRecorder = new MediaRecorder(captureStream, {
       mimeType,
       videoBitsPerSecond: 8_000_000,
     });
@@ -158,6 +183,12 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
         // ignore
       }
       mediaRecorderRef.current = null;
+    }
+    if (audioContextRef.current) {
+      void audioContextRef.current.close().catch(() => {
+        // ignore
+      });
+      audioContextRef.current = null;
     }
   }, []);
 
@@ -345,7 +376,11 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   const activeStreamCount = Array.from(streamStatuses.values()).filter(
     (s) => s.status === 'live'
   ).length;
-  const isAnyStreaming = activeStreamCount > 0;
+  // "Streaming" includes in-progress states so the UI shows status/stop controls
+  // (not a misleading "Go Live") the moment a stream is connecting.
+  const isAnyStreaming = Array.from(streamStatuses.values()).some(
+    (s) => s.status === 'live' || s.status === 'connecting' || s.status === 'reconnecting'
+  );
 
   return {
     destinations,

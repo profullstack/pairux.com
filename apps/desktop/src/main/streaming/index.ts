@@ -23,11 +23,30 @@ interface ActiveStream {
   reconnectTimer: ReturnType<typeof setTimeout> | null;
   statsBuffer: string;
   stableTimer: ReturnType<typeof setTimeout> | null;
+  connectTimer: ReturnType<typeof setTimeout> | null;
   intentionallyStopped: boolean;
 }
 
 const activeStreams = new Map<string, ActiveStream>();
 let mainWindowRef: BrowserWindow | null = null;
+
+// The first chunk MediaRecorder emits carries the WebM/EBML init segment
+// (header + track info); later chunks are headerless clusters. ffmpeg can only
+// start decoding from a chunk that begins with the header, so we cache the first
+// chunk and replay it to every ffmpeg that spawns *after* it (reconnects and
+// destinations that join mid-session). Without this, reconnects produce a
+// headerless pipe that ffmpeg rejects and nothing ever reaches the RTMP server.
+let initSegment: Buffer | null = null;
+// How long ffmpeg may sit in "connecting" before we treat it as a failure.
+const CONNECT_TIMEOUT_MS = 20000;
+// Keep the tail of ffmpeg stderr so a failure carries an actionable reason.
+const STDERR_TAIL_LIMIT = 4000;
+
+function resetInitSegmentIfIdle(): void {
+  if (activeStreams.size === 0) {
+    initSegment = null;
+  }
+}
 
 export function setMainWindow(win: BrowserWindow | null): void {
   mainWindowRef = win;
@@ -108,6 +127,10 @@ function buildFFmpegArgs(settings: EncoderSettings, rtmpUrl: string, streamKey: 
   const destination = `${rtmpUrl}/${streamKey}`;
 
   return [
+    // The renderer always pipes WebM from MediaRecorder. Stating the demuxer
+    // explicitly avoids ffmpeg mis-probing a live (non-seekable) pipe.
+    '-f',
+    'webm',
     '-i',
     'pipe:0',
     '-c:v',
@@ -158,6 +181,24 @@ function isAuthError(stderr: string): boolean {
   return authPatterns.some((p) => stderr.toLowerCase().includes(p.toLowerCase()));
 }
 
+/** Pull the most relevant ffmpeg error line out of buffered stderr. */
+function lastFFmpegError(stderr: string): string {
+  const lines = stderr
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const meaningful = lines
+    .reverse()
+    .find(
+      (l) =>
+        /error|fail|invalid|unable|not found|no such|unknown encoder|connection|refused|broken pipe|end of file|403|401/i.test(
+          l
+        ) && !l.startsWith('frame=')
+    );
+  if (meaningful) return meaningful;
+  return lines.length > 0 ? lines[0] : 'ffmpeg exited without output';
+}
+
 function updateStreamState(destinationId: string, updates: Partial<RTMPStreamState>): void {
   const stream = activeStreams.get(destinationId);
   if (!stream) return;
@@ -178,15 +219,12 @@ function attemptReconnect(destinationId: string): void {
   if (!stream || stream.intentionallyStopped) return;
 
   if (stream.state.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-    updateStreamState(destinationId, {
-      status: 'error',
-      error: `Failed after ${String(MAX_RECONNECT_ATTEMPTS)} reconnection attempts`,
-    });
-    sendEvent('rtmp:streamError', {
-      destinationId,
-      error: `Failed after ${String(MAX_RECONNECT_ATTEMPTS)} reconnection attempts`,
-      isRecoverable: false,
-    });
+    const reason = lastFFmpegError(stream.statsBuffer);
+    const error = `Failed after ${String(MAX_RECONNECT_ATTEMPTS)} reconnection attempts: ${reason}`;
+    updateStreamState(destinationId, { status: 'error', error });
+    sendEvent('rtmp:streamError', { destinationId, error, isRecoverable: false });
+    activeStreams.delete(destinationId);
+    resetInitSegmentIfIdle();
     return;
   }
 
@@ -260,21 +298,52 @@ function spawnFFmpeg(
       reconnectTimer: null,
       statsBuffer: '',
       stableTimer: null,
+      connectTimer: null,
       intentionallyStopped: false,
     };
 
     activeStreams.set(destination.id, activeStream);
 
+    // Replay the cached WebM header so a stream that spawns after recording
+    // started (reconnect, or a destination added mid-session) receives a valid
+    // stream start instead of headerless clusters.
+    if (initSegment) {
+      try {
+        proc.stdin.write(initSegment);
+      } catch {
+        // Surfaced via the process error/exit handlers.
+      }
+    }
+
+    // If ffmpeg never reports a live connection, treat it as a failure rather
+    // than sitting in "connecting" forever (e.g. unreachable ingest, bad key).
+    activeStream.connectTimer = setTimeout(() => {
+      const s = activeStreams.get(destination.id);
+      if (!s || s.intentionallyStopped || s.state.status !== 'connecting') return;
+      console.warn(`[Streaming] ${destination.name} stuck connecting; restarting ffmpeg`);
+      try {
+        s.process.kill('SIGKILL');
+      } catch {
+        // exit handler drives the reconnect
+      }
+    }, CONNECT_TIMEOUT_MS);
+
     // Monitor stderr for stats and errors
     proc.stderr.on('data', (data: Buffer) => {
       const text = data.toString();
-      activeStream.statsBuffer += text;
+      // Keep only the tail so a long-running stream's buffer can't grow without
+      // bound, while still preserving the most recent (most relevant) errors.
+      activeStream.statsBuffer = (activeStream.statsBuffer + text).slice(-STDERR_TAIL_LIMIT);
 
       // Check for successful connection
       if (
         activeStream.state.status === 'connecting' &&
         (text.includes('Output #0') || text.includes('frame='))
       ) {
+        if (activeStream.connectTimer) {
+          clearTimeout(activeStream.connectTimer);
+          activeStream.connectTimer = null;
+        }
         updateStreamState(destination.id, { status: 'live' });
 
         // Reset reconnect counter after 60s of stable connection
@@ -318,15 +387,17 @@ function spawnFFmpeg(
       if (!stream) return;
 
       if (stream.stableTimer) clearTimeout(stream.stableTimer);
+      if (stream.connectTimer) clearTimeout(stream.connectTimer);
 
       if (stream.intentionallyStopped) {
         updateStreamState(destination.id, { status: 'stopped' });
         activeStreams.delete(destination.id);
+        resetInitSegmentIfIdle();
         return;
       }
 
       console.log(
-        `[Streaming] ffmpeg exited for ${destination.name}: code=${String(code)}, signal=${String(signal)}`
+        `[Streaming] ffmpeg exited for ${destination.name}: code=${String(code)}, signal=${String(signal)}\n${lastFFmpegError(stream.statsBuffer)}`
       );
 
       // Don't reconnect on auth errors
@@ -341,6 +412,7 @@ function spawnFFmpeg(
           isRecoverable: false,
         });
         activeStreams.delete(destination.id);
+        resetInitSegmentIfIdle();
         return;
       }
 
@@ -388,6 +460,7 @@ export function stopStream(destinationId: string): { success: boolean; error?: s
 
   if (stream.reconnectTimer) clearTimeout(stream.reconnectTimer);
   if (stream.stableTimer) clearTimeout(stream.stableTimer);
+  if (stream.connectTimer) clearTimeout(stream.connectTimer);
 
   // Graceful shutdown: close stdin first
   try {
@@ -446,6 +519,14 @@ export function startAllStreams(
   destinations: RTMPDestinationInfo[],
   streamKeys: Map<string, string>
 ): { success: boolean; started: number; errors: string[] } {
+  if (destinations.length === 0) {
+    return {
+      success: false,
+      started: 0,
+      errors: ['No enabled streaming destinations. Add or enable one in Settings.'],
+    };
+  }
+
   let started = 0;
   const errors: string[] = [];
 
@@ -476,6 +557,12 @@ export function startAllStreams(
  * ffmpeg) throttles the producer instead of buffering chunks in memory unbounded.
  */
 export async function writeStreamChunk(chunk: Buffer): Promise<void> {
+  // The first chunk produced after a stream becomes active carries the WebM
+  // header; cache a copy so reconnects/late joiners can be primed with it.
+  if (!initSegment && activeStreams.size > 0 && chunk.length > 0) {
+    initSegment = Buffer.from(chunk);
+  }
+
   const drains: Promise<void>[] = [];
 
   for (const stream of activeStreams.values()) {

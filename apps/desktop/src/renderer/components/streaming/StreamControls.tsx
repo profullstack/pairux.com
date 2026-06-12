@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Radio, Square, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { RTMPDestinationInfo, RTMPStreamState } from '../../../preload/api';
@@ -50,6 +51,7 @@ export function StreamControls({
   onStartAll,
   onStopAll,
 }: StreamControlsProps) {
+  const [startError, setStartError] = useState<string | null>(null);
   const enabledDestinations = destinations.filter((d) => d.enabled);
 
   if (enabledDestinations.length === 0) return null;
@@ -59,19 +61,40 @@ export function StreamControls({
   // anything already live can always be stopped.
   if (!isAnyStreaming && !liveStreamEnabled) return null;
 
+  const handleStartAll = async (): Promise<void> => {
+    setStartError(null);
+    const result = await onStartAll(stream);
+    // Surface failures instead of silently doing nothing — the #1 reason
+    // "Go Live" appears to do nothing (bad key, ffmpeg missing, ingest down).
+    if (!result.success || result.started === 0) {
+      setStartError(result.errors[0] ?? 'Could not start streaming');
+    }
+  };
+
   return (
     <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
       {!isAnyStreaming ? (
-        <Button
-          size="sm"
-          className="bg-blue-600 text-white hover:bg-blue-700"
-          onClick={() => void onStartAll(stream)}
-          title="Start streaming to all enabled destinations"
-        >
-          <Radio className="!size-3" />
-          Go Live
-          {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
-        </Button>
+        <>
+          <Button
+            size="sm"
+            className="bg-blue-600 text-white hover:bg-blue-700"
+            onClick={() => void handleStartAll()}
+            title="Start streaming to all enabled destinations"
+          >
+            <Radio className="!size-3" />
+            Go Live
+            {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
+          </Button>
+          {startError && (
+            <span
+              className="flex items-center gap-1 px-1 text-xs text-red-500"
+              title={startError}
+            >
+              <AlertCircle className="!size-3" />
+              <span className="max-w-[200px] truncate">{startError}</span>
+            </span>
+          )}
+        </>
       ) : (
         <>
           {/* Per-destination status */}

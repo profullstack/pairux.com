@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
 import { APP_URL } from '../../shared/config';
+import { getDefaultSessionMode } from '@/lib/sessionDefaults';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [mode, setMode] = useState<SessionMode>('p2p');
+  const [mode, setMode] = useState<SessionMode>(() => getDefaultSessionMode());
 
   const createSession = useCallback(async () => {
     setIsCreating(true);

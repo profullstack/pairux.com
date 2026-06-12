@@ -40,6 +40,7 @@ import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScree
 import { CameraBubble } from '@/components/capture/CameraBubble';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useLiveStreamEnabled } from '@/lib/liveStream';
+import { getDefaultSessionMode } from '@/lib/sessionDefaults';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
@@ -230,8 +231,11 @@ export function CapturePreview({
   // Remote cursors for showing viewer cursor positions
   const { cursors: remoteCursors } = useRemoteCursors();
 
-  // Determine mode once — do NOT conditionally call hooks
-  const isSFU = initialSession?.mode === 'sfu';
+  // Determine mode from whichever session exists (joined OR auto-created by
+  // quick-share). Both host hooks are always called; only the selection below
+  // switches, and hosting doesn't start until a session exists, so the flip
+  // from "no session" to "sfu session" happens before anything connects.
+  const isSFU = session?.mode === 'sfu';
 
   // Find participant with control granted (used to enable host-side input injection)
   const participantWithControl = useMemo(() => {
@@ -523,7 +527,13 @@ export function CapturePreview({
   // Auto-create session when capture starts (only if no initial session)
   useEffect(() => {
     if (!initialSession && !createdSession && !isCreating && !error) {
-      void createSession({ allowGuestControl: false, maxParticipants: 5 });
+      // Mode comes from Settings (default SFU so "Go Live (server)" is
+      // available — quick-share never shows the mode picker).
+      void createSession({
+        allowGuestControl: false,
+        maxParticipants: 5,
+        mode: getDefaultSessionMode(),
+      });
     }
   }, [initialSession, createdSession, isCreating, error, createSession]);
 
@@ -992,7 +1002,8 @@ export function CapturePreview({
                 onStopAll={stopAllStreams}
                 serverStream={{
                   // Server restream needs the room to live on the SFU
-                  available: isSFU && session !== null,
+                  // (isSFU already implies an existing session)
+                  available: isSFU,
                   isStreaming: isServerStreaming,
                   onStart: () =>
                     session

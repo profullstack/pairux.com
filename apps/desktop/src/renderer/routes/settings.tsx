@@ -29,6 +29,7 @@ interface AppSettings {
   session: {
     defaultMaxParticipants: number;
     allowGuestControlByDefault: boolean;
+    defaultMode: 'p2p' | 'sfu';
   };
   streaming: {
     liveStreamEnabled: boolean;
@@ -42,6 +43,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   session: {
     defaultMaxParticipants: 10,
     allowGuestControlByDefault: false,
+    // SFU by default: enables server-side restreaming and multi-viewer calls.
+    defaultMode: 'sfu',
   },
   streaming: {
     // Opt-in: going live to YouTube/Twitch is off by default so a routine call
@@ -371,6 +374,30 @@ export function SettingsPage() {
             <CardDescription>Default settings for new sessions</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium">Default Session Mode</label>
+              <select
+                value={settings.session.defaultMode}
+                onChange={(e) => {
+                  updateSettings({
+                    ...settings,
+                    session: {
+                      ...settings.session,
+                      defaultMode: e.target.value === 'p2p' ? 'p2p' : 'sfu',
+                    },
+                  });
+                }}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="sfu">Relay (SFU) — multi-viewer + server streaming</option>
+                <option value="p2p">Direct (P2P) — lowest latency 1-on-1</option>
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Used when sharing your screen directly. &ldquo;Go Live (server)&rdquo; requires
+                Relay (SFU).
+              </p>
+            </div>
+
             <div>
               <label className="mb-2 block text-sm font-medium">Maximum Participants</label>
               <select

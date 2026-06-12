@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Radio, Square, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Radio, Square, AlertCircle, AlertTriangle, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { RTMPDestinationInfo, RTMPStreamState } from '../../../preload/api';
 import { formatDuration } from '@/hooks/useRTMPStreaming';
@@ -22,6 +22,17 @@ interface StreamControlsProps {
     stream: MediaStream
   ) => Promise<{ success: boolean; started: number; errors: string[] }>;
   onStopAll: () => Promise<{ success: boolean; stopped: number }>;
+  /**
+   * Server-side restream (LiveKit egress): the pairux server fans out to all
+   * destinations, so the host uploads nothing beyond their WebRTC publish.
+   * Only offered while hosting an SFU session.
+   */
+  serverStream?: {
+    available: boolean;
+    isStreaming: boolean;
+    onStart: () => Promise<{ success: boolean; error?: string }>;
+    onStop: () => Promise<{ success: boolean; error?: string }>;
+  };
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -53,16 +64,18 @@ export function StreamControls({
   onStopStream,
   onStartAll,
   onStopAll,
+  serverStream,
 }: StreamControlsProps) {
   const [startError, setStartError] = useState<string | null>(null);
   const enabledDestinations = destinations.filter((d) => d.enabled);
+  const isServerStreaming = serverStream?.isStreaming ?? false;
 
   if (enabledDestinations.length === 0) return null;
 
   // When live streaming is toggled off, hide "Go Live" entirely so a call can't
   // be streamed by accident. Active streams still render their stop controls so
   // anything already live can always be stopped.
-  if (!isAnyStreaming && !liveStreamEnabled) return null;
+  if (!isAnyStreaming && !isServerStreaming && !liveStreamEnabled) return null;
 
   const handleStartAll = async (): Promise<void> => {
     setStartError(null);
@@ -74,20 +87,61 @@ export function StreamControls({
     }
   };
 
+  const handleStartServer = async (): Promise<void> => {
+    if (!serverStream) return;
+    setStartError(null);
+    const result = await serverStream.onStart();
+    if (!result.success) {
+      setStartError(result.error ?? 'Could not start server streaming');
+    }
+  };
+
   return (
     <div className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1">
+      {/* Server-side restream control (no extra upload from the host) */}
+      {isServerStreaming ? (
+        <div
+          className="flex items-center gap-1.5 px-2 text-sm"
+          title="Streaming via the pairux server — your upload only carries the call"
+        >
+          <Cloud className="h-3 w-3 animate-pulse text-green-500" />
+          <span className="text-xs">Server live</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => void serverStream?.onStop()}
+            title="Stop server stream"
+          >
+            <Square className="!size-2.5" />
+          </Button>
+        </div>
+      ) : null}
       {!isAnyStreaming ? (
         <>
-          <Button
-            size="sm"
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={() => void handleStartAll()}
-            title="Start streaming to all enabled destinations"
-          >
-            <Radio className="!size-3" />
-            Go Live
-            {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
-          </Button>
+          {!isServerStreaming && (
+            <Button
+              size="sm"
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => void handleStartAll()}
+              title="Start streaming to all enabled destinations"
+            >
+              <Radio className="!size-3" />
+              Go Live
+              {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
+            </Button>
+          )}
+          {!isServerStreaming && serverStream?.available && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => void handleStartServer()}
+              title="Stream via the pairux server — fans out to all destinations with no extra upload from this machine"
+            >
+              <Cloud className="!size-3" />
+              Go Live (server)
+            </Button>
+          )}
           {startError && (
             <span className="flex items-center gap-1 px-1 text-xs text-red-500" title={startError}>
               <AlertCircle className="!size-3" />

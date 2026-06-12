@@ -349,19 +349,63 @@ turn:
   enabled: true
   tls_port: 0
   udp_port: 3478
+
+# Shared message bus with the egress service (server-side RTMP restreaming).
+# Bound to localhost only — never exposed publicly.
+redis:
+  address: localhost:6379
+EOF
+
+# Egress config (server-side RTMP restreaming to YouTube/Twitch/etc.)
+info "Writing egress config..."
+cat > "$LIVEKIT_DIR/egress.yaml" << EOF
+api_key: ${LIVEKIT_API_KEY}
+api_secret: ${LIVEKIT_API_SECRET}
+ws_url: ws://localhost:7880
+redis:
+  address: localhost:6379
+logging:
+  level: info
 EOF
 
 # Docker compose
 info "Writing docker-compose.yml..."
 cat > "$LIVEKIT_DIR/docker-compose.yml" << 'EOF'
 services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    network_mode: host
+    # localhost only — redis is an internal bus between livekit and egress
+    command: redis-server --bind 127.0.0.1 --port 6379
+
   livekit:
     image: livekit/livekit-server:latest
     restart: unless-stopped
     network_mode: host
+    depends_on:
+      - redis
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml:ro
     command: --config /etc/livekit.yaml
+
+  # Server-side restreamer: composites the room and pushes RTMP to the
+  # user's destinations, so hosts upload once (their WebRTC publish) and the
+  # server fans out. Free for all plans.
+  egress:
+    image: livekit/egress:latest
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      - redis
+      - livekit
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+    volumes:
+      - ./egress.yaml:/etc/egress.yaml:ro
+    # Chrome (room compositing) needs these inside the container
+    cap_add:
+      - SYS_ADMIN
 EOF
 
 # Start LiveKit

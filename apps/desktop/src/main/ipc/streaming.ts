@@ -134,5 +134,20 @@ export function registerStreamingHandlers(): void {
     return PLATFORM_PRESETS[args.platform];
   });
 
+  // Full ingest URLs for the server-side restreamer (LiveKit egress): the
+  // server fans out to these so the host only uploads their WebRTC publish.
+  ipcMain.handle('rtmp:getServerStreamUrls', () => {
+    const destinations = getDestinations().filter((d) => d.enabled);
+    const keys = getDecryptedStreamKeys(destinations);
+    const urls: string[] = [];
+    for (const dest of destinations) {
+      const key = keys.get(dest.id);
+      if (key) {
+        urls.push(`${dest.rtmpUrl}/${key}`);
+      }
+    }
+    return urls;
+  });
+
   console.log('[IPC:Streaming] Streaming handlers registered');
 }

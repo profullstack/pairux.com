@@ -207,6 +207,9 @@ export function CapturePreview({
     stopStream,
     startAllStreams,
     stopAllStreams,
+    isServerStreaming,
+    startServerStream,
+    stopServerStream,
   } = useRTMPStreaming({
     onStreamError: (destId, err) => {
       console.error(`[CapturePreview] Stream ${destId} error:`, err);
@@ -987,6 +990,16 @@ export function CapturePreview({
                 onStopStream={stopStream}
                 onStartAll={startAllStreams}
                 onStopAll={stopAllStreams}
+                serverStream={{
+                  // Server restream needs the room to live on the SFU
+                  available: isSFU && session !== null,
+                  isStreaming: isServerStreaming,
+                  onStart: () =>
+                    session
+                      ? startServerStream(session.id)
+                      : Promise.resolve({ success: false, error: 'No active session' }),
+                  onStop: stopServerStream,
+                }}
               />
             )}
 

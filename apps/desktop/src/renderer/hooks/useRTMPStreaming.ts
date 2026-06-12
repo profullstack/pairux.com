@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
 import { isLiveStreamEnabled } from '@/lib/liveStream';
+import { API_BASE_URL } from '../../shared/config';
 
 const LIVE_STREAM_DISABLED_MESSAGE = 'Live streaming is turned off in Settings';
 import type {
@@ -275,6 +276,76 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
     return result;
   }, [stopMediaCapture]);
 
+  // --- Server-side restreaming (LiveKit egress) ---
+  // The server composites the SFU room and fans out to every destination, so
+  // the host's uplink only carries their WebRTC publish. Free on all plans.
+
+  const [serverEgressId, setServerEgressId] = useState<string | null>(null);
+
+  const startServerStream = useCallback(
+    async (sessionId: string): Promise<{ success: boolean; error?: string }> => {
+      if (!isElectron()) return { success: false, error: 'Not in Electron' };
+      if (!isLiveStreamEnabled()) {
+        return { success: false, error: LIVE_STREAM_DISABLED_MESSAGE };
+      }
+
+      const urls = await getElectronAPI().invoke('rtmp:getServerStreamUrls', undefined);
+      if (urls.length === 0) {
+        return { success: false, error: 'No enabled destinations with stream keys' };
+      }
+
+      const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+      if (!token) {
+        return { success: false, error: 'Sign in to stream via the server' };
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/stream/egress/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ sessionId, rtmpUrls: urls }),
+        });
+        const json = (await response.json().catch(() => ({}))) as {
+          data?: { egressId?: string };
+          error?: string;
+        };
+        if (!response.ok || !json.data?.egressId) {
+          return { success: false, error: json.error ?? 'Server streaming failed to start' };
+        }
+        setServerEgressId(json.data.egressId);
+        return { success: true };
+      } catch {
+        return { success: false, error: 'Could not reach the streaming server' };
+      }
+    },
+    []
+  );
+
+  const stopServerStream = useCallback(async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    if (!isElectron() || !serverEgressId) return { success: false, error: 'Not streaming' };
+    const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+    if (!token) return { success: false, error: 'Not signed in' };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/stream/egress/stop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ egressId: serverEgressId }),
+      });
+      if (!response.ok) {
+        const json = (await response.json().catch(() => ({}))) as { error?: string };
+        return { success: false, error: json.error ?? 'Failed to stop server stream' };
+      }
+      setServerEgressId(null);
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Could not reach the streaming server' };
+    }
+  }, [serverEgressId]);
+
   // --- Status Polling ---
 
   const pollStatuses = useCallback(async () => {
@@ -424,6 +495,10 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
     stopStream,
     startAllStreams,
     stopAllStreams,
+
+    isServerStreaming: serverEgressId !== null,
+    startServerStream,
+    stopServerStream,
   };
 }
 

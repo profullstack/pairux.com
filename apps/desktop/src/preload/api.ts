@@ -421,6 +421,15 @@ export interface IPCChannels {
     args: { platform: StreamPlatform };
     return: { rtmpUrl: string; encoderSettings: EncoderSettings } | null;
   };
+
+  /**
+   * Full RTMP ingest URLs (rtmpUrl/streamKey) for every enabled destination —
+   * used to hand off fan-out to the server-side restreamer (LiveKit egress).
+   */
+  'rtmp:getServerStreamUrls': {
+    args: undefined;
+    return: string[];
+  };
 }
 
 // Event channels (main -> renderer)

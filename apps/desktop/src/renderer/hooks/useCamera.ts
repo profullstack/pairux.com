@@ -28,11 +28,70 @@ export interface UseCameraResult {
   toggle: () => Promise<void>;
 }
 
+// Request a standard 4:3 capture, not a square — webcams don't capture square
+// modes, and asking for one makes Chromium's Linux/V4L2 backend fail to start
+// the source ("Could not start video source"). The bubble is cropped in CSS.
 const CAMERA_CONSTRAINTS: MediaTrackConstraints = {
   width: { ideal: 640 },
-  height: { ideal: 640 },
+  height: { ideal: 480 },
   frameRate: { ideal: 30 },
 };
+
+/** DOMException names worth retrying with looser constraints. */
+const RELAXABLE_ERRORS = new Set(['NotReadableError', 'OverconstrainedError', 'AbortError']);
+
+/**
+ * Open the camera, falling back to progressively looser constraints when the
+ * device can't start the requested format. Permission / not-found errors are
+ * thrown immediately since relaxing constraints won't help.
+ */
+async function openCamera(requestedDeviceId?: string): Promise<MediaStream> {
+  const preferred: MediaTrackConstraints = { ...CAMERA_CONSTRAINTS };
+  if (requestedDeviceId) {
+    preferred.deviceId = { exact: requestedDeviceId };
+  }
+
+  const attempts: MediaStreamConstraints[] = [
+    { video: preferred, audio: false },
+    {
+      video: requestedDeviceId ? { deviceId: { exact: requestedDeviceId } } : true,
+      audio: false,
+    },
+    { video: true, audio: false },
+  ];
+
+  let lastError: unknown;
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (err) {
+      lastError = err;
+      const name = err instanceof DOMException ? err.name : '';
+      if (!RELAXABLE_ERRORS.has(name)) {
+        throw err;
+      }
+    }
+  }
+  throw lastError;
+}
+
+/** Map raw getUserMedia failures to a message a user can act on. */
+function describeCameraError(err: unknown): string {
+  const name = err instanceof DOMException ? err.name : '';
+  switch (name) {
+    case 'NotReadableError':
+    case 'AbortError':
+      return 'Camera could not start — it may be in use by another app. Close anything else using the camera and try again.';
+    case 'NotAllowedError':
+    case 'SecurityError':
+      return 'Camera access was denied.';
+    case 'NotFoundError':
+    case 'OverconstrainedError':
+      return 'No compatible camera was found.';
+    default:
+      return err instanceof Error ? err.message : 'Failed to access camera';
+  }
+}
 
 export function useCamera(): UseCameraResult {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -63,12 +122,7 @@ export function useCamera(): UseCameraResult {
     });
 
     try {
-      const video: MediaTrackConstraints = { ...CAMERA_CONSTRAINTS };
-      if (requestedDeviceId) {
-        video.deviceId = { exact: requestedDeviceId };
-      }
-
-      const cameraStream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+      const cameraStream = await openCamera(requestedDeviceId);
       streamRef.current = cameraStream;
       setStream(cameraStream);
 
@@ -83,9 +137,8 @@ export function useCamera(): UseCameraResult {
         // Non-critical — device switching just won't be available.
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to access camera';
       console.error('[Camera] Failed to enable:', err);
-      setError(message);
+      setError(describeCameraError(err));
       streamRef.current = null;
       setStream(null);
     } finally {

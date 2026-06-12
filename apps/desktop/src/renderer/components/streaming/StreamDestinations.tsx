@@ -66,11 +66,18 @@ export function StreamDestinations({
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !streamKey.trim()) return;
+    // A stream key is only required when adding. Edits keep the stored key —
+    // the field is intentionally blank (keys are never displayed back), so
+    // requiring it here would make every edit silently do nothing.
+    if (!name.trim() || (!editingId && !streamKey.trim())) return;
     if (platform === 'custom' && !rtmpUrl.trim()) return;
 
     if (editingId) {
-      await onUpdate(editingId, { name, platform, rtmpUrl, encoderSettings }, streamKey);
+      await onUpdate(
+        editingId,
+        { name, platform, rtmpUrl, encoderSettings },
+        streamKey.trim() ? streamKey : undefined
+      );
     } else {
       await onAdd({ name, platform, rtmpUrl, enabled: true, encoderSettings }, streamKey);
     }

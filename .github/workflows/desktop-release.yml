@@ -176,25 +176,49 @@ jobs:
       # builds) keeps the npm fallback for now.
       - name: Bundle ffmpeg binary
         shell: bash
+        env:
+          GH_API_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           EXT=""
           if [ "${{ matrix.platform }}" = "win" ]; then EXT=".exe"; fi
           OUT="apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
-          BTBN_BASE="https://github.com/BtbN/FFmpeg-Builds/releases/latest/download"
+
+          # Resolve the asset via the API instead of the static
+          # ".../latest/download/ffmpeg-master-latest-..." URL: BtbN rotates
+          # autobuilds several times a day and some releases only carry
+          # versioned asset names (ffmpeg-N-<rev>-g<hash>-...), which 404s the
+          # static alias. Suffix-match handles both schemes; retry rides out
+          # the window where a fresh release has no assets yet.
+          fetch_btbn() {
+            local suffix="$1" dest="$2" url=""
+            for attempt in 1 2 3; do
+              url=$(curl -fsSL -H "Authorization: Bearer $GH_API_TOKEN" \
+                "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest" \
+                | jq -r --arg s "$suffix" \
+                    '[.assets[] | select(.name | endswith($s))][0].browser_download_url // empty')
+              if [ -n "$url" ] && curl -fsSL -o "$dest" "$url"; then
+                echo "Downloaded $url"
+                return 0
+              fi
+              echo "BtbN fetch attempt $attempt failed; retrying in 20s"
+              sleep 20
+            done
+            return 1
+          }
 
           case "${{ matrix.platform }}-${{ matrix.arch }}" in
             linux-x64)
-              curl -fsSL -o ff.tar.xz "$BTBN_BASE/ffmpeg-master-latest-linux64-gpl.tar.xz"
-              tar -xJf ff.tar.xz && cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg "$OUT"
+              fetch_btbn "linux64-gpl.tar.xz" ff.tar.xz
+              mkdir -p ffx && tar -xJf ff.tar.xz -C ffx && cp ffx/*/bin/ffmpeg "$OUT"
               ;;
             linux-arm64)
-              curl -fsSL -o ff.tar.xz "$BTBN_BASE/ffmpeg-master-latest-linuxarm64-gpl.tar.xz"
-              tar -xJf ff.tar.xz && cp ffmpeg-master-latest-linuxarm64-gpl/bin/ffmpeg "$OUT"
+              fetch_btbn "linuxarm64-gpl.tar.xz" ff.tar.xz
+              mkdir -p ffx && tar -xJf ff.tar.xz -C ffx && cp ffx/*/bin/ffmpeg "$OUT"
               ;;
             win-x64)
-              curl -fsSL -o ff.zip "$BTBN_BASE/ffmpeg-master-latest-win64-gpl.zip"
-              unzip -q ff.zip && cp ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe "$OUT"
+              fetch_btbn "win64-gpl.zip" ff.zip
+              mkdir -p ffx && unzip -q ff.zip -d ffx && cp ffx/*/bin/ffmpeg.exe "$OUT"
               ;;
             *)
               FFMPEG_PATH=$(node -e "try { console.log(require('@ffmpeg-installer/ffmpeg').path) } catch(e) { process.exit(1) }")

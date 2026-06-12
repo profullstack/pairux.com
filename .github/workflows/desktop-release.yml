@@ -92,7 +92,7 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm
+          sudo apt-get install -y libarchive-tools rpm squashfs-tools
 
       - name: Write .env file
         run: printenv ENV_FILE > apps/desktop/.env
@@ -119,6 +119,55 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Windows signing
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+
+      # Guard against corrupt AppImage builds reaching users. electron-builder
+      # has intermittently produced AppImages with a corrupt squashfs (valid
+      # superblock, but unreadable id/inode tables -> "sqfs_traverse_open error"
+      # / "Failed to extract AppImage" at runtime). Fully extract the squashfs
+      # here so a bad artifact fails the build instead of being published.
+      - name: Verify AppImage integrity
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          imgs=(apps/desktop/out/*.AppImage)
+          if [ ${#imgs[@]} -eq 0 ]; then
+            echo "::error::No AppImage was produced by electron-builder"
+            exit 1
+          fi
+          for img in "${imgs[@]}"; do
+            echo "Verifying squashfs of $img"
+            # Locate the appended squashfs by scanning for its 'hsqs' magic and
+            # keeping the first candidate that has a VALID superblock (the magic
+            # bytes also occur by chance inside the ELF runtime). This is
+            # arch-independent — the arm64 runtime can't be executed on the x64
+            # runner, but unsquashfs reads the gzip data regardless of CPU arch.
+            off=""
+            while IFS=: read -r cand _; do
+              if unsquashfs -s -o "$cand" "$img" >/dev/null 2>&1; then
+                off="$cand"; break
+              fi
+            done < <(grep -abo 'hsqs' "$img")
+            if [ -z "${off:-}" ]; then
+              echo "::error::no valid squashfs superblock found in $img"
+              exit 1
+            fi
+            echo "  squashfs offset=$off"
+            rm -rf /tmp/appverify
+            if ! unsquashfs -o "$off" -d /tmp/appverify "$img" >/tmp/unsquashfs.log 2>&1; then
+              echo "::error::$img has a corrupt squashfs (extraction failed) — not publishing"
+              tail -30 /tmp/unsquashfs.log
+              exit 1
+            fi
+            # The extracted tree must contain the real app payload.
+            if [ ! -e /tmp/appverify/AppRun ] && [ ! -d /tmp/appverify/usr ] && [ ! -d /tmp/appverify/resources ]; then
+              echo "::error::$img extracted but is missing expected contents"
+              ls -la /tmp/appverify
+              exit 1
+            fi
+            echo "  OK: $img extracted cleanly"
+          done
 
       - name: Extract ffmpeg binary
         shell: bash

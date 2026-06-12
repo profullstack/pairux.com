@@ -1,4 +1,4 @@
-import { StreamOutput, StreamProtocol } from 'livekit-server-sdk';
+import { EncodingOptionsPreset, StreamOutput, StreamProtocol } from 'livekit-server-sdk';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -82,7 +82,12 @@ export async function POST(request: Request) {
     const info = await egress.startRoomCompositeEgress(
       roomName,
       { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
-      { layout: 'speaker' }
+      {
+        layout: 'speaker',
+        // 720p30: the SFU droplet is small (1 vCPU); 1080p compositing needs a
+        // bigger box. Bump to H264_1080P_30 after resizing the droplet.
+        encodingOptions: EncodingOptionsPreset.H264_720P_30,
+      }
     );
 
     return successResponse({ egressId: info.egressId });

@@ -126,7 +126,14 @@ detect_linux_package_manager() {
 
 apt_package_exists() {
     local pkg="$1"
-    command -v apt-cache &> /dev/null && apt-cache show "$pkg" >/dev/null 2>&1
+    command -v apt-cache &> /dev/null || return 1
+    # Require a real installation candidate. `apt-cache show` also succeeds for
+    # virtual/transitional names (e.g. ydotoold, which newer ydotool provides
+    # and "replaces"); installing those aborts apt-get with "has no installation
+    # candidate". apt-cache policy reports Candidate: (none) for such packages.
+    local candidate
+    candidate=$(apt-cache policy "$pkg" 2>/dev/null | awk '/Candidate:/ {print $2; exit}')
+    [ -n "$candidate" ] && [ "$candidate" != "(none)" ]
 }
 
 dnf_package_exists() {

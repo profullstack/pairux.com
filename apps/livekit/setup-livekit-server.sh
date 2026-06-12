@@ -366,11 +366,10 @@ redis:
   address: localhost:6379
 logging:
   level: info
-# The droplet is small; egress's default room-composite cost (4 CPUs) would
-# reject every request. Let it run at 720p on what we have — resize the
-# droplet (4 vCPU) and drop this override for comfortable 1080p compositing.
+# Droplet is 4 vCPU (resized 2026-06-12): allow two concurrent 1080p room
+# composites instead of egress's conservative default cost of 4 CPUs each.
 cpu_cost:
-  room_composite_cpu_cost: 0.8
+  room_composite_cpu_cost: 2.0
 EOF
 
 # Docker compose

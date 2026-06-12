@@ -84,9 +84,8 @@ export async function POST(request: Request) {
       { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
       {
         layout: 'speaker',
-        // 720p30: the SFU droplet is small (1 vCPU); 1080p compositing needs a
-        // bigger box. Bump to H264_1080P_30 after resizing the droplet.
-        encodingOptions: EncodingOptionsPreset.H264_720P_30,
+        // 1080p30 — the SFU droplet has 4 vCPU (resized 2026-06-12).
+        encodingOptions: EncodingOptionsPreset.H264_1080P_30,
       }
     );
 

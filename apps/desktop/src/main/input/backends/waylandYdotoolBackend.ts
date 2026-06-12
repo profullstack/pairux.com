@@ -26,6 +26,28 @@ interface YdotoolAutoStartDeps {
   startDaemon?: DaemonStarter;
   probeAvailability?: AvailabilityProbe;
   sleep?: SleepFn;
+  diagnoseFailure?: FailureDiagnoser;
+}
+
+type FailureDiagnoser = () => Promise<string | null>;
+
+/**
+ * Work out why ydotoold produced no socket even though starting it reported
+ * success. The dominant real-world cause: the unit starts and immediately dies
+ * because the user has no write access to /dev/uinput.
+ */
+async function defaultDiagnoseDaemonFailure(): Promise<string | null> {
+  try {
+    const fs = await import('fs');
+    await fs.promises.access('/dev/uinput', fs.constants.W_OK);
+    return null;
+  } catch {
+    return (
+      'ydotoold cannot start: no write access to /dev/uinput. ' +
+      'Re-run the PairUX installer to set up the udev rule and input group ' +
+      '(then log out and back in), or run `sudo ydotoold` once to enable remote control now.'
+    );
+  }
 }
 
 function toError(error: unknown): Error {
@@ -309,11 +331,13 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   private readonly startDaemon: DaemonStarter;
   private readonly probeAvailability: AvailabilityProbe;
   private readonly sleep: SleepFn;
+  private readonly diagnoseFailure: FailureDiagnoser;
   private availability: YdotoolAvailability;
   private ydotoolCommand = 'ydotool';
   private autoStartAttempted = false;
   private autoStartMethod?: string;
   private autoStartError?: string;
+  private diagnosedReason?: string;
 
   constructor(
     run: ExecRunner = defaultExecRunner,
@@ -324,6 +348,7 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     this.startDaemon = deps.startDaemon ?? defaultStartYdotoolDaemon;
     this.probeAvailability = deps.probeAvailability ?? getYdotoolAvailability;
     this.sleep = deps.sleep ?? defaultSleep;
+    this.diagnoseFailure = deps.diagnoseFailure ?? defaultDiagnoseDaemonFailure;
     this.availability = availability;
     this.supported = false;
     this.applyAvailability(availability);
@@ -346,7 +371,9 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     if (!availability.hasBinary) {
       this.reason = 'Wayland support requires `ydotool` to be installed.';
     } else if (!availability.hasSocket) {
-      this.reason = 'Wayland support requires `ydotoold` to be running (no ydotool socket found).';
+      this.reason =
+        this.diagnosedReason ??
+        'Wayland support requires `ydotoold` to be running (no ydotool socket found).';
     } else {
       this.reason = undefined;
     }
@@ -362,8 +389,9 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     this.autoStartMethod = start.method;
     this.autoStartError = start.error;
 
-    // Give the daemon a brief window to create the socket.
-    for (let i = 0; i < 5; i += 1) {
+    // Give the daemon a window to create the socket (a systemd-managed start
+    // can take a couple of seconds on a busy session).
+    for (let i = 0; i < 15; i += 1) {
       const nextAvailability = this.probeAvailability();
       this.applyAvailability(nextAvailability);
       if (nextAvailability.hasSocket) {
@@ -376,7 +404,10 @@ export class WaylandYdotoolInputBackend implements InputBackend {
       await this.sleep(200);
     }
 
-    // Refresh details/reason after the final poll in case the daemon never came up.
+    // The daemon never produced a socket even though starting it "worked" —
+    // usually it started and instantly died (no /dev/uinput access). Replace
+    // the generic reason with an actionable one when we can tell why.
+    this.diagnosedReason = (await this.diagnoseFailure()) ?? undefined;
     this.applyAvailability(this.probeAvailability());
   }
 

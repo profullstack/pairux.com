@@ -319,13 +319,56 @@ run_linux_dependency_install() {
     return 1
 }
 
+# ydotoold opens /dev/uinput; without group/udev access the user service starts
+# and immediately dies, leaving no socket (remote control silently broken).
+setup_uinput_access() {
+    if [ -w /dev/uinput ]; then
+        return 0
+    fi
+    if ! command -v sudo &> /dev/null; then
+        warn "No sudo available to grant /dev/uinput access; run 'sudo ydotoold' manually for remote control."
+        return 0
+    fi
+
+    info "Configuring /dev/uinput access for Wayland remote control (sudo)..."
+    echo 'KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput"' \
+        | sudo tee /etc/udev/rules.d/80-pairux-uinput.rules >/dev/null 2>&1 || true
+    sudo usermod -aG input "$USER" 2>/dev/null || true
+    sudo modprobe uinput 2>/dev/null || true
+    sudo udevadm control --reload-rules 2>/dev/null || true
+    sudo udevadm trigger --name-match=uinput 2>/dev/null || true
+
+    if ! id -nG "$USER" 2>/dev/null | grep -qw input; then
+        warn "Could not add $USER to the input group; run: sudo usermod -aG input $USER"
+    else
+        warn "Added $USER to the input group — log out and back in (or reboot) for it to take effect."
+    fi
+}
+
+enable_ydotool_unit_for_persistence() {
+    command -v systemctl &> /dev/null || return 0
+    local unit
+    for unit in ydotoold ydotool; do
+        if systemctl --user list-unit-files "${unit}.service" >/dev/null 2>&1; then
+            systemctl --user enable "${unit}.service" >/dev/null 2>&1 || true
+            return 0
+        fi
+    done
+    return 0
+}
+
 start_ydotool_daemon_if_available() {
     if ! command -v ydotoold &> /dev/null; then
         return 0
     fi
 
+    setup_uinput_access
+
     if [ -S "${YDOTOOL_SOCKET:-}" ] || [ -S /run/ydotoold/socket ] || [ -S "/tmp/.ydotool_socket" ] || [ -n "${XDG_RUNTIME_DIR:-}" -a -S "${XDG_RUNTIME_DIR}/.ydotool_socket" ]; then
         info "ydotool socket already present; skipping daemon start"
+        # The socket existing NOW doesn't survive a reboot unless the user
+        # unit is enabled — without this, remote control breaks on next boot.
+        enable_ydotool_unit_for_persistence
         return 0
     fi
 

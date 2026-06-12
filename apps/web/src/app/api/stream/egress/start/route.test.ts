@@ -24,6 +24,7 @@ vi.mock('livekit-server-sdk', () => ({
     return opts;
   }),
   StreamProtocol: { RTMP: 1 },
+  EncodingOptionsPreset: { H264_720P_30: 0, H264_1080P_30: 1 },
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -99,7 +100,7 @@ describe('POST /api/stream/egress/start', () => {
     expect(mockStartRoomCompositeEgress).toHaveBeenCalledWith(
       `session-${sessionId}`,
       expect.objectContaining({ stream: expect.objectContaining({ urls }) }),
-      { layout: 'speaker' }
+      expect.objectContaining({ layout: 'speaker' })
     );
   });
 });

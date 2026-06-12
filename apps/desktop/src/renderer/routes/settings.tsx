@@ -324,8 +324,8 @@ export function SettingsPage() {
               <div>
                 <p className="text-sm font-medium">Live stream to RTMP server(s)</p>
                 <p className="text-xs text-muted-foreground">
-                  When on, you can “Go Live” to the enabled destinations below (YouTube, Twitch,
-                  …). When off, streaming is disabled so calls aren’t broadcast by accident.
+                  When on, you can “Go Live” to the enabled destinations below (YouTube, Twitch, …).
+                  When off, streaming is disabled so calls aren’t broadcast by accident.
                 </p>
               </div>
               <button

@@ -1,6 +1,6 @@
 {
   "name": "@pairux/turn",
-  "version": "0.7.18",
+  "version": "0.7.19",
   "private": true,
   "description": "PairUX TURN/STUN Server (coturn)",
   "scripts": {

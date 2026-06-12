@@ -200,6 +200,7 @@ export function CapturePreview({
   const {
     destinations,
     streamStatuses,
+    streamWarnings,
     isAnyStreaming,
     activeStreamCount,
     startStream,
@@ -979,6 +980,7 @@ export function CapturePreview({
                 stream={broadcastStream}
                 destinations={destinations}
                 streamStatuses={streamStatuses}
+                streamWarnings={streamWarnings}
                 isAnyStreaming={isAnyStreaming}
                 liveStreamEnabled={liveStreamEnabled}
                 onStartStream={startStream}

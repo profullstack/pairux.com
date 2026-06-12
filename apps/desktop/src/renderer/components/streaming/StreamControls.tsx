@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Radio, Square, AlertCircle } from 'lucide-react';
+import { Radio, Square, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { RTMPDestinationInfo, RTMPStreamState } from '../../../preload/api';
 import { formatDuration } from '@/hooks/useRTMPStreaming';
@@ -8,6 +8,8 @@ interface StreamControlsProps {
   stream: MediaStream;
   destinations: RTMPDestinationInfo[];
   streamStatuses: Map<string, RTMPStreamState>;
+  /** Soft health warnings per destination (e.g. encoder slower than realtime). */
+  streamWarnings: Map<string, string>;
   isAnyStreaming: boolean;
   /** Master "Live stream to RTMP server(s)" toggle from Settings. */
   liveStreamEnabled: boolean;
@@ -44,6 +46,7 @@ export function StreamControls({
   stream,
   destinations,
   streamStatuses,
+  streamWarnings,
   isAnyStreaming,
   liveStreamEnabled,
   onStartStream: _onStartStream,
@@ -86,10 +89,7 @@ export function StreamControls({
             {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
           </Button>
           {startError && (
-            <span
-              className="flex items-center gap-1 px-1 text-xs text-red-500"
-              title={startError}
-            >
+            <span className="flex items-center gap-1 px-1 text-xs text-red-500" title={startError}>
               <AlertCircle className="!size-3" />
               <span className="max-w-[200px] truncate">{startError}</span>
             </span>
@@ -101,6 +101,7 @@ export function StreamControls({
           {enabledDestinations.map((dest) => {
             const status = streamStatuses.get(dest.id);
             const statusKey = status?.status ?? 'idle';
+            const warning = streamWarnings.get(dest.id);
 
             return (
               <div
@@ -124,6 +125,11 @@ export function StreamControls({
                 {status && statusKey === 'live' && status.bitrate > 0 && (
                   <span className="text-xs text-muted-foreground">
                     {(status.bitrate / 1000).toFixed(1)}M
+                  </span>
+                )}
+                {warning && (
+                  <span title={warning} className="flex items-center">
+                    <AlertTriangle className="h-3 w-3 text-amber-500" />
                   </span>
                 )}
                 <Button

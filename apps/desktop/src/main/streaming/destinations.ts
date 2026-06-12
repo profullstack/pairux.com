@@ -23,13 +23,15 @@ export const PLATFORM_PRESETS: Record<
   StreamPlatform,
   { rtmpUrl: string; encoderSettings: EncoderSettings }
 > = {
+  // Defaults sized for multi-destination streaming on a typical uplink — see
+  // PLATFORM_DEFAULTS in renderer/hooks/useRTMPStreaming.ts.
   youtube: {
     rtmpUrl: 'rtmp://a.rtmp.youtube.com/live2',
-    encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 4500, framerate: 30 },
+    encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 3500, framerate: 30 },
   },
   twitch: {
     rtmpUrl: 'rtmp://live.twitch.tv/app',
-    encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 6000, framerate: 60 },
+    encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 3500, framerate: 30 },
   },
   facebook: {
     rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/',

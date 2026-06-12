@@ -30,6 +30,8 @@ interface ActiveStream {
   intentionallyStopped: boolean;
   /** Consecutive ffmpeg progress samples below realtime speed. */
   slowSamples: number;
+  /** Whether a slow-encoder warning has been sent for the current slowdown. */
+  warned: boolean;
 }
 
 const activeStreams = new Map<string, ActiveStream>();
@@ -336,6 +338,7 @@ function spawnFFmpeg(
       connectTimer: null,
       intentionallyStopped: false,
       slowSamples: 0,
+      warned: false,
     };
 
     activeStreams.set(destination.id, activeStream);
@@ -397,15 +400,20 @@ function spawnFFmpeg(
         if (stats.speed !== null) {
           if (stats.speed < 0.92) {
             activeStream.slowSamples++;
-            if (activeStream.slowSamples === 5) {
-              console.warn(
-                `[Streaming] ${destination.name}: encoder at ${String(stats.speed)}x realtime — ` +
-                  'CPU or upload bandwidth cannot keep up. Lower the resolution/bitrate ' +
-                  'in the destination settings or stream to fewer platforms at once.'
-              );
+            if (activeStream.slowSamples === 5 && !activeStream.warned) {
+              activeStream.warned = true;
+              const warning =
+                `Encoder at ${stats.speed.toFixed(2)}x realtime — CPU or upload bandwidth ` +
+                'cannot keep up. Lower the bitrate/resolution or stream to fewer platforms.';
+              console.warn(`[Streaming] ${destination.name}: ${warning}`);
+              sendEvent('rtmp:streamWarning', { destinationId: destination.id, warning });
             }
           } else {
             activeStream.slowSamples = 0;
+            if (activeStream.warned) {
+              activeStream.warned = false;
+              sendEvent('rtmp:streamWarning', { destinationId: destination.id, warning: null });
+            }
           }
         }
 

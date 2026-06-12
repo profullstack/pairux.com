@@ -453,6 +453,11 @@ export interface IPCEvents {
     error: string;
     isRecoverable: boolean;
   };
+  /** Soft health warning (e.g. encoder slower than realtime); null clears it. */
+  'rtmp:streamWarning': {
+    destinationId: string;
+    warning: string | null;
+  };
 }
 
 // RTMP Streaming types

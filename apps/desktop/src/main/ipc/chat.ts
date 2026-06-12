@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/apiFetch';
 import { ipcMain } from 'electron';
 import { getStoredAuth, isAuthExpired } from '../auth/secure-storage';
 import type { ChatMessage } from '@pairux/shared-types';
@@ -42,7 +43,7 @@ export function registerChatHandlers(): void {
           return { success: false, error: 'Not authenticated' };
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/chat/send`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/chat/send`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -97,7 +98,7 @@ export function registerChatHandlers(): void {
           params.set('before', args.before);
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/chat/history?${params.toString()}`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/chat/history?${params.toString()}`, {
           method: 'GET',
           headers,
         });

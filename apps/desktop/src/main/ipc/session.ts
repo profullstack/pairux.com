@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/apiFetch';
 import { ipcMain } from 'electron';
 import { getValidAuth } from '../auth/secure-storage';
 import type { Session, SessionParticipant } from '@pairux/shared-types';
@@ -42,7 +43,7 @@ export function registerSessionHandlers(): void {
           return { success: false, error: 'Not authenticated' };
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/sessions`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/sessions`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -85,7 +86,7 @@ export function registerSessionHandlers(): void {
           return { success: false, error: 'Not authenticated' };
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/sessions/${args.sessionId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/sessions/${args.sessionId}`, {
           method: 'DELETE',
           headers,
         });
@@ -121,7 +122,7 @@ export function registerSessionHandlers(): void {
           return { success: false, error: 'Not authenticated' };
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/sessions/${args.sessionId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/sessions/${args.sessionId}`, {
           method: 'GET',
           headers,
         });
@@ -182,7 +183,7 @@ export function registerSessionHandlers(): void {
       | { success: false; error: string }
     > => {
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `${API_BASE_URL}/api/sessions/join/${args.joinCode.toUpperCase()}`,
           { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         );
@@ -248,7 +249,7 @@ export function registerSessionHandlers(): void {
           headers['Content-Type'] = 'application/json';
         }
 
-        const response = await fetch(
+        const response = await apiFetch(
           `${API_BASE_URL}/api/sessions/join/${args.joinCode.toUpperCase()}`,
           {
             method: 'POST',

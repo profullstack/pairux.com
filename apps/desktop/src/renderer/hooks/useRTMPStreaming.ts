@@ -27,15 +27,19 @@ export const PLATFORM_DEFAULTS: Record<
   StreamPlatform,
   { name: string; rtmpUrl: string; encoderSettings: Partial<EncoderSettings> }
 > = {
+  // Bitrate defaults assume multi-destination streaming: every enabled
+  // destination adds its own sustained upload, and a saturated uplink kills
+  // ALL streams (and the app's own API calls). 3500k x2 fits a ~10 Mbps
+  // uplink with headroom; users with fat pipes can raise per destination.
   youtube: {
     name: 'YouTube',
     rtmpUrl: 'rtmp://a.rtmp.youtube.com/live2',
-    encoderSettings: { videoBitrate: 4500, framerate: 30 },
+    encoderSettings: { videoBitrate: 3500, framerate: 30 },
   },
   twitch: {
     name: 'Twitch',
     rtmpUrl: 'rtmp://live.twitch.tv/app',
-    encoderSettings: { videoBitrate: 6000, framerate: 60 },
+    encoderSettings: { videoBitrate: 3500, framerate: 30 },
   },
   facebook: {
     name: 'Facebook',
@@ -61,6 +65,7 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
 
   const [destinations, setDestinations] = useState<RTMPDestinationInfo[]>([]);
   const [streamStatuses, setStreamStatuses] = useState<Map<string, RTMPStreamState>>(new Map());
+  const [streamWarnings, setStreamWarnings] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -333,9 +338,25 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
       }
     );
 
+    const unsubWarning = api.on(
+      'rtmp:streamWarning',
+      (data: { destinationId: string; warning: string | null }) => {
+        setStreamWarnings((prev) => {
+          const next = new Map(prev);
+          if (data.warning === null) {
+            next.delete(data.destinationId);
+          } else {
+            next.set(data.destinationId, data.warning);
+          }
+          return next;
+        });
+      }
+    );
+
     return () => {
       unsubStatus();
       unsubError();
+      unsubWarning();
     };
   }, [onStatusChanged, onStreamError]);
 
@@ -388,6 +409,7 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   return {
     destinations,
     streamStatuses,
+    streamWarnings,
     isLoading,
     error,
     activeStreamCount,

@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/apiFetch';
 import { safeStorage, app } from 'electron';
 import { writeFileSync, readFileSync, existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
@@ -83,7 +84,7 @@ export async function refreshAuthToken(apiBaseUrl: string): Promise<StoredAuth |
 
     try {
       console.log('[Auth] Refreshing access token...');
-      const response = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+      const response = await apiFetch(`${apiBaseUrl}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: stored.refreshToken }),

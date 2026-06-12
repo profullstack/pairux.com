@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/apiFetch';
 import { ipcMain, shell } from 'electron';
 import {
   storeAuth,
@@ -43,7 +44,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       headers.Authorization = `Bearer ${stored.accessToken}`;
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       ...options,
       headers,
     });

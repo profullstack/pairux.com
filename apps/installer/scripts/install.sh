@@ -987,8 +987,20 @@ if [ -x "\$APPIMAGE" ]; then
     # is missing or not setuid, in which case the AppImage runtime fails to mount
     # and exits with "open dir error: No such file or directory". Require a usable
     # fusermount helper too; otherwise fall back to extract-and-run.
+    #
+    # Finally, the type-2 AppImage runtime dlopen()s libfuse.so.2 (libfuse2)
+    # specifically. A box can have /dev/fuse, fusermount3 and the fuse3 stack
+    # while still lacking libfuse2, in which case a direct exec dies with
+    # "dlopen(): error loading libfuse.so.2". Require libfuse.so.2 to be present
+    # too (probe ldconfig, then /sbin/ldconfig, then common lib dirs since
+    # ldconfig is frequently off a normal user's PATH); otherwise extract-and-run.
     if [ -r /dev/fuse ] && [ -w /dev/fuse ] && (: <> /dev/fuse) 2>/dev/null \
-        && { command -v fusermount3 >/dev/null 2>&1 || command -v fusermount >/dev/null 2>&1; }; then
+        && { command -v fusermount3 >/dev/null 2>&1 || command -v fusermount >/dev/null 2>&1; } \
+        && { ldconfig -p 2>/dev/null | grep -q 'libfuse\.so\.2' \
+             || /sbin/ldconfig -p 2>/dev/null | grep -q 'libfuse\.so\.2' \
+             || ls /lib/libfuse.so.2 /usr/lib/libfuse.so.2 /lib64/libfuse.so.2 \
+                   /usr/lib64/libfuse.so.2 /lib/*/libfuse.so.2 /usr/lib/*/libfuse.so.2 \
+                   >/dev/null 2>&1; }; then
         exec "\$APPIMAGE" "\$@"
     else
         export APPIMAGE_EXTRACT_AND_RUN=1

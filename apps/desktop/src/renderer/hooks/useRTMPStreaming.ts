@@ -171,7 +171,10 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
       }
     };
 
-    mediaRecorder.start(1000);
+    // Short timeslice so encoded data reaches ffmpeg in a steady trickle rather
+    // than 1-second bursts — burstier delivery shows up at the RTMP ingest as
+    // gaps and triggers platform "not enough video" buffering warnings.
+    mediaRecorder.start(250);
     mediaRecorderRef.current = mediaRecorder;
   }, []);
 

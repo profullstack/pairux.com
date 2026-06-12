@@ -28,6 +28,8 @@ interface ActiveStream {
   stableTimer: ReturnType<typeof setTimeout> | null;
   connectTimer: ReturnType<typeof setTimeout> | null;
   intentionallyStopped: boolean;
+  /** Consecutive ffmpeg progress samples below realtime speed. */
+  slowSamples: number;
 }
 
 const activeStreams = new Map<string, ActiveStream>();
@@ -167,12 +169,17 @@ function buildFFmpegArgs(settings: EncoderSettings, rtmpUrl: string, streamKey: 
     `${String(Math.round(settings.videoBitrate * 1.1))}k`,
     '-bufsize',
     `${String(settings.videoBitrate * 2)}k`,
-    '-r',
-    String(settings.framerate),
+    // Screen capture is variable-frame-rate (frames only on damage; a static
+    // screen can go seconds without one). The fps filter duplicates frames to a
+    // strict constant frame rate — without it YouTube reports "not receiving
+    // enough video to maintain smooth streaming". yuv420p is the pixel format
+    // RTMP platforms require.
+    '-vf',
+    `scale=${getResolution(settings.resolution).replace('x', ':')},fps=${String(settings.framerate)}`,
+    '-pix_fmt',
+    'yuv420p',
     '-g',
     String(gopSize),
-    '-s',
-    getResolution(settings.resolution),
     '-c:a',
     'aac',
     '-b:a',
@@ -185,12 +192,16 @@ function buildFFmpegArgs(settings: EncoderSettings, rtmpUrl: string, streamKey: 
   ];
 }
 
-function parseFFmpegStats(line: string): { fps: number; bitrate: number } | null {
+function parseFFmpegStats(
+  line: string
+): { fps: number; bitrate: number; speed: number | null } | null {
   const fpsMatch = /fps=\s*([\d.]+)/.exec(line);
   const bitrateMatch = /bitrate=\s*([\d.]+)kbits/.exec(line);
+  const speedMatch = /speed=\s*([\d.]+)x/.exec(line);
 
   if (fpsMatch && bitrateMatch) {
     return {
+      speed: speedMatch ? parseFloat(speedMatch[1]) : null,
       fps: parseFloat(fpsMatch[1]),
       bitrate: parseFloat(bitrateMatch[1]),
     };
@@ -324,6 +335,7 @@ function spawnFFmpeg(
       stableTimer: null,
       connectTimer: null,
       intentionallyStopped: false,
+      slowSamples: 0,
     };
 
     activeStreams.set(destination.id, activeStream);
@@ -379,6 +391,24 @@ function spawnFFmpeg(
       // Parse stats
       const stats = parseFFmpegStats(text);
       if (stats) {
+        // Encoder falling behind realtime means the platform will starve and
+        // viewers buffer ("not receiving enough video"). Warn once per stream
+        // after a sustained slowdown so the cause is visible in the logs.
+        if (stats.speed !== null) {
+          if (stats.speed < 0.92) {
+            activeStream.slowSamples++;
+            if (activeStream.slowSamples === 5) {
+              console.warn(
+                `[Streaming] ${destination.name}: encoder at ${String(stats.speed)}x realtime — ` +
+                  'CPU or upload bandwidth cannot keep up. Lower the resolution/bitrate ' +
+                  'in the destination settings or stream to fewer platforms at once.'
+              );
+            }
+          } else {
+            activeStream.slowSamples = 0;
+          }
+        }
+
         const duration = activeStream.state.startTime
           ? Math.floor((Date.now() - activeStream.state.startTime) / 1000)
           : 0;

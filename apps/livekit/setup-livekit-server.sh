@@ -340,7 +340,7 @@ rtc:
   # "could not establish pc connection" a minute or two into a stream.
   ips:
     includes:
-      - ${EXTERNAL_IP}
+      - ${EXTERNAL_IP}/32
 
 keys:
   ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}

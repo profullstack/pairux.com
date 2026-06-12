@@ -579,8 +579,19 @@ install_ffmpeg() {
     temp_file=$(mktemp)
 
     if download_with_progress "$ffmpeg_url" "$temp_file"; then
-        gunzip -c "$temp_file" > "$ffmpeg_path" 2>/dev/null
-        chmod +x "$ffmpeg_path"
+        # Decompress next to the destination and rename into place. A direct
+        # `> "$ffmpeg_path"` fails with ETXTBSY ("Text file busy") when a
+        # running PairUX is still executing the old binary (e.g. updating while
+        # a stream is live); rename always succeeds — the running process keeps
+        # the old inode and new launches get the new binary.
+        local ffmpeg_staging="${ffmpeg_path}.new.$$"
+        if gunzip -c "$temp_file" > "$ffmpeg_staging" 2>/dev/null && [ -s "$ffmpeg_staging" ]; then
+            chmod +x "$ffmpeg_staging"
+            mv -f "$ffmpeg_staging" "$ffmpeg_path"
+        else
+            rm -f "$ffmpeg_staging"
+            warn "ffmpeg download could not be unpacked; keeping the existing binary"
+        fi
         rm -f "$temp_file"
 
         # Don't execute ffmpeg here: on macOS this can block during first-run

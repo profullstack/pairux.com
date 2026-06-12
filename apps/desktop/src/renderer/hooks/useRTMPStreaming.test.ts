@@ -32,6 +32,10 @@ const mockElectronAPI = {
   off: vi.fn(),
 };
 
+// Server-restream calls hit the web API over fetch.
+const mockFetch = vi.fn();
+(globalThis as Record<string, unknown>).fetch = mockFetch;
+
 const mockDestinations = [
   {
     id: 'dest-1',
@@ -146,9 +150,21 @@ beforeEach(() => {
         return Promise.resolve([]);
       case 'rtmp:writeChunk':
         return Promise.resolve();
+      case 'rtmp:getServerStreamUrls':
+        return Promise.resolve([
+          'rtmp://a.rtmp.youtube.com/live2/yt-key',
+          'rtmp://live.twitch.tv/app/tw-key',
+        ]);
+      case 'auth:getToken':
+        return Promise.resolve({ token: 'bearer-token' });
       default:
         return Promise.resolve({});
     }
+  });
+
+  mockFetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ data: { egressId: 'eg-1' } }),
   });
 });
 
@@ -371,6 +387,64 @@ describe('useRTMPStreaming', () => {
       expect(mockElectronAPI.invoke).not.toHaveBeenCalledWith('rtmp:startStream', {
         destinationId: 'dest-1',
       });
+    });
+
+    it('starts a server-side restream via the egress API', async () => {
+      const { result } = renderHook(() => useRTMPStreaming());
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      await act(async () => {
+        const res = await result.current.startServerStream('session-id-1');
+        expect(res.success).toBe(true);
+      });
+
+      expect(result.current.isServerStreaming).toBe(true);
+      const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(url).toContain('/api/stream/egress/start');
+      expect((init.headers as Record<string, string>).Authorization).toBe('Bearer bearer-token');
+      expect(JSON.parse(init.body as string)).toEqual({
+        sessionId: 'session-id-1',
+        rtmpUrls: ['rtmp://a.rtmp.youtube.com/live2/yt-key', 'rtmp://live.twitch.tv/app/tw-key'],
+      });
+    });
+
+    it('refuses server restream when live streaming is disabled in Settings', async () => {
+      localStorageStub.setItem(
+        'pairux-settings',
+        JSON.stringify({ streaming: { liveStreamEnabled: false } })
+      );
+      const { result } = renderHook(() => useRTMPStreaming());
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      await act(async () => {
+        const res = await result.current.startServerStream('session-id-1');
+        expect(res.success).toBe(false);
+      });
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('stops the server restream with the stored egressId', async () => {
+      const { result } = renderHook(() => useRTMPStreaming());
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+      await act(async () => {
+        await result.current.startServerStream('session-id-1');
+      });
+
+      await act(async () => {
+        const res = await result.current.stopServerStream();
+        expect(res.success).toBe(true);
+      });
+
+      expect(result.current.isServerStreaming).toBe(false);
+      const [url, init] = mockFetch.mock.calls.at(-1) as [string, RequestInit];
+      expect(url).toContain('/api/stream/egress/stop');
+      expect(JSON.parse(init.body as string)).toEqual({ egressId: 'eg-1' });
     });
 
     it('should stop all streams', async () => {

@@ -169,19 +169,47 @@ jobs:
             echo "  OK: $img extracted cleanly"
           done
 
-      - name: Extract ffmpeg binary
+      # Bundle a CURRENT static ffmpeg. The old @ffmpeg-installer npm binary is a
+      # 2018 (4.x) build that crashes (SIGSEGV) transcoding VP9/WebM from
+      # MediaRecorder — it broke RTMP streaming for every installer user.
+      # Linux/Windows use BtbN's maintained static GPL builds; macOS (no BtbN
+      # builds) keeps the npm fallback for now.
+      - name: Bundle ffmpeg binary
         shell: bash
         run: |
-          FFMPEG_PATH=$(node -e "try { console.log(require('@ffmpeg-installer/ffmpeg').path) } catch(e) { process.exit(1) }")
-          if [ -n "$FFMPEG_PATH" ] && [ -f "$FFMPEG_PATH" ]; then
-            EXT=""
-            if [ "${{ matrix.platform }}" = "win" ]; then EXT=".exe"; fi
-            cp "$FFMPEG_PATH" "apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
-            gzip "apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
-            echo "Extracted ffmpeg to ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}.gz"
-          else
-            echo "WARNING: ffmpeg binary not found for this platform"
+          set -euo pipefail
+          EXT=""
+          if [ "${{ matrix.platform }}" = "win" ]; then EXT=".exe"; fi
+          OUT="apps/desktop/out/ffmpeg-${{ matrix.platform }}-${{ matrix.arch }}${EXT}"
+          BTBN_BASE="https://github.com/BtbN/FFmpeg-Builds/releases/latest/download"
+
+          case "${{ matrix.platform }}-${{ matrix.arch }}" in
+            linux-x64)
+              curl -fsSL -o ff.tar.xz "$BTBN_BASE/ffmpeg-master-latest-linux64-gpl.tar.xz"
+              tar -xJf ff.tar.xz && cp ffmpeg-master-latest-linux64-gpl/bin/ffmpeg "$OUT"
+              ;;
+            linux-arm64)
+              curl -fsSL -o ff.tar.xz "$BTBN_BASE/ffmpeg-master-latest-linuxarm64-gpl.tar.xz"
+              tar -xJf ff.tar.xz && cp ffmpeg-master-latest-linuxarm64-gpl/bin/ffmpeg "$OUT"
+              ;;
+            win-x64)
+              curl -fsSL -o ff.zip "$BTBN_BASE/ffmpeg-master-latest-win64-gpl.zip"
+              unzip -q ff.zip && cp ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe "$OUT"
+              ;;
+            *)
+              FFMPEG_PATH=$(node -e "try { console.log(require('@ffmpeg-installer/ffmpeg').path) } catch(e) { process.exit(1) }")
+              cp "$FFMPEG_PATH" "$OUT"
+              ;;
+          esac
+
+          chmod +x "$OUT" || true
+          # Smoke-test when the binary matches the runner arch (x64 builds on
+          # x64 runners; the cross-built linux-arm64 binary can't execute here).
+          if [ "${{ matrix.arch }}" = "x64" ]; then
+            "$OUT" -version | head -1
           fi
+          gzip "$OUT"
+          echo "Bundled ffmpeg as $(basename "$OUT").gz"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

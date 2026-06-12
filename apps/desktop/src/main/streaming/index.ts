@@ -9,8 +9,11 @@ import { homedir } from 'os';
 import { app, type BrowserWindow } from 'electron';
 import type { RTMPDestinationInfo, RTMPStreamState, EncoderSettings } from '../../preload/api';
 
-// undefined = not resolved yet, null = resolved but not found, string = path
-let _ffmpegPath: string | null | undefined = undefined;
+// Resolved lazily; `ffmpegIndex` advances when a binary proves broken (e.g. the
+// installer-provisioned build crashing with SIGSEGV) so we fall back to the
+// next candidate instead of retrying a binary that can never work.
+let ffmpegCandidates: string[] | undefined;
+let ffmpegIndex = 0;
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 const RECONNECT_BASE_DELAY = 2000;
@@ -59,18 +62,14 @@ function sendEvent(event: string, data: unknown): void {
 }
 
 /**
- * Resolve ffmpeg binary path using a cascade:
+ * Collect every usable ffmpeg binary, in preference order:
  * 1. Installer-provisioned: ~/.pairux/bin/ffmpeg (or %LOCALAPPDATA%\PairUX\bin\ffmpeg.exe)
  * 2. System PATH: which ffmpeg / where ffmpeg
  * 3. Dev-only fallback: @ffmpeg-installer/ffmpeg npm package
- * Returns null if ffmpeg is not available.
  */
-export function getFFmpegPath(): string | null {
-  if (_ffmpegPath !== undefined) {
-    return _ffmpegPath;
-  }
+function resolveFFmpegCandidates(): string[] {
+  const candidates: string[] = [];
 
-  // 1. Check installer-provisioned path
   const installerPath =
     process.platform === 'win32'
       ? join(
@@ -80,42 +79,65 @@ export function getFFmpegPath(): string | null {
           'ffmpeg.exe'
         )
       : join(homedir(), '.pairux', 'bin', 'ffmpeg');
-
   if (existsSync(installerPath)) {
-    _ffmpegPath = installerPath;
-    console.log(`[Streaming] Using installer ffmpeg: ${installerPath}`);
-    return _ffmpegPath;
+    candidates.push(installerPath);
   }
 
-  // 2. Check system PATH
   try {
     const cmd = process.platform === 'win32' ? 'where ffmpeg' : 'which ffmpeg';
     const result = execSync(cmd, { encoding: 'utf8', timeout: 3000 }).trim().split('\n')[0].trim();
-    if (result && existsSync(result)) {
-      _ffmpegPath = result;
-      console.log(`[Streaming] Using system ffmpeg: ${result}`);
-      return _ffmpegPath;
+    if (result && existsSync(result) && !candidates.includes(result)) {
+      candidates.push(result);
     }
   } catch {
     // Not found in PATH
   }
 
-  // 3. Dev-only fallback: @ffmpeg-installer/ffmpeg npm package
   if (!app.isPackaged) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg') as { path: string };
-      _ffmpegPath = ffmpegInstaller.path;
-      console.log(`[Streaming] Using npm ffmpeg: ${_ffmpegPath}`);
-      return _ffmpegPath;
+      if (!candidates.includes(ffmpegInstaller.path)) {
+        candidates.push(ffmpegInstaller.path);
+      }
     } catch {
       // Package not available
     }
   }
 
-  console.warn('[Streaming] ffmpeg not found — streaming features will be unavailable');
-  _ffmpegPath = null;
-  return null;
+  return candidates;
+}
+
+/** The currently-preferred ffmpeg binary, or null if none is available. */
+export function getFFmpegPath(): string | null {
+  ffmpegCandidates ??= resolveFFmpegCandidates();
+  const path = ffmpegCandidates[ffmpegIndex] as string | undefined;
+  if (!path) {
+    console.warn('[Streaming] ffmpeg not found — streaming features will be unavailable');
+    return null;
+  }
+  return path;
+}
+
+/**
+ * Mark a binary as broken (it crashed before ever going live — e.g. the
+ * installer-shipped 2018 build SIGSEGVs on VP9/WebM input) and advance to the
+ * next candidate. Returns true when there is another binary to try.
+ */
+function advanceFFmpegCandidate(brokenPath: string): boolean {
+  ffmpegCandidates ??= resolveFFmpegCandidates();
+  if (ffmpegCandidates[ffmpegIndex] !== brokenPath) {
+    // Another stream already advanced past this binary.
+    return ffmpegIndex < ffmpegCandidates.length;
+  }
+  if (ffmpegIndex < ffmpegCandidates.length - 1) {
+    ffmpegIndex++;
+    console.warn(
+      `[Streaming] ffmpeg at ${brokenPath} keeps crashing; falling back to ${ffmpegCandidates[ffmpegIndex]}`
+    );
+    return true;
+  }
+  return false;
 }
 
 function getResolution(resolution: '720p' | '1080p'): string {
@@ -187,11 +209,13 @@ function lastFFmpegError(stderr: string): string {
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean);
-  const meaningful = lines
+  // Iterate from the end (most recent) without mutating `lines`, so the
+  // fallback below still returns the first line of output.
+  const meaningful = [...lines]
     .reverse()
     .find(
       (l) =>
-        /error|fail|invalid|unable|not found|no such|unknown encoder|connection|refused|broken pipe|end of file|403|401/i.test(
+        /error|fail|crash|invalid|unable|not found|no such|unknown encoder|connection|refused|broken pipe|end of file|403|401/i.test(
           l
         ) && !l.startsWith('frame=')
     );
@@ -399,6 +423,18 @@ function spawnFFmpeg(
       console.log(
         `[Streaming] ffmpeg exited for ${destination.name}: code=${String(code)}, signal=${String(signal)}\n${lastFFmpegError(stream.statsBuffer)}`
       );
+
+      // A signal exit before the stream ever went live means the binary itself
+      // is broken (e.g. the bundled 2018 build SIGSEGVs on VP9/WebM input).
+      // Switch to the next ffmpeg candidate so the reconnect can actually work,
+      // and leave a readable reason for the final error message.
+      if (signal && stream.state.status === 'connecting') {
+        stream.statsBuffer += `\nffmpeg crashed (${signal}) before going live`;
+        if (!advanceFFmpegCandidate(ffmpegPath)) {
+          stream.statsBuffer +=
+            '\nNo working ffmpeg found — install one (e.g. sudo apt install ffmpeg) and try again';
+        }
+      }
 
       // Don't reconnect on auth errors
       if (isAuthError(stream.statsBuffer)) {

@@ -3,6 +3,7 @@ import { AccessToken } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { getIceServers } from '@/lib/ice-servers';
 
 const tokenRequestSchema = z.object({
   sessionId: z.string().uuid('Invalid session ID'),
@@ -104,6 +105,7 @@ export async function POST(request: Request) {
       token: jwt,
       url: process.env.NEXT_PUBLIC_LIVEKIT_URL,
       roomName,
+      iceServers: getIceServers(),
     });
   } catch (error) {
     return handleApiError(error);

@@ -17,6 +17,7 @@ import {
 } from 'livekit-client';
 import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
+import { buildSfuRtcConfig } from '@/lib/iceConfig';
 import type {
   ConnectionState,
   NetworkQuality,
@@ -265,10 +266,10 @@ export function useWebRTCHostSFUAPI({
       }
 
       const { data } = (await tokenRes.json()) as {
-        data: { token: string; url: string; roomName: string };
+        data: { token: string; url: string; roomName: string; iceServers?: RTCIceServer[] };
       };
 
-      // Create and connect room
+      // Create and connect room.
       const room = new Room({
         adaptiveStream: true,
         dynacast: true,
@@ -337,8 +338,12 @@ export function useWebRTCHostSFUAPI({
         }
       });
 
-      // Connect
-      await room.connect(data.url || LIVEKIT_URL, data.token);
+      // Connect. rtcConfig carries the TURN relay (and, when the user enables
+      // "Force relay", iceTransportPolicy='relay') so publishing survives
+      // multi-homed / dead-secondary-NIC machines.
+      await room.connect(data.url || LIVEKIT_URL, data.token, {
+        rtcConfig: buildSfuRtcConfig(data.iceServers),
+      });
 
       // Track existing participants
       for (const participant of room.remoteParticipants.values()) {

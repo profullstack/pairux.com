@@ -33,6 +33,7 @@ interface AppSettings {
   };
   streaming: {
     liveStreamEnabled: boolean;
+    forceRelay: boolean;
   };
 }
 
@@ -50,6 +51,10 @@ const DEFAULT_SETTINGS: AppSettings = {
     // Opt-in: going live to YouTube/Twitch is off by default so a routine call
     // is never streamed by accident.
     liveStreamEnabled: false,
+    // Force all media through the TURN relay (over the default internet route).
+    // Off by default; turn on for VPNs or machines with a non-routable extra
+    // NIC where direct connections drop mid-stream.
+    forceRelay: false,
   },
 };
 
@@ -350,6 +355,39 @@ export function SettingsPage() {
                 <span
                   className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
                     settings.streaming.liveStreamEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Force relay connection (TURN)</p>
+                <p className="text-xs text-muted-foreground">
+                  Routes server streaming through the relay over your default internet connection.
+                  Turn on if streaming drops after a minute — e.g. on a VPN or a machine with an
+                  extra network adapter (like SIM-card hardware) that isn’t your internet.
+                </p>
+              </div>
+              <button
+                aria-label="Toggle force relay"
+                aria-pressed={settings.streaming.forceRelay}
+                onClick={() => {
+                  updateSettings({
+                    ...settings,
+                    streaming: {
+                      ...settings.streaming,
+                      forceRelay: !settings.streaming.forceRelay,
+                    },
+                  });
+                }}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  settings.streaming.forceRelay ? 'bg-primary' : 'bg-muted'
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    settings.streaming.forceRelay ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>

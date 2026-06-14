@@ -333,6 +333,14 @@ rtc:
   udp_port: 7882
   use_external_ip: true
   node_ip: ${EXTERNAL_IP}
+  # Only advertise the primary public IP. Without this, LiveKit also offers
+  # candidates for the DO reserved IP (NAT'd through the droplet's anchor IP),
+  # the VPC IP, and the docker bridge. ICE flaps between the real IP and the
+  # reserved-IP path, whose NAT drops UDP mid-session — clients die with
+  # "could not establish pc connection" a minute or two into a stream.
+  ips:
+    includes:
+      - ${EXTERNAL_IP}/32
 
 keys:
   ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}

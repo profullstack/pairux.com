@@ -1,4 +1,4 @@
-import { EncodingOptionsPreset, StreamOutput, StreamProtocol } from 'livekit-server-sdk';
+import { EncodingOptions, StreamOutput, StreamProtocol } from 'livekit-server-sdk';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -84,8 +84,19 @@ export async function POST(request: Request) {
       { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
       {
         layout: 'speaker',
-        // 1080p30 — the SFU droplet has 4 vCPU (resized 2026-06-12).
-        encodingOptions: EncodingOptionsPreset.H264_1080P_30,
+        // Explicit 1080p30 (matches the H264_1080P_30 preset) but with a
+        // 2-second keyframe interval. The preset defaults to 4s, which YouTube
+        // Live rejects — the broadcast sits on "Preparing stream" with
+        // "excellent" health forever while Twitch (more lenient) goes live.
+        // YouTube requires a keyframe at least every 4s; 2s is the safe value.
+        encodingOptions: new EncodingOptions({
+          width: 1920,
+          height: 1080,
+          framerate: 30,
+          videoBitrate: 4500,
+          audioBitrate: 128,
+          keyFrameInterval: 2,
+        }),
       }
     );
 

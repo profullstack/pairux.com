@@ -24,7 +24,7 @@ vi.mock('livekit-server-sdk', () => ({
     return opts;
   }),
   StreamProtocol: { RTMP: 1 },
-  EncodingOptionsPreset: { H264_720P_30: 0, H264_1080P_30: 1 },
+  EncodingOptions: vi.fn().mockImplementation((opts: unknown) => opts),
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -100,7 +100,11 @@ describe('POST /api/stream/egress/start', () => {
     expect(mockStartRoomCompositeEgress).toHaveBeenCalledWith(
       `session-${sessionId}`,
       expect.objectContaining({ stream: expect.objectContaining({ urls }) }),
-      expect.objectContaining({ layout: 'speaker' })
+      expect.objectContaining({
+        layout: 'speaker',
+        // 2s keyframe interval is required for YouTube Live to leave "Preparing"
+        encodingOptions: expect.objectContaining({ keyFrameInterval: 2, height: 1080 }),
+      })
     );
   });
 });

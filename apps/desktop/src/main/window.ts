@@ -115,6 +115,14 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     console.log('[Main] Main window ready');
   });
 
+  // Restrict WebRTC ICE candidate gathering to the default-route interface
+  // (the machine's real internet connection). Without this, Chromium offers
+  // candidates on EVERY adapter — including non-routable ones like a VPN tap or
+  // SIM-card-hardware Ethernet — and ICE can pick a path that drops mid-stream
+  // ("could not establish pc connection"). This auto-selects the right NIC; the
+  // web platform has no API to pick one explicitly.
+  mainWindow.webContents.setWebRTCIPHandlingPolicy('default_public_and_private_interfaces');
+
   // Open external links in browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:') || url.startsWith('http:')) {

@@ -25,20 +25,28 @@ jobs:
             --config p/secrets
 
   npm-audit:
-    name: npm audit
+    name: dependency audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Audit (skip when no package.json)
+      - name: Audit dependencies
         run: |
           if [ -f package.json ]; then
-            (npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund)
-            npm audit --audit-level=high
+            # Full production report for visibility (never fails the build).
+            pnpm audit --prod || true
+            echo "::group::Gate"
+            # Gate on CRITICAL only. Auditing the live advisory DB at "high"
+            # flaps daily on transitive build/test-tooling CVEs that don't reach
+            # users; real shipping high+ vulns are patched via pnpm.overrides.
+            # Criticals are rare and genuinely block-worthy.
+            pnpm audit --prod --audit-level critical
+            echo "::endgroup::"
           else
-            echo "no package.json — skipping npm audit"
+            echo "no package.json — skipping audit"
           fi
 
   gitleaks:

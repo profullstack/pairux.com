@@ -90,7 +90,21 @@
   ],
   "pnpm": {
     "overrides": {
-      "app-builder-bin": "4.0.0"
+      "app-builder-bin": "4.0.0",
+      "shell-quote@1": "^1.8.4",
+      "undici@6": "^6.24.0",
+      "node-forge@1": "^1.4.0",
+      "@xmldom/xmldom@0.8": "^0.8.13",
+      "fast-uri@3": "^3.1.2",
+      "hono@4": "^4.12.4",
+      "@hono/node-server@1": "^1.19.10",
+      "@babel/plugin-transform-modules-systemjs@7": "^7.29.4",
+      "minimatch@9": "^9.0.7",
+      "minimatch@3": "^3.1.4",
+      "picomatch@4": "^4.0.4",
+      "picomatch@3": "^3.0.2",
+      "picomatch@2": "^2.3.2",
+      "tar@7": "^7.5.4"
     }
   },
   "dependencies": {

@@ -27,7 +27,7 @@
     "livekit-client": "^2.17.0",
     "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.468.0",
-    "next": "^16.1.4",
+    "next": "^16.2.9",
     "posthog-js": "^1.381.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

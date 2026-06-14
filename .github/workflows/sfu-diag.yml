@@ -1,0 +1,35 @@
+name: SFU Diagnostics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SFU_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.DROPLET_SFU_PORT || 22 }} ${{ secrets.DROPLET_SFU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Gather network + LiveKit ICE diagnostics
+        env:
+          SSH_HOST: ${{ secrets.DROPLET_SFU_HOST }}
+          SSH_PORT: ${{ secrets.DROPLET_SFU_PORT || 22 }}
+          SSH_USER: ${{ secrets.DROPLET_SFU_USER }}
+        run: |
+          run() { ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "$1"; }
+          echo "===== ip route get 8.8.8.8 (default src IP) ====="
+          run "ip route get 8.8.8.8"
+          echo "===== ip -4 addr ====="
+          run "ip -4 addr show | grep -E 'inet |eth'"
+          echo "===== default route ====="
+          run "ip route show default"
+          echo "===== livekit advertised IPs ====="
+          run "cd /opt/pairux-livekit && sudo docker compose logs livekit 2>/dev/null | grep -i 'using external IP' | tail -2"
+          echo "===== recent ICE / dtls / candidate events (last 30m) ====="
+          run "cd /opt/pairux-livekit && sudo docker compose logs --since 30m livekit 2>/dev/null | grep -iE 'ice|dtls|candidate|disconnect|connection failed|reconnect|selected pair' | tail -60"
+          echo "===== egress recent ====="
+          run "cd /opt/pairux-livekit && sudo docker compose logs --since 30m egress 2>/dev/null | tail -20"

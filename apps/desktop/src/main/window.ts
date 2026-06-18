@@ -115,13 +115,19 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     console.log('[Main] Main window ready');
   });
 
-  // Restrict WebRTC ICE candidate gathering to the default-route interface
-  // (the machine's real internet connection). Without this, Chromium offers
-  // candidates on EVERY adapter — including non-routable ones like a VPN tap or
-  // SIM-card-hardware Ethernet — and ICE can pick a path that drops mid-stream
-  // ("could not establish pc connection"). This auto-selects the right NIC; the
-  // web platform has no API to pick one explicitly.
-  mainWindow.webContents.setWebRTCIPHandlingPolicy('default_public_and_private_interfaces');
+  // Restrict WebRTC ICE candidate gathering to ONLY the default-route interface
+  // (the machine's real internet connection). Chromium otherwise enumerates
+  // EVERY up adapter — including non-routable ones like a VPN tap or SIM-card
+  // Ethernet (e.g. enp2s0 on 192.168.11.x with no default route) — and builds a
+  // TURN/relay allocation per interface. If ICE selects an allocation sourced
+  // from the dead NIC, packets egress a dead path (or are dropped for
+  // source/route mismatch): the relay "connects" but DTLS never flows and the
+  // publisher dies with "could not establish pc connection" a few seconds in.
+  // 'default_public_and_private_interfaces' still gathered those private
+  // candidates; 'default_public_interface_only' uses only the default-route
+  // NIC, which is what we want for relayed SFU streaming. The web platform has
+  // no API to pick a NIC explicitly.
+  mainWindow.webContents.setWebRTCIPHandlingPolicy('default_public_interface_only');
 
   // Open external links in browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

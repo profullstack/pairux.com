@@ -248,6 +248,15 @@ jobs:
             apps/desktop/out/*.rpm
             apps/desktop/out/*.gz
           retention-days: 7
+          # These are all already-compressed binaries. upload-artifact's
+          # default deflate (level 6) re-compresses them for no size win and
+          # has repeatedly produced corrupt artifacts at the upload boundary
+          # (build + download-artifact hash checks pass, but the squashfs/rpm
+          # payload is unreadable -> release integrity gate fails). Store them
+          # uncompressed to skip that code path. If corruption still recurs,
+          # the next step is to drop the artifact round-trip entirely and
+          # upload straight to the GitHub Release.
+          compression-level: 0
 
   release:
     needs: build

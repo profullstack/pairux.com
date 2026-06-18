@@ -192,7 +192,11 @@ describe('useWebRTCViewerSFUAPI', () => {
       await Promise.resolve();
     });
 
-    expect(mockConnect).toHaveBeenCalledWith('wss://livekit.example.com', 'lk-test-token');
+    expect(mockConnect).toHaveBeenCalledWith(
+      'wss://livekit.example.com',
+      'lk-test-token',
+      expect.objectContaining({ rtcConfig: expect.any(Object) })
+    );
   });
 
   it('should enable microphone after connecting', async () => {

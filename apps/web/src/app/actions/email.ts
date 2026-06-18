@@ -2,6 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { marked } from 'marked';
 import { createClient } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { createEmailer } from '@profullstack/emailer';
@@ -31,8 +32,7 @@ async function assertAdmin(): Promise<{ ok: true; userId: string } | Err> {
 
 export async function sendBulkEmail(input: {
   subject: string;
-  html: string;
-  text?: string;
+  markdown: string;
   from?: string;
 }): Promise<
   Ok<{ sent: number; failed: number; errors: { email: string; error: string }[] }> | Err
@@ -42,8 +42,13 @@ export async function sendBulkEmail(input: {
 
   const subject = input.subject.trim();
   if (!subject) return { ok: false, error: 'Subject is required.' };
-  const html = input.html.trim();
-  if (!html) return { ok: false, error: 'Body is required.' };
+  const markdown = input.markdown.trim();
+  if (!markdown) return { ok: false, error: 'Body is required.' };
+
+  // The admin composes in Markdown; render to HTML for the email body and
+  // keep the raw Markdown as a readable plain-text fallback.
+  const html = await marked.parse(markdown, { async: true });
+  const text = markdown;
 
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) return { ok: false, error: 'RESEND_API_KEY is not configured.' };
@@ -69,8 +74,8 @@ export async function sendBulkEmail(input: {
     to: emails,
     subject,
     html,
+    text,
   };
-  if (input.text !== undefined) bulkOpts.text = input.text;
   if (input.from !== undefined) bulkOpts.from = input.from;
   const result = await emailer.sendBulk(bulkOpts);
 

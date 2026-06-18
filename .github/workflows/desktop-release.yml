@@ -312,7 +312,7 @@ jobs:
       # after download and before the release is created, makes a corrupt
       # artifact fail the build instead of reaching users (re-run to rebuild).
       - name: Install verification tools
-        run: sudo apt-get update && sudo apt-get install -y squashfs-tools binutils rpm cpio unzip
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools binutils libarchive-tools unzip
 
       - name: Verify artifact integrity
         shell: bash
@@ -351,9 +351,14 @@ jobs:
             echo "::endgroup::"
           done
 
+          # Verify rpms with bsdtar (libarchive), NOT rpm2cpio|cpio: the
+          # runner's rpm2cpio can't decompress zstd payloads (electron-builder
+          # emits zstd rpms for some arches, e.g. aarch64), so it falsely
+          # reported "premature end of file" on perfectly valid rpms. libarchive
+          # handles every rpm payload compressor (gzip/xz/zstd) uniformly.
           for rpm in dist/*.rpm; do
             echo "::group::rpm $rpm"
-            if rpm2cpio "$rpm" 2>/tmp/rpm.log | cpio -t >/dev/null 2>>/tmp/rpm.log; then echo "OK $rpm"
+            if bsdtar -tf "$rpm" >/dev/null 2>/tmp/rpm.log; then echo "OK $rpm"
             else echo "::error::$rpm is corrupt"; tail -20 /tmp/rpm.log; fail=1; fi
             echo "::endgroup::"
           done

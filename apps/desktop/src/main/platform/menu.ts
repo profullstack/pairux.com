@@ -125,12 +125,24 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
     ],
   };
 
-  // DevTools available in production too (View menu / Ctrl+Shift+I /
-  // Cmd+Opt+I) so streaming/WebRTC connection errors can be diagnosed from
-  // the field.
+  // DevTools + WebRTC Internals available in production for field diagnostics.
+  // chrome://webrtc-internals captures every peer connection in the app; open
+  // it BEFORE "Go Live", reproduce, then use its "Create Dump" button to save a
+  // file with the full ICE/DTLS/SDP negotiation.
   (viewMenu.submenu as MenuItemConstructorOptions[]).push(
     { type: 'separator' },
-    { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
+    { label: 'Toggle Developer Tools', role: 'toggleDevTools' },
+    {
+      label: 'Open WebRTC Internals',
+      click: () => {
+        const w = new BrowserWindow({
+          width: 1280,
+          height: 860,
+          title: 'WebRTC Internals',
+        });
+        void w.loadURL('chrome://webrtc-internals');
+      },
+    }
   );
 
   const windowMenu: MenuItemConstructorOptions = {
@@ -230,12 +242,24 @@ function buildDefaultMenu(): MenuItemConstructorOptions[] {
     ],
   };
 
-  // DevTools available in production too (View menu / Ctrl+Shift+I /
-  // Cmd+Opt+I) so streaming/WebRTC connection errors can be diagnosed from
-  // the field.
+  // DevTools + WebRTC Internals available in production for field diagnostics.
+  // chrome://webrtc-internals captures every peer connection in the app; open
+  // it BEFORE "Go Live", reproduce, then use its "Create Dump" button to save a
+  // file with the full ICE/DTLS/SDP negotiation.
   (viewMenu.submenu as MenuItemConstructorOptions[]).push(
     { type: 'separator' },
-    { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
+    { label: 'Toggle Developer Tools', role: 'toggleDevTools' },
+    {
+      label: 'Open WebRTC Internals',
+      click: () => {
+        const w = new BrowserWindow({
+          width: 1280,
+          height: 860,
+          title: 'WebRTC Internals',
+        });
+        void w.loadURL('chrome://webrtc-internals');
+      },
+    }
   );
 
   const helpMenu: MenuItemConstructorOptions = {

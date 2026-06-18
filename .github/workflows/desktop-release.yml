@@ -301,7 +301,23 @@ jobs:
                  apps/desktop/out/*.gz)
           if [ ${#files[@]} -eq 0 ]; then echo "::error::no build outputs to upload"; exit 1; fi
           printf 'Uploading to %s:\n' "$TAG"; printf '  %s\n' "${files[@]}"
-          gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          # Upload one file at a time with retries. The build matrix runs in
+          # parallel and `--clobber` does a delete-then-reupload, so two jobs
+          # touching the same asset name race and one gets a transient HTTP 404
+          # (or 422). Per-file + backoff+jitter rides it out instead of failing
+          # the whole release.
+          for f in "${files[@]}"; do
+            for attempt in 1 2 3 4 5; do
+              if gh release upload "$TAG" "$f" --clobber --repo "$GITHUB_REPOSITORY"; then
+                break
+              fi
+              if [ "$attempt" -eq 5 ]; then
+                echo "::error::failed to upload $(basename "$f") after 5 attempts"; exit 1
+              fi
+              echo "upload of $(basename "$f") failed (attempt $attempt); retrying after backoff"
+              sleep $(( attempt * 3 + RANDOM % 6 ))
+            done
+          done
 
   finalize:
     needs: [prepare, build]

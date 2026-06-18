@@ -102,8 +102,8 @@ describe('POST /api/stream/egress/start', () => {
       expect.objectContaining({ stream: expect.objectContaining({ urls }) }),
       expect.objectContaining({
         layout: 'speaker',
-        // 2s keyframe interval is required for YouTube Live to leave "Preparing"
-        encodingOptions: expect.objectContaining({ keyFrameInterval: 2, height: 1080 }),
+        // 1s keyframe interval so YouTube Live leaves "Preparing" reliably
+        encodingOptions: expect.objectContaining({ keyFrameInterval: 1, height: 1080 }),
       })
     );
   });

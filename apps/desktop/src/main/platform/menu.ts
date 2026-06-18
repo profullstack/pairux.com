@@ -125,13 +125,13 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
     ],
   };
 
-  // Add DevTools in development
-  if (!app.isPackaged) {
-    (viewMenu.submenu as MenuItemConstructorOptions[]).push(
-      { type: 'separator' },
-      { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
-    );
-  }
+  // DevTools available in production too (View menu / Ctrl+Shift+I /
+  // Cmd+Opt+I) so streaming/WebRTC connection errors can be diagnosed from
+  // the field.
+  (viewMenu.submenu as MenuItemConstructorOptions[]).push(
+    { type: 'separator' },
+    { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
+  );
 
   const windowMenu: MenuItemConstructorOptions = {
     label: 'Window',
@@ -230,13 +230,13 @@ function buildDefaultMenu(): MenuItemConstructorOptions[] {
     ],
   };
 
-  // Add DevTools in development
-  if (!app.isPackaged) {
-    (viewMenu.submenu as MenuItemConstructorOptions[]).push(
-      { type: 'separator' },
-      { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
-    );
-  }
+  // DevTools available in production too (View menu / Ctrl+Shift+I /
+  // Cmd+Opt+I) so streaming/WebRTC connection errors can be diagnosed from
+  // the field.
+  (viewMenu.submenu as MenuItemConstructorOptions[]).push(
+    { type: 'separator' },
+    { label: 'Toggle Developer Tools', role: 'toggleDevTools' }
+  );
 
   const helpMenu: MenuItemConstructorOptions = {
     label: 'Help',

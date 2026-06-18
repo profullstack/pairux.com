@@ -30,8 +30,14 @@ export function getIceServers(): IceServer[] {
       ? u
       : `${u}${u.includes('?') ? '&' : '?'}transport=tcp`;
 
+  // NOTE: the turns: (TLS :5349) URL is intentionally NOT offered. coturn's
+  // TLS handshake is broken on this box (OpenSSL-3 "SSL routines internal
+  // error" / "TLS/TCP socket buffer operation error") — clients allocate TLS
+  // relay candidates that fail and churn, delaying ICE until livekit's
+  // publisher hits a dtls timeout, even though a plain-TCP relay carries media
+  // fine (verified: ~830 KB relayed over a 3478/tcp session). Offer only the
+  // TCP relay until coturn TLS is fixed.
   const turnUrls = [
-    process.env.NEXT_PUBLIC_TURNS_URL,
     process.env.TURN_SERVER_URL ?? process.env.NEXT_PUBLIC_TURN_URL,
     process.env.TURN_SERVER_IP_URL ?? process.env.NEXT_PUBLIC_TURN_IP_URL,
   ]

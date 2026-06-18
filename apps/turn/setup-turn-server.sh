@@ -316,6 +316,32 @@ fi
 chown turnserver:turnserver /var/log/turnserver.log
 
 # ===========================================
+# Keep coturn's TLS cert in sync with Let's Encrypt
+# ===========================================
+# coturn reads a COPY of the cert from /etc/turnserver/certs (it runs as the
+# unprivileged turnserver user and can't read /etc/letsencrypt/live). certbot
+# renews the live cert but won't touch coturn's copy or reload the service, so
+# without this hook coturn keeps serving the stale copy until it EXPIRES — TURNS
+# (:5349) then fails its TLS handshake, clients can't use the TCP/TLS relay and
+# fall back to UDP relay, which NAT-rebinds and drops multi-homed hosts mid-call
+# ("could not establish pc connection"). This silently broke streaming for weeks
+# in June 2026. The deploy hook re-copies the cert and reloads coturn on every
+# successful renewal.
+if [ -d /etc/letsencrypt/renewal-hooks/deploy ]; then
+  info "Installing certbot deploy hook to sync coturn's cert..."
+  cat > /etc/letsencrypt/renewal-hooks/deploy/coturn.sh << "HOOK"
+#!/bin/bash
+set -e
+D=/etc/letsencrypt/live/turn.pairux.com
+DST=/etc/turnserver/certs
+install -o turnserver -g turnserver -m 0644 "$D/fullchain.pem" "$DST/fullchain.pem"
+install -o turnserver -g turnserver -m 0640 "$D/privkey.pem"  "$DST/privkey.pem"
+systemctl restart coturn
+HOOK
+  chmod +x /etc/letsencrypt/renewal-hooks/deploy/coturn.sh
+fi
+
+# ===========================================
 # Start Services
 # ===========================================
 

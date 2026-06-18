@@ -15,7 +15,58 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Create the GitHub Release up front (as a draft) so each build job can
+  # upload its binaries straight to it. This deliberately avoids
+  # upload-artifact/download-artifact: that round-trip through the Actions
+  # artifact store repeatedly corrupted large binaries (random artifacts each
+  # run — AppImage squashfs, .deb lzma, .rpm payload — all with hashes matching
+  # the corrupt content), blocking releases v0.7.26–v0.7.31. The Releases API
+  # (gh release upload/download) is the same reliable path users download from.
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: Get version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then VERSION="$INPUT_VERSION"; else VERSION="$REF_NAME"; fi
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *"-alpha"* || "$VERSION" == *"-beta"* || "$VERSION" == *"-rc"* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists (re-run) — ensuring it is a draft and reusing it."
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft
+          else
+            args=(--repo "$GITHUB_REPOSITORY" --title "PairUX $VERSION" --draft --generate-notes)
+            [ "$PRERELEASE" = "true" ] && args+=(--prerelease)
+            gh release create "$TAG" "${args[@]}"
+          fi
+
   build:
+    needs: prepare
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -235,82 +286,43 @@ jobs:
           gzip "$OUT"
           echo "Bundled ffmpeg as $(basename "$OUT").gz"
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
-          path: |
-            apps/desktop/out/*.dmg
-            apps/desktop/out/*.zip
-            apps/desktop/out/*.exe
-            apps/desktop/out/*.AppImage
-            apps/desktop/out/*.deb
-            apps/desktop/out/*.rpm
-            apps/desktop/out/*.gz
-          retention-days: 7
-          # These are all already-compressed binaries. upload-artifact's
-          # default deflate (level 6) re-compresses them for no size win and
-          # has repeatedly produced corrupt artifacts at the upload boundary
-          # (build + download-artifact hash checks pass, but the squashfs/rpm
-          # payload is unreadable -> release integrity gate fails). Store them
-          # uncompressed to skip that code path. If corruption still recurs,
-          # the next step is to drop the artifact round-trip entirely and
-          # upload straight to the GitHub Release.
-          compression-level: 0
+      # Upload this platform's binaries straight to the draft release. Runs in
+      # bash on all three OSes (git-bash on Windows) so the glob works; gh is
+      # preinstalled on every runner. --clobber makes re-runs idempotent.
+      - name: Upload binaries to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          shopt -s nullglob
+          files=(apps/desktop/out/*.dmg apps/desktop/out/*.zip apps/desktop/out/*.exe \
+                 apps/desktop/out/*.AppImage apps/desktop/out/*.deb apps/desktop/out/*.rpm \
+                 apps/desktop/out/*.gz)
+          if [ ${#files[@]} -eq 0 ]; then echo "::error::no build outputs to upload"; exit 1; fi
+          printf 'Uploading to %s:\n' "$TAG"; printf '  %s\n' "${files[@]}"
+          gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
 
-  release:
-    needs: build
+  finalize:
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Get version
-        id: version
+      - name: Download published release assets
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-          REF_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          if [ -n "$INPUT_VERSION" ]; then
-            VERSION="$INPUT_VERSION"
-          else
-            VERSION="$REF_NAME"
-          fi
-          # Strip 'v' prefix if present
-          VERSION="${VERSION#v}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          mkdir -p dist
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir dist --pattern '*'
+          ls -la dist/
 
-          # Only mark as prerelease if version has prerelease suffix (alpha, beta, rc)
-          if [[ "$VERSION" == *"-alpha"* ]] || [[ "$VERSION" == *"-beta"* ]] || [[ "$VERSION" == *"-rc"* ]]; then
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          else
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: dist
-          pattern: desktop-*
-          merge-multiple: true
-
-      - name: List artifacts
-        run: ls -la dist/
-
-      # Re-verify the EXACT artifacts that are about to be published. The
-      # build job's "Verify AppImage integrity" step runs BEFORE
-      # upload-artifact, so it cannot catch corruption introduced by the
-      # artifact upload/download round-trip. v0.7.26 shipped a linux-x64
-      # bundle whose AppImage, .deb AND .rpm were all corrupt (valid headers,
-      # unreadable compressed payloads -> "sqfs_traverse_open error" /
-      # "lzma error: compressed data is corrupt") even though the per-build
-      # check passed — the corruption happened in transit. Verifying here,
-      # after download and before the release is created, makes a corrupt
-      # artifact fail the build instead of reaching users (re-run to rebuild).
+      # Re-verify the EXACT bytes published to the Release (defense in depth).
+      # The build jobs upload straight to the Release, so this catches any
+      # corruption on the upload/download path before we un-draft. A failure
+      # here leaves the release as a DRAFT (not public) — re-run to fix.
       - name: Install verification tools
         run: sudo apt-get update && sudo apt-get install -y squashfs-tools binutils libarchive-tools unzip
 
@@ -378,23 +390,22 @@ jobs:
           fi
           echo "All verifiable artifacts extracted cleanly."
 
-      - name: Generate checksums
+      - name: Generate + upload checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
           cd dist
+          rm -f SHA256SUMS.txt
           sha256sum * > SHA256SUMS.txt
           cat SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: PairUX ${{ steps.version.outputs.version }}
-          draft: false
-          prerelease: ${{ steps.version.outputs.prerelease }}
-          generate_release_notes: true
-          files: |
-            dist/*
+      - name: Publish release
         env:
-          # Use PKG_SUBMIT_TOKEN (PAT) to trigger submit-packages workflow
-          # GITHUB_TOKEN doesn't trigger other workflows
-          GITHUB_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          # PKG_SUBMIT_TOKEN (PAT) so un-drafting emits a release event that
+          # triggers the submit-packages workflow; the default GITHUB_TOKEN
+          # does not trigger other workflows.
+          GH_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

@@ -84,18 +84,19 @@ export async function POST(request: Request) {
       { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
       {
         layout: 'speaker',
-        // Explicit 1080p30 (matches the H264_1080P_30 preset) but with a
-        // 2-second keyframe interval. The preset defaults to 4s, which YouTube
-        // Live rejects — the broadcast sits on "Preparing stream" with
-        // "excellent" health forever while Twitch (more lenient) goes live.
-        // YouTube requires a keyframe at least every 4s; 2s is the safe value.
+        // Explicit 1080p30 with a 1-second keyframe interval. The preset
+        // defaults to 4s; YouTube Live then sits on "Preparing stream" with
+        // good health and intermittently never goes live, while Twitch (more
+        // lenient) always does. 2s helped but YouTube was still flaky; 1s
+        // (a keyframe every 30 frames) makes YouTube leave "Preparing"
+        // reliably and is well within its <=4s requirement.
         encodingOptions: new EncodingOptions({
           width: 1920,
           height: 1080,
           framerate: 30,
           videoBitrate: 4500,
           audioBitrate: 128,
-          keyFrameInterval: 2,
+          keyFrameInterval: 1,
         }),
       }
     );

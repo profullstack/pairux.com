@@ -12,18 +12,12 @@ import {
   RoomEvent,
   Track,
   ConnectionState as LKConnectionState,
-  setLogLevel,
-  LogLevel,
   type RemoteParticipant,
   type LocalTrackPublication,
 } from 'livekit-client';
 import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
 import { buildSfuRtcConfig } from '@/lib/iceConfig';
-
-// Verbose livekit logging so SFU connection/ICE/DTLS failures are visible in
-// DevTools (production DevTools is enabled). Temporary field diagnostic.
-setLogLevel(LogLevel.debug);
 import type {
   ConnectionState,
   NetworkQuality,

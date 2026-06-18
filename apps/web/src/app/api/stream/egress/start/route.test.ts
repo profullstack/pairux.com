@@ -61,7 +61,9 @@ beforeEach(() => {
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key';
   mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
   mockSingle.mockResolvedValue({ data: hostSession, error: null });
-  mockStartRoomCompositeEgress.mockResolvedValue({ egressId: 'eg-123' });
+  mockStartRoomCompositeEgress
+    .mockResolvedValueOnce({ egressId: 'eg-yt' })
+    .mockResolvedValueOnce({ egressId: 'eg-tw' });
 });
 
 describe('POST /api/stream/egress/start', () => {
@@ -89,22 +91,32 @@ describe('POST /api/stream/egress/start', () => {
     expect(res.status).toBe(403);
   });
 
-  it('starts a room composite egress streaming to every destination', async () => {
+  it('starts one isolated egress per destination', async () => {
     const urls = ['rtmp://a.rtmp.youtube.com/live2/yt-key', 'rtmp://live.twitch.tv/app/tw-key'];
     const res = await POST(createRequest({ sessionId, rtmpUrls: urls }));
 
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { data: { egressId: string } };
-    expect(json.data.egressId).toBe('eg-123');
+    const json = (await res.json()) as { data: { egressId: string; egressIds: string[] } };
+    expect(json.data.egressIds).toEqual(['eg-yt', 'eg-tw']);
+    expect(json.data.egressId).toBe('eg-yt');
 
-    expect(mockStartRoomCompositeEgress).toHaveBeenCalledWith(
+    // One egress per URL — each StreamOutput carries a single destination.
+    expect(mockStartRoomCompositeEgress).toHaveBeenCalledTimes(2);
+    expect(mockStartRoomCompositeEgress).toHaveBeenNthCalledWith(
+      1,
       `session-${sessionId}`,
-      expect.objectContaining({ stream: expect.objectContaining({ urls }) }),
+      expect.objectContaining({ stream: expect.objectContaining({ urls: [urls[0]] }) }),
       expect.objectContaining({
         layout: 'speaker',
         // 1s keyframe interval so YouTube Live leaves "Preparing" reliably
         encodingOptions: expect.objectContaining({ keyFrameInterval: 1, height: 1080 }),
       })
+    );
+    expect(mockStartRoomCompositeEgress).toHaveBeenNthCalledWith(
+      2,
+      `session-${sessionId}`,
+      expect.objectContaining({ stream: expect.objectContaining({ urls: [urls[1]] }) }),
+      expect.objectContaining({ layout: 'speaker' })
     );
   });
 });

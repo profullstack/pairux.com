@@ -427,7 +427,7 @@ describe('useRTMPStreaming', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('stops the server restream with the stored egressId', async () => {
+    it('stops the server restream with the stored egress ids', async () => {
       const { result } = renderHook(() => useRTMPStreaming());
       await act(async () => {
         await vi.runAllTimersAsync();
@@ -444,7 +444,7 @@ describe('useRTMPStreaming', () => {
       expect(result.current.isServerStreaming).toBe(false);
       const [url, init] = mockFetch.mock.calls.at(-1) as [string, RequestInit];
       expect(url).toContain('/api/stream/egress/stop');
-      expect(JSON.parse(init.body as string)).toEqual({ egressId: 'eg-1' });
+      expect(JSON.parse(init.body as string)).toEqual({ egressIds: ['eg-1'] });
     });
 
     it('should stop all streams', async () => {

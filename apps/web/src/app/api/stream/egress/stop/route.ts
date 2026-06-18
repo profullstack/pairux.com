@@ -5,7 +5,9 @@ import { getEgressClient } from '@/lib/livekit-egress';
 /** Stop a server-side RTMP restream started via /api/stream/egress/start. */
 
 interface StopEgressBody {
-  egressId: string;
+  /** Single id (legacy) and/or the full set started for a session. */
+  egressId?: string;
+  egressIds?: string[];
 }
 
 export async function POST(request: Request) {
@@ -16,10 +18,14 @@ export async function POST(request: Request) {
       return errorResponse('Authentication required', 401);
     }
 
-    const body = (await request.json().catch(() => ({}))) as Partial<StopEgressBody>;
-    const egressId = typeof body.egressId === 'string' ? body.egressId : '';
-    if (!egressId) {
-      return errorResponse('egressId is required', 400);
+    const body = (await request.json().catch(() => ({}))) as StopEgressBody;
+    const ids = [
+      ...(Array.isArray(body.egressIds) ? body.egressIds : []),
+      ...(typeof body.egressId === 'string' ? [body.egressId] : []),
+    ].filter((id): id is string => typeof id === 'string' && id.length > 0);
+    const uniqueIds = [...new Set(ids)];
+    if (uniqueIds.length === 0) {
+      return errorResponse('egressId or egressIds is required', 400);
     }
 
     const egress = getEgressClient();
@@ -27,7 +33,8 @@ export async function POST(request: Request) {
       return errorResponse('Server-side streaming is not configured', 503);
     }
 
-    await egress.stopEgress(egressId);
+    // Stop every destination's egress; one failure must not abandon the rest.
+    await Promise.allSettled(uniqueIds.map((id) => egress.stopEgress(id)));
     return successResponse({ stopped: true });
   } catch (error) {
     return handleApiError(error);

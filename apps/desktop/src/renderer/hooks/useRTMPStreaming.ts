@@ -280,7 +280,8 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
   // The server composites the SFU room and fans out to every destination, so
   // the host's uplink only carries their WebRTC publish. Free on all plans.
 
-  const [serverEgressId, setServerEgressId] = useState<string | null>(null);
+  // One egress id per destination (server starts an independent egress each).
+  const [serverEgressIds, setServerEgressIds] = useState<string[]>([]);
 
   const startServerStream = useCallback(
     async (sessionId: string): Promise<{ success: boolean; error?: string }> => {
@@ -306,13 +307,14 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
           body: JSON.stringify({ sessionId, rtmpUrls: urls }),
         });
         const json = (await response.json().catch(() => ({}))) as {
-          data?: { egressId?: string };
+          data?: { egressId?: string; egressIds?: string[] };
           error?: string;
         };
-        if (!response.ok || !json.data?.egressId) {
+        const ids = json.data?.egressIds ?? (json.data?.egressId ? [json.data.egressId] : []);
+        if (!response.ok || ids.length === 0) {
           return { success: false, error: json.error ?? 'Server streaming failed to start' };
         }
-        setServerEgressId(json.data.egressId);
+        setServerEgressIds(ids);
         return { success: true };
       } catch {
         return { success: false, error: 'Could not reach the streaming server' };
@@ -325,7 +327,8 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
     success: boolean;
     error?: string;
   }> => {
-    if (!isElectron() || !serverEgressId) return { success: false, error: 'Not streaming' };
+    if (!isElectron() || serverEgressIds.length === 0)
+      return { success: false, error: 'Not streaming' };
     const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
     if (!token) return { success: false, error: 'Not signed in' };
 
@@ -333,18 +336,18 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
       const response = await fetch(`${API_BASE_URL}/api/stream/egress/stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ egressId: serverEgressId }),
+        body: JSON.stringify({ egressIds: serverEgressIds }),
       });
       if (!response.ok) {
         const json = (await response.json().catch(() => ({}))) as { error?: string };
         return { success: false, error: json.error ?? 'Failed to stop server stream' };
       }
-      setServerEgressId(null);
+      setServerEgressIds([]);
       return { success: true };
     } catch {
       return { success: false, error: 'Could not reach the streaming server' };
     }
-  }, [serverEgressId]);
+  }, [serverEgressIds]);
 
   // --- Status Polling ---
 
@@ -496,7 +499,7 @@ export function useRTMPStreaming(options: UseRTMPStreamingOptions = {}) {
     startAllStreams,
     stopAllStreams,
 
-    isServerStreaming: serverEgressId !== null,
+    isServerStreaming: serverEgressIds.length > 0,
     startServerStream,
     stopServerStream,
   };

@@ -79,29 +79,37 @@ export async function POST(request: Request) {
     }
 
     const roomName = `session-${sessionId}`;
-    const info = await egress.startRoomCompositeEgress(
-      roomName,
-      { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
-      {
-        layout: 'speaker',
-        // Explicit 1080p30 with a 1-second keyframe interval. The preset
-        // defaults to 4s; YouTube Live then sits on "Preparing stream" with
-        // good health and intermittently never goes live, while Twitch (more
-        // lenient) always does. 2s helped but YouTube was still flaky; 1s
-        // (a keyframe every 30 frames) makes YouTube leave "Preparing"
-        // reliably and is well within its <=4s requirement.
-        encodingOptions: new EncodingOptions({
-          width: 1920,
-          height: 1080,
-          framerate: 30,
-          videoBitrate: 4500,
-          audioBitrate: 128,
-          keyFrameInterval: 1,
-        }),
-      }
-    );
+    // Explicit 1080p30 with a 1-second keyframe interval. The preset defaults
+    // to 4s; YouTube Live then sits on "Preparing stream" and intermittently
+    // never goes live, while Twitch (more lenient) always does. 1s (a keyframe
+    // every 30 frames) is well within YouTube's <=4s requirement.
+    const encodingOptions = new EncodingOptions({
+      width: 1920,
+      height: 1080,
+      framerate: 30,
+      videoBitrate: 4500,
+      audioBitrate: 128,
+      keyFrameInterval: 1,
+    });
 
-    return successResponse({ egressId: info.egressId });
+    // One egress per destination instead of a single combined pipeline. With a
+    // shared RoomComposite fanning out to YouTube + Twitch in one StreamOutput,
+    // a stall on one sink (e.g. YouTube stuck on "Preparing") can back-pressure
+    // the shared flvmux/encoder and degrade or stall the others. Independent
+    // egresses isolate each platform and give each its own egressId/status.
+    const results = await Promise.all(
+      rtmpUrls.map((url) =>
+        egress.startRoomCompositeEgress(
+          roomName,
+          { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: [url] }) },
+          { layout: 'speaker', encodingOptions }
+        )
+      )
+    );
+    const egressIds = results.map((info) => info.egressId);
+
+    // egressId (first) kept for backward compatibility with older clients.
+    return successResponse({ egressIds, egressId: egressIds[0] });
   } catch (error) {
     return handleApiError(error);
   }

@@ -16,6 +16,7 @@ import {
 } from 'livekit-client';
 import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
+import { buildSfuRtcConfig } from '@/lib/iceConfig';
 import type {
   ConnectionState,
   QualityMetrics,
@@ -374,7 +375,7 @@ export function useWebRTCViewerSFUAPI({
       }
 
       const { data } = (await tokenRes.json()) as {
-        data: { token: string; url: string; roomName: string };
+        data: { token: string; url: string; roomName: string; iceServers?: RTCIceServer[] };
       };
 
       // Create and connect room
@@ -477,8 +478,13 @@ export function useWebRTCViewerSFUAPI({
         setDataChannelReady(false);
       });
 
-      // Connect to LiveKit
-      await room.connect(data.url, data.token);
+      // Connect to LiveKit. Pass the TURN iceServers + honor "Force relay"
+      // (same as the host path) — without rtcConfig the subscriber went
+      // direct and DTLS-timed-out on restrictive NATs ("could not establish
+      // pc connection") even with Force relay enabled.
+      await room.connect(data.url, data.token, {
+        rtcConfig: buildSfuRtcConfig(data.iceServers),
+      });
 
       // Enable mic after connecting
       try {

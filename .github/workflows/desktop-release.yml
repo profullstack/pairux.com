@@ -292,6 +292,78 @@ jobs:
       - name: List artifacts
         run: ls -la dist/
 
+      # Re-verify the EXACT artifacts that are about to be published. The
+      # build job's "Verify AppImage integrity" step runs BEFORE
+      # upload-artifact, so it cannot catch corruption introduced by the
+      # artifact upload/download round-trip. v0.7.26 shipped a linux-x64
+      # bundle whose AppImage, .deb AND .rpm were all corrupt (valid headers,
+      # unreadable compressed payloads -> "sqfs_traverse_open error" /
+      # "lzma error: compressed data is corrupt") even though the per-build
+      # check passed — the corruption happened in transit. Verifying here,
+      # after download and before the release is created, makes a corrupt
+      # artifact fail the build instead of reaching users (re-run to rebuild).
+      - name: Install verification tools
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools binutils rpm cpio unzip
+
+      - name: Verify artifact integrity
+        shell: bash
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          fail=0
+
+          for img in dist/*.AppImage; do
+            echo "::group::AppImage $img"
+            # Locate the appended squashfs by its 'hsqs' magic; keep the first
+            # offset with a valid superblock (the magic also occurs by chance
+            # inside the ELF runtime). Arch-independent: unsquashfs reads the
+            # gzip payload regardless of the runtime's CPU arch.
+            off=""
+            while IFS=: read -r cand _; do
+              if unsquashfs -s -o "$cand" "$img" >/dev/null 2>&1; then off="$cand"; break; fi
+            done < <(grep -abo 'hsqs' "$img")
+            if [ -z "$off" ]; then
+              echo "::error::no valid squashfs superblock in $img"; fail=1; echo "::endgroup::"; continue
+            fi
+            rm -rf /tmp/appverify
+            if unsquashfs -o "$off" -d /tmp/appverify "$img" >/tmp/uns.log 2>&1 \
+                && { [ -e /tmp/appverify/AppRun ] || [ -d /tmp/appverify/usr ] || [ -d /tmp/appverify/resources ]; }; then
+              echo "OK $img"
+            else
+              echo "::error::$img has a corrupt squashfs"; tail -20 /tmp/uns.log; fail=1
+            fi
+            echo "::endgroup::"
+          done
+
+          for deb in dist/*.deb; do
+            echo "::group::deb $deb"
+            if dpkg-deb -x "$deb" /tmp/debverify >/tmp/deb.log 2>&1; then echo "OK $deb"; rm -rf /tmp/debverify
+            else echo "::error::$deb is corrupt"; tail -20 /tmp/deb.log; fail=1; fi
+            echo "::endgroup::"
+          done
+
+          for rpm in dist/*.rpm; do
+            echo "::group::rpm $rpm"
+            if rpm2cpio "$rpm" 2>/tmp/rpm.log | cpio -t >/dev/null 2>>/tmp/rpm.log; then echo "OK $rpm"
+            else echo "::error::$rpm is corrupt"; tail -20 /tmp/rpm.log; fail=1; fi
+            echo "::endgroup::"
+          done
+
+          # macOS .zip (Electron app bundle) — cheap to validate on Linux.
+          # .dmg / Windows .exe aren't generically extractable here.
+          for z in dist/*.zip; do
+            echo "::group::zip $z"
+            if unzip -t "$z" >/tmp/zip.log 2>&1; then echo "OK $z"
+            else echo "::error::$z is corrupt"; tail -20 /tmp/zip.log; fail=1; fi
+            echo "::endgroup::"
+          done
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more release artifacts are corrupt — aborting before publish. Re-run this workflow to rebuild."
+            exit 1
+          fi
+          echo "All verifiable artifacts extracted cleanly."
+
       - name: Generate checksums
         run: |
           cd dist

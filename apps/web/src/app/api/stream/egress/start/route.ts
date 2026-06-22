@@ -92,24 +92,24 @@ export async function POST(request: Request) {
       keyFrameInterval: 1,
     });
 
-    // One egress per destination instead of a single combined pipeline. With a
-    // shared RoomComposite fanning out to YouTube + Twitch in one StreamOutput,
-    // a stall on one sink (e.g. YouTube stuck on "Preparing") can back-pressure
-    // the shared flvmux/encoder and degrade or stall the others. Independent
-    // egresses isolate each platform and give each its own egressId/status.
-    const results = await Promise.all(
-      rtmpUrls.map((url) =>
-        egress.startRoomCompositeEgress(
-          roomName,
-          { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: [url] }) },
-          { layout: 'speaker', encodingOptions }
-        )
-      )
+    // A SINGLE RoomComposite that fans out to every destination in one
+    // StreamOutput. One composite = one headless Chrome rendering + one H264
+    // encode, regardless of how many platforms; each extra RTMP URL is just
+    // another cheap mux/push. Running one isolated egress *per destination*
+    // (the previous approach) duplicated the whole render+encode pipeline, so
+    // streaming to two platforms needed ~2x the CPU and the 4-vCPU SFU droplet
+    // thrashed — the second composite (e.g. YouTube) starved and stuck on
+    // "Preparing", and the CPU spike broke the host's publisher DTLS handshake
+    // ("could not establish pc connection"). keyFrameInterval:1 (above) already
+    // mitigates the YouTube-stall back-pressure that motivated the split.
+    const info = await egress.startRoomCompositeEgress(
+      roomName,
+      { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
+      { layout: 'speaker', encodingOptions }
     );
-    const egressIds = results.map((info) => info.egressId);
 
-    // egressId (first) kept for backward compatibility with older clients.
-    return successResponse({ egressIds, egressId: egressIds[0] });
+    // egressIds[] kept for clients that track the full set; egressId for older ones.
+    return successResponse({ egressIds: [info.egressId], egressId: info.egressId });
   } catch (error) {
     return handleApiError(error);
   }

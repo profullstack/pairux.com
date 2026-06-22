@@ -92,6 +92,20 @@ export async function POST(request: Request) {
       keyFrameInterval: 1,
     });
 
+    // Stop any egress already running for this room before starting a new one.
+    // A lingering egress from a previous "Go Live" keeps pushing to the same
+    // RTMP keys, and platforms allow only one active stream per key — so the new
+    // egress gets rejected ("connection closed remotely"). Starting fresh makes
+    // Go Live idempotent. Best-effort: a stop failure must not block the start.
+    try {
+      const existing = await egress.listEgress({ roomName, active: true });
+      if (existing.length > 0) {
+        await Promise.allSettled(existing.map((e) => egress.stopEgress(e.egressId)));
+      }
+    } catch (stopErr) {
+      console.warn('[egress/start] could not stop existing egress for room:', stopErr);
+    }
+
     // A SINGLE RoomComposite that fans out to every destination in one
     // StreamOutput. One composite = one headless Chrome rendering + one H264
     // encode, regardless of how many platforms; each extra RTMP URL is just

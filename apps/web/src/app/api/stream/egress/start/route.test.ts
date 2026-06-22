@@ -4,6 +4,8 @@ import { mockUser } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
 const mockStartRoomCompositeEgress = vi.fn();
+const mockListEgress = vi.fn();
+const mockStopEgress = vi.fn();
 const mockStreamOutputCtor = vi.fn();
 const mockSingle = vi.fn();
 
@@ -15,6 +17,8 @@ vi.mock('@/lib/supabase/server', () => ({
 vi.mock('@/lib/livekit-egress', () => ({
   getEgressClient: () => ({
     startRoomCompositeEgress: mockStartRoomCompositeEgress,
+    listEgress: mockListEgress,
+    stopEgress: mockStopEgress,
   }),
 }));
 
@@ -62,6 +66,8 @@ beforeEach(() => {
   mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
   mockSingle.mockResolvedValue({ data: hostSession, error: null });
   mockStartRoomCompositeEgress.mockResolvedValue({ egressId: 'eg-combined' });
+  mockListEgress.mockResolvedValue([]);
+  mockStopEgress.mockResolvedValue({});
 });
 
 describe('POST /api/stream/egress/start', () => {
@@ -110,5 +116,30 @@ describe('POST /api/stream/egress/start', () => {
         encodingOptions: expect.objectContaining({ keyFrameInterval: 1, height: 1080 }),
       })
     );
+  });
+
+  it('stops any egress already running for the room before starting a new one', async () => {
+    mockListEgress.mockResolvedValue([{ egressId: 'old-1' }, { egressId: 'old-2' }]);
+
+    const res = await POST(
+      createRequest({ sessionId, rtmpUrls: ['rtmp://live.twitch.tv/app/tw-key'] })
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockListEgress).toHaveBeenCalledWith({ roomName: `session-${sessionId}`, active: true });
+    expect(mockStopEgress).toHaveBeenCalledTimes(2);
+    expect(mockStopEgress).toHaveBeenCalledWith('old-1');
+    expect(mockStopEgress).toHaveBeenCalledWith('old-2');
+    expect(mockStartRoomCompositeEgress).toHaveBeenCalledTimes(1);
+  });
+
+  it('still starts when there is no existing egress to stop', async () => {
+    const res = await POST(
+      createRequest({ sessionId, rtmpUrls: ['rtmp://live.twitch.tv/app/tw-key'] })
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockStopEgress).not.toHaveBeenCalled();
+    expect(mockStartRoomCompositeEgress).toHaveBeenCalledTimes(1);
   });
 });

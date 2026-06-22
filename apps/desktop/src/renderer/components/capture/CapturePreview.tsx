@@ -43,6 +43,7 @@ import { useLiveStreamEnabled } from '@/lib/liveStream';
 import { getDefaultSessionMode } from '@/lib/sessionDefaults';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
+import { useAutoStopServerStream } from '@/hooks/useAutoStopServerStream';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
 import { useInputInjection } from '@/hooks/useInputInjection';
 import {
@@ -470,6 +471,10 @@ export function CapturePreview({
       }
     };
   }, [isHosting, stopHosting]);
+
+  // Stop the server egress if hosting ends while it is still running, so a host
+  // publish drop doesn't strand an orphaned room-composite egress on the SFU.
+  useAutoStopServerStream(isHosting, isServerStreaming, stopServerStream);
 
   // Get source dimensions for cursor scaling
   const sourceDimensions = useMemo(() => {

@@ -331,10 +331,28 @@ export function useWebRTCHostSFUAPI({
 
       room.on(RoomEvent.DataReceived, handleDataReceived);
 
+      // livekit-client recovers from transient ICE/consent blips on its own
+      // (common on multi-homed hosts whose dead secondary NIC fails consent
+      // freshness ~30s in). While it reconnects the stream keeps flowing, so do
+      // NOT surface a fatal error — just clear any stale toast once recovered.
+      room.on(RoomEvent.Reconnecting, () => {
+        console.warn('[WebRTCHostSFUAPI] Reconnecting to SFU (transient ICE blip)...');
+      });
+      room.on(RoomEvent.Reconnected, () => {
+        console.log('[WebRTCHostSFUAPI] Reconnected to SFU');
+        setIsHosting(true);
+        setError(null);
+      });
+
       room.on(RoomEvent.ConnectionStateChanged, (state: LKConnectionState) => {
         if (state === LKConnectionState.Disconnected) {
+          // Terminal: livekit only reaches Disconnected after exhausting its
+          // own reconnect attempts (transient blips emit Reconnecting instead).
           setIsHosting(false);
           setError('Disconnected from server');
+        } else if (state === LKConnectionState.Connected) {
+          // Back to healthy — drop any error left over from a reconnect.
+          setError(null);
         }
       });
 
@@ -377,20 +395,32 @@ export function useWebRTCHostSFUAPI({
     }
 
     for (const track of stream.getTracks()) {
-      if (track.kind === 'video') {
-        track.contentHint = 'detail';
-        await room.localParticipant.publishTrack(track, {
-          source: Track.Source.ScreenShare,
-          simulcast: false,
-          videoEncoding: {
-            maxBitrate: 8_000_000,
-            maxFramerate: 60,
-          },
-        });
-      } else if (track.kind === 'audio') {
-        await room.localParticipant.publishTrack(track, {
-          source: Track.Source.ScreenShareAudio,
-        });
+      try {
+        if (track.kind === 'video') {
+          track.contentHint = 'detail';
+          await room.localParticipant.publishTrack(track, {
+            source: Track.Source.ScreenShare,
+            simulcast: false,
+            videoEncoding: {
+              maxBitrate: 8_000_000,
+              maxFramerate: 60,
+            },
+          });
+        } else if (track.kind === 'audio') {
+          await room.localParticipant.publishTrack(track, {
+            source: Track.Source.ScreenShareAudio,
+          });
+        }
+      } catch (err) {
+        // A transient ICE/consent blip can reject an in-flight publish ("publication
+        // of local track timed out") even though livekit reconnects and the track
+        // ends up published. Only treat it as fatal if the room is actually gone;
+        // otherwise swallow it so it never bubbles up as an uncaught rejection /
+        // scary "Streaming error" toast while the stream is still live. The cast
+        // widens room.state back to the full enum — it mutates across the await,
+        // so the narrowing from the early-return guard no longer holds here.
+        if ((room.state as LKConnectionState) === LKConnectionState.Disconnected) throw err;
+        console.warn('[WebRTCHostSFUAPI] publishTrack hiccup (room recovering):', err);
       }
     }
   }, []);

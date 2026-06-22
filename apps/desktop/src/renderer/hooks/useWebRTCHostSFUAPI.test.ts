@@ -96,6 +96,8 @@ vi.mock('livekit-client', () => ({
     TrackUnsubscribed: 'trackUnsubscribed',
     DataReceived: 'dataReceived',
     ConnectionStateChanged: 'connectionStateChanged',
+    Reconnecting: 'reconnecting',
+    Reconnected: 'reconnected',
   },
   Track: {
     Kind: { Video: 'video', Audio: 'audio' },
@@ -222,5 +224,35 @@ describe('useWebRTCHostSFUAPI', () => {
     expect(viewer?.audioTrack).toBeNull();
     expect(viewer?.audioElement).toBeNull();
     expect(mockAudioPause).toHaveBeenCalled();
+  });
+
+  it('clears the error and stays hosting after livekit reconnects from a transient blip', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+        localStream: null,
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // A terminal-looking disconnect surfaces the error toast...
+    act(() => {
+      mockRoomInstance.emit('connectionStateChanged', 'disconnected');
+    });
+    expect(result.current.error).toBe('Disconnected from server');
+    expect(result.current.isHosting).toBe(false);
+
+    // ...but when livekit recovers on its own, the toast clears and hosting resumes.
+    act(() => {
+      mockRoomInstance.emit('reconnected');
+    });
+    expect(result.current.error).toBeNull();
+    expect(result.current.isHosting).toBe(true);
   });
 });

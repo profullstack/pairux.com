@@ -99,6 +99,7 @@ export function useWebRTCHostSFUAPI({
   const [hostMicStream, setHostMicStream] = useState<MediaStream | null>(null);
 
   const roomRef = useRef<Room | null>(null);
+  const startingRef = useRef(false);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const authTokenRef = useRef<string | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
@@ -219,6 +220,15 @@ export function useWebRTCHostSFUAPI({
 
   // Start hosting (sets up LiveKit room and voice -- screen sharing is optional)
   const startHosting = useCallback(async () => {
+    // Re-entrancy guard. The auto-start effect re-fires startHosting whenever
+    // isHosting is false — which stays false through the connect retries below.
+    // Without this, overlapping startHosting calls each build their own Room and
+    // connect/disconnect on top of each other (a DUPLICATE_IDENTITY /
+    // CLIENT_REQUEST_LEAVE storm), leaving the screen share published on a
+    // connection that then gets torn down → camera shows but presentation is
+    // black. One attempt at a time; the effect retries sequentially after.
+    if (startingRef.current || roomRef.current) return;
+    startingRef.current = true;
     try {
       // Capture host microphone before connecting
       try {
@@ -354,6 +364,9 @@ export function useWebRTCHostSFUAPI({
           // own reconnect attempts (transient blips emit Reconnecting instead).
           setIsHosting(false);
           setError('Disconnected from server');
+          // Release the dead room so the auto-start effect can re-host cleanly
+          // (the re-entrancy guard keys off roomRef).
+          roomRef.current = null;
         } else if (state === LKConnectionState.Connected) {
           // Back to healthy — drop any error left over from a reconnect.
           setError(null);
@@ -416,6 +429,16 @@ export function useWebRTCHostSFUAPI({
     } catch (err) {
       console.error('[WebRTCHostSFUAPI] Failed to start hosting:', err);
       setError(err instanceof Error ? err.message : 'Failed to start hosting');
+      // Tear the failed room down so the next (sequential) attempt starts clean
+      // rather than bailing on the roomRef guard forever.
+      try {
+        await roomRef.current?.disconnect();
+      } catch {
+        // already gone — ignore
+      }
+      roomRef.current = null;
+    } finally {
+      startingRef.current = false;
     }
   }, [sessionId, hostId, addViewer, removeViewer, handleDataReceived]);
 

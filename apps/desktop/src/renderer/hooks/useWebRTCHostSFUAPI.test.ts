@@ -121,6 +121,10 @@ const mockGetUserMedia = vi.fn();
 describe('useWebRTCHostSFUAPI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // clearAllMocks resets call history but not implementations; a prior test's
+    // mockRejectedValue would otherwise leak into the next. Reset connect/disconnect.
+    mockConnect.mockReset().mockResolvedValue(undefined);
+    mockDisconnect.mockReset().mockResolvedValue(undefined);
     mockRemoteParticipants.clear();
     mockTrackPublications.clear();
 
@@ -303,5 +307,47 @@ describe('useWebRTCHostSFUAPI', () => {
     expect(result.current.isHosting).toBe(false);
     expect(result.current.error).toBe('could not establish pc connection');
     vi.useRealTimers();
+  });
+
+  it('ignores a concurrent startHosting call (no duplicate connection storm)', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+    );
+
+    // Two overlapping starts (as the auto-start effect can do) — the second
+    // must bail on the re-entrancy guard rather than build a second Room.
+    await act(async () => {
+      await Promise.all([result.current.startHosting(), result.current.startHosting()]);
+      await Promise.resolve();
+    });
+
+    expect(mockConnect).toHaveBeenCalledTimes(1);
+    expect(result.current.isHosting).toBe(true);
+  });
+
+  it('can re-host after a terminal disconnect (guard released)', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+      await Promise.resolve();
+    });
+    expect(mockConnect).toHaveBeenCalledTimes(1);
+
+    // Terminal disconnect — must release the room ref.
+    act(() => {
+      mockRoomInstance.emit('connectionStateChanged', 'disconnected');
+    });
+    expect(result.current.isHosting).toBe(false);
+
+    // A fresh start now proceeds instead of bailing on the (stale) guard.
+    await act(async () => {
+      await result.current.startHosting();
+      await Promise.resolve();
+    });
+    expect(mockConnect).toHaveBeenCalledTimes(2);
+    expect(result.current.isHosting).toBe(true);
   });
 });

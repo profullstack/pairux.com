@@ -64,8 +64,12 @@ class MockRoom {
 
 let mockRoomInstance: MockRoom;
 
+// Capture the Room constructor options so we can assert adaptiveStream is off.
+const { roomCtorSpy } = vi.hoisted(() => ({ roomCtorSpy: vi.fn() }));
+
 vi.mock('livekit-client', () => ({
-  Room: vi.fn().mockImplementation(() => {
+  Room: vi.fn().mockImplementation((opts: unknown) => {
+    roomCtorSpy(opts);
     mockRoomInstance = new MockRoom();
     return mockRoomInstance;
   }),
@@ -166,5 +170,17 @@ describe('useWebRTCSFU', () => {
     expect(thirdStream).not.toBe(secondStream);
     expect(thirdStream?.getAudioTracks()).toHaveLength(0);
     expect(thirdStream?.getVideoTracks()).toHaveLength(1);
+  });
+
+  it('creates the room with adaptiveStream disabled so screen-share video is not paused', async () => {
+    await act(async () => {
+      renderHook(() => useWebRTCSFU({ sessionId: 'session-1', participantId: 'viewer-1' }));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(roomCtorSpy).toHaveBeenCalledWith(expect.objectContaining({ adaptiveStream: false }));
   });
 });

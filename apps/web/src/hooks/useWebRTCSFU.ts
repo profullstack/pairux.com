@@ -357,9 +357,15 @@ export function useWebRTCSFU({
         data: { token: string; url: string; roomName: string };
       };
 
-      // Create and connect room
+      // Create and connect room.
+      // adaptiveStream pauses video tracks that livekit doesn't see attached to
+      // a visible element via track.attach(). We render through a manually built
+      // MediaStream on a <video> srcObject, so livekit never registers the
+      // element and would pause the screen-share video — audio keeps flowing,
+      // video stays black. Disable it: the viewer always shows the one presenter
+      // stream, so there's nothing to adaptively pause.
       const room = new Room({
-        adaptiveStream: true,
+        adaptiveStream: false,
         dynacast: true,
       });
 

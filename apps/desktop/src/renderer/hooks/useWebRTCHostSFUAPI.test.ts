@@ -255,4 +255,53 @@ describe('useWebRTCHostSFUAPI', () => {
     expect(result.current.error).toBeNull();
     expect(result.current.isHosting).toBe(true);
   });
+
+  it('retries the host connection and succeeds on a later attempt (no error toast)', async () => {
+    vi.useFakeTimers();
+    mockConnect
+      .mockRejectedValueOnce(new Error('could not establish pc connection'))
+      .mockResolvedValueOnce(undefined);
+
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+    );
+
+    let pending: Promise<void> = Promise.resolve();
+    act(() => {
+      pending = result.current.startHosting();
+    });
+    await act(async () => {
+      await vi.runAllTimersAsync();
+      await pending;
+    });
+
+    expect(mockConnect).toHaveBeenCalledTimes(2);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(result.current.isHosting).toBe(true);
+    expect(result.current.error).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('surfaces an error only after exhausting connect retries', async () => {
+    vi.useFakeTimers();
+    mockConnect.mockRejectedValue(new Error('could not establish pc connection'));
+
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+    );
+
+    let pending: Promise<void> = Promise.resolve();
+    act(() => {
+      pending = result.current.startHosting();
+    });
+    await act(async () => {
+      await vi.runAllTimersAsync();
+      await pending;
+    });
+
+    expect(mockConnect).toHaveBeenCalledTimes(3);
+    expect(result.current.isHosting).toBe(false);
+    expect(result.current.error).toBe('could not establish pc connection');
+    vi.useRealTimers();
+  });
 });

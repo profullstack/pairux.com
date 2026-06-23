@@ -344,8 +344,12 @@ export function useWebRTCHostSFUAPI({
         setError(null);
       });
 
+      // We deliberately disconnect between connect retries below; suppress the
+      // fatal "Disconnected" toast for those intentional drops.
+      let connecting = true;
       room.on(RoomEvent.ConnectionStateChanged, (state: LKConnectionState) => {
         if (state === LKConnectionState.Disconnected) {
+          if (connecting) return;
           // Terminal: livekit only reaches Disconnected after exhausting its
           // own reconnect attempts (transient blips emit Reconnecting instead).
           setIsHosting(false);
@@ -356,25 +360,54 @@ export function useWebRTCHostSFUAPI({
         }
       });
 
-      // Connect. rtcConfig carries the TURN relay (and, when the user enables
-      // "Force relay", iceTransportPolicy='relay') so publishing survives
-      // multi-homed / dead-secondary-NIC machines.
-      await room.connect(data.url || LIVEKIT_URL, data.token, {
-        rtcConfig: buildSfuRtcConfig(data.iceServers),
-      });
+      // Connect with retries. On a flaky multi-homed host the first ICE
+      // negotiation often fails ("could not establish pc connection") while a
+      // retry lands on a working candidate pair — the SFU logs show exactly
+      // this (first attempt dropped, second "participant active" via udp relay).
+      // rtcConfig carries the TURN relay (and, with "Force relay" on,
+      // iceTransportPolicy='relay') so publishing survives the dead NIC.
+      const rtcConfig = buildSfuRtcConfig(data.iceServers);
+      const livekitUrl = data.url || LIVEKIT_URL;
+      const maxConnectAttempts = 3;
+      let connected = false;
+      for (let attempt = 1; attempt <= maxConnectAttempts && !connected; attempt++) {
+        try {
+          await room.connect(livekitUrl, data.token, { rtcConfig });
+          connected = true;
+        } catch (connectErr) {
+          console.warn(
+            `[WebRTCHostSFUAPI] connect attempt ${String(attempt)}/${String(maxConnectAttempts)} failed:`,
+            connectErr
+          );
+          try {
+            await room.disconnect();
+          } catch {
+            // room may already be torn down — ignore
+          }
+          if (attempt >= maxConnectAttempts) throw connectErr;
+          await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+        }
+      }
+      connecting = false;
 
       // Track existing participants
       for (const participant of room.remoteParticipants.values()) {
         addViewer(participant);
       }
 
-      // Publish host mic to the room
+      // Publish host mic. A transient publisher-PC hiccup here must NOT fail
+      // hosting with a fatal toast — the connection is up and livekit recovers;
+      // the mic is non-essential vs the screen share (published separately).
       const micStream = hostMicStreamRef.current;
       if (micStream) {
         for (const track of micStream.getAudioTracks()) {
-          await room.localParticipant.publishTrack(track, {
-            source: Track.Source.Microphone,
-          });
+          try {
+            await room.localParticipant.publishTrack(track, {
+              source: Track.Source.Microphone,
+            });
+          } catch (micErr) {
+            console.warn('[WebRTCHostSFUAPI] mic publish hiccup (will recover):', micErr);
+          }
         }
       }
 

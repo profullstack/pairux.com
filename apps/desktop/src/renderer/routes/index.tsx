@@ -3,7 +3,6 @@ import { LoginPage } from './login';
 import { HomePage } from './home';
 import { JoinPage } from './join';
 import { ViewerPage } from './viewer';
-import { SettingsPage } from './settings';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
@@ -36,10 +35,8 @@ export const router = createHashRouter([
         path: 'viewer/:sessionId',
         element: <ViewerPage />,
       },
-      {
-        path: 'settings',
-        element: <SettingsPage />,
-      },
+      // Settings is rendered as an overlay (see AppLayout) instead of a sibling
+      // route, so opening it does not unmount the active session on Home.
     ],
   },
   {

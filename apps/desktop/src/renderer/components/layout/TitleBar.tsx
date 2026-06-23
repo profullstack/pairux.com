@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, User, ChevronDown, Settings } from 'lucide-react';
 import { isElectron, getElectronAPI } from '../../lib/ipc';
 import { useAuthStore } from '@/stores/auth';
+import { useUIStore } from '@/stores/ui';
 
 export function TitleBar() {
   const platform = isElectron() ? getElectronAPI().platform : 'unknown';
   const isMac = platform === 'darwin';
   const isLinux = platform === 'linux';
   const { user, logout } = useAuthStore();
+  const openSettings = useUIStore((s) => s.openSettings);
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -70,7 +72,7 @@ export function TitleBar() {
                 <button
                   onClick={() => {
                     setShowMenu(false);
-                    void navigate('/settings');
+                    openSettings();
                   }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted"
                 >

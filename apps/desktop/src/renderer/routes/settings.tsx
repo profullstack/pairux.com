@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Monitor,
@@ -17,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { StreamDestinations } from '@/components/streaming';
 import { LIVE_STREAM_CHANGED_EVENT } from '@/lib/liveStream';
 import { useAuthStore } from '@/stores/auth';
+import { useUIStore } from '@/stores/ui';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
 import type { RecordingQuality } from '@/hooks/useRecording';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
@@ -59,7 +59,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export function SettingsPage() {
-  const navigate = useNavigate();
+  const closeSettings = useUIStore((s) => s.closeSettings);
   const { user, profile } = useAuthStore();
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [recordingsPath, setRecordingsPath] = useState<string>('');
@@ -188,7 +188,9 @@ export function SettingsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => void navigate('/')}
+            onClick={() => {
+              closeSettings();
+            }}
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />

@@ -26,8 +26,25 @@ const mockUseWebRTC = {
   toggleMic: mockToggleMic,
 };
 
+// Capture the options each WebRTC hook is called with so we can assert the
+// participantId is a valid UUID (the token/signal routes require z.uuid()).
+const { mockUseWebRTCFn, mockUseWebRTCSFUFn } = vi.hoisted(() => ({
+  mockUseWebRTCFn: vi.fn(),
+  mockUseWebRTCSFUFn: vi.fn(),
+}));
+
 vi.mock('@/hooks/useWebRTC', () => ({
-  useWebRTC: () => mockUseWebRTC,
+  useWebRTC: (opts: { participantId: string }) => {
+    mockUseWebRTCFn(opts);
+    return mockUseWebRTC;
+  },
+}));
+
+vi.mock('@/hooks/useWebRTCSFU', () => ({
+  useWebRTCSFU: (opts: { participantId: string }) => {
+    mockUseWebRTCSFUFn(opts);
+    return mockUseWebRTC;
+  },
 }));
 
 vi.mock('@/hooks/useSessionPresence', () => ({
@@ -502,6 +519,52 @@ describe('SessionViewerPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /Participants/ }));
       expect(screen.getByText('Participants (1)')).toBeInTheDocument();
       expect(screen.queryByTestId('session-settings-panel')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('participant identity', () => {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const baseSession = {
+      id: 'session-123',
+      join_code: 'ABC123',
+      status: 'active',
+      settings: { quality: 'medium', allowControl: false, maxParticipants: 5 },
+      created_at: '2024-01-01T00:00:00Z',
+      session_participants: [],
+    };
+
+    it('passes a UUID participantId to the SFU viewer (token route requires uuid)', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: { ...baseSession, mode: 'sfu' } }),
+      } as Response);
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={createResolvedParams('session-123')} />);
+      });
+      await waitFor(() => {
+        expect(mockUseWebRTCSFUFn).toHaveBeenCalled();
+      });
+
+      const opts = mockUseWebRTCSFUFn.mock.calls[0]?.[0] as { participantId: string };
+      expect(opts.participantId).toMatch(UUID_RE);
+    });
+
+    it('passes a UUID participantId to the P2P viewer', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: { ...baseSession, mode: 'p2p' } }),
+      } as Response);
+
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={createResolvedParams('session-123')} />);
+      });
+      await waitFor(() => {
+        expect(mockUseWebRTCFn).toHaveBeenCalled();
+      });
+
+      const opts = mockUseWebRTCFn.mock.calls[0]?.[0] as { participantId: string };
+      expect(opts.participantId).toMatch(UUID_RE);
     });
   });
 });

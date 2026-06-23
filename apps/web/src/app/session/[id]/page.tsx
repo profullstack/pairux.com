@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useId, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -155,7 +155,10 @@ interface SessionViewerWrapperProps {
 }
 
 function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
-  const participantId = useId();
+  // A real UUID — /api/livekit/token and the signal routes validate
+  // participantId with z.string().uuid(). useId() returns React opaque ids
+  // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
+  const [participantId] = useState(() => crypto.randomUUID());
   const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
 
   const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
@@ -189,7 +192,10 @@ function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
 }
 
 function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
-  const participantId = useId();
+  // A real UUID — /api/livekit/token and the signal routes validate
+  // participantId with z.string().uuid(). useId() returns React opaque ids
+  // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
+  const [participantId] = useState(() => crypto.randomUUID());
   const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
 
   const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {

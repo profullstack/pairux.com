@@ -3,6 +3,7 @@ import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getEgressClient } from '@/lib/livekit-egress';
+import { autoTransitionYouTube } from '@/lib/youtubeAutoLive';
 import type { Database, Session } from '@pairux/shared-types';
 
 /**
@@ -121,6 +122,13 @@ export async function POST(request: Request) {
       { stream: new StreamOutput({ protocol: StreamProtocol.RTMP, urls: rtmpUrls }) },
       { layout: 'speaker', encodingOptions }
     );
+
+    // If streaming to YouTube and the host has connected their YouTube account,
+    // auto-transition the broadcast to live so it never sits on "Preparing".
+    // Fire-and-forget — it polls for ~90s and must not delay/fail egress start.
+    if (rtmpUrls.some((u) => /(^|\.)youtube\.com\//i.test(u))) {
+      void autoTransitionYouTube(user.id);
+    }
 
     // egressIds[] kept for clients that track the full set; egressId for older ones.
     return successResponse({ egressIds: [info.egressId], egressId: info.egressId });

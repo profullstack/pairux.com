@@ -6,6 +6,7 @@ import { User, Video, Users, Palette, Info, ArrowLeft, Check, Bell } from 'lucid
 import { HeaderClient } from '@/components/header-client';
 import { Footer } from '@/components/footer';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
+import { YouTubeConnect } from './youtube-connect';
 import type { UserData } from '@/components/header';
 import type { RecordingQuality } from '@/hooks/useRecording';
 import type { CaptureQuality } from '@/hooks/useScreenCapture';
@@ -104,6 +105,9 @@ export function SettingsContent({ user }: { user: UserData | null }) {
           </div>
 
           <div className="space-y-6">
+            {/* YouTube auto go-live */}
+            <YouTubeConnect />
+
             {/* Account Section */}
             <div className="rounded-xl border border-gray-200 bg-white">
               <div className="border-b border-gray-100 p-6">

@@ -365,50 +365,53 @@ export function useWebRTCSFU({
 
       roomRef.current = room;
 
-      // Track subscribed - host's screen share arrives
+      // Track subscribed - host's screen share arrives.
       room.on(
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
           if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-            const stream = remoteMediaStreamRef.current ?? new MediaStream();
-            remoteMediaStreamRef.current = stream;
-
             const mediaTrack = track.mediaStreamTrack;
-            const hasTrack = stream.getTracks().some((t) => t.id === mediaTrack.id);
-            if (!hasTrack) {
-              stream.addTrack(mediaTrack);
-            }
+            const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
+            if (existingTracks.some((t) => t.id === mediaTrack.id)) return;
 
-            setRemoteStream(stream);
+            // Emit a NEW MediaStream reference on every track change. React bails
+            // on setState with the same object, so the <video>'s srcObject effect
+            // never re-runs — and Firefox does NOT render a track added to a
+            // MediaStream that is already attached to a video element. With audio
+            // often subscribed before the screen-share video, that left the
+            // screen black. A fresh reference forces srcObject to re-bind.
+            const nextStream = new MediaStream([...existingTracks, mediaTrack]);
+            remoteMediaStreamRef.current = nextStream;
+            setRemoteStream(nextStream);
 
             if (track.kind === Track.Kind.Video) {
-              onStreamReadyRef.current?.(stream);
+              onStreamReadyRef.current?.(nextStream);
             }
           }
         }
       );
 
-      // Track unsubscribed - host disconnected or stopped sharing
+      // Track unsubscribed - host disconnected or stopped sharing.
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
         if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-          const stream = remoteMediaStreamRef.current;
-          if (!stream) return;
+          const prev = remoteMediaStreamRef.current;
+          if (!prev) return;
 
           const mediaTrack = track.mediaStreamTrack;
-          const existing = stream.getTracks().find((t) => t.id === mediaTrack.id);
-          if (existing) {
-            stream.removeTrack(existing);
-          }
+          const remaining = prev.getTracks().filter((t) => t.id !== mediaTrack.id);
+          if (remaining.length === prev.getTracks().length) return; // not present
 
-          if (track.kind === Track.Kind.Video && stream.getVideoTracks().length === 0) {
+          if (track.kind === Track.Kind.Video && !remaining.some((t) => t.kind === 'video')) {
             onStreamEndedRef.current?.();
           }
 
-          if (stream.getTracks().length === 0) {
+          if (remaining.length === 0) {
             remoteMediaStreamRef.current = null;
             setRemoteStream(null);
           } else {
-            setRemoteStream(stream);
+            const nextStream = new MediaStream(remaining);
+            remoteMediaStreamRef.current = nextStream;
+            setRemoteStream(nextStream);
           }
         }
       });

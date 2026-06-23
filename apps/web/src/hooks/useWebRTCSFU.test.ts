@@ -149,16 +149,22 @@ describe('useWebRTCSFU', () => {
       mockRoomInstance.emit('trackSubscribed', videoTrack, {}, { identity: 'host-1' });
     });
 
-    expect(hookResult!.current.remoteStream).toBe(firstStream);
-    expect(hookResult!.current.remoteStream?.getAudioTracks()).toHaveLength(1);
-    expect(hookResult!.current.remoteStream?.getVideoTracks()).toHaveLength(1);
+    // A NEW MediaStream reference each time a track changes, so the <video>'s
+    // srcObject effect re-runs. Firefox won't render a track added to a stream
+    // that is already attached to the element, which left the screen black when
+    // the video arrived after the audio.
+    const secondStream = hookResult!.current.remoteStream;
+    expect(secondStream).not.toBe(firstStream);
+    expect(secondStream?.getAudioTracks()).toHaveLength(1);
+    expect(secondStream?.getVideoTracks()).toHaveLength(1);
 
     act(() => {
       mockRoomInstance.emit('trackUnsubscribed', audioTrack);
     });
 
-    expect(hookResult!.current.remoteStream).toBe(firstStream);
-    expect(hookResult!.current.remoteStream?.getAudioTracks()).toHaveLength(0);
-    expect(hookResult!.current.remoteStream?.getVideoTracks()).toHaveLength(1);
+    const thirdStream = hookResult!.current.remoteStream;
+    expect(thirdStream).not.toBe(secondStream);
+    expect(thirdStream?.getAudioTracks()).toHaveLength(0);
+    expect(thirdStream?.getVideoTracks()).toHaveLength(1);
   });
 });

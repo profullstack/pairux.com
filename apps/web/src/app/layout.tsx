@@ -138,6 +138,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://crawlproof.com/stats.js"
           strategy="afterInteractive"
         />
+        <script
+          async
+          src="https://feedback.profullstack.com/embed/profullstack-feedback.js"
+          data-property="pairux.com"
+        ></script>
       </body>
     </html>
   );

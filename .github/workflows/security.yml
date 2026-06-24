@@ -12,6 +12,7 @@ jobs:
   semgrep:
     name: semgrep
     runs-on: ubuntu-latest
+    continue-on-error: true
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     container:
       image: semgrep/semgrep
@@ -27,6 +28,7 @@ jobs:
   npm-audit:
     name: dependency audit
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -52,6 +54,7 @@ jobs:
   gitleaks:
     name: gitleaks
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
         with:

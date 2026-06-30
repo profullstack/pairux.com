@@ -36,10 +36,9 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
+          // X-Frame-Options intentionally omitted so PairUX can be embedded as
+          // an iframe inside the TronBrowser extension (Chat → PairUX tab).
+          // Framing is governed by the CSP frame-ancestors directive below.
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -51,7 +50,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors *; base-uri 'self'; form-action 'self';",
           },
           {
             key: 'Strict-Transport-Security',

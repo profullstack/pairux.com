@@ -50,7 +50,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors *; base-uri 'self'; form-action 'self';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors * chrome-extension:; base-uri 'self'; form-action 'self';",
           },
           {
             key: 'Strict-Transport-Security',

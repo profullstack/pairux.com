@@ -25,7 +25,10 @@ export function buildSummaryPrompt(input: TranscriptInput, options?: SummarizeOp
 /** Build the clip-selection prompt: highlight instructions + optional scene changes. */
 export function buildClipPrompt(input: TranscriptInput, options?: SelectClipsOptions): Prompt {
   const maxClips = options?.maxClips ?? DEFAULT_MAX_CLIPS;
-  const platformLine = options?.platform !== undefined ? ` Bias selection toward content that performs well on ${options.platform}.` : '';
+  const platformLine =
+    options?.platform !== undefined
+      ? ` Bias selection toward content that performs well on ${options.platform}.`
+      : '';
   const sceneLine =
     input.sceneChangesMs !== undefined && input.sceneChangesMs.length > 0
       ? `\n\nScene-change timestamps (ms): ${input.sceneChangesMs.join(', ')}`

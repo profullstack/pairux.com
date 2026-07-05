@@ -24,7 +24,10 @@ const CLIPS_JSON = JSON.stringify([
   { startMs: 0, endMs: 3000, title: 'Ship it', hookCaption: 'We shipped', platformFit: ['shorts'] },
 ]);
 
-function fakeAnthropic(replies: string[]): { client: AnthropicClientLike; bodies: AnthropicCreateBody[] } {
+function fakeAnthropic(replies: string[]): {
+  client: AnthropicClientLike;
+  bodies: AnthropicCreateBody[];
+} {
   const bodies: AnthropicCreateBody[] = [];
   let call = 0;
   const client: AnthropicClientLike = {
@@ -48,7 +51,10 @@ describe('anthropic provider', () => {
 
   it('summarizes and sends only transcript text', async () => {
     const { client, bodies } = fakeAnthropic([NOTE_JSON]);
-    const note = await createAnthropicProvider({ client, model: 'claude-sonnet-5' }).summarizeSession(input);
+    const note = await createAnthropicProvider({
+      client,
+      model: 'claude-sonnet-5',
+    }).summarizeSession(input);
     expect(note.topics).toEqual(['release']);
     expect(bodies[0]?.model).toBe('claude-sonnet-5');
     expect(bodies[0]?.messages[0]?.content).toContain('ship it');
@@ -87,15 +93,25 @@ function fakeFetch(content: string): { fetchImpl: FetchLike; urls: string[] } {
 describe('ollama provider', () => {
   it('posts to /api/chat and parses the reply', async () => {
     const { fetchImpl, urls } = fakeFetch(NOTE_JSON);
-    const note = await createOllamaProvider({ fetchImpl, baseUrl: 'http://localhost:11434/' }).summarizeSession(input);
+    const note = await createOllamaProvider({
+      fetchImpl,
+      baseUrl: 'http://localhost:11434/',
+    }).summarizeSession(input);
     expect(note.topics).toEqual(['release']);
     expect(urls[0]).toBe('http://localhost:11434/api/chat');
   });
 
   it('throws on a non-ok response', async () => {
     const fetchImpl: FetchLike = () =>
-      Promise.resolve({ ok: false, status: 500, statusText: 'Server Error', json: () => Promise.resolve({}) });
-    await expect(createOllamaProvider({ fetchImpl }).summarizeSession(input)).rejects.toThrow('Ollama request failed');
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        statusText: 'Server Error',
+        json: () => Promise.resolve({}),
+      });
+    await expect(createOllamaProvider({ fetchImpl }).summarizeSession(input)).rejects.toThrow(
+      'Ollama request failed'
+    );
   });
 });
 

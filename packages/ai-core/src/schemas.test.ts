@@ -6,7 +6,9 @@ describe('sessionNoteSchema', () => {
     const result = sessionNoteSchema.safeParse({
       tldr: 'We fixed the flaky auth test.',
       decisions: ['Pin the clock in tests'],
-      actionItems: [{ description: 'Backport the fix', owner: 'Ada', deadline: 'Friday', timestampMs: 120000 }],
+      actionItems: [
+        { description: 'Backport the fix', owner: 'Ada', deadline: 'Friday', timestampMs: 120000 },
+      ],
       topics: ['auth', 'testing'],
     });
     expect(result.success).toBe(true);
@@ -16,14 +18,21 @@ describe('sessionNoteSchema', () => {
     const result = sessionNoteSchema.safeParse({
       tldr: 'x',
       decisions: [],
-      actionItems: [{ description: 'Do the thing', owner: null, deadline: null, timestampMs: null }],
+      actionItems: [
+        { description: 'Do the thing', owner: null, deadline: null, timestampMs: null },
+      ],
       topics: [],
     });
     expect(result.success).toBe(true);
   });
 
   it('rejects an empty tldr', () => {
-    const result = sessionNoteSchema.safeParse({ tldr: '', decisions: [], actionItems: [], topics: [] });
+    const result = sessionNoteSchema.safeParse({
+      tldr: '',
+      decisions: [],
+      actionItems: [],
+      topics: [],
+    });
     expect(result.success).toBe(false);
   });
 });
@@ -53,7 +62,13 @@ describe('clipCandidateSchema', () => {
 });
 
 describe('clipCandidatesSchema', () => {
-  const clip = { startMs: 0, endMs: 1000, title: 't', hookCaption: 'h', platformFit: ['shorts'] as const };
+  const clip = {
+    startMs: 0,
+    endMs: 1000,
+    title: 't',
+    hookCaption: 'h',
+    platformFit: ['shorts'] as const,
+  };
 
   it('rejects an empty array', () => {
     expect(clipCandidatesSchema.safeParse([]).success).toBe(false);

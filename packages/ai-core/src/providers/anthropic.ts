@@ -1,8 +1,18 @@
 import { completeStructured, type CompleteFn } from '../complete.js';
 import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_MAX_TOKENS } from '../config.js';
 import { buildClipPrompt, buildSummaryPrompt } from '../prompts.js';
-import { clipCandidatesSchema, sessionNoteSchema, type ClipCandidate, type SessionNote } from '../schemas.js';
-import type { AiProvider, SelectClipsOptions, SummarizeOptions, TranscriptInput } from '../types.js';
+import {
+  clipCandidatesSchema,
+  sessionNoteSchema,
+  type ClipCandidate,
+  type SessionNote,
+} from '../schemas.js';
+import type {
+  AiProvider,
+  SelectClipsOptions,
+  SummarizeOptions,
+  TranscriptInput,
+} from '../types.js';
 
 /**
  * Structural view of the Anthropic Messages client. `ai-core` does not depend on
@@ -53,17 +63,33 @@ export function createAnthropicProvider(options: AnthropicProviderOptions): AiPr
       system,
       messages: [{ role: 'user', content: user }],
     });
-    return response.content.map((block) => (block.type === 'text' ? (block.text ?? '') : '')).join('');
+    return response.content
+      .map((block) => (block.type === 'text' ? (block.text ?? '') : ''))
+      .join('');
   };
 
   return {
     kind: 'anthropic',
     model,
-    summarizeSession(input: TranscriptInput, summarizeOptions?: SummarizeOptions): Promise<SessionNote> {
-      return completeStructured(complete, buildSummaryPrompt(input, summarizeOptions), sessionNoteSchema);
+    summarizeSession(
+      input: TranscriptInput,
+      summarizeOptions?: SummarizeOptions
+    ): Promise<SessionNote> {
+      return completeStructured(
+        complete,
+        buildSummaryPrompt(input, summarizeOptions),
+        sessionNoteSchema
+      );
     },
-    selectClips(input: TranscriptInput, selectOptions?: SelectClipsOptions): Promise<ClipCandidate[]> {
-      return completeStructured(complete, buildClipPrompt(input, selectOptions), clipCandidatesSchema);
+    selectClips(
+      input: TranscriptInput,
+      selectOptions?: SelectClipsOptions
+    ): Promise<ClipCandidate[]> {
+      return completeStructured(
+        complete,
+        buildClipPrompt(input, selectOptions),
+        clipCandidatesSchema
+      );
     },
   };
 }

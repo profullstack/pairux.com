@@ -2,7 +2,11 @@
  * Built-in summary templates. The PRD ships three at launch; the guidance text
  * is injected into the summarization system prompt to steer what the notes emphasize.
  */
-export const SESSION_TEMPLATE_IDS = ['pair-programming', 'support-session', 'user-interview'] as const;
+export const SESSION_TEMPLATE_IDS = [
+  'pair-programming',
+  'support-session',
+  'user-interview',
+] as const;
 export type SessionTemplateId = (typeof SESSION_TEMPLATE_IDS)[number];
 
 export interface SessionTemplateSpec {

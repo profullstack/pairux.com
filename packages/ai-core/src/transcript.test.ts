@@ -15,7 +15,9 @@ describe('formatTimestamp', () => {
 
 describe('formatSegment / formatTranscript', () => {
   it('renders one segment', () => {
-    expect(formatSegment({ startMs: 65000, endMs: 70000, speaker: 'Host', text: 'hi' })).toBe('[01:05 Host] hi');
+    expect(formatSegment({ startMs: 65000, endMs: 70000, speaker: 'Host', text: 'hi' })).toBe(
+      '[01:05 Host] hi'
+    );
   });
 
   it('joins segments with newlines', () => {

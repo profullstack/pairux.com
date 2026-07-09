@@ -143,6 +143,40 @@ export const updateScheduledMeetingSchema = z.object({
 export type ScheduleMeetingInput = z.infer<typeof scheduleMeetingSchema>;
 export type UpdateScheduledMeetingInput = z.infer<typeof updateScheduledMeetingSchema>;
 
+// Publish a room to the public /live directory
+export const roomVisibilitySchema = z
+  .object({
+    isPublic: z.boolean(),
+    subject: z
+      .string()
+      .trim()
+      .min(3, 'Subject must be at least 3 characters')
+      .max(120, 'Subject must be less than 120 characters')
+      .optional(),
+    description: z
+      .string()
+      .trim()
+      .max(500, 'Description must be less than 500 characters')
+      .optional(),
+  })
+  .refine((data) => !data.isPublic || (data.subject && data.subject.length >= 3), {
+    message: 'A subject is required to publish a room publicly',
+    path: ['subject'],
+  });
+
+// Claim/change a public username handle
+export const usernameSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be less than 30 characters')
+    .regex(/^[A-Za-z0-9_]+$/, 'Only letters, numbers, and underscore are allowed'),
+});
+
+export type RoomVisibilityInput = z.infer<typeof roomVisibilitySchema>;
+export type UsernameInput = z.infer<typeof usernameSchema>;
+
 // Type exports
 export type PushSubscriptionInput = z.infer<typeof pushSubscriptionSchema>;
 export type NotificationPreferences = z.infer<typeof notificationPreferencesSchema>;

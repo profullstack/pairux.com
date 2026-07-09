@@ -23,6 +23,7 @@ import {
   MicOff,
   Volume2,
   VolumeX,
+  Globe,
 } from 'lucide-react';
 import { VideoPreview } from '@/components/video';
 import { HostParticipantList } from '@/components/participants/HostParticipantList';
@@ -35,6 +36,7 @@ import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
 import type { SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
+import { PublishRoomModal } from '@/components/session/PublishRoomModal';
 
 interface SessionData {
   id: string;
@@ -43,6 +45,9 @@ interface SessionData {
   mode?: 'p2p' | 'sfu';
   host_user_id: string;
   current_host_id?: string | null;
+  is_public?: boolean;
+  subject?: string | null;
+  description?: string | null;
   settings: {
     quality?: string;
     allowControl?: boolean;
@@ -199,6 +204,7 @@ function HostContent({
   const [isLeaving, setIsLeaving] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
   const [captureQuality, setCaptureQuality] = useState<CaptureQuality>('1080p');
   const [recordingQuality, setRecordingQuality] = useState<RecordingQuality>('1080p');
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
@@ -809,6 +815,23 @@ function HostContent({
                   <button
                     type="button"
                     onClick={() => {
+                      setShowPublishModal(true);
+                    }}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                      currentSession.is_public
+                        ? 'bg-green-700 text-white hover:bg-green-600'
+                        : 'border border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    }`}
+                    title="List this room in the public /live directory"
+                  >
+                    <Globe className="h-4 w-4" />
+                    {currentSession.is_public ? 'Public' : 'Publish to /live'}
+                  </button>
+                )}
+                {canModerateSession && (
+                  <button
+                    type="button"
+                    onClick={() => {
                       if (
                         confirm(
                           'This will invalidate the current join link. Anyone with the old link will no longer be able to join. Continue?'
@@ -945,6 +968,22 @@ function HostContent({
           />
         )}
       </div>
+
+      {/* Publish to /live modal */}
+      {showPublishModal && (
+        <PublishRoomModal
+          sessionId={sessionId}
+          initialIsPublic={currentSession.is_public ?? false}
+          initialSubject={currentSession.subject ?? null}
+          initialDescription={currentSession.description ?? null}
+          onClose={() => {
+            setShowPublishModal(false);
+          }}
+          onSaved={({ isPublic, subject, description }) => {
+            setCurrentSession((prev) => ({ ...prev, is_public: isPublic, subject, description }));
+          }}
+        />
+      )}
     </div>
   );
 }

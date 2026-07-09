@@ -32,6 +32,8 @@ export interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  username: string | null; // Unique public handle for /u/<username>
+  bio: string | null; // Short public bio
   created_at: string;
   updated_at: string;
 }
@@ -40,12 +42,27 @@ export interface ProfileInsert {
   id: string;
   display_name?: string | null;
   avatar_url?: string | null;
+  username?: string | null;
+  bio?: string | null;
 }
 
 export interface ProfileUpdate {
   display_name?: string | null;
   avatar_url?: string | null;
+  username?: string | null;
+  bio?: string | null;
   updated_at?: string;
+}
+
+// Public profile card (from get_public_profile RPC) — safe columns only
+export interface PublicProfile {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+  public_room_count: number;
 }
 
 // Session table (Room-centric: room survives host disconnection)
@@ -58,10 +75,31 @@ export interface Session {
   mode: SessionMode;
   join_code: string;
   settings: SessionSettings;
+  is_public: boolean; // Listed in the public /live directory
+  subject: string | null; // Public title shown in /live
+  description: string | null; // Public description shown in /live
+  published_at: string | null; // When first made public
   host_last_seen_at: string | null; // Last heartbeat from current host
   expires_at: string | null; // Room TTL expiration
   created_at: string;
   ended_at: string | null;
+}
+
+// Public directory room (from list_public_rooms RPC) — safe columns only
+export interface PublicRoom {
+  id: string;
+  join_code: string;
+  subject: string | null;
+  description: string | null;
+  mode: SessionMode;
+  status: SessionStatus;
+  is_live: boolean;
+  viewer_count: number;
+  published_at: string | null;
+  created_at: string;
+  host_username: string | null;
+  host_display_name: string | null;
+  host_avatar_url: string | null;
 }
 
 export interface SessionInsert {
@@ -379,6 +417,28 @@ export interface Database {
       remove_push_subscription: {
         Args: { p_endpoint: string };
         Returns: boolean;
+      };
+      // Public directory + usernames
+      set_username: {
+        Args: { p_username: string };
+        Returns: Profile;
+      };
+      set_room_visibility: {
+        Args: {
+          p_session_id: string;
+          p_is_public: boolean;
+          p_subject?: string | null;
+          p_description?: string | null;
+        };
+        Returns: Session;
+      };
+      list_public_rooms: {
+        Args: { p_limit?: number; p_username?: string | null };
+        Returns: PublicRoom[];
+      };
+      get_public_profile: {
+        Args: { p_username: string };
+        Returns: PublicProfile[];
       };
     };
   };

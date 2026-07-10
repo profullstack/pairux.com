@@ -4,6 +4,7 @@ import { Radio, Eye, Users, Circle } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
+import { renderDescriptionHtml } from '@/lib/markdown';
 import type { PublicRoom } from '@pairux/shared-types';
 
 export const metadata: Metadata = {
@@ -119,9 +120,13 @@ export default async function LivePage() {
                       {room.subject ?? 'Untitled room'}
                     </h3>
                     {room.description && (
-                      <p className="mt-1.5 line-clamp-3 text-sm text-gray-500">
-                        {room.description}
-                      </p>
+                      <div
+                        className="[&_a]:text-primary-600 mt-1.5 line-clamp-3 text-sm text-gray-500"
+                        // Safe: renderDescriptionHtml escapes all HTML, then applies a small markdown allowlist.
+                        dangerouslySetInnerHTML={{
+                          __html: renderDescriptionHtml(room.description),
+                        }}
+                      />
                     )}
 
                     <div className="mt-4 flex items-center gap-1.5 text-sm text-gray-600">

@@ -5,6 +5,7 @@ import { Radio, Eye, Circle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
+import { renderDescriptionHtml } from '@/lib/markdown';
 import type { PublicProfile, PublicRoom } from '@pairux/shared-types';
 
 export const dynamic = 'force-dynamic';
@@ -137,9 +138,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
                       {room.subject ?? 'Untitled room'}
                     </h3>
                     {room.description && (
-                      <p className="mt-1.5 line-clamp-3 text-sm text-gray-500">
-                        {room.description}
-                      </p>
+                      <div
+                        className="[&_a]:text-primary-600 mt-1.5 line-clamp-3 text-sm text-gray-500"
+                        dangerouslySetInnerHTML={{
+                          __html: renderDescriptionHtml(room.description),
+                        }}
+                      />
                     )}
                     <Link
                       href={`/join/${room.join_code}`}

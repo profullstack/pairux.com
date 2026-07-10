@@ -188,15 +188,19 @@ export function PublishToLive({ session }: PublishToLiveProps) {
             placeholder="e.g. Live pair-programming: Rust CLI"
             disabled={busy}
           />
-          <label className="mb-1 mt-3 block text-xs font-medium">Description (optional)</label>
-          <Input
+          <label className="mb-1 mt-3 block text-xs font-medium">
+            Description (optional, markdown)
+          </label>
+          <textarea
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);
             }}
             maxLength={500}
-            placeholder="What's happening in this room?"
+            rows={3}
+            placeholder="Links, **bold**, and line breaks welcome…"
             disabled={busy}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
 
           <label className="mb-1 mt-3 block text-xs font-medium">Banner (optional, 16:9)</label>

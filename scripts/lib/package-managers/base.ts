@@ -236,27 +236,56 @@ export abstract class BasePackageManager implements PackageManager {
       body.branch = branch;
     }
 
-    if (existingSha) {
-      body.sha = existingSha;
-    } else {
-      // Check if file exists and get its SHA
+    // Resolve the current SHA of the file (required to UPDATE an existing file;
+    // omitted to CREATE a new one).
+    const resolveSha = async (): Promise<void> => {
       const existing = await this.getFileContent(owner, repo, path, branch);
       if (existing) {
         body.sha = existing.sha;
+      } else {
+        delete body.sha;
+      }
+    };
+
+    if (existingSha) {
+      body.sha = existingSha;
+    } else {
+      await resolveSha();
+    }
+
+    // The Contents API can return a briefly stale read right after another
+    // commit to the same branch (read-after-write). That makes an existing
+    // file's SHA come back missing or stale, and GitHub then rejects the PUT
+    // with 422 ("sha wasn't supplied") or 409 (sha mismatch). Re-fetch the
+    // current SHA and retry a few times before giving up.
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const response = await this.githubRequest<{
+          content: { sha: string; html_url: string };
+        }>(`/repos/${owner}/${repo}/contents/${path}`, {
+          method: 'PUT',
+          body: JSON.stringify(body),
+        });
+
+        return {
+          sha: response.content.sha,
+          url: response.content.html_url,
+        };
+      } catch (error) {
+        lastError = error;
+        const msg = error instanceof Error ? error.message : String(error);
+        const isShaConflict =
+          msg.includes('(409)') || (msg.includes('(422)') && msg.toLowerCase().includes('sha'));
+        if (!isShaConflict) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+        await resolveSha();
       }
     }
 
-    const response = await this.githubRequest<{
-      content: { sha: string; html_url: string };
-    }>(`/repos/${owner}/${repo}/contents/${path}`, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-
-    return {
-      sha: response.content.sha,
-      url: response.content.html_url,
-    };
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
   }
 
   /**

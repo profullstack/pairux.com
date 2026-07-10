@@ -553,3 +553,65 @@ describe('NixPackageManager', () => {
     });
   });
 });
+
+describe('BasePackageManager createOrUpdateFile SHA-conflict retry', () => {
+  let pm: GentooPackageManager;
+
+  beforeEach(() => {
+    mockFetch.mockReset();
+    process.env.GITHUB_TOKEN = 'test-token';
+    pm = new GentooPackageManager({ enabled: true }, createMockLogger());
+  });
+
+  afterEach(() => {
+    delete process.env.GITHUB_TOKEN;
+  });
+
+  const errorResponse = (status: number, body: string) => ({
+    ok: false,
+    status,
+    text: () => Promise.resolve(body),
+  });
+  const jsonResponse = (obj: unknown) => ({
+    ok: true,
+    json: () => Promise.resolve(obj),
+  });
+
+  it('re-fetches the SHA and retries when the first PUT 422s ("sha wasn\'t supplied")', async () => {
+    // 1) initial SHA lookup transiently misses (read-after-write race) -> no sha
+    mockFetch.mockResolvedValueOnce(errorResponse(404, 'Not Found'));
+    // 2) PUT without sha is rejected because the file actually exists
+    mockFetch.mockResolvedValueOnce(
+      errorResponse(422, '{"message":"Invalid request.\\n\\n\\"sha\\" wasn\'t supplied."}')
+    );
+    // 3) retry re-fetches the current sha
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ content: Buffer.from('old').toString('base64'), sha: 'existing-sha' })
+    );
+    // 4) PUT with the fresh sha succeeds
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        content: { sha: 'new-sha', html_url: 'https://github.com/o/r/blob/master/README.md' },
+      })
+    );
+
+    const result = await (
+      pm as unknown as {
+        createOrUpdateFile: (
+          owner: string,
+          repo: string,
+          path: string,
+          content: string,
+          message: string,
+          branch?: string
+        ) => Promise<{ sha: string; url: string }>;
+      }
+    ).createOrUpdateFile('o', 'r', 'README.md', 'new content', 'msg', 'master');
+
+    expect(result).toEqual({ sha: 'new-sha', url: 'https://github.com/o/r/blob/master/README.md' });
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+    // The retried PUT must carry the freshly-fetched sha.
+    const retriedPut = mockFetch.mock.calls[3];
+    expect(JSON.parse((retriedPut[1] as { body: string }).body).sha).toBe('existing-sha');
+  });
+});

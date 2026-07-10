@@ -130,6 +130,7 @@ const makeSession = (overrides?: Partial<Session>): Session => ({
   is_public: false,
   subject: null,
   description: null,
+  banner_url: null,
   published_at: null,
   created_at: new Date().toISOString(),
   ended_at: null,

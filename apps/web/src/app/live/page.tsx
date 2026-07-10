@@ -88,6 +88,16 @@ export default async function LivePage() {
                     key={room.id}
                     className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
                   >
+                    {room.banner_url && (
+                      <div className="mb-3 aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={room.banner_url}
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                    )}
                     <div className="mb-3 flex items-center justify-between">
                       {room.is_live ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">

@@ -22,6 +22,8 @@ async function getPublicRooms(): Promise<PublicRoom[]> {
     const { data, error } = await (supabase.rpc as any)('list_public_rooms', {
       p_limit: 100,
       p_username: null,
+      // Only rooms with a host connected right now — no idle/paused rooms.
+      p_live_only: true,
     });
     if (error) {
       console.error('Failed to load public rooms:', error);

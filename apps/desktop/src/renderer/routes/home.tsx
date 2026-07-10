@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Link2, Loader2, Mic } from 'lucide-react';
+import { Users, Link2, Loader2, Mic, Radio } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
@@ -413,6 +413,16 @@ export function HomePage() {
               >
                 <Users className="h-4 w-4" />
                 Join a Session
+              </button>
+              <button
+                onClick={() => {
+                  void getElectronAPI().invoke('auth:openExternal', '/live');
+                }}
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+                title="Browse public rooms on pairux.com/live"
+              >
+                <Radio className="h-4 w-4" />
+                Live Rooms
               </button>
             </div>
           </div>

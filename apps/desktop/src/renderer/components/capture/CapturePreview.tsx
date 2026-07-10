@@ -38,6 +38,7 @@ import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/use
 import { useCamera } from '@/hooks/useCamera';
 import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScreenCameraCompositor';
 import { CameraBubble } from '@/components/capture/CameraBubble';
+import { PublishToLive } from '@/components/capture/PublishToLive';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useLiveStreamEnabled } from '@/lib/liveStream';
 import { getDefaultSessionMode } from '@/lib/sessionDefaults';
@@ -1170,6 +1171,9 @@ export function CapturePreview({
                 {hostMicEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
                 {hostMicEnabled ? 'Mic On' : 'Mic Off'}
               </Button>
+
+              {/* Publish the room to the public pairux.com/live directory */}
+              {canModerateSession && <PublishToLive session={session} />}
             </div>
 
             {stream && (

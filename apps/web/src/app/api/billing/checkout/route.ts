@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   createCoinpayPayment,
+  coinpayHostedPayUrl,
   SUPPORTED_CURRENCIES,
   type CoinpayCurrency,
 } from '@/lib/coinpay-client';
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     const cp = await createCoinpayPayment({
       amount_usd: plan.priceUsd,
       currency: body.currency,
-      description: `${plan.label} — multistream plugin`,
+      description: plan.label,
       metadata: {
         // Read back by the CoinPay webhook to grant the plan to this user.
         type: 'plan',
@@ -52,8 +53,13 @@ export async function POST(request: Request) {
 
     const payment = cp.payment ?? {};
     const paymentId = cp.payment_id ?? payment.id;
+    // Card/Stripe payments return a checkout URL; crypto payments don't, so we
+    // fall back to CoinPay's hosted pay page for the created payment id.
     const checkoutUrl =
-      payment.stripe_checkout_url ?? cp.checkout_url ?? payment.checkout_url ?? null;
+      payment.stripe_checkout_url ??
+      cp.checkout_url ??
+      payment.checkout_url ??
+      (paymentId ? coinpayHostedPayUrl(paymentId) : null);
     const expiresAt = cp.expires_at ?? payment.expires_at ?? null;
 
     if (!paymentId) {

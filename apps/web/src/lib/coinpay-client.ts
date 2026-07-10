@@ -10,7 +10,17 @@
 
 import crypto from 'crypto';
 
-const COINPAY_API_URL = 'https://coinpayportal.com/api';
+const COINPAY_BASE_URL = 'https://coinpayportal.com';
+const COINPAY_API_URL = `${COINPAY_BASE_URL}/api`;
+
+/**
+ * CoinPay's hosted payment page for a payment id. Crypto payments don't return
+ * a checkout_url (unlike card/Stripe), so we redirect the buyer here to see the
+ * address + amount and complete payment.
+ */
+export function coinpayHostedPayUrl(paymentId: string): string {
+  return `${COINPAY_BASE_URL}/pay/${paymentId}`;
+}
 
 export type CoinpayCurrency =
   | 'card'

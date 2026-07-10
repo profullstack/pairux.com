@@ -31,7 +31,9 @@ export function UpgradeButton({ plan, label, className }: UpgradeButtonProps) {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, currency: 'card' }),
+        // Pay in USDC on Polygon (low fees, settles to the merchant wallet).
+        // Card requires Stripe Connect onboarding — add once that's completed.
+        body: JSON.stringify({ plan, currency: 'usdc_pol' }),
       });
 
       if (res.status === 401) {

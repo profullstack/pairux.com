@@ -1,3 +1,4 @@
+import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createSessionSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -17,13 +18,26 @@ export async function POST(request: Request) {
       return errorResponse('Authentication required', 401);
     }
 
+    // Clamp room capacity to the owner's plan. Free hosts 5 listeners; Plus 100;
+    // Pro/Team more. Baking the cap into settings.maxParticipants means the
+    // join_session RPC enforces it on every join. A lapsed paid plan falls back
+    // to free via effectivePlan().
+    const { data: profile } = (await supabase
+      .from('profiles')
+      .select('plan, plan_expires_at')
+      .eq('id', user.id)
+      .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
+    const plan = effectivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
+    const cap = maxListeners(plan);
+    const maxParticipants = Math.min(settings.maxParticipants, cap);
+
     // Create session using RPC function
 
     const rpcParams: Record<string, unknown> = {
       p_settings: {
         quality: 'medium',
         allowControl: settings.allowGuestControl,
-        maxParticipants: settings.maxParticipants,
+        maxParticipants,
       },
       p_mode: settings.mode,
     };

@@ -1,5 +1,6 @@
 import type {
   CaptureSource,
+  Plan,
   Profile,
   Session,
   SessionParticipant,
@@ -389,7 +390,7 @@ export interface IPCChannels {
 
   'rtmp:startStream': {
     args: { destinationId: string };
-    return: { success: boolean; error?: string };
+    return: { success: boolean; error?: string; upgradeRequired?: boolean };
   };
 
   'rtmp:stopStream': {
@@ -429,6 +430,12 @@ export interface IPCChannels {
   'rtmp:getServerStreamUrls': {
     args: undefined;
     return: string[];
+  };
+
+  // Billing / entitlements (paid multistream plugin)
+  'billing:getPlan': {
+    args: { forceRefresh?: boolean } | undefined;
+    return: { plan: Plan; paidUnlocked: boolean };
   };
 }
 

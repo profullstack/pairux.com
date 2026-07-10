@@ -13,6 +13,7 @@ import {
 import type { Profile } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../shared/config';
 import { formatNetworkError } from './network-error';
+import { clearPlanCache } from '../billing/entitlement';
 
 export interface AuthUser {
   id: string;
@@ -113,11 +114,13 @@ export function registerAuthHandlers(): void {
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
       clearStoredAuth();
+      clearPlanCache();
       console.log('[Auth] Logged out');
       return { success: true };
     } catch (error) {
       console.error('[Auth] Logout error:', error);
       clearStoredAuth();
+      clearPlanCache();
       return { success: true };
     }
   });

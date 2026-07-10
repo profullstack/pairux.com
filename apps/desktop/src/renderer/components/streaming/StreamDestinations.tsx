@@ -1,8 +1,16 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit, Eye, EyeOff, X, Check } from 'lucide-react';
+import { Plus, Trash2, Edit, Eye, EyeOff, X, Check, Lock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { RTMPDestinationInfo, StreamPlatform, EncoderSettings } from '../../../preload/api';
 import { DEFAULT_ENCODER_SETTINGS, PLATFORM_DEFAULTS } from '@/hooks/useRTMPStreaming';
+import { usePlan } from '@/hooks/usePlan';
+import { getElectronAPI, isElectron } from '@/lib/ipc';
+import { isPaidPlatform } from '../../../shared/entitlements';
+
+function openUpgrade(): void {
+  if (!isElectron()) return;
+  void getElectronAPI().invoke('auth:openExternal', '/pricing');
+}
 
 interface StreamDestinationsProps {
   destinations: RTMPDestinationInfo[];
@@ -31,9 +39,15 @@ export function StreamDestinations({
   onUpdate,
   onRemove,
 }: StreamDestinationsProps) {
+  const { paidUnlocked } = usePlan();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
+
+  // A destination is locked when it targets a paid platform and the plan
+  // hasn't unlocked them. Mirrors the main-process gate (free = YouTube only).
+  const isLocked = (platform: StreamPlatform) => !paidUnlocked && isPaidPlatform(platform);
+  const hasLockedDestination = destinations.some((d) => isLocked(d.platform));
 
   // Form state
   const [name, setName] = useState('');
@@ -100,6 +114,25 @@ export function StreamDestinations({
 
   return (
     <div className="space-y-4">
+      {/* Upgrade banner: shown when a configured destination is gated by plan */}
+      {hasLockedDestination && (
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+          <div className="flex items-start gap-2">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            <div>
+              <p className="text-sm font-medium">Unlock multistreaming</p>
+              <p className="text-xs text-muted-foreground">
+                YouTube is free. Streaming to Twitch, Facebook and other platforms at the same time
+                requires the multistream plugin.
+              </p>
+            </div>
+          </div>
+          <Button size="sm" className="shrink-0" onClick={openUpgrade}>
+            Upgrade
+          </Button>
+        </div>
+      )}
+
       {/* Destination list */}
       {destinations.map((dest) => (
         <div key={dest.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
@@ -108,7 +141,18 @@ export function StreamDestinations({
               className={`h-2 w-2 rounded-full ${dest.enabled ? 'bg-green-500' : 'bg-gray-400'}`}
             />
             <div>
-              <p className="text-sm font-medium">{dest.name}</p>
+              <p className="flex items-center gap-1.5 text-sm font-medium">
+                {dest.name}
+                {isLocked(dest.platform) && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400"
+                    title="Requires the multistream plugin"
+                  >
+                    <Lock className="h-3 w-3" />
+                    Locked
+                  </span>
+                )}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {PLATFORM_LABELS[dest.platform]} &middot;{' '}
                 {String(dest.encoderSettings.videoBitrate)} kbps &middot;{' '}

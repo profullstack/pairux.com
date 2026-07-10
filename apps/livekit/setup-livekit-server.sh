@@ -348,7 +348,9 @@ keys:
 room:
   empty_timeout: 300
   departure_timeout: 30
-  max_participants: 20
+  # Server-wide ceiling = highest listener tier (Team = 2000) + headroom.
+  # Per-room caps are enforced per plan in the app layer.
+  max_participants: 2100
 
 logging:
   level: info

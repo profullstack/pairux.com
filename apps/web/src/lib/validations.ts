@@ -74,7 +74,9 @@ export const createSessionSchema = z.object({
     .max(100, 'Session name must be less than 100 characters')
     .optional(),
   allowGuestControl: z.boolean().default(false),
-  maxParticipants: z.number().min(1).max(10).default(5),
+  // Hard input ceiling = highest listener tier (Plus = 100). The effective
+  // per-room cap is clamped to the owner's plan in POST /api/sessions.
+  maxParticipants: z.number().min(1).max(100).default(5),
   mode: z.enum(['p2p', 'sfu']).default('p2p'),
   joinCode: z
     .string()

@@ -13,6 +13,7 @@ export type {
   ParticipantRole,
   ControlState,
   SessionSettings,
+  Plan,
   Profile,
   ProfileInsert,
   ProfileUpdate,
@@ -34,8 +35,15 @@ export type {
   MediaSessionUpdate,
   CaptureSourceInfo,
   SessionStatusResult,
+  PlanPaymentStatus,
+  PlanPayment,
+  PlanPaymentInsert,
+  PlanPaymentUpdate,
   Database,
 } from './database.js';
+
+// Database value exports (functions/helpers)
+export { effectivePlan, maxListeners, LISTENER_CAP } from './database.js';
 
 // Signaling types
 export type {

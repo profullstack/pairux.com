@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AccessToken } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
+import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getIceServers } from '@/lib/ice-servers';
@@ -70,6 +71,35 @@ export async function POST(request: Request) {
 
       if (!isParticipant) {
         return errorResponse('Not authorized for this session', 403);
+      }
+    }
+
+    // Enforce the room owner's listener cap once the joiner is authorized. Free
+    // rooms hold 5, Plus 100, etc. The host always gets in; additional joiners
+    // are rejected once the room is at capacity. join_session already gates the
+    // participant path — this is the SFU-side belt-and-suspenders. A lapsed paid
+    // plan falls back to the free cap via effectivePlan().
+    if (!isSessionOwner) {
+      const { data: ownerProfile } = (await supabase
+        .from('profiles')
+        .select('plan, plan_expires_at')
+        .eq('id', session.host_user_id)
+        .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
+      const ownerPlan = effectivePlan(
+        ownerProfile?.plan ?? 'free',
+        ownerProfile?.plan_expires_at ?? null
+      );
+      const cap = maxListeners(ownerPlan);
+
+      const { count } = await supabase
+        .from('session_participants')
+        .select('id', { count: 'exact', head: true })
+        .eq('session_id', sessionId)
+        .is('left_at', null);
+
+      const occupancy = count ?? 0;
+      if (occupancy >= cap) {
+        return errorResponse(`Room is full (${String(occupancy)}/${String(cap)} listeners)`, 403);
       }
     }
 

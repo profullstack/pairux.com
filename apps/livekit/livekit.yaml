@@ -22,7 +22,10 @@ room:
   empty_timeout: 300
   # Grace period before marking participant as gone
   departure_timeout: 30
-  max_participants: 20
+  # Server-wide ceiling = highest listener tier (Team = 2000) + host/co-host
+  # headroom. Per-room caps are enforced per plan in the app (session-create,
+  # join_session RPC, and the LiveKit token mint).
+  max_participants: 2100
 
 logging:
   level: info

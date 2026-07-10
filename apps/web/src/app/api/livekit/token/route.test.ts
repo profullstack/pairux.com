@@ -105,9 +105,19 @@ describe('POST /api/livekit/token', () => {
       is: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
     };
+    // Owner's plan drives the listener cap; free = 5, room has room to spare.
+    const profileQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { plan: 'free', plan_expires_at: null },
+        error: null,
+      }),
+    };
     const mockFrom = vi.fn((table: string) => {
       if (table === 'sessions') return sessionQuery;
       if (table === 'session_participants') return participantQuery;
+      if (table === 'profiles') return profileQuery;
       throw new Error(`Unexpected table ${table}`);
     });
 
@@ -125,6 +135,49 @@ describe('POST /api/livekit/token', () => {
         canPublish: true,
       })
     );
+  });
+
+  it('returns 403 when the room is at the owner plan listener cap', async () => {
+    const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
+
+    const sessionQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
+    };
+    // Authorized participant, but the free room already holds its 5 listeners.
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
+      // The head:true count query is awaited directly (no .single()).
+      then: (resolve: (v: unknown) => void) => resolve({ count: 5, data: null, error: null }),
+    };
+    const profileQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { plan: 'free', plan_expires_at: null },
+        error: null,
+      }),
+    };
+    const mockFrom = vi.fn((table: string) => {
+      if (table === 'sessions') return sessionQuery;
+      if (table === 'session_participants') return participantQuery;
+      if (table === 'profiles') return profileQuery;
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toContain('Room is full');
   });
 
   it('returns 401 for unauthenticated user', async () => {

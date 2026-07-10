@@ -254,9 +254,16 @@ describe('createSessionSchema', () => {
 
   it('rejects maxParticipants outside range', () => {
     const result = createSessionSchema.safeParse({
-      maxParticipants: 20,
+      maxParticipants: 200,
     });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts maxParticipants up to the Plus listener cap (100)', () => {
+    const result = createSessionSchema.safeParse({
+      maxParticipants: 100,
+    });
+    expect(result.success).toBe(true);
   });
 
   it('validates p2p mode', () => {

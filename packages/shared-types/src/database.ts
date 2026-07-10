@@ -27,6 +27,29 @@ export interface SessionSettings {
   maxParticipants?: number;
 }
 
+// Billing plan. Free = P2P + 5 listeners, YouTube-only streaming.
+// plus = $1/mo audience tier (up to 100 listeners). pro/team unlock all
+// streaming platforms and larger rooms.
+export type Plan = 'free' | 'plus' | 'pro' | 'team';
+
+/**
+ * Max concurrent listeners (read-only SFU subscribers) a room owner on each
+ * plan may host. Single source of truth for the capacity gate; enforced at
+ * session-create, the join_session RPC (via settings.maxParticipants), and the
+ * LiveKit token mint. Always resolve against effectivePlan() so a lapsed paid
+ * plan falls back to the free cap.
+ */
+export const LISTENER_CAP: Record<Plan, number> = {
+  free: 5,
+  plus: 100,
+  pro: 500,
+  team: 2000,
+};
+
+export function maxListeners(plan: Plan): number {
+  return LISTENER_CAP[plan];
+}
+
 // Profile table
 export interface Profile {
   id: string;
@@ -34,6 +57,8 @@ export interface Profile {
   avatar_url: string | null;
   username: string | null; // Unique public handle for /u/<username>
   bio: string | null; // Short public bio
+  plan: Plan;
+  plan_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +69,8 @@ export interface ProfileInsert {
   avatar_url?: string | null;
   username?: string | null;
   bio?: string | null;
+  plan?: Plan;
+  plan_expires_at?: string | null;
 }
 
 export interface ProfileUpdate {
@@ -51,6 +78,8 @@ export interface ProfileUpdate {
   avatar_url?: string | null;
   username?: string | null;
   bio?: string | null;
+  plan?: Plan;
+  plan_expires_at?: string | null;
   updated_at?: string;
 }
 
@@ -63,6 +92,17 @@ export interface PublicProfile {
   bio: string | null;
   created_at: string;
   public_room_count: number;
+}
+
+/**
+ * The plan that's actually in effect right now. CoinPay is invoice-based, so a
+ * paid plan only counts while its period (plan_expires_at) is still in the
+ * future; otherwise it lapses back to free. Source of truth for every gate.
+ */
+export function effectivePlan(plan: Plan, planExpiresAt: string | null): Plan {
+  if (plan === 'free') return 'free';
+  if (!planExpiresAt) return 'free';
+  return new Date(planExpiresAt).getTime() > Date.now() ? plan : 'free';
 }
 
 // Session table (Room-centric: room survives host disconnection)
@@ -256,6 +296,43 @@ export interface PushSubscriptionInsert {
   user_agent?: string | null;
 }
 
+// Plan payments table (CoinPay invoices for the multistream plugin).
+// `status` is stored as a plain string; these are the values we set.
+export type PlanPaymentStatus = 'pending' | 'confirmed' | 'forwarded' | 'expired' | 'failed';
+
+export interface PlanPayment {
+  id: string;
+  coinpay_payment_id: string;
+  user_id: string;
+  plan: Exclude<Plan, 'free'>;
+  amount_usd: number;
+  currency: string;
+  status: string;
+  credited_at: string | null;
+  tx_hash: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanPaymentInsert {
+  coinpay_payment_id: string;
+  user_id: string;
+  plan: Exclude<Plan, 'free'>;
+  amount_usd: number;
+  currency: string;
+  status?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface PlanPaymentUpdate {
+  status?: string;
+  credited_at?: string | null;
+  tx_hash?: string | null;
+  metadata?: Record<string, unknown>;
+  updated_at?: string;
+}
+
 // Database schema type for Supabase client
 export interface Database {
   public: {
@@ -290,8 +367,17 @@ export interface Database {
         Insert: PushSubscriptionInsert;
         Update: never;
       };
+      plan_payments: {
+        Row: PlanPayment;
+        Insert: PlanPaymentInsert;
+        Update: PlanPaymentUpdate;
+      };
     };
     Functions: {
+      grant_plan: {
+        Args: { p_user_id: string; p_plan: string; p_days: number };
+        Returns: string;
+      };
       create_session: {
         Args: { p_settings?: SessionSettings };
         Returns: Session;

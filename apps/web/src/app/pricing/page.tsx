@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { UpgradeButton } from './UpgradeButton';
 
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Simple flat-rate pricing. No per-seat fees. $12/mo for Pro, $49/mo for Team. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
+    'Simple flat-rate pricing. No per-seat fees. $1/mo for Plus (up to 100 listeners), $12/mo Pro, $49/mo Team. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
   alternates: {
     canonical: 'https://pairux.com/pricing',
   },
@@ -67,7 +68,7 @@ const pricingTiers = [
     price: '$0',
     priceDetail: 'forever',
     features: [
-      '2 participants + 5 viewers',
+      '2 participants + up to 5 listeners',
       'P2P connections',
       'Screen sharing',
       'Remote control',
@@ -76,7 +77,26 @@ const pricingTiers = [
     ],
     cta: 'Get Started',
     ctaHref: '/download',
+    plan: null,
     highlighted: false,
+  },
+  {
+    name: 'Plus',
+    description: 'Host an audience — teaching, standups, watch-alongs',
+    price: '$1',
+    priceDetail: 'month',
+    features: [
+      'Up to 100 listeners per room',
+      'SFU relay servers',
+      'Public room in the /live directory',
+      'Screen sharing + voice',
+      'Remote control',
+      'Cancel anytime',
+    ],
+    cta: 'Upgrade to Plus',
+    ctaHref: '/signup',
+    plan: 'plus' as const,
+    highlighted: true,
   },
   {
     name: 'Pro',
@@ -91,9 +111,10 @@ const pricingTiers = [
       'HD screen sharing (1080p)',
       'Priority support',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Upgrade to Pro',
     ctaHref: '/signup',
-    highlighted: true,
+    plan: 'pro' as const,
+    highlighted: false,
   },
   {
     name: 'Team',
@@ -108,8 +129,9 @@ const pricingTiers = [
       '4K screen sharing',
       'Admin controls',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Upgrade to Team',
     ctaHref: '/signup',
+    plan: 'team' as const,
     highlighted: false,
   },
 ];
@@ -276,7 +298,7 @@ export default function PricingPage() {
         {/* Pricing Cards */}
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {pricingTiers.map((tier) => (
                 <div
                   key={tier.name}
@@ -307,16 +329,30 @@ export default function PricingPage() {
                     ))}
                   </ul>
 
-                  <Link
-                    href={tier.ctaHref}
-                    className={`mt-8 block w-full rounded-lg px-4 py-3 text-center font-semibold transition-colors ${
-                      tier.highlighted
-                        ? 'bg-primary-600 hover:bg-primary-700 text-white'
-                        : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    {tier.cta}
-                  </Link>
+                  {tier.plan ? (
+                    <div className="mt-8">
+                      <UpgradeButton
+                        plan={tier.plan}
+                        label={tier.cta}
+                        className={`block w-full rounded-lg px-4 py-3 text-center font-semibold transition-colors ${
+                          tier.highlighted
+                            ? 'bg-primary-600 hover:bg-primary-700 text-white'
+                            : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
+                        }`}
+                      />
+                    </div>
+                  ) : (
+                    <Link
+                      href={tier.ctaHref}
+                      className={`mt-8 block w-full rounded-lg px-4 py-3 text-center font-semibold transition-colors ${
+                        tier.highlighted
+                          ? 'bg-primary-600 hover:bg-primary-700 text-white'
+                          : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      {tier.cta}
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>

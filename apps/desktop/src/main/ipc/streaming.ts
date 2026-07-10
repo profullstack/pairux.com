@@ -22,6 +22,8 @@ import {
   getDecryptedStreamKeys,
   PLATFORM_PRESETS,
 } from '../streaming/destinations';
+import { getPlan } from '../billing/entitlement';
+import { isPlatformAllowed, UPGRADE_REQUIRED_MESSAGE } from '../../shared/entitlements';
 
 export function registerStreamingHandlers(): void {
   console.log('[IPC:Streaming] Registering streaming handlers');
@@ -89,10 +91,17 @@ export function registerStreamingHandlers(): void {
 
   // --- Stream Control ---
 
-  ipcMain.handle('rtmp:startStream', (_event, args: { destinationId: string }) => {
+  ipcMain.handle('rtmp:startStream', async (_event, args: { destinationId: string }) => {
     const destinations = getDestinations();
     const dest = destinations.find((d) => d.id === args.destinationId);
     if (!dest) return { success: false, error: 'Destination not found' };
+
+    // Paid multistream gate: free plan can stream to YouTube only.
+    const plan = await getPlan();
+    if (!isPlatformAllowed(dest.platform, plan)) {
+      console.log(`[IPC:Streaming] Blocked ${dest.platform} stream on plan "${plan}"`);
+      return { success: false, error: UPGRADE_REQUIRED_MESSAGE, upgradeRequired: true };
+    }
 
     const key = getStreamKey(dest.streamKeyId);
     if (!key) return { success: false, error: 'Stream key not found' };
@@ -104,10 +113,28 @@ export function registerStreamingHandlers(): void {
     return stopStream(args.destinationId);
   });
 
-  ipcMain.handle('rtmp:startAll', () => {
-    const destinations = getDestinations().filter((d) => d.enabled);
-    const keyMap = getDecryptedStreamKeys(destinations);
-    return startAllStreams(destinations, keyMap);
+  ipcMain.handle('rtmp:startAll', async () => {
+    const enabled = getDestinations().filter((d) => d.enabled);
+
+    // Paid multistream gate: drop platforms the current plan can't stream to.
+    const plan = await getPlan();
+    const allowed = enabled.filter((d) => isPlatformAllowed(d.platform, plan));
+    const blocked = enabled.filter((d) => !isPlatformAllowed(d.platform, plan));
+
+    const keyMap = getDecryptedStreamKeys(allowed);
+    const result = startAllStreams(allowed, keyMap);
+
+    if (blocked.length > 0) {
+      console.log(
+        `[IPC:Streaming] Blocked ${String(blocked.length)} destination(s) on plan "${plan}"`
+      );
+      return {
+        ...result,
+        errors: [...result.errors, ...blocked.map((d) => `${d.name}: ${UPGRADE_REQUIRED_MESSAGE}`)],
+      };
+    }
+
+    return result;
   });
 
   ipcMain.handle('rtmp:stopAll', () => {

@@ -7,6 +7,7 @@ import { registerInputHandlers } from './input';
 import { registerPermissionHandlers } from './permissions';
 import { registerRecordingHandlers } from './recording';
 import { registerStreamingHandlers } from './streaming';
+import { registerBillingHandlers } from './billing';
 import { registerTrayHandlers } from './tray';
 import { registerPlatformHandlers } from './platform';
 import type { CaptureSource } from '@pairux/shared-types';
@@ -34,6 +35,9 @@ export function registerIpcHandlers(): void {
 
   // Register streaming handlers
   registerStreamingHandlers();
+
+  // Register billing / entitlement handlers
+  registerBillingHandlers();
 
   // Register tray handlers
   registerTrayHandlers();

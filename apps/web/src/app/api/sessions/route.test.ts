@@ -151,7 +151,7 @@ describe('POST /api/sessions', () => {
     const request = new Request('http://localhost/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ maxParticipants: 20 }),
+      body: JSON.stringify({ maxParticipants: 200 }),
     });
 
     const response = await POST(request);

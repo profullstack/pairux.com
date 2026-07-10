@@ -20,6 +20,8 @@ export async function GET(request: Request) {
     const { data, error } = await (supabase.rpc as any)('list_public_rooms', {
       p_limit: limit,
       p_username: null,
+      // The live directory shows only rooms with a host connected right now.
+      p_live_only: true,
     });
 
     if (error) {

@@ -401,6 +401,33 @@ export function CapturePreview({
     }
   }, [session, isHosting, startHosting]);
 
+  // Liveness heartbeat: while actively hosting, ping the server so a published
+  // room shows as live on pairux.com/live — and, critically, so it falls OFF
+  // /live automatically when this app is closed/killed (the pings just stop).
+  useEffect(() => {
+    const sessionId = session?.id;
+    if (!sessionId || !isHosting) return;
+    let cancelled = false;
+    const ping = async () => {
+      try {
+        const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+        if (!token || cancelled) return;
+        await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/heartbeat`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // best effort — a missed ping just delays the live/offline flip
+      }
+    };
+    void ping(); // stamp immediately so the room appears live without a 30s wait
+    const interval = setInterval(() => void ping(), 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [session?.id, isHosting]);
+
   // The video track presented to viewers and recorded locally:
   //  - screen + camera -> composited (screen with the bubble baked in)
   //  - screen only      -> raw screen

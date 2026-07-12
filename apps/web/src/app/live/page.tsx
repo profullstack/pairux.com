@@ -150,7 +150,14 @@ export default async function LivePage() {
 
                     <div className="mt-4 flex items-center gap-1.5 text-sm text-gray-600">
                       <Users className="h-4 w-4 text-gray-400" />
-                      {room.host_username ? (
+                      {room.channel_handle ? (
+                        <Link
+                          href={`/@${room.channel_handle}`}
+                          className="text-primary-600 hover:underline"
+                        >
+                          {room.channel_name ?? `@${room.channel_handle}`}
+                        </Link>
+                      ) : room.host_username ? (
                         <Link
                           href={`/u/${room.host_username}`}
                           className="text-primary-600 hover:underline"

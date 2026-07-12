@@ -125,7 +125,14 @@ export default async function LiveDetailPage({ params }: PageProps) {
                 <UserIcon className="h-4 w-4 text-gray-400" />
               </div>
             )}
-            {session.host_username ? (
+            {session.channel_handle ? (
+              <Link
+                href={`/@${session.channel_handle}`}
+                className="text-primary-600 hover:underline"
+              >
+                {session.channel_name ?? `@${session.channel_handle}`}
+              </Link>
+            ) : session.host_username ? (
               <Link
                 href={`/u/${session.host_username}`}
                 className="text-primary-600 hover:underline"

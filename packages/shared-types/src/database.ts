@@ -142,6 +142,8 @@ export interface PublicRoom {
   host_username: string | null;
   host_display_name: string | null;
   host_avatar_url: string | null;
+  channel_handle: string | null;
+  channel_name: string | null;
 }
 
 // A creator's live (from list_creator_lives RPC) — their full public history.
@@ -182,6 +184,8 @@ export interface PublicSessionDetail {
   like_count: number;
   comment_count: number;
   liked: boolean;
+  channel_handle: string | null;
+  channel_name: string | null;
 }
 
 // A comment on a live (from list_comments RPC).

@@ -63,6 +63,26 @@ async function getFollowState(creatorId: string): Promise<FollowState> {
   }
 }
 
+interface UserChannel {
+  handle: string;
+  name: string;
+  avatar_url: string | null;
+  banner_url: string | null;
+  subscriber_count: number;
+  is_live: boolean;
+}
+
+async function getUserChannels(username: string): Promise<UserChannel[]> {
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data } = await (supabase.rpc as any)('list_user_channels', { p_username: username });
+    return (data as UserChannel[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 function whenLabel(live: CreatorLive): string {
   if (live.is_live) return 'Live now';
   const iso = live.published_at ?? live.created_at;
@@ -99,7 +119,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const [lives, followState] = await Promise.all([getLives(username), getFollowState(profile.id)]);
+  const [lives, followState, channels] = await Promise.all([
+    getLives(username),
+    getFollowState(profile.id),
+    getUserChannels(username),
+  ]);
 
   const handle = profile.username ?? username;
   const name = profile.display_name ?? `@${handle}`;
@@ -135,6 +159,52 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {channels.length > 0 && (
+          <section className="border-b border-gray-100 py-12">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Radio className="h-5 w-5 text-red-500" />
+                Channels
+              </h2>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {channels.map((c) => (
+                  <Link
+                    key={c.handle}
+                    href={`/@${c.handle}`}
+                    className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-5 text-center transition-shadow hover:shadow-md"
+                  >
+                    {c.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.avatar_url}
+                        alt=""
+                        className="h-14 w-14 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-200">
+                        <UserIcon className="h-7 w-7 text-gray-400" />
+                      </div>
+                    )}
+                    <p className="mt-3 line-clamp-1 text-sm font-semibold text-gray-900">
+                      {c.name}
+                    </p>
+                    <p className="text-primary-600 line-clamp-1 text-xs">@{c.handle}</p>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                      {c.is_live && (
+                        <span className="inline-flex items-center gap-1 font-medium text-red-600">
+                          <Circle className="h-2 w-2 animate-pulse fill-current" />
+                          Live
+                        </span>
+                      )}
+                      <span>{c.subscriber_count} subs</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="py-12">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

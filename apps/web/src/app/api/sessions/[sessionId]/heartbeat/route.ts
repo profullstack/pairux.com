@@ -44,9 +44,9 @@ export async function POST(_request: Request, { params }: RouteParams) {
       void import('@/lib/notify-live').then(({ notifyGoLive }) => notifyGoLive(live));
     }
 
-    // First heartbeat of an SFU session → start server-side recording, exactly
-    // once (mark_recording_started claims it atomically). Covers ALL sfu
-    // sessions, public or not. No-op until SUPABASE_S3_* is configured.
+    // First heartbeat of a public SFU live → start server-side recording,
+    // exactly once (mark_recording_started claims it atomically, public-only).
+    // No-op until SUPABASE_S3_* is configured.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data: rec } = await (supabase.rpc as any)('mark_recording_started', {
       p_session_id: sessionId,

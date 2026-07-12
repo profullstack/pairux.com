@@ -6,8 +6,8 @@ import { getEgressClient } from '@/lib/livekit-egress';
 /**
  * Server-side session recording via LiveKit Egress.
  *
- * When an SFU session goes live the egress service (already running on the SFU
- * droplet) composites the room and uploads a single MP4 straight to Supabase
+ * When a public SFU live goes live the egress service (already running on the
+ * SFU droplet) composites the room and uploads a single MP4 straight to Supabase
  * Storage's S3 endpoint — nothing touches the host's machine. The finished file
  * is finalized by the LiveKit webhook (see api/livekit/webhook) and watched
  * later on /l/<join_code> and channel pages.

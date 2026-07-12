@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
+  // Don't advertise the framework in the X-Powered-By header.
+  poweredByHeader: false,
+
   // Enable Turbopack (Next.js 16+ default)
   turbopack: {},
 
@@ -38,7 +41,10 @@ const nextConfig: NextConfig = {
         headers: [
           // X-Frame-Options intentionally omitted so PairUX can be embedded as
           // an iframe inside the TronBrowser extension (Chat → PairUX tab).
-          // Framing is governed by the CSP frame-ancestors directive below.
+          // X-Frame-Options can't express "extensions only" (no chrome-extension
+          // allowance), so framing is governed by the CSP frame-ancestors
+          // directive below — scoped to 'self' + chrome-extension: (NOT '*', so
+          // arbitrary websites can't frame us → no clickjacking).
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -50,7 +56,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors * chrome-extension:; base-uri 'self'; form-action 'self';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://crawlproof.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors 'self' chrome-extension:; base-uri 'self'; form-action 'self';",
           },
           {
             key: 'Strict-Transport-Security',

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-types';
 import { SubscribeButton } from './SubscribeButton';
+import { ShareButtons } from './ShareButtons';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,7 +173,7 @@ export default async function ChannelPage({ params }: PageProps) {
                 )}
               </div>
             </div>
-            <div className="sm:self-start">
+            <div className="flex flex-col items-start gap-3 sm:items-end sm:self-start">
               {channel.is_owner ? (
                 <Link
                   href="/dashboard"
@@ -187,6 +188,7 @@ export default async function ChannelPage({ params }: PageProps) {
                   initialCount={channel.subscriber_count}
                 />
               )}
+              <ShareButtons handle={channel.handle} name={channel.name} />
             </div>
           </div>
         </section>

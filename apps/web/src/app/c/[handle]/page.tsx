@@ -67,10 +67,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { handle } = await params;
   const ch = await getChannel(handle);
   if (!ch) return { title: 'Channel not found' };
+  const title = `${ch.name} (@${ch.handle})`;
+  const description = ch.description ?? `${ch.name}'s channel on PairUX.`;
+  const url = `https://pairux.com/@${ch.handle}`;
+  // og:image — prefer the 6:1 banner, fall back to the square avatar.
+  const image = ch.banner_url
+    ? { url: ch.banner_url, width: 1500, height: 250 }
+    : ch.avatar_url
+      ? { url: ch.avatar_url, width: 400, height: 400 }
+      : null;
   return {
-    title: `${ch.name} (@${ch.handle})`,
-    description: ch.description ?? `${ch.name}'s channel on PairUX.`,
-    alternates: { canonical: `https://pairux.com/@${ch.handle}` },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(image ? { images: [image.url] } : {}),
+    },
   };
 }
 

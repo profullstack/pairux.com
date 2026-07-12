@@ -10,8 +10,8 @@ export const maxDuration = 60;
  * POST /api/live/generate-banner
  *
  * Generates a 16:9-ish livestream cover banner with AI, using the live's
- * current banner as design inspiration. Primary: OpenAI gpt-image-1 (image
- * edit). Fallback: Anthropic Claude emits an SVG which we rasterize with sharp.
+ * current banner as design inspiration. Primary: Anthropic Claude designs an
+ * SVG which we rasterize with sharp. Fallback: OpenAI gpt-image-1 (image edit).
  * Returns a PNG data URL; the desktop cover-crops it to 1280x720.
  *
  * Body: { imageDataUrl?: string (current banner, data: or http URL),
@@ -175,24 +175,25 @@ export async function POST(request: Request) {
       return errorResponse('Banner generation is not configured', 503);
     }
 
-    // Primary: OpenAI. Fallback: Anthropic. Collect errors for a useful message.
+    // Primary: Anthropic (Claude designs an SVG we rasterize). Fallback: OpenAI
+    // gpt-image-1. Collect errors for a useful message.
     const errors: string[] = [];
-    if (openaiKey) {
-      try {
-        const image = await generateWithOpenAI(openaiKey, prompt, input);
-        return successResponse({ image, source: 'openai' });
-      } catch (e) {
-        errors.push(e instanceof Error ? e.message : String(e));
-        console.warn('[generate-banner] OpenAI failed, trying Anthropic:', e);
-      }
-    }
     if (anthropicKey) {
       try {
         const image = await generateWithAnthropic(anthropicKey, prompt, input);
         return successResponse({ image, source: 'anthropic' });
       } catch (e) {
         errors.push(e instanceof Error ? e.message : String(e));
-        console.error('[generate-banner] Anthropic failed:', e);
+        console.warn('[generate-banner] Anthropic failed, trying OpenAI:', e);
+      }
+    }
+    if (openaiKey) {
+      try {
+        const image = await generateWithOpenAI(openaiKey, prompt, input);
+        return successResponse({ image, source: 'openai' });
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : String(e));
+        console.error('[generate-banner] OpenAI failed:', e);
       }
     }
     return errorResponse(`Could not generate a banner. ${errors.join(' | ')}`, 502);

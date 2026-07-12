@@ -81,7 +81,7 @@ describe('middleware', () => {
       const request = createNextRequest('/api/sessions');
       await middleware(request);
 
-      expect(updateSession).toHaveBeenCalledWith(request);
+      expect(updateSession).toHaveBeenCalledWith(request, expect.any(Headers));
     });
   });
 
@@ -104,7 +104,7 @@ describe('middleware', () => {
       const request = createNextRequest('/dashboard');
       await middleware(request);
 
-      expect(updateSession).toHaveBeenCalledWith(request);
+      expect(updateSession).toHaveBeenCalledWith(request, expect.any(Headers));
     });
   });
 });

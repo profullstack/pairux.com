@@ -53,11 +53,8 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
-          {
-            key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://feedback.profullstack.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https: wss: https://crawlproof.com; frame-ancestors 'self' chrome-extension:; base-uri 'self'; form-action 'self';",
-          },
+          // Content-Security-Policy is set per-request in middleware.ts so it can
+          // carry a script nonce (drops 'unsafe-inline' from script-src).
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains',

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -27,6 +28,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const post = await findPost(slug);
   if (!post) notFound();
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -42,6 +44,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </Link>
           <script
             type="application/ld+json"
+            nonce={nonce}
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({
                 '@context': 'https://schema.org',

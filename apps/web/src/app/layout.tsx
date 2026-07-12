@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import { headers } from 'next/headers';
 import { PWAInstallButton } from '@/components/pwa';
 import './globals.css';
 
@@ -115,12 +116,14 @@ const organizationSchema = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen font-sans">
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         {children}
@@ -128,18 +131,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Datafast Analytics */}
         <Script
           defer
+          nonce={nonce}
           src="https://datafa.st/js/script.js"
           data-website-id="dfid_tUrFgv4cjOcfrfM3ofldI"
           data-domain="pairux.com"
           strategy="afterInteractive"
         />
         <Script
+          nonce={nonce}
           data-site="77cf2148-c41b-47af-8326-ab4676fa0b81"
           src="https://crawlproof.com/stats.js"
           strategy="afterInteractive"
         />
         <script
           async
+          nonce={nonce}
           src="https://feedback.profullstack.com/embed/profullstack-feedback.js"
           data-property="pairux.com"
         ></script>

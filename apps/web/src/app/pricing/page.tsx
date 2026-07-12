@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -273,11 +274,13 @@ const advantages = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <div className="flex min-h-screen flex-col">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Header />

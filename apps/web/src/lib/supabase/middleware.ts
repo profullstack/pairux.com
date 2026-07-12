@@ -2,13 +2,17 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function updateSession(request: NextRequest) {
+export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
+  // When the caller (middleware) passes nonce'd request headers, forward those
+  // to Next so its inline scripts get the CSP nonce; otherwise pass the request.
+  const nextInit = requestHeaders ? { request: { headers: requestHeaders } } : { request };
+
   // Skip if env vars are not available (e.g., during build)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return NextResponse.next({ request });
+    return NextResponse.next(nextInit);
   }
 
-  let supabaseResponse = NextResponse.next({ request });
+  let supabaseResponse = NextResponse.next(nextInit);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,7 +24,15 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
+          // Keep the forwarded request's cookie header in sync with the refresh
+          // so downstream server components see the up-to-date session.
+          if (requestHeaders) {
+            const cookieHeader = request.headers.get('cookie');
+            if (cookieHeader) requestHeaders.set('cookie', cookieHeader);
+          }
+          supabaseResponse = NextResponse.next(
+            requestHeaders ? { request: { headers: requestHeaders } } : { request }
+          );
           cookiesToSet.forEach(({ name, value, options }) => {
             if (options) {
               supabaseResponse.cookies.set({ name, value, ...options });

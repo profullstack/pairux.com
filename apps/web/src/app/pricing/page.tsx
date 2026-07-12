@@ -534,8 +534,8 @@ export default function PricingPage() {
                 <h3 className="font-semibold text-gray-900">How many people can watch my room?</h3>
                 <p className="mt-2 text-gray-600">
                   Concurrent listeners per room scale with your plan: Free {CAP.free}, Plus{' '}
-                  {CAP.plus}, Pro {CAP.pro}, Team {CAP.team.toLocaleString()}. On top of that, public
-                  lives can be watched for free by unlimited guests with no account.
+                  {CAP.plus}, Pro {CAP.pro}, Team {CAP.team.toLocaleString()}. On top of that,
+                  public lives can be watched for free by unlimited guests with no account.
                 </p>
               </div>
 

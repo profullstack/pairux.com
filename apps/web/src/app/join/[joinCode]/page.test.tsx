@@ -149,10 +149,10 @@ describe('JoinPage', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Join Session' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Watch for free' })).toBeInTheDocument();
       });
 
-      expect(screen.getByRole('button', { name: 'Join Session' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Watch for free' })).toBeDisabled();
     });
 
     it('enables join button when name is entered', async () => {
@@ -169,7 +169,7 @@ describe('JoinPage', () => {
 
       await user.type(screen.getByLabelText('Your Name'), 'Test User');
 
-      expect(screen.getByRole('button', { name: 'Join Session' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Watch for free' })).toBeEnabled();
     });
 
     it('calls join API and redirects on success', async () => {
@@ -208,7 +208,7 @@ describe('JoinPage', () => {
       });
 
       await user.type(screen.getByLabelText('Your Name'), 'Test User');
-      await user.click(screen.getByRole('button', { name: 'Join Session' }));
+      await user.click(screen.getByRole('button', { name: 'Watch for free' }));
 
       // Guests are redirected to the public view page with their participant ID
       await waitFor(() => {
@@ -252,7 +252,7 @@ describe('JoinPage', () => {
       });
 
       await user.type(screen.getByLabelText('Your Name'), 'Test User');
-      await user.click(screen.getByRole('button', { name: 'Join Session' }));
+      await user.click(screen.getByRole('button', { name: 'Watch for free' }));
 
       await waitFor(() => {
         expect(screen.getByText('Session is full')).toBeInTheDocument();

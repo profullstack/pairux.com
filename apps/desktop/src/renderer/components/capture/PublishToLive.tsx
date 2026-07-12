@@ -254,8 +254,11 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       } else {
         setOpen(false);
       }
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (e) {
+      // Surface the real failure (e.g. a token-refresh reject or a blocked
+      // request) instead of a blanket "Network error".
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(`Couldn't publish: ${msg || 'network error'}. Try signing out and back in.`);
     } finally {
       setBusy(false);
     }

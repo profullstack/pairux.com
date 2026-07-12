@@ -270,7 +270,10 @@ build_wayland_dep_install_command() {
 
     case "$pm" in
         apt)
-            printf 'sudo apt-get update && sudo apt-get install -y %s' "${pkgs[*]}"
+            # Don't let an unrelated broken third-party repo (e.g. a stale PPA
+            # with no Release file) abort dep install: update is best-effort, and
+            # install proceeds from whatever lists are available.
+            printf 'sudo apt-get update || true; sudo apt-get install -y %s' "${pkgs[*]}"
             ;;
         dnf)
             printf 'sudo dnf install -y %s' "${pkgs[*]}"

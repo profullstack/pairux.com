@@ -225,6 +225,8 @@ export interface Channel {
   is_subscribed: boolean;
   is_owner: boolean;
   is_live: boolean;
+  /** Guest-inclusive count of people watching the channel's live right now. */
+  live_viewers: number;
 }
 
 // A channel the caller owns (from list_my_channels RPC) — includes stream_key.

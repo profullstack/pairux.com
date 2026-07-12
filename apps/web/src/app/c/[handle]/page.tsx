@@ -163,6 +163,12 @@ export default async function ChannelPage({ params }: PageProps) {
                       Live
                     </span>
                   )}
+                  {channel.is_live && (
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                      <Eye className="h-3.5 w-3.5" />
+                      {channel.live_viewers} watching
+                    </span>
+                  )}
                 </div>
                 <p className="text-primary-600 text-sm font-medium">@{channel.handle}</p>
                 {channel.description && (

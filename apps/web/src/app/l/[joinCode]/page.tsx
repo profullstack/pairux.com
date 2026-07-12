@@ -74,15 +74,30 @@ export default async function LiveDetailPage({ params }: PageProps) {
 
       <main className="flex-1">
         <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-          {session.banner_url && (
-            <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={session.banner_url}
-                alt=""
-                className="h-full w-full object-cover object-center"
-              />
+          {session.recording_url && !session.is_live ? (
+            <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-black">
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                poster={session.banner_url ?? undefined}
+                src={session.recording_url}
+                className="h-full w-full"
+              >
+                Your browser does not support video playback.
+              </video>
             </div>
+          ) : (
+            session.banner_url && (
+              <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={session.banner_url}
+                  alt=""
+                  className="h-full w-full object-cover object-center"
+                />
+              </div>
+            )
           )}
 
           <div className="mb-2 flex items-center gap-3">

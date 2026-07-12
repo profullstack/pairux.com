@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Radio, Eye, Circle, User as UserIcon } from 'lucide-react';
+import { Radio, Eye, Circle, PlayCircle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
-import type { Channel, ChannelStream } from '@pairux/shared-types';
+import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-types';
 import { SubscribeButton } from './SubscribeButton';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +40,29 @@ async function getStreams(handle: string): Promise<ChannelStream[]> {
   }
 }
 
+async function getRecordings(handle: string): Promise<ChannelRecording[]> {
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data } = await (supabase.rpc as any)('list_channel_recordings', {
+      p_handle: handle,
+      p_limit: 60,
+    });
+    return (data as ChannelRecording[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function formatDuration(seconds: number | null): string | null {
+  if (!seconds || seconds < 1) return null;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const pad = (n: number): string => n.toString().padStart(2, '0');
+  return h > 0 ? `${String(h)}:${pad(m)}:${pad(s)}` : `${String(m)}:${pad(s)}`;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const ch = await getChannel(handle);
@@ -71,6 +94,7 @@ export default async function ChannelPage({ params }: PageProps) {
   if (!channel) notFound();
 
   const streams = await getStreams(handle);
+  const recordings = await getRecordings(handle);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -203,6 +227,62 @@ export default async function ChannelPage({ params }: PageProps) {
             )}
           </div>
         </section>
+
+        {recordings.length > 0 && (
+          <section className="border-t border-gray-100 py-10">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <PlayCircle className="h-5 w-5 text-gray-400" />
+                Recordings
+              </h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {recordings.map((r) => {
+                  const dur = formatDuration(r.duration_seconds);
+                  return (
+                    <Link
+                      key={r.id}
+                      href={`/l/${r.join_code}`}
+                      className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
+                    >
+                      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+                        {r.banner_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={r.banner_url}
+                            alt=""
+                            className="h-full w-full object-cover object-center"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <PlayCircle className="h-8 w-8 text-gray-300" />
+                          </div>
+                        )}
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <PlayCircle className="h-10 w-10 text-white/90 drop-shadow" />
+                        </span>
+                        {dur && (
+                          <span className="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                            {dur}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900">
+                        {r.subject ?? 'Recording'}
+                      </h3>
+                      <span className="mt-2 text-xs text-gray-500">
+                        {new Date(r.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

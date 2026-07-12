@@ -57,6 +57,12 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return errorResponse(error.message, 400);
     }
 
+    // Host left → stop any server-side recording for this session (the egress
+    // also self-stops when the room empties, so this is best-effort).
+    void import('@/lib/livekit-recording').then(({ stopSessionRecording }) =>
+      stopSessionRecording(sessionId)
+    );
+
     return successResponse(data);
   } catch (error) {
     return handleApiError(error);

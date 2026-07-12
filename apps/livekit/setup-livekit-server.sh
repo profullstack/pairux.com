@@ -364,6 +364,13 @@ turn:
 # Bound to localhost only — never exposed publicly.
 redis:
   address: localhost:6379
+
+# Webhooks — the web app finalizes recordings when egress completes.
+# Signed with the API key/secret above (validated by WebhookReceiver).
+webhook:
+  api_key: ${LIVEKIT_API_KEY}
+  urls:
+    - https://pairux.com/api/livekit/webhook
 EOF
 
 # Egress config (server-side RTMP restreaming to YouTube/Twitch/etc.)

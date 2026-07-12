@@ -44,6 +44,30 @@ export async function POST(_request: Request, { params }: RouteParams) {
       void import('@/lib/notify-live').then(({ notifyGoLive }) => notifyGoLive(live));
     }
 
+    // First heartbeat of an SFU session → start server-side recording, exactly
+    // once (mark_recording_started claims it atomically). Covers ALL sfu
+    // sessions, public or not. No-op until SUPABASE_S3_* is configured.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data: rec } = await (supabase.rpc as any)('mark_recording_started', {
+      p_session_id: sessionId,
+    });
+    const started = (Array.isArray(rec) ? rec[0] : null) as {
+      session_id: string;
+      channel_id: string | null;
+      creator_id: string | null;
+      subject: string | null;
+    } | null;
+    if (started?.session_id) {
+      void import('@/lib/livekit-recording').then(({ startSessionRecording }) =>
+        startSessionRecording({
+          sessionId: started.session_id,
+          channelId: started.channel_id,
+          creatorId: started.creator_id,
+          subject: started.subject,
+        })
+      );
+    }
+
     return successResponse({ ok: true });
   } catch (error) {
     return handleApiError(error);

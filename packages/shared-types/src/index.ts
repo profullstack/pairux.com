@@ -30,6 +30,7 @@ export type {
   Channel,
   MyChannel,
   ChannelStream,
+  ChannelRecording,
   SessionParticipant,
   SessionParticipantInsert,
   SessionParticipantUpdate,

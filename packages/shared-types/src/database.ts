@@ -186,6 +186,20 @@ export interface PublicSessionDetail {
   liked: boolean;
   channel_handle: string | null;
   channel_name: string | null;
+  /** Playback URL of the latest finished recording, when available. */
+  recording_url: string | null;
+}
+
+// A finished server-side recording of a channel's past stream
+// (from list_channel_recordings RPC) — powers "watch later" lists.
+export interface ChannelRecording {
+  id: string;
+  join_code: string;
+  subject: string | null;
+  banner_url: string | null;
+  playback_url: string;
+  duration_seconds: number | null;
+  created_at: string;
 }
 
 // A comment on a live (from list_comments RPC).

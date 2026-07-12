@@ -56,7 +56,7 @@ describe('middleware', () => {
 
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
       expect(response.headers.get('Access-Control-Allow-Methods')).toBe(
-        'GET, POST, PUT, DELETE, OPTIONS'
+        'GET, POST, PUT, PATCH, DELETE, OPTIONS'
       );
       expect(response.headers.get('Access-Control-Allow-Headers')).toBe(
         'Content-Type, Authorization'

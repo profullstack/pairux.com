@@ -164,6 +164,16 @@ export interface FollowState {
   is_following: boolean;
 }
 
+// A creator card (from list_creators RPC) — for the /live browse section.
+export interface Creator {
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  follower_count: number;
+  is_live: boolean;
+}
+
 export interface SessionInsert {
   host_user_id: string;
   status?: SessionStatus;

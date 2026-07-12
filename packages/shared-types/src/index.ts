@@ -24,6 +24,7 @@ export type {
   PublicRoom,
   CreatorLive,
   FollowState,
+  Creator,
   SessionParticipant,
   SessionParticipantInsert,
   SessionParticipantUpdate,

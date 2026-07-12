@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Radio, Eye, Users, Circle } from 'lucide-react';
+import { Radio, Eye, Users, Circle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
-import type { PublicRoom } from '@pairux/shared-types';
+import type { PublicRoom, Creator } from '@pairux/shared-types';
 
 export const metadata: Metadata = {
   title: 'Live Rooms',
@@ -37,12 +37,24 @@ async function getPublicRooms(): Promise<PublicRoom[]> {
   }
 }
 
+async function getCreators(): Promise<Creator[]> {
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('list_creators', { p_limit: 24 });
+    if (error) return [];
+    return (data as Creator[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 function hostLabel(room: PublicRoom): string {
   return room.host_display_name ?? room.host_username ?? 'Anonymous';
 }
 
 export default async function LivePage() {
-  const rooms = await getPublicRooms();
+  const [rooms, creators] = await Promise.all([getPublicRooms(), getCreators()]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -155,6 +167,54 @@ export default async function LivePage() {
             )}
           </div>
         </section>
+
+        {creators.length > 0 && (
+          <section className="pb-16">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Users className="h-5 w-5 text-gray-400" />
+                Creators
+              </h2>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {creators.map((c) => (
+                  <Link
+                    key={c.username}
+                    href={`/u/${c.username}`}
+                    className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-5 text-center transition-shadow hover:shadow-md"
+                  >
+                    {c.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.avatar_url}
+                        alt=""
+                        className="h-14 w-14 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-200">
+                        <UserIcon className="h-7 w-7 text-gray-400" />
+                      </div>
+                    )}
+                    <p className="mt-3 line-clamp-1 text-sm font-semibold text-gray-900">
+                      {c.display_name ?? `@${c.username}`}
+                    </p>
+                    <p className="text-primary-600 line-clamp-1 text-xs">@{c.username}</p>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                      {c.is_live && (
+                        <span className="inline-flex items-center gap-1 font-medium text-red-600">
+                          <Circle className="h-2 w-2 animate-pulse fill-current" />
+                          Live
+                        </span>
+                      )}
+                      <span>
+                        {c.follower_count} {c.follower_count === 1 ? 'follower' : 'followers'}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

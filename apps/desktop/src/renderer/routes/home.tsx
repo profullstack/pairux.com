@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Link2, Loader2, Mic, Radio } from 'lucide-react';
+import { Users, Link2, Loader2, Mic, Radio, User as UserIcon } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { getElectronAPI } from '@/lib/ipc';
+import { API_BASE_URL } from '../../shared/config';
 import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
@@ -67,6 +68,7 @@ export function HomePage() {
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [loadingExistingSession, setLoadingExistingSession] = useState(false);
+  const [myUsername, setMyUsername] = useState<string | null>(null);
 
   // Get platform info on mount
   useEffect(() => {
@@ -76,6 +78,32 @@ export function HomePage() {
       setDisplayServer(info.displayServer);
       setIsWayland(info.isWayland);
     });
+  }, []);
+
+  // Resolve the signed-in host's public handle → their creator page /u/<username>.
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+        if (!token || controller.signal.aborted) return;
+        const res = await fetch(`${API_BASE_URL}/api/profile/username`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          data?: { username?: string | null };
+        };
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- aborted async in cleanup
+        if (res.ok && !controller.signal.aborted) setMyUsername(body.data?.username ?? null);
+      } catch {
+        /* ignore — just hide the My Page link */
+      }
+    };
+    void load();
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   // Resume an existing session for "share screen as viewer/presenter" flows.
@@ -424,6 +452,18 @@ export function HomePage() {
                 <Radio className="h-4 w-4" />
                 Live Rooms
               </button>
+              {myUsername && (
+                <button
+                  onClick={() => {
+                    void getElectronAPI().invoke('auth:openExternal', `/u/${myUsername}`);
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+                  title={`Open your creator page — pairux.com/u/${myUsername}`}
+                >
+                  <UserIcon className="h-4 w-4" />
+                  My Page
+                </button>
+              )}
             </div>
           </div>
 

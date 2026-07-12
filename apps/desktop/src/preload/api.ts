@@ -77,6 +77,12 @@ export interface IPCChannels {
     return: { success: boolean; isOpen?: boolean; error?: string };
   };
 
+  // Is a newer desktop release available on GitHub?
+  'app:check-update': {
+    args: undefined;
+    return: { updateAvailable: boolean; current: string; latest: string | null };
+  };
+
   // Auth channels
   'auth:login': {
     args: { email: string; password: string };

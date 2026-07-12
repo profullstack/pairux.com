@@ -16,6 +16,18 @@ import {
   isElevated,
 } from '../platform';
 
+/** True if semver `a` is strictly newer than `b` (major.minor.patch). */
+function isNewer(a: string, b: string): boolean {
+  const pa = a.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = b.split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < 3; i++) {
+    const x = pa[i] ?? 0;
+    const y = pb[i] ?? 0;
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+
 /**
  * Register platform-specific IPC handlers
  */
@@ -23,6 +35,30 @@ export function registerPlatformHandlers(): void {
   // Get platform information
   ipcMain.handle('platform:info', () => {
     return getPlatformInfo();
+  });
+
+  // Check GitHub for a newer desktop release than the running one.
+  ipcMain.handle('app:check-update', async () => {
+    const current = app.getVersion();
+    try {
+      const res = await fetch(
+        'https://api.github.com/repos/profullstack/pairux.com/releases/latest',
+        {
+          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'pairux-desktop' },
+          signal: AbortSignal.timeout(8000),
+        }
+      );
+      if (!res.ok) return { updateAvailable: false, current, latest: null };
+      const data = (await res.json()) as { tag_name?: string };
+      const latest = (data.tag_name ?? '').replace(/^v/, '');
+      return {
+        updateAvailable: latest !== '' && isNewer(latest, current),
+        current,
+        latest: latest || null,
+      };
+    } catch {
+      return { updateAvailable: false, current, latest: null };
+    }
   });
 
   // Get detailed Linux info

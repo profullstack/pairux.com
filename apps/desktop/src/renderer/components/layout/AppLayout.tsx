@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { TitleBar } from './TitleBar';
 import { SettingsPage } from '@/routes/settings';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { useUIStore } from '@/stores/ui';
 
 interface AppLayoutProps {
@@ -13,6 +14,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <TitleBar />
+      <UpdateBanner />
       <main className="relative flex flex-1 flex-col">
         {children}
 

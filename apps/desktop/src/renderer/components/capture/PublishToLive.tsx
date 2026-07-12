@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Radio, ExternalLink, Loader2, X, ImagePlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Radio, ExternalLink, Loader2, X, ImagePlus, AtSign } from 'lucide-react';
 import type { Session } from '@pairux/shared-types';
 import { API_BASE_URL } from '../../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
@@ -10,10 +10,40 @@ interface PublishToLiveProps {
   session: Pick<Session, 'id' | 'is_public' | 'subject' | 'description' | 'banner_url'>;
 }
 
+// Locally-cached "last used" live settings, so a host doesn't re-enter their
+// title/description/cover every time they publish a new room. Persisted in the
+// renderer's localStorage (survives app restarts).
+const CACHE_KEY = 'pairux.live.settings';
+interface LiveSettingsCache {
+  subject: string;
+  description: string;
+  banner: string | null; // data URL of the last cover (already 16:9-cropped)
+}
+function loadLiveCache(): LiveSettingsCache {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) return JSON.parse(raw) as LiveSettingsCache;
+  } catch {
+    /* ignore */
+  }
+  return { subject: '', description: '', banner: null };
+}
+function saveLiveCache(cache: LiveSettingsCache): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    /* ignore (e.g. quota) — caching is a convenience */
+  }
+}
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  return (await fetch(dataUrl)).blob();
+}
+
 // Cover-crop the chosen image to a 16:9 frame (center) and re-encode as JPEG, so
 // the stored banner is a small, consistent 1280x720 — matching how it's shown on
-// /live (a 16:9 object-cover box).
-function cropTo16x9(file: File): Promise<Blob> {
+// /live (a 16:9 object-cover box). Returns both a Blob (to upload) and a data URL
+// (to preview + cache).
+function cropTo16x9(file: File): Promise<{ blob: Blob; dataUrl: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -33,9 +63,10 @@ function cropTo16x9(file: File): Promise<Blob> {
       const w = img.width * scale;
       const h = img.height * scale;
       ctx.drawImage(img, (TW - w) / 2, (TH - h) / 2, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       canvas.toBlob(
         (blob) => {
-          if (blob) resolve(blob);
+          if (blob) resolve({ blob, dataUrl });
           else reject(new Error('Could not encode image'));
         },
         'image/jpeg',
@@ -56,15 +87,92 @@ function cropTo16x9(file: File): Promise<Blob> {
  * 16:9 banner image. A title (subject) is required to go live.
  */
 export function PublishToLive({ session }: PublishToLiveProps) {
+  // For a brand-new (never-published) room, pre-fill from the last-used settings
+  // so the host doesn't retype the title/description/cover. An already-published
+  // room shows its own saved values.
+  const cache = loadLiveCache();
   const [open, setOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(session.is_public);
-  const [subject, setSubject] = useState(session.subject ?? '');
-  const [description, setDescription] = useState(session.description ?? '');
-  const [bannerPreview, setBannerPreview] = useState<string | null>(session.banner_url);
+  const [subject, setSubject] = useState(session.subject ?? cache.subject);
+  const [description, setDescription] = useState(session.description ?? cache.description);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(
+    session.banner_url ?? cache.banner
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerBlobRef = useRef<Blob | null>(null);
+  // Data URL of the current cover (freshly picked or restored from cache), used
+  // to re-upload a cached cover for a new room and to persist the cache.
+  const bannerDataUrlRef = useRef<string | null>(
+    session.banner_url ? null : (cache.banner ?? null)
+  );
+
+  // The host's public handle → their creator page at /u/<username>. undefined
+  // while loading; null if they haven't claimed one yet.
+  const [username, setUsername] = useState<string | null | undefined>(undefined);
+  const [handleInput, setHandleInput] = useState('');
+  const [savingHandle, setSavingHandle] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+        if (!token || controller.signal.aborted) return;
+        const res = await fetch(`${API_BASE_URL}/api/profile/username`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          data?: { username?: string | null };
+        };
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- signal is aborted async in cleanup
+        if (!controller.signal.aborted) {
+          setUsername(res.ok ? (body.data?.username ?? null) : null);
+        }
+      } catch {
+        if (!controller.signal.aborted) setUsername(null);
+      }
+    };
+    void load();
+    return () => {
+      controller.abort();
+    };
+  }, [open]);
+
+  const claimHandle = async () => {
+    const h = handleInput.trim();
+    if (!/^[A-Za-z0-9_]{3,30}$/.test(h)) {
+      setError('Handle must be 3–30 letters, numbers, or underscores.');
+      return;
+    }
+    setSavingHandle(true);
+    setError(null);
+    try {
+      const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+      if (!token) {
+        setError('Sign in on this device to claim a handle.');
+        return;
+      }
+      const res = await fetch(`${API_BASE_URL}/api/profile/username`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username: h }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(body.error ?? 'Could not claim that handle.');
+        return;
+      }
+      setUsername(h);
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSavingHandle(false);
+    }
+  };
 
   const openLiveDirectory = () => {
     void getElectronAPI().invoke('auth:openExternal', '/live');
@@ -77,11 +185,9 @@ export function PublishToLive({ session }: PublishToLiveProps) {
     setError(null);
     try {
       const cropped = await cropTo16x9(file);
-      bannerBlobRef.current = cropped;
-      setBannerPreview((prev) => {
-        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
-        return URL.createObjectURL(cropped);
-      });
+      bannerBlobRef.current = cropped.blob;
+      bannerDataUrlRef.current = cropped.dataUrl;
+      setBannerPreview(cropped.dataUrl);
     } catch {
       setError("Couldn't read that image. Try a different file.");
     }
@@ -102,10 +208,20 @@ export function PublishToLive({ session }: PublishToLiveProps) {
         return;
       }
 
-      // Upload a freshly-picked banner first (only when staying/going public).
-      if (nextPublic && bannerBlobRef.current) {
+      // Upload the cover (only when staying/going public). Use a freshly-picked
+      // one, or re-upload the cached cover for a room that doesn't have one yet.
+      let bannerToUpload = bannerBlobRef.current;
+      if (
+        nextPublic &&
+        !bannerToUpload &&
+        !session.banner_url &&
+        bannerDataUrlRef.current?.startsWith('data:')
+      ) {
+        bannerToUpload = await dataUrlToBlob(bannerDataUrlRef.current);
+      }
+      if (nextPublic && bannerToUpload) {
         const fd = new FormData();
-        fd.append('banner', bannerBlobRef.current, 'banner.jpg');
+        fd.append('banner', bannerToUpload, 'banner.jpg');
         const bannerRes = await fetch(`${API_BASE_URL}/api/sessions/${session.id}/banner`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
@@ -138,7 +254,16 @@ export function PublishToLive({ session }: PublishToLiveProps) {
         return;
       }
       setIsPublic(nextPublic);
-      if (!nextPublic) setOpen(false);
+      if (nextPublic) {
+        // Remember these settings for the next room the host publishes.
+        saveLiveCache({
+          subject: subject.trim(),
+          description: description.trim(),
+          banner: bannerDataUrlRef.current,
+        });
+      } else {
+        setOpen(false);
+      }
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -177,6 +302,47 @@ export function PublishToLive({ session }: PublishToLiveProps) {
           <p className="mb-3 text-xs text-muted-foreground">
             Lists your room publicly on pairux.com/live so anyone can discover and join it.
           </p>
+
+          {/* Creator handle → the host's dedicated page at /u/<username> */}
+          <div className="mb-3 rounded-md border border-input bg-muted/40 p-2">
+            {username === undefined ? (
+              <span className="text-xs text-muted-foreground">Loading your creator page…</span>
+            ) : username ? (
+              <button
+                type="button"
+                onClick={() => void getElectronAPI().invoke('auth:openExternal', `/u/${username}`)}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <AtSign className="h-3 w-3" />
+                Your page: pairux.com/u/{username} <ExternalLink className="h-3 w-3" />
+              </button>
+            ) : (
+              <div>
+                <label className="mb-1 block text-xs font-medium">
+                  Claim your handle — gives you a page at /u/&lt;handle&gt; with your live history
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    value={handleInput}
+                    onChange={(e) => {
+                      setHandleInput(e.target.value);
+                    }}
+                    maxLength={30}
+                    placeholder="yourhandle"
+                    disabled={savingHandle}
+                  />
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={savingHandle}
+                    onClick={() => void claimHandle()}
+                  >
+                    {savingHandle ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Claim'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
           <label className="mb-1 block text-xs font-medium">Title (required)</label>
           <Input

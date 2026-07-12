@@ -39,7 +39,7 @@ const faqSchema = {
       name: 'Is the free tier really free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes! P2P connections between 2 participants + up to 5 viewers are completely free, forever. No time limits, no credit card required.',
+        text: 'Yes! 2 participants + up to 20 listeners are completely free, forever — and public lives can be watched for free by unlimited guests with no account. No time limits, no credit card required.',
       },
     },
     {
@@ -68,7 +68,8 @@ const pricingTiers = [
     price: '$0',
     priceDetail: 'forever',
     features: [
-      '2 participants + up to 5 listeners',
+      '2 participants + up to 20 listeners',
+      'Unlimited free viewers on public lives',
       'P2P connections',
       'Screen sharing',
       'Remote control',
@@ -552,9 +553,9 @@ export default function PricingPage() {
               <div>
                 <h3 className="font-semibold text-gray-900">Is the free tier really free?</h3>
                 <p className="mt-2 text-gray-600">
-                  Yes! P2P connections between 2 participants + up to 5 viewers are completely free,
-                  forever. No time limits, no credit card required. Great for pair programming and
-                  small demos.
+                  Yes! 2 participants + up to 20 listeners are completely free, forever — and public
+                  lives can be watched for free by unlimited guests with no account. No time limits,
+                  no credit card required. Great for pair programming and small demos.
                 </p>
               </div>
 

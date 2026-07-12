@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
 import { WebhookReceiver, EgressStatus } from 'livekit-server-sdk';
 import { serviceClient } from '@/lib/supabase/service';
 
@@ -10,10 +10,14 @@ import { serviceClient } from '@/lib/supabase/service';
  *     api_key: <LIVEKIT_API_KEY>
  *     urls: [https://pairux.com/api/livekit/webhook]
  *
- * On egress_ended we flip the matching recordings row to 'ready' (or 'failed')
- * and stamp duration/size. Until this is wired on the droplet, recordings stay
- * in 'processing' — the file still uploads to storage, it just isn't surfaced.
+ * - egress_ended → flip the matching recordings row to 'ready'/'failed'.
+ * - participant_left → set the viewer's session_participants.left_at so the
+ *   viewer count reflects real drops (LiveKit detects tab-close/disconnect;
+ *   the client can't be trusted to fire a leave). participant.identity is the
+ *   session_participants.id we mint the token with.
+ * - room_finished → mark every remaining participant of that room as left.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -57,6 +61,32 @@ export async function POST(request: Request): Promise<Response> {
 
         const svc = serviceClient() as any;
         await svc.from('recordings').update(patch).eq('egress_id', info.egressId);
+      }
+    }
+
+    // A viewer dropped → mark them left so viewer_count stays accurate.
+    if (event?.event === 'participant_left' && event?.participant?.identity) {
+      const identity = String(event.participant.identity);
+      if (UUID_RE.test(identity)) {
+        const svc = serviceClient() as any;
+        await svc
+          .from('session_participants')
+          .update({ left_at: new Date().toISOString(), connection_status: 'disconnected' })
+          .eq('id', identity)
+          .is('left_at', null);
+      }
+    }
+
+    // Room fully ended → mark every still-present participant left.
+    if (event?.event === 'room_finished' && typeof event?.room?.name === 'string') {
+      const m = /^session-(.+)$/.exec(event.room.name);
+      if (m && UUID_RE.test(m[1] ?? '')) {
+        const svc = serviceClient() as any;
+        await svc
+          .from('session_participants')
+          .update({ left_at: new Date().toISOString(), connection_status: 'disconnected' })
+          .eq('session_id', m[1])
+          .is('left_at', null);
       }
     }
   } catch (err) {

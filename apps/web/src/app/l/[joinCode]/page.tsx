@@ -178,7 +178,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
                 href={`/join/${session.join_code}`}
                 className="bg-primary-600 hover:bg-primary-700 inline-flex items-center justify-center rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors"
               >
-                Join live
+                Watch for free
               </Link>
             )}
           </div>

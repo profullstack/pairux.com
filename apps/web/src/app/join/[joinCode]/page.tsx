@@ -516,21 +516,26 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                 className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {joining && <Loader2 className="h-4 w-4 animate-spin" />}
-                {joining ? 'Joining...' : 'Join Session'}
+                {joining ? 'Joining...' : user ? 'Join Session' : 'Watch for free'}
               </button>
             </form>
 
             {!user && (
-              <p className="mt-6 text-center text-xs text-gray-500">
-                Have an account?{' '}
-                <Link
-                  href={`/login?redirect=/join/${joinCode}`}
-                  className="text-primary-600 hover:text-primary-500 font-medium"
-                >
-                  Sign in
-                </Link>{' '}
-                for a better experience
-              </p>
+              <>
+                <p className="mt-3 text-center text-xs text-gray-500">
+                  No account needed — watch live as a guest.
+                </p>
+                <p className="mt-4 text-center text-xs text-gray-500">
+                  Have an account?{' '}
+                  <Link
+                    href={`/login?redirect=/join/${joinCode}`}
+                    className="text-primary-600 hover:text-primary-500 font-medium"
+                  >
+                    Sign in
+                  </Link>{' '}
+                  to present or take control
+                </p>
+              </>
             )}
           </div>
         </div>

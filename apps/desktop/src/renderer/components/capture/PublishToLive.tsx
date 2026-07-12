@@ -101,6 +101,7 @@ export function PublishToLive({ session }: PublishToLiveProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [bannerPrompt, setBannerPrompt] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerBlobRef = useRef<Blob | null>(null);
   // Data URL of the current cover (freshly picked or restored from cache), used
@@ -182,7 +183,12 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       const res = await fetch(`${API_BASE_URL}/api/live/generate-banner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ imageDataUrl: current, subject, description }),
+        body: JSON.stringify({
+          imageDataUrl: current,
+          subject,
+          description,
+          prompt: bannerPrompt.trim() || undefined,
+        }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         data?: { image?: string };
@@ -418,20 +424,32 @@ export function PublishToLive({ session }: PublishToLiveProps) {
             className="hidden"
             onChange={(e) => void onPickBanner(e)}
           />
-          <button
-            type="button"
-            onClick={() => void onGenerateBanner()}
-            disabled={busy || generating}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-60"
-            title="Generate a custom banner with AI from the current one"
-          >
-            {generating ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="h-3.5 w-3.5" />
-            )}
-            {generating ? 'Generating…' : 'Generate with AI'}
-          </button>
+          <div className="mt-2 flex items-center gap-2">
+            <Input
+              value={bannerPrompt}
+              onChange={(e) => {
+                setBannerPrompt(e.target.value);
+              }}
+              maxLength={300}
+              placeholder="Optional: describe the banner you want…"
+              disabled={busy || generating}
+              className="h-8 flex-1 text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => void onGenerateBanner()}
+              disabled={busy || generating}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-60"
+              title="Generate a custom banner with AI from the current one"
+            >
+              {generating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {generating ? 'Generating…' : 'Generate with AI'}
+            </button>
+          </div>
 
           {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 

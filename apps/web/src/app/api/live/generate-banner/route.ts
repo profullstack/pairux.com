@@ -21,15 +21,19 @@ interface Body {
   imageDataUrl?: string;
   subject?: string;
   description?: string;
+  /** Optional free-text direction from the host for the banner. */
+  prompt?: string;
 }
 
-function buildPrompt(subject?: string, description?: string): string {
+function buildPrompt(subject?: string, description?: string, custom?: string): string {
   const title = (subject ?? '').trim() || 'a live coding / pair-programming session';
   const ctx = (description ?? '').trim();
+  const wish = (custom ?? '').trim().slice(0, 500);
   return [
     `Design a bold, modern 16:9 cover thumbnail for a live developer stream on PairUX.`,
     `Stream title: "${title}".`,
     ctx ? `Context: ${ctx}.` : '',
+    wish ? `The host's specific request (prioritize this): ${wish}.` : '',
     `Use the provided image as stylistic inspiration for palette and mood.`,
     `High-contrast, eye-catching, clean — suitable as a video thumbnail. Keep any`,
     `text minimal and clearly legible. No watermarks.`,
@@ -166,7 +170,7 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json().catch(() => ({}))) as Body;
-    const prompt = buildPrompt(body.subject, body.description);
+    const prompt = buildPrompt(body.subject, body.description, body.prompt);
     const input = body.imageDataUrl ? await fetchImageBytes(body.imageDataUrl) : null;
 
     const openaiKey = process.env.OPENAI_API_KEY;

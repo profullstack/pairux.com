@@ -17,26 +17,52 @@ export const maxDuration = 60;
  * Body: { imageDataUrl?: string (current banner, data: or http URL),
  *         subject?: string, description?: string }
  */
+type Format = 'live' | 'channel';
+interface FormatSpec {
+  w: number;
+  h: number;
+  label: string;
+}
+const FORMATS: Record<Format, FormatSpec> = {
+  live: {
+    w: 1280,
+    h: 720,
+    label: 'a 16:9 (widescreen) cover thumbnail for a live developer stream',
+  },
+  channel: {
+    w: 1500,
+    h: 250,
+    label: 'a 6:1 ultra-wide channel header banner (like a YouTube channel art strip)',
+  },
+};
+
 interface Body {
   imageDataUrl?: string;
   subject?: string;
   description?: string;
   /** Optional free-text direction from the host for the banner. */
   prompt?: string;
+  /** Output shape — 'live' 16:9 (default) or 'channel' 6:1. */
+  format?: Format;
 }
 
-function buildPrompt(subject?: string, description?: string, custom?: string): string {
+function buildPrompt(
+  fmt: FormatSpec,
+  subject?: string,
+  description?: string,
+  custom?: string
+): string {
   const title = (subject ?? '').trim() || 'a live coding / pair-programming session';
   const ctx = (description ?? '').trim();
   const wish = (custom ?? '').trim().slice(0, 500);
   return [
-    `Design a bold, modern 16:9 cover thumbnail for a live developer stream on PairUX.`,
-    `Stream title: "${title}".`,
+    `Design ${fmt.label} on PairUX, exactly ${String(fmt.w)}x${String(fmt.h)} pixels.`,
+    `Fill the entire frame edge-to-edge — do not letterbox or leave borders.`,
+    `Name/title: "${title}".`,
     ctx ? `Context: ${ctx}.` : '',
-    wish ? `The host's specific request (prioritize this): ${wish}.` : '',
+    wish ? `The user's specific request (prioritize this): ${wish}.` : '',
     `Use the provided image as stylistic inspiration for palette and mood.`,
-    `High-contrast, eye-catching, clean — suitable as a video thumbnail. Keep any`,
-    `text minimal and clearly legible. No watermarks.`,
+    `High-contrast, eye-catching, clean. Keep any text minimal and clearly legible. No watermarks.`,
   ]
     .filter(Boolean)
     .join(' ');
@@ -108,7 +134,8 @@ async function generateWithOpenAI(
 async function generateWithAnthropic(
   apiKey: string,
   prompt: string,
-  input: { bytes: Uint8Array; mime: string } | null
+  input: { bytes: Uint8Array; mime: string } | null,
+  fmt: FormatSpec
 ): Promise<string> {
   const content: any[] = [];
   if (input) {
@@ -125,9 +152,10 @@ async function generateWithAnthropic(
     type: 'text',
     text:
       `${prompt}\n\n` +
-      `Output ONLY a single complete SVG document, exactly 1280x720 (viewBox="0 0 1280 720"), ` +
-      `no markdown fences, no commentary. Use gradients, geometric shapes and at most a short ` +
-      `title. Make it look like a polished stream cover.`,
+      `Output ONLY a single complete SVG document, exactly ${String(fmt.w)}x${String(fmt.h)} ` +
+      `(viewBox="0 0 ${String(fmt.w)} ${String(fmt.h)}"), filling the whole canvas edge-to-edge. ` +
+      `No markdown fences, no commentary. Use gradients, geometric shapes and at most a short ` +
+      `title. Make it look like a polished, professional banner.`,
   });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -155,7 +183,7 @@ async function generateWithAnthropic(
   const svgMatch = /<svg[\s\S]*<\/svg>/i.exec(text);
   if (!svgMatch) throw new Error('Anthropic returned no SVG');
   const png = await sharp(Buffer.from(svgMatch[0]), { density: 144 })
-    .resize(1280, 720, { fit: 'cover' })
+    .resize(fmt.w, fmt.h, { fit: 'cover' })
     .png()
     .toBuffer();
   return `data:image/png;base64,${png.toString('base64')}`;
@@ -170,7 +198,8 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json().catch(() => ({}))) as Body;
-    const prompt = buildPrompt(body.subject, body.description, body.prompt);
+    const fmt = FORMATS[body.format === 'channel' ? 'channel' : 'live'];
+    const prompt = buildPrompt(fmt, body.subject, body.description, body.prompt);
     const input = body.imageDataUrl ? await fetchImageBytes(body.imageDataUrl) : null;
 
     const openaiKey = process.env.OPENAI_API_KEY;
@@ -184,7 +213,7 @@ export async function POST(request: Request) {
     const errors: string[] = [];
     if (anthropicKey) {
       try {
-        const image = await generateWithAnthropic(anthropicKey, prompt, input);
+        const image = await generateWithAnthropic(anthropicKey, prompt, input, fmt);
         return successResponse({ image, source: 'anthropic' });
       } catch (e) {
         errors.push(e instanceof Error ? e.message : String(e));

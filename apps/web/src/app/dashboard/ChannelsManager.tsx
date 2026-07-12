@@ -2,14 +2,38 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, Plus, Copy, Check, KeyRound, ExternalLink, ImagePlus } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Copy,
+  Check,
+  KeyRound,
+  ExternalLink,
+  ImagePlus,
+  Sparkles,
+} from 'lucide-react';
 import type { MyChannel } from '@pairux/shared-types';
 
 // Where OBS / any RTMP client points. The stream key selects the channel.
 const RTMP_INGEST_URL = 'rtmp://rtmp.pairux.com/live';
 
+// Decode a data: URL to a Blob without fetch() (renderer CSP may block data:).
+function dataUrlToBlob(dataUrl: string): Blob {
+  const comma = dataUrl.indexOf(',');
+  const header = dataUrl.slice(0, comma);
+  const data = dataUrl.slice(comma + 1);
+  const mime = /:(.*?)[;,]/.exec(header)?.[1] ?? 'application/octet-stream';
+  if (header.includes(';base64')) {
+    const bin = atob(data);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+  return new Blob([decodeURIComponent(data)], { type: mime });
+}
+
 // Cover-crop an image to WxH (center) and return a JPEG blob.
-function cropImage(file: File, tw: number, th: number): Promise<Blob> {
+function cropImage(file: Blob, tw: number, th: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -57,10 +81,56 @@ export function ChannelsManager() {
   const [uploading, setUploading] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingRef = useRef<{ id: string; kind: 'banner' | 'avatar' } | null>(null);
+  const [bannerPrompt, setBannerPrompt] = useState<Record<string, string>>({});
+  const [genBanner, setGenBanner] = useState<string | null>(null);
 
   const pickImage = (id: string, kind: 'banner' | 'avatar') => {
     pendingRef.current = { id, kind };
     fileRef.current?.click();
+  };
+
+  // Generate a properly-sized 6:1 channel banner with AI from the channel's
+  // current banner (design input) + an optional prompt.
+  const onGenerateBanner = async (ch: MyChannel) => {
+    setGenBanner(ch.id);
+    setError(null);
+    try {
+      const res = await fetch('/api/live/generate-banner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format: 'channel',
+          imageDataUrl: ch.banner_url ?? undefined,
+          subject: ch.name,
+          description: ch.description ?? undefined,
+          prompt: (bannerPrompt[ch.id] ?? '').trim() || undefined,
+        }),
+      });
+      const b = (await res.json()) as { data?: { image?: string }; error?: string };
+      const image = b.data?.image;
+      if (!res.ok || !image) {
+        setError(b.error ?? 'Could not generate a banner. Try again.');
+        return;
+      }
+      // Decode → normalize to exactly 1500x250 → upload as the channel banner.
+      const cropped = await cropImage(dataUrlToBlob(image), 1500, 250);
+      const fd = new FormData();
+      fd.append('image', cropped, 'banner.jpg');
+      const up = await fetch(`/api/channels/${ch.id}/image?kind=banner`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (!up.ok) {
+        const u = (await up.json()) as { error?: string };
+        setError(u.error ?? 'Generated the banner but could not save it.');
+        return;
+      }
+      await load();
+    } catch {
+      setError('Banner generation failed. Please try again.');
+    } finally {
+      setGenBanner(null);
+    }
   };
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,6 +300,36 @@ export function ChannelsManager() {
                   )}
                 </span>
               </button>
+
+              {/* AI banner: generate a properly-sized 6:1 header from the current
+                  banner + an optional prompt. */}
+              <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-3 py-2">
+                <input
+                  value={bannerPrompt[ch.id] ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setBannerPrompt((p) => ({ ...p, [ch.id]: v }));
+                  }}
+                  maxLength={300}
+                  placeholder="Optional: describe the banner you want…"
+                  disabled={genBanner === ch.id}
+                  className="focus:ring-primary-500 h-8 flex-1 rounded-md border border-gray-300 bg-white px-2.5 text-xs focus:ring-2 focus:outline-none disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => void onGenerateBanner(ch)}
+                  disabled={genBanner === ch.id}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-60"
+                  title="Generate a properly-sized 6:1 banner with AI from the current one"
+                >
+                  {genBanner === ch.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  {genBanner === ch.id ? 'Generating…' : 'Generate with AI'}
+                </button>
+              </div>
 
               <div className="p-5">
                 <div className="flex items-start justify-between gap-4">

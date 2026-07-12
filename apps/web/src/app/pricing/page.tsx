@@ -4,6 +4,16 @@ import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { UpgradeButton } from './UpgradeButton';
+import { maxListeners } from '@pairux/shared-types';
+
+// Listener capacity per tier — single source of truth (LISTENER_CAP), so the
+// pricing copy always ascends and can't drift out of sync with enforcement.
+const CAP = {
+  free: maxListeners('free'),
+  plus: maxListeners('plus'),
+  pro: maxListeners('pro'),
+  team: maxListeners('team'),
+};
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -20,18 +30,10 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: "What's included in viewer-hours?",
+      name: 'How many people can watch my room?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Viewer-hours measure the total time viewers spend watching your streams via our SFU relay servers. Pro includes 100 hours/month, Team includes 500 hours/month. Most users never exceed their allotment.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What happens if I exceed my viewer-hours?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: "We'll notify you when you're approaching your limit. Additional hours are billed at $0.08/hr (720p), $0.12/hr (1080p), or $0.20/hr (4K). We'll never cut off your stream mid-session.",
+        text: `Concurrent listeners per room scale with your plan: Free ${String(CAP.free)}, Plus ${String(CAP.plus)}, Pro ${String(CAP.pro)}, Team ${CAP.team.toLocaleString()}. On top of that, public lives can be watched for free by unlimited guests with no account.`,
       },
     },
     {
@@ -68,7 +70,7 @@ const pricingTiers = [
     price: '$0',
     priceDetail: 'forever',
     features: [
-      '2 participants + up to 20 listeners',
+      `2 participants + up to ${String(CAP.free)} listeners`,
       'Unlimited free viewers on public lives',
       'P2P connections',
       'Screen sharing',
@@ -87,7 +89,7 @@ const pricingTiers = [
     price: '$1',
     priceDetail: 'month',
     features: [
-      'Up to 100 listeners per room',
+      `Up to ${String(CAP.plus)} listeners per room`,
       'SFU relay servers',
       'Public room in the /live directory',
       'Screen sharing + voice',
@@ -105,11 +107,11 @@ const pricingTiers = [
     price: '$12',
     priceDetail: 'month',
     features: [
-      '10 participants + 50 viewers',
-      '100 viewer-hours/month included',
-      'Overage: $0.08/hr (720p), $0.12/hr (1080p)',
+      `Up to ${String(CAP.pro)} listeners per room`,
       'SFU relay servers',
+      'All streaming platforms (YouTube, Twitch, …)',
       'HD screen sharing (1080p)',
+      'Public room in the /live directory',
       'Priority support',
     ],
     cta: 'Upgrade to Pro',
@@ -123,12 +125,12 @@ const pricingTiers = [
     price: '$49',
     priceDetail: 'month',
     features: [
-      'Unlimited participants',
-      '500 viewer-hours/month included',
-      'Overage: $0.08 / $0.12 / $0.20 (4K)',
+      `Up to ${CAP.team.toLocaleString()} listeners per room`,
       'Dedicated SFU servers',
+      'All streaming platforms',
       '4K screen sharing',
       'Admin controls',
+      'Priority support',
     ],
     cta: 'Upgrade to Team',
     ctaHref: '/signup',
@@ -529,24 +531,11 @@ export default function PricingPage() {
 
             <div className="mt-10 space-y-6">
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  What&apos;s included in viewer-hours?
-                </h3>
+                <h3 className="font-semibold text-gray-900">How many people can watch my room?</h3>
                 <p className="mt-2 text-gray-600">
-                  Viewer-hours measure the total time viewers spend watching your streams via our
-                  SFU relay servers. Pro includes 100 hours/month, Team includes 500 hours/month.
-                  Most users never exceed their allotment.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  What happens if I exceed my viewer-hours?
-                </h3>
-                <p className="mt-2 text-gray-600">
-                  We&apos;ll notify you when you&apos;re approaching your limit. Additional hours
-                  are billed at $0.08/hr (720p), $0.12/hr (1080p), or $0.20/hr (4K). We&apos;ll
-                  never cut off your stream mid-session.
+                  Concurrent listeners per room scale with your plan: Free {CAP.free}, Plus{' '}
+                  {CAP.plus}, Pro {CAP.pro}, Team {CAP.team.toLocaleString()}. On top of that, public
+                  lives can be watched for free by unlimited guests with no account.
                 </p>
               </div>
 

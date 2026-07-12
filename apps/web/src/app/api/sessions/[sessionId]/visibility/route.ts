@@ -50,9 +50,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       });
       const live = (Array.isArray(flip) ? flip[0] : null) as GoLiveFlip | null;
       if (live?.creator_id) {
-        void import('@/lib/notify-live').then(({ notifyFollowersLive }) =>
-          notifyFollowersLive(live.creator_id, live.subject ?? null, live.join_code)
-        );
+        void import('@/lib/notify-live').then(({ notifyGoLive }) => notifyGoLive(live));
       }
     }
 

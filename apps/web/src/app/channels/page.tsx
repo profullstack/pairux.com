@@ -83,7 +83,7 @@ export default async function ChannelsPage() {
                 {channels.map((c) => (
                   <Link
                     key={c.handle}
-                    href={`/c/${c.handle}`}
+                    href={`/@${c.handle}`}
                     className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-md"
                   >
                     {c.banner_url ? (

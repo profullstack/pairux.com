@@ -27,7 +27,7 @@ export function SubscribeButton({ handle, initialSubscribed, initialCount }: Sub
         method: subscribed ? 'DELETE' : 'POST',
       });
       if (res.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(`/c/${handle}`)}`);
+        router.push(`/login?next=${encodeURIComponent(`/@${handle}`)}`);
         return;
       }
       const body = (await res.json()) as SubResponse;

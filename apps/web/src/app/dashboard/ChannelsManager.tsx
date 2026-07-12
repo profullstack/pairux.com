@@ -1,12 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, Plus, Copy, Check, KeyRound, ExternalLink } from 'lucide-react';
+import { Loader2, Plus, Copy, Check, KeyRound, ExternalLink, ImagePlus } from 'lucide-react';
 import type { MyChannel } from '@pairux/shared-types';
 
 // Where OBS / any RTMP client points. The stream key selects the channel.
 const RTMP_INGEST_URL = 'rtmp://rtmp.pairux.com/live';
+
+// Cover-crop an image to WxH (center) and return a JPEG blob.
+function cropImage(file: File, tw: number, th: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = tw;
+      canvas.height = th;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('no canvas'));
+        return;
+      }
+      const scale = Math.max(tw / img.width, th / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (tw - w) / 2, (th - h) / 2, w, h);
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('encode failed'))),
+        'image/jpeg',
+        0.85
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('bad image'));
+    };
+    img.src = url;
+  });
+}
 
 export function ChannelsManager() {
   const [channels, setChannels] = useState<MyChannel[] | null>(null);
@@ -18,6 +51,46 @@ export function ChannelsManager() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [uploading, setUploading] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pendingRef = useRef<{ id: string; kind: 'banner' | 'avatar' } | null>(null);
+
+  const pickImage = (id: string, kind: 'banner' | 'avatar') => {
+    pendingRef.current = { id, kind };
+    fileRef.current?.click();
+  };
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const target = pendingRef.current;
+    pendingRef.current = null;
+    if (!file || !target) return;
+    setUploading(`${target.id}-${target.kind}`);
+    setError(null);
+    try {
+      const blob =
+        target.kind === 'avatar'
+          ? await cropImage(file, 400, 400)
+          : await cropImage(file, 1500, 250);
+      const fd = new FormData();
+      fd.append('image', blob, `${target.kind}.jpg`);
+      const res = await fetch(`/api/channels/${target.id}/image?kind=${target.kind}`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (!res.ok) {
+        const b = (await res.json()) as { error?: string };
+        setError(b.error ?? 'Could not upload the image.');
+        return;
+      }
+      await load();
+    } catch {
+      setError('Could not process that image.');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const load = async () => {
     try {
@@ -105,6 +178,13 @@ export function ChannelsManager() {
 
   return (
     <div className="space-y-8">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => void onFile(e)}
+      />
       <div className="space-y-4">
         {channels.length === 0 && (
           <p className="text-sm text-gray-500">
@@ -115,77 +195,131 @@ export function ChannelsManager() {
         {channels.map((ch) => {
           const show = revealed.has(ch.id);
           return (
-            <div key={ch.id} className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900">{ch.name}</h3>
-                  <p className="text-primary-600 text-sm">@{ch.handle}</p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {ch.subscriber_count} {ch.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
-                  </p>
-                </div>
-                <Link
-                  href={`/c/${ch.handle}`}
-                  className="text-primary-600 inline-flex items-center gap-1 text-sm hover:underline"
-                >
-                  View <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+            <div
+              key={ch.id}
+              className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
+            >
+              {/* Banner */}
+              <button
+                type="button"
+                onClick={() => pickImage(ch.id, 'banner')}
+                disabled={uploading === `${ch.id}-banner`}
+                className="group relative block aspect-[6/1] w-full overflow-hidden bg-gray-100"
+                title="Upload channel banner (6:1)"
+              >
+                {ch.banner_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={ch.banner_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="gradient-bg h-full w-full" />
+                )}
+                <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-xs font-medium text-white opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+                  {uploading === `${ch.id}-banner` ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <ImagePlus className="mr-1 h-4 w-4" /> Change banner
+                    </>
+                  )}
+                </span>
+              </button>
 
-              <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-                  <KeyRound className="h-3.5 w-3.5" /> Stream to this channel (OBS / any RTMP
-                  client)
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => pickImage(ch.id, 'avatar')}
+                      disabled={uploading === `${ch.id}-avatar`}
+                      className="relative -mt-10 h-14 w-14 overflow-hidden rounded-full border-2 border-white bg-gray-200"
+                      title="Upload avatar (square)"
+                    >
+                      {ch.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={ch.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-gray-400">
+                          <ImagePlus className="h-5 w-5" />
+                        </span>
+                      )}
+                      {uploading === `${ch.id}-avatar` && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Loader2 className="h-4 w-4 animate-spin text-white" />
+                        </span>
+                      )}
+                    </button>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">{ch.name}</h3>
+                      <p className="text-primary-600 text-sm">@{ch.handle}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        {ch.subscriber_count}{' '}
+                        {ch.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href={`/@${ch.handle}`}
+                    className="text-primary-600 inline-flex items-center gap-1 text-sm hover:underline"
+                  >
+                    View <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </div>
-                <label className="text-xs text-gray-500">RTMP URL</label>
-                <div className="mb-2 flex gap-2">
-                  <input
-                    readOnly
-                    value={RTMP_INGEST_URL}
-                    className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 font-mono text-xs"
-                  />
-                  <button
-                    onClick={() => void copy(`url-${ch.id}`, RTMP_INGEST_URL)}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
-                  >
-                    {copied === `url-${ch.id}` ? (
-                      <Check className="h-3.5 w-3.5 text-green-600" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                </div>
-                <label className="text-xs text-gray-500">Stream key</label>
-                <div className="flex gap-2">
-                  <input
-                    readOnly
-                    type={show ? 'text' : 'password'}
-                    value={ch.stream_key}
-                    className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 font-mono text-xs"
-                  />
-                  <button
-                    onClick={() =>
-                      setRevealed((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(ch.id)) next.delete(ch.id);
-                        else next.add(ch.id);
-                        return next;
-                      })
-                    }
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
-                  >
-                    {show ? 'Hide' : 'Show'}
-                  </button>
-                  <button
-                    onClick={() => void copy(`key-${ch.id}`, ch.stream_key)}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
-                  >
-                    {copied === `key-${ch.id}` ? (
-                      <Check className="h-3.5 w-3.5 text-green-600" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                  </button>
+
+                <div className="mt-4 rounded-lg bg-gray-50 p-3">
+                  <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                    <KeyRound className="h-3.5 w-3.5" /> Stream to this channel (OBS / any RTMP
+                    client)
+                  </div>
+                  <label className="text-xs text-gray-500">RTMP URL</label>
+                  <div className="mb-2 flex gap-2">
+                    <input
+                      readOnly
+                      value={RTMP_INGEST_URL}
+                      className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 font-mono text-xs"
+                    />
+                    <button
+                      onClick={() => void copy(`url-${ch.id}`, RTMP_INGEST_URL)}
+                      className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
+                    >
+                      {copied === `url-${ch.id}` ? (
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                  <label className="text-xs text-gray-500">Stream key</label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      type={show ? 'text' : 'password'}
+                      value={ch.stream_key}
+                      className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 font-mono text-xs"
+                    />
+                    <button
+                      onClick={() =>
+                        setRevealed((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(ch.id)) next.delete(ch.id);
+                          else next.add(ch.id);
+                          return next;
+                        })
+                      }
+                      className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
+                    >
+                      {show ? 'Hide' : 'Show'}
+                    </button>
+                    <button
+                      onClick={() => void copy(`key-${ch.id}`, ch.stream_key)}
+                      className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
+                    >
+                      {copied === `key-${ch.id}` ? (
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

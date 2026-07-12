@@ -5,6 +5,14 @@ import { CORS_HEADERS } from '@/lib/cors';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Vanity channel URL: pairux.com/@handle serves the channel page (/c/handle).
+  const vanity = /^\/@([A-Za-z0-9_]{3,30})$/.exec(pathname);
+  if (vanity) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/c/${vanity[1]}`;
+    return NextResponse.rewrite(url);
+  }
+
   // Handle CORS preflight for API routes (desktop app uses file:// origin)
   if (pathname.startsWith('/api/') && request.method === 'OPTIONS') {
     return new NextResponse(null, {

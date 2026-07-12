@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${ch.name} (@${ch.handle})`,
     description: ch.description ?? `${ch.name}'s channel on PairUX.`,
-    alternates: { canonical: `https://pairux.com/c/${ch.handle}` },
+    alternates: { canonical: `https://pairux.com/@${ch.handle}` },
   };
 }
 

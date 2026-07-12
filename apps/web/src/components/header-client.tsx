@@ -18,6 +18,7 @@ function GitHubIcon({ className }: { className?: string }) {
 
 const navigation = [
   { name: 'Live', href: '/live' },
+  { name: 'Channels', href: '/channels' },
   { name: 'Features', href: '/features' },
   { name: 'Download', href: '/download' },
   { name: 'Docs', href: '/docs' },

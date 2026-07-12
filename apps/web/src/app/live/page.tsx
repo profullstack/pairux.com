@@ -71,8 +71,12 @@ export default async function LivePage() {
                 Live Rooms
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Public screen-sharing rooms hosts have chosen to share with everyone. Jump into one,
-                no invite needed.
+                Public screen-sharing rooms hosts are running right now. Jump into one, no invite
+                needed — or browse{' '}
+                <Link href="/channels" className="text-primary-600 font-medium hover:underline">
+                  all channels
+                </Link>{' '}
+                (past &amp; present).
               </p>
             </div>
           </div>

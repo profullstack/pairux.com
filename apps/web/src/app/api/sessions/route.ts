@@ -18,10 +18,12 @@ export async function POST(request: Request) {
       return errorResponse('Authentication required', 401);
     }
 
-    // Clamp room capacity to the owner's plan. Free hosts 5 listeners; Plus 100;
-    // Pro/Team more. Baking the cap into settings.maxParticipants means the
+    // Size the room to the owner's plan cap (Free 20 listeners; Plus 100;
+    // Pro/Team more). Baking the cap into settings.maxParticipants means the
     // join_session RPC enforces it on every join. A lapsed paid plan falls back
-    // to free via effectivePlan().
+    // to free via effectivePlan(). We use the full plan cap rather than the
+    // client-requested value (clients hardcode a low default), so every room
+    // holds up to the owner's plan capacity.
     const { data: profile } = (await supabase
       .from('profiles')
       .select('plan, plan_expires_at')
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
       .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
     const plan = effectivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
     const cap = maxListeners(plan);
-    const maxParticipants = Math.min(settings.maxParticipants, cap);
+    const maxParticipants = cap;
 
     // Create session using RPC function
 

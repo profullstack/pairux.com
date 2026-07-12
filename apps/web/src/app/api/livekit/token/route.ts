@@ -103,12 +103,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // Enforce the room owner's listener cap once the joiner is authorized. Free
-    // rooms hold 5, Plus 100, etc. The host always gets in; additional joiners
-    // (incl. guests) are rejected once the room is at capacity. join_session
-    // already gates the participant path — this is the SFU-side belt-and-
-    // suspenders. A lapsed paid plan falls back to the free cap.
-    if (!isSessionOwner) {
+    // Enforce the owner's plan cap on AUTHENTICATED joiners only. Watch-only
+    // GUESTS are unlimited (they only subscribe), so they neither hit the cap
+    // nor count toward it — the occupancy count excludes guests (user_id NULL).
+    // The host always gets in. A lapsed paid plan falls back to the free cap.
+    if (!isSessionOwner && !isGuest) {
       const { data: ownerProfile } = (await svc
         .from('profiles')
         .select('plan, plan_expires_at')
@@ -124,7 +123,8 @@ export async function POST(request: Request) {
         .from('session_participants')
         .select('id', { count: 'exact', head: true })
         .eq('session_id', sessionId)
-        .is('left_at', null);
+        .is('left_at', null)
+        .not('user_id', 'is', null);
 
       const occupancy = count ?? 0;
       if (occupancy >= cap) {

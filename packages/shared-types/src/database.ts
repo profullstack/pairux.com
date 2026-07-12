@@ -27,7 +27,7 @@ export interface SessionSettings {
   maxParticipants?: number;
 }
 
-// Billing plan. Free = P2P + 5 listeners, YouTube-only streaming.
+// Billing plan. Free = P2P + 20 listeners, YouTube-only streaming.
 // plus = $1/mo audience tier (up to 100 listeners). pro/team unlock all
 // streaming platforms and larger rooms.
 export type Plan = 'free' | 'plus' | 'pro' | 'team';
@@ -40,7 +40,7 @@ export type Plan = 'free' | 'plus' | 'pro' | 'team';
  * plan falls back to the free cap.
  */
 export const LISTENER_CAP: Record<Plan, number> = {
-  free: 5,
+  free: 20,
   plus: 100,
   pro: 500,
   team: 2000,

@@ -39,7 +39,7 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: false,
-        maxParticipants: 5,
+        maxParticipants: 20,
       },
       p_mode: 'p2p',
     });
@@ -68,7 +68,7 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: true,
-        maxParticipants: 3,
+        maxParticipants: 20,
       },
       p_mode: 'p2p',
     });
@@ -96,7 +96,7 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: false,
-        maxParticipants: 5,
+        maxParticipants: 20,
       },
       p_mode: 'sfu',
     });

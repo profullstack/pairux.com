@@ -114,6 +114,7 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
     };
     const profileQuery = {
@@ -157,6 +158,7 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: { id: validBody.participantId },
         error: null,
@@ -221,9 +223,10 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
       // The head:true count query is awaited directly (no .single()).
-      then: (resolve: (v: unknown) => void) => resolve({ count: 5, data: null, error: null }),
+      then: (resolve: (v: unknown) => void) => resolve({ count: 20, data: null, error: null }),
     };
     const profileQuery = {
       select: vi.fn().mockReturnThis(),
@@ -289,6 +292,7 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     };
     const mockFrom = vi.fn((table: string) => {

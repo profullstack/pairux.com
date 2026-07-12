@@ -1,9 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Check, Clock, Monitor, Users, CreditCard, BarChart3, Settings, Bell } from 'lucide-react';
+import {
+  Check,
+  Clock,
+  Monitor,
+  Users,
+  CreditCard,
+  BarChart3,
+  Settings,
+  Bell,
+  Radio,
+} from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { DashboardClient } from './components/DashboardClient';
+import { ChannelsManager } from './ChannelsManager';
 
 export const metadata: Metadata = {
   title: 'Dashboard - PairUX',
@@ -78,6 +89,15 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Channels — create/manage channels + get RTMP stream keys */}
+          <div className="mb-8">
+            <div className="mb-4 flex items-center gap-2">
+              <Radio className="h-5 w-5 text-red-500" />
+              <h2 className="text-xl font-bold text-gray-900">Channels</h2>
+            </div>
+            <ChannelsManager />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">

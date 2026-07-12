@@ -195,6 +195,47 @@ export interface SessionComment {
   is_mine: boolean;
 }
 
+// Public channel (from get_channel RPC) — the /c/<handle> page.
+export interface Channel {
+  id: string;
+  handle: string;
+  name: string;
+  description: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  subscriber_count: number;
+  is_subscribed: boolean;
+  is_owner: boolean;
+  is_live: boolean;
+}
+
+// A channel the caller owns (from list_my_channels RPC) — includes stream_key.
+export interface MyChannel {
+  id: string;
+  handle: string;
+  name: string;
+  description: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  stream_key: string;
+  subscriber_count: number;
+  created_at: string;
+}
+
+// A stream on a channel (from list_channel_streams RPC).
+export interface ChannelStream {
+  id: string;
+  join_code: string;
+  subject: string | null;
+  description: string | null;
+  banner_url: string | null;
+  status: SessionStatus;
+  is_live: boolean;
+  viewer_count: number;
+  published_at: string | null;
+  created_at: string;
+}
+
 // A creator card (from list_creators RPC) — for the /live browse section.
 export interface Creator {
   username: string;

@@ -108,11 +108,15 @@ export function PublishToLive({ session }: PublishToLiveProps) {
     session.banner_url ? null : (cache.banner ?? null)
   );
 
-  // The host's public handle → their creator page at /u/<username>. undefined
-  // while loading; null if they haven't claimed one yet.
-  const [username, setUsername] = useState<string | null | undefined>(undefined);
-  const [handleInput, setHandleInput] = useState('');
-  const [savingHandle, setSavingHandle] = useState(false);
+  // The host's channels — a public live must go out on one of them. undefined
+  // while loading.
+  interface Chan {
+    id: string;
+    handle: string;
+    name: string;
+  }
+  const [channels, setChannels] = useState<Chan[] | undefined>(undefined);
+  const [channelId, setChannelId] = useState<string>('');
 
   useEffect(() => {
     if (!open) return;
@@ -121,19 +125,19 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       try {
         const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
         if (!token || controller.signal.aborted) return;
-        const res = await fetch(`${API_BASE_URL}/api/profile/username`, {
+        const res = await fetch(`${API_BASE_URL}/api/channels`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: controller.signal,
         });
-        const body = (await res.json().catch(() => ({}))) as {
-          data?: { username?: string | null };
-        };
+        const body = (await res.json().catch(() => ({}))) as { data?: { channels?: Chan[] } };
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- signal is aborted async in cleanup
         if (!controller.signal.aborted) {
-          setUsername(res.ok ? (body.data?.username ?? null) : null);
+          const list = res.ok ? (body.data?.channels ?? []) : [];
+          setChannels(list);
+          setChannelId((prev) => prev || list[0]?.id || '');
         }
       } catch {
-        if (!controller.signal.aborted) setUsername(null);
+        if (!controller.signal.aborted) setChannels([]);
       }
     };
     void load();
@@ -141,38 +145,6 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       controller.abort();
     };
   }, [open]);
-
-  const claimHandle = async () => {
-    const h = handleInput.trim();
-    if (!/^[A-Za-z0-9_]{3,30}$/.test(h)) {
-      setError('Handle must be 3–30 letters, numbers, or underscores.');
-      return;
-    }
-    setSavingHandle(true);
-    setError(null);
-    try {
-      const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
-      if (!token) {
-        setError('Sign in on this device to claim a handle.');
-        return;
-      }
-      const res = await fetch(`${API_BASE_URL}/api/profile/username`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ username: h }),
-      });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setError(body.error ?? 'Could not claim that handle.');
-        return;
-      }
-      setUsername(h);
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setSavingHandle(false);
-    }
-  };
 
   const openLiveDirectory = () => {
     void getElectronAPI().invoke('auth:openExternal', '/live');
@@ -199,6 +171,10 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       setError('Add a title of at least 3 characters to go live.');
       return;
     }
+    if (nextPublic && !channelId) {
+      setError('Pick a channel to go live on (create one in your dashboard).');
+      return;
+    }
     setBusy(true);
     try {
       const api = getElectronAPI();
@@ -206,6 +182,20 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       if (!token) {
         setError('Sign in on this device to publish your room.');
         return;
+      }
+
+      // Assign this live to the chosen channel before publishing.
+      if (nextPublic && channelId) {
+        const chRes = await fetch(`${API_BASE_URL}/api/sessions/${session.id}/channel`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ channelId }),
+        });
+        if (!chRes.ok) {
+          const c = (await chRes.json().catch(() => ({}))) as { error?: string };
+          setError(c.error ?? 'Could not set the channel.');
+          return;
+        }
       }
 
       // Upload the cover (only when staying/going public). Use a freshly-picked
@@ -303,46 +293,35 @@ export function PublishToLive({ session }: PublishToLiveProps) {
             Lists your room publicly on pairux.com/live so anyone can discover and join it.
           </p>
 
-          {/* Creator handle → the host's dedicated page at /u/<username> */}
-          <div className="mb-3 rounded-md border border-input bg-muted/40 p-2">
-            {username === undefined ? (
-              <span className="text-xs text-muted-foreground">Loading your creator page…</span>
-            ) : username ? (
-              <button
-                type="button"
-                onClick={() => void getElectronAPI().invoke('auth:openExternal', `/u/${username}`)}
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <AtSign className="h-3 w-3" />
-                Your page: pairux.com/u/{username} <ExternalLink className="h-3 w-3" />
-              </button>
-            ) : (
-              <div>
-                <label className="mb-1 block text-xs font-medium">
-                  Claim your handle — gives you a page at /u/&lt;handle&gt; with your live history
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    value={handleInput}
-                    onChange={(e) => {
-                      setHandleInput(e.target.value);
-                    }}
-                    maxLength={30}
-                    placeholder="yourhandle"
-                    disabled={savingHandle}
-                  />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={savingHandle}
-                    onClick={() => void claimHandle()}
-                  >
-                    {savingHandle ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Claim'}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Which channel this public live goes out on */}
+          <label className="mb-1 block text-xs font-medium">Channel</label>
+          {channels === undefined ? (
+            <span className="text-xs text-muted-foreground">Loading your channels…</span>
+          ) : channels.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => void getElectronAPI().invoke('auth:openExternal', '/dashboard')}
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <AtSign className="h-3 w-3" />
+              Create a channel in your dashboard first <ExternalLink className="h-3 w-3" />
+            </button>
+          ) : (
+            <select
+              value={channelId}
+              onChange={(e) => {
+                setChannelId(e.target.value);
+              }}
+              disabled={busy}
+              className="mb-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+            >
+              {channels.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} (@{c.handle})
+                </option>
+              ))}
+            </select>
+          )}
 
           <label className="mb-1 block text-xs font-medium">Title (required)</label>
           <Input

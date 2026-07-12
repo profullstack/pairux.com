@@ -1,5 +1,6 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import type { GoLiveFlip } from '@/lib/notify-live';
 
 interface RouteParams {
   params: Promise<{ sessionId: string }>;
@@ -30,6 +31,19 @@ export async function POST(_request: Request, { params }: RouteParams) {
     if (error) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
+    }
+
+    // If this heartbeat is the moment the (public) room went live, notify the
+    // host's followers — exactly once (mark_room_went_live dedupes atomically).
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    const { data: flip } = await (supabase.rpc as any)('mark_room_went_live', {
+      p_session_id: sessionId,
+    });
+    const live = (Array.isArray(flip) ? flip[0] : null) as GoLiveFlip | null;
+    if (live?.creator_id) {
+      void import('@/lib/notify-live').then(({ notifyFollowersLive }) =>
+        notifyFollowersLive(live.creator_id, live.subject ?? null, live.join_code)
+      );
     }
 
     return successResponse({ ok: true });

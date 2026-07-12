@@ -8,6 +8,7 @@ const DEFAULT_PREFERENCES = {
   participantJoined: true,
   participantLeft: true,
   hostDisconnected: true,
+  creatorLive: true,
 };
 
 export type PushEventType = keyof Omit<typeof DEFAULT_PREFERENCES, 'pushEnabled'>;

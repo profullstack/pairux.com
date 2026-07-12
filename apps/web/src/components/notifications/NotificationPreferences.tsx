@@ -11,6 +11,7 @@ interface NotificationPrefs {
   participantJoined: boolean;
   participantLeft: boolean;
   hostDisconnected: boolean;
+  creatorLive: boolean;
 }
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -20,6 +21,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   participantJoined: true,
   participantLeft: true,
   hostDisconnected: true,
+  creatorLive: true,
 };
 
 const PREF_LABELS: Record<keyof Omit<NotificationPrefs, 'pushEnabled'>, string> = {
@@ -28,6 +30,7 @@ const PREF_LABELS: Record<keyof Omit<NotificationPrefs, 'pushEnabled'>, string> 
   participantJoined: 'Participant joined',
   participantLeft: 'Participant left',
   hostDisconnected: 'Host disconnected',
+  creatorLive: 'A creator you follow goes live',
 };
 
 function Toggle({

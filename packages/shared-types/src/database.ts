@@ -144,6 +144,26 @@ export interface PublicRoom {
   host_avatar_url: string | null;
 }
 
+// A creator's live (from list_creator_lives RPC) — their full public history.
+export interface CreatorLive {
+  id: string;
+  join_code: string;
+  subject: string | null;
+  description: string | null;
+  banner_url: string | null;
+  status: SessionStatus;
+  is_live: boolean;
+  viewer_count: number;
+  published_at: string | null;
+  created_at: string;
+}
+
+// Follow state for a creator (from get_follow_state RPC).
+export interface FollowState {
+  follower_count: number;
+  is_following: boolean;
+}
+
 export interface SessionInsert {
   host_user_id: string;
   status?: SessionStatus;

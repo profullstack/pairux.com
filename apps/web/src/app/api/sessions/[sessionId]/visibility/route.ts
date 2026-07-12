@@ -1,6 +1,7 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { roomVisibilitySchema } from '@/lib/validations';
+import type { GoLiveFlip } from '@/lib/notify-live';
 
 interface RouteParams {
   params: Promise<{ sessionId: string }>;
@@ -38,6 +39,21 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       console.error('Set room visibility error:', error);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
+    }
+
+    // Publishing a room that's live right now → notify followers immediately
+    // (deduped by mark_room_went_live so the heartbeat path won't double-fire).
+    if (isPublic) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+      const { data: flip } = await (supabase.rpc as any)('mark_room_went_live', {
+        p_session_id: sessionId,
+      });
+      const live = (Array.isArray(flip) ? flip[0] : null) as GoLiveFlip | null;
+      if (live?.creator_id) {
+        void import('@/lib/notify-live').then(({ notifyFollowersLive }) =>
+          notifyFollowersLive(live.creator_id, live.subject ?? null, live.join_code)
+        );
+      }
     }
 
     return successResponse(data);

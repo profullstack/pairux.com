@@ -237,6 +237,20 @@ export interface MyChannel {
   banner_url: string | null;
   stream_key: string;
   subscriber_count: number;
+  /** Master switch: auto-restream this channel's lives to external RTMP. */
+  restream_enabled: boolean;
+  created_at: string;
+}
+
+// An external RTMP restream destination on a channel (from
+// list_channel_restream_destinations). The secret stream_key is never returned.
+export interface ChannelRestreamDestination {
+  id: string;
+  platform: string; // 'youtube' | 'twitch' | 'facebook' | 'custom'
+  label: string | null;
+  rtmp_url: string;
+  enabled: boolean;
+  has_key: boolean;
   created_at: string;
 }
 

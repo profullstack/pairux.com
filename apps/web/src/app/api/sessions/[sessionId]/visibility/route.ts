@@ -52,6 +52,26 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       if (live?.creator_id) {
         void import('@/lib/notify-live').then(({ notifyGoLive }) => notifyGoLive(live));
       }
+
+      // Auto-restream to external RTMP if this live's channel has it enabled.
+      // Resolve the channel from the flip, else query (flip is null if the
+      // went-live moment already fired via the heartbeat path).
+      let channelId = live?.channel_id ?? null;
+      if (!channelId) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const { data: s } = (await supabase
+          .from('sessions')
+          .select('channel_id')
+          .eq('id', sessionId)
+          .single()) as { data: { channel_id: string | null } | null };
+        channelId = s?.channel_id ?? null;
+      }
+      if (channelId) {
+        const cid = channelId;
+        void import('@/lib/channel-restream').then(({ startChannelRestream }) =>
+          startChannelRestream(sessionId, cid)
+        );
+      }
     }
 
     return successResponse(data);

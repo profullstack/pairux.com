@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { MyChannel } from '@pairux/shared-types';
+import { RestreamManager } from './RestreamManager';
 
 // Where OBS / any RTMP client points. The stream key selects the channel.
 const RTMP_INGEST_URL = 'rtmp://rtmp.pairux.com/live';
@@ -429,6 +430,10 @@ export function ChannelsManager() {
                       )}
                     </button>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <RestreamManager channelId={ch.id} initialEnabled={ch.restream_enabled} />
                 </div>
               </div>
             </div>

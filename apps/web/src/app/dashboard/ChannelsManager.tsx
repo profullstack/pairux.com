@@ -28,7 +28,10 @@ function cropImage(file: File, tw: number, th: number): Promise<Blob> {
       const h = img.height * scale;
       ctx.drawImage(img, (tw - w) / 2, (th - h) / 2, w, h);
       canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error('encode failed'))),
+        (b) => {
+          if (b) resolve(b);
+          else reject(new Error('encode failed'));
+        },
         'image/jpeg',
         0.85
       );
@@ -148,7 +151,9 @@ export function ChannelsManager() {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(id);
-      setTimeout(() => setCopied((c) => (c === id ? null : c)), 1800);
+      setTimeout(() => {
+        setCopied((c) => (c === id ? null : c));
+      }, 1800);
     } catch {
       // ignore
     }
@@ -202,7 +207,9 @@ export function ChannelsManager() {
               {/* Banner */}
               <button
                 type="button"
-                onClick={() => pickImage(ch.id, 'banner')}
+                onClick={() => {
+                  pickImage(ch.id, 'banner');
+                }}
                 disabled={uploading === `${ch.id}-banner`}
                 className="group relative block aspect-[6/1] w-full overflow-hidden bg-gray-100"
                 title="Upload channel banner (6:1)"
@@ -229,7 +236,9 @@ export function ChannelsManager() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => pickImage(ch.id, 'avatar')}
+                      onClick={() => {
+                        pickImage(ch.id, 'avatar');
+                      }}
                       disabled={uploading === `${ch.id}-avatar`}
                       className="relative -mt-10 h-14 w-14 overflow-hidden rounded-full border-2 border-white bg-gray-200"
                       title="Upload avatar (square)"
@@ -297,14 +306,14 @@ export function ChannelsManager() {
                       className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 font-mono text-xs"
                     />
                     <button
-                      onClick={() =>
+                      onClick={() => {
                         setRevealed((prev) => {
                           const next = new Set(prev);
                           if (next.has(ch.id)) next.delete(ch.id);
                           else next.add(ch.id);
                           return next;
-                        })
-                      }
+                        });
+                      }}
                       className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
                     >
                       {show ? 'Hide' : 'Show'}
@@ -336,7 +345,9 @@ export function ChannelsManager() {
             <label className="mb-1 block text-xs font-medium text-gray-700">Handle</label>
             <input
               value={handle}
-              onChange={(e) => setHandle(e.target.value)}
+              onChange={(e) => {
+                setHandle(e.target.value);
+              }}
               maxLength={30}
               placeholder="mychannel"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -346,7 +357,9 @@ export function ChannelsManager() {
             <label className="mb-1 block text-xs font-medium text-gray-700">Name</label>
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
               maxLength={80}
               placeholder="My Channel"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -358,7 +371,9 @@ export function ChannelsManager() {
         </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
           maxLength={500}
           rows={2}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"

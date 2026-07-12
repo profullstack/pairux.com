@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   const vanity = /^\/@([A-Za-z0-9_]{3,30})$/.exec(pathname);
   if (vanity) {
     const url = request.nextUrl.clone();
-    url.pathname = `/c/${vanity[1]}`;
+    url.pathname = `/c/${vanity[1] ?? ''}`;
     return NextResponse.rewrite(url);
   }
 

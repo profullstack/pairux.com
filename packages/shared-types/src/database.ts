@@ -164,6 +164,37 @@ export interface FollowState {
   is_following: boolean;
 }
 
+// Public detail for one live (from get_public_session RPC) — the /l/<code> page.
+export interface PublicSessionDetail {
+  id: string;
+  join_code: string;
+  subject: string | null;
+  description: string | null;
+  banner_url: string | null;
+  status: SessionStatus;
+  is_live: boolean;
+  viewer_count: number;
+  published_at: string | null;
+  created_at: string;
+  host_username: string | null;
+  host_display_name: string | null;
+  host_avatar_url: string | null;
+  like_count: number;
+  comment_count: number;
+  liked: boolean;
+}
+
+// A comment on a live (from list_comments RPC).
+export interface SessionComment {
+  id: string;
+  body: string;
+  created_at: string;
+  author_username: string | null;
+  author_display_name: string | null;
+  author_avatar_url: string | null;
+  is_mine: boolean;
+}
+
 // A creator card (from list_creators RPC) — for the /live browse section.
 export interface Creator {
   username: string;

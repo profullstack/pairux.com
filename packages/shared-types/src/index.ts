@@ -25,6 +25,8 @@ export type {
   CreatorLive,
   FollowState,
   Creator,
+  PublicSessionDetail,
+  SessionComment,
   SessionParticipant,
   SessionParticipantInsert,
   SessionParticipantUpdate,

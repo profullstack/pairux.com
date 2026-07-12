@@ -132,9 +132,12 @@ export default async function LivePage() {
                       </span>
                     </div>
 
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <Link
+                      href={`/l/${room.join_code}`}
+                      className="text-base font-semibold text-gray-900 hover:underline"
+                    >
                       {room.subject ?? 'Untitled room'}
-                    </h3>
+                    </Link>
                     {room.description && (
                       <div
                         className="[&_a]:text-primary-600 mt-1.5 line-clamp-3 text-sm text-gray-500"

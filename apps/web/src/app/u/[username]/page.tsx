@@ -182,9 +182,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <Link
+                      href={`/l/${live.join_code}`}
+                      className="text-base font-semibold text-gray-900 hover:underline"
+                    >
                       {live.subject ?? 'Untitled room'}
-                    </h3>
+                    </Link>
                     {live.description && (
                       <div
                         className="[&_a]:text-primary-600 mt-1.5 line-clamp-3 text-sm text-gray-500"

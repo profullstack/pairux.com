@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
 import { WebhookReceiver, EgressStatus } from 'livekit-server-sdk';
 import { serviceClient } from '@/lib/supabase/service';
+import { getEgressClient } from '@/lib/livekit-egress';
 
 /**
  * LiveKit webhook receiver — finalizes recordings.
@@ -64,11 +65,51 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // A viewer dropped → mark them left so viewer_count stays accurate.
+    // A participant dropped. Two cases:
+    //  • the HOST (identity = their user id) → END the live. Even on a hard kill
+    //    LiveKit fires this once its reconnect grace elapses, so clear the host,
+    //    mark everyone left, and stop ALL egress for the room (recording +
+    //    restream, incl. orphans) — otherwise egress keeps the room alive and
+    //    nothing cleans up. This is the fix for killing the app without leaving.
+    //  • a VIEWER (identity = session_participants.id) → just mark them left.
     if (event?.event === 'participant_left' && event?.participant?.identity) {
       const identity = String(event.participant.identity);
-      if (UUID_RE.test(identity)) {
-        const svc = serviceClient() as any;
+      const roomName = typeof event?.room?.name === 'string' ? event.room.name : '';
+      const sm = /^session-(.+)$/.exec(roomName);
+      const sessionId = sm?.[1] && UUID_RE.test(sm[1]) ? sm[1] : null;
+      const svc = serviceClient() as any;
+
+      let handledAsHost = false;
+      if (sessionId) {
+        const { data: sess } = await svc
+          .from('sessions')
+          .select('current_host_id')
+          .eq('id', sessionId)
+          .single();
+        if (sess?.current_host_id && identity === sess.current_host_id) {
+          handledAsHost = true;
+          await svc
+            .from('sessions')
+            .update({ current_host_id: null, restream_egress_id: null })
+            .eq('id', sessionId);
+          await svc
+            .from('session_participants')
+            .update({ left_at: new Date().toISOString(), connection_status: 'disconnected' })
+            .eq('session_id', sessionId)
+            .is('left_at', null);
+          const egress = getEgressClient();
+          if (egress) {
+            try {
+              const active = await egress.listEgress({ roomName, active: true });
+              await Promise.allSettled(active.map((e: any) => egress.stopEgress(e.egressId)));
+            } catch {
+              /* best-effort */
+            }
+          }
+        }
+      }
+
+      if (!handledAsHost && UUID_RE.test(identity)) {
         await svc
           .from('session_participants')
           .update({ left_at: new Date().toISOString(), connection_status: 'disconnected' })

@@ -35,8 +35,21 @@ function saveLiveCache(cache: LiveSettingsCache): void {
     /* ignore (e.g. quota) — caching is a convenience */
   }
 }
-async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-  return (await fetch(dataUrl)).blob();
+// Decode a data: URL to a Blob WITHOUT fetch(). The renderer's CSP connect-src
+// does not allow the `data:` scheme, so `fetch(dataUrl)` is blocked — which
+// silently broke both banner upload (go live) and AI banner generation.
+function dataUrlToBlob(dataUrl: string): Blob {
+  const comma = dataUrl.indexOf(',');
+  const header = dataUrl.slice(0, comma);
+  const data = dataUrl.slice(comma + 1);
+  const mime = /:(.*?)[;,]/.exec(header)?.[1] ?? 'application/octet-stream';
+  if (header.includes(';base64')) {
+    const bin = atob(data);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+  return new Blob([decodeURIComponent(data)], { type: mime });
 }
 
 // Cover-crop the chosen image to a 16:9 frame (center) and re-encode as JPEG, so
@@ -199,7 +212,7 @@ export function PublishToLive({ session }: PublishToLiveProps) {
         setError(body.error ?? 'Could not generate a banner. Try again.');
         return;
       }
-      const cropped = await cropTo16x9(await dataUrlToBlob(image));
+      const cropped = await cropTo16x9(dataUrlToBlob(image));
       bannerBlobRef.current = cropped.blob;
       bannerDataUrlRef.current = cropped.dataUrl;
       setBannerPreview(cropped.dataUrl);
@@ -252,7 +265,7 @@ export function PublishToLive({ session }: PublishToLiveProps) {
         !session.banner_url &&
         bannerDataUrlRef.current?.startsWith('data:')
       ) {
-        bannerToUpload = await dataUrlToBlob(bannerDataUrlRef.current);
+        bannerToUpload = dataUrlToBlob(bannerDataUrlRef.current);
       }
       if (nextPublic && bannerToUpload) {
         const fd = new FormData();

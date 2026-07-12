@@ -12,6 +12,10 @@ vi.mock('@/lib/supabase/server', () => ({
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
 }));
 
+vi.mock('@/lib/supabase/service', () => ({
+  serviceClient: vi.fn(),
+}));
+
 vi.mock('livekit-server-sdk', () => ({
   AccessToken: vi.fn().mockImplementation((...args: unknown[]) => {
     mockAccessTokenCtor(...args);
@@ -23,6 +27,7 @@ vi.mock('livekit-server-sdk', () => ({
 }));
 
 import { createClient } from '@/lib/supabase/server';
+import { serviceClient } from '@/lib/supabase/service';
 
 const validBody = {
   sessionId: '00000000-0000-0000-0000-000000000001',
@@ -31,12 +36,31 @@ const validBody = {
   isHost: true,
 };
 
+// Server-side reads all go through the service client now (guests have no RLS
+// session access); getAuthenticatedUser still reads the cookie/bearer client.
 const sfuSession = {
   id: validBody.sessionId,
   mode: 'sfu',
   host_user_id: mockUser.id,
   status: 'active',
+  is_public: false,
+  current_host_id: mockUser.id,
 };
+
+// Point both the cookie client and the service client at the same mock.
+function useClient(mock: unknown) {
+  vi.mocked(createClient).mockResolvedValue(mock as never);
+  vi.mocked(serviceClient).mockReturnValue(mock as never);
+}
+
+function sessionOnly(session: unknown) {
+  const mockFrom = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data: session, error: null }),
+  });
+  return createMockSupabaseClient({ from: mockFrom });
+}
 
 function createRequest(body: unknown) {
   return new Request('http://localhost/api/livekit/token', {
@@ -56,13 +80,7 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns token for authenticated host', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: sfuSession, error: null }),
-    });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(sessionOnly(sfuSession));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -75,13 +93,7 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns token for viewer', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: sfuSession, error: null }),
-    });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(sessionOnly(sfuSession));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest({ ...validBody, isHost: false }));
@@ -93,7 +105,6 @@ describe('POST /api/livekit/token', () => {
 
   it('allows authenticated participant (non-owner) to publish in SFU mode', async () => {
     const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
-
     const sessionQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -103,9 +114,8 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
     };
-    // Owner's plan drives the listener cap; free = 5, room has room to spare.
     const profileQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -120,9 +130,7 @@ describe('POST /api/livekit/token', () => {
       if (table === 'profiles') return profileQuery;
       throw new Error(`Unexpected table ${table}`);
     });
-
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({ from: mockFrom }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest({ ...validBody, isHost: false }));
@@ -130,27 +138,90 @@ describe('POST /api/livekit/token', () => {
 
     expect(response.status).toBe(200);
     expect(body.data.token).toBe('mock-jwt-token');
-    expect(mockAddGrant).toHaveBeenCalledWith(
-      expect.objectContaining({
-        canPublish: true,
-      })
-    );
+    expect(mockAddGrant).toHaveBeenCalledWith(expect.objectContaining({ canPublish: true }));
+  });
+
+  it('lets a logged-out GUEST watch a public, live room subscribe-only', async () => {
+    const publicLive = {
+      ...sfuSession,
+      host_user_id: 'owner-x',
+      current_host_id: 'owner-x',
+      is_public: true,
+    };
+    const sessionQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: publicLive, error: null }),
+    };
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: validBody.participantId },
+        error: null,
+      }),
+    };
+    const profileQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { plan: 'free', plan_expires_at: null },
+        error: null,
+      }),
+    };
+    const mockFrom = vi.fn((table: string) => {
+      if (table === 'sessions') return sessionQuery;
+      if (table === 'session_participants') return participantQuery;
+      if (table === 'profiles') return profileQuery;
+      throw new Error(`Unexpected table ${table}`);
+    });
+    useClient(createMockSupabaseClient({ from: mockFrom }));
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.token).toBe('mock-jwt-token');
+    // Guests are watch-only.
+    expect(mockAddGrant).toHaveBeenCalledWith(expect.objectContaining({ canPublish: false }));
+  });
+
+  it('rejects a guest on a private room (401)', async () => {
+    useClient(sessionOnly({ ...sfuSession, is_public: false, current_host_id: 'owner-x' }));
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe('Sign in to join this room');
+  });
+
+  it('rejects a guest on a public but offline room (401)', async () => {
+    useClient(sessionOnly({ ...sfuSession, is_public: true, current_host_id: null }));
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe('Sign in to join this room');
   });
 
   it('returns 403 when the room is at the owner plan listener cap', async () => {
     const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
-
     const sessionQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
     };
-    // Authorized participant, but the free room already holds its 5 listeners.
     const participantQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
       // The head:true count query is awaited directly (no .single()).
       then: (resolve: (v: unknown) => void) => resolve({ count: 5, data: null, error: null }),
     };
@@ -168,9 +239,7 @@ describe('POST /api/livekit/token', () => {
       if (table === 'profiles') return profileQuery;
       throw new Error(`Unexpected table ${table}`);
     });
-
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({ from: mockFrom }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest({ ...validBody, isHost: false }));
@@ -180,26 +249,13 @@ describe('POST /api/livekit/token', () => {
     expect(body.error).toContain('Room is full');
   });
 
-  it('returns 401 for unauthenticated user', async () => {
-    const mockSupabase = createMockSupabaseClient({});
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
-    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
-
-    const response = await POST(createRequest(validBody));
-    const body = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(body.error).toBe('Authentication required');
-  });
-
   it('returns 404 for nonexistent session', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
     });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({ from: mockFrom }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -210,16 +266,7 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns 400 for P2P session', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { ...sfuSession, mode: 'p2p' },
-        error: null,
-      }),
-    });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(sessionOnly({ ...sfuSession, mode: 'p2p' }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -229,7 +276,7 @@ describe('POST /api/livekit/token', () => {
     expect(body.error).toBe('Session is not in SFU mode');
   });
 
-  it('returns 403 when non-host claims host', async () => {
+  it('returns 403 when authenticated non-host is not a participant', async () => {
     const sessionQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -242,15 +289,14 @@ describe('POST /api/livekit/token', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     };
     const mockFrom = vi.fn((table: string) => {
       if (table === 'sessions') return sessionQuery;
       if (table === 'session_participants') return participantQuery;
       throw new Error(`Unexpected table ${table}`);
     });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({ from: mockFrom }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -261,16 +307,7 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns 400 for ended session', async () => {
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { ...sfuSession, status: 'ended' },
-        error: null,
-      }),
-    });
-    const mockSupabase = createMockSupabaseClient({ from: mockFrom });
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(sessionOnly({ ...sfuSession, status: 'ended' }));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -284,8 +321,7 @@ describe('POST /api/livekit/token', () => {
     delete process.env.LIVEKIT_API_KEY;
     delete process.env.LIVEKIT_API_SECRET;
 
-    const mockSupabase = createMockSupabaseClient({});
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({}));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest(validBody));
@@ -296,8 +332,7 @@ describe('POST /api/livekit/token', () => {
   });
 
   it('returns 400 for invalid request body', async () => {
-    const mockSupabase = createMockSupabaseClient({});
-    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    useClient(createMockSupabaseClient({}));
     mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
     const response = await POST(createRequest({ sessionId: 'not-a-uuid' }));

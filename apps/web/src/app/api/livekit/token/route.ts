@@ -3,6 +3,7 @@ import { AccessToken } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
 import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
+import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getIceServers } from '@/lib/ice-servers';
 
@@ -26,19 +27,25 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    const { user, error: authError } = await getAuthenticatedUser(supabase);
+    const { user } = await getAuthenticatedUser(supabase);
+    // Server-side authorization uses the service client for reads (guests have
+    // no RLS session access); every access decision below is explicit.
+    const svc = serviceClient();
 
-    if (authError || !user) {
-      return errorResponse('Authentication required', 401);
-    }
-
-    // Verify session exists and user is authorized
-    const { data: session, error: sessionError } = (await supabase
+    // Verify session exists and gather what authorization needs.
+    const { data: session, error: sessionError } = (await svc
       .from('sessions')
-      .select('id, mode, host_user_id, status')
+      .select('id, mode, host_user_id, status, is_public, current_host_id')
       .eq('id', sessionId)
       .single()) as {
-      data: { id: string; mode: string; host_user_id: string; status: string } | null;
+      data: {
+        id: string;
+        mode: string;
+        host_user_id: string;
+        status: string;
+        is_public: boolean;
+        current_host_id: string | null;
+      } | null;
       error: unknown;
     };
 
@@ -54,33 +61,55 @@ export async function POST(request: Request) {
       return errorResponse('Session has ended', 400);
     }
 
-    const isSessionOwner = session.host_user_id === user.id;
+    const isSessionOwner = Boolean(user) && session.host_user_id === user?.id;
 
-    // Allow authenticated participants to publish (present/share) without making them host.
-    // Host-only moderation remains gated elsewhere by the real session host ID.
+    // Authorize the joiner:
+    //  • owner  → always in (may publish/host).
+    //  • authed non-owner → must hold a live participant row (may publish).
+    //  • GUEST (logged out) → may WATCH a PUBLIC, currently-live room only,
+    //    authorized by their participantId (session_participants.id from
+    //    join_session); subscribe-only, never publishes.
     let isParticipant = false;
+    let isGuest = false;
     if (!isSessionOwner) {
-      const { data: participant } = await supabase
-        .from('session_participants')
-        .select('id')
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id)
-        .is('left_at', null)
-        .single();
-      isParticipant = Boolean(participant);
-
-      if (!isParticipant) {
-        return errorResponse('Not authorized for this session', 403);
+      if (user) {
+        const { data: participant } = await svc
+          .from('session_participants')
+          .select('id')
+          .eq('session_id', sessionId)
+          .eq('user_id', user.id)
+          .is('left_at', null)
+          .maybeSingle();
+        isParticipant = Boolean(participant);
+        if (!isParticipant) {
+          return errorResponse('Not authorized for this session', 403);
+        }
+      } else {
+        if (!session.is_public || !session.current_host_id) {
+          return errorResponse('Sign in to join this room', 401);
+        }
+        const { data: participant } = await svc
+          .from('session_participants')
+          .select('id')
+          .eq('id', participantId)
+          .eq('session_id', sessionId)
+          .is('left_at', null)
+          .maybeSingle();
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- maybeSingle() can return null
+        if (!participant) {
+          return errorResponse('Not authorized for this session', 403);
+        }
+        isGuest = true;
       }
     }
 
     // Enforce the room owner's listener cap once the joiner is authorized. Free
     // rooms hold 5, Plus 100, etc. The host always gets in; additional joiners
-    // are rejected once the room is at capacity. join_session already gates the
-    // participant path — this is the SFU-side belt-and-suspenders. A lapsed paid
-    // plan falls back to the free cap via effectivePlan().
+    // (incl. guests) are rejected once the room is at capacity. join_session
+    // already gates the participant path — this is the SFU-side belt-and-
+    // suspenders. A lapsed paid plan falls back to the free cap.
     if (!isSessionOwner) {
-      const { data: ownerProfile } = (await supabase
+      const { data: ownerProfile } = (await svc
         .from('profiles')
         .select('plan, plan_expires_at')
         .eq('id', session.host_user_id)
@@ -91,7 +120,7 @@ export async function POST(request: Request) {
       );
       const cap = maxListeners(ownerPlan);
 
-      const { count } = await supabase
+      const { count } = await svc
         .from('session_participants')
         .select('id', { count: 'exact', head: true })
         .eq('session_id', sessionId)
@@ -103,6 +132,7 @@ export async function POST(request: Request) {
       }
     }
 
+    // Guests never publish media — watch-only.
     const canPublish = isSessionOwner || isParticipant;
     const effectiveIsHost = isHost && isSessionOwner;
 
@@ -113,8 +143,8 @@ export async function POST(request: Request) {
       name: participantName,
       ttl: '24h',
       metadata: JSON.stringify({
-        role: effectiveIsHost ? 'host' : 'viewer',
-        userId: user.id,
+        role: effectiveIsHost ? 'host' : isGuest ? 'guest' : 'viewer',
+        userId: user?.id ?? null,
       }),
     });
 

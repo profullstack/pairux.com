@@ -23,7 +23,11 @@ interface FormatSpec {
   label: string;
 }
 const FORMATS: Record<Format, FormatSpec> = {
-  live: { w: 1280, h: 720, label: 'a 16:9 (widescreen) cover thumbnail for a live developer stream' },
+  live: {
+    w: 1280,
+    h: 720,
+    label: 'a 16:9 (widescreen) cover thumbnail for a live developer stream',
+  },
   channel: {
     w: 1500,
     h: 250,
@@ -39,7 +43,12 @@ interface Body {
   format?: Format;
 }
 
-function buildPrompt(fmt: FormatSpec, subject?: string, description?: string, custom?: string): string {
+function buildPrompt(
+  fmt: FormatSpec,
+  subject?: string,
+  description?: string,
+  custom?: string
+): string {
   const title = (subject ?? '').trim() || 'a live coding / pair-programming session';
   const ctx = (description ?? '').trim();
   const wish = (custom ?? '').trim().slice(0, 500);
@@ -61,7 +70,10 @@ async function fetchImageBytes(ref: string): Promise<{ bytes: Uint8Array; mime: 
   try {
     const m = /^data:([^;]+);base64,(.*)$/s.exec(ref);
     if (m) {
-      return { bytes: new Uint8Array(Buffer.from(m[2] ?? '', 'base64')), mime: m[1] ?? 'image/png' };
+      return {
+        bytes: new Uint8Array(Buffer.from(m[2] ?? '', 'base64')),
+        mime: m[1] ?? 'image/png',
+      };
     }
     if (/^https?:\/\//.test(ref)) {
       const res = await fetch(ref);

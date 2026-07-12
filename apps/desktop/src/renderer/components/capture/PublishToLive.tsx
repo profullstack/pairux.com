@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Radio, ExternalLink, Loader2, X, ImagePlus, AtSign } from 'lucide-react';
+import { Radio, ExternalLink, Loader2, X, ImagePlus, AtSign, Sparkles } from 'lucide-react';
 import type { Session } from '@pairux/shared-types';
 import { API_BASE_URL } from '../../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
@@ -43,7 +43,7 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
 // the stored banner is a small, consistent 1280x720 — matching how it's shown on
 // /live (a 16:9 object-cover box). Returns both a Blob (to upload) and a data URL
 // (to preview + cache).
-function cropTo16x9(file: File): Promise<{ blob: Blob; dataUrl: string }> {
+function cropTo16x9(file: Blob): Promise<{ blob: Blob; dataUrl: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -100,6 +100,7 @@ export function PublishToLive({ session }: PublishToLiveProps) {
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerBlobRef = useRef<Blob | null>(null);
   // Data URL of the current cover (freshly picked or restored from cache), used
@@ -162,6 +163,44 @@ export function PublishToLive({ session }: PublishToLiveProps) {
       setBannerPreview(cropped.dataUrl);
     } catch {
       setError("Couldn't read that image. Try a different file.");
+    }
+  };
+
+  // Generate a custom banner with AI, using the current banner (the default or a
+  // previously picked one) as design inspiration. The server tries OpenAI first,
+  // then falls back to Anthropic; we cover-crop the result to 16:9 like any pick.
+  const onGenerateBanner = async () => {
+    setError(null);
+    setGenerating(true);
+    try {
+      const { token } = await getElectronAPI().invoke('auth:getToken', undefined);
+      if (!token) {
+        setError('Sign in on this device to generate a banner.');
+        return;
+      }
+      const current = bannerDataUrlRef.current ?? bannerPreview ?? session.banner_url ?? undefined;
+      const res = await fetch(`${API_BASE_URL}/api/live/generate-banner`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ imageDataUrl: current, subject, description }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        data?: { image?: string };
+        error?: string;
+      };
+      const image = body.data?.image;
+      if (!res.ok || !image) {
+        setError(body.error ?? 'Could not generate a banner. Try again.');
+        return;
+      }
+      const cropped = await cropTo16x9(await dataUrlToBlob(image));
+      bannerBlobRef.current = cropped.blob;
+      bannerDataUrlRef.current = cropped.dataUrl;
+      setBannerPreview(cropped.dataUrl);
+    } catch {
+      setError('Banner generation failed. Please try again.');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -379,6 +418,20 @@ export function PublishToLive({ session }: PublishToLiveProps) {
             className="hidden"
             onChange={(e) => void onPickBanner(e)}
           />
+          <button
+            type="button"
+            onClick={() => void onGenerateBanner()}
+            disabled={busy || generating}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-60"
+            title="Generate a custom banner with AI from the current one"
+          >
+            {generating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            {generating ? 'Generating…' : 'Generate with AI'}
+          </button>
 
           {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 

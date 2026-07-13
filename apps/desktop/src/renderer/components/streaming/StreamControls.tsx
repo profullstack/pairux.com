@@ -54,7 +54,6 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function StreamControls({
-  stream,
   destinations,
   streamStatuses,
   streamWarnings,
@@ -62,7 +61,6 @@ export function StreamControls({
   liveStreamEnabled,
   onStartStream: _onStartStream,
   onStopStream,
-  onStartAll,
   onStopAll,
   serverStream,
 }: StreamControlsProps) {
@@ -76,16 +74,6 @@ export function StreamControls({
   // be streamed by accident. Active streams still render their stop controls so
   // anything already live can always be stopped.
   if (!isAnyStreaming && !isServerStreaming && !liveStreamEnabled) return null;
-
-  const handleStartAll = async (): Promise<void> => {
-    setStartError(null);
-    const result = await onStartAll(stream);
-    // Surface failures instead of silently doing nothing — the #1 reason
-    // "Go Live" appears to do nothing (bad key, ffmpeg missing, ingest down).
-    if (!result.success || result.started === 0) {
-      setStartError(result.errors[0] ?? 'Could not start streaming');
-    }
-  };
 
   const handleStartServer = async (): Promise<void> => {
     if (!serverStream) return;
@@ -105,7 +93,7 @@ export function StreamControls({
           title="Streaming via the pairux server — your upload only carries the call"
         >
           <Cloud className="h-3 w-3 animate-pulse text-green-500" />
-          <span className="text-xs">Server live</span>
+          <span className="text-xs">Live</span>
           <Button
             variant="ghost"
             size="icon"
@@ -119,27 +107,16 @@ export function StreamControls({
       ) : null}
       {!isAnyStreaming ? (
         <>
-          {!isServerStreaming && (
+          {!isServerStreaming && serverStream?.available && (
             <Button
               size="sm"
               className="bg-blue-600 text-white hover:bg-blue-700"
-              onClick={() => void handleStartAll()}
-              title="Start streaming to all enabled destinations"
+              onClick={() => void handleStartServer()}
+              title="Go live — stream this room to all enabled destinations via the pairux server (SFU), no extra upload from this machine"
             >
               <Radio className="!size-3" />
               Go Live
               {enabledDestinations.length > 1 && ` (${String(enabledDestinations.length)})`}
-            </Button>
-          )}
-          {!isServerStreaming && serverStream?.available && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => void handleStartServer()}
-              title="Stream via the pairux server — fans out to all destinations with no extra upload from this machine"
-            >
-              <Cloud className="!size-3" />
-              Go Live (server)
             </Button>
           )}
           {startError && (

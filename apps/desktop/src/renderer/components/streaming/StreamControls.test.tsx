@@ -37,7 +37,7 @@ beforeEach(() => {
 });
 
 describe('StreamControls server restream', () => {
-  it('offers "Go Live (server)" when hosting via SFU and starts it', async () => {
+  it('offers a single "Go Live" (server/SFU) and starts it', async () => {
     const onStart = vi.fn().mockResolvedValue({ success: true });
     render(
       <StreamControls
@@ -46,7 +46,7 @@ describe('StreamControls server restream', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /go live \(server\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: /go live/i }));
     await waitFor(() => {
       expect(onStart).toHaveBeenCalledTimes(1);
     });
@@ -61,7 +61,7 @@ describe('StreamControls server restream', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /go live \(server\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: /go live/i }));
     expect(await screen.findByText('Egress unavailable')).toBeTruthy();
   });
 
@@ -74,14 +74,14 @@ describe('StreamControls server restream', () => {
       />
     );
 
-    expect(screen.getByText('Server live')).toBeTruthy();
+    expect(screen.getByText('Live')).toBeTruthy();
     fireEvent.click(screen.getByTitle('Stop server stream'));
     await waitFor(() => {
       expect(onStop).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('hides "Go Live (server)" when the master toggle is off', () => {
+  it('hides "Go Live" when the master toggle is off', () => {
     render(
       <StreamControls
         {...baseProps}

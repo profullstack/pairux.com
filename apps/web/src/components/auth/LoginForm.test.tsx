@@ -1,24 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from './LoginForm';
+import { LoginForm, safeRedirectPath } from './LoginForm';
 
 // Mock next/navigation
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
+let mockRedirect: string | null = null;
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
   }),
   useSearchParams: () => ({
-    get: vi.fn().mockReturnValue(null),
+    get: vi.fn().mockReturnValue(mockRedirect),
   }),
 }));
+
+describe('safeRedirectPath', () => {
+  it('keeps internal redirect paths', () => {
+    expect(safeRedirectPath('/dashboard')).toBe('/dashboard');
+    expect(safeRedirectPath('/sessions/abc?tab=chat')).toBe('/sessions/abc?tab=chat');
+  });
+
+  it('falls back for external or missing redirect paths', () => {
+    expect(safeRedirectPath(null)).toBe('/dashboard');
+    expect(safeRedirectPath('https://evil.example/phish')).toBe('/dashboard');
+    expect(safeRedirectPath('//evil.example/phish')).toBe('/dashboard');
+    expect(safeRedirectPath('dashboard')).toBe('/dashboard');
+  });
+});
 
 describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRedirect = null;
     global.fetch = vi.fn();
   });
 
@@ -56,6 +72,25 @@ describe('LoginForm', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
       expect(mockRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it('sanitizes external redirect query params before navigation', async () => {
+    const user = userEvent.setup();
+    mockRedirect = 'https://evil.example/phish';
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { user: { id: '123', email: 'test@example.com' } } }),
+    } as Response);
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
+    await user.type(screen.getByPlaceholderText(/enter your password/i), 'Password123');
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/dashboard');
     });
   });
 

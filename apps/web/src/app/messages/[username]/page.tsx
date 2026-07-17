@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-// The [username] segment is a DM address: a username, or a user id for
-// accounts that have no username.
+// The [username] segment is a DM address: a channel handle, a username, or a
+// user id for accounts that have neither.
 interface PageProps {
   params: Promise<{ username: string }>;
 }
@@ -63,8 +63,15 @@ export default async function ConversationPage({ params }: PageProps) {
   }
 
   const messages = await getConversation(addr);
-  const name = partner.display_name ?? (partner.username ? `@${partner.username}` : 'User');
-  const profileHref = partner.username ? `/u/${partner.username}` : null;
+  const name = partner.display_name;
+  // Link the header to the channel page when the partner is a creator, else
+  // their profile; some accounts have neither (no link).
+  const partnerHref = partner.channel_handle
+    ? `/@${partner.channel_handle}`
+    : partner.username
+      ? `/u/${partner.username}`
+      : null;
+  const subhandle = partner.channel_handle ?? partner.username;
 
   const avatar = partner.avatar_url ? (
     // eslint-disable-next-line @next/next/no-img-element
@@ -91,11 +98,11 @@ export default async function ConversationPage({ params }: PageProps) {
             </Link>
 
             <div className="mb-4 flex items-center gap-3">
-              {profileHref ? <Link href={profileHref}>{avatar}</Link> : avatar}
+              {partnerHref ? <Link href={partnerHref}>{avatar}</Link> : avatar}
               <div>
-                {profileHref ? (
+                {partnerHref ? (
                   <Link
-                    href={profileHref}
+                    href={partnerHref}
                     className="text-base font-semibold text-gray-900 hover:underline"
                   >
                     {name}
@@ -103,7 +110,7 @@ export default async function ConversationPage({ params }: PageProps) {
                 ) : (
                   <span className="text-base font-semibold text-gray-900">{name}</span>
                 )}
-                {partner.username && <p className="text-primary-600 text-xs">@{partner.username}</p>}
+                {subhandle && <p className="text-primary-600 text-xs">@{subhandle}</p>}
               </div>
             </div>
 

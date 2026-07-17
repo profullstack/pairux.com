@@ -178,22 +178,28 @@ export interface DmMessage {
   is_mine: boolean;
 }
 
-// Public card for the person at a DM address (from get_dm_partner RPC).
+// Public identity for the person at a DM address (from get_dm_partner RPC).
+// A creator's identity is their channel (name + @handle); otherwise their profile.
 export interface DmPartner {
   id: string;
-  username: string | null;
-  display_name: string | null;
+  /** URL-safe address that always routes: channel handle, username, or id. */
+  addr: string;
+  display_name: string;
   avatar_url: string | null;
+  username: string | null;
+  /** The partner's channel handle, if they have one (links to /@handle). */
+  channel_handle: string | null;
 }
 
 // One inbox row (from list_dm_threads RPC): a conversation partner + last message.
 export interface DmThread {
   partner_id: string;
-  /** URL-safe address that always routes: username, else the partner's id. */
+  /** URL-safe address that always routes: channel handle, username, or id. */
   addr: string;
-  username: string | null;
-  display_name: string | null;
+  display_name: string;
   avatar_url: string | null;
+  username: string | null;
+  channel_handle: string | null;
   last_body: string;
   last_created_at: string;
   last_from_me: boolean;

@@ -72,7 +72,7 @@ export default async function MessagesPage() {
             ) : (
               <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
                 {threads.map((t) => {
-                  const name = t.display_name ?? (t.username ? `@${t.username}` : 'Unknown');
+                  const name = t.display_name;
                   const unread = t.unread_count > 0;
                   return (
                     <li key={t.partner_id}>

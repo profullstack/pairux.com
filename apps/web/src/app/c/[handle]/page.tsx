@@ -208,13 +208,11 @@ export default async function ChannelPage({ params }: PageProps) {
                     initialSubscribed={channel.is_subscribed}
                     initialCount={channel.subscriber_count}
                   />
-                  {channel.owner_addr && (
-                    <MessageButton
-                      addr={channel.owner_addr}
-                      displayName={channel.name}
-                      isAuthed={viewer !== null}
-                    />
-                  )}
+                  <MessageButton
+                    addr={channel.handle}
+                    displayName={channel.name}
+                    isAuthed={viewer !== null}
+                  />
                 </div>
               )}
               <ShareButtons handle={channel.handle} name={channel.name} />

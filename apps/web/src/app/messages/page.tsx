@@ -77,7 +77,7 @@ export default async function MessagesPage() {
                   return (
                     <li key={t.partner_id}>
                       <Link
-                        href={t.username ? `/messages/${t.username}` : '/messages'}
+                        href={`/messages/${t.addr}`}
                         className="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-gray-50"
                       >
                         {t.avatar_url ? (

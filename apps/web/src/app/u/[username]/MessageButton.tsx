@@ -5,28 +5,30 @@ import { useRouter } from 'next/navigation';
 import { MessageCircle, Send, Loader2, X, Check } from 'lucide-react';
 
 interface MessageButtonProps {
-  username: string;
+  /** DM address: a username, or a user id for accounts without one. */
+  addr: string;
   displayName: string;
   /** Whether the viewer is signed in. Signed-out users are sent to login. */
   isAuthed: boolean;
 }
 
 /**
- * "Message @username" — opens a compose box and sends a private message. The
- * recipient gets a web push + email notification. Unauthenticated viewers are
- * routed to login first; the profile owner never sees this button.
+ * "Message" — opens a compose box and sends a private message. The recipient
+ * gets a web push + email notification. Unauthenticated viewers are routed to
+ * login first; the profile/channel owner never sees this button.
  */
-export function MessageButton({ username, displayName, isAuthed }: MessageButtonProps) {
+export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const threadPath = `/messages/${addr}`;
 
   const openCompose = () => {
     if (!isAuthed) {
-      router.push(`/login?next=${encodeURIComponent(`/u/${username}`)}`);
+      router.push(`/login?next=${encodeURIComponent(threadPath)}`);
       return;
     }
     setSent(false);
@@ -40,13 +42,13 @@ export function MessageButton({ username, displayName, isAuthed }: MessageButton
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/u/${encodeURIComponent(username)}/message`, {
+      const res = await fetch(`/api/u/${encodeURIComponent(addr)}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: text }),
       });
       if (res.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(`/u/${username}`)}`);
+        router.push(`/login?next=${encodeURIComponent(threadPath)}`);
         return;
       }
       const json = (await res.json()) as { error?: string };
@@ -113,7 +115,7 @@ export function MessageButton({ username, displayName, isAuthed }: MessageButton
                   <button
                     type="button"
                     onClick={() => {
-                      router.push(`/messages/${username}`);
+                      router.push(threadPath);
                     }}
                     className="text-primary-600 rounded-lg px-3 py-1.5 text-sm font-medium hover:underline"
                   >

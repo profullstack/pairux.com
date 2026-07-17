@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation';
 import { Radio, Eye, Circle, PlayCircle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-types';
 import { SubscribeButton } from './SubscribeButton';
 import { ShareButtons } from './ShareButtons';
+import { MessageButton } from '@/app/u/[username]/MessageButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,16 @@ async function getChannel(handle: string): Promise<Channel | null> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data } = await (supabase.rpc as any)('get_channel', { p_handle: handle });
     return (data as Channel[] | null)?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getViewer(): Promise<{ id: string } | null> {
+  try {
+    const supabase = await createClient();
+    const { user } = await getAuthenticatedUser(supabase);
+    return user ? { id: user.id } : null;
   } catch {
     return null;
   }
@@ -116,8 +127,11 @@ export default async function ChannelPage({ params }: PageProps) {
   const channel = await getChannel(handle);
   if (!channel) notFound();
 
-  const streams = await getStreams(handle);
-  const recordings = await getRecordings(handle);
+  const [streams, recordings, viewer] = await Promise.all([
+    getStreams(handle),
+    getRecordings(handle),
+    getViewer(),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -188,11 +202,20 @@ export default async function ChannelPage({ params }: PageProps) {
                   Manage channel
                 </Link>
               ) : (
-                <SubscribeButton
-                  handle={channel.handle}
-                  initialSubscribed={channel.is_subscribed}
-                  initialCount={channel.subscriber_count}
-                />
+                <div className="flex items-center gap-2">
+                  <SubscribeButton
+                    handle={channel.handle}
+                    initialSubscribed={channel.is_subscribed}
+                    initialCount={channel.subscriber_count}
+                  />
+                  {channel.owner_addr && (
+                    <MessageButton
+                      addr={channel.owner_addr}
+                      displayName={channel.name}
+                      isAuthed={viewer !== null}
+                    />
+                  )}
+                </div>
               )}
               <ShareButtons handle={channel.handle} name={channel.name} />
             </div>

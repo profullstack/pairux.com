@@ -178,9 +178,19 @@ export interface DmMessage {
   is_mine: boolean;
 }
 
+// Public card for the person at a DM address (from get_dm_partner RPC).
+export interface DmPartner {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 // One inbox row (from list_dm_threads RPC): a conversation partner + last message.
 export interface DmThread {
   partner_id: string;
+  /** URL-safe address that always routes: username, else the partner's id. */
+  addr: string;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
@@ -251,6 +261,10 @@ export interface Channel {
   is_live: boolean;
   /** Guest-inclusive count of people watching the channel's live right now. */
   live_viewers: number;
+  /** The channel owner's username; null if they have none. */
+  owner_username: string | null;
+  /** URL-safe address to DM the owner: username, else the owner's id. */
+  owner_addr: string | null;
 }
 
 // A channel the caller owns (from list_my_channels RPC) — includes stream_key.

@@ -5,7 +5,7 @@ import { ArrowLeft, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
-import type { DmMessage, PublicProfile } from '@pairux/shared-types';
+import type { DmMessage, DmPartner } from '@pairux/shared-types';
 import { Thread } from './Thread';
 
 export const metadata: Metadata = {
@@ -15,27 +15,29 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+// The [username] segment is a DM address: a username, or a user id for
+// accounts that have no username.
 interface PageProps {
   params: Promise<{ username: string }>;
 }
 
-async function getProfile(username: string): Promise<PublicProfile | null> {
+async function getPartner(addr: string): Promise<DmPartner | null> {
   try {
     const supabase = await createClient();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-    const { data } = await (supabase.rpc as any)('get_public_profile', { p_username: username });
-    return ((data as PublicProfile[] | null) ?? [])[0] ?? null;
+    const { data } = await (supabase.rpc as any)('get_dm_partner', { p_addr: addr });
+    return ((data as DmPartner[] | null) ?? [])[0] ?? null;
   } catch {
     return null;
   }
 }
 
-async function getConversation(username: string): Promise<DmMessage[]> {
+async function getConversation(addr: string): Promise<DmMessage[]> {
   try {
     const supabase = await createClient();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     const { data } = await (supabase.rpc as any)('get_dm_conversation', {
-      p_username: username,
+      p_username: addr,
       p_limit: 200,
     });
     return (data as DmMessage[] | null) ?? [];
@@ -45,24 +47,33 @@ async function getConversation(username: string): Promise<DmMessage[]> {
 }
 
 export default async function ConversationPage({ params }: PageProps) {
-  const { username } = await params;
+  const { username: addr } = await params;
   const supabase = await createClient();
   const { user } = await getAuthenticatedUser(supabase);
   if (!user) {
-    redirect(`/login?next=/messages/${username}`);
+    redirect(`/login?next=/messages/${addr}`);
   }
 
-  const profile = await getProfile(username);
-  if (!profile?.username) {
+  const partner = await getPartner(addr);
+  if (!partner) {
     notFound();
   }
-  if (profile.id === user.id) {
+  if (partner.id === user.id) {
     redirect('/messages');
   }
 
-  const messages = await getConversation(username);
-  const handle = profile.username;
-  const name = profile.display_name ?? `@${handle}`;
+  const messages = await getConversation(addr);
+  const name = partner.display_name ?? (partner.username ? `@${partner.username}` : 'User');
+  const profileHref = partner.username ? `/u/${partner.username}` : null;
+
+  const avatar = partner.avatar_url ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={partner.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+  ) : (
+    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200">
+      <UserIcon className="h-6 w-6 text-gray-400" />
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -80,32 +91,23 @@ export default async function ConversationPage({ params }: PageProps) {
             </Link>
 
             <div className="mb-4 flex items-center gap-3">
-              <Link href={`/u/${handle}`}>
-                {profile.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt=""
-                    className="h-11 w-11 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200">
-                    <UserIcon className="h-6 w-6 text-gray-400" />
-                  </div>
-                )}
-              </Link>
+              {profileHref ? <Link href={profileHref}>{avatar}</Link> : avatar}
               <div>
-                <Link
-                  href={`/u/${handle}`}
-                  className="text-base font-semibold text-gray-900 hover:underline"
-                >
-                  {name}
-                </Link>
-                <p className="text-primary-600 text-xs">@{handle}</p>
+                {profileHref ? (
+                  <Link
+                    href={profileHref}
+                    className="text-base font-semibold text-gray-900 hover:underline"
+                  >
+                    {name}
+                  </Link>
+                ) : (
+                  <span className="text-base font-semibold text-gray-900">{name}</span>
+                )}
+                {partner.username && <p className="text-primary-600 text-xs">@{partner.username}</p>}
               </div>
             </div>
 
-            <Thread username={handle} displayName={name} initialMessages={messages} />
+            <Thread addr={addr} displayName={name} initialMessages={messages} />
           </div>
         </section>
       </main>

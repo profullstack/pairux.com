@@ -6,7 +6,8 @@ import { Send, Loader2 } from 'lucide-react';
 import type { DmMessage } from '@pairux/shared-types';
 
 interface ThreadProps {
-  username: string;
+  /** DM address: a username, or a user id for accounts without one. */
+  addr: string;
   displayName: string;
   initialMessages: DmMessage[];
 }
@@ -29,7 +30,7 @@ function timeLabel(iso: string): string {
  * so a reply shows up without a manual refresh (server-side Realtime isn't
  * wired for DMs yet).
  */
-export function Thread({ username, displayName, initialMessages }: ThreadProps) {
+export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<DmMessage[]>(initialMessages);
   const [body, setBody] = useState('');
@@ -47,7 +48,7 @@ export function Thread({ username, displayName, initialMessages }: ThreadProps) 
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`/api/messages/${encodeURIComponent(username)}`, {
+      const res = await fetch(`/api/messages/${encodeURIComponent(addr)}`, {
         cache: 'no-store',
       });
       if (!res.ok) return;
@@ -56,7 +57,7 @@ export function Thread({ username, displayName, initialMessages }: ThreadProps) 
     } catch {
       // ignore transient poll failures
     }
-  }, [username]);
+  }, [addr]);
 
   useEffect(() => {
     const id = setInterval(() => void refresh(), 10000);
@@ -71,13 +72,13 @@ export function Thread({ username, displayName, initialMessages }: ThreadProps) 
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/messages/${encodeURIComponent(username)}`, {
+      const res = await fetch(`/api/messages/${encodeURIComponent(addr)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: text }),
       });
       if (res.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(`/messages/${username}`)}`);
+        router.push(`/login?next=${encodeURIComponent(`/messages/${addr}`)}`);
         return;
       }
       const json = (await res.json()) as { error?: string };

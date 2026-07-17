@@ -26,6 +26,7 @@ export type {
   FollowState,
   DmMessage,
   DmThread,
+  DmPartner,
   Creator,
   PublicSessionDetail,
   SessionComment,

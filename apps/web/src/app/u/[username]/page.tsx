@@ -171,7 +171,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   initialCount={followState.follower_count}
                 />
                 {!isOwnProfile && (
-                  <MessageButton username={handle} displayName={name} isAuthed={viewer !== null} />
+                  <MessageButton addr={handle} displayName={name} isAuthed={viewer !== null} />
                 )}
               </div>
             </div>

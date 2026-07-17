@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import { NextResponse, type NextRequest } from 'next/server';
-import { verifyCoinpayWebhook } from '@/lib/coinpay-client';
+import { verifyCoinPayWebhook } from '@profullstack/stack/coinpay';
 import { TERM_DAYS } from '@/lib/plans';
 import { serviceClient } from '@/lib/supabase/service';
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const signature =
     request.headers.get('x-coinpay-signature') ?? request.headers.get('x-coinpayportal-signature');
-  if (!verifyCoinpayWebhook(rawBody, signature, secret)) {
+  if (!verifyCoinPayWebhook({ signature, rawBody, secret })) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
+import { FeedbackWidget } from '@profullstack/stack/feedback';
 import { PWAInstallButton } from '@/components/pwa';
 import './globals.css';
 
@@ -143,12 +144,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           src="https://crawlproof.com/stats.js"
           strategy="afterInteractive"
         />
-        <script
-          async
-          nonce={nonce}
-          src="https://feedback.profullstack.com/embed/profullstack-feedback.js"
-          data-property="pairux.com"
-        ></script>
+        {/* exactOptionalPropertyTypes: pass nonce only when middleware set one */}
+        <FeedbackWidget property="pairux.com" {...(nonce ? { nonce } : {})} />
       </body>
     </html>
   );

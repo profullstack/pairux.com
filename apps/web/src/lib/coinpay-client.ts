@@ -8,8 +8,6 @@
  * Ported from the bl0ggers integration to keep one house pattern.
  */
 
-import crypto from 'crypto';
-
 const COINPAY_BASE_URL = 'https://coinpayportal.com';
 const COINPAY_API_URL = `${COINPAY_BASE_URL}/api`;
 
@@ -170,37 +168,4 @@ export async function getCoinpayPaymentStatus(paymentId: string): Promise<{
   };
   const status = json.payment?.status ?? json.status ?? 'pending';
   return { status, tx_hash: json.payment?.tx_hash ?? null };
-}
-
-/**
- * Verify CoinPay webhook signature.
- * Header format: X-CoinPay-Signature: t=timestamp,v1=hexsig
- * Signed payload: `${timestamp}.${rawBody}` HMAC-SHA256 with webhook secret.
- */
-export function verifyCoinpayWebhook(
-  rawBody: string,
-  signatureHeader: string | null,
-  secret: string
-): boolean {
-  if (!signatureHeader) return false;
-  try {
-    const parts = signatureHeader.split(',');
-    const tPart = parts.find((p) => p.startsWith('t='));
-    const vPart = parts.find((p) => p.startsWith('v1='));
-    if (!tPart || !vPart) return false;
-    const timestamp = tPart.slice(2);
-    const sig = vPart.slice(3);
-    const ts = parseInt(timestamp, 10);
-    if (Math.abs(Math.floor(Date.now() / 1000) - ts) > 300) return false;
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(`${timestamp}.${rawBody}`)
-      .digest('hex');
-    const a = Buffer.from(sig, 'hex');
-    const b = Buffer.from(expected, 'hex');
-    if (a.length !== b.length) return false;
-    return crypto.timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
 }

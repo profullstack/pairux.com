@@ -9,6 +9,7 @@ const DEFAULT_PREFERENCES = {
   participantLeft: true,
   hostDisconnected: true,
   creatorLive: true,
+  directMessage: true,
 };
 
 export type PushEventType = keyof Omit<typeof DEFAULT_PREFERENCES, 'pushEnabled'>;

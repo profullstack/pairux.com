@@ -4,10 +4,11 @@ import { notFound } from 'next/navigation';
 import { Radio, Eye, Circle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import type { PublicProfile, CreatorLive, FollowState } from '@pairux/shared-types';
 import { FollowButton } from './FollowButton';
+import { MessageButton } from './MessageButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +73,16 @@ interface UserChannel {
   is_live: boolean;
 }
 
+async function getViewer(): Promise<{ id: string } | null> {
+  try {
+    const supabase = await createClient();
+    const { user } = await getAuthenticatedUser(supabase);
+    return user ? { id: user.id } : null;
+  } catch {
+    return null;
+  }
+}
+
 async function getUserChannels(username: string): Promise<UserChannel[]> {
   try {
     const supabase = await createClient();
@@ -119,14 +130,16 @@ export default async function PublicProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const [lives, followState, channels] = await Promise.all([
+  const [lives, followState, channels, viewer] = await Promise.all([
     getLives(username),
     getFollowState(profile.id),
     getUserChannels(username),
+    getViewer(),
   ]);
 
   const handle = profile.username ?? username;
   const name = profile.display_name ?? `@${handle}`;
+  const isOwnProfile = viewer?.id === profile.id;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -151,11 +164,16 @@ export default async function PublicProfilePage({ params }: PageProps) {
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">{name}</h1>
               <p className="text-primary-600 mt-1 text-sm font-medium">@{handle}</p>
               {profile.bio && <p className="mx-auto mt-4 max-w-xl text-gray-600">{profile.bio}</p>}
-              <FollowButton
-                username={handle}
-                initialFollowing={followState.is_following}
-                initialCount={followState.follower_count}
-              />
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <FollowButton
+                  username={handle}
+                  initialFollowing={followState.is_following}
+                  initialCount={followState.follower_count}
+                />
+                {!isOwnProfile && (
+                  <MessageButton username={handle} displayName={name} isAuthed={viewer !== null} />
+                )}
+              </div>
             </div>
           </div>
         </section>

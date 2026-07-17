@@ -24,6 +24,8 @@ export type {
   PublicRoom,
   CreatorLive,
   FollowState,
+  DmMessage,
+  DmThread,
   Creator,
   PublicSessionDetail,
   SessionComment,

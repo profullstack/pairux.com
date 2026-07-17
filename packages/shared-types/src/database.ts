@@ -166,6 +166,30 @@ export interface FollowState {
   is_following: boolean;
 }
 
+// Account-to-account direct messages.
+
+// One row in a DM conversation (from get_dm_conversation RPC).
+export interface DmMessage {
+  id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+  is_mine: boolean;
+}
+
+// One inbox row (from list_dm_threads RPC): a conversation partner + last message.
+export interface DmThread {
+  partner_id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  last_body: string;
+  last_created_at: string;
+  last_from_me: boolean;
+  unread_count: number;
+}
+
 // Public detail for one live (from get_public_session RPC) — the /l/<code> page.
 export interface PublicSessionDetail {
   id: string;

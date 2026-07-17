@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Menu, X, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
+import { MessagesNavLink } from './MessagesNavLink';
 import type { UserData } from './header';
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -105,6 +106,8 @@ export function HeaderClient({ user }: HeaderClientProps) {
           >
             <GitHubIcon className="h-5 w-5" />
           </Link>
+
+          {user && <MessagesNavLink />}
 
           {user ? (
             // Logged in state
@@ -246,6 +249,12 @@ export function HeaderClient({ user }: HeaderClientProps) {
                   <LayoutDashboard className="h-5 w-5" />
                   Dashboard
                 </Link>
+                <MessagesNavLink
+                  variant="row"
+                  onNavigate={() => {
+                    setMobileMenuOpen(false);
+                  }}
+                />
                 <Link
                   href="/settings"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"

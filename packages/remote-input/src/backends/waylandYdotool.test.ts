@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { InputEvent } from '@pairux/shared-types';
-import { WaylandYdotoolInputBackend } from './waylandYdotoolBackend';
+import type { InputEvent } from '../types.js';
+import { WaylandYdotoolInputBackend } from './waylandYdotool.js';
 
 describe('WaylandYdotoolInputBackend', () => {
   it('reports unsupported when ydotool is unavailable', async () => {

@@ -1,185 +1,71 @@
 /**
- * Input injection coordinator
+ * Input injection for the desktop host.
  *
- * Delegates OS-specific input injection to a backend selected at runtime.
- * Keeps a small public API used by IPC handlers while providing consistent
- * logging/telemetry across platforms.
+ * A thin module-level facade over @profullstack/remote-input, which owns the
+ * OS backends plus the validation, rate limiting and emergency-stop behaviour.
+ * The singleton exists because the IPC handlers are themselves module-level.
  */
 
+import { RemoteInputInjector, type InputDiagnostics } from '@profullstack/remote-input';
 import type { InputEvent } from '@pairux/shared-types';
-import { createInputBackend, getInputBackendSelection } from './backendFactory';
-import type { InputBackend } from './backends/types';
+import { getInputBackendSelection } from './backendFactory';
 
-let injectionEnabled = false;
-let backend: InputBackend | null = null;
-let backendName = 'uninitialized';
+export type InputInjectionDiagnostics = InputDiagnostics;
 
-const inputStats = {
-  received: 0,
-  injected: 0,
-  errors: 0,
-};
+let injector: RemoteInputInjector | null = null;
 
-export interface InputInjectionDiagnostics {
-  enabled: boolean;
-  backend: string;
-  backendSupported: boolean;
-  reason?: string;
-  details?: Record<string, unknown>;
-  stats: {
-    received: number;
-    injected: number;
-    errors: number;
-  };
-}
-
-function getBackend(): InputBackend {
-  if (backend) return backend;
-
-  const selection = getInputBackendSelection();
-  backend = createInputBackend(selection);
-  backendName = backend.name;
-
-  console.log('[InputInjector] Backend selected', {
-    backend: selection.kind,
-    impl: backend.name,
-    platform: selection.platform,
-    displayServer: selection.displayServer,
-    supported: backend.supported,
-    reason: backend.reason,
+function getInjector(): RemoteInputInjector {
+  injector ??= new RemoteInputInjector({
+    // Platform facts come from the app's Electron-aware detection.
+    selection: getInputBackendSelection(),
+    onRejected: (reason, event, detail) => {
+      console.warn('[InputInjector] Rejected input event', {
+        reason,
+        detail,
+        type: event.type,
+        action: 'action' in event ? event.action : undefined,
+      });
+    },
   });
-
-  return backend;
+  return injector;
 }
 
-/**
- * Initialize the input injector and get screen dimensions
- */
+/** Test seam: drop the singleton so the next call re-selects a backend. */
+export function resetInputInjector(): void {
+  injector = null;
+}
+
 export async function initInputInjector(): Promise<void> {
-  try {
-    const activeBackend = getBackend();
-    const result = await activeBackend.init();
-
-    if (!result) return;
-
-    if (result.screenWidth && result.screenHeight) {
-      console.log(
-        `[InputInjector] Screen size: ${String(result.screenWidth)}x${String(result.screenHeight)}`
-      );
-    }
-  } catch (error) {
-    console.error('[InputInjector] Failed to initialize backend:', error);
-  }
+  await getInjector().init();
 }
 
-/**
- * Enable input injection (called when control is granted)
- */
+/** Enable injection. False means this host cannot inject — surface it. */
 export function enableInjection(): boolean {
-  const activeBackend = getBackend();
-  if (!activeBackend.supported) {
-    injectionEnabled = false;
-    console.warn('[InputInjector] Cannot enable input injection: backend unsupported', {
-      backend: activeBackend.name,
-      reason: activeBackend.reason,
-    });
-    return false;
-  }
-
-  injectionEnabled = true;
-  console.log('[InputInjector] Input injection enabled', { backend: activeBackend.name });
-  return true;
+  return getInjector().enable();
 }
 
-/**
- * Disable input injection (called when control is revoked)
- */
 export function disableInjection(): void {
-  injectionEnabled = false;
-  console.log('[InputInjector] Input injection disabled');
+  getInjector().disable();
 }
 
-/**
- * Check if injection is currently enabled
- */
 export function isInjectionEnabled(): boolean {
-  return injectionEnabled;
+  return getInjector().isEnabled;
 }
 
 export function getInjectionDiagnostics(): InputInjectionDiagnostics {
-  const activeBackend = getBackend();
-  return {
-    enabled: injectionEnabled,
-    backend: activeBackend.name,
-    backendSupported: activeBackend.supported,
-    reason: activeBackend.reason,
-    details: activeBackend.details,
-    stats: { ...inputStats },
-  };
+  return getInjector().getDiagnostics();
 }
 
-/**
- * Update screen dimensions (called when capture source changes)
- */
 export function updateScreenSize(width: number, height: number): void {
-  getBackend().updateScreenSize(width, height);
+  getInjector().updateScreenSize(width, height);
   console.log(`[InputInjector] Screen size updated: ${String(width)}x${String(height)}`);
 }
 
-function logInputProgress(event: InputEvent): void {
-  if (inputStats.received <= 3 || inputStats.received % 100 === 0) {
-    console.log('[InputInjector] Input event received', {
-      count: inputStats.received,
-      backend: backendName,
-      type: event.type,
-      action: 'action' in event ? event.action : undefined,
-      injected: inputStats.injected,
-      errors: inputStats.errors,
-    });
-  }
-}
-
-/**
- * Inject an input event
- * Main entry point for processing incoming input events
- */
 export async function injectInput(event: InputEvent): Promise<void> {
-  inputStats.received += 1;
-  logInputProgress(event);
-
-  if (!injectionEnabled) {
-    console.warn('[InputInjector] Input injection not enabled, ignoring event', {
-      backend: backendName,
-      type: event.type,
-      action: 'action' in event ? event.action : undefined,
-    });
-    return;
-  }
-
-  try {
-    await getBackend().inject(event);
-    inputStats.injected += 1;
-  } catch (error) {
-    inputStats.errors += 1;
-    console.error('[InputInjector] Failed to inject input:', {
-      backend: backendName,
-      type: event.type,
-      action: 'action' in event ? event.action : undefined,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
+  await getInjector().inject(event);
 }
 
-/**
- * Emergency stop - release all keys and buttons
- */
+/** Release every held key and button, and stop accepting input. */
 export async function emergencyStop(): Promise<void> {
-  console.log('[InputInjector] Emergency stop triggered');
-  disableInjection();
-
-  try {
-    await getBackend().emergencyStop();
-  } catch (error) {
-    console.error('[InputInjector] Error during emergency stop:', error);
-  }
+  await getInjector().emergencyStop();
 }

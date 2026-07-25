@@ -1,0 +1,60 @@
+{
+  "name": "@profullstack/remote-input",
+  "version": "0.1.1",
+  "description": "Cross-platform OS input injection for remote control (macOS, Windows, Linux X11 and Wayland)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "remote-control",
+    "input-injection",
+    "screen-sharing",
+    "automation",
+    "wayland",
+    "ydotool",
+    "cross-platform"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/profullstack/pairux.com.git",
+    "directory": "packages/remote-input"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@nut-tree-fork/nut-js": ">=4.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@nut-tree-fork/nut-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

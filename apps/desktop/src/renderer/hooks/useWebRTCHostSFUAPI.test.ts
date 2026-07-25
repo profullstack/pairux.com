@@ -158,6 +158,113 @@ describe('useWebRTCHostSFUAPI', () => {
     );
   });
 
+  // Remote control is gated twice: the session must allow control at all, and
+  // the host must approve the specific participant. These cover the first gate,
+  // which was previously accepted as an option and then ignored entirely.
+  describe('allowControl enforcement', () => {
+    const encode = (message: unknown) => new TextEncoder().encode(JSON.stringify(message));
+
+    async function startHost(allowControl: boolean) {
+      const onControlRequest = vi.fn();
+      const onInputReceived = vi.fn();
+
+      const { result } = renderHook(() =>
+        useWebRTCHostSFUAPI({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+          localStream: null,
+          allowControl,
+          onControlRequest,
+          onInputReceived,
+        })
+      );
+
+      await act(async () => {
+        await result.current.startHosting();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      act(() => {
+        mockRoomInstance.emit('participantConnected', { identity: 'viewer-1' });
+      });
+
+      return { result, onControlRequest, onInputReceived };
+    }
+
+    it('surfaces control requests and input when the session allows control', async () => {
+      const { onControlRequest, onInputReceived } = await startHost(true);
+
+      act(() => {
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({ type: 'control-request', participantId: 'viewer-1', timestamp: 1 }),
+          { identity: 'viewer-1' }
+        );
+      });
+      expect(onControlRequest).toHaveBeenCalledWith('viewer-1');
+
+      act(() => {
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({
+            type: 'input',
+            timestamp: 1,
+            sequence: 1,
+            event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
+          }),
+          { identity: 'viewer-1' }
+        );
+      });
+      expect(onInputReceived).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops control requests and input when the session disallows control', async () => {
+      const { onControlRequest, onInputReceived } = await startHost(false);
+
+      act(() => {
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({ type: 'control-request', participantId: 'viewer-1', timestamp: 1 }),
+          { identity: 'viewer-1' }
+        );
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({
+            type: 'input',
+            timestamp: 1,
+            sequence: 1,
+            event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
+          }),
+          { identity: 'viewer-1' }
+        );
+      });
+
+      expect(onControlRequest).not.toHaveBeenCalled();
+      expect(onInputReceived).not.toHaveBeenCalled();
+    });
+
+    it('refuses to grant control when the session disallows control', async () => {
+      const { result } = await startHost(false);
+
+      act(() => {
+        result.current.grantControl('viewer-1');
+      });
+
+      expect(result.current.controllingViewer).toBeNull();
+    });
+
+    it('grants control when the session allows control', async () => {
+      const { result } = await startHost(true);
+
+      act(() => {
+        result.current.grantControl('viewer-1');
+      });
+
+      expect(result.current.controllingViewer).toBe('viewer-1');
+    });
+  });
+
   it('plays participant audio when an SFU audio track is subscribed', async () => {
     const { result } = renderHook(() =>
       useWebRTCHostSFUAPI({

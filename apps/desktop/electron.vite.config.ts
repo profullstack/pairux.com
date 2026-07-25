@@ -8,7 +8,13 @@ config();
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      // Bundle the workspace input library into the main chunk instead of
+      // leaving a bare require() for electron-builder to resolve through a
+      // pnpm symlink at package time. It is pure JS; the native nut.js binding
+      // it loads stays external (and asar-unpacked) as before.
+      externalizeDepsPlugin({ exclude: ['@profullstack/remote-input'] }),
+    ],
     build: {
       outDir: 'dist/main',
       rollupOptions: {

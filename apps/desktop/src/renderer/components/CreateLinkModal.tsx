@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
 import { APP_URL } from '../../shared/config';
-import { getDefaultSessionMode } from '@/lib/sessionDefaults';
+import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
     try {
       const api = getElectronAPI();
       const result = await api.invoke('session:create', {
-        allowGuestControl: false,
+        allowGuestControl: getDefaultAllowGuestControl(),
         maxParticipants: mode === 'sfu' ? 10 : 5,
         mode,
       });

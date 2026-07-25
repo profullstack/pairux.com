@@ -5,10 +5,11 @@ import type {
   MouseMoveEvent,
   MouseButtonEvent,
   MouseScrollEvent,
-  KeyboardEvent as KbEvent,
+  KeyboardInputEvent as KbEvent,
   MouseButton,
-} from '@pairux/shared-types';
-import type { InputBackend, InputBackendInitResult } from './types';
+  InputBackend,
+  InputBackendInitResult,
+} from '../types.js';
 
 type ExecRunner = (command: string, args: string[]) => Promise<void>;
 type DaemonStarter = () => Promise<{ attempted: boolean; method?: string; error?: string }>;
@@ -201,7 +202,7 @@ function scrollClickCode(base: number, repeat: number): string[] {
   return repeat > 1 ? ['--repeat', String(repeat), String(0xc0 | base)] : [String(0xc0 | base)];
 }
 
-const KEYCODES: Record<string, number> = {
+const KEYCODES = {
   Escape: 1,
   Digit1: 2,
   Digit2: 3,
@@ -286,10 +287,12 @@ const KEYCODES: Record<string, number> = {
   ArrowDown: 108,
   PageDown: 109,
   Pause: 119,
-};
+} satisfies Record<string, number>;
 
 function keyCodeFromEvent(event: KbEvent): number | null {
-  if (KEYCODES[event.code]) return KEYCODES[event.code];
+  // event.code is remote input, so it is not necessarily a known key name.
+  const direct = (KEYCODES as Record<string, number | undefined>)[event.code];
+  if (direct !== undefined) return direct;
 
   const aliases: Record<string, number> = {
     ' ': KEYCODES.Space,
@@ -323,7 +326,7 @@ function keyToken(code: number, down: boolean): string {
 export class WaylandYdotoolInputBackend implements InputBackend {
   readonly name = 'wayland-ydotool';
   supported: boolean;
-  reason?: string;
+  reason: string | undefined;
   details?: Record<string, unknown>;
   private screenWidth = 1920;
   private screenHeight = 1080;
@@ -335,9 +338,9 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   private availability: YdotoolAvailability;
   private ydotoolCommand = 'ydotool';
   private autoStartAttempted = false;
-  private autoStartMethod?: string;
-  private autoStartError?: string;
-  private diagnosedReason?: string;
+  private autoStartMethod: string | undefined;
+  private autoStartError: string | undefined;
+  private diagnosedReason: string | undefined;
 
   constructor(
     run: ExecRunner = defaultExecRunner,

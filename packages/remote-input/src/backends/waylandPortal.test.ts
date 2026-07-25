@@ -3,7 +3,7 @@ import {
   WaylandPortalInputBackend,
   probeWaylandPortalSupport,
   type WaylandPortalProbe,
-} from './waylandPortalBackend';
+} from './waylandPortal.js';
 
 describe('probeWaylandPortalSupport', () => {
   it('reports missing DBus session before probing names', () => {

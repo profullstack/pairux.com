@@ -3,10 +3,11 @@ import type {
   MouseMoveEvent,
   MouseButtonEvent,
   MouseScrollEvent,
-  KeyboardEvent as KbEvent,
+  KeyboardInputEvent as KbEvent,
   MouseButton,
-} from '@pairux/shared-types';
-import type { InputBackend, InputBackendInitResult } from './types';
+  InputBackend,
+  InputBackendInitResult,
+} from '../types.js';
 
 // Helper that performs the one-time dynamic import and configures nut-js
 async function loadNut() {

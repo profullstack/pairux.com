@@ -466,8 +466,8 @@ export function SettingsPage() {
               <div>
                 <p className="text-sm font-medium">Allow Guest Control by Default</p>
                 <p className="text-xs text-muted-foreground">
-                  Guests can request control of your screen. You still approve each request
-                  before anyone can type or click.
+                  Guests can request control of your screen. You still approve each request before
+                  anyone can type or click.
                 </p>
               </div>
               <button

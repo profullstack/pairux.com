@@ -16,7 +16,11 @@ export {
   type InputBackendSelection,
 } from './factory.js';
 
-export { detectDisplayServer, detectPlatform, requiresAccessibilityPermission } from './platform.js';
+export {
+  detectDisplayServer,
+  detectPlatform,
+  requiresAccessibilityPermission,
+} from './platform.js';
 
 export {
   BLOCKED_COMBINATIONS,

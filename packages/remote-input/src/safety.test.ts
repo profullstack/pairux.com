@@ -89,12 +89,12 @@ describe('isDangerousCombination', () => {
   });
 
   it('blocks the lock-screen shortcut regardless of key case', () => {
-    expect(isDangerousCombination(key({ key: 'l', modifiers: { ...noModifiers, meta: true } }))).toBe(
-      true
-    );
-    expect(isDangerousCombination(key({ key: 'L', modifiers: { ...noModifiers, meta: true } }))).toBe(
-      true
-    );
+    expect(
+      isDangerousCombination(key({ key: 'l', modifiers: { ...noModifiers, meta: true } }))
+    ).toBe(true);
+    expect(
+      isDangerousCombination(key({ key: 'L', modifiers: { ...noModifiers, meta: true } }))
+    ).toBe(true);
   });
 
   it('still blocks when extra modifiers are held', () => {

@@ -28,7 +28,10 @@ export interface InputBackendSelection {
  * nut.js drives macOS, Windows and Linux/X11. Wayland refuses synthetic input
  * from ordinary clients, so it gets its own resolution path.
  */
-export function selectInputBackend(platform: Platform, displayServer: DisplayServer): InputBackendKind {
+export function selectInputBackend(
+  platform: Platform,
+  displayServer: DisplayServer
+): InputBackendKind {
   if (platform === 'linux' && displayServer === 'wayland') {
     return 'wayland-portal';
   }

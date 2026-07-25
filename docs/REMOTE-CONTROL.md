@@ -57,18 +57,18 @@ sequenceDiagram
 
 ### Key files
 
-| Concern                           | Location                                                        |
-| --------------------------------- | --------------------------------------------------------------- |
-| Viewer input capture              | `apps/web/src/hooks/useRemoteControl.ts`                        |
-| Viewer control UI                 | `apps/web/src/components/control/`                              |
-| Viewer transport (SFU / P2P)      | `apps/web/src/hooks/useWebRTCSFU.ts`, `useWebRTC.ts`            |
-| Host transport + gating           | `apps/desktop/src/renderer/hooks/useWebRTCHostSFUAPI.ts`, `useWebRTCHostAPI.ts` |
-| Host prompt, grant/revoke         | `apps/desktop/src/renderer/components/capture/CapturePreview.tsx` |
-| Host injection hook               | `apps/desktop/src/renderer/hooks/useInputInjection.ts`          |
-| Main-process facade               | `apps/desktop/src/main/input/injector.ts`                       |
-| IPC + emergency hotkey            | `apps/desktop/src/main/ipc/input.ts`                            |
-| OS injection + safety             | `packages/remote-input/`                                        |
-| Control state persistence         | `apps/web/src/app/api/sessions/[sessionId]/participants/[participantId]/control/route.ts` |
+| Concern                      | Location                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------- |
+| Viewer input capture         | `apps/web/src/hooks/useRemoteControl.ts`                                                  |
+| Viewer control UI            | `apps/web/src/components/control/`                                                        |
+| Viewer transport (SFU / P2P) | `apps/web/src/hooks/useWebRTCSFU.ts`, `useWebRTC.ts`                                      |
+| Host transport + gating      | `apps/desktop/src/renderer/hooks/useWebRTCHostSFUAPI.ts`, `useWebRTCHostAPI.ts`           |
+| Host prompt, grant/revoke    | `apps/desktop/src/renderer/components/capture/CapturePreview.tsx`                         |
+| Host injection hook          | `apps/desktop/src/renderer/hooks/useInputInjection.ts`                                    |
+| Main-process facade          | `apps/desktop/src/main/input/injector.ts`                                                 |
+| IPC + emergency hotkey       | `apps/desktop/src/main/ipc/input.ts`                                                      |
+| OS injection + safety        | `packages/remote-input/`                                                                  |
+| Control state persistence    | `apps/web/src/app/api/sessions/[sessionId]/participants/[participantId]/control/route.ts` |
 
 ---
 
@@ -140,12 +140,12 @@ capture source changes.
 
 ## Stopping control
 
-| Mechanism            | Effect                                                        |
-| -------------------- | ------------------------------------------------------------- |
-| `Ctrl+Shift+Esc`     | Global hotkey. Releases every held key/button and disables injection immediately, regardless of UI state. |
-| Host revokes         | PATCHes `control_state = view-only`; injector disables on the next session refresh. |
-| Viewer releases      | Sends `control-revoke`.                                       |
-| Viewer disconnects   | Host clears that viewer's control state.                      |
+| Mechanism          | Effect                                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
+| `Ctrl+Shift+Esc`   | Global hotkey. Releases every held key/button and disables injection immediately, regardless of UI state. |
+| Host revokes       | PATCHes `control_state = view-only`; injector disables on the next session refresh.                       |
+| Viewer releases    | Sends `control-revoke`.                                                                                   |
+| Viewer disconnects | Host clears that viewer's control state.                                                                  |
 
 The emergency hotkey is registered for the app's lifetime
 (`apps/desktop/src/main/ipc/input.ts`) so it works even if the renderer is

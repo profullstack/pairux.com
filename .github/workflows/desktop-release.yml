@@ -106,8 +106,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Every workspace package the desktop app depends on, not a hardcoded
+      # list: the main process bundles @profullstack/remote-input, which cannot
+      # resolve until that package has a dist/. The "^..." filter keeps this
+      # correct as dependencies are added.
       - name: Build shared packages
-        run: pnpm --filter @pairux/shared-types build
+        run: pnpm --filter "@pairux/desktop^..." build
 
       # macOS code signing
       - name: Import macOS certificates

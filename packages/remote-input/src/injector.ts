@@ -7,7 +7,11 @@
  * believes it granted control that silently does nothing.
  */
 
-import { createInputBackend, getInputBackendSelection, type InputBackendSelection } from './factory.js';
+import {
+  createInputBackend,
+  getInputBackendSelection,
+  type InputBackendSelection,
+} from './factory.js';
 import { InputRateLimiter, validateInputEvent, type RejectionReason } from './safety.js';
 import type { InputBackend, InputDiagnostics, InputEvent, InputStats } from './types.js';
 

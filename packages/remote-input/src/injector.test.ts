@@ -18,7 +18,11 @@ const silentLogger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
 function makeInjector(backend: InputBackend, maxEventsPerSecond?: number) {
   const options = {
-    selection: { kind: 'nut-js' as const, platform: 'linux' as const, displayServer: 'x11' as const },
+    selection: {
+      kind: 'nut-js' as const,
+      platform: 'linux' as const,
+      displayServer: 'x11' as const,
+    },
     createBackend: () => backend,
     logger: silentLogger,
     ...(maxEventsPerSecond === undefined ? {} : { maxEventsPerSecond }),

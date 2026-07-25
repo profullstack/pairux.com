@@ -73,13 +73,13 @@ layout — call `updateScreenSize()` on the host and the injector maps them.
 
 ## Platform support
 
-| Platform          | Backend            | Requirements                                          |
-| ----------------- | ------------------ | ----------------------------------------------------- |
-| macOS             | `nut-js`           | Accessibility permission (see below)                  |
-| Windows           | `nut-js`           | None. Admin only to drive elevated windows.           |
-| Linux / X11       | `nut-js`           | None                                                  |
-| Linux / Wayland   | `wayland-ydotool`  | `ydotool` + a running `ydotoold` with `/dev/uinput`    |
-| Linux / Wayland   | `wayland-portal`    | Diagnostic only — reports why control is unavailable   |
+| Platform        | Backend           | Requirements                                         |
+| --------------- | ----------------- | ---------------------------------------------------- |
+| macOS           | `nut-js`          | Accessibility permission (see below)                 |
+| Windows         | `nut-js`          | None. Admin only to drive elevated windows.          |
+| Linux / X11     | `nut-js`          | None                                                 |
+| Linux / Wayland | `wayland-ydotool` | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
+| Linux / Wayland | `wayland-portal`  | Diagnostic only — reports why control is unavailable |
 
 Backend selection is automatic. On Wayland the package probes `ydotool` first
 (and will try to auto-start `ydotoold` via systemd), then falls back to a
@@ -126,12 +126,12 @@ event passes three guards before it reaches the OS:
   either hand over a privileged surface or end the session in a way the remote
   peer cannot undo:
 
-  | Combination            | Why                              |
-  | ---------------------- | -------------------------------- |
-  | `Ctrl+Alt+Delete`      | Secure attention / task manager  |
-  | `Meta+L`               | Locks the screen                 |
-  | `Meta+Alt+Escape`      | Force-quit picker                |
-  | `Ctrl+Shift+Meta+Q`    | Logs the host out                |
+  | Combination         | Why                             |
+  | ------------------- | ------------------------------- |
+  | `Ctrl+Alt+Delete`   | Secure attention / task manager |
+  | `Meta+L`            | Locks the screen                |
+  | `Meta+Alt+Escape`   | Force-quit picker               |
+  | `Ctrl+Shift+Meta+Q` | Logs the host out               |
 
 Rejections are counted in `getDiagnostics().stats` and reported through
 `onRejected`, so a host can surface them rather than lose them.
@@ -142,18 +142,18 @@ silently does nothing.
 
 ## API
 
-| Export                            | Purpose                                            |
-| --------------------------------- | -------------------------------------------------- |
-| `RemoteInputInjector`             | The gated, validated, rate-limited injection path  |
-| `getInputBackendSelection`        | Which backend applies to this host                 |
-| `createInputBackend`              | Construct a backend directly                       |
-| `selectInputBackend`              | Pure platform → backend-kind mapping               |
-| `detectPlatform` / `detectDisplayServer` | Environment probes                          |
-| `requiresAccessibilityPermission` | True on macOS                                      |
-| `validateInputEvent`              | Single-event validation                            |
-| `isDangerousCombination`          | Blocked-combination check                          |
-| `InputRateLimiter`                | Sliding-window limiter                             |
-| `BLOCKED_COMBINATIONS`            | The blocklist, for display in a UI                 |
+| Export                                   | Purpose                                           |
+| ---------------------------------------- | ------------------------------------------------- |
+| `RemoteInputInjector`                    | The gated, validated, rate-limited injection path |
+| `getInputBackendSelection`               | Which backend applies to this host                |
+| `createInputBackend`                     | Construct a backend directly                      |
+| `selectInputBackend`                     | Pure platform → backend-kind mapping              |
+| `detectPlatform` / `detectDisplayServer` | Environment probes                                |
+| `requiresAccessibilityPermission`        | True on macOS                                     |
+| `validateInputEvent`                     | Single-event validation                           |
+| `isDangerousCombination`                 | Blocked-combination check                         |
+| `InputRateLimiter`                       | Sliding-window limiter                            |
+| `BLOCKED_COMBINATIONS`                   | The blocklist, for display in a UI                |
 
 Backends (`NutJsInputBackend`, `WaylandYdotoolInputBackend`,
 `WaylandPortalInputBackend`, `UnsupportedWaylandInputBackend`) are exported for

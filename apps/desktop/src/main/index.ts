@@ -128,6 +128,28 @@ async function createWindow(): Promise<void> {
 void app.whenReady().then(async () => {
   console.log('[Main] App starting...');
 
+  // Resolve names over HTTPS where possible.
+  //
+  // On ISPs with unreliable resolvers we see ERR_NAME_NOT_RESOLVED (-105) for
+  // stun/turn hostnames, which leaves WebRTC with no relay path and kills the
+  // call even though the network itself is fine. DoH sidesteps the local
+  // resolver for every hostname the app uses, not just TURN.
+  //
+  // 'automatic' keeps the system resolver as a fallback, so a network that
+  // blocks DoH endpoints degrades to today's behaviour instead of losing DNS
+  // entirely. Set PAIRUX_DISABLE_DOH=1 to opt out.
+  if (process.env.PAIRUX_DISABLE_DOH !== '1') {
+    try {
+      app.configureHostResolver({
+        secureDnsMode: 'automatic',
+        secureDnsServers: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+      });
+      console.log('[Main] DNS-over-HTTPS enabled (automatic, system resolver as fallback)');
+    } catch (err) {
+      console.warn('[Main] Failed to configure DoH resolver:', err);
+    }
+  }
+
   // Register IPC handlers before creating window
   registerIpcHandlers();
 

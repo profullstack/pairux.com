@@ -2,6 +2,9 @@ import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@pairux/shared-types';
 import { CORS_HEADERS } from '@/lib/cors';
+// Shared with the LiveKit token route so desktop, web and PWA all get the
+// same relay set, including the server-resolved raw-IP TURN fallback.
+import { getIceServers } from '@/lib/ice-servers';
 import { z } from 'zod';
 
 // Type for session (until Supabase types are regenerated)
@@ -19,71 +22,6 @@ const querySchema = z.object({
 
 // Heartbeat interval (30 seconds)
 const HEARTBEAT_INTERVAL = 30000;
-
-// Build ICE servers config including TURN (if available) so clients don't
-// need to hardcode credentials.
-function getIceServers(): RTCIceServer[] {
-  const servers: RTCIceServer[] = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-  ];
-
-  const turnUrls = [
-    process.env.TURN_SERVER_URL,
-    process.env.TURNS_SERVER_URL,
-    process.env.TURN_SERVER_IP_URL,
-    process.env.TURNS_SERVER_IP_URL,
-  ];
-  const turnUser = process.env.TURN_SERVER_USERNAME;
-  const turnCred = process.env.TURN_SERVER_CREDENTIAL;
-
-  if (turnUser && turnCred) {
-    const uniqueTurnUrls = [...new Set(turnUrls.filter((url): url is string => Boolean(url)))];
-
-    if (uniqueTurnUrls.length > 0) {
-      servers.push({
-        urls: uniqueTurnUrls,
-        username: turnUser,
-        credential: turnCred,
-      });
-    }
-  }
-
-  const publicTurnUrls = [
-    process.env.NEXT_PUBLIC_TURN_URL,
-    process.env.NEXT_PUBLIC_TURNS_URL,
-    process.env.NEXT_PUBLIC_TURN_IP_URL,
-    process.env.NEXT_PUBLIC_TURNS_IP_URL,
-  ];
-  const publicTurnUser = process.env.NEXT_PUBLIC_TURN_USERNAME;
-  const publicTurnCred = process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
-
-  if (publicTurnUser && publicTurnCred) {
-    const uniquePublicTurnUrls = [
-      ...new Set(publicTurnUrls.filter((url): url is string => Boolean(url))),
-    ];
-
-    if (uniquePublicTurnUrls.length > 0) {
-      // Add public TURN entries as a fallback if server-side TURN envs are not configured
-      // in the runtime environment serving SSE.
-      const hasMatchingServerTurnEntry = servers.some((server) => {
-        if (!('username' in server) || !('credential' in server)) return false;
-        const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
-        return urls.some((url) => uniquePublicTurnUrls.includes(url));
-      });
-
-      if (!hasMatchingServerTurnEntry) {
-        servers.push({
-          urls: uniquePublicTurnUrls,
-          username: publicTurnUser,
-          credential: publicTurnCred,
-        });
-      }
-    }
-  }
-
-  return servers;
-}
 
 // GET /api/sessions/[sessionId]/signal/stream - SSE stream for WebRTC signaling
 export async function GET(
@@ -178,10 +116,12 @@ export async function GET(
     // Hoist channel reference so cancel() can clean it up
     let channelRef: ReturnType<typeof supabase.channel> | null = null;
 
+    const iceServers = await getIceServers();
+
     const stream = new ReadableStream({
       start(controller) {
         // Send initial connection event (includes ICE servers so clients get TURN config)
-        const connectEvent = `event: connected\ndata: ${JSON.stringify({ sessionId, subscriberId, isHost, iceServers: getIceServers() })}\n\n`;
+        const connectEvent = `event: connected\ndata: ${JSON.stringify({ sessionId, subscriberId, isHost, iceServers })}\n\n`;
         controller.enqueue(encoder.encode(connectEvent));
 
         // Set up heartbeat to keep connection alive

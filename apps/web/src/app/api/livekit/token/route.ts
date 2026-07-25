@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       token: jwt,
       url: process.env.NEXT_PUBLIC_LIVEKIT_URL,
       roomName,
-      iceServers: getIceServers(),
+      iceServers: await getIceServers(),
     });
   } catch (error) {
     return handleApiError(error);

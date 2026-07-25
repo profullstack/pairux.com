@@ -1,6 +1,6 @@
 {
   "name": "@pairux/desktop",
-  "version": "0.9.31",
+  "version": "0.9.32",
   "private": true,
   "description": "PairUX Desktop - Screen sharing with remote control",
   "author": "PairUX Team <hello@pairux.com>",

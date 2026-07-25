@@ -186,7 +186,10 @@ describe('useWebRTCHostSFUAPI', () => {
       });
 
       act(() => {
-        mockRoomInstance.emit('participantConnected', { identity: 'viewer-1' });
+        mockRoomInstance.emit('participantConnected', {
+          identity: 'viewer-1',
+          audioTrackPublications: new Map(),
+        });
       });
 
       return { result, onControlRequest, onInputReceived };
@@ -199,7 +202,7 @@ describe('useWebRTCHostSFUAPI', () => {
         mockRoomInstance.emit(
           'dataReceived',
           encode({ type: 'control-request', participantId: 'viewer-1', timestamp: 1 }),
-          { identity: 'viewer-1' }
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
         );
       });
       expect(onControlRequest).toHaveBeenCalledWith('viewer-1');
@@ -213,7 +216,7 @@ describe('useWebRTCHostSFUAPI', () => {
             sequence: 1,
             event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
           }),
-          { identity: 'viewer-1' }
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
         );
       });
       expect(onInputReceived).toHaveBeenCalledTimes(1);
@@ -226,7 +229,7 @@ describe('useWebRTCHostSFUAPI', () => {
         mockRoomInstance.emit(
           'dataReceived',
           encode({ type: 'control-request', participantId: 'viewer-1', timestamp: 1 }),
-          { identity: 'viewer-1' }
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
         );
         mockRoomInstance.emit(
           'dataReceived',
@@ -236,7 +239,7 @@ describe('useWebRTCHostSFUAPI', () => {
             sequence: 1,
             event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
           }),
-          { identity: 'viewer-1' }
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
         );
       });
 
@@ -265,6 +268,80 @@ describe('useWebRTCHostSFUAPI', () => {
     });
   });
 
+  // Regression: a viewer already in the room has their tracks subscribed
+  // during connect(), before the "track existing participants" pass runs. The
+  // handler used to require an existing viewer entry and silently dropped the
+  // track, leaving that participant inaudible for the whole session.
+  it('plays audio that is subscribed before the viewer has been registered', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+        localStream: null,
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const remoteAudioTrack = {
+      kind: 'audio',
+      mediaStreamTrack: { kind: 'audio', id: 'early-audio' },
+    };
+
+    // No participantConnected first, and not in remoteParticipants: audio
+    // arrives for a viewer the hook has never seen.
+    act(() => {
+      mockRoomInstance.emit(
+        'trackSubscribed',
+        remoteAudioTrack,
+        {},
+        {
+          identity: 'viewer-early',
+          audioTrackPublications: new Map(),
+        }
+      );
+    });
+
+    const viewer = result.current.viewers.get('viewer-early');
+    expect(viewer).toBeDefined();
+    expect(viewer?.audioElement).toBeInstanceOf(MockAudioElement);
+    expect(mockAudioPlay).toHaveBeenCalled();
+  });
+
+  it('picks up audio already subscribed when a participant is registered', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHostSFUAPI({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+        localStream: null,
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Participant shows up already carrying a subscribed audio publication.
+    act(() => {
+      mockRoomInstance.emit('participantConnected', {
+        identity: 'viewer-existing',
+        audioTrackPublications: new Map([
+          ['pub-1', { track: { mediaStreamTrack: { kind: 'audio', id: 'existing-audio' } } }],
+        ]),
+      });
+    });
+
+    const viewer = result.current.viewers.get('viewer-existing');
+    expect(viewer?.audioElement).toBeInstanceOf(MockAudioElement);
+    expect(mockAudioPlay).toHaveBeenCalled();
+  });
+
   it('plays participant audio when an SFU audio track is subscribed', async () => {
     const { result } = renderHook(() =>
       useWebRTCHostSFUAPI({
@@ -281,7 +358,10 @@ describe('useWebRTCHostSFUAPI', () => {
     });
 
     act(() => {
-      mockRoomInstance.emit('participantConnected', { identity: 'viewer-1' });
+      mockRoomInstance.emit('participantConnected', {
+        identity: 'viewer-1',
+        audioTrackPublications: new Map(),
+      });
     });
 
     const remoteAudioTrack = {
@@ -290,7 +370,12 @@ describe('useWebRTCHostSFUAPI', () => {
     };
 
     act(() => {
-      mockRoomInstance.emit('trackSubscribed', remoteAudioTrack, {}, { identity: 'viewer-1' });
+      mockRoomInstance.emit(
+        'trackSubscribed',
+        remoteAudioTrack,
+        {},
+        { identity: 'viewer-1', audioTrackPublications: new Map() }
+      );
     });
 
     const viewer = result.current.viewers.get('viewer-1');
@@ -315,7 +400,10 @@ describe('useWebRTCHostSFUAPI', () => {
     });
 
     act(() => {
-      mockRoomInstance.emit('participantConnected', { identity: 'viewer-1' });
+      mockRoomInstance.emit('participantConnected', {
+        identity: 'viewer-1',
+        audioTrackPublications: new Map(),
+      });
     });
 
     const remoteAudioTrack = {
@@ -324,11 +412,21 @@ describe('useWebRTCHostSFUAPI', () => {
     };
 
     act(() => {
-      mockRoomInstance.emit('trackSubscribed', remoteAudioTrack, {}, { identity: 'viewer-1' });
+      mockRoomInstance.emit(
+        'trackSubscribed',
+        remoteAudioTrack,
+        {},
+        { identity: 'viewer-1', audioTrackPublications: new Map() }
+      );
     });
 
     act(() => {
-      mockRoomInstance.emit('trackUnsubscribed', remoteAudioTrack, {}, { identity: 'viewer-1' });
+      mockRoomInstance.emit(
+        'trackUnsubscribed',
+        remoteAudioTrack,
+        {},
+        { identity: 'viewer-1', audioTrackPublications: new Map() }
+      );
     });
 
     const viewer = result.current.viewers.get('viewer-1');

@@ -178,26 +178,69 @@ export function useWebRTCHostSFUAPI({
   }, []);
 
   // Add viewer from remote participant
-  const addViewer = useCallback((participant: RemoteParticipant) => {
-    if (viewersRef.current.has(participant.identity)) return;
+  /**
+   * Route a viewer's audio to the speakers.
+   *
+   * Replaces any previous element for that viewer, so it is safe to call
+   * again for a track that is already playing.
+   */
+  const attachViewerAudio = useCallback((viewer: ViewerConnection, track: MediaStreamTrack) => {
+    viewer.audioTrack = track;
 
-    const viewer: ViewerConnection = {
-      id: participant.identity,
-      peerConnection: null as unknown as RTCPeerConnection,
-      dataChannel: null,
-      connectionState: 'connected',
-      controlState: 'view-only',
-      networkQuality: 'good',
-      currentPreset: 'good',
-      audioTrack: null,
-      audioElement: null,
-      isMuted: false,
-    };
+    if (viewer.audioElement) {
+      viewer.audioElement.pause();
+      viewer.audioElement.srcObject = null;
+    }
 
-    viewersRef.current.set(participant.identity, viewer);
-    setViewers(new Map(viewersRef.current));
-    onViewerJoinedRef.current?.(participant.identity);
+    const audioEl = new Audio();
+    audioEl.srcObject = new MediaStream([track]);
+    audioEl.autoplay = true;
+    audioEl.volume = 1.0;
+    audioEl.muted = viewer.isMuted;
+    void audioEl.play().catch((err: unknown) => {
+      console.warn('[WebRTCHostSFUAPI] Failed to play viewer audio:', err);
+    });
+
+    viewer.audioElement = audioEl;
+    console.log('[WebRTCHostSFUAPI] Viewer audio attached', { viewerId: viewer.id });
   }, []);
+
+  const addViewer = useCallback(
+    (participant: RemoteParticipant) => {
+      if (viewersRef.current.has(participant.identity)) return;
+
+      const viewer: ViewerConnection = {
+        id: participant.identity,
+        peerConnection: null as unknown as RTCPeerConnection,
+        dataChannel: null,
+        connectionState: 'connected',
+        controlState: 'view-only',
+        networkQuality: 'good',
+        currentPreset: 'good',
+        audioTrack: null,
+        audioElement: null,
+        isMuted: false,
+      };
+
+      viewersRef.current.set(participant.identity, viewer);
+
+      // A participant already in the room when we connect has their tracks
+      // subscribed during connect(), so TrackSubscribed may already have fired
+      // (and found no viewer entry). Pick up anything already subscribed rather
+      // than waiting for an event that has been and gone.
+      for (const publication of participant.audioTrackPublications.values()) {
+        const existing = publication.track?.mediaStreamTrack;
+        if (existing) {
+          attachViewerAudio(viewer, existing);
+          break;
+        }
+      }
+
+      setViewers(new Map(viewersRef.current));
+      onViewerJoinedRef.current?.(participant.identity);
+    },
+    [attachViewerAudio]
+  );
 
   // Remove viewer
   const removeViewer = useCallback((identity: string) => {
@@ -309,27 +352,29 @@ export function useWebRTCHostSFUAPI({
 
       // Handle viewer audio
       room.on(RoomEvent.TrackSubscribed, (track, _publication, participant: RemoteParticipant) => {
-        if (track.kind === Track.Kind.Audio) {
-          const viewer = viewersRef.current.get(participant.identity);
-          if (viewer) {
-            viewer.audioTrack = track.mediaStreamTrack;
-            if (viewer.audioElement) {
-              viewer.audioElement.pause();
-              viewer.audioElement.srcObject = null;
-            }
+        if (track.kind !== Track.Kind.Audio) return;
 
-            const audioEl = new Audio();
-            audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
-            audioEl.autoplay = true;
-            audioEl.volume = 1.0;
-            void audioEl.play().catch((err: unknown) => {
-              console.warn('[WebRTCHostSFUAPI] Failed to play viewer audio:', err);
-            });
-            viewer.audioElement = audioEl;
-
-            setViewers(new Map(viewersRef.current));
-          }
+        // Audio can be subscribed before the viewer is registered (tracks are
+        // subscribed during connect(), while participants already in the room
+        // are enumerated after it). Register them now instead of dropping the
+        // track, which used to leave that viewer permanently silent.
+        if (!viewersRef.current.has(participant.identity)) {
+          console.log('[WebRTCHostSFUAPI] Audio arrived before viewer was tracked; adding viewer', {
+            viewerId: participant.identity,
+          });
+          addViewer(participant);
         }
+
+        const viewer = viewersRef.current.get(participant.identity);
+        if (!viewer) {
+          console.warn('[WebRTCHostSFUAPI] Dropping viewer audio: no viewer entry', {
+            viewerId: participant.identity,
+          });
+          return;
+        }
+
+        attachViewerAudio(viewer, track.mediaStreamTrack);
+        setViewers(new Map(viewersRef.current));
       });
 
       room.on(
@@ -452,7 +497,7 @@ export function useWebRTCHostSFUAPI({
     } finally {
       startingRef.current = false;
     }
-  }, [sessionId, hostId, addViewer, removeViewer, handleDataReceived]);
+  }, [sessionId, hostId, addViewer, attachViewerAudio, removeViewer, handleDataReceived]);
 
   // Publish a screen share stream to the LiveKit room
   const publishStream = useCallback(async (stream: MediaStream) => {

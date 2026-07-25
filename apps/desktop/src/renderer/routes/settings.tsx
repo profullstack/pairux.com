@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StreamDestinations } from '@/components/streaming';
 import { LIVE_STREAM_CHANGED_EVENT } from '@/lib/liveStream';
+import { GUEST_CONTROL_OPT_OUT_VERSION } from '@/lib/sessionDefaults';
 import { useAuthStore } from '@/stores/auth';
 import { useUIStore } from '@/stores/ui';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
@@ -23,6 +24,9 @@ import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { API_BASE_URL } from '../../shared/config';
 
 interface AppSettings {
+  // Stamped so sessionDefaults can tell a deliberate choice from a value that
+  // is merely the old default carried forward. See GUEST_CONTROL_OPT_OUT_VERSION.
+  settingsVersion: number;
   recording: {
     defaultQuality: RecordingQuality;
   };
@@ -38,6 +42,7 @@ interface AppSettings {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
+  settingsVersion: GUEST_CONTROL_OPT_OUT_VERSION,
   recording: {
     defaultQuality: '1080p',
   },
@@ -98,8 +103,14 @@ export function SettingsPage() {
 
   // Update settings locally (marks as having changes)
   const updateSettings = (newSettings: AppSettings) => {
-    setSettings(newSettings);
-    localStorage.setItem('pairux-settings', JSON.stringify(newSettings));
+    // Anything saved from this screen is a deliberate choice, so stamp the
+    // current version — from here on the stored guest-control value is honoured.
+    const versioned: AppSettings = {
+      ...newSettings,
+      settingsVersion: GUEST_CONTROL_OPT_OUT_VERSION,
+    };
+    setSettings(versioned);
+    localStorage.setItem('pairux-settings', JSON.stringify(versioned));
     // Notify same-window listeners (e.g. the capture screen's Go Live control)
     // since the `storage` event only fires in other windows.
     window.dispatchEvent(new Event(LIVE_STREAM_CHANGED_EVENT));

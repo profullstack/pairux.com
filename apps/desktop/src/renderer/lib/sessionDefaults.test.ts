@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getDefaultAllowGuestControl, getDefaultSessionMode } from './sessionDefaults';
+import {
+  GUEST_CONTROL_OPT_OUT_VERSION,
+  getDefaultAllowGuestControl,
+  getDefaultSessionMode,
+} from './sessionDefaults';
 
 const SETTINGS_KEY = 'pairux-settings';
 
@@ -57,13 +61,37 @@ describe('getDefaultAllowGuestControl', () => {
     expect(getDefaultAllowGuestControl()).toBe(true);
   });
 
-  it('returns false only when the host explicitly opted out', () => {
-    persist({ allowGuestControlByDefault: false });
+  // Regression: settings are stored as one object, so every user who ever
+  // changed any unrelated preference has the old opt-in default persisted.
+  // Honouring that stale false kept remote control dark on existing installs
+  // even after it became opt-out.
+  it('ignores a legacy false written before settings were versioned', () => {
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({ session: { allowGuestControlByDefault: false } })
+    );
+    expect(getDefaultAllowGuestControl()).toBe(true);
+  });
+
+  it('returns false when the host opted out after versioning', () => {
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        settingsVersion: GUEST_CONTROL_OPT_OUT_VERSION,
+        session: { allowGuestControlByDefault: false },
+      })
+    );
     expect(getDefaultAllowGuestControl()).toBe(false);
   });
 
-  it('returns true when explicitly enabled', () => {
-    persist({ allowGuestControlByDefault: true });
+  it('returns true when explicitly enabled after versioning', () => {
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        settingsVersion: GUEST_CONTROL_OPT_OUT_VERSION,
+        session: { allowGuestControlByDefault: true },
+      })
+    );
     expect(getDefaultAllowGuestControl()).toBe(true);
   });
 

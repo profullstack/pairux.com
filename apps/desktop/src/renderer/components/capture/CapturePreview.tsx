@@ -249,10 +249,23 @@ export function CapturePreview({
   // from "no session" to "sfu session" happens before anything connects.
   const isSFU = session?.mode === 'sfu';
 
-  // Find participant with control granted (used to enable host-side input injection)
+  // The remote participant the host has handed control to, which is what
+  // enables input injection.
+  //
+  // The host's own row is created with control_state 'granted' (they always
+  // control their own machine), so it must be excluded — otherwise injection
+  // switches on the moment a session is created, before anyone has joined.
   const participantWithControl = useMemo(() => {
-    return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
-  }, [participants]);
+    return (
+      participants.find(
+        (p) =>
+          p.control_state === 'granted' &&
+          !p.left_at &&
+          p.role !== 'host' &&
+          (currentUserId === undefined || p.user_id !== currentUserId)
+      ) ?? null
+    );
+  }, [participants, currentUserId]);
 
   // Viewers waiting on a control decision. Guests are anonymous and cannot
   // write control_state themselves, so requests arrive over the data channel

@@ -114,6 +114,18 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     }
   });
 
+  // Mirror renderer console output into the main process stdout.
+  //
+  // Session logic (WebRTC, control state, audio routing) all lives in the
+  // renderer, so its logs are invisible to anyone running a packaged build
+  // from a terminal — they only see main-process lines and can easily conclude
+  // a subsystem never ran. Forwarding makes a pasted terminal log diagnosable.
+  mainWindow.webContents.on('console-message', (_event, level, message) => {
+    // 0=verbose 1=info 2=warning 3=error
+    const prefix = level >= 3 ? '[Renderer:error]' : level === 2 ? '[Renderer:warn]' : '[Renderer]';
+    console.log(`${prefix} ${message}`);
+  });
+
   // Show window when ready to prevent visual flash
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();

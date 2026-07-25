@@ -296,6 +296,70 @@ describe('ViewerPage', () => {
     });
   });
 
+  // The desktop viewer previously received controlState/requestControl from
+  // its hook and rendered nothing for them, so a participant joining from the
+  // desktop app had no way to ask for control and no sign control existed.
+  describe('remote control', () => {
+    it('offers to request control when the session allows it', async () => {
+      mockInvoke.mockResolvedValue({
+        success: true,
+        session: makeSession({ settings: { maxParticipants: 10, allowControl: true } }),
+        participants: makeParticipants(),
+      });
+
+      renderWithRouter();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Request Control/i })).toBeInTheDocument();
+      });
+    });
+
+    it('asks the host when the button is clicked', async () => {
+      mockP2PHookResult.requestControl = vi.fn();
+      mockInvoke.mockResolvedValue({
+        success: true,
+        session: makeSession({ settings: { maxParticipants: 10, allowControl: true } }),
+        participants: makeParticipants(),
+      });
+
+      renderWithRouter();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Request Control/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Request Control/i }));
+      expect(mockP2PHookResult.requestControl).toHaveBeenCalled();
+    });
+
+    it('shows the pending state while waiting on the host', async () => {
+      mockP2PHookResult.controlState = 'requested';
+      mockInvoke.mockResolvedValue({
+        success: true,
+        session: makeSession({ settings: { maxParticipants: 10, allowControl: true } }),
+        participants: makeParticipants(),
+      });
+
+      renderWithRouter();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Requested/i)).toBeInTheDocument();
+      });
+
+      mockP2PHookResult.controlState = 'view-only';
+    });
+
+    it('hides control entirely when the session disallows it', async () => {
+      renderWithRouter();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Share Screen/i })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('button', { name: /Request Control/i })).not.toBeInTheDocument();
+    });
+  });
+
   it('should show Share Screen button and navigate to presenter mode', async () => {
     renderWithRouter();
 

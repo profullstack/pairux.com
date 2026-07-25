@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { ChatPanel } from '@/components/chat';
 import { VideoViewer } from '@/components/video/VideoViewer';
+import { ControlRequestButton } from '@/components/control/ControlRequestButton';
+import { InputCapture } from '@/components/control/InputCapture';
 import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI } from '@/lib/ipc';
 import { useWebRTCViewerAPI } from '@/hooks/useWebRTCViewerAPI';
@@ -23,6 +25,7 @@ import type {
   SessionParticipant,
   ConnectionState,
   ControlStateUI,
+  InputEvent,
 } from '@pairux/shared-types';
 
 // Common return type for both viewer hooks
@@ -36,6 +39,8 @@ interface ViewerHookResult {
   dataChannelReady: boolean;
   requestControl: () => void;
   releaseControl: () => void;
+  sendInput: (event: InputEvent) => void;
+  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -267,10 +272,20 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
     error: webrtcError,
     reconnect,
     disconnect,
+    controlState,
+    dataChannelReady,
+    requestControl,
+    releaseControl,
+    sendInput,
+    sendCursorPosition,
     micEnabled,
     hasMic,
     toggleMic,
   } = hookResult;
+
+  // Whether the host allows guests to ask for control at all. Fixed when the
+  // session was created, so sessions made before it defaulted on stay off.
+  const allowControl = session.settings.allowControl ?? false;
 
   const handleLeave = useCallback(() => {
     setLeaving(true);
@@ -297,6 +312,15 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           </div>
 
           <div className="flex items-center gap-2">
+            {allowControl && (
+              <ControlRequestButton
+                controlState={controlState}
+                dataChannelReady={dataChannelReady}
+                onRequestControl={requestControl}
+                onReleaseControl={releaseControl}
+              />
+            )}
+
             <button
               onClick={() => {
                 void navigate(`/?shareSessionId=${session.id}`);
@@ -405,17 +429,26 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           </span>
         </div>
 
-        {/* Video viewer */}
-        <VideoViewer
-          stream={remoteStream}
-          connectionState={connectionState}
-          error={webrtcError}
-          onReconnect={reconnect}
-          speakerMuted={speakerMuted}
-          onSpeakerMutedChange={setSpeakerMuted}
-          showSpeakerToggle={false}
-          className="flex-1"
-        />
+        {/* Video viewer, wrapped so mouse/keyboard can be forwarded to the
+            host once control is granted. */}
+        <InputCapture
+          enabled={allowControl}
+          controlState={controlState}
+          onInputEvent={sendInput}
+          onCursorMove={sendCursorPosition}
+          className="flex flex-1 flex-col"
+        >
+          <VideoViewer
+            stream={remoteStream}
+            connectionState={connectionState}
+            error={webrtcError}
+            onReconnect={reconnect}
+            speakerMuted={speakerMuted}
+            onSpeakerMutedChange={setSpeakerMuted}
+            showSpeakerToggle={false}
+            className="flex-1"
+          />
+        </InputCapture>
       </div>
 
       {/* Chat panel */}

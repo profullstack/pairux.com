@@ -102,7 +102,7 @@ export function useWebRTCHostAPI({
   sessionId,
   hostId,
   localStream,
-  allowControl: _allowControl = false,
+  allowControl = false,
   onViewerJoined,
   onViewerLeft,
   onControlRequest,
@@ -139,6 +139,10 @@ export function useWebRTCHostAPI({
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
+  // Sessions that disallow control must never surface a request or forward an
+  // input event, even if a viewer sends one anyway.
+  const allowControlRef = useRef(allowControl);
+  allowControlRef.current = allowControl;
 
   const getPreferredHostAudioTrack = useCallback(
     (streamOverride?: MediaStream | null): MediaStreamTrack | null => {
@@ -335,6 +339,12 @@ export function useWebRTCHostAPI({
       if ('type' in message) {
         switch (message.type) {
           case 'control-request':
+            if (!allowControlRef.current) {
+              console.warn('[WebRTCHost] Ignoring control request: session disallows control', {
+                viewerId,
+              });
+              return;
+            }
             onControlRequestRef.current?.(viewerId);
             break;
           case 'control-revoke': {
@@ -347,6 +357,7 @@ export function useWebRTCHostAPI({
             break;
           }
           case 'input':
+            if (!allowControlRef.current) return;
             onInputReceivedRef.current?.(viewerId, message);
             break;
           case 'cursor':
@@ -1003,6 +1014,13 @@ export function useWebRTCHostAPI({
   // Grant control
   const grantControl = useCallback(
     (viewerId: string) => {
+      if (!allowControlRef.current) {
+        console.warn('[WebRTCHost] Refusing to grant control: session disallows control', {
+          viewerId,
+        });
+        return;
+      }
+
       const viewer = viewersRef.current.get(viewerId);
       if (viewer?.dataChannel?.readyState !== 'open') return;
 

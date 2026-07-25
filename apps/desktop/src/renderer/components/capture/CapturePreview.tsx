@@ -26,6 +26,7 @@ import type {
   Session,
   InputMessage,
   CursorPositionMessage,
+  SessionParticipant,
 } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
@@ -41,7 +42,7 @@ import { CameraBubble } from '@/components/capture/CameraBubble';
 import { PublishToLive } from '@/components/capture/PublishToLive';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useLiveStreamEnabled } from '@/lib/liveStream';
-import { getDefaultSessionMode } from '@/lib/sessionDefaults';
+import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAutoStopServerStream } from '@/hooks/useAutoStopServerStream';
@@ -54,6 +55,15 @@ import {
   RemoteCursorsContainer,
   useRemoteCursors,
 } from '@/components/overlay';
+
+// A control request the host has not answered yet. Expires so a request the
+// host ignored does not sit in the UI forever.
+interface PendingControlRequest {
+  viewerId: string;
+  requestedAt: number;
+}
+
+const CONTROL_REQUEST_TIMEOUT_MS = 30_000;
 
 const CAMERA_BUBBLE_STORAGE_KEY = 'pairux-camera-bubble';
 // Default: lower-right corner, ~20% of frame height (Loom-style).
@@ -244,6 +254,34 @@ export function CapturePreview({
     return participants.find((p) => p.control_state === 'granted' && !p.left_at) ?? null;
   }, [participants]);
 
+  // Viewers waiting on a control decision. Guests are anonymous and cannot
+  // write control_state themselves, so requests arrive over the data channel
+  // and live here until the host approves or denies them.
+  const [pendingControlRequests, setPendingControlRequests] = useState<PendingControlRequest[]>([]);
+
+  const handleControlRequested = useCallback((viewerId: string) => {
+    setPendingControlRequests((prev) =>
+      prev.some((request) => request.viewerId === viewerId)
+        ? prev
+        : [...prev, { viewerId, requestedAt: Date.now() }]
+    );
+  }, []);
+
+  // Drop requests the host never answered, matching the documented 30s timeout.
+  const hasPendingControlRequests = pendingControlRequests.length > 0;
+  useEffect(() => {
+    if (!hasPendingControlRequests) return;
+
+    const timer = setInterval(() => {
+      const cutoff = Date.now() - CONTROL_REQUEST_TIMEOUT_MS;
+      setPendingControlRequests((prev) => prev.filter((request) => request.requestedAt > cutoff));
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [hasPendingControlRequests]);
+
   const inputScreenSize = useMemo(() => {
     if (!stream) return undefined;
     const tracks = stream.getVideoTracks();
@@ -279,8 +317,12 @@ export function CapturePreview({
       },
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
+        setPendingControlRequests((prev) =>
+          prev.filter((request) => request.viewerId !== viewerId)
+        );
         void refreshSession();
       },
+      onControlRequest: handleControlRequested,
       onInputReceived: (viewerId: string, input: InputMessage) => {
         remoteInputCountRef.current += 1;
         if (remoteInputCountRef.current <= 3 || remoteInputCountRef.current % 100 === 0) {
@@ -306,6 +348,7 @@ export function CapturePreview({
       injectEvent,
       participantWithControl?.id,
       refreshSession,
+      handleControlRequested,
     ]
   );
 
@@ -563,7 +606,7 @@ export function CapturePreview({
       // Mode comes from Settings (default SFU so "Go Live (server)" is
       // available — quick-share never shows the mode picker).
       void createSession({
-        allowGuestControl: false,
+        allowGuestControl: getDefaultAllowGuestControl(),
         maxParticipants: 5,
         mode: getDefaultSessionMode(),
       });
@@ -735,6 +778,48 @@ export function CapturePreview({
       }
     },
     [session, getAuthHeaders, resolveViewerTargetId, revokeControl, refreshSession]
+  );
+
+  // A viewer id is whatever the transport calls the peer; map it back to the
+  // session participant row so control_state can be persisted for it.
+  const resolveParticipantFromViewerId = useCallback(
+    (viewerId: string): SessionParticipant | null =>
+      participants.find((p) => !p.left_at && (p.user_id === viewerId || p.id === viewerId)) ?? null,
+    [participants]
+  );
+
+  const dismissControlRequest = useCallback((viewerId: string) => {
+    setPendingControlRequests((prev) => prev.filter((request) => request.viewerId !== viewerId));
+  }, []);
+
+  const handleApproveControlRequest = useCallback(
+    async (viewerId: string) => {
+      dismissControlRequest(viewerId);
+
+      const participant = resolveParticipantFromViewerId(viewerId);
+      if (!participant) {
+        // Without a participant row we cannot persist control_state, and
+        // host-side injection keys off that row — so signalling the viewer
+        // alone would hand them a session that silently drops every event.
+        console.warn('[CapturePreview] Cannot approve control: no participant for viewer', {
+          viewerId,
+        });
+        await refreshSession();
+        return;
+      }
+
+      await handleGrantControl(participant.id);
+    },
+    [dismissControlRequest, resolveParticipantFromViewerId, handleGrantControl, refreshSession]
+  );
+
+  const handleDenyControlRequest = useCallback(
+    (viewerId: string) => {
+      dismissControlRequest(viewerId);
+      // Tell the viewer so their UI leaves the "requested" state.
+      revokeControl(viewerId);
+    },
+    [dismissControlRequest, revokeControl]
   );
 
   const handleKickParticipant = useCallback(
@@ -1217,6 +1302,49 @@ export function CapturePreview({
             Creating session...
           </div>
         ) : null}
+
+        {pendingControlRequests.map((request) => {
+          const participant = resolveParticipantFromViewerId(request.viewerId);
+          const name = participant?.display_name ?? 'A participant';
+
+          return (
+            <div
+              key={request.viewerId}
+              className="rounded-lg border border-blue-300/60 bg-blue-50 px-4 py-3 text-sm text-blue-950"
+              data-testid="control-request-prompt"
+            >
+              <div className="flex items-start gap-2">
+                <Monitor className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="font-medium">{name} wants to control your screen</div>
+                  <div className="text-blue-900/90">
+                    They will be able to move your cursor and type on this machine. Press
+                    Ctrl+Shift+Esc at any time to cut control off immediately.
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        void handleApproveControlRequest(request.viewerId);
+                      }}
+                    >
+                      Allow control
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        handleDenyControlRequest(request.viewerId);
+                      }}
+                    >
+                      Deny
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
 
         {showWaylandInputDiagnostics && (
           <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-950">

@@ -84,6 +84,7 @@ export function useWebRTCHostSFUAPI({
   sessionId,
   hostId,
   localStream,
+  allowControl = false,
   onViewerJoined,
   onViewerLeft,
   onControlRequest,
@@ -115,6 +116,10 @@ export function useWebRTCHostSFUAPI({
   onCursorUpdateRef.current = onCursorUpdate;
   onViewerJoinedRef.current = onViewerJoined;
   onViewerLeftRef.current = onViewerLeft;
+  // Sessions that disallow control must never surface a request or forward an
+  // input event, even if a viewer sends one anyway.
+  const allowControlRef = useRef(allowControl);
+  allowControlRef.current = allowControl;
 
   // Send data to a specific participant or all
   const sendData = useCallback((message: unknown, targetIdentity?: string, reliable = true) => {
@@ -141,6 +146,12 @@ export function useWebRTCHostSFUAPI({
       if ('type' in message) {
         switch (message.type) {
           case 'control-request':
+            if (!allowControlRef.current) {
+              console.warn('[WebRTCHostSFU] Ignoring control request: session disallows control', {
+                viewerId,
+              });
+              return;
+            }
             onControlRequestRef.current?.(viewerId);
             break;
           case 'control-revoke': {
@@ -153,6 +164,7 @@ export function useWebRTCHostSFUAPI({
             break;
           }
           case 'input':
+            if (!allowControlRef.current) return;
             onInputReceivedRef.current?.(viewerId, message);
             break;
           case 'cursor':
@@ -559,6 +571,13 @@ export function useWebRTCHostSFUAPI({
   // Grant control
   const grantControl = useCallback(
     (viewerId: string) => {
+      if (!allowControlRef.current) {
+        console.warn('[WebRTCHostSFU] Refusing to grant control: session disallows control', {
+          viewerId,
+        });
+        return;
+      }
+
       if (!viewersRef.current.has(viewerId)) return;
 
       if (controllingViewer && controllingViewer !== viewerId) {

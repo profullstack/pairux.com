@@ -1,6 +1,5 @@
 import { execFileSync } from 'child_process';
-import type { InputEvent } from '@pairux/shared-types';
-import type { InputBackend, InputBackendInitResult } from './types';
+import type { InputEvent, InputBackend, InputBackendInitResult } from '../types.js';
 
 export interface WaylandPortalProbe {
   hasDbusSession: boolean;
@@ -105,12 +104,12 @@ export function probeWaylandPortalSupport(
 export class WaylandPortalInputBackend implements InputBackend {
   readonly name = 'wayland-portal';
   readonly supported = false;
-  readonly reason?: string;
-  readonly details?: Record<string, unknown>;
+  readonly reason: string | undefined;
+  readonly details: Record<string, unknown> | undefined;
 
   private warned = false;
 
-  constructor(private readonly probe: WaylandPortalProbe = probeWaylandPortalSupport()) {
+  constructor(probe: WaylandPortalProbe = probeWaylandPortalSupport()) {
     this.details = {
       hasDbusSession: probe.hasDbusSession,
       hasGdbus: probe.hasGdbus,

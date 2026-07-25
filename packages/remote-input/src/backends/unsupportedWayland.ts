@@ -1,5 +1,4 @@
-import type { InputEvent } from '@pairux/shared-types';
-import type { InputBackend } from './types';
+import type { InputEvent, InputBackend } from '../types.js';
 
 interface UnsupportedWaylandBackendOptions {
   reason?: string;
@@ -10,7 +9,7 @@ export class UnsupportedWaylandInputBackend implements InputBackend {
   readonly name = 'wayland-unsupported';
   readonly supported = false;
   readonly reason: string;
-  readonly details?: Record<string, unknown>;
+  readonly details: Record<string, unknown> | undefined;
 
   private warned = false;
 

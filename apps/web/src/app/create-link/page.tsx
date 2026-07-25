@@ -49,7 +49,12 @@ export default function CreateLinkPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          allowGuestControl: false,
+          // These links are hosted from the desktop app, which is the only host
+          // that can actually inject input. Guests may ask for control; the
+          // desktop host still approves each request before anything is
+          // injected. (Web-hosted sessions keep this off — a browser has no OS
+          // to drive, so the request could never be satisfied.)
+          allowGuestControl: true,
           maxParticipants: 5,
         }),
       });

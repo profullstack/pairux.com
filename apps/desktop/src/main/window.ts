@@ -56,8 +56,13 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
   // Handle display media (screen capture) permission requests.
   // Electron requires setDisplayMediaRequestHandler — without it,
   // getDisplayMedia() fails with "Not supported in UI".
-  // We run under XWayland (no ozone-platform=wayland), so
-  // desktopCapturer.getSources() returns real screen content.
+  //
+  // Do not assume XWayland here: on a Wayland session Chromium runs the native
+  // ozone/wayland backend, and desktopCapturer.getSources() then goes through
+  // the xdg-desktop-portal ScreenCast interface, which does not support
+  // enumerating sources with thumbnails and fails ("ScreenCastPortal failed").
+  // The renderer therefore skips its own picker on Wayland and calls
+  // getDisplayMedia() so the portal shows its picker instead.
   console.log(
     `[Main] Window: isWayland=${String(isWayland)}, XDG_SESSION_TYPE=${process.env.XDG_SESSION_TYPE ?? 'unset'}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY ?? 'unset'}`
   );

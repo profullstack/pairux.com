@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Link2, Loader2, Mic, Radio, User as UserIcon } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
+import { isDisplayServerKnown, shouldShowInAppSourcePicker } from '@/lib/capturePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { getElectronAPI } from '@/lib/ipc';
@@ -62,7 +63,11 @@ export function HomePage() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [displayServer, setDisplayServer] = useState<DisplayServer>('x11');
-  const [isWayland, setIsWayland] = useState(false);
+  // null until platform:info answers. Rendering the source picker before then
+  // fires desktopCapturer.getSources(), which on Wayland opens a PipeWire
+  // portal session that fails and then conflicts with the real
+  // getDisplayMedia() call — so wait rather than guessing X11.
+  const [isWayland, setIsWayland] = useState<boolean | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
@@ -494,7 +499,14 @@ export function HomePage() {
           {/* On Wayland, desktopCapturer.getSources() triggers a PipeWire portal session
               that conflicts with subsequent getDisplayMedia() calls. Skip the SourcePicker
               and rely on the system screen picker button above instead. */}
-          {!isWayland && (
+          {!isDisplayServerKnown(isWayland) && (
+            <div className="flex items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Detecting display server...
+            </div>
+          )}
+
+          {shouldShowInAppSourcePicker(isWayland) && (
             <SourcePicker
               onSelect={(source) => {
                 void handleSourceSelect(source);

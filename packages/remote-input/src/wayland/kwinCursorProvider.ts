@@ -40,15 +40,27 @@ const POSITION_MAX_AGE_MS = 2000;
 const REPORT_INTERVAL_MS = 100;
 
 /**
- * Off unless explicitly enabled.
+ * On automatically where it applies: a KDE session on Wayland.
  *
- * Restoring the pointer on Wayland is a comfort, not a requirement, and the
- * only way to do it puts our code in the compositor's input path — where a
- * mistake costs the user their whole desktop. Opt in with
- * PAIRUX_WAYLAND_CURSOR_RESTORE=1.
+ * This is the only environment the helper targets, and enabling it by hand is
+ * not something a user should have to discover. It puts a hook in the
+ * compositor's input path, so the rails around it matter more than the switch:
+ * the report rate is capped, it exists only while a guest holds control, and it
+ * gives up after repeated failures.
+ *
+ * PAIRUX_WAYLAND_CURSOR_RESTORE=0 forces it off (if a compositor misbehaves),
+ * =1 forces it on (e.g. a KDE session that does not advertise itself).
  */
 export function isKWinCursorRestoreEnabled(): boolean {
-  return process.env.PAIRUX_WAYLAND_CURSOR_RESTORE === '1';
+  const override = process.env.PAIRUX_WAYLAND_CURSOR_RESTORE;
+  if (override === '0') return false;
+  if (override === '1') return true;
+
+  const wayland =
+    process.env.XDG_SESSION_TYPE === 'wayland' || process.env.WAYLAND_DISPLAY !== undefined;
+  const kde = (process.env.XDG_CURRENT_DESKTOP ?? '').toUpperCase().includes('KDE');
+
+  return wayland && kde;
 }
 
 /**

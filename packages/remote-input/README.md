@@ -105,6 +105,11 @@ method, then installs and loads a small script that pushes `workspace.cursorPos`
 to it — distance-throttled, since the signal fires on every motion event. This
 happens automatically; the user installs nothing.
 
+Enabled automatically on a KDE session running Wayland — the only environment
+it targets. `PAIRUX_WAYLAND_CURSOR_RESTORE=0` forces it off if a compositor
+misbehaves; `=1` forces it on for a KDE session that does not advertise itself
+in `XDG_CURRENT_DESKTOP`.
+
 Requires `gdbus` (`libglib2.0-bin`, present on essentially every desktop).
 Readings older than two seconds are discarded rather than used, so a
 half-working helper can never fling the pointer somewhere its owner never left

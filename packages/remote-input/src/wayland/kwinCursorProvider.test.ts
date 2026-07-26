@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { KWinCursorProvider, buildKWinScript } from './kwinCursorProvider.js';
+import { describe, it, expect, afterEach } from 'vitest';
+import {
+  KWinCursorProvider,
+  buildKWinScript,
+  isKWinCursorRestoreEnabled,
+} from './kwinCursorProvider.js';
 
 const silent = { log: () => {}, warn: () => {} };
 
@@ -48,8 +52,8 @@ describe('KWinCursorProvider', () => {
   // Restoring the pointer is a comfort; the only way to do it puts our code in
   // the compositor's input path, where a mistake costs the user their desktop.
   // So it stays off until explicitly asked for.
-  it('does nothing unless explicitly enabled', async () => {
-    delete process.env.PAIRUX_WAYLAND_CURSOR_RESTORE;
+  it('does nothing where the helper does not apply', async () => {
+    process.env.PAIRUX_WAYLAND_CURSOR_RESTORE = '0';
     const provider = new KWinCursorProvider({ logger: silent });
     await expect(provider.start()).resolves.toBe(false);
     expect(provider.isAvailable).toBe(false);
@@ -74,5 +78,53 @@ describe('KWinCursorProvider', () => {
 
     withPosition.position = { x: 100, y: 200, at: Date.now() - 10_000 };
     expect(provider.getPosition()).toBeNull();
+  });
+});
+
+describe('isKWinCursorRestoreEnabled', () => {
+  const saved = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...saved };
+  });
+
+  function env(vars: Record<string, string | undefined>): void {
+    delete process.env.PAIRUX_WAYLAND_CURSOR_RESTORE;
+    delete process.env.XDG_SESSION_TYPE;
+    delete process.env.WAYLAND_DISPLAY;
+    delete process.env.XDG_CURRENT_DESKTOP;
+    for (const [k, v] of Object.entries(vars)) {
+      if (v !== undefined) process.env[k] = v;
+    }
+  }
+
+  // The helper only targets KDE on Wayland, and a user should not have to
+  // discover an env var to get working pointer restore there.
+  it('is on for a KDE Wayland session', () => {
+    env({ XDG_SESSION_TYPE: 'wayland', XDG_CURRENT_DESKTOP: 'KDE' });
+    expect(isKWinCursorRestoreEnabled()).toBe(true);
+  });
+
+  it('is off where the helper does not apply', () => {
+    env({ XDG_SESSION_TYPE: 'x11', XDG_CURRENT_DESKTOP: 'KDE' });
+    expect(isKWinCursorRestoreEnabled()).toBe(false);
+
+    env({ XDG_SESSION_TYPE: 'wayland', XDG_CURRENT_DESKTOP: 'GNOME' });
+    expect(isKWinCursorRestoreEnabled()).toBe(false);
+  });
+
+  // An escape hatch matters: this hooks the compositor's input path.
+  it('can be forced off', () => {
+    env({
+      XDG_SESSION_TYPE: 'wayland',
+      XDG_CURRENT_DESKTOP: 'KDE',
+      PAIRUX_WAYLAND_CURSOR_RESTORE: '0',
+    });
+    expect(isKWinCursorRestoreEnabled()).toBe(false);
+  });
+
+  it('can be forced on for a session that does not advertise itself', () => {
+    env({ PAIRUX_WAYLAND_CURSOR_RESTORE: '1' });
+    expect(isKWinCursorRestoreEnabled()).toBe(true);
   });
 });

@@ -151,8 +151,11 @@ Wayland support requires PipeWire for screen capture. Input injection works via
 
 ### Pointer restoration on KDE (KWin)
 
-Automatic — PairUX claims a DBus name and loads a small KWin script that reports
-`workspace.cursorPos`, then unloads it on quit. The only requirement is `gdbus`:
+Automatic on a KDE Wayland session — PairUX claims a DBus name and loads a small
+KWin script that reports `workspace.cursorPos`, then unloads it on quit. The
+report rate is capped, the script exists only while a guest holds control, and it
+self-disables after repeated failures. Set `PAIRUX_WAYLAND_CURSOR_RESTORE=0` to
+turn it off. The only requirement is `gdbus`:
 
 ```bash
 sudo apt install libglib2.0-bin   # usually already present

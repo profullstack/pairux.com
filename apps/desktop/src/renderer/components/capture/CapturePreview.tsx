@@ -280,8 +280,9 @@ export function CapturePreview({
   // into a session. Host intent is authoritative; the poll only corroborates.
   const [grantedViewerId, setGrantedViewerId] = useState<string | null>(null);
 
-  // Read through a ref so cursor updates (up to 60/s) never re-create the
-  // host hook options and tear down the connection.
+  // Read through refs so cursor updates (up to 60/s) never re-create the host
+  // hook options and tear down the connection.
+  const sourceDimensionsRef = useRef({ width: 1920, height: 1080 });
   const participantNameRef = useRef((viewerId: string) => viewerId);
   participantNameRef.current = (viewerId: string) =>
     participants.find((p) => p.user_id === viewerId || p.id === viewerId)?.display_name ??
@@ -376,10 +377,17 @@ export function CapturePreview({
           return;
         }
 
+        // Cursor messages are normalized 0-1; the overlay scales from source
+        // pixels, so convert or every cursor lands in the top-left corner.
+        const source = sourceDimensionsRef.current;
         updateCursor({
           participantId: viewerId,
           displayName: participantNameRef.current(viewerId),
-          position: { x: cursor.x, y: cursor.y, timestamp: Date.now() },
+          position: {
+            x: cursor.x * source.width,
+            y: cursor.y * source.height,
+            timestamp: Date.now(),
+          },
         });
       },
     }),
@@ -603,6 +611,7 @@ export function CapturePreview({
       height: settings?.height ?? 1080,
     };
   }, [stream]);
+  sourceDimensionsRef.current = sourceDimensions;
 
   useEffect(() => {
     const video = videoRef.current;

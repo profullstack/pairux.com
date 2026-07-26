@@ -67,6 +67,7 @@ vi.mock('@nut-tree-fork/nut-js', () => {
     mouse: {
       config: { autoDelayMs: 0, mouseSpeed: 10000 },
       setPosition: vi.fn(),
+      getPosition: vi.fn().mockResolvedValue({ x: 1700, y: 900 }),
       pressButton: vi.fn(),
       releaseButton: vi.fn(),
       click: vi.fn(),

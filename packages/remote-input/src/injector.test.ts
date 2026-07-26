@@ -339,14 +339,31 @@ describe('RemoteInputInjector two-cursor mode', () => {
     });
   }
 
+  /**
+   * Two cursors are only used once the backend has confirmed it can report the
+   * pointer, so let that probe resolve before asserting.
+   */
+  async function enableAndSettle(injector: RemoteInputInjector): Promise<void> {
+    injector.enable();
+    for (let i = 0; i < 5; i += 1) await Promise.resolve();
+  }
+
+  /** A host that can report its pointer, i.e. macOS/Windows/X11. */
+  function reportingBackend(overrides: Partial<InputBackend> = {}): InputBackend {
+    return fakeBackend({
+      getCursorPosition: vi.fn().mockResolvedValue({ x: 0.9, y: 0.9 }),
+      ...overrides,
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('does not move the local pointer for remote movement', async () => {
-    const backend = fakeBackend();
+    const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    injector.enable();
+    await enableAndSettle(injector);
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
@@ -356,11 +373,9 @@ describe('RemoteInputInjector two-cursor mode', () => {
   });
 
   it('borrows the pointer for a click and hands it straight back', async () => {
-    const backend = fakeBackend({
-      getCursorPosition: vi.fn().mockResolvedValue({ x: 0.9, y: 0.9 }),
-    });
+    const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    injector.enable();
+    await enableAndSettle(injector);
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
@@ -373,11 +388,9 @@ describe('RemoteInputInjector two-cursor mode', () => {
 
   // Restoring between down and up would tear the drag apart.
   it('keeps the pointer in place for the whole of a drag', async () => {
-    const backend = fakeBackend({
-      getCursorPosition: vi.fn().mockResolvedValue({ x: 0.9, y: 0.9 }),
-    });
+    const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    injector.enable();
+    await enableAndSettle(injector);
 
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
@@ -388,21 +401,25 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 
-  // Wayland gives clients no way to read the pointer, so there is nothing to
-  // restore to — clicks must still work.
-  it('still clicks when the platform will not report the pointer', async () => {
+  // Wayland gives clients no way to read the pointer. Two cursors then rest on
+  // a single absolute positioning call per click with nothing to correct it, so
+  // movement is driven directly instead: a click that lands beats a cursor that
+  // stayed put.
+  it('drives the cursor directly when the platform will not report the pointer', async () => {
     const backend = fakeBackend();
     delete (backend as { getCursorPosition?: unknown }).getCursorPosition;
     const injector = twoCursorInjector(backend);
-    injector.enable();
+    await enableAndSettle(injector);
 
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
 
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
+    );
     expect(backend.inject).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'down', button: 'left' })
     );
-    expect(moves(backend)).toHaveLength(0);
   });
 
   it('drives the system cursor directly when two-cursor mode is off', async () => {
@@ -423,11 +440,9 @@ describe('RemoteInputInjector two-cursor mode', () => {
   });
 
   it('hands the pointer back when stuck input is released', async () => {
-    const backend = fakeBackend({
-      getCursorPosition: vi.fn().mockResolvedValue({ x: 0.9, y: 0.9 }),
-    });
+    const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    injector.enable();
+    await enableAndSettle(injector);
 
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.releaseAll('viewer disconnected');

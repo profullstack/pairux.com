@@ -346,6 +346,11 @@ export function CapturePreview({
       },
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
+        void getElectronAPI()
+          .invoke('overlay:clearRemoteCursor', undefined)
+          .catch(() => {
+            // Best-effort.
+          });
         // A departing viewer's control ends with them, which also releases
         // anything they were still holding down on this machine.
         setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
@@ -372,10 +377,30 @@ export function CapturePreview({
         // Show where the participant is pointing even when they are not
         // driving. There is only one real system cursor, so this overlay is
         // what makes two people working at once legible.
+        const api = getElectronAPI();
+
         if (!cursor.visible) {
           removeCursor(viewerId);
+          void api
+            .invoke('overlay:remoteCursor', { x: 0, y: 0, name: '', visible: false })
+            .catch(() => {
+              // Overlay is best-effort.
+            });
           return;
         }
+
+        // Also paint it on the desktop itself, so the guest's cursor is visible
+        // wherever they point — not just inside this window's video preview.
+        void api
+          .invoke('overlay:remoteCursor', {
+            x: cursor.x,
+            y: cursor.y,
+            name: participantNameRef.current(viewerId),
+            visible: true,
+          })
+          .catch(() => {
+            // Overlay is best-effort; never let it disturb the session.
+          });
 
         // Cursor messages are normalized 0-1; the overlay scales from source
         // pixels, so convert or every cursor lands in the top-left corner.

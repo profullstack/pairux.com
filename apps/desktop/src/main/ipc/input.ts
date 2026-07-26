@@ -4,6 +4,7 @@
 
 import { ipcMain, globalShortcut, app } from 'electron';
 import type { InputEvent } from '@pairux/shared-types';
+import { showRemoteCursor, hideRemoteCursor, destroyRemoteCursor } from '../overlay/cursorOverlay';
 import {
   initInputInjector,
   injectInput,
@@ -27,6 +28,7 @@ function registerEmergencyShortcut(): void {
   const registered = globalShortcut.register('CommandOrControl+Shift+Escape', () => {
     console.log('[IPC:Input] Emergency revoke hotkey triggered');
     void (async () => {
+      destroyRemoteCursor();
       await emergencyStop();
       // Notify renderer
       const { BrowserWindow } = await import('electron');
@@ -88,6 +90,21 @@ export function registerInputHandlers(): void {
   });
 
   // Update screen size (when capture source changes)
+  // Paint the guest's cursor on the host's desktop, outside the app window.
+  ipcMain.handle(
+    'overlay:remoteCursor',
+    (_event, args: { x: number; y: number; name: string; visible: boolean }) => {
+      if (args.visible) showRemoteCursor(args.x, args.y, args.name);
+      else hideRemoteCursor();
+      return { success: true };
+    }
+  );
+
+  ipcMain.handle('overlay:clearRemoteCursor', () => {
+    destroyRemoteCursor();
+    return { success: true };
+  });
+
   ipcMain.handle('input:updateScreenSize', (_event, args: { width: number; height: number }) => {
     updateScreenSize(args.width, args.height);
     return { success: true };
@@ -116,6 +133,7 @@ export function registerInputHandlers(): void {
   // Cleanup on app quit
   app.on('will-quit', () => {
     unregisterEmergencyShortcut();
+    destroyRemoteCursor();
     void disposeInputInjector();
   });
 

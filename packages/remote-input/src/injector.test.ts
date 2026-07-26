@@ -194,3 +194,127 @@ describe('RemoteInputInjector', () => {
     expect(diagnostics.details).toEqual({ hasSocket: true });
   });
 });
+
+// A button injected "down" whose "up" never arrives leaves the host desktop in
+// a permanent drag: every click is swallowed and the machine looks frozen to
+// its own user. Recovering used to need a reboot, so releasing held input is
+// the single most important safety property of this class.
+describe('RemoteInputInjector held-input safety', () => {
+  const down = (button: 'left' | 'right' | 'middle' = 'left'): InputEvent => ({
+    type: 'mouse',
+    action: 'down',
+    button,
+    x: 0.5,
+    y: 0.5,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('releases a held button when injection is disabled', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    await injector.inject(down());
+    injector.disable();
+    await injector.releaseAll('test');
+
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'mouse', action: 'up', button: 'left' })
+    );
+  });
+
+  it('releases a held key when injection is disabled', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    await injector.inject({
+      type: 'keyboard',
+      action: 'down',
+      key: 'a',
+      code: 'KeyA',
+      modifiers: { ctrl: false, alt: false, shift: false, meta: false },
+    });
+    await injector.releaseAll('test');
+
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'keyboard', action: 'up', code: 'KeyA' })
+    );
+  });
+
+  it('does not re-release a button that was already lifted', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    await injector.inject(down());
+    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.5, y: 0.5 });
+
+    const upsBefore = vi
+      .mocked(backend.inject)
+      .mock.calls.filter(([e]) => 'action' in e && e.action === 'up').length;
+
+    await injector.releaseAll('test');
+
+    const upsAfter = vi
+      .mocked(backend.inject)
+      .mock.calls.filter(([e]) => 'action' in e && e.action === 'up').length;
+    expect(upsAfter).toBe(upsBefore);
+  });
+
+  // The viewer's connection can die mid-drag, in which case no "up" is ever
+  // sent and only the host can break the deadlock.
+  it('force-releases a button held with no further input', async () => {
+    vi.useFakeTimers();
+    try {
+      const backend = fakeBackend();
+      const injector = new RemoteInputInjector({
+        selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
+        createBackend: () => backend,
+        logger: silentLogger,
+        holdTimeoutMs: 1000,
+      });
+      injector.enable();
+
+      await injector.inject(down());
+      await vi.advanceTimersByTimeAsync(1500);
+
+      expect(backend.inject).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'mouse', action: 'up', button: 'left' })
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps holding while input continues to arrive', async () => {
+    vi.useFakeTimers();
+    try {
+      const backend = fakeBackend();
+      const injector = new RemoteInputInjector({
+        selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
+        createBackend: () => backend,
+        logger: silentLogger,
+        holdTimeoutMs: 1000,
+      });
+      injector.enable();
+
+      await injector.inject(down());
+      // A drag: movement keeps arriving, so the button must stay down.
+      for (let i = 0; i < 5; i += 1) {
+        await vi.advanceTimersByTimeAsync(400);
+        await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
+      }
+
+      const ups = vi
+        .mocked(backend.inject)
+        .mock.calls.filter(([e]) => 'action' in e && e.action === 'up');
+      expect(ups).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

@@ -13,7 +13,13 @@ import {
   type InputBackendSelection,
 } from './factory.js';
 import { InputRateLimiter, validateInputEvent, type RejectionReason } from './safety.js';
-import type { InputBackend, InputDiagnostics, InputEvent, InputStats } from './types.js';
+import type {
+  InputBackend,
+  InputDiagnostics,
+  InputEvent,
+  InputStats,
+  MouseButton,
+} from './types.js';
 
 export interface RemoteInputInjectorOptions {
   /** Which OS backend to use. Detected from the current process by default. */
@@ -22,6 +28,11 @@ export interface RemoteInputInjectorOptions {
   createBackend?: (selection: InputBackendSelection) => InputBackend;
   /** Ceiling on events per second reaching the OS. Defaults to 1000. */
   maxEventsPerSecond?: number;
+  /**
+   * How long a button or key may stay held with no further input before it
+   * is force-released. Guards against a viewer dropping mid-drag. Default 5s.
+   */
+  holdTimeoutMs?: number;
   /** Called when an event is refused, for host-side logging or telemetry. */
   onRejected?: (reason: RejectionReason, event: InputEvent, detail?: string) => void;
   logger?: Pick<Console, 'log' | 'warn' | 'error'>;
@@ -37,10 +48,19 @@ export class RemoteInputInjector {
   private readonly logger: Pick<Console, 'log' | 'warn' | 'error'>;
   private readonly stats: InputStats = { received: 0, injected: 0, rejected: 0, errors: 0 };
 
+  // What this injector is currently holding down on the host. Tracked so it
+  // can always be released — a button left down puts the desktop into a
+  // permanent drag that looks like a total input freeze to the host user.
+  private readonly heldButtons = new Set<MouseButton>();
+  private readonly heldKeys = new Set<string>();
+  private holdWatchdog: ReturnType<typeof setTimeout> | null = null;
+  private readonly holdTimeoutMs: number;
+
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
     this.makeBackend = options.createBackend ?? createInputBackend;
     this.rateLimiter = new InputRateLimiter(options.maxEventsPerSecond ?? 1000);
+    this.holdTimeoutMs = options.holdTimeoutMs ?? 5000;
     this.onRejected = options.onRejected;
     this.logger = options.logger ?? console;
   }
@@ -98,7 +118,89 @@ export class RemoteInputInjector {
 
   disable(): void {
     this.enabled = false;
+    // Anything still held must come back up, or the host is left mid-drag with
+    // a physically stuck button and no way to recover short of a reboot.
+    void this.releaseAll('injection disabled');
     this.logger.log('[RemoteInput] Injection disabled');
+  }
+
+  /**
+   * Send an "up" for everything this injector is holding down.
+   *
+   * Deliberately bypasses the enabled/rate-limit gates: releasing is always
+   * safe, and the common reason to release is that control has just been
+   * switched off.
+   */
+  async releaseAll(reason: string): Promise<void> {
+    const buttons = [...this.heldButtons];
+    const keys = [...this.heldKeys];
+    this.heldButtons.clear();
+    this.heldKeys.clear();
+    this.clearHoldWatchdog();
+
+    if (buttons.length === 0 && keys.length === 0) return;
+
+    this.logger.warn('[RemoteInput] Releasing stuck input', { reason, buttons, keys });
+
+    const backend = this.getBackend();
+
+    for (const button of buttons) {
+      try {
+        await backend.inject({ type: 'mouse', action: 'up', button, x: 0.5, y: 0.5 });
+      } catch (error) {
+        this.logger.error('[RemoteInput] Failed to release button', { button, error });
+      }
+    }
+
+    for (const key of keys) {
+      try {
+        await backend.inject({
+          type: 'keyboard',
+          action: 'up',
+          key,
+          code: key,
+          modifiers: { ctrl: false, alt: false, shift: false, meta: false },
+        });
+      } catch (error) {
+        this.logger.error('[RemoteInput] Failed to release key', { key, error });
+      }
+    }
+  }
+
+  private clearHoldWatchdog(): void {
+    if (this.holdWatchdog !== null) {
+      clearTimeout(this.holdWatchdog);
+      this.holdWatchdog = null;
+    }
+  }
+
+  /**
+   * While something is held, arm a timer to release it if no further input
+   * arrives. A viewer whose connection drops mid-drag would otherwise leave
+   * the button down indefinitely.
+   */
+  private armHoldWatchdog(): void {
+    this.clearHoldWatchdog();
+    if (this.heldButtons.size === 0 && this.heldKeys.size === 0) return;
+
+    this.holdWatchdog = setTimeout(() => {
+      void this.releaseAll('no input while a button or key was held');
+    }, this.holdTimeoutMs);
+    // Never keep a Node process alive just for this timer.
+    this.holdWatchdog.unref();
+  }
+
+  private trackHeldState(event: InputEvent): void {
+    if (event.type === 'mouse') {
+      if (event.action === 'down') this.heldButtons.add(event.button);
+      else if (event.action === 'up') this.heldButtons.delete(event.button);
+    } else if (event.action === 'down') {
+      this.heldKeys.add(event.code);
+    } else if (event.action === 'up') {
+      this.heldKeys.delete(event.code);
+    }
+
+    this.armHoldWatchdog();
   }
 
   get isEnabled(): boolean {
@@ -141,6 +243,7 @@ export class RemoteInputInjector {
     try {
       await this.getBackend().inject(event);
       this.stats.injected += 1;
+      this.trackHeldState(event);
     } catch (error) {
       this.stats.errors += 1;
       this.logger.error('[RemoteInput] Failed to inject event:', {
@@ -159,7 +262,8 @@ export class RemoteInputInjector {
    */
   async emergencyStop(): Promise<void> {
     this.logger.log('[RemoteInput] Emergency stop');
-    this.disable();
+    this.enabled = false;
+    await this.releaseAll('emergency stop');
 
     try {
       await this.getBackend().emergencyStop();

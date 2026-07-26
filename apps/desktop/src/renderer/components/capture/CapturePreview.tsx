@@ -241,7 +241,7 @@ export function CapturePreview({
   const canManageParticipantControl = Boolean(session);
 
   // Remote cursors for showing viewer cursor positions
-  const { cursors: remoteCursors } = useRemoteCursors();
+  const { cursors: remoteCursors, updateCursor, removeCursor } = useRemoteCursors();
 
   // Determine mode from whichever session exists (joined OR auto-created by
   // quick-share). Both host hooks are always called; only the selection below
@@ -271,6 +271,21 @@ export function CapturePreview({
   // write control_state themselves, so requests arrive over the data channel
   // and live here until the host approves or denies them.
   const [pendingControlRequests, setPendingControlRequests] = useState<PendingControlRequest[]>([]);
+
+  // The viewer this host has granted control to, as the host last decided it.
+  //
+  // participantWithControl comes from a 5s participant poll, and a response
+  // already in flight when control is granted lands afterwards carrying the
+  // pre-grant state — which silently switched injection back off a few seconds
+  // into a session. Host intent is authoritative; the poll only corroborates.
+  const [grantedViewerId, setGrantedViewerId] = useState<string | null>(null);
+
+  // Read through a ref so cursor updates (up to 60/s) never re-create the
+  // host hook options and tear down the connection.
+  const participantNameRef = useRef((viewerId: string) => viewerId);
+  participantNameRef.current = (viewerId: string) =>
+    participants.find((p) => p.user_id === viewerId || p.id === viewerId)?.display_name ??
+    'Participant';
 
   const handleControlRequested = useCallback((viewerId: string) => {
     setPendingControlRequests((prev) =>
@@ -307,7 +322,7 @@ export function CapturePreview({
   }, [stream]);
 
   const { injectEvent, diagnostics: inputDiagnostics } = useInputInjection({
-    enabled: Boolean(participantWithControl),
+    enabled: Boolean(participantWithControl) || grantedViewerId !== null,
     screenSize: inputScreenSize,
   });
   const remoteInputCountRef = useRef(0);
@@ -330,6 +345,9 @@ export function CapturePreview({
       },
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
+        // A departing viewer's control ends with them, which also releases
+        // anything they were still holding down on this machine.
+        setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
         setPendingControlRequests((prev) =>
           prev.filter((request) => request.viewerId !== viewerId)
         );
@@ -349,8 +367,20 @@ export function CapturePreview({
         }
         void injectEvent(input.event);
       },
-      onCursorUpdate: (_viewerId: string, _cursor: CursorPositionMessage) => {
-        // TODO: Update remote cursor position
+      onCursorUpdate: (viewerId: string, cursor: CursorPositionMessage) => {
+        // Show where the participant is pointing even when they are not
+        // driving. There is only one real system cursor, so this overlay is
+        // what makes two people working at once legible.
+        if (!cursor.visible) {
+          removeCursor(viewerId);
+          return;
+        }
+
+        updateCursor({
+          participantId: viewerId,
+          displayName: participantNameRef.current(viewerId),
+          position: { x: cursor.x, y: cursor.y, timestamp: Date.now() },
+        });
       },
     }),
     [
@@ -362,6 +392,8 @@ export function CapturePreview({
       participantWithControl?.id,
       refreshSession,
       handleControlRequested,
+      updateCursor,
+      removeCursor,
     ]
   );
 
@@ -742,6 +774,7 @@ export function CapturePreview({
 
         const viewerId = resolveViewerTargetId(participantId);
         if (viewerId) {
+          setGrantedViewerId(viewerId);
           grantControl(viewerId);
         } else {
           console.warn('[CapturePreview] Could not resolve viewer target for grant control', {
@@ -776,6 +809,7 @@ export function CapturePreview({
         }
 
         const viewerId = resolveViewerTargetId(participantId);
+        setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
         if (viewerId) {
           revokeControl(viewerId);
         } else {

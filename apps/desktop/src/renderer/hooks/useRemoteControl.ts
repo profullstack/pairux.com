@@ -45,6 +45,10 @@ export function useRemoteControl({
   onCursorMove,
 }: UseRemoteControlOptions): UseRemoteControlReturn {
   const [isCapturing, setIsCapturing] = useState(false);
+  // Buttons/keys this viewer has sent a "down" for. Every one of them must get
+  // an "up", or the host is left mid-drag with a stuck button.
+  const heldButtonsRef = useRef<Set<MouseButton>>(new Set());
+  const heldKeysRef = useRef<Set<string>>(new Set());
   const lastCursorUpdateRef = useRef(0);
   const cursorThrottleMs = 16; // ~60fps throttle for cursor updates
 
@@ -114,6 +118,21 @@ export function useRemoteControl({
         y: coords.y,
       };
 
+      heldButtonsRef.current.add(inputEvent.button);
+      // Keep receiving events if the drag leaves the video, so the matching
+      // "up" is never lost.
+      const target = event.currentTarget;
+      if (target instanceof Element && 'setPointerCapture' in target) {
+        const pointerId = (event as MouseEvent & { pointerId?: number }).pointerId;
+        if (typeof pointerId === 'number') {
+          try {
+            target.setPointerCapture(pointerId);
+          } catch {
+            // Not a pointer event (or already captured) — harmless.
+          }
+        }
+      }
+
       onInputEvent(inputEvent);
       event.preventDefault();
     },
@@ -136,54 +155,15 @@ export function useRemoteControl({
         y: coords.y,
       };
 
+      heldButtonsRef.current.delete(inputEvent.button);
       onInputEvent(inputEvent);
     },
     [getRelativeCoords, canSendInput, onInputEvent]
   );
 
-  // Handle click
-  const handleClick = useCallback(
-    (event: MouseEvent) => {
-      if (!canSendInput) return;
-
-      const coords = getRelativeCoords(event);
-      if (!coords) return;
-
-      const inputEvent: MouseButtonEvent = {
-        type: 'mouse',
-        action: 'click',
-        button: toMouseButton(event.button),
-        x: coords.x,
-        y: coords.y,
-      };
-
-      onInputEvent(inputEvent);
-      event.preventDefault();
-    },
-    [getRelativeCoords, canSendInput, onInputEvent]
-  );
-
-  // Handle double click
-  const handleDoubleClick = useCallback(
-    (event: MouseEvent) => {
-      if (!canSendInput) return;
-
-      const coords = getRelativeCoords(event);
-      if (!coords) return;
-
-      const inputEvent: MouseButtonEvent = {
-        type: 'mouse',
-        action: 'dblclick',
-        button: toMouseButton(event.button),
-        x: coords.x,
-        y: coords.y,
-      };
-
-      onInputEvent(inputEvent);
-      event.preventDefault();
-    },
-    [getRelativeCoords, canSendInput, onInputEvent]
-  );
+  // No separate click/dblclick events: the host OS derives clicks and
+  // double-clicks from the down/up pair. Sending them as well actuated every
+  // click twice.
 
   // Handle mouse wheel/scroll
   const handleWheel = useCallback(
@@ -207,6 +187,25 @@ export function useRemoteControl({
     },
     [getRelativeCoords, canSendInput, onInputEvent]
   );
+
+  /** Send an "up" for everything still held, so the host never sticks. */
+  const releaseHeldInput = useCallback(() => {
+    for (const button of heldButtonsRef.current) {
+      onInputEvent({ type: 'mouse', action: 'up', button, x: 0.5, y: 0.5 });
+    }
+    heldButtonsRef.current.clear();
+
+    for (const code of heldKeysRef.current) {
+      onInputEvent({
+        type: 'keyboard',
+        action: 'up',
+        key: code,
+        code,
+        modifiers: { ctrl: false, alt: false, shift: false, meta: false },
+      });
+    }
+    heldKeysRef.current.clear();
+  }, [onInputEvent]);
 
   // Handle mouse leave (cursor left the container)
   const handleMouseLeave = useCallback(() => {
@@ -237,6 +236,7 @@ export function useRemoteControl({
         },
       };
 
+      heldKeysRef.current.add(inputEvent.code);
       onInputEvent(inputEvent);
       event.preventDefault();
     },
@@ -261,6 +261,7 @@ export function useRemoteControl({
         },
       };
 
+      heldKeysRef.current.delete(inputEvent.code);
       onInputEvent(inputEvent);
     },
     [canSendInput, onInputEvent]
@@ -282,9 +283,10 @@ export function useRemoteControl({
 
   // Stop capturing input
   const stopCapture = useCallback(() => {
+    releaseHeldInput();
     setIsCapturing(false);
     onCursorMove?.(0, 0, false);
-  }, [onCursorMove]);
+  }, [onCursorMove, releaseHeldInput]);
 
   // Attach/detach event listeners
   useEffect(() => {
@@ -297,8 +299,6 @@ export function useRemoteControl({
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('mousedown', handleMouseDown);
     container.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('click', handleClick);
-    container.addEventListener('dblclick', handleDoubleClick);
     container.addEventListener('wheel', handleWheel, { passive: false });
     container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('contextmenu', handleContextMenu);
@@ -307,17 +307,22 @@ export function useRemoteControl({
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
+    // Alt-tabbing or switching apps mid-drag means the matching up events
+    // never arrive; let go of everything rather than stranding the host.
+    window.addEventListener('blur', releaseHeldInput);
+
     return () => {
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mousedown', handleMouseDown);
       container.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('click', handleClick);
-      container.removeEventListener('dblclick', handleDoubleClick);
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', releaseHeldInput);
+      // Unmounting while held (navigation, disconnect) must not strand the host.
+      releaseHeldInput();
     };
   }, [
     enabled,
@@ -326,13 +331,12 @@ export function useRemoteControl({
     handleMouseMove,
     handleMouseDown,
     handleMouseUp,
-    handleClick,
-    handleDoubleClick,
     handleWheel,
     handleMouseLeave,
     handleContextMenu,
     handleKeyDown,
     handleKeyUp,
+    releaseHeldInput,
   ]);
 
   return {

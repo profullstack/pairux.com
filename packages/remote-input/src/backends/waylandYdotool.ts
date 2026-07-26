@@ -431,10 +431,6 @@ export class WaylandYdotoolInputBackend implements InputBackend {
       return undefined;
     }
 
-    // Best-effort: without it, clicks still work but the local pointer is
-    // left where the remote click landed.
-    await this.cursorProvider.start();
-
     return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };
   }
 
@@ -446,6 +442,16 @@ export class WaylandYdotoolInputBackend implements InputBackend {
    */
   async dispose(): Promise<void> {
     await this.cursorProvider.stop();
+  }
+
+  /**
+   * Begin asking the compositor for the pointer position.
+   *
+   * Deliberately not called from init(): this installs a hook into KWin's input
+   * path, so it should only exist while someone actually has control.
+   */
+  async startCursorReporting(): Promise<void> {
+    await this.cursorProvider.start();
   }
 
   getCursorPosition(): Promise<{ x: number; y: number } | null> {

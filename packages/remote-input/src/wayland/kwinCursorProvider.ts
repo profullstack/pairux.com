@@ -31,6 +31,27 @@ const SCRIPT_NAME = 'pairux-cursor-reporter';
 const POSITION_MAX_AGE_MS = 2000;
 
 /**
+ * Floor on how often the compositor may report, in ms.
+ *
+ * The reporting hook sits in KWin's input path, so this is a safety limit, not
+ * a tuning knob: without it the DBus rate scales with mouse speed and can stall
+ * the whole desktop.
+ */
+const REPORT_INTERVAL_MS = 100;
+
+/**
+ * Off unless explicitly enabled.
+ *
+ * Restoring the pointer on Wayland is a comfort, not a requirement, and the
+ * only way to do it puts our code in the compositor's input path — where a
+ * mistake costs the user their whole desktop. Opt in with
+ * PAIRUX_WAYLAND_CURSOR_RESTORE=1.
+ */
+export function isKWinCursorRestoreEnabled(): boolean {
+  return process.env.PAIRUX_WAYLAND_CURSOR_RESTORE === '1';
+}
+
+/**
  * KWin scripting has lived at two interface names; try both rather than
  * pinning to one KWin generation.
  */
@@ -45,41 +66,55 @@ const SCRIPTING_INTERFACES = ['org.kde.kwin.Scripting', 'org.kde.KWin.Scripting'
 export function buildKWinScript(): string {
   return `// Installed by PairUX. Reports the pointer position so remote control can
 // hand the local pointer back after borrowing it for a click.
-var lastX = -99999;
-var lastY = -99999;
+//
+// This runs inside the compositor's input path, so it must stay cheap and
+// strictly rate-limited: cursorPosChanged fires on every motion event, and one
+// DBus call per event would scale with mouse speed and can stall KWin.
+var MIN_INTERVAL_MS = ${String(REPORT_INTERVAL_MS)};
+var MAX_FAILURES = 5;
+
+var lastSent = 0;
+var failures = 0;
+var stopped = false;
 
 function report() {
-  var p = workspace.cursorPos;
-  if (Math.abs(p.x - lastX) < 6 && Math.abs(p.y - lastY) < 6) {
+  if (stopped) {
     return;
   }
-  lastX = p.x;
-  lastY = p.y;
-  callDBus(
-    '${DBUS_NAME}',
-    '${DBUS_PATH}',
-    '${DBUS_NAME}',
-    'SetCursorPos',
-    Math.round(p.x),
-    Math.round(p.y)
-  );
+
+  var now = Date.now();
+  if (now - lastSent < MIN_INTERVAL_MS) {
+    return;
+  }
+  lastSent = now;
+
+  var p = workspace.cursorPos;
+  try {
+    callDBus(
+      '${DBUS_NAME}',
+      '${DBUS_PATH}',
+      '${DBUS_NAME}',
+      'SetCursorPos',
+      Math.round(p.x),
+      Math.round(p.y)
+    );
+    failures = 0;
+  } catch (e) {
+    failures = failures + 1;
+    if (failures >= MAX_FAILURES) {
+      stopped = true;
+      print('pairux: giving up cursor reporting after repeated DBus failures');
+    }
+  }
 }
 
 report();
 
 if (typeof workspace.cursorPosChanged !== 'undefined') {
   workspace.cursorPosChanged.connect(report);
-  print('pairux: cursor reporter attached to cursorPosChanged');
+  print('pairux: cursor reporter attached (rate limit ' + MIN_INTERVAL_MS + 'ms)');
 } else {
-  // Older/newer API without the notify signal: fall back to signals that at
-  // least fire during ordinary use, so the reading is refreshed sometimes.
-  print('pairux: cursorPosChanged unavailable, falling back to window signals');
-  if (typeof workspace.windowActivated !== 'undefined') {
-    workspace.windowActivated.connect(report);
-  }
-  if (typeof workspace.currentDesktopChanged !== 'undefined') {
-    workspace.currentDesktopChanged.connect(report);
-  }
+  print('pairux: cursorPosChanged unavailable, cursor reporting inactive');
 }
 `;
 }
@@ -121,6 +156,14 @@ export class KWinCursorProvider {
   async start(): Promise<boolean> {
     if (this.started) return this.available;
     this.started = true;
+
+    if (!isKWinCursorRestoreEnabled()) {
+      this.logger.log(
+        '[RemoteInput] Wayland pointer restore is off (set PAIRUX_WAYLAND_CURSOR_RESTORE=1 to try it). ' +
+          'Remote clicks will leave the pointer where they land.'
+      );
+      return false;
+    }
 
     try {
       await this.serveDBus();

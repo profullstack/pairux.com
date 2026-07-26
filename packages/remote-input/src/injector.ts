@@ -128,6 +128,15 @@ export class RemoteInputInjector {
 
     this.enabled = true;
     this.rateLimiter.reset();
+
+    // Only now, with control actually granted, is it worth asking the
+    // compositor to report the cursor.
+    if (this.virtualCursor) {
+      void backend.startCursorReporting?.().catch((error: unknown) => {
+        this.logger.warn('[RemoteInput] Cursor reporting could not start', { error });
+      });
+    }
+
     this.logger.log('[RemoteInput] Injection enabled', { backend: backend.name });
     return true;
   }

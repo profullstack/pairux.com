@@ -98,6 +98,14 @@ export interface InputBackend {
    * has quit.
    */
   dispose?: () => Promise<void>;
+  /**
+   * Begin any optional machinery needed to report the cursor position.
+   *
+   * Separate from init() because on Wayland this installs a hook into the
+   * compositor's input path, which should only be present while a remote
+   * participant actually holds control.
+   */
+  startCursorReporting?: () => Promise<void>;
 }
 
 export interface InputStats {

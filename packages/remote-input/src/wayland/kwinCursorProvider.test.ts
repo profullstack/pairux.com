@@ -18,10 +18,20 @@ describe('buildKWinScript', () => {
     expect(script).toContain('workspace.cursorPos');
   });
 
-  // cursorPosChanged fires on every motion event; unthrottled that is a DBus
-  // call per pixel.
-  it('throttles by distance', () => {
-    expect(script).toMatch(/Math\.abs\(p\.x - lastX\) < \d+/);
+  // This runs in KWin's input path. cursorPosChanged fires on every motion
+  // event, so the DBus rate must be capped by TIME — a per-distance cap scales
+  // with mouse speed and can flood the compositor badly enough to freeze the
+  // whole desktop.
+  it('caps the report rate by elapsed time, not distance', () => {
+    expect(script).toContain('MIN_INTERVAL_MS');
+    expect(script).toMatch(/now - lastSent < MIN_INTERVAL_MS/);
+    expect(script).not.toMatch(/Math\.abs\(p\.x - lastX\)/);
+  });
+
+  // A name that is not owned would otherwise fail on every single motion event.
+  it('gives up after repeated DBus failures', () => {
+    expect(script).toContain('MAX_FAILURES');
+    expect(script).toMatch(/stopped = true/);
   });
 
   // KWin generations differ; a missing signal must not throw inside KWin.
@@ -35,6 +45,16 @@ describe('buildKWinScript', () => {
 });
 
 describe('KWinCursorProvider', () => {
+  // Restoring the pointer is a comfort; the only way to do it puts our code in
+  // the compositor's input path, where a mistake costs the user their desktop.
+  // So it stays off until explicitly asked for.
+  it('does nothing unless explicitly enabled', async () => {
+    delete process.env.PAIRUX_WAYLAND_CURSOR_RESTORE;
+    const provider = new KWinCursorProvider({ logger: silent });
+    await expect(provider.start()).resolves.toBe(false);
+    expect(provider.isAvailable).toBe(false);
+  });
+
   it('reports no position before the compositor has said anything', () => {
     const provider = new KWinCursorProvider({ logger: silent });
     expect(provider.getPosition()).toBeNull();

@@ -33,6 +33,7 @@ export {
 
 export {
   KWinCursorProvider,
+  isKWinCursorRestoreEnabled,
   type KWinCursorProviderOptions,
 } from './wayland/kwinCursorProvider.js';
 

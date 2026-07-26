@@ -17,7 +17,7 @@
 ## ✨ Features
 
 - 🖥️ **Real-time screen sharing** — Low-latency WebRTC streaming
-- 🎮 **Remote control** — Mouse + keyboard with explicit host approval
+- 🎮 **Remote control** — Mouse + keyboard with explicit host approval. Two independent cursors: the guest's movement never takes over yours
 - 👥 **Simultaneous input** — Host and viewer can control at the same time
 - 🔒 **Secure by design** — E2E encrypted, media never touches servers
 - 🌐 **PWA Viewer** — Join sessions from any browser, installable as an app

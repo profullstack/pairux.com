@@ -12,6 +12,7 @@ import {
   getInjectionDiagnostics,
   updateScreenSize,
   emergencyStop,
+  disposeInputInjector,
 } from '../input/injector';
 
 // Track if emergency shortcut is registered
@@ -115,7 +116,7 @@ export function registerInputHandlers(): void {
   // Cleanup on app quit
   app.on('will-quit', () => {
     unregisterEmergencyShortcut();
-    disableInjection();
+    void disposeInputInjector();
   });
 
   console.log('[IPC:Input] Input handlers registered');

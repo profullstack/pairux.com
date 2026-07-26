@@ -10,6 +10,18 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.36',
+    date: 'July 2026',
+    title: 'Two cursors, and remote control that stays out of your way',
+    changes: [
+      'Two independent cursors: a guest can point and click while you keep working — their movement never takes over your pointer',
+      'Your pointer is returned to where you left it after a guest clicks (macOS, Windows, Linux/X11, and KDE Wayland)',
+      'Fixed remote control freezing the host mouse until reboot',
+      'Guests joining from the desktop app can now request control',
+      'More reliable relay connections on networks with unreliable DNS',
+    ],
+  },
+  {
     version: '0.1.0',
     date: 'January 2025',
     title: 'Initial Release',

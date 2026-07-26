@@ -31,6 +31,11 @@ export {
   type ValidationResult,
 } from './safety.js';
 
+export {
+  KWinCursorProvider,
+  type KWinCursorProviderOptions,
+} from './wayland/kwinCursorProvider.js';
+
 export { NutJsInputBackend } from './backends/nutjs.js';
 export { WaylandPortalInputBackend } from './backends/waylandPortal.js';
 export { WaylandYdotoolInputBackend } from './backends/waylandYdotool.js';

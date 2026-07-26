@@ -69,3 +69,15 @@ export async function injectInput(event: InputEvent): Promise<void> {
 export async function emergencyStop(): Promise<void> {
   await getInjector().emergencyStop();
 }
+
+/**
+ * Shut down injection on quit.
+ *
+ * On Wayland this also unloads the KWin helper script; left behind it would
+ * keep pushing the cursor position to a DBus name that has gone away.
+ */
+export async function disposeInputInjector(): Promise<void> {
+  if (!injector) return;
+  await injector.dispose();
+  injector = null;
+}

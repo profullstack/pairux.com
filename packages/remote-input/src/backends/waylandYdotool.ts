@@ -1,5 +1,6 @@
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
+import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -330,6 +331,9 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   details?: Record<string, unknown>;
   private screenWidth = 1920;
   private screenHeight = 1080;
+  // Wayland will not report the pointer, so ask the compositor instead. Only
+  // used to hand the local pointer back after a remote click borrows it.
+  private readonly cursorProvider = new KWinCursorProvider();
   private readonly run: ExecRunner;
   private readonly startDaemon: DaemonStarter;
   private readonly probeAvailability: AvailabilityProbe;
@@ -427,7 +431,31 @@ export class WaylandYdotoolInputBackend implements InputBackend {
       return undefined;
     }
 
+    // Best-effort: without it, clicks still work but the local pointer is
+    // left where the remote click landed.
+    await this.cursorProvider.start();
+
     return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };
+  }
+
+  /**
+   * Pointer position via the compositor, normalized 0-1.
+   *
+   * Null whenever KWin is not reporting — the injector then skips restoring
+   * rather than moving the pointer somewhere wrong.
+   */
+  async dispose(): Promise<void> {
+    await this.cursorProvider.stop();
+  }
+
+  getCursorPosition(): Promise<{ x: number; y: number } | null> {
+    const point = this.cursorProvider.getPosition();
+    if (!point) return Promise.resolve(null);
+
+    return Promise.resolve({
+      x: Math.min(1, Math.max(0, point.x / this.screenWidth)),
+      y: Math.min(1, Math.max(0, point.y / this.screenHeight)),
+    });
   }
 
   updateScreenSize(width: number, height: number): void {

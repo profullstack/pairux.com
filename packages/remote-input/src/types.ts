@@ -90,6 +90,14 @@ export interface InputBackend {
    * pointer, so those backends omit this and lose exact restoration.
    */
   getCursorPosition?: () => Promise<{ x: number; y: number } | null>;
+  /**
+   * Release OS resources on shutdown.
+   *
+   * The Wayland backend installs a helper into the compositor, which would
+   * otherwise keep pushing to a DBus name that no longer exists once the app
+   * has quit.
+   */
+  dispose?: () => Promise<void>;
 }
 
 export interface InputStats {

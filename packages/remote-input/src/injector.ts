@@ -355,6 +355,22 @@ export class RemoteInputInjector {
     }
   }
 
+  /**
+   * Shut down for good: stop accepting input, let go of anything held, and
+   * release whatever the backend installed on the system.
+   */
+  async dispose(): Promise<void> {
+    this.enabled = false;
+    await this.releaseAll('shutting down');
+    this.clearHoldWatchdog();
+
+    try {
+      await this.backend?.dispose?.();
+    } catch (error) {
+      this.logger.warn('[RemoteInput] Backend cleanup failed', { error });
+    }
+  }
+
   getDiagnostics(): InputDiagnostics {
     const backend = this.getBackend();
     const diagnostics: InputDiagnostics = {

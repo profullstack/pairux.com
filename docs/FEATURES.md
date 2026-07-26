@@ -462,15 +462,29 @@ interface KeyboardEventData {
 - Cannot be overridden by remote input
 - Works even if app is not focused (global hotkey)
 
-### 5.5 Simultaneous Input
+### 5.5 Simultaneous Input (two cursors)
 
-**Design**: Both host and viewer can provide input simultaneously
+**Design**: Both host and viewer work at the same time, each with their own
+cursor. Neither hands control over, and the host's pointer is never taken away.
 
-**Conflict Resolution**:
+**How**: every OS has exactly one system pointer and none lets a normal process
+create a second, so the viewer's cursor is not a real one:
 
-- Host input always takes priority
-- No input queuing - latest wins
-- Visual indicator shows who is controlling
+- viewer movement only advances a tracked position, drawn as their cursor —
+  the host's pointer does not move for it
+- the real pointer is borrowed for the instant a viewer click or scroll lands,
+  then returned to where the host left it
+- during a drag it stays with the viewer until they release
+
+**Conflict resolution**: there is nothing to resolve for movement, since the two
+cursors are independent. A viewer click briefly borrows the real pointer; if the
+host clicks at the same moment, the OS orders them like any two events.
+
+**Platform note**: returning the pointer requires reading its position, which
+macOS, Windows, X11 and KDE/Wayland (via the KWin helper) allow. Other Wayland
+compositors leave the pointer where the click landed.
+
+See `docs/REMOTE-CONTROL.md` and `@profullstack/remote-input`.
 
 ---
 

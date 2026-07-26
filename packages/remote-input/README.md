@@ -92,22 +92,41 @@ injector.getRemoteCursorPosition(); // { x, y } normalized — draw this
 During a drag the pointer necessarily stays with the remote user until they
 release, otherwise the drag would tear.
 
-Restoration needs to read where the local pointer is, which X11 and macOS
-allow and **Wayland does not** — Wayland gives clients no way to query the
-pointer. There, a remote click leaves the pointer where it landed rather than
-returning it. Movement is still never hijacked, which is the bulk of the win.
+Restoration needs to read where the local pointer is. X11 and macOS answer
+directly. **Wayland refuses** — no protocol tells a client where the pointer
+is — so there the compositor is asked instead.
+
+### Wayland (KDE)
+
+`KWinCursorProvider` closes the gap on KWin. Since a KWin script can only talk
+_outward_ over DBus, and the bus rejects calls to a name nobody owns, the
+provider claims `org.profullstack.RemoteInput`, exposes a `SetCursorPos`
+method, then installs and loads a small script that pushes `workspace.cursorPos`
+to it — distance-throttled, since the signal fires on every motion event. This
+happens automatically; the user installs nothing.
+
+Requires `gdbus` (`libglib2.0-bin`, present on essentially every desktop).
+Readings older than two seconds are discarded rather than used, so a
+half-working helper can never fling the pointer somewhere its owner never left
+it. If any part fails, `getCursorPosition()` returns null and behaviour falls
+back to leaving the pointer where the click landed.
+
+GNOME's equivalent (`global.get_pointer()` via a Shell extension) is not
+implemented yet.
+
 Pass `virtualCursor: false` for the old behaviour where remote input drives the
 system cursor directly.
 
 ## Platform support
 
-| Platform        | Backend           | Two cursors                                                                                                                  | Requirements                                         |
-| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| macOS           | `nut-js`          | Full — local pointer restored                                                                                                | Accessibility permission (see below)                 |
-| Windows         | `nut-js`          | Full — local pointer restored                                                                                                | None. Admin only to drive elevated windows.          |
-| Linux / X11     | `nut-js`          | Full — local pointer restored                                                                                                | None                                                 |
-| Linux / Wayland | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed (Wayland will not report pointer position) | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
-| Linux / Wayland | `wayland-portal`  | n/a                                                                                                                          | Diagnostic only — reports why control is unavailable |
+| Platform                | Backend           | Two cursors                                                                              | Requirements                                                                    |
+| ----------------------- | ----------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| macOS                   | `nut-js`          | Full — local pointer restored                                                            | Accessibility permission (see below)                                            |
+| Windows                 | `nut-js`          | Full — local pointer restored                                                            | None. Admin only to drive elevated windows.                                     |
+| Linux / X11             | `nut-js`          | Full — local pointer restored                                                            | None                                                                            |
+| Linux / Wayland (KDE)   | `wayland-ydotool` | Full via `KWinCursorProvider` — falls back to leaving the pointer where the click landed | `ydotool` + running `ydotoold` with `/dev/uinput`; `gdbus` for cursor reporting |
+| Linux / Wayland (other) | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed        | `ydotool` + a running `ydotoold` with `/dev/uinput`                             |
+| Linux / Wayland         | `wayland-portal`  | n/a                                                                                      | Diagnostic only — reports why control is unavailable                            |
 
 > This package injects into a real OS, so it runs only where one exists. A
 > browser cannot be the _controlled_ machine; a browser-based client can only

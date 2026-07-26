@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/remote-input",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Cross-platform OS input injection for remote control (macOS, Windows, Linux X11 and Wayland)",
   "license": "MIT",
   "type": "module",

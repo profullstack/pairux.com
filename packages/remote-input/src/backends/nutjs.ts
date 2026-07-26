@@ -112,6 +112,20 @@ export class NutJsInputBackend implements InputBackend {
     };
   }
 
+  /** Normalized so the injector can restore it without knowing the screen. */
+  async getCursorPosition(): Promise<{ x: number; y: number } | null> {
+    try {
+      const { mouse } = await getNut();
+      const point = await mouse.getPosition();
+      return {
+        x: Math.min(1, Math.max(0, point.x / this.screenWidth)),
+        y: Math.min(1, Math.max(0, point.y / this.screenHeight)),
+      };
+    } catch {
+      return null;
+    }
+  }
+
   async init(): Promise<InputBackendInitResult> {
     const { screen } = await getNut();
     this.screenWidth = await screen.width();

@@ -81,6 +81,15 @@ export interface InputBackend {
   updateScreenSize: (width: number, height: number) => void;
   inject: (event: InputEvent) => Promise<void>;
   emergencyStop: () => Promise<void>;
+  /**
+   * Where the local pointer is right now, normalized 0-1, or null when the
+   * platform will not say.
+   *
+   * Needed to put the local user's pointer back after a remote click borrows
+   * it. X11 and macOS can answer; Wayland gives clients no way to query the
+   * pointer, so those backends omit this and lose exact restoration.
+   */
+  getCursorPosition?: () => Promise<{ x: number; y: number } | null>;
 }
 
 export interface InputStats {

@@ -33,6 +33,14 @@ export interface RemoteInputInjectorOptions {
    * is force-released. Guards against a viewer dropping mid-drag. Default 5s.
    */
   holdTimeoutMs?: number;
+  /**
+   * Keep the local and remote cursors independent (default true).
+   *
+   * Remote movement then drives only a tracked position rather than the real
+   * pointer, which is borrowed just long enough to place a click and handed
+   * back. Set false to have remote input drive the system cursor directly.
+   */
+  virtualCursor?: boolean;
   /** Called when an event is refused, for host-side logging or telemetry. */
   onRejected?: (reason: RejectionReason, event: InputEvent, detail?: string) => void;
   logger?: Pick<Console, 'log' | 'warn' | 'error'>;
@@ -56,11 +64,19 @@ export class RemoteInputInjector {
   private holdWatchdog: ReturnType<typeof setTimeout> | null = null;
   private readonly holdTimeoutMs: number;
 
+  // Two-cursor mode: remote movement never moves the local pointer, so both
+  // people keep a usable cursor at the same time.
+  private readonly virtualCursor: boolean;
+  private remotePosition = { x: 0.5, y: 0.5 };
+  /** Where the local pointer was before a remote click borrowed it. */
+  private borrowedFrom: { x: number; y: number } | null = null;
+
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
     this.makeBackend = options.createBackend ?? createInputBackend;
     this.rateLimiter = new InputRateLimiter(options.maxEventsPerSecond ?? 1000);
     this.holdTimeoutMs = options.holdTimeoutMs ?? 5000;
+    this.virtualCursor = options.virtualCursor ?? true;
     this.onRejected = options.onRejected;
     this.logger = options.logger ?? console;
   }
@@ -152,6 +168,8 @@ export class RemoteInputInjector {
       }
     }
 
+    await this.restoreLocalPointer();
+
     for (const key of keys) {
       try {
         await backend.inject({
@@ -165,6 +183,71 @@ export class RemoteInputInjector {
         this.logger.error('[RemoteInput] Failed to release key', { key, error });
       }
     }
+  }
+
+  /**
+   * Put the event on the OS, keeping the two pointers independent.
+   *
+   * There is only one real system cursor on every platform we support, so a
+   * second cursor is achieved by *not* spending the real one on remote
+   * movement. Remote moves only advance a tracked position — the local user's
+   * pointer never budges. The real pointer is borrowed for the instant a
+   * remote click or scroll needs to land somewhere, then handed straight back.
+   *
+   * While a remote button is held the pointer must stay put, or a drag would
+   * tear; restoration waits until everything is released.
+   */
+  private async dispatch(event: InputEvent): Promise<void> {
+    const backend = this.getBackend();
+
+    if (!this.virtualCursor || event.type !== 'mouse') {
+      await backend.inject(event);
+      return;
+    }
+
+    if (event.action === 'move') {
+      // Remote cursor only. The local pointer is deliberately left alone.
+      this.remotePosition = { x: event.x, y: event.y };
+      return;
+    }
+
+    this.remotePosition = { x: event.x, y: event.y };
+
+    // Borrow the pointer, unless a previous press already borrowed it.
+    this.borrowedFrom ??= (await backend.getCursorPosition?.()) ?? null;
+
+    await backend.inject(event);
+
+    // Hold the pointer in place for the duration of a drag. Held state is
+    // recorded after dispatch, so fold this event in to see what remains down.
+    const remaining = new Set(this.heldButtons);
+    if (event.action === 'down') remaining.add(event.button);
+    else if (event.action === 'up') remaining.delete(event.button);
+    if (remaining.size > 0) return;
+
+    await this.restoreLocalPointer();
+  }
+
+  private async restoreLocalPointer(): Promise<void> {
+    const origin = this.borrowedFrom;
+    this.borrowedFrom = null;
+    if (!origin) return;
+
+    try {
+      await this.getBackend().inject({
+        type: 'mouse',
+        action: 'move',
+        x: origin.x,
+        y: origin.y,
+      });
+    } catch (error) {
+      this.logger.warn('[RemoteInput] Could not restore local pointer', { error });
+    }
+  }
+
+  /** Where the remote participant's cursor currently sits, normalized 0-1. */
+  getRemoteCursorPosition(): { x: number; y: number } {
+    return { ...this.remotePosition };
   }
 
   private clearHoldWatchdog(): void {
@@ -241,7 +324,7 @@ export class RemoteInputInjector {
     }
 
     try {
-      await this.getBackend().inject(event);
+      await this.dispatch(event);
       this.stats.injected += 1;
       this.trackHeldState(event);
     } catch (error) {

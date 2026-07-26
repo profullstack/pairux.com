@@ -71,15 +71,47 @@ Mouse coordinates are normalized `0-1` relative to the shared surface, not
 pixels. The viewer never needs to know the host's resolution, DPI, or monitor
 layout — call `updateScreenSize()` on the host and the injector maps them.
 
+## Two cursors on a one-cursor OS
+
+Every desktop OS we support has exactly one system pointer, and none of them
+lets an ordinary process create a second one (X11's XInput2 MPX aside, which
+does not exist on Wayland or macOS). Injecting remote movement into that single
+pointer is what makes remote control feel like the local user's mouse has been
+stolen.
+
+So by default (`virtualCursor: true`) remote movement never touches the local
+pointer at all — it only advances a tracked position, which the host renders as
+the remote participant's cursor. The real pointer is borrowed for the instant a
+remote click or scroll has to land somewhere, then handed straight back to
+where its owner left it. Both people keep a usable cursor at the same time.
+
+```ts
+injector.getRemoteCursorPosition(); // { x, y } normalized — draw this
+```
+
+During a drag the pointer necessarily stays with the remote user until they
+release, otherwise the drag would tear.
+
+Restoration needs to read where the local pointer is, which X11 and macOS
+allow and **Wayland does not** — Wayland gives clients no way to query the
+pointer. There, a remote click leaves the pointer where it landed rather than
+returning it. Movement is still never hijacked, which is the bulk of the win.
+Pass `virtualCursor: false` for the old behaviour where remote input drives the
+system cursor directly.
+
 ## Platform support
 
-| Platform        | Backend           | Requirements                                         |
-| --------------- | ----------------- | ---------------------------------------------------- |
-| macOS           | `nut-js`          | Accessibility permission (see below)                 |
-| Windows         | `nut-js`          | None. Admin only to drive elevated windows.          |
-| Linux / X11     | `nut-js`          | None                                                 |
-| Linux / Wayland | `wayland-ydotool` | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
-| Linux / Wayland | `wayland-portal`  | Diagnostic only — reports why control is unavailable |
+| Platform        | Backend           | Two cursors                                                                                                                  | Requirements                                         |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| macOS           | `nut-js`          | Full — local pointer restored                                                                                                | Accessibility permission (see below)                 |
+| Windows         | `nut-js`          | Full — local pointer restored                                                                                                | None. Admin only to drive elevated windows.          |
+| Linux / X11     | `nut-js`          | Full — local pointer restored                                                                                                | None                                                 |
+| Linux / Wayland | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed (Wayland will not report pointer position) | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
+| Linux / Wayland | `wayland-portal`  | n/a                                                                                                                          | Diagnostic only — reports why control is unavailable |
+
+> This package injects into a real OS, so it runs only where one exists. A
+> browser cannot be the _controlled_ machine; a browser-based client can only
+> ever be the side doing the controlling.
 
 Backend selection is automatic. On Wayland the package probes `ydotool` first
 (and will try to auto-start `ydotoold` via systemd), then falls back to a

@@ -241,6 +241,16 @@ export interface IPCChannels {
     return: { success: boolean };
   };
 
+  'daemon:reportState': {
+    args: {
+      sharing: boolean;
+      sessionId: string | null;
+      joinCode: string | null;
+      url: string | null;
+    };
+    return: { success: boolean };
+  };
+
   'input:inject': {
     args: { event: InputEvent };
     return: { success: boolean };
@@ -467,6 +477,10 @@ export interface IPCEvents {
   'tray:end-session': undefined;
   'tray:toggle-pause': undefined;
   navigate: string;
+
+  // `pairux --daemon`: the web app asking this device to share
+  'daemon:start-session': undefined;
+  'daemon:stop-session': undefined;
 
   // RTMP Streaming events
   'rtmp:streamStatusChanged': {

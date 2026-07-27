@@ -5,6 +5,7 @@
 import { ipcMain, globalShortcut, app } from 'electron';
 import type { InputEvent } from '@pairux/shared-types';
 import { showRemoteCursor, hideRemoteCursor, destroyRemoteCursor } from '../overlay/cursorOverlay';
+import { reportDaemonState } from '../daemon';
 import {
   initInputInjector,
   injectInput,
@@ -96,6 +97,24 @@ export function registerInputHandlers(): void {
     (_event, args: { x: number; y: number; name: string; visible: boolean }) => {
       if (args.visible) showRemoteCursor(args.x, args.y, args.name);
       else hideRemoteCursor();
+      return { success: true };
+    }
+  );
+
+  // The renderer owns capture/session state; main mirrors it so the daemon's
+  // HTTP endpoints can answer without a round trip.
+  ipcMain.handle(
+    'daemon:reportState',
+    (
+      _event,
+      args: {
+        sharing: boolean;
+        sessionId: string | null;
+        joinCode: string | null;
+        url: string | null;
+      }
+    ) => {
+      reportDaemonState(args);
       return { success: true };
     }
   );

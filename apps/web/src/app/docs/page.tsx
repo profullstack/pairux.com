@@ -24,6 +24,7 @@ const tableOfContents = [
   { id: 'hosting', title: 'Hosting a Session' },
   { id: 'viewing', title: 'Viewing a Session' },
   { id: 'control', title: 'Remote Control' },
+  { id: 'remote-start', title: 'Remote Start (Tailscale)' },
   { id: 'security', title: 'Security' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'uninstalling', title: 'Uninstalling' },
@@ -282,6 +283,47 @@ export default function DocsPage() {
                     <p>
                       Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Escape</kbd> at any time to
                       instantly revoke all remote control. This hotkey cannot be overridden.
+                    </p>
+                  </section>
+
+                  {/* Remote start over Tailscale */}
+                  <section id="remote-start" className="mt-12">
+                    <h2>Remote Start (Tailscale)</h2>
+
+                    <p>
+                      Leave a laptop presenting and drive it from your phone. Run PairUX as a daemon
+                      on the device you want to share, then start and stop the session from this web
+                      app, wherever you are.
+                    </p>
+
+                    <h3>Set it up</h3>
+                    <p>
+                      Tailscale is installed for you by the PairUX installer. Connect the device to
+                      your tailnet, then start the daemon:
+                    </p>
+                    <pre>
+                      <code>{`tailscale up\npairux --daemon`}</code>
+                    </pre>
+                    <p>
+                      The daemon publishes itself and prints the address to open on your phone,
+                      something like <code>https://your-laptop.your-tailnet.ts.net</code>. Your
+                      tailnet needs MagicDNS and HTTPS certificates enabled.
+                    </p>
+
+                    <h3>On Wayland, approve capture once</h3>
+                    <p>
+                      Linux desktops running Wayland ask permission before any app can capture the
+                      screen, and that prompt has to be answered at the machine. Start the daemon
+                      and accept it once before you walk away — after that your phone can start and
+                      stop sessions freely. macOS, Windows and X11 need no prompt.
+                    </p>
+
+                    <h3>Why Tailscale</h3>
+                    <p>
+                      The daemon only listens on the device itself; Tailscale is what makes it
+                      reachable, and it supplies both the certificate this site needs to talk to it
+                      and the identity check that proves the request is yours. There is no password
+                      to create, nothing to expose to the internet, and no ports to forward.
                     </p>
                   </section>
 

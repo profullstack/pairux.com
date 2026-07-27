@@ -692,6 +692,30 @@ export function CapturePreview({
     }
   }, [initialSession, createdSession, isCreating, error, createSession]);
 
+  // Mirror sharing state to the main process so `pairux --daemon` can answer
+  // the web app without asking the renderer each time.
+  useEffect(() => {
+    const api = getElectronAPI();
+    void api
+      .invoke('daemon:reportState', {
+        sharing: Boolean(session),
+        sessionId: session?.id ?? null,
+        joinCode: session?.join_code ?? null,
+        url: session ? `${APP_URL}/join/${session.join_code}` : null,
+      })
+      .catch(() => {
+        // Daemon mode is optional; never let it disturb a session.
+      });
+  }, [session]);
+
+  // Daemon mode: the web app can ask this device to stop sharing.
+  useEffect(() => {
+    const unsubscribe = getElectronAPI().on('daemon:stop-session', () => {
+      void endSession();
+    });
+    return unsubscribe;
+  }, [endSession]);
+
   // Poll for participant updates while session is active
   const refreshSessionRef = useRef(refreshSession);
   refreshSessionRef.current = refreshSession;

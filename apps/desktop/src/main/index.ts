@@ -7,6 +7,7 @@ import { initializeTray, destroyTray, getTraySession } from './tray';
 import { initializeMenu, showAboutDialog } from './platform';
 import { clearStoredAuth, clearStoredCredentials } from './auth/secure-storage';
 import { setMainWindow as setStreamingMainWindow } from './streaming';
+import { startDaemon, stopDaemon } from './daemon';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
@@ -61,6 +62,10 @@ normalizeWorkingDirectory();
 if (!app.isPackaged) {
   config({ path: resolve(__dirname, '../../.env') });
 }
+
+// `pairux --daemon`: accept "start sharing" commands from the web app over
+// Tailscale, so a laptop can be driven from a phone.
+const isDaemonMode = process.argv.includes('--daemon');
 
 // Detect display server (X11 vs Wayland)
 const isWayland =
@@ -155,6 +160,15 @@ void app.whenReady().then(async () => {
 
   await createWindow();
 
+  if (isDaemonMode) {
+    console.log('[Main] Daemon mode: accepting session commands from the web app');
+    try {
+      await startDaemon(() => mainWindow);
+    } catch (error) {
+      console.error('[Main] Daemon failed to start:', error);
+    }
+  }
+
   // Initialize system tray
   initializeTray({
     onShowWindow: () => {
@@ -240,6 +254,8 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   console.log('[Main] App quitting...');
   destroyTray();
+  // Withdraw the tailnet mapping so a stopped daemon leaves nothing published.
+  void stopDaemon();
 });
 
 // Handle uncaught exceptions

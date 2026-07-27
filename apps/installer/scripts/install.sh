@@ -654,6 +654,57 @@ install_ffmpeg() {
     fi
 }
 
+# Install Tailscale, used by `pairux --daemon` to reach this device
+#
+# The daemon listens on loopback and is published with `tailscale serve`, which
+# supplies both the HTTPS certificate the PWA needs to call it and the caller
+# identity the daemon authenticates against. Without Tailscale the daemon still
+# runs, but only the machine it is on can reach it.
+#
+# Never fatal: a failure here must not stop PairUX installing.
+install_tailscale() {
+    local platform="$1"
+
+    if command -v tailscale >/dev/null 2>&1; then
+        success "Tailscale already installed"
+        return 0
+    fi
+
+    info "Installing Tailscale (for 'pairux --daemon' remote start)..."
+
+    case "$platform" in
+        darwin)
+            if command -v brew >/dev/null 2>&1; then
+                brew install tailscale >/dev/null 2>&1 || {
+                    warn "Could not install Tailscale via Homebrew"
+                    warn "Install it from https://tailscale.com/download to use 'pairux --daemon'"
+                    return 0
+                }
+            else
+                warn "Homebrew not found, skipping Tailscale"
+                warn "Install it from https://tailscale.com/download to use 'pairux --daemon'"
+                return 0
+            fi
+            ;;
+        linux)
+            # Tailscale's own installer handles every distro we support.
+            if ! curl -fsSL https://tailscale.com/install.sh | sh >/dev/null 2>&1; then
+                warn "Could not install Tailscale automatically"
+                warn "Install it from https://tailscale.com/download to use 'pairux --daemon'"
+                return 0
+            fi
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    if command -v tailscale >/dev/null 2>&1; then
+        success "Tailscale installed"
+        info "Connect it with: tailscale up"
+    fi
+}
+
 # Install on macOS
 install_macos() {
     local version="$1"
@@ -1149,6 +1200,7 @@ install_pairux() {
     esac
 
     install_ffmpeg "$platform" "$version"
+    install_tailscale "$platform"
 }
 
 # Add to PATH if needed

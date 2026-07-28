@@ -16,6 +16,7 @@ import {
 } from 'livekit-client';
 import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
+import { announceTailnet, buildTailnetHello } from '@/lib/tailnetHello';
 import { buildSfuRtcConfig } from '@/lib/iceConfig';
 import type {
   ConnectionState,
@@ -122,6 +123,15 @@ export function useWebRTCViewerSFUAPI({
   onStreamEndedRef.current = onStreamEnded;
 
   // Handle incoming data messages from LiveKit
+  // Send data through LiveKit
+  const sendData = useCallback((message: unknown, reliable = true) => {
+    const room = roomRef.current;
+    if (room?.state !== LKConnectionState.Connected) return;
+
+    const data = encoder.encode(JSON.stringify(message));
+    void room.localParticipant.publishData(data, { reliable });
+  }, []);
+
   const handleDataReceived = useCallback(
     (payload: Uint8Array, participant?: RemoteParticipant) => {
       try {
@@ -142,13 +152,7 @@ export function useWebRTCViewerSFUAPI({
               void getElectronAPI()
                 .invoke('tailscale:info', undefined)
                 .then((info) => {
-                  sendData({
-                    type: 'tailnet-hello',
-                    participantId,
-                    ips: info.ips,
-                    reply: true,
-                    timestamp: Date.now(),
-                  });
+                  sendData(buildTailnetHello(participantId, info.ips, true));
                 })
                 .catch(() => {
                   // Diagnostics must never disturb a session.
@@ -190,17 +194,8 @@ export function useWebRTCViewerSFUAPI({
         // Invalid message
       }
     },
-    [participantId]
+    [participantId, sendData]
   );
-
-  // Send data through LiveKit
-  const sendData = useCallback((message: unknown, reliable = true) => {
-    const room = roomRef.current;
-    if (room?.state !== LKConnectionState.Connected) return;
-
-    const data = encoder.encode(JSON.stringify(message));
-    void room.localParticipant.publishData(data, { reliable });
-  }, []);
 
   // Request control
   const requestControl = useCallback(() => {
@@ -517,6 +512,12 @@ export function useWebRTCViewerSFUAPI({
         setMicEnabled(false);
       }
 
+      // Open the tailnet handshake now the room can carry data. Fire and
+      // forget: the host draws the conclusion, and nothing here depends on it.
+      void announceTailnet(participantId, (message) => {
+        sendData(message);
+      });
+
       // Start stats collection
       statsIntervalRef.current = setInterval(() => void collectStats(), 2000);
     } catch (err) {
@@ -524,7 +525,7 @@ export function useWebRTCViewerSFUAPI({
       setConnectionState('failed');
       setError(err instanceof Error ? err.message : 'Failed to connect');
     }
-  }, [sessionId, participantId, handleDataReceived, collectStats]);
+  }, [sessionId, participantId, handleDataReceived, collectStats, sendData]);
 
   // Manual reconnect
   const reconnect = useCallback(() => {

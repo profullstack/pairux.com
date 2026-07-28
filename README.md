@@ -335,18 +335,18 @@ pnpm dev
 
 ## 📖 Documentation
 
-| Document                                             | Description                                                    |
-| ---------------------------------------------------- | -------------------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md)                 | System design and diagrams                                     |
-| [Features](docs/FEATURES.md)                         | Detailed feature specifications                                |
-| [Tech Stack](docs/TECH-STACK.md)                     | Technology choices                                             |
-| [WebRTC Flow](docs/WEBRTC-FLOW.md)                   | Signaling and media flow                                       |
-| [Remote Control](docs/REMOTE-CONTROL.md)             | Input injection system                                         |
-| [Remote start (Tailscale)](docs/TAILSCALE-DAEMON.md) | `pairux --daemon`: start a session on a device from your phone |
-| [Security](docs/SECURITY.md)                         | Security model                                                 |
-| [Distribution](docs/DISTRIBUTION.md)                 | Package manager publishing                                     |
-| [CI/CD](docs/CI-CD.md)                               | GitHub Actions workflows                                       |
-| [API](docs/API.md)                                   | Database schema and API                                        |
+| Document                                             | Description                                                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                 | System design and diagrams                                                                        |
+| [Features](docs/FEATURES.md)                         | Detailed feature specifications                                                                   |
+| [Tech Stack](docs/TECH-STACK.md)                     | Technology choices                                                                                |
+| [WebRTC Flow](docs/WEBRTC-FLOW.md)                   | Signaling and media flow                                                                          |
+| [Remote Control](docs/REMOTE-CONTROL.md)             | Input injection system                                                                            |
+| [Remote start (Tailscale)](docs/TAILSCALE-DAEMON.md) | `pairux daemon`: start a session on a device from your phone, and carrying media over the tailnet |
+| [Security](docs/SECURITY.md)                         | Security model                                                                                    |
+| [Distribution](docs/DISTRIBUTION.md)                 | Package manager publishing                                                                        |
+| [CI/CD](docs/CI-CD.md)                               | GitHub Actions workflows                                                                          |
+| [API](docs/API.md)                                   | Database schema and API                                                                           |
 
 ---
 

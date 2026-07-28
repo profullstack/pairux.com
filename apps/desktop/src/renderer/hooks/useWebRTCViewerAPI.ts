@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
+import { announceTailnet, buildTailnetHello } from '@/lib/tailnetHello';
 import type {
   ConnectionState,
   QualityMetrics,
@@ -96,6 +97,9 @@ export function useWebRTCViewerAPI({
   const micStreamRef = useRef<MediaStream | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
+  // The message handler is created once; read the current id through a ref.
+  const participantIdRef = useRef(participantId);
+  participantIdRef.current = participantId;
   const authTokenRef = useRef<string | null>(null);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statsReportIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -177,6 +181,26 @@ export function useWebRTCViewerAPI({
 
       if ('type' in message) {
         switch (message.type) {
+          case 'tailnet-hello': {
+            // Diagnostic only. Reply once with our own addresses so the host
+            // can test whether a direct WireGuard path exists; never reply to a
+            // reply, or the two sides ping-pong forever.
+            if (message.reply) break;
+            const dc = dataChannelRef.current;
+            if (dc?.readyState !== 'open') break;
+            void getElectronAPI()
+              .invoke('tailscale:info', undefined)
+              .then((info) => {
+                if (dataChannelRef.current?.readyState !== 'open') return;
+                dataChannelRef.current.send(
+                  JSON.stringify(buildTailnetHello(participantIdRef.current, info.ips, true))
+                );
+              })
+              .catch(() => {
+                // Diagnostics must never disturb a session.
+              });
+            break;
+          }
           case 'control-grant':
             setControlState('granted');
             onControlStateChangeRef.current?.('granted');
@@ -217,6 +241,10 @@ export function useWebRTCViewerAPI({
 
       channel.onopen = () => {
         setDataChannelReady(true);
+        void announceTailnet(participantIdRef.current, (message) => {
+          if (dataChannelRef.current?.readyState !== 'open') return;
+          dataChannelRef.current.send(JSON.stringify(message));
+        });
       };
 
       channel.onclose = () => {

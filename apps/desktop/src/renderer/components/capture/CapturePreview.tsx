@@ -42,6 +42,7 @@ import { CameraBubble } from '@/components/capture/CameraBubble';
 import { PublishToLive } from '@/components/capture/PublishToLive';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useLiveStreamEnabled } from '@/lib/liveStream';
+import { isPreferTailnetEnabled } from '@/lib/iceConfig';
 import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
@@ -328,6 +329,28 @@ export function CapturePreview({
     !inputDiagnostics.backendSupported &&
     !waylandInputDiagnosticsDismissed;
 
+  // M2: offer tailnet candidates for the life of a peer-to-peer session.
+  //
+  // Scoped deliberately. Relaxing the policy re-admits every private interface,
+  // including the dead secondary NICs that "force relay" exists to work around,
+  // so it is applied only where it can pay off — P2P, opted in — and undone as
+  // soon as the session ends. An SFU session connects to the server, which is
+  // not on anyone's tailnet, so it is left alone.
+  useEffect(() => {
+    if (isSFU || !session || !isPreferTailnetEnabled()) return;
+
+    const api = getElectronAPI();
+    void api.invoke('webrtc:setIpPolicy', { allowPrivate: true }).catch(() => {
+      // Falls back to the restrictive default, which is the safe direction.
+    });
+
+    return () => {
+      void api.invoke('webrtc:setIpPolicy', { allowPrivate: false }).catch(() => {
+        // Nothing to recover: the next session re-applies whichever it needs.
+      });
+    };
+  }, [isSFU, session]);
+
   // Would a direct WireGuard path to this participant exist?
   //
   // Diagnostic only: media still goes over the SFU. A DERP result counts as no
@@ -494,8 +517,8 @@ export function CapturePreview({
     hostMicStream,
   } = isSFU ? sfuHost : p2pHost;
 
-  // Only the SFU host can greet peers; P2P sessions skip the diagnostic.
-  hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : null;
+  // Answer the handshake over whichever transport is actually carrying it.
+  hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : p2pHost.sendTailnetHello;
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {

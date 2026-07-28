@@ -241,6 +241,11 @@ export interface IPCChannels {
     return: { success: boolean };
   };
 
+  'webrtc:setIpPolicy': {
+    args: { allowPrivate: boolean };
+    return: { success: boolean; policy: string };
+  };
+
   'tailscale:info': {
     args: undefined;
     return: { connected: boolean; ips: string[]; reason: string | null };

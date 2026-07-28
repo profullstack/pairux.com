@@ -94,6 +94,51 @@ starting a second.
 - **Withdrawn on exit.** Stopping the daemon takes the `tailscale serve` mapping
   down, so a dead daemon leaves nothing published.
 
+## Carrying media over the tailnet
+
+Separate from the daemon, Tailscale can also carry the session's video — but
+only in the one case where it beats what is already there.
+
+**When it helps.** Two native peers on the same tailnet, in a peer-to-peer
+session, with a _direct_ WireGuard path between them. That is a real gain: the
+media stops going through a relay in the middle.
+
+**When it does not.** A server session connects to the PairUX server, which is
+not on your tailnet, so tailnet addresses are useless there. And a tailnet path
+that falls back to DERP is itself a relay — no better than the TURN server
+already in use.
+
+### Finding out whether a direct path exists
+
+Every session works this out on its own and says so in the desktop app's logs.
+A native viewer opens by sending its tailnet addresses; the host answers with
+its own and runs `tailscale ping` against what it received:
+
+```
+[Tailnet] Direct path available — media over the tailnet would work
+[Tailnet] Reachable only via a relay — no better than the current TURN path
+[Tailnet] Peer is not on a tailnet — no direct path
+```
+
+A browser cannot learn its own tailnet address, so a phone or web viewer never
+opens the exchange and no verdict is logged. That is expected.
+
+### Turning it on
+
+**Settings → Streaming → "Prefer direct connection over Tailscale."** Off by
+default, and deliberately so.
+
+Enabling it relaxes Chromium's IP-handling policy to offer this machine's
+private addresses as connection candidates. That is what makes a direct tailnet
+path possible — but it re-admits _every_ private interface, including the dead
+secondary adapters (a VPN tap, SIM-card hardware) that cause a session to
+connect and then silently drop after a minute. **"Force relay" above it exists
+to avoid exactly that.** Turn this on only once the logs above have told you a
+direct path is really there.
+
+It applies only for the life of a peer-to-peer session and is undone when the
+session ends, so it cannot affect anything else the machine is doing.
+
 ## Troubleshooting
 
 **"Not published to the tailnet"** — run `tailscale status`; if it is not
@@ -106,3 +151,8 @@ browser directly.
 
 **"Timed out waiting for the session to start"** — on Wayland, the capture
 prompt is waiting on the device itself. See the section above.
+
+**Streaming drops about a minute in, after enabling "Prefer direct connection
+over Tailscale"** — that is the multi-homed-host failure the setting warns
+about. Turn it back off; if you also need the relay path pinned, turn on "Force
+relay".

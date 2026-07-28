@@ -75,6 +75,8 @@ interface UseWebRTCHostAPIOptions {
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
   onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
+  /** A peer reporting its tailnet addresses (diagnostic only). */
+  onTailnetHello?: (viewerId: string, ips: string[], isReply: boolean) => void;
 }
 
 interface UseWebRTCHostAPIReturn {
@@ -96,6 +98,7 @@ interface UseWebRTCHostAPIReturn {
   toggleMic: () => void;
   /** The host's dedicated microphone stream — alive whenever hosting, independent of screen sharing. */
   hostMicStream: MediaStream | null;
+  sendTailnetHello: (viewerId: string, ips: string[], reply: boolean) => void;
 }
 
 export function useWebRTCHostAPI({
@@ -108,6 +111,7 @@ export function useWebRTCHostAPI({
   onControlRequest,
   onInputReceived,
   onCursorUpdate,
+  onTailnetHello,
 }: UseWebRTCHostAPIOptions): UseWebRTCHostAPIReturn {
   const [isHosting, setIsHosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,9 +140,11 @@ export function useWebRTCHostAPI({
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
+  const onTailnetHelloRef = useRef(onTailnetHello);
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
+  onTailnetHelloRef.current = onTailnetHello;
   // Sessions that disallow control must never surface a request or forward an
   // input event, even if a viewer sends one anyway.
   const allowControlRef = useRef(allowControl);
@@ -338,6 +344,9 @@ export function useWebRTCHostAPI({
 
       if ('type' in message) {
         switch (message.type) {
+          case 'tailnet-hello':
+            onTailnetHelloRef.current?.(viewerId, message.ips, message.reply);
+            break;
           case 'control-request':
             if (!allowControlRef.current) {
               console.warn('[WebRTCHost] Ignoring control request: session disallows control', {
@@ -1120,6 +1129,25 @@ export function useWebRTCHostAPI({
     setViewers(new Map(viewersRef.current));
   }, []);
 
+  /** Tell a peer our tailnet addresses so it can test a direct path. */
+  const sendTailnetHello = useCallback(
+    (viewerId: string, ips: string[], reply: boolean) => {
+      const viewer = viewersRef.current.get(viewerId);
+      if (viewer?.dataChannel?.readyState !== 'open') return;
+
+      viewer.dataChannel.send(
+        JSON.stringify({
+          type: 'tailnet-hello',
+          participantId: hostId,
+          ips,
+          reply,
+          timestamp: Date.now(),
+        })
+      );
+    },
+    [hostId]
+  );
+
   return {
     isHosting,
     viewerCount: viewers.size,
@@ -1138,5 +1166,6 @@ export function useWebRTCHostAPI({
     hasMic,
     toggleMic,
     hostMicStream,
+    sendTailnetHello,
   };
 }

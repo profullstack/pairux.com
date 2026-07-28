@@ -38,6 +38,7 @@ interface AppSettings {
   streaming: {
     liveStreamEnabled: boolean;
     forceRelay: boolean;
+    preferTailnet: boolean;
   };
 }
 
@@ -62,6 +63,10 @@ const DEFAULT_SETTINGS: AppSettings = {
     // Off by default; turn on for VPNs or machines with a non-routable extra
     // NIC where direct connections drop mid-stream.
     forceRelay: false,
+    // Offer this machine's tailnet address so peers on the same tailnet can
+    // connect directly. Off by default: it also re-admits other private
+    // interfaces, which is exactly what forceRelay exists to work around.
+    preferTailnet: false,
   },
 };
 
@@ -403,6 +408,41 @@ export function SettingsPage() {
                 <span
                   className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
                     settings.streaming.forceRelay ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Prefer direct connection over Tailscale</p>
+                <p className="text-xs text-muted-foreground">
+                  Offers this machine&apos;s tailnet address so a peer on the same tailnet can
+                  connect directly, with no relay. Only affects peer-to-peer sessions — a server
+                  session connects to the server, which isn&apos;t on your tailnet. Leave off if
+                  streaming drops after a minute: this also offers other private network adapters,
+                  which is what &ldquo;Force relay&rdquo; above exists to avoid.
+                </p>
+              </div>
+              <button
+                aria-label="Toggle prefer tailnet"
+                aria-pressed={settings.streaming.preferTailnet}
+                onClick={() => {
+                  updateSettings({
+                    ...settings,
+                    streaming: {
+                      ...settings.streaming,
+                      preferTailnet: !settings.streaming.preferTailnet,
+                    },
+                  });
+                }}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  settings.streaming.preferTailnet ? 'bg-primary' : 'bg-muted'
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    settings.streaming.preferTailnet ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>

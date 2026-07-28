@@ -123,6 +123,23 @@ export function registerInputHandlers(): void {
   // M1 of "media over Tailscale": report only. Tells us whether a direct
   // WireGuard path between peers even exists before anything is changed about
   // how media is routed.
+  // M2: offer tailnet candidates, but only while a session that can use them
+  // is running. The restrictive default exists to stop a multi-homed host
+  // offering candidates on a dead NIC, so the relaxation is scoped and undone.
+  ipcMain.handle('webrtc:setIpPolicy', async (_event, args: { allowPrivate: boolean }) => {
+    const { BrowserWindow } = await import('electron');
+    const policy = args.allowPrivate
+      ? 'default_public_and_private_interfaces'
+      : 'default_public_interface_only';
+
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.setWebRTCIPHandlingPolicy(policy);
+    }
+
+    console.log('[WebRTC] IP handling policy set to', policy);
+    return { success: true, policy };
+  });
+
   ipcMain.handle('tailscale:info', async () => {
     const state = await getTailscaleState();
     return { connected: state.connected, ips: state.ips, reason: state.reason ?? null };

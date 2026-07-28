@@ -328,6 +328,49 @@ export function CapturePreview({
     !inputDiagnostics.backendSupported &&
     !waylandInputDiagnosticsDismissed;
 
+  // Would a direct WireGuard path to this participant exist?
+  //
+  // Diagnostic only: media still goes over the SFU. A DERP result counts as no
+  // for our purposes — that is another relay, and buys nothing over the TURN
+  // server already in use. Only a native peer can answer; a browser has no way
+  // to learn its own tailnet address.
+  const handleTailnetHello = useCallback((viewerId: string, ips: string[], isReply: boolean) => {
+    void (async () => {
+      const api = getElectronAPI();
+
+      if (!isReply) {
+        // Someone greeted us first; answer with our own addresses.
+        const info = await api.invoke('tailscale:info', undefined).catch(() => null);
+        hostTailnetHelloRef.current?.(viewerId, info?.ips ?? [], true);
+      }
+
+      if (ips.length === 0) {
+        console.log('[Tailnet] Peer is not on a tailnet — no direct path', { viewerId });
+        return;
+      }
+
+      for (const ip of ips) {
+        const result = await api.invoke('tailscale:checkPath', { ip }).catch(() => null);
+        if (!result?.reachable) continue;
+
+        console.log(
+          result.direct
+            ? '[Tailnet] Direct path available — media over the tailnet would work'
+            : '[Tailnet] Reachable only via a relay — no better than the current TURN path',
+          { viewerId, ip, via: result.via }
+        );
+        return;
+      }
+
+      console.log('[Tailnet] Peer reported addresses but none were reachable', { viewerId, ips });
+    })();
+  }, []);
+
+  // Set after the host hook resolves; the callback above runs long after.
+  const hostTailnetHelloRef = useRef<
+    ((viewerId: string, ips: string[], reply: boolean) => void) | null
+  >(null);
+
   const hostHookOptions = useMemo(
     () => ({
       sessionId: session?.id ?? '',
@@ -355,6 +398,7 @@ export function CapturePreview({
         void refreshSession();
       },
       onControlRequest: handleControlRequested,
+      onTailnetHello: handleTailnetHello,
       onInputReceived: (viewerId: string, input: InputMessage) => {
         remoteInputCountRef.current += 1;
         if (remoteInputCountRef.current <= 3 || remoteInputCountRef.current % 100 === 0) {
@@ -420,6 +464,7 @@ export function CapturePreview({
       participantWithControl?.id,
       refreshSession,
       handleControlRequested,
+      handleTailnetHello,
       updateCursor,
       removeCursor,
     ]
@@ -448,6 +493,9 @@ export function CapturePreview({
     toggleMic: hostToggleMic,
     hostMicStream,
   } = isSFU ? sfuHost : p2pHost;
+
+  // Only the SFU host can greet peers; P2P sessions skip the diagnostic.
+  hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : null;
 
   // Audio mixer: combines host mic + all viewer audio into one stream for recording
   const {

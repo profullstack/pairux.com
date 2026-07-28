@@ -134,6 +134,27 @@ export function useWebRTCViewerSFUAPI({
 
         if ('type' in message) {
           switch (message.type) {
+            case 'tailnet-hello': {
+              // Diagnostic only. Reply once with our own addresses so the host
+              // can test whether a direct WireGuard path exists; never reply to
+              // a reply, or the two sides ping-pong forever.
+              if (message.reply) break;
+              void getElectronAPI()
+                .invoke('tailscale:info', undefined)
+                .then((info) => {
+                  sendData({
+                    type: 'tailnet-hello',
+                    participantId,
+                    ips: info.ips,
+                    reply: true,
+                    timestamp: Date.now(),
+                  });
+                })
+                .catch(() => {
+                  // Diagnostics must never disturb a session.
+                });
+              break;
+            }
             case 'control-grant':
               setControlState('granted');
               onControlStateChangeRef.current?.('granted');

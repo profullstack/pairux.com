@@ -241,6 +241,16 @@ export interface IPCChannels {
     return: { success: boolean };
   };
 
+  'tailscale:info': {
+    args: undefined;
+    return: { connected: boolean; ips: string[]; reason: string | null };
+  };
+
+  'tailscale:checkPath': {
+    args: { ip: string };
+    return: { reachable: boolean; direct: boolean; via: string | null; reason?: string };
+  };
+
   'daemon:reportState': {
     args: {
       sharing: boolean;

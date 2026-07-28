@@ -71,6 +71,7 @@ export type {
   ControlRevokeMessage,
   KickMessage,
   MuteMessage,
+  TailnetHelloMessage,
   ControlMessage,
   CursorPositionMessage,
   PingMessage,

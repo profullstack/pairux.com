@@ -6,6 +6,7 @@ import { ipcMain, globalShortcut, app } from 'electron';
 import type { InputEvent } from '@pairux/shared-types';
 import { showRemoteCursor, hideRemoteCursor, destroyRemoteCursor } from '../overlay/cursorOverlay';
 import { reportDaemonState } from '../daemon';
+import { getTailscaleState, checkTailnetPath } from '../daemon/tailscale';
 import {
   initInputInjector,
   injectInput,
@@ -118,6 +119,18 @@ export function registerInputHandlers(): void {
       return { success: true };
     }
   );
+
+  // M1 of "media over Tailscale": report only. Tells us whether a direct
+  // WireGuard path between peers even exists before anything is changed about
+  // how media is routed.
+  ipcMain.handle('tailscale:info', async () => {
+    const state = await getTailscaleState();
+    return { connected: state.connected, ips: state.ips, reason: state.reason ?? null };
+  });
+
+  ipcMain.handle('tailscale:checkPath', async (_event, args: { ip: string }) => {
+    return checkTailnetPath(args.ip);
+  });
 
   ipcMain.handle('overlay:clearRemoteCursor', () => {
     destroyRemoteCursor();

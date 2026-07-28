@@ -56,6 +56,8 @@ interface UseWebRTCHostSFUAPIOptions {
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
   onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
+  /** A peer reporting its tailnet addresses (diagnostic only). */
+  onTailnetHello?: (viewerId: string, ips: string[], isReply: boolean) => void;
 }
 
 interface UseWebRTCHostSFUAPIReturn {
@@ -69,6 +71,7 @@ interface UseWebRTCHostSFUAPIReturn {
   publishStream: (stream: MediaStream) => Promise<void>;
   unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
+  sendTailnetHello: (viewerId: string, ips: string[], reply: boolean) => void;
   revokeControl: (viewerId: string) => void;
   kickViewer: (viewerId: string) => void;
   muteViewer: (viewerId: string, muted: boolean) => void;
@@ -90,6 +93,7 @@ export function useWebRTCHostSFUAPI({
   onControlRequest,
   onInputReceived,
   onCursorUpdate,
+  onTailnetHello,
 }: UseWebRTCHostSFUAPIOptions): UseWebRTCHostSFUAPIReturn {
   const [isHosting, setIsHosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,12 +112,14 @@ export function useWebRTCHostSFUAPI({
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onCursorUpdateRef = useRef(onCursorUpdate);
+  const onTailnetHelloRef = useRef(onTailnetHello);
   const onViewerJoinedRef = useRef(onViewerJoined);
   const onViewerLeftRef = useRef(onViewerLeft);
 
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onCursorUpdateRef.current = onCursorUpdate;
+  onTailnetHelloRef.current = onTailnetHello;
   onViewerJoinedRef.current = onViewerJoined;
   onViewerLeftRef.current = onViewerLeft;
   // Sessions that disallow control must never surface a request or forward an
@@ -145,6 +151,9 @@ export function useWebRTCHostSFUAPI({
 
       if ('type' in message) {
         switch (message.type) {
+          case 'tailnet-hello':
+            onTailnetHelloRef.current?.(viewerId, message.ips, message.reply);
+            break;
           case 'control-request':
             if (!allowControlRef.current) {
               console.warn('[WebRTCHostSFU] Ignoring control request: session disallows control', {
@@ -613,6 +622,23 @@ export function useWebRTCHostSFUAPI({
     }
   }, [localStream, isHosting]);
 
+  /** Tell a peer our tailnet addresses so it can test a direct path. */
+  const sendTailnetHello = useCallback(
+    (viewerId: string, ips: string[], reply: boolean) => {
+      sendData(
+        {
+          type: 'tailnet-hello',
+          participantId: hostId,
+          ips,
+          reply,
+          timestamp: Date.now(),
+        },
+        viewerId
+      );
+    },
+    [hostId, sendData]
+  );
+
   // Grant control
   const grantControl = useCallback(
     (viewerId: string) => {
@@ -729,6 +755,7 @@ export function useWebRTCHostSFUAPI({
     viewerCount: viewers.size,
     viewers,
     controllingViewer,
+    sendTailnetHello,
     error,
     startHosting,
     stopHosting,

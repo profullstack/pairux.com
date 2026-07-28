@@ -73,13 +73,34 @@ export interface MuteMessage {
   timestamp: number;
 }
 
+/**
+ * Peers telling each other their tailnet addresses.
+ *
+ * Diagnostic only: it establishes whether a direct WireGuard path between two
+ * machines exists, which is the precondition for ever carrying media over the
+ * tailnet instead of the SFU. Nothing routes differently because of it.
+ *
+ * Only native clients can answer — a browser has no way to learn its own
+ * tailnet address.
+ */
+export interface TailnetHelloMessage {
+  type: 'tailnet-hello';
+  participantId: string;
+  /** Tailnet addresses of the sender, empty when not on a tailnet. */
+  ips: string[];
+  /** True when replying to another peer's hello, to stop it ping-ponging. */
+  reply: boolean;
+  timestamp: number;
+}
+
 // Union type for control messages
 export type ControlMessage =
   | ControlRequestMessage
   | ControlGrantMessage
   | ControlRevokeMessage
   | KickMessage
-  | MuteMessage;
+  | MuteMessage
+  | TailnetHelloMessage;
 
 // Cursor position message (for multi-cursor overlay)
 export interface CursorPositionMessage {

@@ -186,11 +186,17 @@ export function RecentSessions() {
               </div>
             </div>
             {session.status !== 'ended' && (
+              /* A live session is already being hosted somewhere — join it as a
+                 participant. Opening host mode would try to take over as
+                 publisher, which on a phone means blacking out the machine that
+                 is actually sharing. Resuming only makes sense when dormant. */
               <Link
-                href={`/host/${session.id}`}
+                href={
+                  session.status === 'active' ? `/session/${session.id}` : `/host/${session.id}`
+                }
                 className="text-primary-600 hover:text-primary-700 flex items-center gap-1 text-sm font-medium"
               >
-                Resume
+                {session.status === 'active' ? 'Join' : 'Resume'}
                 <ExternalLink className="h-3 w-3" />
               </Link>
             )}

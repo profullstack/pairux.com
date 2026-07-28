@@ -412,12 +412,23 @@ function HostContent({
     };
   }, [disposeMixer]);
 
+  // Screen capture does not exist on mobile browsers. Opening this page there
+  // — e.g. tapping a session on the dashboard from a phone — used to take over
+  // as publisher and black out the machine that was actually sharing. Hosting
+  // is only started where the device can host.
+  const canHost =
+    typeof navigator !== 'undefined' &&
+    // mediaDevices is absent entirely on some mobile/insecure contexts, so this
+    // is a genuine runtime check despite the DOM types claiming otherwise.
+    typeof (navigator.mediaDevices as MediaDevices | undefined)?.getDisplayMedia === 'function';
+
   // Start hosting (voice channel) as soon as session is loaded -- no stream required
   useEffect(() => {
+    if (!canHost) return;
     if (!isHosting) {
       void startHosting();
     }
-  }, [isHosting, startHosting]);
+  }, [canHost, isHosting, startHosting]);
 
   // Publish screen share stream when capture starts
   useEffect(() => {

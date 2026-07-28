@@ -257,15 +257,10 @@ export function CapturePreview({
   // switches on the moment a session is created, before anyone has joined.
   const participantWithControl = useMemo(() => {
     return (
-      participants.find(
-        (p) =>
-          p.control_state === 'granted' &&
-          !p.left_at &&
-          p.role !== 'host' &&
-          (currentUserId === undefined || p.user_id !== currentUserId)
-      ) ?? null
+      participants.find((p) => p.control_state === 'granted' && !p.left_at && p.role !== 'host') ??
+      null
     );
-  }, [participants, currentUserId]);
+  }, [participants]);
 
   // Viewers waiting on a control decision. Guests are anonymous and cannot
   // write control_state themselves, so requests arrive over the data channel

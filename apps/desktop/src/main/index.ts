@@ -63,9 +63,12 @@ if (!app.isPackaged) {
   config({ path: resolve(__dirname, '../../.env') });
 }
 
-// `pairux --daemon`: accept "start sharing" commands from the web app over
-// Tailscale, so a laptop can be driven from a phone.
-const isDaemonMode = process.argv.includes('--daemon');
+// `pairux daemon` / `pairux --daemon`: accept "start sharing" commands from
+// the web app over Tailscale, so a laptop can be driven from a phone.
+//
+// Both spellings work: the launcher is a subcommand CLI (`pairux update`,
+// `pairux uninstall`), so the bare word is the form that matches it.
+const isDaemonMode = process.argv.includes('daemon') || process.argv.includes('--daemon');
 
 // Detect display server (X11 vs Wayland)
 const isWayland =

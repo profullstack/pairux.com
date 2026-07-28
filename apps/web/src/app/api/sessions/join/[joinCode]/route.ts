@@ -126,6 +126,46 @@ export async function POST(request: Request, { params }: RouteParams) {
       return errorResponse(error.message, 400);
     }
 
+    // Joining your own session — typically from a phone to drive the machine
+    // that is presenting — should not require requesting control from yourself
+    // and walking back to the laptop to approve it. The owner arrives with
+    // control already granted.
+    //
+    // This is a second participant row for the same user; the host's own row
+    // stays role 'host' and is what the desktop excludes when deciding whose
+    // input to inject.
+    if (data) {
+      const joined = data as { id?: string; session_id?: string; user_id?: string | null };
+      if (joined.id && joined.user_id) {
+        try {
+          const { data: owned } = (await supabase
+            .from('sessions')
+            .select('host_user_id, current_host_id')
+            .eq('id', joined.session_id ?? '')
+            .single()) as {
+            data: { host_user_id: string | null; current_host_id: string | null } | null;
+          };
+
+          const isOwner =
+            owned?.host_user_id === joined.user_id || owned?.current_host_id === joined.user_id;
+
+          if (isOwner) {
+            // Supabase's generated types infer `never` for update payloads in
+            // this route context; describe just the shape we use.
+            const participants = supabase.from('session_participants') as unknown as {
+              update: (value: { control_state: string }) => {
+                eq: (column: string, value: string) => Promise<unknown>;
+              };
+            };
+            await participants.update({ control_state: 'granted' }).eq('id', joined.id);
+          }
+        } catch (grantError) {
+          // Never fail a join over this: the owner can still request control.
+          console.warn('[Join] Could not auto-grant control to the owner', grantError);
+        }
+      }
+    }
+
     // Notify host that a participant joined (non-blocking)
     if (data) {
       const participant = data as {

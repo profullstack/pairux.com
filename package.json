@@ -106,7 +106,8 @@
       "picomatch@2": "^2.3.2",
       "form-data@2": "^2.5.4",
       "tar@6": "^7.5.19",
-      "tar@7": "^7.5.19"
+      "tar@7": "^7.5.19",
+      "@electron/rebuild>tar": "^6.2.1"
     }
   },
   "dependencies": {

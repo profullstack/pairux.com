@@ -104,7 +104,9 @@
       "picomatch@4": "^4.0.4",
       "picomatch@3": "^3.0.2",
       "picomatch@2": "^2.3.2",
-      "tar@7": "^7.5.4"
+      "form-data@2": "^2.5.4",
+      "tar@6": "^7.5.19",
+      "tar@7": "^7.5.19"
     }
   },
   "dependencies": {

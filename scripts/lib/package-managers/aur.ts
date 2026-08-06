@@ -14,6 +14,59 @@ import type { ReleaseInfo, SubmissionResult } from './types.js';
 const AUR_SSH_HOST = 'aur@aur.archlinux.org';
 const PACKAGE_NAME = 'pairux-bin';
 
+/** How many times to try a git command that failed because AUR was unreachable. */
+const AUR_ATTEMPTS = 3;
+/** Gap between those attempts. AUR maintenance windows are usually short. */
+const AUR_RETRY_DELAY_MS = 15_000;
+
+/**
+ * aur.archlinux.org drops into maintenance without notice, and when it does it
+ * still accepts the SSH connection but refuses the git operation. None of these
+ * say anything about our key or our package, so they must not be reported as a
+ * submission failure that fails the whole release.
+ */
+const TRANSIENT_AUR_ERRORS = [
+  'down due to maintenance',
+  'connection closed by',
+  'connection reset by peer',
+  'connection timed out',
+  'kex_exchange_identification',
+  'the remote end hung up unexpectedly',
+  'early eof',
+];
+
+function isTransientAURError(message: string): boolean {
+  const haystack = message.toLowerCase();
+  return TRANSIENT_AUR_ERRORS.some((needle) => haystack.includes(needle));
+}
+
+/**
+ * execSync hides the interesting part in `stderr` when stdio is piped, so the
+ * bare message is only ever "Command failed: git push origin master".
+ */
+function describeCommandError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return typeof error === 'string' ? error : JSON.stringify(error);
+  }
+
+  const { stderr } = error as Error & { stderr?: Buffer | string };
+  const details = stderr?.toString().trim() ?? '';
+
+  return details && !error.message.includes(details)
+    ? `${error.message}\n${details}`
+    : error.message;
+}
+
+class AURCommandError extends Error {
+  readonly transient: boolean;
+
+  constructor(command: string, details: string) {
+    super(`Command failed: ${command}\n${details}`);
+    this.name = 'AURCommandError';
+    this.transient = isTransientAURError(details);
+  }
+}
+
 export class AURPackageManager extends BasePackageManager {
   readonly name = 'aur';
   readonly displayName = 'AUR';
@@ -147,6 +200,37 @@ pkgname = ${PACKAGE_NAME}
 `;
   }
 
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Run a git command, retrying while AUR itself is the thing that is broken.
+   * Anything else (a bad key, a rejected ref) fails on the first attempt.
+   */
+  private async runGit(
+    command: string,
+    options: { cwd?: string; env: NodeJS.ProcessEnv },
+    attempts = AUR_ATTEMPTS
+  ): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        execSync(command, { ...options, stdio: 'pipe' });
+        return;
+      } catch (error) {
+        const failure = new AURCommandError(command, describeCommandError(error));
+
+        if (!failure.transient || attempt >= attempts) throw failure;
+
+        this.logger.warn(
+          `AUR is unreachable (attempt ${String(attempt)}/${String(attempts)}), ` +
+            `retrying in ${String(AUR_RETRY_DELAY_MS / 1000)}s...`
+        );
+        await this.sleep(AUR_RETRY_DELAY_MS);
+      }
+    }
+  }
+
   async submit(release: ReleaseInfo, dryRun = false): Promise<SubmissionResult> {
     // Check if already exists
     if (await this.checkExisting(release.version)) {
@@ -213,12 +297,13 @@ pkgname = ${PACKAGE_NAME}
       // Clone the AUR repo
       this.logger.info('Cloning AUR repository...');
       try {
-        execSync(`git clone ${AUR_SSH_HOST}:${PACKAGE_NAME}.git ${repoDir}`, {
-          env,
-          stdio: 'pipe',
-        });
-      } catch {
-        // Package doesn't exist yet, create it
+        await this.runGit(`git clone ${AUR_SSH_HOST}:${PACKAGE_NAME}.git ${repoDir}`, { env });
+      } catch (error) {
+        // Only treat a clone failure as "package doesn't exist yet" when AUR
+        // actually answered. If AUR is down, creating an empty repo here just
+        // turns an outage into a confusing push error further down.
+        if (error instanceof AURCommandError && error.transient) throw error;
+
         this.logger.info('Creating new AUR package...');
         mkdirSync(repoDir, { recursive: true });
         execSync('git init -b master', { cwd: repoDir, env, stdio: 'pipe' });
@@ -269,7 +354,7 @@ pkgname = ${PACKAGE_NAME}
 
       // Push to AUR
       this.logger.info('Pushing to AUR...');
-      execSync('git push origin master', { cwd: repoDir, env, stdio: 'pipe' });
+      await this.runGit('git push origin master', { cwd: repoDir, env });
 
       return {
         packageManager: this.name,
@@ -278,6 +363,21 @@ pkgname = ${PACKAGE_NAME}
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // AUR being down is not a release failure. Every other package manager
+      // has already published, so report it as skipped and let the release
+      // stand; the next release re-submits the version AUR missed.
+      if (error instanceof AURCommandError && error.transient) {
+        this.logger.warn(`AUR is unavailable, skipping submission: ${errorMessage}`);
+        return {
+          packageManager: this.name,
+          status: 'skipped',
+          message:
+            `AUR unreachable after ${String(AUR_ATTEMPTS)} attempts ` +
+            `(version ${release.version} not submitted): ${errorMessage}`,
+        };
+      }
+
       return {
         packageManager: this.name,
         status: 'failed',

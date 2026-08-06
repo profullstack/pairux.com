@@ -44,6 +44,29 @@ export function useInputInjection({
   const [diagnostics, setDiagnostics] = useState<InputInjectionDiagnostics | null>(null);
   const pendingEvents = useRef<InputEvent[]>([]);
   const flushTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // IPC handlers may run concurrently. Keep every OS injection in the order
+  // it arrived, especially move -> down -> up. Without this queue, a button
+  // down that is waiting for a pending move batch can be overtaken by its up,
+  // leaving the virtual mouse button held on the host desktop.
+  const injectionQueue = useRef<Promise<void>>(Promise.resolve());
+
+  const enqueueInjection = useCallback(
+    (operation: () => Promise<unknown>, errorMessage: string): Promise<void> => {
+      const queued = injectionQueue.current.then(async () => {
+        try {
+          await operation();
+        } catch (error) {
+          console.error(errorMessage, error);
+        }
+      });
+
+      // The operation catches its own error, so later input is never blocked
+      // behind a rejected promise.
+      injectionQueue.current = queued;
+      return queued;
+    },
+    []
+  );
 
   // Initialize input injection system on mount
   useEffect(() => {
@@ -132,12 +155,11 @@ export function useInputInjection({
     const events = [...pendingEvents.current];
     pendingEvents.current = [];
 
-    try {
-      await window.electronAPI.invoke('input:injectBatch', { events });
-    } catch (error) {
-      console.error('[useInputInjection] Failed to inject batch:', error);
-    }
-  }, []);
+    await enqueueInjection(
+      () => window.electronAPI.invoke('input:injectBatch', { events }),
+      '[useInputInjection] Failed to inject batch:'
+    );
+  }, [enqueueInjection]);
 
   // Inject a single event (batched for performance)
   const injectEvent = useCallback(
@@ -160,16 +182,20 @@ export function useInputInjection({
           clearTimeout(flushTimeout.current);
           flushTimeout.current = null;
         }
-        await flushEvents();
 
-        try {
-          await window.electronAPI.invoke('input:inject', { event });
-        } catch (error) {
-          console.error('[useInputInjection] Failed to inject:', error);
-        }
+        // Enqueue both operations synchronously. Awaiting the move flush here
+        // before reserving the button event's place lets a subsequent mouseup
+        // jump ahead of its mousedown.
+        const moveFlush = flushEvents();
+        const injection = enqueueInjection(
+          () => window.electronAPI.invoke('input:inject', { event }),
+          '[useInputInjection] Failed to inject:'
+        );
+        await moveFlush;
+        await injection;
       }
     },
-    [isEnabled, flushEvents]
+    [isEnabled, flushEvents, enqueueInjection]
   );
 
   // Inject multiple events in batch
@@ -177,13 +203,12 @@ export function useInputInjection({
     async (events: InputEvent[]) => {
       if (!isEnabled || events.length === 0) return;
 
-      try {
-        await window.electronAPI.invoke('input:injectBatch', { events });
-      } catch (error) {
-        console.error('[useInputInjection] Failed to inject batch:', error);
-      }
+      await enqueueInjection(
+        () => window.electronAPI.invoke('input:injectBatch', { events }),
+        '[useInputInjection] Failed to inject batch:'
+      );
     },
-    [isEnabled]
+    [isEnabled, enqueueInjection]
   );
 
   // Emergency stop

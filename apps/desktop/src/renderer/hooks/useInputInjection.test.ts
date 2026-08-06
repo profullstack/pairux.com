@@ -311,6 +311,89 @@ describe('useInputInjection', () => {
       });
       expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:inject', { event: clickEvent });
     });
+
+    it('keeps mouse down before mouse up while a pending move batch is slow', async () => {
+      let finishMoveBatch: (() => void) | undefined;
+      const moveBatchPending = new Promise<void>((resolve) => {
+        finishMoveBatch = resolve;
+      });
+
+      mockElectronAPI.invoke.mockImplementation((channel: string) => {
+        switch (channel) {
+          case 'input:init':
+            return Promise.resolve({ success: true });
+          case 'input:status':
+            return Promise.resolve({
+              enabled: false,
+              backend: 'nut-js',
+              backendSupported: true,
+              stats: { received: 0, injected: 0, errors: 0 },
+            });
+          case 'input:enable':
+            return Promise.resolve({
+              success: true,
+              enabled: true,
+              backend: 'nut-js',
+              backendSupported: true,
+              stats: { received: 0, injected: 0, errors: 0 },
+            });
+          case 'input:injectBatch':
+            return moveBatchPending;
+          default:
+            return Promise.resolve({ success: true });
+        }
+      });
+
+      const { result } = renderHook(() => useInputInjection({ enabled: true }));
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      const moveEvent: InputEvent = { type: 'mouse', action: 'move', x: 0.4, y: 0.4 };
+      const downEvent: InputEvent = {
+        type: 'mouse',
+        action: 'down',
+        button: 'left',
+        x: 0.4,
+        y: 0.4,
+      };
+      const upEvent: InputEvent = {
+        type: 'mouse',
+        action: 'up',
+        button: 'left',
+        x: 0.4,
+        y: 0.4,
+      };
+
+      let downPromise: Promise<void>;
+      let upPromise: Promise<void>;
+      await act(async () => {
+        await result.current.injectEvent(moveEvent);
+        downPromise = result.current.injectEvent(downEvent);
+        upPromise = result.current.injectEvent(upEvent);
+        await Promise.resolve();
+      });
+
+      const whileMoveIsPending = mockElectronAPI.invoke.mock.calls.filter(
+        ([channel]) => channel === 'input:injectBatch' || channel === 'input:inject'
+      );
+      expect(whileMoveIsPending).toEqual([['input:injectBatch', { events: [moveEvent] }]]);
+
+      finishMoveBatch?.();
+      await act(async () => {
+        await Promise.all([downPromise!, upPromise!]);
+      });
+
+      const injectionCalls = mockElectronAPI.invoke.mock.calls.filter(
+        ([channel]) => channel === 'input:injectBatch' || channel === 'input:inject'
+      );
+      expect(injectionCalls).toEqual([
+        ['input:injectBatch', { events: [moveEvent] }],
+        ['input:inject', { event: downEvent }],
+        ['input:inject', { event: upEvent }],
+      ]);
+    });
   });
 
   describe('injectBatch', () => {

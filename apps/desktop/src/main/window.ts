@@ -90,7 +90,7 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
       // receives the track the user picked.
       if (isWayland) {
         console.log('[Main] Wayland: delegating to system screen picker');
-        callback({ video: undefined });
+        callback({});
         return;
       }
 

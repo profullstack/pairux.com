@@ -15,6 +15,7 @@
  */
 
 import { clampAudioGain, DEFAULT_REMOTE_AUDIO_GAIN } from '@pairux/shared-types';
+import { getAudioContext, resumeAudioContext } from './audioContext';
 
 /** A remote track with a gain stage spliced in front of playback. */
 export interface AmplifiedAudioTrack {
@@ -24,21 +25,6 @@ export interface AmplifiedAudioTrack {
   setGain: (value: number) => void;
   /** Tear down the graph. Safe to call more than once. */
   dispose: () => void;
-}
-
-let sharedContext: AudioContext | null = null;
-
-/**
- * One AudioContext for all remote audio.
- *
- * Contexts are a limited resource and each one carries its own device
- * connection, so per-track contexts would both waste handles and risk the
- * streams drifting against each other.
- */
-function getContext(): AudioContext {
-  if (sharedContext && sharedContext.state !== 'closed') return sharedContext;
-  sharedContext = new AudioContext();
-  return sharedContext;
 }
 
 /**
@@ -52,15 +38,8 @@ export function amplifyRemoteAudio(
   track: MediaStreamTrack,
   initialGain: number = DEFAULT_REMOTE_AUDIO_GAIN
 ): AmplifiedAudioTrack {
-  const ctx = getContext();
-
-  // Browsers suspend a context created before any user gesture; playback would
-  // be silent until something resumes it. The rejection is caught because a
-  // still-gesture-locked context is expected, not exceptional — a later attach
-  // will get it.
-  if (ctx.state === 'suspended') {
-    void ctx.resume().catch(() => undefined);
-  }
+  const ctx = getAudioContext();
+  resumeAudioContext(ctx);
 
   const source = ctx.createMediaStreamSource(new MediaStream([track]));
   const gain = ctx.createGain();

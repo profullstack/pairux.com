@@ -117,6 +117,34 @@ class FakeAudioParam {
   setTargetAtTime(target: number): void {
     this.value = target;
   }
+  setValueAtTime(value: number): void {
+    this.value = value;
+  }
+  linearRampToValueAtTime(value: number): void {
+    this.value = value;
+  }
+  exponentialRampToValueAtTime(value: number): void {
+    this.value = value;
+  }
+}
+
+/** Records when each note was scheduled so tests can assert the figure. */
+class FakeOscillator {
+  type = 'sine';
+  frequency = new FakeAudioParam();
+  startTime = 0;
+  connect(): void {
+    // Graph shape is asserted with a purpose-built mock where it matters.
+  }
+  disconnect(): void {
+    // As above.
+  }
+  start(when = 0): void {
+    this.startTime = when;
+  }
+  stop(): void {
+    // Nothing to tear down.
+  }
 }
 
 class FakeAudioNode {
@@ -151,6 +179,8 @@ class FakeMediaStream {
 class FakeAudioContext {
   state = 'running';
   currentTime = 0;
+  destination = new FakeAudioNode();
+  readonly createdOscillators: FakeOscillator[] = [];
   resume(): Promise<void> {
     return Promise.resolve();
   }
@@ -162,6 +192,11 @@ class FakeAudioContext {
   }
   createGain(): FakeAudioNode & { gain: FakeAudioParam } {
     return Object.assign(new FakeAudioNode(), { gain: new FakeAudioParam() });
+  }
+  createOscillator(): FakeOscillator {
+    const oscillator = new FakeOscillator();
+    this.createdOscillators.push(oscillator);
+    return oscillator;
   }
   createDynamicsCompressor(): FakeAudioNode & {
     threshold: FakeAudioParam;

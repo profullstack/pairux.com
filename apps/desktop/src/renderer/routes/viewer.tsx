@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -27,6 +27,7 @@ import type {
   ControlStateUI,
   InputEvent,
 } from '@pairux/shared-types';
+import { playJoinSound, playLeaveSound, useSessionSoundsEnabled } from '@/lib/sessionSounds';
 
 // Common return type for both viewer hooks
 interface ViewerHookResult {
@@ -58,6 +59,32 @@ export function ViewerPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [lastParticipantRefreshAt, setLastParticipantRefreshAt] = useState(0);
+
+  // Chime when someone else arrives or leaves.
+  //
+  // Derived by diffing the participant list rather than from an event, because
+  // presence only tells us *that* it changed. The first list to arrive seeds
+  // the baseline silently — everyone already in the room when we walked in is
+  // not an arrival.
+  const sessionSoundsEnabled = useSessionSoundsEnabled();
+  const knownParticipantsRef = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    const current = new Set(participants.map((participant) => participant.id));
+    const known = knownParticipantsRef.current;
+    knownParticipantsRef.current = current;
+
+    if (known === null) return;
+    if (!sessionSoundsEnabled) return;
+
+    const arrived = [...current].some((id) => !known.has(id));
+    const departed = [...known].some((id) => !current.has(id));
+
+    // One chime per change, even when several people move at once: a burst of
+    // overlapping tones reads as a glitch rather than as a count.
+    if (arrived) playJoinSound();
+    else if (departed) playLeaveSound();
+  }, [participants, sessionSoundsEnabled]);
 
   useEffect(() => {
     if (!sessionId) {

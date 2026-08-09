@@ -101,3 +101,15 @@ export type {
 } from './input.js';
 
 export { QUALITY_PRESETS } from './input.js';
+
+// Voice audio settings shared by every client
+export {
+  VOICE_AUDIO_CONSTRAINTS,
+  MOBILE_VOICE_AUDIO_CONSTRAINTS,
+  SYSTEM_AUDIO_CONSTRAINTS,
+  AUDIO_ENCODING_PARAMS,
+  VIDEO_NETWORK_PRIORITY,
+  OPUS_TARGET_BITRATE,
+  tuneOpusForVoice,
+  prioritizeAudioSender,
+} from './audio.js';

@@ -27,6 +27,7 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import { VOICE_AUDIO_CONSTRAINTS } from '@pairux/shared-types';
 
 const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL ?? '';
 
@@ -296,7 +297,10 @@ export function useWebRTCHostSFUAPI({
     try {
       // Capture host microphone before connecting
       try {
-        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: VOICE_AUDIO_CONSTRAINTS,
+          video: false,
+        });
         hostMicStreamRef.current = micStream;
         setHostMicStream(micStream);
         setHasMic(true);

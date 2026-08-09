@@ -22,12 +22,27 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import {
+  MOBILE_VOICE_AUDIO_CONSTRAINTS,
+  prioritizeAudioSender,
+  tuneOpusForVoice,
+} from '@pairux/shared-types';
 import { API_BASE_URL } from '../config';
 import { getStoredAuth, isAuthExpired } from '../lib/secure-storage';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
 
 // RN WebRTC's RTCDataChannel type (differs from browser global)
 type DataChannel = ReturnType<RTCPeerConnection['createDataChannel']>;
+
+// react-native-webrtc's exported MediaTrackConstraints type only declares the
+// video fields, but its native layer forwards every audio key verbatim to
+// createAudioSource. Requesting echo cancellation therefore means going around
+// the published type — hence the assertion, isolated here rather than at the
+// call site.
+const voiceCaptureConstraints = {
+  audio: MOBILE_VOICE_AUDIO_CONSTRAINTS,
+  video: false,
+} as unknown as Parameters<typeof mediaDevices.getUserMedia>[0];
 
 interface OfferAnswer {
   type: string | null;
@@ -421,6 +436,8 @@ export function useWebRTCViewer({
             await pc.setRemoteDescription({ type: 'offer', sdp: message.sdp });
 
             const answer = (await pc.createAnswer()) as OfferAnswer;
+            // In-band FEC turns a lost packet into a duller syllable, not a gap.
+            if (answer.sdp) answer.sdp = tuneOpusForVoice(answer.sdp);
             await pc.setLocalDescription(answer);
 
             if (answer.sdp) {
@@ -552,6 +569,14 @@ export function useWebRTCViewer({
           setConnectionState('connected');
           setError(null);
           reconnectAttemptsRef.current = 0;
+          // Re-apply mic priority now that negotiation is done. Some stacks
+          // report no encodings on a sender until then, which would have made
+          // the call made at addTrack() time a silent no-op.
+          for (const sender of pc.getSenders()) {
+            if (sender.track?.kind === 'audio') {
+              void prioritizeAudioSender(sender);
+            }
+          }
           break;
         case 'disconnected':
           setConnectionState('reconnecting');
@@ -671,7 +696,7 @@ export function useWebRTCViewer({
 
     // Capture microphone
     try {
-      const micStream = await mediaDevices.getUserMedia({ audio: true, video: false });
+      const micStream = await mediaDevices.getUserMedia(voiceCaptureConstraints);
       micStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
@@ -717,7 +742,7 @@ export function useWebRTCViewer({
       const micStream = micStreamRef.current;
       if (micStream) {
         micStream.getAudioTracks().forEach((track) => {
-          pc.addTrack(track, micStream);
+          void prioritizeAudioSender(pc.addTrack(track, micStream));
         });
       }
     });

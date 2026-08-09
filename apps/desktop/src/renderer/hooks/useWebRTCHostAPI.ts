@@ -18,6 +18,12 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import {
+  VOICE_AUDIO_CONSTRAINTS,
+  VIDEO_NETWORK_PRIORITY,
+  prioritizeAudioSender,
+  tuneOpusForVoice,
+} from '@pairux/shared-types';
 
 // Adaptive bitrate encoding presets
 interface BitratePreset {
@@ -171,6 +177,7 @@ export function useWebRTCHostAPI({
           }
         } else {
           viewer.hostAudioSender = pc.addTrack(preferredTrack, new MediaStream([preferredTrack]));
+          await prioritizeAudioSender(viewer.hostAudioSender);
         }
       } else if (viewer.hostAudioSender) {
         pc.removeTrack(viewer.hostAudioSender);
@@ -393,11 +400,14 @@ export function useWebRTCHostAPI({
           continue;
 
         try {
-          otherViewer.peerConnection.addTrack(audioTrack, audioStream);
+          const relaySender = otherViewer.peerConnection.addTrack(audioTrack, audioStream);
+          await prioritizeAudioSender(relaySender);
           console.log(`[WebRTCHost] Added ${sourceViewerId}'s audio to ${otherId}, renegotiating`);
 
           // Renegotiate
           const offer = await otherViewer.peerConnection.createOffer();
+          // In-band FEC turns a lost packet into a duller syllable, not a gap.
+          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
           await otherViewer.peerConnection.setLocalDescription(offer);
 
           if (offer.sdp) {
@@ -442,8 +452,10 @@ export function useWebRTCHostAPI({
           if (encoding !== undefined) {
             encoding.maxBitrate = preset.maxBitrate;
             encoding.maxFramerate = preset.maxFramerate;
-            encoding.priority = 'high';
-            encoding.networkPriority = 'high';
+            // Screen video deliberately ranks BELOW audio. It can shed
+            // resolution or framerate and stay useful; voice cannot shed
+            // anything without going choppy, so audio gets the pipe first.
+            encoding.networkPriority = VIDEO_NETWORK_PRIORITY;
           }
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           void sender.setParameters(params).catch(() => {});
@@ -455,7 +467,7 @@ export function useWebRTCHostAPI({
         if (otherId === viewerId) continue;
         if (otherViewer.audioTrack && !otherViewer.isMuted) {
           const audioStream = new MediaStream([otherViewer.audioTrack]);
-          pc.addTrack(otherViewer.audioTrack, audioStream);
+          void prioritizeAudioSender(pc.addTrack(otherViewer.audioTrack, audioStream));
         }
       }
 
@@ -467,6 +479,7 @@ export function useWebRTCHostAPI({
           preferredHostAudioTrack,
           new MediaStream([preferredHostAudioTrack])
         );
+        void prioritizeAudioSender(hostAudioSender);
       }
 
       // Handle incoming tracks from viewer (their mic audio)
@@ -537,6 +550,17 @@ export function useWebRTCHostAPI({
           console.log(`[WebRTCHost] Viewer ${viewerId} connection state:`, newState);
           viewer.connectionState = newState;
           setViewers(new Map(viewersRef.current));
+
+          if (pc.connectionState === 'connected') {
+            // Re-apply audio priority now that negotiation is done. Some
+            // stacks report no encodings on a sender until then, which would
+            // have made the call made at addTrack() time a silent no-op.
+            for (const sender of pc.getSenders()) {
+              if (sender.track?.kind === 'audio') {
+                void prioritizeAudioSender(sender);
+              }
+            }
+          }
 
           if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
             removeViewerRef.current?.(viewerId);
@@ -634,6 +658,8 @@ export function useWebRTCHostAPI({
       // Create and send offer
       try {
         const offer = await pc.createOffer();
+        // In-band FEC turns a lost packet into a duller syllable, not a gap.
+        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
         await pc.setLocalDescription(offer);
 
         if (offer.sdp) {
@@ -751,7 +777,10 @@ export function useWebRTCHostAPI({
 
     // Capture host microphone before connecting
     try {
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const micStream = await navigator.mediaDevices.getUserMedia({
+        audio: VOICE_AUDIO_CONSTRAINTS,
+        video: false,
+      });
       hostMicStreamRef.current = micStream;
       setHostMicStream(micStream);
       setHasMic(true);
@@ -949,6 +978,8 @@ export function useWebRTCHostAPI({
 
           // Renegotiate so viewer receives the new tracks
           const offer = await pc.createOffer();
+          // In-band FEC turns a lost packet into a duller syllable, not a gap.
+          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
           await pc.setLocalDescription(offer);
 
           if (offer.sdp) {
@@ -989,6 +1020,8 @@ export function useWebRTCHostAPI({
 
         // Renegotiate so viewer sees track removal
         const offer = await viewer.peerConnection.createOffer();
+        // In-band FEC turns a lost packet into a duller syllable, not a gap.
+        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
         await viewer.peerConnection.setLocalDescription(offer);
 
         if (offer.sdp) {

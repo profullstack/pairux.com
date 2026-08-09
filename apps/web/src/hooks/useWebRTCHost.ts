@@ -12,6 +12,12 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import {
+  VOICE_AUDIO_CONSTRAINTS,
+  VIDEO_NETWORK_PRIORITY,
+  prioritizeAudioSender,
+  tuneOpusForVoice,
+} from '@pairux/shared-types';
 
 // Adaptive bitrate encoding presets (optimized for screen sharing with text)
 interface BitratePreset {
@@ -279,11 +285,13 @@ export function useWebRTCHost({
           continue;
 
         try {
-          otherViewer.peerConnection.addTrack(audioTrack, audioStream);
+          await prioritizeAudioSender(otherViewer.peerConnection.addTrack(audioTrack, audioStream));
           console.log(`[WebRTCHost] Added ${sourceViewerId}'s audio to ${otherId}, renegotiating`);
 
           // Renegotiate
           const offer = await otherViewer.peerConnection.createOffer();
+          // In-band FEC turns a lost packet into a duller syllable, not a gap.
+          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
           await otherViewer.peerConnection.setLocalDescription(offer);
 
           if (offer.sdp) {
@@ -336,9 +344,10 @@ export function useWebRTCHost({
             if (encoding) {
               encoding.maxBitrate = preset.maxBitrate;
               encoding.maxFramerate = preset.maxFramerate;
-              // Priority: high for screen sharing
-              encoding.priority = 'high';
-              encoding.networkPriority = 'high';
+              // Screen video deliberately ranks BELOW audio. It can shed
+              // resolution or framerate and stay useful; voice cannot shed
+              // anything without going choppy, so audio gets the pipe first.
+              encoding.networkPriority = VIDEO_NETWORK_PRIORITY;
             }
             void sender.setParameters(params).catch(() => {
               // Some browsers may not support all parameters
@@ -351,7 +360,7 @@ export function useWebRTCHost({
       const hostMic = hostMicStreamRef.current;
       if (hostMic) {
         hostMic.getAudioTracks().forEach((track) => {
-          pc.addTrack(track, hostMic);
+          void prioritizeAudioSender(pc.addTrack(track, hostMic));
         });
       }
 
@@ -360,7 +369,7 @@ export function useWebRTCHost({
         if (otherId === viewerId) continue;
         if (otherViewer.audioTrack && !otherViewer.isMuted) {
           const audioStream = new MediaStream([otherViewer.audioTrack]);
-          pc.addTrack(otherViewer.audioTrack, audioStream);
+          void prioritizeAudioSender(pc.addTrack(otherViewer.audioTrack, audioStream));
         }
       }
 
@@ -434,6 +443,17 @@ export function useWebRTCHost({
 
           viewer.connectionState = newState;
           setViewers(new Map(viewersRef.current));
+
+          if (pc.connectionState === 'connected') {
+            // Re-apply audio priority now that negotiation is done. Some
+            // stacks report no encodings on a sender until then, which would
+            // have made the call made at addTrack() time a silent no-op.
+            for (const sender of pc.getSenders()) {
+              if (sender.track?.kind === 'audio') {
+                void prioritizeAudioSender(sender);
+              }
+            }
+          }
 
           if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
             removeViewerRef.current?.(viewerId);
@@ -582,6 +602,8 @@ export function useWebRTCHost({
       // Create and send offer
       try {
         const offer = await pc.createOffer();
+        // In-band FEC turns a lost packet into a duller syllable, not a gap.
+        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
         await pc.setLocalDescription(offer);
 
         if (offer.sdp) {
@@ -609,7 +631,10 @@ export function useWebRTCHost({
   const startHosting = useCallback(async () => {
     // Capture host microphone before setting up signaling
     try {
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const micStream = await navigator.mediaDevices.getUserMedia({
+        audio: VOICE_AUDIO_CONSTRAINTS,
+        video: false,
+      });
       hostMicStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
@@ -753,6 +778,8 @@ export function useWebRTCHost({
 
           // Renegotiate so viewer receives the new tracks
           const offer = await viewer.peerConnection.createOffer();
+          // In-band FEC turns a lost packet into a duller syllable, not a gap.
+          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
           await viewer.peerConnection.setLocalDescription(offer);
 
           if (offer.sdp) {
@@ -795,6 +822,8 @@ export function useWebRTCHost({
 
         // Renegotiate so viewer sees track removal
         const offer = await viewer.peerConnection.createOffer();
+        // In-band FEC turns a lost packet into a duller syllable, not a gap.
+        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
         await viewer.peerConnection.setLocalDescription(offer);
 
         if (offer.sdp) {

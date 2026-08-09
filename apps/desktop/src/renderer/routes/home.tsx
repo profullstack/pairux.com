@@ -9,6 +9,7 @@ import { getElectronAPI } from '@/lib/ipc';
 import { API_BASE_URL } from '../../shared/config';
 import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
+import { VOICE_AUDIO_CONSTRAINTS } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 
 // Standard resolution presets (all macroblock-aligned to prevent VP9 green bar artifacts)
@@ -205,7 +206,10 @@ export function HomePage() {
 
       // Add microphone audio for streaming to viewers
       try {
-        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: VOICE_AUDIO_CONSTRAINTS,
+          video: false,
+        });
         micStream.getAudioTracks().forEach((track) => {
           mediaStream.addTrack(track);
         });
@@ -277,7 +281,10 @@ export function HomePage() {
 
       // Add microphone audio for streaming to viewers
       try {
-        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: VOICE_AUDIO_CONSTRAINTS,
+          video: false,
+        });
         micStream.getAudioTracks().forEach((t) => {
           mediaStream.addTrack(t);
         });
@@ -360,7 +367,10 @@ export function HomePage() {
 
       // Add microphone audio
       try {
-        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: VOICE_AUDIO_CONSTRAINTS,
+          video: false,
+        });
         micStream.getAudioTracks().forEach((t) => {
           mediaStream.addTrack(t);
         });

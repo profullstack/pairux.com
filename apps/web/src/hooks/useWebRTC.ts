@@ -14,6 +14,11 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import {
+  VOICE_AUDIO_CONSTRAINTS,
+  prioritizeAudioSender,
+  tuneOpusForVoice,
+} from '@pairux/shared-types';
 
 // ICE server configuration
 const ICE_SERVERS: RTCIceServer[] = [
@@ -368,6 +373,8 @@ export function useWebRTC({
             });
 
             const answer = await pc.createAnswer();
+            // In-band FEC turns a lost packet into a duller syllable, not a gap.
+            if (answer.sdp) answer.sdp = tuneOpusForVoice(answer.sdp);
             await pc.setLocalDescription(answer);
 
             // Send answer back via signaling channel
@@ -523,6 +530,14 @@ export function useWebRTC({
           setConnectionState('connected');
           setError(null);
           reconnectAttemptsRef.current = 0;
+          // Re-apply mic priority now that negotiation is done. Some stacks
+          // report no encodings on a sender until then, which would have made
+          // the call made at addTrack() time a silent no-op.
+          for (const sender of pc.getSenders()) {
+            if (sender.track?.kind === 'audio') {
+              void prioritizeAudioSender(sender);
+            }
+          }
           break;
         case 'disconnected':
           setConnectionState('reconnecting');
@@ -628,7 +643,10 @@ export function useWebRTC({
     // Capture microphone BEFORE setting up the peer connection
     // so mic tracks are available when the SDP answer is created
     try {
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const micStream = await navigator.mediaDevices.getUserMedia({
+        audio: VOICE_AUDIO_CONSTRAINTS,
+        video: false,
+      });
       micStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
@@ -671,7 +689,7 @@ export function useWebRTC({
           const micStream = micStreamRef.current;
           if (micStream) {
             micStream.getAudioTracks().forEach((track) => {
-              pc.addTrack(track, micStream);
+              void prioritizeAudioSender(pc.addTrack(track, micStream));
             });
           }
 

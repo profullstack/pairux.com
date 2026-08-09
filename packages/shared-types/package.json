@@ -21,6 +21,10 @@
     "./input": {
       "types": "./dist/input.d.ts",
       "import": "./dist/input.js"
+    },
+    "./audio": {
+      "types": "./dist/audio.d.ts",
+      "import": "./dist/audio.js"
     }
   },
   "scripts": {

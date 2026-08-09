@@ -136,23 +136,32 @@ function detectWaylandScreenSize(): { width: number; height: number } | null {
     const raw = execFileSync('wlr-randr', [], { encoding: 'utf8', timeout: 2000 });
     const m = /(\d+)x(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch { /* not available */ }
+  } catch {
+    /* not available */
+  }
 
   // kscreen-doctor (KDE Plasma)
   try {
     const raw = execFileSync('kscreen-doctor', ['--json'], { encoding: 'utf8', timeout: 2000 });
     const m = /"size":\s*\{[^}]*"width":\s*(\d+)[^}]*"height":\s*(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch { /* not available */ }
+  } catch {
+    /* not available */
+  }
 
   // GNOME Mutter (gdbus)
   try {
     const raw = execFileSync(
       'gdbus',
       [
-        'call', '--session', '--dest', 'org.gnome.Mutter.DisplayConfig',
-        '--object-path', '/org/gnome/Mutter/DisplayConfig',
-        '--method', 'org.gnome.Mutter.DisplayConfig.GetResources',
+        'call',
+        '--session',
+        '--dest',
+        'org.gnome.Mutter.DisplayConfig',
+        '--object-path',
+        '/org/gnome/Mutter/DisplayConfig',
+        '--method',
+        'org.gnome.Mutter.DisplayConfig.GetResources',
       ],
       { encoding: 'utf8', timeout: 2000 }
     );
@@ -160,7 +169,9 @@ function detectWaylandScreenSize(): { width: number; height: number } | null {
     // first width that follows an x,y pair.
     const m = /<\d+,\s*\d+,\s*(\d+),\s*(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch { /* not available */ }
+  } catch {
+    /* not available */
+  }
 
   return null;
 }

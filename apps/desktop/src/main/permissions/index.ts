@@ -124,14 +124,16 @@ export async function requestScreenCapturePermission(): Promise<boolean> {
     // Use an offscreen window so the OS-level prompt appears without any
     // visible window getting in the way.
     const offscreen = new BrowserWindow({
-      width: 1, height: 1, show: false,
+      width: 1,
+      height: 1,
+      show: false,
       webPreferences: { offscreen: true, sandbox: true },
     });
     try {
       await offscreen.loadURL('data:text/html,<html></html>');
       await offscreen.webContents.executeJavaScript(
         'navigator.mediaDevices.getDisplayMedia({video:true}).then(s=>{s.getTracks().forEach(t=>t.stop());return true}).catch(()=>false)',
-        true  // userGesture — required for getDisplayMedia
+        true // userGesture — required for getDisplayMedia
       );
     } finally {
       offscreen.destroy();

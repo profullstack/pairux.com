@@ -75,7 +75,7 @@ export function HomePage() {
   // On macOS and Windows the answer is trivially 'not Wayland'; skip the
   // "Detecting display server…" spinner on those platforms.
   const [isWayland, setIsWayland] = useState<boolean | null>(
-    typeof navigator !== 'undefined' && /Linux/i.test(navigator.platform ?? '') ? null : false
+    /Linux/i.test(navigator.userAgent) ? null : false
   );
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);

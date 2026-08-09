@@ -1,9 +1,9 @@
 import { config } from 'dotenv';
 import { resolve, join, dirname } from 'path';
-import { existsSync, accessSync, constants } from 'fs';
 import { app, BrowserWindow, clipboard } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
+import { canUseLinuxSandbox } from './linuxSandbox';
 import { initializeTray, destroyTray, getTraySession } from './tray';
 import { initializeMenu, showAboutDialog } from './platform';
 import { clearStoredAuth, clearStoredCredentials } from './auth/secure-storage';
@@ -112,18 +112,13 @@ if (process.platform === 'linux') {
   // AppImages and bare tarballs tend to lack it.
   try {
     const sandboxPath = join(dirname(process.execPath), 'chrome-sandbox');
-    if (!existsSync(sandboxPath)) {
+    if (!canUseLinuxSandbox(sandboxPath)) {
       app.commandLine.appendSwitch('no-sandbox');
-      console.log('[Main] chrome-sandbox not found — disabling sandbox (AppImage / portable)');
+      console.log(
+        '[Main] chrome-sandbox missing or misconfigured — disabling sandbox (AppImage / portable)'
+      );
     } else {
-      try {
-        accessSync(sandboxPath, constants.X_OK);
-        // Sandbox is present and executable — keep it enabled.
-        console.log('[Main] chrome-sandbox found and executable — keeping sandbox');
-      } catch {
-        app.commandLine.appendSwitch('no-sandbox');
-        console.log('[Main] chrome-sandbox not executable — disabling sandbox');
-      }
+      console.log('[Main] chrome-sandbox is a root-owned setuid executable — keeping sandbox');
     }
   } catch {
     // On older Electron or exotic configs, err on the side of working.

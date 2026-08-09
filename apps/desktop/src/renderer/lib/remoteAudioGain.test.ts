@@ -43,6 +43,24 @@ function createAudioContextMock() {
   };
 }
 
+/**
+ * Stand-in for the hidden element that keeps the receiver pulling the track.
+ * Instances are collected so tests can assert it exists and stays silent.
+ */
+class FakeAudioElement {
+  static instances: FakeAudioElement[] = [];
+  /** Swappable so a stack whose `play()` predates promises can be simulated. */
+  static playResult: Promise<void> | undefined = Promise.resolve();
+  srcObject: unknown = null;
+  muted = false;
+  autoplay = false;
+  play = vi.fn(() => FakeAudioElement.playResult);
+  pause = vi.fn();
+  constructor() {
+    FakeAudioElement.instances.push(this);
+  }
+}
+
 const track = { kind: 'audio', id: 'remote-track' } as unknown as MediaStreamTrack;
 
 let mock: ReturnType<typeof createAudioContextMock>;
@@ -59,6 +77,9 @@ async function loadModule(): Promise<typeof RemoteAudioGainModule> {
 beforeEach(() => {
   vi.resetModules();
   mock = createAudioContextMock();
+  FakeAudioElement.instances = [];
+  FakeAudioElement.playResult = Promise.resolve();
+  vi.stubGlobal('Audio', FakeAudioElement);
   vi.stubGlobal(
     'AudioContext',
     vi.fn(() => mock.ctx)
@@ -148,5 +169,42 @@ describe('amplifyRemoteAudio', () => {
     const { amplifyRemoteAudio } = await loadModule();
     amplifyRemoteAudio(track);
     expect(mock.ctx.resume).toHaveBeenCalled();
+  });
+
+  // Web Audio alone is not a consumer as far as the receiver is concerned:
+  // without an element attached to the raw track, Chromium never pulls it and
+  // the whole call goes silent in both directions.
+  describe('keeping the receiver pulling', () => {
+    it('attaches the raw track to a media element', async () => {
+      const { amplifyRemoteAudio } = await loadModule();
+      amplifyRemoteAudio(track);
+
+      expect(FakeAudioElement.instances).toHaveLength(1);
+      const [sink] = FakeAudioElement.instances;
+      expect((sink.srcObject as { tracks: MediaStreamTrack[] }).tracks).toEqual([track]);
+      expect(sink.play).toHaveBeenCalled();
+    });
+
+    it('keeps that element muted, so nobody is heard twice', async () => {
+      const { amplifyRemoteAudio } = await loadModule();
+      amplifyRemoteAudio(track);
+      expect(FakeAudioElement.instances[0].muted).toBe(true);
+    });
+
+    it('releases the element on disposal', async () => {
+      const { amplifyRemoteAudio } = await loadModule();
+      const amplified = amplifyRemoteAudio(track);
+      amplified.dispose();
+
+      const sink = FakeAudioElement.instances[0];
+      expect(sink.pause).toHaveBeenCalled();
+      expect(sink.srcObject).toBeNull();
+    });
+
+    it('survives an implementation whose play() returns no promise', async () => {
+      const { amplifyRemoteAudio } = await loadModule();
+      FakeAudioElement.playResult = undefined;
+      expect(() => amplifyRemoteAudio(track)).not.toThrow();
+    });
   });
 });

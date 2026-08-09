@@ -520,7 +520,11 @@ export function CapturePreview({
   // Answer the handshake over whichever transport is actually carrying it.
   hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : p2pHost.sendTailnetHello;
 
-  // Audio mixer: combines host mic + all viewer audio into one stream for recording
+  // Audio mixer: combines host mic + all viewer audio into one stream.
+  //
+  // This mix is for RECORDING ONLY. It must never be published back to
+  // viewers: it contains their own audio, so sending it out would return each
+  // viewer's voice to them and close a feedback loop through the host.
   const {
     mixedStream,
     addTrack: mixerAddTrack,
@@ -551,7 +555,11 @@ export function CapturePreview({
     for (const [viewerId, viewer] of hostedViewers.entries()) {
       if (viewer.audioTrack) {
         currentViewerIds.add(viewerId);
-        mixerAddTrack(viewerId, viewer.audioTrack, true);
+        // playback=false: the WebRTC hook already plays every viewer track
+        // through its own <audio> element. Routing it to the speakers a second
+        // time via the AudioContext makes the host hear each viewer twice,
+        // offset by the graph's buffer — which sounds exactly like an echo.
+        mixerAddTrack(viewerId, viewer.audioTrack, false);
         mixerSetTrackMuted(viewerId, viewer.isMuted);
       }
     }
@@ -628,36 +636,43 @@ export function CapturePreview({
   }, [compositeStream, stream, camera.stream]);
 
   // Publish the presentation track when available.
-  // Use the mixer output when available so live WebRTC matches recording audio
-  // behavior (host mic + any routed audio sources).
+  //
+  // The audio here is the host's own microphone and nothing else. It must NOT
+  // be the recording mixer's output: that mix contains every viewer's audio,
+  // so publishing it would send each viewer their own voice back and close a
+  // feedback loop through the host. Screen capture is requested with
+  // `audio: false` on every desktop path, so the mic is the only source there
+  // is to publish.
+  //
+  // Sending the raw capture track also keeps it on the browser's native path,
+  // where echo cancellation and the encoder see an untouched mic signal.
   useEffect(() => {
     if (!isHosting || !presentationVideoTrack) return;
 
     const publishStream = new MediaStream();
     publishStream.addTrack(presentationVideoTrack);
 
-    const mixedAudioTracks = mixedStream?.getAudioTracks() ?? [];
-    const fallbackAudioTracks = stream?.getAudioTracks() ?? [];
-    const selectedAudioTracks =
-      mixedAudioTracks.length > 0 ? mixedAudioTracks : fallbackAudioTracks;
-
-    selectedAudioTracks.forEach((track) => {
-      publishStream.addTrack(track);
-    });
+    const micTrack = hostMicStream?.getAudioTracks()[0] ?? stream?.getAudioTracks()[0] ?? null;
+    if (micTrack) {
+      publishStream.addTrack(micTrack);
+    }
 
     console.log('[CapturePreview] Publishing live stream to viewers', {
       videoTracks: publishStream.getVideoTracks().length,
       audioTracks: publishStream.getAudioTracks().length,
-      audioSource: mixedAudioTracks.length > 0 ? 'mixer' : 'capture-stream',
+      audioSource: hostMicStream ? 'host-mic' : 'capture-stream',
     });
 
     void hostPublishStream(publishStream);
-  }, [presentationVideoTrack, mixedStream, isHosting, hostPublishStream, stream]);
+  }, [presentationVideoTrack, hostMicStream, isHosting, hostPublishStream, stream]);
 
-  // The stream handed to the RTMP broadcast. Critically this carries the *mixed*
-  // audio (host mic + every viewer) — the same track published to viewers and
-  // recorded — instead of the raw screen capture, which has no call audio. The
-  // mixer's output track is stable, so late joiners are included automatically.
+  // The stream handed to the RTMP broadcast. Like the recording — and unlike
+  // what is published to viewers — this carries the *mixed* audio (host mic +
+  // every viewer) instead of the raw screen capture, which has no call audio.
+  // Mixing every voice in is correct here because the broadcast is one-way to
+  // an outside audience: nothing is returned to the people in the call, so
+  // there is no loop to close. The mixer's output track is stable, so late
+  // joiners are included automatically.
   const broadcastStream = useMemo(() => {
     if (!presentationVideoTrack) return null;
     const composed = new MediaStream();

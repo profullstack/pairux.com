@@ -169,7 +169,16 @@ describe('useWebRTC', () => {
 
       expect(hookResult!.current.hasMic).toBe(true);
       expect(hookResult!.current.micEnabled).toBe(true);
-      expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true, video: false });
+      // Echo cancellation must be requested explicitly — a bare `audio: true`
+      // is what let the remote party's voice loop back through the mic.
+      expect(mockGetUserMedia).toHaveBeenCalledWith({
+        audio: expect.objectContaining({
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }),
+        video: false,
+      });
     });
 
     it('should set up channel subscription after getUserMedia resolves', async () => {

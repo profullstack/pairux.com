@@ -104,7 +104,7 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
         .then((sources) => {
           // Prefer the source requested via the system picker (if any).
           const requestedId =
-            'id' in (request.videoRequested ?? {}) ? (request.videoRequested as { id: string }).id : null;
+            (request.videoRequested as { id?: string } | undefined)?.id ?? null;
           const selected = requestedId
             ? sources.find((s) => s.id === requestedId) ?? sources[0]
             : sources[0];

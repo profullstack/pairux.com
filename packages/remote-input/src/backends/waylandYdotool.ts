@@ -134,14 +134,14 @@ function detectWaylandScreenSize(): { width: number; height: number } | null {
   // wlr-randr (wlroots: Sway, Hyprland, River, …)
   try {
     const raw = execFileSync('wlr-randr', [], { encoding: 'utf8', timeout: 2000 });
-    const m = raw.match(/(\d+)x(\d+)/);
+    const m = /(\d+)x(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
   } catch { /* not available */ }
 
   // kscreen-doctor (KDE Plasma)
   try {
     const raw = execFileSync('kscreen-doctor', ['--json'], { encoding: 'utf8', timeout: 2000 });
-    const m = raw.match(/"size":\s*\{[^}]*"width":\s*(\d+)[^}]*"height":\s*(\d+)/);
+    const m = /"size":\s*\{[^}]*"width":\s*(\d+)[^}]*"height":\s*(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
   } catch { /* not available */ }
 
@@ -158,7 +158,7 @@ function detectWaylandScreenSize(): { width: number; height: number } | null {
     );
     // GNOME serialises an array of (x, y, width, height, …) tuples; grab the
     // first width that follows an x,y pair.
-    const m = raw.match(/<\d+,\s*\d+,\s*(\d+),\s*(\d+)/);
+    const m = /<\d+,\s*\d+,\s*(\d+),\s*(\d+)/.exec(raw);
     if (m) return { width: Number(m[1]), height: Number(m[2]) };
   } catch { /* not available */ }
 

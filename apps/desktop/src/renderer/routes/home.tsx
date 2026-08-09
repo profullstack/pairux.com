@@ -44,9 +44,13 @@ async function constrainTrackToQualitySetting(track: MediaStreamTrack): Promise<
   const settings = track.getSettings();
 
   try {
+    // Use ideal *only* — a hard `max` throws OverconstrainedError when the
+    // source is smaller than the target (e.g. 1366×768 laptop sharing at
+    // "1080p" quality).  `ideal` tells the encoder \"aim for this but adapt
+    // to what's available.\"
     await track.applyConstraints({
-      width: { ideal: target.width, max: target.width },
-      height: { ideal: target.height, max: target.height },
+      width: { ideal: target.width },
+      height: { ideal: target.height },
     });
     console.log(
       `[Renderer] Constrained resolution from ${String(settings.width ?? '?')}x${String(settings.height ?? '?')} to ${String(target.width)}x${String(target.height)} (quality: ${quality})`
@@ -63,12 +67,16 @@ export function HomePage() {
   const [selectedSource, setSelectedSource] = useState<CaptureSource | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [displayServer, setDisplayServer] = useState<DisplayServer>('x11');
+  const [displayServer, setDisplayServer] = useState<DisplayServer>('unknown');
   // null until platform:info answers. Rendering the source picker before then
   // fires desktopCapturer.getSources(), which on Wayland opens a PipeWire
   // portal session that fails and then conflicts with the real
   // getDisplayMedia() call — so wait rather than guessing X11.
-  const [isWayland, setIsWayland] = useState<boolean | null>(null);
+  // On macOS and Windows the answer is trivially 'not Wayland'; skip the
+  // "Detecting display server…" spinner on those platforms.
+  const [isWayland, setIsWayland] = useState<boolean | null>(
+    /Linux/i.test(navigator.userAgent) ? null : false
+  );
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);

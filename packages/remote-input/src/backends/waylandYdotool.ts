@@ -123,6 +123,59 @@ function findYdotoolSocket(): string | null {
   return candidates.find((path) => existsSync(path)) ?? null;
 }
 
+/**
+ * Try to detect the primary display resolution on Wayland.
+ *
+ * No single command works across every compositor — probe each in turn
+ * and return the first match.  Falls back to null when nothing succeeds;
+ * the caller should then keep the 1920×1080 default and warn.
+ */
+function detectWaylandScreenSize(): { width: number; height: number } | null {
+  // wlr-randr (wlroots: Sway, Hyprland, River, …)
+  try {
+    const raw = execFileSync('wlr-randr', [], { encoding: 'utf8', timeout: 2000 });
+    const m = /(\d+)x(\d+)/.exec(raw);
+    if (m) return { width: Number(m[1]), height: Number(m[2]) };
+  } catch {
+    /* not available */
+  }
+
+  // kscreen-doctor (KDE Plasma)
+  try {
+    const raw = execFileSync('kscreen-doctor', ['--json'], { encoding: 'utf8', timeout: 2000 });
+    const m = /"size":\s*\{[^}]*"width":\s*(\d+)[^}]*"height":\s*(\d+)/.exec(raw);
+    if (m) return { width: Number(m[1]), height: Number(m[2]) };
+  } catch {
+    /* not available */
+  }
+
+  // GNOME Mutter (gdbus)
+  try {
+    const raw = execFileSync(
+      'gdbus',
+      [
+        'call',
+        '--session',
+        '--dest',
+        'org.gnome.Mutter.DisplayConfig',
+        '--object-path',
+        '/org/gnome/Mutter/DisplayConfig',
+        '--method',
+        'org.gnome.Mutter.DisplayConfig.GetResources',
+      ],
+      { encoding: 'utf8', timeout: 2000 }
+    );
+    // GNOME serialises an array of (x, y, width, height, …) tuples; grab the
+    // first width that follows an x,y pair.
+    const m = /<\d+,\s*\d+,\s*(\d+),\s*(\d+)/.exec(raw);
+    if (m) return { width: Number(m[1]), height: Number(m[2]) };
+  } catch {
+    /* not available */
+  }
+
+  return null;
+}
+
 function getYdotoolAvailability(): YdotoolAvailability {
   const binaryPath = findYdotoolBinary();
   const socketPath = findYdotoolSocket();
@@ -429,6 +482,23 @@ export class WaylandYdotoolInputBackend implements InputBackend {
         details: this.details,
       });
       return undefined;
+    }
+
+    // Try to detect the actual screen size so coordinate mapping is
+    // correct from the first click.  The renderer will also call
+    // updateScreenSize() once capture starts, but init() runs earlier
+    // (before a session is even created) and the default 1920×1080
+    // maps a remote click ~2× off on a 4K display.
+    const detected = detectWaylandScreenSize();
+    if (detected) {
+      this.screenWidth = detected.width;
+      this.screenHeight = detected.height;
+    } else {
+      console.warn(
+        '[InputInjector] Could not detect Wayland screen size; ' +
+          `defaulting to ${String(this.screenWidth)}x${String(this.screenHeight)}. ` +
+          'Remote clicks may be off until a screen share starts.'
+      );
     }
 
     return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };

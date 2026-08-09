@@ -14,7 +14,7 @@ import type {
  * main process and renderer.
  */
 
-export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos';
+export type DisplayServer = 'x11' | 'wayland' | 'windows' | 'macos' | 'unknown';
 
 export type TrayStatus = 'idle' | 'active' | 'paused' | 'error';
 

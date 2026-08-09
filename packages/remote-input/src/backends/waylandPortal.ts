@@ -131,7 +131,7 @@ export class WaylandPortalInputBackend implements InputBackend {
         'Wayland portal backend requires xdg-desktop-portal to be running in the desktop session.';
     } else {
       this.reason =
-        'Wayland portal backend detected xdg-desktop-portal but input injection is not implemented yet in PairUX. Falling back to ydotool if available.';
+        'PairUX detected xdg-desktop-portal but Wayland mouse/keyboard injection via the portal is not implemented yet. Install `ydotool` and start `ydotoold` for remote control on Wayland — see https://pairux.com/docs/wayland';
     }
   }
 

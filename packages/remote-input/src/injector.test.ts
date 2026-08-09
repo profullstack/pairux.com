@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RemoteInputInjector } from './injector.js';
-import type { InputBackend, InputEvent, MouseMoveEvent } from './types.js';
+import type { InputBackend, InputEvent, MouseButtonEvent } from './types.js';
 
 function fakeBackend(overrides: Partial<InputBackend> = {}): InputBackend {
   return {
@@ -16,7 +16,7 @@ function fakeBackend(overrides: Partial<InputBackend> = {}): InputBackend {
 
 const silentLogger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
-function makeInjector(backend: InputBackend, maxEventsPerSecond?: number) {
+function makeInjector(backend: InputBackend, maxEventsPerSecond?: number): RemoteInputInjector {
   const options = {
     selection: {
       kind: 'nut-js' as const,
@@ -25,15 +25,14 @@ function makeInjector(backend: InputBackend, maxEventsPerSecond?: number) {
     },
     createBackend: () => backend,
     logger: silentLogger,
-    // These cover gating/rate-limiting/errors, not cursor behaviour; two-cursor
-    // mode has its own suite below.
+    // virtualCursor off by default for these non-cursor tests
     virtualCursor: false,
     ...(maxEventsPerSecond === undefined ? {} : { maxEventsPerSecond }),
   };
   return new RemoteInputInjector(options);
 }
 
-const move: MouseMoveEvent = { type: 'mouse', action: 'move', x: 0.5, y: 0.5 };
+const click: MouseButtonEvent = { type: 'mouse', action: 'down', button: 'left', x: 0.5, y: 0.5 };
 
 describe('RemoteInputInjector', () => {
   beforeEach(() => {
@@ -45,7 +44,7 @@ describe('RemoteInputInjector', () => {
     const injector = makeInjector(backend);
 
     expect(injector.isEnabled).toBe(false);
-    await injector.inject(move);
+    await injector.inject(click);
 
     expect(backend.inject).not.toHaveBeenCalled();
     expect(injector.getDiagnostics().stats.received).toBe(1);
@@ -57,9 +56,9 @@ describe('RemoteInputInjector', () => {
     const injector = makeInjector(backend);
 
     expect(injector.enable()).toBe(true);
-    await injector.inject(move);
+    await injector.inject(click);
 
-    expect(backend.inject).toHaveBeenCalledWith(move);
+    expect(backend.inject).toHaveBeenCalledWith(click);
     expect(injector.getDiagnostics().stats.injected).toBe(1);
   });
 
@@ -79,10 +78,13 @@ describe('RemoteInputInjector', () => {
     const injector = makeInjector(backend);
 
     injector.enable();
-    await injector.inject(move);
+    // Use a 'click' action (press+release atom) so nothing is held when
+    // disable fires — otherwise releaseAll() would inject an 'up' too.
+    await injector.inject({ type: 'mouse', action: 'click', button: 'left', x: 0.5, y: 0.5 });
     injector.disable();
-    await injector.inject(move);
+    await injector.inject(click);
 
+    // Only the pre-disable click should have reached the backend.
     expect(backend.inject).toHaveBeenCalledTimes(1);
   });
 
@@ -98,7 +100,8 @@ describe('RemoteInputInjector', () => {
     });
 
     injector.enable();
-    await injector.inject({ type: 'mouse', action: 'move', x: 42, y: 0.5 });
+    // x=42 is out of normalized 0-1 range
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 42, y: 0.5 });
 
     expect(backend.inject).not.toHaveBeenCalled();
     expect(onRejected).toHaveBeenCalledWith(
@@ -131,9 +134,9 @@ describe('RemoteInputInjector', () => {
     const injector = makeInjector(backend, 2);
     injector.enable();
 
-    await injector.inject(move);
-    await injector.inject(move);
-    await injector.inject(move);
+    await injector.inject(click);
+    await injector.inject(click);
+    await injector.inject(click);
 
     expect(backend.inject).toHaveBeenCalledTimes(2);
     expect(injector.getDiagnostics().stats.rejected).toBe(1);
@@ -144,7 +147,7 @@ describe('RemoteInputInjector', () => {
     const injector = makeInjector(backend);
     injector.enable();
 
-    await expect(injector.inject(move)).resolves.toBeUndefined();
+    await expect(injector.inject(click)).resolves.toBeUndefined();
     expect(injector.getDiagnostics().stats.errors).toBe(1);
   });
 
@@ -158,7 +161,7 @@ describe('RemoteInputInjector', () => {
     expect(backend.emergencyStop).toHaveBeenCalled();
     expect(injector.isEnabled).toBe(false);
 
-    await injector.inject(move);
+    await injector.inject(click);
     expect(backend.inject).not.toHaveBeenCalled();
   });
 
@@ -309,10 +312,10 @@ describe('RemoteInputInjector held-input safety', () => {
       injector.enable();
 
       await injector.inject(down());
-      // A drag: movement keeps arriving, so the button must stay down.
+      // A drag: clicks keep arriving, so the button must stay down.
       for (let i = 0; i < 5; i += 1) {
         await vi.advanceTimersByTimeAsync(400);
-        await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
+        await injector.inject(down());
       }
 
       const ups = vi
@@ -325,8 +328,11 @@ describe('RemoteInputInjector held-input safety', () => {
   });
 });
 
-// Two cursors on a one-cursor OS: remote movement must never spend the local
-// pointer, which is what made control feel like it had been stolen.
+// Remote mouse movement must never spend the local pointer — that is what
+// made control feel like it had been stolen (the host cursor fought back,
+// and GNOME hot-corners fired when the guest brushed a screen edge).
+// Moves are always virtual (tracked, never injected); clicks briefly borrow
+// the pointer then restore it when possible.
 describe('RemoteInputInjector two-cursor mode', () => {
   const moves = (backend: InputBackend) =>
     vi.mocked(backend.inject).mock.calls.filter(([e]) => 'action' in e && e.action === 'move');
@@ -337,15 +343,6 @@ describe('RemoteInputInjector two-cursor mode', () => {
       createBackend: () => backend,
       logger: silentLogger,
     });
-  }
-
-  /**
-   * Two cursors are only used once the backend has confirmed it can report the
-   * pointer, so let that probe resolve before asserting.
-   */
-  async function enableAndSettle(injector: RemoteInputInjector): Promise<void> {
-    injector.enable();
-    for (let i = 0; i < 5; i += 1) await Promise.resolve();
   }
 
   /** A host that can report its pointer, i.e. macOS/Windows/X11. */
@@ -363,7 +360,7 @@ describe('RemoteInputInjector two-cursor mode', () => {
   it('does not move the local pointer for remote movement', async () => {
     const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    await enableAndSettle(injector);
+    injector.enable();
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
@@ -375,7 +372,7 @@ describe('RemoteInputInjector two-cursor mode', () => {
   it('borrows the pointer for a click and hands it straight back', async () => {
     const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    await enableAndSettle(injector);
+    injector.enable();
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
@@ -390,7 +387,7 @@ describe('RemoteInputInjector two-cursor mode', () => {
   it('keeps the pointer in place for the whole of a drag', async () => {
     const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    await enableAndSettle(injector);
+    injector.enable();
 
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
@@ -401,28 +398,28 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 
-  // Wayland gives clients no way to read the pointer. Two cursors then rest on
-  // a single absolute positioning call per click with nothing to correct it, so
-  // movement is driven directly instead: a click that lands beats a cursor that
-  // stayed put.
-  it('drives the cursor directly when the platform will not report the pointer', async () => {
+  // Wayland gives clients no way to read the pointer.  Clicks still land at
+  // the right position — the pointer briefly jumps there — but remote moves
+  // never drive the host cursor, so the host keeps an independent pointer
+  // and compositor hot-corners never fire from remote input.
+  it('virtualizes moves and injects clicks even without pointer reporting', async () => {
     const backend = fakeBackend();
     delete (backend as { getCursorPosition?: unknown }).getCursorPosition;
     const injector = twoCursorInjector(backend);
-    await enableAndSettle(injector);
+    injector.enable();
 
+    // Move — must NOT reach the OS.
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
+    expect(backend.inject).not.toHaveBeenCalled();
 
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
-    );
+    // Click — must reach the OS.
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     expect(backend.inject).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'down', button: 'left' })
     );
   });
 
-  it('drives the system cursor directly when two-cursor mode is off', async () => {
+  it('does not inject moves even when virtualCursor is off', async () => {
     const backend = fakeBackend();
     const injector = new RemoteInputInjector({
       selection: { kind: 'nut-js', platform: 'darwin', displayServer: 'macos' },
@@ -434,19 +431,44 @@ describe('RemoteInputInjector two-cursor mode', () => {
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
 
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
-    );
+    // Moves are always virtualized regardless of the virtualCursor flag.
+    expect(backend.inject).not.toHaveBeenCalled();
   });
 
   it('hands the pointer back when stuck input is released', async () => {
     const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
-    await enableAndSettle(injector);
+    injector.enable();
 
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.releaseAll('viewer disconnected');
 
     expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
+  });
+
+  it('clamps click coordinates away from screen edges to avoid hot-corners', async () => {
+    const backend = fakeBackend();
+    const injector = twoCursorInjector(backend);
+    injector.enable();
+
+    // Click at the top-left corner — should be clamped inward.
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 0 });
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'down',
+        x: expect.closeTo(0.005, 3),
+        y: expect.closeTo(0.005, 3),
+      })
+    );
+
+    // Click at the bottom-right corner — should be clamped inward.
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 1, y: 1 });
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'down',
+        x: expect.closeTo(0.995, 3),
+        y: expect.closeTo(0.995, 3),
+      })
+    );
   });
 });

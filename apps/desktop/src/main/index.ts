@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
-import { resolve } from 'path';
+import { resolve, join, dirname } from 'path';
+import { existsSync, accessSync, constants } from 'fs';
 import { app, BrowserWindow, clipboard } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
@@ -98,12 +99,37 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
-// Enable features for screen capture on Linux
+// Screen capture / backgrounding tweaks for Linux.
 if (process.platform === 'linux') {
-  // Disable SUID sandbox for user-installed AppImages
   // The chrome-sandbox binary requires SUID root permissions which aren't
-  // available in user space. This is safe for desktop apps.
-  app.commandLine.appendSwitch('no-sandbox');
+  // available for user-installed AppImages and some portable builds.
+  // Only disable the sandbox when it is genuinely unavailable — deb, rpm,
+  // flatpak, and snap users with working sandboxes should keep them.
+  //
+  // The Electron sandbox binary lives alongside the main executable.
+  // If it's missing or not SUID, the sandbox is unusable.  On packaged
+  // builds (deb/rpm/flatpak) it IS present and functional — only
+  // AppImages and bare tarballs tend to lack it.
+  try {
+    const sandboxPath = join(dirname(process.execPath), 'chrome-sandbox');
+    if (!existsSync(sandboxPath)) {
+      app.commandLine.appendSwitch('no-sandbox');
+      console.log('[Main] chrome-sandbox not found — disabling sandbox (AppImage / portable)');
+    } else {
+      try {
+        accessSync(sandboxPath, constants.X_OK);
+        // Sandbox is present and executable — keep it enabled.
+        console.log('[Main] chrome-sandbox found and executable — keeping sandbox');
+      } catch {
+        app.commandLine.appendSwitch('no-sandbox');
+        console.log('[Main] chrome-sandbox not executable — disabling sandbox');
+      }
+    }
+  } catch {
+    // On older Electron or exotic configs, err on the side of working.
+    app.commandLine.appendSwitch('no-sandbox');
+    console.log('[Main] Sandbox probe failed — disabled as safety fallback');
+  }
 
   // Enable PipeWire for Wayland screen capture
   app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');

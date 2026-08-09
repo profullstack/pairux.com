@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StreamDestinations } from '@/components/streaming';
 import { LIVE_STREAM_CHANGED_EVENT } from '@/lib/liveStream';
+import { SESSION_SOUNDS_CHANGED_EVENT } from '@/lib/sessionSounds';
 import { GUEST_CONTROL_OPT_OUT_VERSION } from '@/lib/sessionDefaults';
 import { useAuthStore } from '@/stores/auth';
 import { useUIStore } from '@/stores/ui';
@@ -34,6 +35,7 @@ interface AppSettings {
     defaultMaxParticipants: number;
     allowGuestControlByDefault: boolean;
     defaultMode: 'p2p' | 'sfu';
+    joinLeaveSounds: boolean;
   };
   streaming: {
     liveStreamEnabled: boolean;
@@ -54,6 +56,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     allowGuestControlByDefault: true,
     // SFU by default: enables server-side restreaming and multi-viewer calls.
     defaultMode: 'sfu',
+    // On by default: not hearing that someone joined is worse than hearing it.
+    joinLeaveSounds: true,
   },
   streaming: {
     // Opt-in: going live to YouTube/Twitch is off by default so a routine call
@@ -119,6 +123,7 @@ export function SettingsPage() {
     // Notify same-window listeners (e.g. the capture screen's Go Live control)
     // since the `storage` event only fires in other windows.
     window.dispatchEvent(new Event(LIVE_STREAM_CHANGED_EVENT));
+    window.dispatchEvent(new Event(SESSION_SOUNDS_CHANGED_EVENT));
     setHasChanges(true);
     setSaveSuccess(false);
     setSaveError(null);
@@ -538,6 +543,36 @@ export function SettingsPage() {
                 <span
                   className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
                     settings.session.allowGuestControlByDefault ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Join and Leave Sounds</p>
+                <p className="text-xs text-muted-foreground">
+                  Play a short chime when someone enters or leaves the session. The tone rises on
+                  arrival and falls on departure.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  updateSettings({
+                    ...settings,
+                    session: {
+                      ...settings.session,
+                      joinLeaveSounds: !settings.session.joinLeaveSounds,
+                    },
+                  });
+                }}
+                className={`relative h-6 w-11 rounded-full transition-colors ${
+                  settings.session.joinLeaveSounds ? 'bg-primary' : 'bg-muted'
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    settings.session.joinLeaveSounds ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>

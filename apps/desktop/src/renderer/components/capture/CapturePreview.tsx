@@ -48,6 +48,7 @@ import { CameraBubble } from '@/components/capture/CameraBubble';
 import { PublishToLive } from '@/components/capture/PublishToLive';
 import { useRTMPStreaming } from '@/hooks/useRTMPStreaming';
 import { useLiveStreamEnabled } from '@/lib/liveStream';
+import { playJoinSound, playLeaveSound, useSessionSoundsEnabled } from '@/lib/sessionSounds';
 import { isPreferTailnetEnabled } from '@/lib/iceConfig';
 import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
@@ -71,6 +72,14 @@ interface PendingControlRequest {
 }
 
 const CONTROL_REQUEST_TIMEOUT_MS = 30_000;
+
+/**
+ * How long after hosting starts to stay silent.
+ *
+ * Reconnecting to a busy session reports every viewer as a fresh arrival, and a
+ * burst of chimes for people who were already there is noise, not information.
+ */
+const JOIN_SOUND_SETTLE_MS = 2_000;
 
 const CAMERA_BUBBLE_STORAGE_KEY = 'pairux-camera-bubble';
 // Default: lower-right corner, ~20% of frame height (Loom-style).
@@ -257,6 +266,27 @@ export function CapturePreview({
   // from "no session" to "sfu session" happens before anything connects.
   const isSFU = session?.mode === 'sfu';
 
+  // Arrival/departure chimes.
+  //
+  // Read through a ref because the join and leave callbacks are built once and
+  // handed to the WebRTC hooks; closing over the toggle directly would freeze
+  // whatever it was when the session started.
+  //
+  // The settle window suppresses the volley that would otherwise fire when the
+  // host reconnects to a session that already has people in it — every existing
+  // viewer arrives at once, and none of them actually just walked in.
+  const sessionSoundsEnabled = useSessionSoundsEnabled();
+  const sessionSoundsEnabledRef = useRef(sessionSoundsEnabled);
+  sessionSoundsEnabledRef.current = sessionSoundsEnabled;
+  const hostingSinceRef = useRef<number | null>(null);
+  const shouldChimeRef = useRef<() => boolean>(() => false);
+  shouldChimeRef.current = (): boolean => {
+    if (!sessionSoundsEnabledRef.current) return false;
+    const since = hostingSinceRef.current;
+    if (since === null) return false;
+    return Date.now() - since > JOIN_SOUND_SETTLE_MS;
+  };
+
   // The remote participant the host has handed control to, which is what
   // enables input injection.
   //
@@ -410,10 +440,12 @@ export function CapturePreview({
       allowControl: Boolean(session?.settings?.allowControl),
       onViewerJoined: (viewerId: string) => {
         console.log('[CapturePreview] Viewer joined:', viewerId);
+        if (shouldChimeRef.current()) playJoinSound();
         void refreshSession();
       },
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
+        if (shouldChimeRef.current()) playLeaveSound();
         void getElectronAPI()
           .invoke('overlay:clearRemoteCursor', undefined)
           .catch(() => {
@@ -527,6 +559,12 @@ export function CapturePreview({
 
   // Answer the handshake over whichever transport is actually carrying it.
   hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : p2pHost.sendTailnetHello;
+
+  // Start the chime settle window when hosting begins, and close it when
+  // hosting ends so a later session starts quiet again.
+  useEffect(() => {
+    hostingSinceRef.current = isHosting ? Date.now() : null;
+  }, [isHosting]);
 
   // Drive the gain stage in front of every participant's playback. Mute is left
   // to the audio elements; this only controls how loud they are when unmuted.

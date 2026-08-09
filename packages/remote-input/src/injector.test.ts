@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RemoteInputInjector } from './injector.js';
-import type { InputBackend, InputEvent, MouseMoveEvent, MouseButtonEvent } from './types.js';
+import type { InputBackend, InputEvent, MouseButtonEvent } from './types.js';
 
 function fakeBackend(overrides: Partial<InputBackend> = {}): InputBackend {
   return {
@@ -16,7 +16,7 @@ function fakeBackend(overrides: Partial<InputBackend> = {}): InputBackend {
 
 const silentLogger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
-function makeInjector(backend: InputBackend, maxEventsPerSecond?: number) {
+function makeInjector(backend: InputBackend, maxEventsPerSecond?: number): RemoteInputInjector {
   const options = {
     selection: {
       kind: 'nut-js' as const,

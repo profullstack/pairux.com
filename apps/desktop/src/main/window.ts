@@ -79,17 +79,39 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
   );
 
   session.defaultSession.setDisplayMediaRequestHandler(
-    (_request, callback) => {
+    (request, callback) => {
       console.log('[Main] Display media request received');
 
+      // On Wayland, desktopCapturer.getSources() goes through the PipeWire
+      // ScreenCast portal which does NOT support enumerating sources with
+      // thumbnails and fails — that failure then gives getDisplayMedia() no
+      // video track at all.  Let the system portal handle both enumeration
+      // and selection so the renderer's getDisplayMedia() call actually
+      // receives the track the user picked.
+      if (isWayland) {
+        console.log('[Main] Wayland: delegating to system screen picker');
+        callback({ video: undefined });
+        return;
+      }
+
+      // Non-Wayland: enumerate sources and match the request's video source
+      // to what the user actually selected, rather than always handing back
+      // sources[0] (which ignored the user's pick and shared the wrong thing).
       desktopCapturer
         .getSources({
           types: ['screen', 'window'],
         })
         .then((sources) => {
-          if (sources.length > 0) {
-            console.log('[Main] Granting access to source:', sources[0].name);
-            callback({ video: sources[0] });
+          // Prefer the source requested via the system picker (if any).
+          const requestedId =
+            'id' in (request.videoRequested ?? {}) ? (request.videoRequested as { id: string }).id : null;
+          const selected = requestedId
+            ? sources.find((s) => s.id === requestedId) ?? sources[0]
+            : sources[0];
+
+          if (selected) {
+            console.log('[Main] Granting access to source:', selected.name);
+            callback({ video: selected });
           } else {
             console.log('[Main] No sources available');
             callback({});

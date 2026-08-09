@@ -77,7 +77,14 @@ export function checkScreenCapturePermission(): boolean {
 }
 
 /**
- * Request screen capture permission (macOS only)
+ * Request screen capture permission (macOS only).
+ *
+ * On a fresh install getMediaAccessStatus('screen') returns 'not-determined'.
+ * The OS only shows its permission prompt when an app actually *tries* to
+ * capture — a status check alone won't trigger it.  Rather than return false
+ * and leave the user stuck, open a temporary capture stream to force the
+ * prompt, then immediately close it once the user has either granted or
+ * denied the permission.
  */
 export async function requestScreenCapturePermission(): Promise<boolean> {
   if (process.platform !== 'darwin') {
@@ -91,13 +98,13 @@ export async function requestScreenCapturePermission(): Promise<boolean> {
   }
 
   if (status === 'denied') {
-    // User has explicitly denied - need to go to settings
+    // User has explicitly denied — need to go to settings
     const result = await dialog.showMessageBox({
       type: 'info',
       title: 'Screen Recording Permission Required',
       message: 'PairUX needs Screen Recording permission to share your screen.',
       detail:
-        'Please enable PairUX in System Preferences → Security & Privacy → Privacy → Screen Recording.\n\nYou may need to restart the app after granting permission.',
+        'Please enable PairUX in System Preferences → Security & Privacy → Privacy → Screen Recording.\\n\\nYou may need to restart the app after granting permission.',
       buttons: ['Open Settings', 'Later'],
       defaultId: 0,
     });
@@ -110,9 +117,33 @@ export async function requestScreenCapturePermission(): Promise<boolean> {
     return false;
   }
 
-  // Status is 'not-determined' or 'restricted'
-  // The permission dialog will be shown when we try to capture
-  return false;
+  // Status is 'not-determined' or 'restricted' — trigger the system
+  // permission prompt by attempting a real capture, then release it.
+  try {
+    const { BrowserWindow } = await import('electron');
+    // Use an offscreen window so the OS-level prompt appears without any
+    // visible window getting in the way.
+    const offscreen = new BrowserWindow({
+      width: 1, height: 1, show: false,
+      webPreferences: { offscreen: true, sandbox: true },
+    });
+    try {
+      await offscreen.loadURL('data:text/html,<html></html>');
+      await offscreen.webContents.executeJavaScript(
+        'navigator.mediaDevices.getDisplayMedia({video:true}).then(s=>{s.getTracks().forEach(t=>t.stop());return true}).catch(()=>false)',
+        true  // userGesture — required for getDisplayMedia
+      );
+    } finally {
+      offscreen.destroy();
+    }
+
+    // Re-check after the prompt was shown.
+    const newStatus = systemPreferences.getMediaAccessStatus('screen');
+    return newStatus === 'granted';
+  } catch {
+    // If the offscreen trick fails, fall back to just reporting the status.
+    return systemPreferences.getMediaAccessStatus('screen') === 'granted';
+  }
 }
 
 /**

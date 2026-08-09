@@ -222,3 +222,20 @@ Object.assign(globalThis, {
   AudioContext: FakeAudioContext,
   MediaStream: FakeMediaStream,
 });
+
+// jsdom leaves the media element transport unimplemented, and calling it emits
+// a jsdomError. Remote playback genuinely does call play()/pause() — a muted
+// element is what keeps a peer-connection track being pulled — so give them
+// resolved stand-ins rather than letting every playback test log an error.
+Object.defineProperties(HTMLMediaElement.prototype, {
+  play: {
+    configurable: true,
+    writable: true,
+    value: (): Promise<void> => Promise.resolve(),
+  },
+  pause: {
+    configurable: true,
+    writable: true,
+    value: (): void => undefined,
+  },
+});

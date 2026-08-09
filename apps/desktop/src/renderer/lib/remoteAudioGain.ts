@@ -28,6 +28,37 @@ export interface AmplifiedAudioTrack {
 }
 
 /**
+ * Give a remote track a media element to be consumed by.
+ *
+ * A track arriving over a peer connection is only pulled while something is
+ * consuming it, and in Chromium a `MediaStreamAudioSourceNode` does not count:
+ * the receiver stays parked and the node reads silence. Routing playback
+ * entirely through Web Audio therefore silenced every participant in both
+ * directions — the whole call, not just the volume control.
+ *
+ * A hidden element attached to the *raw* track is what keeps the receiver
+ * pulling. It is muted, and must stay muted: an audible second copy of every
+ * participant is precisely the double-playback echo removed in v0.9.48. Muting
+ * also sidesteps autoplay policy, which never blocks a silent element.
+ *
+ * The element is returned rather than left to float so the caller can hold a
+ * reference. A detached element with no reference is collectable, and taking
+ * the consumer away again would put the silence straight back.
+ */
+function keepRemoteTrackFlowing(track: MediaStreamTrack): HTMLAudioElement {
+  const sink = new Audio();
+  sink.srcObject = new MediaStream([track]);
+  sink.muted = true;
+  sink.autoplay = true;
+  // Wrapped because `play()` predates its own promise and still returns
+  // undefined on some implementations; a bare `.catch` there would throw.
+  void Promise.resolve(sink.play()).catch((err: unknown) => {
+    console.warn('[RemoteAudioGain] Keep-alive element failed to play:', err);
+  });
+  return sink;
+}
+
+/**
  * Splice a gain stage in front of a remote audio track.
  *
  * Throws if Web Audio is unavailable or the track cannot be wired up. That is
@@ -40,6 +71,10 @@ export function amplifyRemoteAudio(
 ): AmplifiedAudioTrack {
   const ctx = getAudioContext();
   resumeAudioContext(ctx);
+
+  // Before the graph, not after: the source node below reads whatever the
+  // receiver has produced, and without a consumer it produces nothing.
+  const keepAlive = keepRemoteTrackFlowing(track);
 
   const source = ctx.createMediaStreamSource(new MediaStream([track]));
   const gain = ctx.createGain();
@@ -62,6 +97,16 @@ export function amplifyRemoteAudio(
   gain.connect(limiter);
   limiter.connect(destination);
 
+  // Silent playback is hard to tell apart from nobody talking, so record the
+  // state of everything that decides between the two.
+  console.log('[RemoteAudioGain] Attached gain stage', {
+    trackId: track.id,
+    trackMuted: track.muted,
+    trackReadyState: track.readyState,
+    contextState: ctx.state,
+    gain: gain.gain.value,
+  });
+
   let disposed = false;
 
   return {
@@ -77,6 +122,8 @@ export function amplifyRemoteAudio(
       source.disconnect();
       gain.disconnect();
       limiter.disconnect();
+      keepAlive.pause();
+      keepAlive.srcObject = null;
     },
   };
 }

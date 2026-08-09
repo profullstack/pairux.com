@@ -24,6 +24,7 @@ import {
   MOBILE_VOICE_AUDIO_CONSTRAINTS,
   prioritizeAudioSender,
   tuneOpusForVoice,
+  markTrackAsSpeech,
 } from '@pairux/shared-types';
 import { API_BASE_URL } from '../config';
 import { getStoredAuth, isAuthExpired } from '../lib/secure-storage';
@@ -612,6 +613,7 @@ export function useWebRTCHost({
     // Capture host microphone
     try {
       const micStream = await mediaDevices.getUserMedia(voiceCaptureConstraints);
+      markTrackAsSpeech(micStream.getAudioTracks()[0]);
       hostMicStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);

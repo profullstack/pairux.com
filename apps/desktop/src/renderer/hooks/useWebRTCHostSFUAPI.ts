@@ -27,7 +27,12 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
-import { VOICE_AUDIO_CONSTRAINTS } from '@pairux/shared-types';
+import {
+  VOICE_AUDIO_CONSTRAINTS,
+  DEFAULT_REMOTE_AUDIO_GAIN,
+  markTrackAsSpeech,
+} from '@pairux/shared-types';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL ?? '';
 
@@ -44,6 +49,8 @@ export interface ViewerConnection {
   currentPreset: NetworkQuality;
   audioTrack: MediaStreamTrack | null;
   audioElement: HTMLAudioElement | null;
+  /** Gain stage feeding {@link audioElement}, so playback can exceed unity. */
+  amplifiedAudio: AmplifiedAudioTrack | null;
   isMuted: boolean;
 }
 
@@ -82,6 +89,8 @@ interface UseWebRTCHostSFUAPIReturn {
   toggleMic: () => void;
   /** The host's dedicated microphone stream — alive whenever hosting, independent of screen sharing. */
   hostMicStream: MediaStream | null;
+  /** Playback gain for remote participants. Can exceed 1.0. */
+  setSpeakerGain: (gain: number) => void;
 }
 
 export function useWebRTCHostSFUAPI({
@@ -109,6 +118,9 @@ export function useWebRTCHostSFUAPI({
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const authTokenRef = useRef<string | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
+  // Current playback gain, so a viewer who joins later starts at the level the
+  // host already chose rather than snapping back to the default.
+  const speakerGainRef = useRef<number>(DEFAULT_REMOTE_AUDIO_GAIN);
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
@@ -201,9 +213,15 @@ export function useWebRTCHostSFUAPI({
       viewer.audioElement.pause();
       viewer.audioElement.srcObject = null;
     }
+    viewer.amplifiedAudio?.dispose();
+
+    // An element's volume tops out at 1.0, so the track passes through a gain
+    // stage first — otherwise a quiet talker can only be muted, never raised.
+    const amplified = amplifyRemoteAudio(track, speakerGainRef.current);
+    viewer.amplifiedAudio = amplified;
 
     const audioEl = new Audio();
-    audioEl.srcObject = new MediaStream([track]);
+    audioEl.srcObject = amplified.stream;
     audioEl.autoplay = true;
     audioEl.volume = 1.0;
     audioEl.muted = viewer.isMuted;
@@ -229,6 +247,7 @@ export function useWebRTCHostSFUAPI({
         currentPreset: 'good',
         audioTrack: null,
         audioElement: null,
+        amplifiedAudio: null,
         isMuted: false,
       };
 
@@ -261,6 +280,7 @@ export function useWebRTCHostSFUAPI({
       viewer.audioElement.pause();
       viewer.audioElement.srcObject = null;
     }
+    viewer?.amplifiedAudio?.dispose();
 
     viewersRef.current.delete(identity);
     setViewers(new Map(viewersRef.current));
@@ -301,6 +321,7 @@ export function useWebRTCHostSFUAPI({
           audio: VOICE_AUDIO_CONSTRAINTS,
           video: false,
         });
+        markTrackAsSpeech(micStream.getAudioTracks()[0]);
         hostMicStreamRef.current = micStream;
         setHostMicStream(micStream);
         setHasMic(true);
@@ -399,6 +420,8 @@ export function useWebRTCHostSFUAPI({
           if (!viewer) return;
 
           viewer.audioTrack = null;
+          viewer.amplifiedAudio?.dispose();
+          viewer.amplifiedAudio = null;
           if (viewer.audioElement) {
             viewer.audioElement.pause();
             viewer.audioElement.srcObject = null;
@@ -593,6 +616,7 @@ export function useWebRTCHostSFUAPI({
         viewer.audioElement.pause();
         viewer.audioElement.srcObject = null;
       }
+      viewer.amplifiedAudio?.dispose();
     });
     viewersRef.current.clear();
     setViewers(new Map());
@@ -754,6 +778,19 @@ export function useWebRTCHostSFUAPI({
     [sendData]
   );
 
+  /**
+   * Set playback gain for every remote participant.
+   *
+   * Applies to the gain stage rather than the audio elements, so it can go
+   * above 1.0 — which is the whole point, since an element cannot.
+   */
+  const setSpeakerGain = useCallback((gain: number) => {
+    speakerGainRef.current = gain;
+    for (const viewer of viewersRef.current.values()) {
+      viewer.amplifiedAudio?.setGain(gain);
+    }
+  }, []);
+
   return {
     isHosting,
     viewerCount: viewers.size,
@@ -772,6 +809,7 @@ export function useWebRTCHostSFUAPI({
     hasMic,
     toggleMic,
     hostMicStream,
+    setSpeakerGain,
     kickViewer,
     muteViewer,
   };

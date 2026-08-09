@@ -50,6 +50,17 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
       nodeIntegration: false,
       webSecurity: true,
       allowRunningInsecureContent: false,
+      // A screen share must keep running while the user works in the window
+      // they are sharing — which means this window is, by definition, in the
+      // background almost the whole session.
+      //
+      // Chromium throttles a backgrounded renderer, and after about five
+      // minutes escalates to intensive throttling that clamps timers to roughly
+      // once a minute. That stalls requestAnimationFrame, which is what drives
+      // the camera-bubble compositor canvas feeding captureStream() — so the
+      // published video freezes on its last frame until the window is focused
+      // again and the renderer un-throttles.
+      backgroundThrottling: false,
     },
   });
 

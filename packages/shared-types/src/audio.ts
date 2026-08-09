@@ -65,8 +65,47 @@ export const SYSTEM_AUDIO_CONSTRAINTS = {
   autoGainControl: false,
 } as const;
 
-/** Target Opus bitrate for speech, in bits per second. */
-export const OPUS_TARGET_BITRATE = 32000;
+/**
+ * Target Opus bitrate for speech, in bits per second.
+ *
+ * 32k is enough to be *intelligible*, which is why it is a common default, but
+ * it sounds noticeably compressed — thin, and a bit distant. Voice is the point
+ * of a pairing call and this is rounding error next to a screen share measured
+ * in megabits, so it is worth spending. Past roughly 64k mono the returns on
+ * speech are negligible.
+ */
+export const OPUS_TARGET_BITRATE = 48000;
+
+/**
+ * Playback gain applied to a remote participant's audio.
+ *
+ * An `<audio>`/`<video>` element clamps `.volume` to 1.0, so unity is the
+ * loudest an element can go on its own — there is no headroom to make a quiet
+ * talker comfortable. Routing the track through a gain stage first is the only
+ * way to exceed that.
+ *
+ * The default is 2.0 rather than 1.0 deliberately: playback used to run through
+ * two summed paths at once (an element *and* the AudioContext), which was an
+ * accidental ~+6 dB. Removing the duplicate fixed the smearing it caused but
+ * halved everyone's level, so 2.0 restores the loudness people were used to
+ * without the doubling artifact.
+ */
+export const DEFAULT_REMOTE_AUDIO_GAIN = 2;
+
+/** Bounds for {@link DEFAULT_REMOTE_AUDIO_GAIN}, as exposed to a volume control. */
+export const MIN_REMOTE_AUDIO_GAIN = 0;
+export const MAX_REMOTE_AUDIO_GAIN = 4;
+
+/**
+ * Clamp a playback gain into the supported range.
+ *
+ * Non-finite input (a `NaN` from parsing a slider, say) falls back to the
+ * default rather than silencing the call or blowing the limiter apart.
+ */
+export function clampAudioGain(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_REMOTE_AUDIO_GAIN;
+  return Math.min(MAX_REMOTE_AUDIO_GAIN, Math.max(MIN_REMOTE_AUDIO_GAIN, value));
+}
 
 /**
  * Encoding parameters for an audio RTP sender.
@@ -90,6 +129,27 @@ export const AUDIO_ENCODING_PARAMS = {
  * usable; audio cannot drop anything without becoming choppy.
  */
 export const VIDEO_NETWORK_PRIORITY = 'low';
+
+/**
+ * Tell the stack that an audio track carries speech.
+ *
+ * `contentHint` lets the encoder and the processing chain optimise for voice
+ * rather than guessing from the signal — the audio equivalent of the `'detail'`
+ * hint already set on screen-share video. Harmless where unsupported: the
+ * property simply stays unset.
+ *
+ * Takes a bare `object` because react-native-webrtc's `MediaStreamTrack` type
+ * declares no `contentHint` at all, and a structural interface with no
+ * overlapping properties is rejected outright rather than merely narrowed.
+ */
+export function markTrackAsSpeech(track: object | null | undefined): void {
+  if (!track) return;
+  try {
+    (track as { contentHint?: string }).contentHint = 'speech';
+  } catch {
+    // Read-only or absent on this platform — nothing to do.
+  }
+}
 
 /**
  * The slice of `RTCRtpSender` this module needs.
@@ -183,10 +243,18 @@ function mergeFmtpParams(existing: string, overrides: Record<string, string>): s
 /**
  * Tune the Opus codec in an SDP for a voice call.
  *
- * Adds in-band forward error correction and discontinuous transmission, and
- * pins the target bitrate to something appropriate for speech. FEC is what
- * turns a lost packet into a slightly duller syllable instead of a gap, which
- * is the difference between "choppy" and "fine" on a lossy link.
+ * Turns on in-band forward error correction and pins a bitrate appropriate for
+ * speech. FEC is what turns a lost packet into a slightly duller syllable
+ * instead of a gap, which is the difference between "choppy" and "fine" on a
+ * lossy link.
+ *
+ * DTX is explicitly *off*. It saves bandwidth by going silent between phrases
+ * and letting the far end synthesise comfort noise, but the handover in and out
+ * of that synthetic noise is audible: room tone appears and disappears, and the
+ * tails of words get clipped. On a conversation that people sit inside for
+ * hours it reads as an unnatural, gated quality. The bandwidth it saves is not
+ * worth it here. Set explicitly rather than omitted so it also overrides a
+ * stack that would otherwise default it on.
  *
  * Unknown or Opus-free SDP is returned untouched, so this is safe to run over
  * every offer and answer.
@@ -199,7 +267,7 @@ export function tuneOpusForVoice(sdp: string): string {
     stereo: '0',
     'sprop-stereo': '0',
     useinbandfec: '1',
-    usedtx: '1',
+    usedtx: '0',
     maxaveragebitrate: String(OPUS_TARGET_BITRATE),
   };
 

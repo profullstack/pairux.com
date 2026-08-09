@@ -16,6 +16,8 @@ import type {
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
+import { DEFAULT_REMOTE_AUDIO_GAIN } from '@pairux/shared-types';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL ?? '';
 
@@ -32,6 +34,8 @@ export interface ViewerConnection {
   currentPreset: NetworkQuality;
   audioTrack: MediaStreamTrack | null;
   audioElement: HTMLAudioElement | null;
+  /** Gain stage feeding {@link audioElement}, so playback can exceed unity. */
+  amplifiedAudio: AmplifiedAudioTrack | null;
   isMuted: boolean;
 }
 
@@ -85,6 +89,9 @@ export function useWebRTCHostSFU({
   const [hasMic, setHasMic] = useState(false);
 
   const roomRef = useRef<Room | null>(null);
+  // Current playback gain, so a viewer who joins later starts at the level the
+  // host already chose rather than snapping back to the default.
+  const speakerGainRef = useRef<number>(DEFAULT_REMOTE_AUDIO_GAIN);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
 
   const onControlRequestRef = useRef(onControlRequest);
@@ -161,8 +168,15 @@ export function useWebRTCHostSFU({
       viewer.audioElement.srcObject = null;
     }
 
+    viewer.amplifiedAudio?.dispose();
+
+    // An element's volume tops out at 1.0, so the track passes through a gain
+    // stage first — otherwise a quiet talker can only be muted, never raised.
+    const amplified = amplifyRemoteAudio(track, speakerGainRef.current);
+    viewer.amplifiedAudio = amplified;
+
     const audioEl = new Audio();
-    audioEl.srcObject = new MediaStream([track]);
+    audioEl.srcObject = amplified.stream;
     audioEl.autoplay = true;
     audioEl.volume = 1.0;
     audioEl.muted = viewer.isMuted;
@@ -188,6 +202,7 @@ export function useWebRTCHostSFU({
         currentPreset: 'good',
         audioTrack: null,
         audioElement: null,
+        amplifiedAudio: null,
         isMuted: false,
       };
 

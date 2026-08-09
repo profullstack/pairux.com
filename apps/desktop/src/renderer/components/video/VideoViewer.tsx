@@ -11,6 +11,13 @@ import {
   VolumeX,
 } from 'lucide-react';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
+import {
+  DEFAULT_REMOTE_AUDIO_GAIN,
+  MIN_REMOTE_AUDIO_GAIN,
+  MAX_REMOTE_AUDIO_GAIN,
+  clampAudioGain,
+} from '@pairux/shared-types';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 interface VideoViewerProps {
   stream: MediaStream | null;
@@ -22,6 +29,12 @@ interface VideoViewerProps {
   speakerMuted?: boolean;
   onSpeakerMutedChange?: (muted: boolean) => void;
   showSpeakerToggle?: boolean;
+  /**
+   * Playback gain for the remote audio. Above 1.0 makes a quiet talker louder.
+   * Leave unset to let the viewer manage it with the built-in slider.
+   */
+  speakerGain?: number;
+  onSpeakerGainChange?: (gain: number) => void;
   className?: string;
 }
 
@@ -33,12 +46,76 @@ export function VideoViewer({
   speakerMuted,
   onSpeakerMutedChange,
   showSpeakerToggle = true,
+  speakerGain: speakerGainProp,
+  onSpeakerGainChange,
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [localMuted, setLocalMuted] = useState(false);
   const [requiresUnmute, setRequiresUnmute] = useState(false);
   const isMuted = speakerMuted ?? localMuted;
+  const [localGain, setLocalGain] = useState(DEFAULT_REMOTE_AUDIO_GAIN);
+  const speakerGain = speakerGainProp ?? localGain;
+
+  const changeGain = useCallback(
+    (next: number) => {
+      const clamped = clampAudioGain(next);
+      onSpeakerGainChange?.(clamped);
+      if (speakerGainProp === undefined) {
+        setLocalGain(clamped);
+      }
+    },
+    [onSpeakerGainChange, speakerGainProp]
+  );
+
+  // The <video> element caps volume at 1.0, so the remote audio is routed
+  // through a gain stage and swapped back into the stream before playback.
+  // Video tracks pass through untouched.
+  const amplifiedRef = useRef<AmplifiedAudioTrack | null>(null);
+  const [playbackStream, setPlaybackStream] = useState<MediaStream | null>(null);
+  const remoteAudioTrackId = stream?.getAudioTracks()[0]?.id ?? null;
+
+  useEffect(() => {
+    if (!stream) {
+      setPlaybackStream(null);
+      return;
+    }
+
+    const audioTrack = stream.getAudioTracks()[0];
+    // The index access is typed non-optional here, but an audio-free stream
+    // really does yield undefined — a screen share with no mic attached.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!audioTrack) {
+      // Screen-share only — nothing to amplify.
+      setPlaybackStream(stream);
+      return;
+    }
+
+    const amplified = amplifyRemoteAudio(audioTrack, speakerGain);
+    amplifiedRef.current = amplified;
+
+    const composed = new MediaStream();
+    stream.getVideoTracks().forEach((track) => {
+      composed.addTrack(track);
+    });
+    amplified.stream.getAudioTracks().forEach((track) => {
+      composed.addTrack(track);
+    });
+    setPlaybackStream(composed);
+
+    return () => {
+      amplified.dispose();
+      amplifiedRef.current = null;
+    };
+    // Rebuild when the underlying audio track is replaced, which renegotiation
+    // can do without changing the stream's identity.
+  }, [stream, remoteAudioTrackId, speakerGain]);
+
+  // Adjust an existing graph in place rather than rebuilding it on every nudge
+  // of a volume slider.
+  useEffect(() => {
+    amplifiedRef.current?.setGain(speakerGain);
+  }, [speakerGain]);
 
   const setMutedState = useCallback(
     (muted: boolean) => {
@@ -87,14 +164,14 @@ export function VideoViewer({
     video.addEventListener('waiting', handleWaiting);
     video.addEventListener('error', handleError);
 
-    if (stream) {
+    if (playbackStream) {
       setRequiresUnmute(false);
       console.log('[VideoViewer] Attaching stream', {
-        streamId: stream.id,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length,
+        streamId: playbackStream.id,
+        videoTracks: playbackStream.getVideoTracks().length,
+        audioTracks: playbackStream.getAudioTracks().length,
       });
-      video.srcObject = stream;
+      video.srcObject = playbackStream;
       video.muted = isMuted;
       video
         .play()
@@ -110,7 +187,7 @@ export function VideoViewer({
           video.play().catch((err: unknown) => {
             console.error('[VideoViewer] Failed to play even muted:', err);
           });
-          if (stream.getAudioTracks().length > 0) {
+          if (playbackStream.getAudioTracks().length > 0) {
             setRequiresUnmute(true);
           }
         });
@@ -126,7 +203,7 @@ export function VideoViewer({
       video.removeEventListener('waiting', handleWaiting);
       video.removeEventListener('error', handleError);
     };
-  }, [stream, isMuted, setMutedState]);
+  }, [playbackStream, isMuted, setMutedState]);
 
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
@@ -257,14 +334,35 @@ export function VideoViewer({
 
       {/* Speaker toggle */}
       {showSpeakerToggle && (isStreaming || isVoiceOnly) && hasAudioTrack && (
-        <button
-          type="button"
-          onClick={toggleMute}
-          className="absolute right-4 top-4 rounded-lg bg-black/70 p-2 text-white transition-colors hover:bg-black/85"
-          title={isMuted ? 'Turn speaker on' : 'Turn speaker off'}
-        >
-          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
+        <div className="absolute right-4 top-4 flex items-center gap-2 rounded-lg bg-black/70 px-2 py-1.5 text-white">
+          <button
+            type="button"
+            onClick={toggleMute}
+            className="rounded p-0.5 transition-colors hover:bg-white/20"
+            title={isMuted ? 'Turn speaker on' : 'Turn speaker off'}
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          {/*
+            Goes above 1.0, which the <video> element cannot do on its own —
+            this drives the gain stage in front of playback, so a quiet talker
+            can be made louder instead of only muted.
+          */}
+          <input
+            type="range"
+            min={MIN_REMOTE_AUDIO_GAIN}
+            max={MAX_REMOTE_AUDIO_GAIN}
+            step={0.1}
+            value={speakerGain}
+            disabled={isMuted}
+            onChange={(event) => {
+              changeGain(Number(event.target.value));
+            }}
+            className="w-20 accent-white disabled:opacity-50"
+            aria-label="Volume"
+            title="Volume"
+          />
+        </div>
       )}
     </div>
   );

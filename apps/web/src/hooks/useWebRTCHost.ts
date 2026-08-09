@@ -17,7 +17,10 @@ import {
   VIDEO_NETWORK_PRIORITY,
   prioritizeAudioSender,
   tuneOpusForVoice,
+  markTrackAsSpeech,
+  DEFAULT_REMOTE_AUDIO_GAIN,
 } from '@pairux/shared-types';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 // Adaptive bitrate encoding presets (optimized for screen sharing with text)
 interface BitratePreset {
@@ -81,6 +84,8 @@ export interface ViewerConnection {
   currentPreset: NetworkQuality;
   audioTrack: MediaStreamTrack | null;
   audioElement: HTMLAudioElement | null;
+  /** Gain stage feeding {@link audioElement}, so playback can exceed unity. */
+  amplifiedAudio: AmplifiedAudioTrack | null;
   isMuted: boolean;
 }
 
@@ -139,6 +144,9 @@ export function useWebRTCHost({
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
+  // Current playback gain, so a viewer who joins later starts at the level the
+  // host already chose rather than snapping back to the default.
+  const speakerGainRef = useRef<number>(DEFAULT_REMOTE_AUDIO_GAIN);
   const localStreamRef = useRef<MediaStream | null>(localStream);
   // Buffer ICE candidates per viewer until their remote description is set
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
@@ -381,9 +389,14 @@ export function useWebRTCHost({
           if (viewer) {
             viewer.audioTrack = event.track;
 
-            // Play viewer audio locally for host to hear
+            // Play viewer audio locally for host to hear. The element's own
+            // volume tops out at 1.0, so the track goes through a gain stage
+            // first — the only way to make a quiet talker actually louder.
+            const amplified = amplifyRemoteAudio(event.track, speakerGainRef.current);
+            viewer.amplifiedAudio = amplified;
+
             const audioEl = new Audio();
-            audioEl.srcObject = new MediaStream([event.track]);
+            audioEl.srcObject = amplified.stream;
             audioEl.autoplay = true;
             audioEl.volume = 1.0;
             void audioEl.play().catch((err: unknown) => {
@@ -502,6 +515,7 @@ export function useWebRTCHost({
           viewer.audioElement.pause();
           viewer.audioElement.srcObject = null;
         }
+        viewer.amplifiedAudio?.dispose();
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
         pendingCandidatesRef.current.delete(viewerId);
@@ -592,6 +606,7 @@ export function useWebRTCHost({
         currentPreset: 'good',
         audioTrack: null,
         audioElement: null,
+        amplifiedAudio: null,
         isMuted: false,
       };
 
@@ -635,6 +650,7 @@ export function useWebRTCHost({
         audio: VOICE_AUDIO_CONSTRAINTS,
         video: false,
       });
+      markTrackAsSpeech(micStream.getAudioTracks()[0]);
       hostMicStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
@@ -742,6 +758,7 @@ export function useWebRTCHost({
         viewer.audioElement.pause();
         viewer.audioElement.srcObject = null;
       }
+      viewer.amplifiedAudio?.dispose();
       viewer.peerConnection.close();
     });
     viewersRef.current.clear();
@@ -946,6 +963,7 @@ export function useWebRTCHost({
         viewer.audioElement.pause();
         viewer.audioElement.srcObject = null;
       }
+      viewer.amplifiedAudio?.dispose();
 
       // Close the peer connection
       viewer.peerConnection.close();

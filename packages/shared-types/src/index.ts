@@ -110,6 +110,11 @@ export {
   AUDIO_ENCODING_PARAMS,
   VIDEO_NETWORK_PRIORITY,
   OPUS_TARGET_BITRATE,
+  DEFAULT_REMOTE_AUDIO_GAIN,
+  MIN_REMOTE_AUDIO_GAIN,
+  MAX_REMOTE_AUDIO_GAIN,
+  clampAudioGain,
+  markTrackAsSpeech,
   tuneOpusForVoice,
   prioritizeAudioSender,
 } from './audio.js';

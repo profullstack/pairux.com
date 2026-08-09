@@ -5,6 +5,8 @@ import { Maximize2, Minimize2, Volume2, VolumeX, Mic } from 'lucide-react';
 import { ConnectionStatus } from './ConnectionStatus';
 import { QualityIndicator } from './QualityIndicator';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
+import { DEFAULT_REMOTE_AUDIO_GAIN } from '@pairux/shared-types';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 interface VideoViewerProps {
   stream: MediaStream | null;
@@ -16,6 +18,8 @@ interface VideoViewerProps {
   speakerMuted?: boolean | undefined;
   onSpeakerMutedChange?: ((muted: boolean) => void) | undefined;
   showSpeakerToggle?: boolean | undefined;
+  /** Playback gain for the remote audio. Above 1.0 makes a quiet talker louder. */
+  speakerGain?: number | undefined;
   className?: string;
 }
 
@@ -29,6 +33,7 @@ export function VideoViewer({
   speakerMuted,
   onSpeakerMutedChange,
   showSpeakerToggle = true,
+  speakerGain = DEFAULT_REMOTE_AUDIO_GAIN,
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,6 +46,52 @@ export function VideoViewer({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasVideoTrack = !!stream && stream.getVideoTracks().length > 0;
   const hasAudioTrack = !!stream && stream.getAudioTracks().length > 0;
+
+  // The <video> element caps volume at 1.0, so the remote audio is routed
+  // through a gain stage and swapped back into the stream before playback.
+  // Video tracks pass through untouched.
+  const amplifiedRef = useRef<AmplifiedAudioTrack | null>(null);
+  const [playbackStream, setPlaybackStream] = useState<MediaStream | null>(null);
+  const remoteAudioTrackId = stream?.getAudioTracks()[0]?.id ?? null;
+
+  useEffect(() => {
+    if (!stream) {
+      setPlaybackStream(null);
+      return;
+    }
+
+    const audioTrack = stream.getAudioTracks()[0];
+    if (!audioTrack) {
+      // Screen-share only — nothing to amplify.
+      setPlaybackStream(stream);
+      return;
+    }
+
+    const amplified = amplifyRemoteAudio(audioTrack, speakerGain);
+    amplifiedRef.current = amplified;
+
+    const composed = new MediaStream();
+    stream.getVideoTracks().forEach((track) => {
+      composed.addTrack(track);
+    });
+    amplified.stream.getAudioTracks().forEach((track) => {
+      composed.addTrack(track);
+    });
+    setPlaybackStream(composed);
+
+    return () => {
+      amplified.dispose();
+      amplifiedRef.current = null;
+    };
+    // Rebuild when the underlying audio track is replaced, which renegotiation
+    // can do without changing the stream's identity.
+  }, [stream, remoteAudioTrackId, speakerGain]);
+
+  // Adjust an existing graph in place rather than rebuilding it on every nudge
+  // of a volume slider.
+  useEffect(() => {
+    amplifiedRef.current?.setGain(speakerGain);
+  }, [speakerGain]);
 
   const setMutedState = useCallback(
     (muted: boolean) => {
@@ -59,8 +110,8 @@ export function VideoViewer({
     const video = videoRef.current;
     if (!video) return;
 
-    if (stream) {
-      video.srcObject = stream;
+    if (playbackStream) {
+      video.srcObject = playbackStream;
       video.muted = isMuted;
       video
         .play()
@@ -83,7 +134,7 @@ export function VideoViewer({
     } else {
       video.srcObject = null;
     }
-  }, [stream, isMuted, setMutedState]);
+  }, [playbackStream, isMuted, setMutedState]);
 
   // Handle fullscreen changes
   useEffect(() => {

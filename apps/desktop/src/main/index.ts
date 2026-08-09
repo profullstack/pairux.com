@@ -79,6 +79,25 @@ console.log(
   `[Main] Display server: ${isWayland ? 'Wayland' : process.platform === 'linux' ? 'X11' : 'N/A'}`
 );
 
+// Keep the renderer running at full speed while it is in the background.
+//
+// Screen sharing means this window spends the whole session behind whatever
+// the user is actually working in, and Chromium treats that as a signal to
+// throttle. The per-window `backgroundThrottling: false` covers timers, but
+// not these two process-wide behaviours:
+//
+//  - renderer backgrounding lowers the process priority when nothing is visible
+//  - occlusion tracking treats a *fully covered* window as hidden, which is the
+//    normal case here — the user maximises the app they are sharing on top
+//
+// Left on, both stall the compositor loop that produces the shared frames, and
+// the picture freezes until the window is focused again.
+//
+// Applied to every platform: nothing about the problem is Linux-specific.
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+
 // Enable features for screen capture on Linux
 if (process.platform === 'linux') {
   // Disable SUID sandbox for user-installed AppImages

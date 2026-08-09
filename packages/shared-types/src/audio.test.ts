@@ -3,6 +3,11 @@ import {
   VOICE_AUDIO_CONSTRAINTS,
   SYSTEM_AUDIO_CONSTRAINTS,
   AUDIO_ENCODING_PARAMS,
+  DEFAULT_REMOTE_AUDIO_GAIN,
+  MAX_REMOTE_AUDIO_GAIN,
+  OPUS_TARGET_BITRATE,
+  clampAudioGain,
+  markTrackAsSpeech,
   tuneOpusForVoice,
   prioritizeAudioSender,
 } from './audio.js';
@@ -50,10 +55,20 @@ describe('tuneOpusForVoice', () => {
     expect(tuned).not.toContain('useinbandfec=0');
   });
 
-  it('enables DTX and pins a speech bitrate', () => {
+  it('pins a speech bitrate with enough headroom to not sound thin', () => {
     const tuned = tuneOpusForVoice(OPUS_SDP);
-    expect(tuned).toContain('usedtx=1');
-    expect(tuned).toContain('maxaveragebitrate=32000');
+    expect(tuned).toContain('maxaveragebitrate=48000');
+  });
+
+  it('disables DTX, whose comfort-noise handover sounds gated', () => {
+    const tuned = tuneOpusForVoice(OPUS_SDP);
+    expect(tuned).toContain('usedtx=0');
+    expect(tuned).not.toContain('usedtx=1');
+  });
+
+  it('overrides DTX even when the stack already asked for it', () => {
+    const sdp = OPUS_SDP.replace('minptime=10;useinbandfec=0', 'minptime=10;usedtx=1');
+    expect(tuneOpusForVoice(sdp)).toContain('usedtx=0');
   });
 
   it('forces mono', () => {
@@ -98,6 +113,55 @@ describe('tuneOpusForVoice', () => {
   });
 });
 
+describe('remote audio gain', () => {
+  it('defaults above unity, which an element alone cannot reach', () => {
+    expect(DEFAULT_REMOTE_AUDIO_GAIN).toBeGreaterThan(1);
+  });
+
+  it('clamps to the supported range', () => {
+    expect(clampAudioGain(-5)).toBe(0);
+    expect(clampAudioGain(99)).toBe(MAX_REMOTE_AUDIO_GAIN);
+    expect(clampAudioGain(1.5)).toBe(1.5);
+  });
+
+  it('falls back to the default for any non-finite value', () => {
+    expect(clampAudioGain(NaN)).toBe(DEFAULT_REMOTE_AUDIO_GAIN);
+    expect(clampAudioGain(Infinity)).toBe(DEFAULT_REMOTE_AUDIO_GAIN);
+    expect(clampAudioGain(-Infinity)).toBe(DEFAULT_REMOTE_AUDIO_GAIN);
+  });
+
+  it('allows silence', () => {
+    expect(clampAudioGain(0)).toBe(0);
+  });
+});
+
+describe('markTrackAsSpeech', () => {
+  it('hints that the track carries speech', () => {
+    const track: { contentHint?: string } = {};
+    markTrackAsSpeech(track);
+    expect(track.contentHint).toBe('speech');
+  });
+
+  it('tolerates a missing track', () => {
+    expect(() => {
+      markTrackAsSpeech(null);
+    }).not.toThrow();
+  });
+
+  it('tolerates a platform where the property is read-only', () => {
+    const track = {};
+    Object.defineProperty(track, 'contentHint', {
+      get: () => '',
+      set: () => {
+        throw new Error('read-only');
+      },
+    });
+    expect(() => {
+      markTrackAsSpeech(track);
+    }).not.toThrow();
+  });
+});
+
 describe('prioritizeAudioSender', () => {
   interface FakeSender {
     params: { encodings: unknown };
@@ -126,7 +190,7 @@ describe('prioritizeAudioSender', () => {
 
     expect(sender.applied).toHaveLength(1);
     expect(sender.params.encodings).toEqual([
-      { maxBitrate: 32000, priority: 'high', networkPriority: 'high' },
+      { maxBitrate: OPUS_TARGET_BITRATE, priority: 'high', networkPriority: 'high' },
     ]);
   });
 

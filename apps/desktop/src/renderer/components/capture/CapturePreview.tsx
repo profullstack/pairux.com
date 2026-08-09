@@ -28,6 +28,12 @@ import type {
   CursorPositionMessage,
   SessionParticipant,
 } from '@pairux/shared-types';
+import {
+  DEFAULT_REMOTE_AUDIO_GAIN,
+  MIN_REMOTE_AUDIO_GAIN,
+  MAX_REMOTE_AUDIO_GAIN,
+  clampAudioGain,
+} from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
 import { Button } from '@/components/ui/button';
@@ -141,6 +147,7 @@ export function CapturePreview({
   const [includeAudio, setIncludeAudio] = useState(true);
   const [mutedParticipants, setMutedParticipants] = useState<Set<string>>(new Set());
   const [speakerMuted, setSpeakerMuted] = useState(false);
+  const [speakerGain, setSpeakerGain] = useState(DEFAULT_REMOTE_AUDIO_GAIN);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [waylandInputDiagnosticsDismissed, setWaylandInputDiagnosticsDismissed] = useState(false);
@@ -515,10 +522,17 @@ export function CapturePreview({
     hasMic: hostHasMic,
     toggleMic: hostToggleMic,
     hostMicStream,
+    setSpeakerGain: hostSetSpeakerGain,
   } = isSFU ? sfuHost : p2pHost;
 
   // Answer the handshake over whichever transport is actually carrying it.
   hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : p2pHost.sendTailnetHello;
+
+  // Drive the gain stage in front of every participant's playback. Mute is left
+  // to the audio elements; this only controls how loud they are when unmuted.
+  useEffect(() => {
+    hostSetSpeakerGain(speakerGain);
+  }, [hostSetSpeakerGain, speakerGain, hostedViewers]);
 
   // Audio mixer: combines host mic + all viewer audio into one stream.
   //
@@ -1453,6 +1467,35 @@ export function CapturePreview({
                 {speakerMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 {speakerMuted ? 'Speaker Off' : 'Speaker On'}
               </Button>
+
+              {/*
+                Participant volume. This goes above 1.0, which a media element
+                cannot do on its own — it drives the gain stage in front of
+                playback, so a quiet talker can actually be made louder rather
+                than only muted.
+              */}
+              <label
+                className="flex items-center gap-2 text-xs text-muted-foreground"
+                title="Volume of other participants"
+              >
+                <span className="sr-only">Participant volume</span>
+                <input
+                  type="range"
+                  min={MIN_REMOTE_AUDIO_GAIN}
+                  max={MAX_REMOTE_AUDIO_GAIN}
+                  step={0.1}
+                  value={speakerGain}
+                  disabled={speakerMuted}
+                  onChange={(event) => {
+                    setSpeakerGain(clampAudioGain(Number(event.target.value)));
+                  }}
+                  className="w-24 accent-primary disabled:opacity-50"
+                  aria-label="Participant volume"
+                />
+                <span className="w-9 tabular-nums">
+                  {Math.round((speakerGain / DEFAULT_REMOTE_AUDIO_GAIN) * 100)}%
+                </span>
+              </label>
               <Button
                 variant={hostMicEnabled ? 'default' : 'secondary'}
                 size="sm"

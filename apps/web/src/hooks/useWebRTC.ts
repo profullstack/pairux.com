@@ -18,6 +18,7 @@ import {
   VOICE_AUDIO_CONSTRAINTS,
   prioritizeAudioSender,
   tuneOpusForVoice,
+  markTrackAsSpeech,
 } from '@pairux/shared-types';
 
 // ICE server configuration
@@ -647,6 +648,7 @@ export function useWebRTC({
         audio: VOICE_AUDIO_CONSTRAINTS,
         video: false,
       });
+      markTrackAsSpeech(micStream.getAudioTracks()[0]);
       micStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);

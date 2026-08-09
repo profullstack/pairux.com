@@ -70,18 +70,6 @@ export class RemoteInputInjector {
   private remotePosition = { x: 0.5, y: 0.5 };
   /** Where the local pointer was before a remote click borrowed it. */
   private borrowedFrom: { x: number; y: number } | null = null;
-  /**
-   * Whether this host can actually keep two cursors apart, probed on enable.
-   *
-   * Two-cursor mode leans on a single absolute positioning call per click,
-   * with nothing in between to correct it. That is only trustworthy where the
-   * backend can also read the pointer back — the same platforms whose absolute
-   * positioning is exact. Where it cannot (Wayland without the compositor
-   * helper), remote movement is driven directly instead: the host's pointer
-   * gets borrowed, but clicks land where the guest is actually pointing, which
-   * matters far more than whose cursor moves.
-   */
-  private twoCursorViable: boolean | null = null;
 
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
@@ -141,22 +129,13 @@ export class RemoteInputInjector {
     this.enabled = true;
     this.rateLimiter.reset();
 
-    // Only now, with control actually granted, is it worth asking the
-    // compositor to report the cursor.
-    this.twoCursorViable = null;
+    // Start cursor reporting so we can restore the host pointer after
+    // remote clicks.  On platforms without it (Wayland without KWin) the
+    // pointer stays where the click landed — same as TeamViewer.
     if (this.virtualCursor) {
-      void backend
-        .startCursorReporting?.()
-        .catch((error: unknown) => {
-          this.logger.warn('[RemoteInput] Cursor reporting could not start', { error });
-        })
-        .finally(() => {
-          void this.probeTwoCursorViability();
-        });
-
-      if (!backend.startCursorReporting) {
-        void this.probeTwoCursorViability();
-      }
+      void backend.startCursorReporting?.().catch((error: unknown) => {
+        this.logger.warn('[RemoteInput] Cursor reporting could not start', { error });
+      });
     }
 
     this.logger.log('[RemoteInput] Injection enabled', { backend: backend.name });
@@ -217,80 +196,61 @@ export class RemoteInputInjector {
   }
 
   /**
-   * Put the event on the OS, keeping the two pointers independent.
+   * Put the event on the OS.
    *
-   * There is only one real system cursor on every platform we support, so a
-   * second cursor is achieved by *not* spending the real one on remote
-   * movement. Remote moves only advance a tracked position — the local user's
-   * pointer never budges. The real pointer is borrowed for the instant a
-   * remote click or scroll needs to land somewhere, then handed straight back.
+   * **Remote mouse moves never drive the system cursor.**  The remote
+   * position is tracked virtually so the host keeps an independent pointer.
+   * This avoids cursor wars (host and guest fighting over the same cursor)
+   * and prevents compositor hot-corners from triggering when the guest
+   * moves near a screen edge.
    *
-   * While a remote button is held the pointer must stay put, or a drag would
-   * tear; restoration waits until everything is released.
+   * Clicks and scrolls DO move the real pointer to the event's coordinates
+   * before injecting, so the click lands where the guest intended.  When
+   * the backend can report the pointer, it is restored afterwards;
+   * otherwise the pointer stays where the click landed (same behaviour as
+   * TeamViewer, AnyDesk, etc.).
    */
-  /**
-   * Ask the backend once whether it can report the pointer.
-   *
-   * A backend that cannot is also one whose single-shot absolute positioning
-   * we should not stake every click on, so two cursors are given up in favour
-   * of clicks that land.
-   */
-  private async probeTwoCursorViability(): Promise<void> {
-    const backend = this.getBackend();
-
-    if (!backend.getCursorPosition) {
-      this.twoCursorViable = false;
-      this.logger.log(
-        '[RemoteInput] Two-cursor mode off: this host cannot report its pointer, ' +
-          'so remote movement will drive the system cursor to keep clicks accurate.'
-      );
-      return;
-    }
-
-    try {
-      const position = await backend.getCursorPosition();
-      this.twoCursorViable = position !== null;
-      if (!this.twoCursorViable) {
-        this.logger.log(
-          '[RemoteInput] Two-cursor mode off: pointer position unavailable, ' +
-            'so remote movement will drive the system cursor to keep clicks accurate.'
-        );
-      }
-    } catch {
-      this.twoCursorViable = false;
-    }
-  }
-
   private async dispatch(event: InputEvent): Promise<void> {
-    const backend = this.getBackend();
-
-    // Until the probe answers, drive directly: a click that lands beats a
-    // cursor that stayed put.
-    const twoCursor = this.virtualCursor && this.twoCursorViable === true;
-
-    if (!twoCursor || event.type !== 'mouse') {
-      if (event.type === 'mouse' && event.action === 'move') {
-        this.remotePosition = { x: event.x, y: event.y };
-      }
-      await backend.inject(event);
+    // Keyboard events: always direct injection (they don't move the cursor).
+    if (event.type === 'keyboard') {
+      this.logger.log(`[RemoteInput] Keyboard ${event.action} key=${event.key} code=${event.code}`);
+      await this.getBackend().inject(event);
       return;
     }
 
+    // Mouse move: track position virtually.  The host cursor is deliberately
+    // left alone — even when the backend cannot report it (Wayland without
+    // KWin).  Driving the system cursor on every remote move causes the host
+    // to fight back, and on GNOME the Activities hot-corner fires when the
+    // guest brushes the top-left pixel.
     if (event.action === 'move') {
-      // Remote cursor only. The local pointer is deliberately left alone.
       this.remotePosition = { x: event.x, y: event.y };
       return;
     }
 
+    // Click / scroll: inject at the remote position.
     this.remotePosition = { x: event.x, y: event.y };
 
-    // Borrow the pointer, unless a previous press already borrowed it.
-    this.borrowedFrom ??= (await backend.getCursorPosition?.()) ?? null;
+    // Clamp away from screen edges so compositor hot-corners don't fire.
+    const edgeMargin = 0.005; // 0.5% margin — ~19px on a 4K display
+    const clampedX = Math.min(1 - edgeMargin, Math.max(edgeMargin, event.x));
+    const clampedY = Math.min(1 - edgeMargin, Math.max(edgeMargin, event.y));
 
-    await backend.inject(event);
+    const backend = this.getBackend();
 
-    // Hold the pointer in place for the duration of a drag. Held state is
-    // recorded after dispatch, so fold this event in to see what remains down.
+    // Borrow the real pointer unless a previous press already did.
+    if (this.heldButtons.size === 0) {
+      this.borrowedFrom ??= (await backend.getCursorPosition?.()) ?? null;
+    }
+
+    // Inject with clamped coordinates so the click lands safely.
+    if (clampedX !== event.x || clampedY !== event.y) {
+      await backend.inject({ ...event, x: clampedX, y: clampedY } as InputEvent);
+    } else {
+      await backend.inject(event);
+    }
+
+    // Hold the pointer in place for the duration of a drag.
     const remaining = new Set(this.heldButtons);
     if (event.action === 'down') remaining.add(event.button);
     else if (event.action === 'up') remaining.delete(event.button);

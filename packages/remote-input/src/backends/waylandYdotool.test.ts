@@ -164,7 +164,32 @@ describe('WaylandYdotoolInputBackend', () => {
     await backend.inject(event);
 
     expect(run).toHaveBeenNthCalledWith(1, 'ydotool', ['mousemove', '--absolute', '400', '600']);
-    expect(run).toHaveBeenNthCalledWith(2, 'ydotool', ['click', '--repeat', '2', '196']);
+    // Negative deltaY is a scroll *up* => button 4, base 0x03 => 0xC3 = 195.
+    expect(run).toHaveBeenNthCalledWith(2, 'ydotool', ['click', '--repeat', '2', '195']);
+  });
+
+  // Regression: both backends treated positive deltaY as "up", so every remote
+  // scroll went the wrong way. DOM deltaY is positive when scrolling down.
+  it('scrolls down for positive deltaY', async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+    backend.updateScreenSize(1000, 1000);
+
+    await backend.inject({
+      type: 'mouse',
+      action: 'scroll',
+      deltaX: 0,
+      deltaY: 120,
+      x: 0.4,
+      y: 0.6,
+    });
+
+    // button 5 (down), base 0x04 => 0xC4 = 196.
+    expect(run).toHaveBeenNthCalledWith(2, 'ydotool', ['click', '196']);
   });
 
   it('emits horizontal scroll via wheel click codes', async () => {

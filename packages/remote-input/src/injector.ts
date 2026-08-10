@@ -88,6 +88,11 @@ export class RemoteInputInjector {
   /** Where the local pointer was before a remote click borrowed it. */
   private borrowedFrom: { x: number; y: number } | null = null;
 
+  // Every async operation that results in an OS-level button press or release
+  // chains through this promise. disable() and emergencyStop() wait on it so
+  // releaseAll always runs *after* trackHeldState has recorded the press.
+  private pendingInject: Promise<void> | null = null;
+
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
     this.makeBackend = options.createBackend ?? createInputBackend;
@@ -163,9 +168,12 @@ export class RemoteInputInjector {
 
   disable(): void {
     this.enabled = false;
-    // Anything still held must come back up, or the host is left mid-drag with
-    // a physically stuck button and no way to recover short of a reboot.
-    void this.releaseAll('injection disabled');
+    // Wait for any in-flight inject to finish (so trackHeldState has run),
+    // then let go of everything. releaseAll() is deliberately not gated on
+    // `enabled` — releasing is always safe and must never be skipped.
+    void (this.pendingInject ?? Promise.resolve()).then(() =>
+      this.releaseAll('injection disabled')
+    );
     this.logger.log('[RemoteInput] Injection disabled');
   }
 
@@ -377,23 +385,35 @@ export class RemoteInputInjector {
       return;
     }
 
-    const validation = validateInputEvent(event);
-    if (!validation.ok) {
-      // reason is always set when ok is false
-      this.reject(validation.reason ?? 'invalid-key', event, validation.detail);
-      this.logger.warn('[RemoteInput] Refused event', {
-        reason: validation.reason,
-        detail: validation.detail,
-      });
-      return;
-    }
-
-    if (!this.rateLimiter.shouldAllow()) {
-      this.reject('rate-limited', event, 'event rate ceiling exceeded');
-      return;
-    }
+    // Serialize every injection so disable() and emergencyStop() can wait for
+    // us to finish (including trackHeldState) before they release everything.
+    // Without this, releaseAll can check heldButtons while dispatch is
+    // mid-await — nut-js has already pressed the button at the OS level, but
+    // trackHeldState hasn't recorded it yet — and the button stays stuck.
+    const prev = this.pendingInject;
+    let resolve: (() => void) | undefined;
+    this.pendingInject = new Promise<void>((r) => {
+      resolve = r;
+    });
 
     try {
+      await prev;
+
+      const validation = validateInputEvent(event);
+      if (!validation.ok) {
+        this.reject(validation.reason ?? 'invalid-key', event, validation.detail);
+        this.logger.warn('[RemoteInput] Refused event', {
+          reason: validation.reason,
+          detail: validation.detail,
+        });
+        return;
+      }
+
+      if (!this.rateLimiter.shouldAllow()) {
+        this.reject('rate-limited', event, 'event rate ceiling exceeded');
+        return;
+      }
+
       await this.dispatch(event);
       this.stats.injected += 1;
       this.trackHeldState(event);
@@ -405,6 +425,8 @@ export class RemoteInputInjector {
         action: 'action' in event ? event.action : undefined,
         error: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      resolve?.();
     }
   }
 
@@ -416,6 +438,9 @@ export class RemoteInputInjector {
   async emergencyStop(): Promise<void> {
     this.logger.log('[RemoteInput] Emergency stop');
     this.enabled = false;
+    // Must wait for any in-flight inject to finish before releasing, for the
+    // same reason disable() does: trackHeldState might not have run yet.
+    if (this.pendingInject) await this.pendingInject;
     await this.releaseAll('emergency stop');
 
     try {

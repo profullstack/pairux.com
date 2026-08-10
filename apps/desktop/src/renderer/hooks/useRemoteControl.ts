@@ -55,6 +55,9 @@ export function useRemoteControl({
   const heldButtonsRef = useRef<Set<MouseButton>>(new Set());
   const heldKeysRef = useRef<Set<string>>(new Set());
   const lastCursorUpdateRef = useRef(0);
+  // Pointer events fire before mouse events in Chromium. Storing the last
+  // pointer event's timestamp lets the mouse handler skip a double-fire.
+  const lastPointerEventRef = useRef(0);
   const cursorThrottleMs = 16; // ~60fps throttle for cursor updates
 
   // Check if we can send input (enabled, granted control, and capturing)
@@ -112,6 +115,9 @@ export function useRemoteControl({
     (event: MouseEvent) => {
       if (!canSendInput) return;
 
+      // Skip if a pointer event just fired (Chromium fires both).
+      if (Date.now() - lastPointerEventRef.current < 100) return;
+
       const coords = getRelativeCoords(event);
       if (!coords) return;
 
@@ -148,6 +154,9 @@ export function useRemoteControl({
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
       if (!canSendInput) return;
+
+      // Skip if a pointer event just fired.
+      if (Date.now() - lastPointerEventRef.current < 100) return;
 
       const coords = getRelativeCoords(event);
       if (!coords) return;
@@ -271,6 +280,33 @@ export function useRemoteControl({
     [canSendInput]
   );
 
+  // Pointer events fire before mouse events in Chromium, and on some trackpads
+  // only pointer events fire at all. Delegate to the mouse handlers, then mark
+  // the timestamp so the mouse-handler dedup skips the follow-up mouse event.
+  const handlePointerDown = useCallback(
+    (event: PointerEvent) => {
+      lastPointerEventRef.current = Date.now();
+      handleMouseDown(event as unknown as MouseEvent);
+    },
+    [handleMouseDown]
+  );
+
+  const handlePointerUp = useCallback(
+    (event: PointerEvent) => {
+      lastPointerEventRef.current = Date.now();
+      handleMouseUp(event as unknown as MouseEvent);
+    },
+    [handleMouseUp]
+  );
+
+  const handlePointerMove = useCallback(
+    (event: PointerEvent) => {
+      lastPointerEventRef.current = Date.now();
+      handleMouseMove(event as unknown as MouseEvent);
+    },
+    [handleMouseMove]
+  );
+
   // Start capturing input
   const startCapture = useCallback(() => {
     setIsCapturing(true);
@@ -294,6 +330,10 @@ export function useRemoteControl({
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('mousedown', handleMouseDown);
     container.addEventListener('mouseup', handleMouseUp);
+    // Pointer events cover trackpads that don't fire mouse events.
+    container.addEventListener('pointermove', handlePointerMove);
+    container.addEventListener('pointerdown', handlePointerDown);
+    container.addEventListener('pointerup', handlePointerUp);
     container.addEventListener('wheel', handleWheel, { passive: false });
     container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('contextmenu', handleContextMenu);
@@ -310,6 +350,9 @@ export function useRemoteControl({
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mousedown', handleMouseDown);
       container.removeEventListener('mouseup', handleMouseUp);
+      container.removeEventListener('pointermove', handlePointerMove);
+      container.removeEventListener('pointerdown', handlePointerDown);
+      container.removeEventListener('pointerup', handlePointerUp);
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeEventListener('contextmenu', handleContextMenu);
@@ -329,6 +372,9 @@ export function useRemoteControl({
     handleWheel,
     handleMouseLeave,
     handleContextMenu,
+    handlePointerDown,
+    handlePointerUp,
+    handlePointerMove,
     handleKeyDown,
     handleKeyUp,
     releaseHeldInput,

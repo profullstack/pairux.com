@@ -42,6 +42,15 @@ export interface KeyboardModifiers {
   shift: boolean;
   /** Cmd on macOS, Win on Windows, Super on Linux. */
   meta: boolean;
+  /**
+   * The viewer held their platform's shortcut modifier: Cmd on macOS, Ctrl
+   * everywhere else. Backends map it to whichever modifier means "shortcut" on
+   * *this* host, so a shortcut survives crossing operating systems — a Mac
+   * viewer's Cmd+C has to become Ctrl+C on a Linux host, not Super+C.
+   *
+   * Optional: an older viewer that omits it keeps the literal pass-through.
+   */
+  accel?: boolean;
 }
 
 export interface KeyboardInputEvent {

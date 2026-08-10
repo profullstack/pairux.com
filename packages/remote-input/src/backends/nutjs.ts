@@ -1,3 +1,4 @@
+import { resolveModifiers } from '../modifiers.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -169,7 +170,8 @@ export class NutJsInputBackend implements InputBackend {
 
     if (event.deltaY !== 0) {
       const scrollAmount = Math.abs(Math.round(event.deltaY / 100)) || 1;
-      if (event.deltaY < 0) await mouse.scrollDown(scrollAmount);
+      // DOM deltaY is positive when scrolling down.
+      if (event.deltaY > 0) await mouse.scrollDown(scrollAmount);
       else await mouse.scrollUp(scrollAmount);
     }
 
@@ -185,11 +187,14 @@ export class NutJsInputBackend implements InputBackend {
     const key = mapKey(event.key, event.code, Key);
     const { modifiers } = event;
 
+    // Resolved against *this* host, so a Mac viewer's Cmd+C becomes Ctrl+C here
+    // rather than Super+C, and vice versa. LeftSuper is Cmd on macOS.
+    const resolved = resolveModifiers(modifiers, process.platform);
     const modifierKeys: NutModule['Key'][keyof NutModule['Key']][] = [];
-    if (modifiers.ctrl) modifierKeys.push(Key.LeftControl);
-    if (modifiers.alt) modifierKeys.push(Key.LeftAlt);
-    if (modifiers.shift) modifierKeys.push(Key.LeftShift);
-    if (modifiers.meta) modifierKeys.push(Key.LeftSuper);
+    if (resolved.control) modifierKeys.push(Key.LeftControl);
+    if (resolved.alt) modifierKeys.push(Key.LeftAlt);
+    if (resolved.shift) modifierKeys.push(Key.LeftShift);
+    if (resolved.meta) modifierKeys.push(Key.LeftSuper);
 
     switch (event.action) {
       case 'down':

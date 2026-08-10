@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useState } from 'react';
+import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -8,6 +8,8 @@ import type {
   MouseButton,
   ControlStateUI,
 } from '@pairux/shared-types';
+import { modifiersFromDomEvent } from '@pairux/shared-types';
+import { getAccelPlatform } from '@/lib/viewerPlatform';
 
 interface UseRemoteControlOptions {
   enabled: boolean;
@@ -45,6 +47,9 @@ export function useRemoteControl({
   onCursorMove,
 }: UseRemoteControlOptions): UseRemoteControlReturn {
   const [isCapturing, setIsCapturing] = useState(false);
+  // Read once: it cannot change while the app runs. Kept out of module scope so
+  // importing this hook has no side effects.
+  const viewerPlatform = useMemo(() => getAccelPlatform(), []);
   // Buttons/keys this viewer has sent a "down" for. Every one of them must get
   // an "up", or the host is left mid-drag with a stuck button.
   const heldButtonsRef = useRef<Set<MouseButton>>(new Set());
@@ -228,19 +233,14 @@ export function useRemoteControl({
         action: 'down',
         key: event.key,
         code: event.code,
-        modifiers: {
-          ctrl: event.ctrlKey,
-          alt: event.altKey,
-          shift: event.shiftKey,
-          meta: event.metaKey,
-        },
+        modifiers: modifiersFromDomEvent(event, viewerPlatform),
       };
 
       heldKeysRef.current.add(inputEvent.code);
       onInputEvent(inputEvent);
       event.preventDefault();
     },
-    [canSendInput, onInputEvent]
+    [canSendInput, onInputEvent, viewerPlatform]
   );
 
   // Handle key up
@@ -253,18 +253,13 @@ export function useRemoteControl({
         action: 'up',
         key: event.key,
         code: event.code,
-        modifiers: {
-          ctrl: event.ctrlKey,
-          alt: event.altKey,
-          shift: event.shiftKey,
-          meta: event.metaKey,
-        },
+        modifiers: modifiersFromDomEvent(event, viewerPlatform),
       };
 
       heldKeysRef.current.delete(inputEvent.code);
       onInputEvent(inputEvent);
     },
-    [canSendInput, onInputEvent]
+    [canSendInput, onInputEvent, viewerPlatform]
   );
 
   // Handle context menu (right-click)

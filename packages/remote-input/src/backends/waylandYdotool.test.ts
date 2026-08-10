@@ -124,6 +124,34 @@ describe('WaylandYdotoolInputBackend', () => {
     expect(run).toHaveBeenCalledWith('ydotool', ['type', 'a']);
   });
 
+  it('uses the detected ydotool binary for text input', async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      binaryPath: '/opt/pairux/ydotool',
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+
+    await backend.inject({
+      type: 'keyboard',
+      action: 'press',
+      key: 'a',
+      code: 'KeyA',
+      modifiers: { ctrl: false, alt: false, shift: false, meta: false },
+    });
+    await backend.inject({
+      type: 'keyboard',
+      action: 'press',
+      key: '🙂',
+      code: 'Unidentified',
+      modifiers: { ctrl: false, alt: false, shift: false, meta: false },
+    });
+
+    expect(run).toHaveBeenNthCalledWith(1, '/opt/pairux/ydotool', ['type', 'a']);
+    expect(run).toHaveBeenNthCalledWith(2, '/opt/pairux/ydotool', ['type', '🙂']);
+  });
+
   it('emits key sequence for modified shortcut', async () => {
     const run = vi.fn().mockResolvedValue(undefined);
     const backend = new WaylandYdotoolInputBackend(run, {

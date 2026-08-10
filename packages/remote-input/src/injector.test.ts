@@ -206,6 +206,99 @@ describe('RemoteInputInjector', () => {
 // a permanent drag: every click is swallowed and the machine looks frozen to
 // its own user. Recovering used to need a reboot, so releasing held input is
 // the single most important safety property of this class.
+// A button left down at the OS level survives the process that pressed it. The
+// host is then unable to click anything and has to reboot, so letting go can
+// never depend on this injector's bookkeeping being correct.
+describe('RemoteInputInjector unconditional release', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('releases at the OS level on dispose, even with nothing tracked', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    await injector.dispose();
+
+    expect(backend.emergencyStop).toHaveBeenCalled();
+  });
+
+  it('releases at the OS level on disable, even with nothing tracked', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    injector.disable();
+    // disable() is sync and finishes the release in the background.
+    await vi.waitFor(() => {
+      expect(backend.emergencyStop).toHaveBeenCalled();
+    });
+  });
+
+  // The press that escapes tracking is the one that strands the host, so the
+  // release must not be skipped just because heldButtons looks empty.
+  it('still releases when a press was never tracked', async () => {
+    const backend = fakeBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    // A press the injector does not know about, exactly as a mid-flight
+    // dispatch would leave it: it went straight to the backend, so
+    // trackHeldState never saw it and releaseAll has nothing to let go of.
+    await backend.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.5, y: 0.5 });
+
+    await injector.dispose();
+
+    expect(backend.emergencyStop).toHaveBeenCalled();
+  });
+
+  it('waits for an in-flight injection before releasing on dispose', async () => {
+    let releaseDispatch: (() => void) | undefined;
+    let firstCallBlocked = false;
+    const backend = fakeBackend({
+      // Only the press hangs. The releases that follow must resolve, or the
+      // test deadlocks on the very cleanup it is trying to observe.
+      inject: vi.fn().mockImplementation(() => {
+        if (firstCallBlocked) return Promise.resolve();
+        firstCallBlocked = true;
+        return new Promise<void>((resolve) => {
+          releaseDispatch = resolve;
+        });
+      }),
+    });
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    const inFlight = injector.inject({
+      type: 'mouse',
+      action: 'down',
+      button: 'left',
+      x: 0.5,
+      y: 0.5,
+    });
+
+    // Let dispatch get as far as the backend, so the press is genuinely
+    // in-flight before dispose() is asked to clean up.
+    await vi.waitFor(() => {
+      expect(backend.inject).toHaveBeenCalled();
+    });
+
+    const disposed = injector.dispose();
+
+    // Nothing may be released while the press is still being dispatched —
+    // that is exactly the window where trackHeldState has not run yet, and
+    // releasing there would leave the button down for good.
+    expect(backend.emergencyStop).not.toHaveBeenCalled();
+
+    releaseDispatch?.();
+    await inFlight;
+    await disposed;
+
+    expect(backend.emergencyStop).toHaveBeenCalled();
+  });
+});
+
 describe('RemoteInputInjector held-input safety', () => {
   const down = (button: 'left' | 'right' | 'middle' = 'left'): InputEvent => ({
     type: 'mouse',

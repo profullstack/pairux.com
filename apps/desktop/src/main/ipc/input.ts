@@ -179,11 +179,30 @@ export function registerInputHandlers(): void {
     return { success: true };
   });
 
-  // Cleanup on app quit
-  app.on('will-quit', () => {
+  // Cleanup on app quit.
+  //
+  // This must block. Releasing a held mouse button is asynchronous, and a
+  // button still down when the process exits stays down for the whole OS
+  // session — the host is left unable to click anything and has to reboot.
+  // Fire-and-forget here loses that release every time.
+  let quitCleanupStarted = false;
+  app.on('will-quit', (event) => {
+    if (quitCleanupStarted) return;
+    quitCleanupStarted = true;
+    event.preventDefault();
+
     unregisterEmergencyShortcut();
     destroyRemoteCursor();
-    void disposeInputInjector();
+
+    // Bounded, so a wedged backend cannot make the app unquittable.
+    const deadline = new Promise<void>((resolve) => setTimeout(resolve, 2000));
+    void Promise.race([disposeInputInjector(), deadline])
+      .catch((error: unknown) => {
+        console.error('[IPC:Input] Cleanup on quit failed', error);
+      })
+      .finally(() => {
+        app.exit(0);
+      });
   });
 
   console.log('[IPC:Input] Input handlers registered');

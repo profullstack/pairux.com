@@ -21,6 +21,17 @@ async function loadNut() {
 
 type NutModule = Awaited<ReturnType<typeof loadNut>>;
 
+/**
+ * How long to wait for a synthetic pointer move to be applied before acting on
+ * it. Roughly one frame — long enough for the window server, short enough that
+ * remote input still feels immediate.
+ */
+const POSITION_SETTLE_MS = 16;
+
+function settle(ms: number = POSITION_SETTLE_MS): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 let nutPromise: ReturnType<typeof loadNut> | null = null;
 
 function getNut(): ReturnType<typeof loadNut> {
@@ -146,6 +157,17 @@ export class NutJsInputBackend implements InputBackend {
     const button = mapMouseButton(event.button, Button);
 
     await mouse.setPosition({ x, y });
+    // Let the pointer actually arrive before pressing.
+    //
+    // autoDelayMs is 0, so without this the position change and the button
+    // event are issued back to back. macOS applies a synthetic move through
+    // the window server asynchronously, so the press can be delivered before
+    // the pointer has moved — the click lands wherever the pointer used to be.
+    //
+    // It also puts a real gap between press and release. Two-cursor mode
+    // borrows the pointer, clicks, and hands it straight back, which without
+    // a delay is a sub-millisecond blip that many controls simply ignore.
+    await settle();
 
     switch (event.action) {
       case 'down':

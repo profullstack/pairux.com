@@ -16,7 +16,7 @@ export class UnsupportedWaylandInputBackend implements InputBackend {
   constructor(options: UnsupportedWaylandBackendOptions = {}) {
     this.reason =
       options.reason ??
-      'Wayland mouse/keyboard injection is not available on this host. To enable remote control: install `ydotool`, ensure `ydotoold` is running, and verify write access to `/dev/uinput`. See https://pairux.com/docs/wayland';
+      'Wayland mouse/keyboard injection is not available on this host. To enable remote control: install `ydotool`, ensure `ydotoold` is running, and verify write access to `/dev/uinput`. See https://github.com/profullstack/pairux.com/blob/master/docs/LINUX-SETUP.md#wayland-configuration';
     this.details = options.details;
   }
 

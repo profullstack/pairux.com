@@ -33,6 +33,7 @@ vi.mock('../platform', () => ({
     hasScreenCaptureSupport: true,
     hasInputInjectionSupport: true,
   }),
+  detectDisplayServer: vi.fn().mockReturnValue('x11'),
   checkPipeWireAvailable: vi.fn().mockReturnValue(false),
   checkXTESTAvailable: vi.fn().mockReturnValue(true),
   getLinuxDistro: vi.fn().mockReturnValue({ name: 'Ubuntu', version: '22.04' }),
@@ -111,6 +112,23 @@ describe('Platform IPC Handlers', () => {
       expect(result).toHaveProperty('distro');
       expect(result).toHaveProperty('hasPipeWire');
       expect(result).toHaveProperty('hasXTEST');
+    });
+
+    // Raw XDG_SESSION_TYPE can be 'tty', or unset on an X11 session that only
+    // sets DISPLAY — neither is a DisplayServer, so the detector must be used.
+    it('reports a real display server rather than raw XDG_SESSION_TYPE', async () => {
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+      process.env.XDG_SESSION_TYPE = 'tty';
+      process.env.DISPLAY = ':0';
+
+      vi.resetModules();
+      mockHandlers.clear();
+      const { registerPlatformHandlers } = await import('./platform');
+      registerPlatformHandlers();
+
+      const result = mockHandlers.get('platform:linux-info')?.() as { displayServer: string };
+
+      expect(result.displayServer).toBe('x11');
     });
   });
 

@@ -182,32 +182,22 @@ describe('useInputInjection', () => {
     });
   });
 
-  describe('screen size updates', () => {
-    it('should update screen size when screenSize prop changes', async () => {
-      const { rerender } = renderHook(
-        ({ screenSize }) => useInputInjection({ enabled: false, screenSize }),
-        { initialProps: { screenSize: { width: 1920, height: 1080 } } }
-      );
+  // Regression: the hook used to forward the capture track's dimensions as the
+  // injection screen size. Those are encoded-stream pixels, not the host's
+  // screen geometry, and on a Retina Mac (logical 1440x900, stream 2880x1800)
+  // that mapped the centre of the screen to its bottom-right corner and put
+  // everything past halfway off the display, so clicks did nothing. The backend
+  // reads its own geometry from the OS; the renderer must not override it.
+  describe('screen size', () => {
+    it('never sends a screen size to the backend', async () => {
+      renderHook(() => useInputInjection({ enabled: true }));
 
       await act(async () => {
         await vi.runAllTimersAsync();
       });
 
-      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:updateScreenSize', {
-        width: 1920,
-        height: 1080,
-      });
-
-      rerender({ screenSize: { width: 2560, height: 1440 } });
-
-      await act(async () => {
-        await vi.runAllTimersAsync();
-      });
-
-      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:updateScreenSize', {
-        width: 2560,
-        height: 1440,
-      });
+      const channels = mockElectronAPI.invoke.mock.calls.map(([channel]) => channel);
+      expect(channels).not.toContain('input:updateScreenSize');
     });
   });
 

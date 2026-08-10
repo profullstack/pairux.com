@@ -2,6 +2,7 @@ import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
 import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
+import { resolveModifiers } from '../modifiers.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -317,11 +318,14 @@ function keyCodeFromEvent(event: KbEvent): number | null {
 }
 
 function modifierKeycodes(modifiers: KbEvent['modifiers']): number[] {
+  // This host is Linux, so the shortcut modifier is Control: a Mac viewer's
+  // Cmd+C has to land as Ctrl+C, not as Super+C.
+  const resolved = resolveModifiers(modifiers, 'linux');
   const keys: number[] = [];
-  if (modifiers.ctrl) keys.push(KEYCODES.ControlLeft);
-  if (modifiers.alt) keys.push(KEYCODES.AltLeft);
-  if (modifiers.shift) keys.push(KEYCODES.ShiftLeft);
-  if (modifiers.meta) keys.push(KEYCODES.MetaLeft);
+  if (resolved.control) keys.push(KEYCODES.ControlLeft);
+  if (resolved.alt) keys.push(KEYCODES.AltLeft);
+  if (resolved.shift) keys.push(KEYCODES.ShiftLeft);
+  if (resolved.meta) keys.push(KEYCODES.MetaLeft);
   return keys;
 }
 
@@ -526,7 +530,8 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     // button 4 (up), 5 (down), 6 (left), 7 (right) => bases 3,4,5,6.
     if (event.deltaY !== 0) {
       const repeat = scrollRepeat(event.deltaY);
-      const base = event.deltaY > 0 ? 0x03 : 0x04;
+      // DOM deltaY is positive when scrolling down, which is button 5 (base 4).
+      const base = event.deltaY > 0 ? 0x04 : 0x03;
       await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, repeat)]);
     }
 

@@ -33,8 +33,22 @@ export interface RemoteInputInjectorOptions {
   /**
    * How long a button or key may stay held with no further input before it
    * is force-released. Guards against a viewer dropping mid-drag. Default 5s.
+   *
+   * Reset by every event, so an active drag is never cut short.
    */
   holdTimeoutMs?: number;
+  /**
+   * How long a button or key may stay held in total, however much input keeps
+   * arriving. Default 30s.
+   *
+   * `holdTimeoutMs` alone cannot bound a hold whose release was lost: the
+   * guest carries on moving the mouse, every move resets the idle timer, and
+   * the button stays down forever. A held button makes `dispatch` treat all
+   * movement as a drag and inject it, so the guest ends up driving the host's
+   * pointer and the host cannot use their own machine. This is the backstop,
+   * and it is deliberately never reset.
+   */
+  maxHoldMs?: number;
   /**
    * Keep the local and remote cursors independent (default true).
    *
@@ -77,7 +91,9 @@ export class RemoteInputInjector {
   private readonly heldButtons = new Set<MouseButton>();
   private readonly heldKeys = new Set<string>();
   private holdWatchdog: ReturnType<typeof setTimeout> | null = null;
+  private maxHoldWatchdog: ReturnType<typeof setTimeout> | null = null;
   private readonly holdTimeoutMs: number;
+  private readonly maxHoldMs: number;
 
   // Two-cursor mode: remote movement never moves the local pointer, so both
   // people keep a usable cursor at the same time.
@@ -99,6 +115,7 @@ export class RemoteInputInjector {
     this.makeBackend = options.createBackend ?? createInputBackend;
     this.rateLimiter = new InputRateLimiter(options.maxEventsPerSecond ?? 1000);
     this.holdTimeoutMs = options.holdTimeoutMs ?? 5000;
+    this.maxHoldMs = options.maxHoldMs ?? 30_000;
     this.virtualCursor = options.virtualCursor ?? true;
     this.edgeMarginPx = Math.max(0, options.edgeMarginPx ?? 0);
     this.onRejected = options.onRejected;
@@ -198,7 +215,10 @@ export class RemoteInputInjector {
     const keys = [...this.heldKeys];
     this.heldButtons.clear();
     this.heldKeys.clear();
+    // Both timers: the hold is over, and a stale absolute timer would fire
+    // partway through the next one.
     this.clearHoldWatchdog();
+    this.clearMaxHoldWatchdog();
 
     if (buttons.length === 0 && keys.length === 0) return;
 
@@ -359,19 +379,53 @@ export class RemoteInputInjector {
   }
 
   /**
-   * While something is held, arm a timer to release it if no further input
-   * arrives. A viewer whose connection drops mid-drag would otherwise leave
-   * the button down indefinitely.
+   * Arm both hold watchdogs. Two are needed, and one alone is a trap.
+   *
+   * The idle timer catches a viewer who disappears mid-drag: no further input
+   * of any kind arrives, so nothing would ever release the button. It is reset
+   * by every event, because a drag that is still receiving movement is alive
+   * and must not be torn apart at an arbitrary deadline.
+   *
+   * That reset is exactly what makes the idle timer insufficient on its own.
+   * If a button's "up" is lost while the guest keeps moving the mouse, every
+   * move re-arms the idle timer and it never fires. The button stays held, so
+   * `dispatch` treats all subsequent movement as a drag and injects it — the
+   * guest's pointer starts driving the host's, and the host cannot use their
+   * own machine until control is revoked.
+   *
+   * So the absolute timer runs from the moment the first button or key went
+   * down and is never reset. It is the only thing that bounds a hold whose
+   * release was lost, and it is generous enough that no real drag reaches it.
    */
   private armHoldWatchdog(): void {
     this.clearHoldWatchdog();
-    if (this.heldButtons.size === 0 && this.heldKeys.size === 0) return;
+
+    if (this.heldButtons.size === 0 && this.heldKeys.size === 0) {
+      this.clearMaxHoldWatchdog();
+      return;
+    }
 
     this.holdWatchdog = setTimeout(() => {
       void this.releaseAll('no input while a button or key was held');
     }, this.holdTimeoutMs);
     // Never keep a Node process alive just for this timer.
     this.holdWatchdog.unref();
+
+    // Started once per hold, then left alone: re-arming it here would
+    // reintroduce the very stall this timer exists to break.
+    if (this.maxHoldWatchdog === null) {
+      this.maxHoldWatchdog = setTimeout(() => {
+        void this.releaseAll('held past the maximum hold duration');
+      }, this.maxHoldMs);
+      this.maxHoldWatchdog.unref();
+    }
+  }
+
+  private clearMaxHoldWatchdog(): void {
+    if (this.maxHoldWatchdog !== null) {
+      clearTimeout(this.maxHoldWatchdog);
+      this.maxHoldWatchdog = null;
+    }
   }
 
   private trackHeldState(event: InputEvent): void {
@@ -483,6 +537,7 @@ export class RemoteInputInjector {
     if (this.pendingInject) await this.pendingInject;
     await this.releaseAll('shutting down');
     this.clearHoldWatchdog();
+    this.clearMaxHoldWatchdog();
 
     // The last chance to give the host their mouse back.
     //
@@ -510,6 +565,8 @@ export class RemoteInputInjector {
       backend: backend.name,
       backendSupported: backend.supported,
       stats: { ...this.stats },
+      heldButtons: this.heldButtons.size,
+      heldKeys: this.heldKeys.size,
     };
 
     if (backend.reason !== undefined) diagnostics.reason = backend.reason;

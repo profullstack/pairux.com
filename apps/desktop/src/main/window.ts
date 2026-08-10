@@ -1,5 +1,6 @@
 import { BrowserWindow, shell, session, desktopCapturer, nativeImage } from 'electron';
 import { join } from 'path';
+import { pickDisplayMediaSource, takePreferredDisplayMediaSource } from './capture/displayMedia';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -70,59 +71,51 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
   //
   // Do not assume XWayland here: on a Wayland session Chromium runs the native
   // ozone/wayland backend, and desktopCapturer.getSources() then goes through
-  // the xdg-desktop-portal ScreenCast interface, which does not support
-  // enumerating sources with thumbnails and fails ("ScreenCastPortal failed").
-  // The renderer therefore skips its own picker on Wayland and calls
-  // getDisplayMedia() so the portal shows its picker instead.
+  // the xdg-desktop-portal ScreenCast interface. Enumerating with thumbnails
+  // there is unreliable, and a second concurrent portal session conflicts with
+  // the first, so the renderer skips its own picker on Wayland: only the
+  // handler below enumerates, and the portal's own dialog does the choosing.
   console.log(
     `[Main] Window: isWayland=${String(isWayland)}, XDG_SESSION_TYPE=${process.env.XDG_SESSION_TYPE ?? 'unset'}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY ?? 'unset'}`
   );
 
   session.defaultSession.setDisplayMediaRequestHandler(
-    (request, callback) => {
-      console.log('[Main] Display media request received');
+    (_request, callback) => {
+      // The request itself says nothing about which source the user chose —
+      // `videoRequested` is just a boolean. The renderer records its pick over
+      // `capture:setPreferredSource` when it has one; otherwise enumeration
+      // decides, which on Wayland means the PipeWire portal's own picker.
+      const preferredId = takePreferredDisplayMediaSource();
+      console.log(
+        `[Main] Display media request received (preferredSource=${preferredId ?? 'none'})`
+      );
 
-      // On Wayland, desktopCapturer.getSources() goes through the PipeWire
-      // ScreenCast portal which does NOT support enumerating sources with
-      // thumbnails and fails — that failure then gives getDisplayMedia() no
-      // video track at all.  Let the system portal handle both enumeration
-      // and selection so the renderer's getDisplayMedia() call actually
-      // receives the track the user picked.
-      if (isWayland) {
-        console.log('[Main] Wayland: delegating to system screen picker');
-        callback({});
-        return;
-      }
-
-      // Non-Wayland: enumerate sources and match the request's video source
-      // to what the user actually selected, rather than always handing back
-      // sources[0] (which ignored the user's pick and shared the wrong thing).
       desktopCapturer
         .getSources({
           types: ['screen', 'window'],
         })
         .then((sources) => {
-          // Prefer the source requested via the system picker (if any).
-          const requestedId =
-            (request.videoRequested as unknown as { id?: string } | undefined)?.id ?? null;
-          const selected = requestedId
-            ? (sources.find((s) => s.id === requestedId) ?? sources[0])
-            : sources[0];
+          const selected = pickDisplayMediaSource(sources, preferredId);
 
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- sources array may be empty
-          if (selected) {
-            console.log('[Main] Granting access to source:', selected.name);
-            callback({ video: selected });
-          } else {
-            console.log('[Main] No sources available');
+          if (!selected) {
+            // Denying here is the only honest outcome: an empty `Streams`
+            // grants nothing and getDisplayMedia() rejects in the renderer,
+            // which surfaces as a "capture was canceled" message.
+            console.warn('[Main] No capturable sources — denying display media request');
             callback({});
+            return;
           }
+
+          console.log('[Main] Granting access to source:', selected.name);
+          callback({ video: selected });
         })
         .catch((err: unknown) => {
           console.error('[Main] Failed to get sources:', err);
           callback({});
         });
     },
+    // Experimental and macOS 15+ only per Electron docs; where it applies the
+    // handler above is not invoked at all. Every other platform still needs it.
     { useSystemPicker: true }
   );
 

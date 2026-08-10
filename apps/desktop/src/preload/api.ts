@@ -55,6 +55,17 @@ export interface IPCChannels {
     return: CaptureSource[];
   };
 
+  /**
+   * Tell main which source a following `getDisplayMedia()` call should be
+   * granted. Electron's display-media request carries no such information, so
+   * without this the handler can only guess at the first enumerated source.
+   * Pass `null` to clear (e.g. when deferring to the Wayland portal picker).
+   */
+  'capture:setPreferredSource': {
+    args: { sourceId: string | null };
+    return: undefined;
+  };
+
   // Platform info
   'platform:info': {
     args: undefined;

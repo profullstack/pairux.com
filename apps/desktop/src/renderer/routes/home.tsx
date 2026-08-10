@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Link2, Loader2, Mic, Radio, User as UserIcon } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
-import { isDisplayServerKnown, shouldShowInAppSourcePicker } from '@/lib/capturePicker';
+import {
+  initialIsWaylandGuess,
+  isDisplayServerKnown,
+  shouldShowInAppSourcePicker,
+} from '@/lib/capturePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
-import { getElectronAPI } from '@/lib/ipc';
+import { getElectronAPI, isElectron } from '@/lib/ipc';
 import { API_BASE_URL } from '../../shared/config';
 import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
@@ -45,9 +49,9 @@ async function constrainTrackToQualitySetting(track: MediaStreamTrack): Promise<
 
   try {
     // Use ideal *only* — a hard `max` throws OverconstrainedError when the
-    // source is smaller than the target (e.g. 1366×768 laptop sharing at
-    // "1080p" quality).  `ideal` tells the encoder \"aim for this but adapt
-    // to what's available.\"
+    // source is smaller than the target (e.g. a 1366×768 laptop sharing at
+    // "1080p" quality). `ideal` means "aim for this but adapt to what's
+    // available" instead of failing the capture.
     await track.applyConstraints({
       width: { ideal: target.width },
       height: { ideal: target.height },
@@ -70,12 +74,15 @@ export function HomePage() {
   const [displayServer, setDisplayServer] = useState<DisplayServer>('unknown');
   // null until platform:info answers. Rendering the source picker before then
   // fires desktopCapturer.getSources(), which on Wayland opens a PipeWire
-  // portal session that fails and then conflicts with the real
-  // getDisplayMedia() call — so wait rather than guessing X11.
-  // On macOS and Windows the answer is trivially 'not Wayland'; skip the
-  // "Detecting display server…" spinner on those platforms.
+  // portal session that then conflicts with the real getDisplayMedia() call —
+  // so wait rather than guessing X11.
+  //
+  // Only Linux can be Wayland, and preload exposes process.platform
+  // synchronously, so everywhere else can answer "not Wayland" immediately and
+  // skip the "Detecting display server…" spinner. Uses the preload value
+  // rather than sniffing navigator.userAgent: same fact, one source of truth.
   const [isWayland, setIsWayland] = useState<boolean | null>(
-    /Linux/i.test(navigator.userAgent) ? null : false
+    initialIsWaylandGuess(isElectron() ? getElectronAPI().platform : null)
   );
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
@@ -170,8 +177,11 @@ export function HomePage() {
 
       if (isWayland) {
         // Wayland: Use getDisplayMedia with PipeWire portal
-        // This will show the system's screen picker dialog
+        // This will show the system's screen picker dialog.
+        // Main's display-media handler cannot tell which source was picked
+        // from the request alone, so hand it the id first.
         console.log('[Renderer] Using getDisplayMedia for Wayland');
+        await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: source.id });
         mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             displaySurface: source.type === 'screen' ? 'monitor' : 'window',
@@ -258,6 +268,10 @@ export function HomePage() {
       }
 
       console.log('[Renderer] Starting Wayland capture with system picker');
+
+      // No in-app pick to honour here — clear any stale preference so the
+      // portal's own picker decides.
+      await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
 
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -352,6 +366,10 @@ export function HomePage() {
           track.stop();
         });
       }
+
+      // Restarting capture mid-session: the user re-picks in the system /
+      // portal dialog, so no preference to honour.
+      await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
 
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: {

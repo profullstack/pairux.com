@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import {
   Monitor,
   MousePointer2,
@@ -28,7 +30,22 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://pairux.com/features' },
 };
 
-const mainFeatures = [
+/**
+ * A screenshot is only attached where the shipped product actually shows the
+ * feature. Remote control lives in the desktop app, so those entries keep the
+ * illustrated placeholder rather than borrowing an unrelated screen.
+ */
+interface Feature {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  details: string[];
+  comingSoon?: boolean;
+  image?: string;
+  imageAlt?: string;
+}
+
+const mainFeatures: Feature[] = [
   {
     icon: Monitor,
     title: 'Real-time Screen Sharing',
@@ -40,6 +57,9 @@ const mainFeatures = [
       'Adaptive bitrate for any connection',
       'Cursor included in stream',
     ],
+    image: '/screenshots/screen-sharing.png',
+    imageAlt:
+      'The PairUX host console during a session, showing the quality selector, join code, participant list and session info panel.',
   },
   {
     icon: MousePointer2,
@@ -76,6 +96,9 @@ const mainFeatures = [
       'Visual indicator when control is active',
       'Can revoke control at any time',
     ],
+    image: '/screenshots/consent-model.png',
+    imageAlt:
+      'The PairUX viewer console, where a guest must press Request Control before the host grants input.',
   },
   {
     icon: Globe,
@@ -88,6 +111,9 @@ const mainFeatures = [
       'Installable as PWA',
       'Mobile-friendly for viewing',
     ],
+    image: '/screenshots/pwa-viewer.png',
+    imageAlt:
+      'The PairUX join screen in a browser, showing the session code, live status and a Watch for free button that needs no account.',
   },
   {
     icon: Cpu,
@@ -100,6 +126,9 @@ const mainFeatures = [
       'Linux: APT, DNF, AUR',
       'Direct download available',
     ],
+    image: '/screenshots/cross-platform.png',
+    imageAlt:
+      'The PairUX download page listing one-line installers plus DMG, EXE, AppImage, DEB and RPM builds for macOS, Windows and Linux.',
   },
   {
     icon: CircleDot,
@@ -113,6 +142,9 @@ const mainFeatures = [
       'Pause/resume recording',
     ],
     comingSoon: true,
+    image: '/screenshots/screen-recording.png',
+    imageAlt:
+      'PairUX recording settings, with default recording and capture quality presets and a system audio toggle.',
   },
   {
     icon: MessageSquare,
@@ -195,6 +227,18 @@ export default function FeaturesPage() {
                 mind.
               </p>
             </div>
+
+            <div className="mx-auto mt-12 max-w-5xl overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
+              <Image
+                src="/screenshots/dashboard.png"
+                alt="The PairUX dashboard, showing session stats, channels, quick actions to start or join a session, and the current plan."
+                width={2880}
+                height={1620}
+                priority
+                sizes="(min-width: 1024px) 64rem, 100vw"
+                className="w-full"
+              />
+            </div>
           </div>
         </section>
 
@@ -214,7 +258,7 @@ export default function FeaturesPage() {
                       <div className="bg-primary-100 text-primary-600 flex h-14 w-14 items-center justify-center rounded-xl">
                         <feature.icon className="h-7 w-7" />
                       </div>
-                      {'comingSoon' in feature && feature.comingSoon && (
+                      {feature.comingSoon && (
                         <span className="bg-accent-100 text-accent-700 rounded-full px-3 py-1 text-xs font-medium">
                           Coming Soon
                         </span>
@@ -231,15 +275,32 @@ export default function FeaturesPage() {
                       ))}
                     </ul>
                   </div>
-                  <div
-                    className={`from-primary-100 to-accent-100 aspect-video rounded-2xl bg-gradient-to-br ${
-                      index % 2 === 1 ? 'lg:order-1' : ''
-                    }`}
-                  >
-                    <div className="flex h-full items-center justify-center">
-                      <feature.icon className="text-primary-400/50 h-24 w-24" />
+                  {feature.image ? (
+                    <div
+                      className={`aspect-video overflow-hidden rounded-2xl border border-gray-200 shadow-sm ${
+                        index % 2 === 1 ? 'lg:order-1' : ''
+                      }`}
+                    >
+                      <Image
+                        src={feature.image}
+                        alt={feature.imageAlt ?? `${feature.title} in PairUX`}
+                        width={2880}
+                        height={1620}
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                        className="h-full w-full object-cover object-top"
+                      />
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className={`from-primary-100 to-accent-100 aspect-video rounded-2xl bg-gradient-to-br ${
+                        index % 2 === 1 ? 'lg:order-1' : ''
+                      }`}
+                    >
+                      <div className="flex h-full items-center justify-center">
+                        <feature.icon className="text-primary-400/50 h-24 w-24" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

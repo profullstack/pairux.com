@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveModifiers } from './modifiers.js';
+import { resolveModifiers, resolveKeyCode } from './modifiers.js';
 import type { KeyboardModifiers } from './types.js';
 
 const none: KeyboardModifiers = { ctrl: false, alt: false, shift: false, meta: false };
@@ -74,5 +74,36 @@ describe('resolveModifiers', () => {
       shift: false,
       meta: false,
     });
+  });
+});
+
+// The modifier keypress itself, not just the modifiers carried alongside it.
+// A Mac guest's Cmd press arriving as Super turned every click on a KDE host
+// into a window-manager gesture: the cursor moved and the desktop ignored it.
+describe('resolveKeyCode', () => {
+  const accel: KeyboardModifiers = { ...none, accel: true };
+
+  it("maps a Mac guest's Cmd press to Control on a Linux host", () => {
+    expect(resolveKeyCode('MetaLeft', accel, 'linux')).toBe('ControlLeft');
+    expect(resolveKeyCode('MetaRight', accel, 'linux')).toBe('ControlRight');
+  });
+
+  it('maps it to Control on Windows too', () => {
+    expect(resolveKeyCode('MetaLeft', accel, 'win32')).toBe('ControlLeft');
+  });
+
+  // On a Mac host the accelerator really is Cmd, so nothing should change.
+  it('leaves Cmd alone on a macOS host', () => {
+    expect(resolveKeyCode('MetaLeft', accel, 'darwin')).toBe('MetaLeft');
+  });
+
+  // A non-Mac guest reaching for their actual Super key still gets Super.
+  it('passes through a Super press that was not the accelerator', () => {
+    expect(resolveKeyCode('MetaLeft', { ...none, meta: true }, 'linux')).toBe('MetaLeft');
+  });
+
+  it('leaves ordinary keys untouched', () => {
+    expect(resolveKeyCode('KeyC', accel, 'linux')).toBe('KeyC');
+    expect(resolveKeyCode('Enter', accel, 'linux')).toBe('Enter');
   });
 });

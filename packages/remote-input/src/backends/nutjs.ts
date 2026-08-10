@@ -1,4 +1,4 @@
-import { resolveModifiers } from '../modifiers.js';
+import { resolveModifiers, resolveKeyCode } from '../modifiers.js';
 import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
@@ -242,8 +242,10 @@ export class NutJsInputBackend implements InputBackend {
 
   private async handleKeyboard(event: KbEvent): Promise<void> {
     const { keyboard, Key } = await getNut();
-    const key = mapKey(event.key, event.code, Key);
     const { modifiers } = event;
+    // The modifier keypress itself needs translating too, not just the
+    // modifiers carried alongside it. See resolveKeyCode.
+    const key = mapKey(event.key, resolveKeyCode(event.code, modifiers, process.platform), Key);
 
     // Resolved against *this* host, so a Mac viewer's Cmd+C becomes Ctrl+C here
     // rather than Super+C, and vice versa. LeftSuper is Cmd on macOS.

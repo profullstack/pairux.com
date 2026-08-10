@@ -40,6 +40,41 @@ export function resolveModifiers(
   };
 }
 
+/** Physical modifier keys that mean "shortcut key" on a Mac and Super elsewhere. */
+const ACCEL_KEY_CODES: Record<string, string> = {
+  MetaLeft: 'ControlLeft',
+  MetaRight: 'ControlRight',
+};
+
+/**
+ * Translate a standalone modifier keypress for this host.
+ *
+ * `resolveModifiers` fixes the modifiers *carried alongside* a key, so a Mac
+ * guest's Cmd+C arrives as Ctrl+C. But the Cmd press is also a key event in its
+ * own right, with `code: 'MetaLeft'`, and that was injected literally — so
+ * every time a Mac guest touched Cmd, the Linux host had Super held down.
+ *
+ * That is not a cosmetic mismatch. On KDE, Super+click is a window-manager
+ * gesture (move/resize), so clicks stop reaching the application underneath
+ * entirely, and Super on its own opens the launcher. The guest sees a cursor
+ * that moves and a desktop that ignores every click.
+ *
+ * So the physical key gets the same treatment as the modifier field: pressed as
+ * an accelerator, it becomes whatever the accelerator is here. A Super press
+ * that was *not* the accelerator (a non-Mac guest reaching for their Super key)
+ * is still passed through untouched.
+ */
+export function resolveKeyCode(
+  code: string,
+  modifiers: KeyboardModifiers,
+  platform: Platform
+): string {
+  if (modifiers.accel !== true) return code;
+  // On a Mac host the accelerator *is* Cmd, so the code is already right.
+  if (platform === 'darwin') return code;
+  return ACCEL_KEY_CODES[code] ?? code;
+}
+
 // The viewer half of this — turning a DOM event into wire modifiers — lives in
 // @pairux/shared-types as `modifiersFromDomEvent`, because this package is
 // deliberately standalone and Node-only while the viewers run in a browser.

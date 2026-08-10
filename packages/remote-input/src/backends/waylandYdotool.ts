@@ -2,7 +2,7 @@ import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
 import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
-import { resolveModifiers } from '../modifiers.js';
+import { resolveModifiers, resolveKeyCode } from '../modifiers.js';
 import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
@@ -561,7 +561,12 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   }
 
   private async keyboard(event: KbEvent): Promise<void> {
-    const keycode = keyCodeFromEvent(event);
+    // A Mac guest's Cmd press must not arrive here as Super: on KDE that turns
+    // every subsequent click into a window-manager gesture. See resolveKeyCode.
+    const keycode = keyCodeFromEvent({
+      ...event,
+      code: resolveKeyCode(event.code, event.modifiers, 'linux'),
+    });
     const modifiers = modifierKeycodes(event.modifiers);
 
     if (event.action === 'press' && modifiers.length === 0 && event.key.length === 1) {

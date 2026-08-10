@@ -565,13 +565,13 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     const modifiers = modifierKeycodes(event.modifiers);
 
     if (event.action === 'press' && modifiers.length === 0 && event.key.length === 1) {
-      await this.run('ydotool', ['type', event.key]);
+      await this.run(this.ydotoolCommand, ['type', event.key]);
       return;
     }
 
     if (keycode == null) {
       if (event.action === 'press' && event.key.length > 0) {
-        await this.run('ydotool', ['type', event.key]);
+        await this.run(this.ydotoolCommand, ['type', event.key]);
         return;
       }
       throw new Error(`Unsupported key for ydotool backend: ${event.key} (${event.code})`);

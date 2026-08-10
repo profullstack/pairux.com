@@ -13,12 +13,44 @@
  */
 
 import { BrowserWindow, screen } from 'electron';
+import { detectDisplayServer } from '../platform';
 
 let overlay: BrowserWindow | null = null;
 
+/**
+ * Whether a desktop-wide overlay can be shown safely on this display server.
+ *
+ * False on Wayland, because Electron documents the operations this window is
+ * built out of as unsupported there:
+ *
+ *   - `showInactive()` — "Not supported on Wayland (Linux)". This is the one
+ *     that matters. It is how the overlay appears *without* taking focus; with
+ *     it unavailable there is no way to put a fullscreen always-on-top window
+ *     on screen and be sure it has not grabbed the user's input.
+ *   - `setPosition()` — "Not supported on Wayland (Linux)", and `getBounds()`
+ *     reports `{ x: 0, y: 0 }`, so the window cannot be reliably placed.
+ *   - the `level` argument to `setAlwaysOnTop` is documented macOS/Windows only.
+ *
+ * More generally: "On Wayland (Linux) it is generally not possible to
+ * programmatically resize windows after creation, or to position, move, focus,
+ * or blur windows without user input."
+ *
+ * The failure mode if we show it anyway is the worst one this app has — a
+ * fullscreen window over the host's desktop that takes input they cannot get
+ * back. The in-app cursor still draws inside the PairUX window, so the guest's
+ * pointer stays visible where the video is; only the desktop-wide overlay is
+ * given up.
+ *
+ * https://www.electronjs.org/docs/latest/api/browser-window
+ */
+export function canShowDesktopOverlay(displayServer: string): boolean {
+  return displayServer !== 'wayland';
+}
+
 /** Escape hatch, in case a compositor mishandles a click-through window. */
 function isDisabled(): boolean {
-  return process.env.PAIRUX_DISABLE_CURSOR_OVERLAY === '1';
+  if (process.env.PAIRUX_DISABLE_CURSOR_OVERLAY === '1') return true;
+  return !canShowDesktopOverlay(detectDisplayServer());
 }
 
 function buildHtml(): string {

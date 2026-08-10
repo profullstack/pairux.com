@@ -8,7 +8,11 @@ import type {
   MouseButton,
   ControlStateUI,
 } from '@pairux/shared-types';
-import { modifiersFromDomEvent } from '@pairux/shared-types';
+import {
+  isLocalControlTarget,
+  modifiersFromDomEvent,
+  shouldIgnoreFollowUpMouse,
+} from '@pairux/shared-types';
 import { getAccelPlatform } from '@/lib/viewerPlatform';
 
 interface UseRemoteControlOptions {
@@ -74,6 +78,8 @@ export function useRemoteControl({
   // Get relative coordinates (0-1) from a mouse event
   const getRelativeCoords = useCallback(
     (event?: MouseEvent): { x: number; y: number } | null => {
+      if (event && isLocalControlTarget(event.target)) return null;
+
       if (pointerLockPosition?.current) {
         const pos = pointerLockPosition.current;
         return { x: pos.x, y: pos.y };
@@ -99,7 +105,9 @@ export function useRemoteControl({
 
   // Handle mouse move
   const handleMouseMove = useCallback(
-    (event: MouseEvent) => {
+    (event: MouseEvent, fromPointer = false) => {
+      if (shouldIgnoreFollowUpMouse(lastPointerEventRef.current, Date.now(), fromPointer)) return;
+
       const coords = getRelativeCoords(event);
       if (!coords) return;
 
@@ -129,11 +137,11 @@ export function useRemoteControl({
 
   // Handle mouse down
   const handleMouseDown = useCallback(
-    (event: MouseEvent) => {
+    (event: MouseEvent, fromPointer = false) => {
       if (!canSendInput) return;
 
       // Skip if a pointer event just fired (Chromium fires both).
-      if (Date.now() - lastPointerEventRef.current < 100) return;
+      if (shouldIgnoreFollowUpMouse(lastPointerEventRef.current, Date.now(), fromPointer)) return;
 
       const coords = getRelativeCoords(event);
       if (!coords) return;
@@ -169,11 +177,11 @@ export function useRemoteControl({
 
   // Handle mouse up
   const handleMouseUp = useCallback(
-    (event: MouseEvent) => {
+    (event: MouseEvent, fromPointer = false) => {
       if (!canSendInput) return;
 
       // Skip if a pointer event just fired.
-      if (Date.now() - lastPointerEventRef.current < 100) return;
+      if (shouldIgnoreFollowUpMouse(lastPointerEventRef.current, Date.now(), fromPointer)) return;
 
       const coords = getRelativeCoords(event);
       if (!coords) return;
@@ -247,6 +255,7 @@ export function useRemoteControl({
   const handleKeyDown = useCallback(
     (event: globalThis.KeyboardEvent) => {
       if (!canSendInput) return;
+      if (isLocalControlTarget(event.target)) return;
 
       // Don't capture browser shortcuts
       if (event.altKey && event.key === 'Tab') return;
@@ -273,6 +282,7 @@ export function useRemoteControl({
   const handleKeyUp = useCallback(
     (event: globalThis.KeyboardEvent) => {
       if (!canSendInput) return;
+      if (isLocalControlTarget(event.target)) return;
 
       const inputEvent: KeyboardInputEvent = {
         type: 'keyboard',
@@ -302,24 +312,24 @@ export function useRemoteControl({
   // the timestamp so the mouse-handler dedup skips the follow-up mouse event.
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
+      handleMouseDown(event as unknown as MouseEvent, true);
       lastPointerEventRef.current = Date.now();
-      handleMouseDown(event as unknown as MouseEvent);
     },
     [handleMouseDown]
   );
 
   const handlePointerUp = useCallback(
     (event: PointerEvent) => {
+      handleMouseUp(event as unknown as MouseEvent, true);
       lastPointerEventRef.current = Date.now();
-      handleMouseUp(event as unknown as MouseEvent);
     },
     [handleMouseUp]
   );
 
   const handlePointerMove = useCallback(
     (event: PointerEvent) => {
+      handleMouseMove(event as unknown as MouseEvent, true);
       lastPointerEventRef.current = Date.now();
-      handleMouseMove(event as unknown as MouseEvent);
     },
     [handleMouseMove]
   );

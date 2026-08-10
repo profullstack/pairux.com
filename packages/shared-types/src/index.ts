@@ -100,7 +100,12 @@ export type {
   QualityPreset,
 } from './input.js';
 
-export { QUALITY_PRESETS, modifiersFromDomEvent } from './input.js';
+export {
+  QUALITY_PRESETS,
+  isLocalControlTarget,
+  modifiersFromDomEvent,
+  shouldIgnoreFollowUpMouse,
+} from './input.js';
 
 // Voice audio settings shared by every client
 export {

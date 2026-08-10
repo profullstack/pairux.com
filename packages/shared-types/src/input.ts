@@ -100,6 +100,24 @@ export function modifiersFromDomEvent(
   };
 }
 
+const POINTER_MOUSE_DEDUP_MS = 100;
+
+export function isLocalControlTarget(target: unknown): boolean {
+  if (target === null || typeof target !== 'object' || !('closest' in target)) return false;
+  const closest = target.closest;
+  return (
+    typeof closest === 'function' && closest.call(target, '[data-pairux-local-control]') !== null
+  );
+}
+
+export function shouldIgnoreFollowUpMouse(
+  lastPointerAt: number,
+  now: number,
+  fromPointer: boolean
+): boolean {
+  return !fromPointer && now - lastPointerAt < POINTER_MOUSE_DEDUP_MS;
+}
+
 // Keyboard event
 export interface KeyboardEvent {
   type: 'keyboard';

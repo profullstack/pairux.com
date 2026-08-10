@@ -26,7 +26,14 @@ export interface MouseButtonEvent {
 export interface MouseScrollEvent {
   type: 'mouse';
   action: 'scroll';
+  /** DOM WheelEvent convention: positive scrolls right. */
   deltaX: number;
+  /**
+   * DOM WheelEvent convention: **positive scrolls down**.
+   *
+   * Spelled out because both host backends had it backwards, which made every
+   * remote scroll go the wrong way on every platform.
+   */
   deltaY: number;
   x: number;
   y: number;
@@ -41,6 +48,56 @@ export interface KeyboardModifiers {
   alt: boolean;
   shift: boolean;
   meta: boolean; // Cmd on macOS, Win on Windows
+  /**
+   * The viewer held their platform's shortcut modifier: Cmd on macOS, Ctrl
+   * everywhere else.
+   *
+   * Sent instead of the literal modifier, because the literal one does not
+   * survive crossing operating systems. A Mac viewer pressing Cmd+C reports
+   * `meta`, which on a Linux host is Super — and Super+C copies nothing.
+   * A Linux viewer pressing Ctrl+C reports `ctrl`, which on a macOS host is
+   * Control, and Control+C is not copy either. So copy/paste, save, quit and
+   * every other shortcut broke in both directions.
+   *
+   * The host maps this to whichever modifier means "shortcut" locally. `ctrl`
+   * and `meta` stay literal for the cases that genuinely mean Control or Super
+   * (macOS Control+click, Linux Super for the window manager).
+   *
+   * Optional for compatibility: an older viewer that omits it still gets the
+   * previous literal pass-through behaviour.
+   */
+  accel?: boolean;
+}
+
+/**
+ * Turn a DOM keyboard event's modifier flags into portable wire modifiers.
+ *
+ * Viewers must use this rather than copying `ctrlKey`/`metaKey` straight across.
+ * "The shortcut key" is Cmd on macOS and Ctrl everywhere else, so the literal
+ * flag does not survive a change of operating system: Cmd+C sent as `meta`
+ * arrives on Linux as Super+C, and Ctrl+C sent as `ctrl` arrives on macOS as
+ * Control+C. Neither copies anything.
+ *
+ * Whichever key acted as the accelerator is reported as `accel` alone, so the
+ * host presses one shortcut modifier instead of its own plus the viewer's. The
+ * host side of this is `resolveModifiers` in @profullstack/remote-input.
+ */
+export function modifiersFromDomEvent(
+  event: { ctrlKey: boolean; altKey: boolean; shiftKey: boolean; metaKey: boolean },
+  platform: 'darwin' | 'other'
+): KeyboardModifiers {
+  const isMac = platform === 'darwin';
+
+  return {
+    // macOS Control is a real modifier of its own (Control+click), so it stays
+    // literal there. Off macOS, Ctrl is the accelerator and nothing else.
+    ctrl: isMac ? event.ctrlKey : false,
+    alt: event.altKey,
+    shift: event.shiftKey,
+    // Super/Win is literal off macOS; on macOS Cmd is the accelerator.
+    meta: isMac ? false : event.metaKey,
+    accel: isMac ? event.metaKey : event.ctrlKey,
+  };
 }
 
 // Keyboard event

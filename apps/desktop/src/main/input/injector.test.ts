@@ -301,12 +301,14 @@ describe('Input Injector', () => {
     });
 
     describe('mouse scroll events', () => {
-      it('should handle scroll down event', async () => {
+      // DOM WheelEvent: positive deltaY is a scroll *down*. Both backends had
+      // this backwards, so every remote scroll went the wrong way.
+      it('scrolls down for positive deltaY', async () => {
         const event: MouseScrollEvent = {
           type: 'mouse',
           action: 'scroll',
           deltaX: 0,
-          deltaY: -120,
+          deltaY: 120,
           x: 0.5,
           y: 0.5,
         };
@@ -315,14 +317,15 @@ describe('Input Injector', () => {
 
         expect(mouse.setPosition).toHaveBeenCalled();
         expect(mouse.scrollDown).toHaveBeenCalled();
+        expect(mouse.scrollUp).not.toHaveBeenCalled();
       });
 
-      it('should handle scroll up event', async () => {
+      it('scrolls up for negative deltaY', async () => {
         const event: MouseScrollEvent = {
           type: 'mouse',
           action: 'scroll',
           deltaX: 0,
-          deltaY: 120,
+          deltaY: -120,
           x: 0.5,
           y: 0.5,
         };

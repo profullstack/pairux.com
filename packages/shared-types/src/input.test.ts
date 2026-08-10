@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   QUALITY_PRESETS,
+  modifiersFromDomEvent,
   type MouseEvent,
   type KeyboardEvent,
   type InputMessage,
@@ -195,6 +196,71 @@ describe('Input Types', () => {
       Object.values(QUALITY_PRESETS).forEach((preset) => {
         expect(preset.resolution).toBeGreaterThan(0);
         expect(preset.resolution).toBeLessThanOrEqual(1);
+      });
+    });
+  });
+
+  // A shortcut has to survive crossing operating systems. "The shortcut key" is
+  // Cmd on macOS and Ctrl elsewhere, so sending the literal flag meant a Mac
+  // viewer's Cmd+C reached a Linux host as Super+C, and a Linux viewer's Ctrl+C
+  // reached a macOS host as Control+C. Neither copies anything.
+  describe('modifiersFromDomEvent', () => {
+    type DomModifierFlags = Record<'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey', boolean>;
+
+    const dom = (held: Partial<DomModifierFlags>): DomModifierFlags => ({
+      ctrlKey: held.ctrlKey ?? false,
+      altKey: held.altKey ?? false,
+      shiftKey: held.shiftKey ?? false,
+      metaKey: held.metaKey ?? false,
+    });
+
+    it('reports a Mac viewer\u2019s Cmd as the accelerator, not as meta', () => {
+      expect(modifiersFromDomEvent(dom({ metaKey: true }), 'darwin')).toEqual({
+        ctrl: false,
+        alt: false,
+        shift: false,
+        meta: false,
+        accel: true,
+      });
+    });
+
+    it('reports Ctrl elsewhere as the accelerator, not as ctrl', () => {
+      expect(modifiersFromDomEvent(dom({ ctrlKey: true }), 'other')).toEqual({
+        ctrl: false,
+        alt: false,
+        shift: false,
+        meta: false,
+        accel: true,
+      });
+    });
+
+    // On macOS, Control is its own modifier (Control+click is a right click).
+    it('keeps macOS Control literal', () => {
+      expect(modifiersFromDomEvent(dom({ ctrlKey: true }), 'darwin')).toMatchObject({
+        ctrl: true,
+        accel: false,
+      });
+    });
+
+    it('keeps Super literal for non-macOS viewers', () => {
+      expect(modifiersFromDomEvent(dom({ metaKey: true }), 'other')).toMatchObject({
+        meta: true,
+        accel: false,
+      });
+    });
+
+    it('passes alt and shift straight through', () => {
+      expect(modifiersFromDomEvent(dom({ altKey: true, shiftKey: true }), 'other')).toMatchObject({
+        alt: true,
+        shift: true,
+        accel: false,
+      });
+    });
+
+    it('carries both when macOS Control accompanies Cmd', () => {
+      expect(modifiersFromDomEvent(dom({ ctrlKey: true, metaKey: true }), 'darwin')).toMatchObject({
+        ctrl: true,
+        accel: true,
       });
     });
   });

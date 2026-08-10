@@ -10,8 +10,6 @@ import type { InputInjectionDiagnostics } from '../../preload/api';
 interface UseInputInjectionOptions {
   /** Whether injection should be active */
   enabled: boolean;
-  /** Screen dimensions for coordinate mapping */
-  screenSize?: { width: number; height: number };
   /** Callback when emergency stop is triggered */
   onEmergencyStop?: () => void;
 }
@@ -36,7 +34,6 @@ interface UseInputInjectionReturn {
  */
 export function useInputInjection({
   enabled,
-  screenSize,
   onEmergencyStop,
 }: UseInputInjectionOptions): UseInputInjectionReturn {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -86,21 +83,17 @@ export function useInputInjection({
     void init();
   }, []);
 
-  // Update screen size when it changes
-  useEffect(() => {
-    if (!isInitialized || !screenSize) return;
-
-    const updateSize = async () => {
-      try {
-        await window.electronAPI.invoke('input:updateScreenSize', screenSize);
-      } catch (error) {
-        console.error('[useInputInjection] Failed to update screen size:', error);
-      }
-    };
-
-    void updateSize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized, screenSize?.width, screenSize?.height]);
+  // Deliberately does not tell the backend a screen size.
+  //
+  // Remote coordinates are normalized 0-1, so the only thing needed to place
+  // them is the host's own screen geometry — which each backend already reads
+  // from its own OS API in that API's units (nut-js from screen.width(), the
+  // Wayland backend from the compositor). Feeding it anything else mixes units.
+  //
+  // This used to pass the capture track's dimensions, which are neither: the
+  // track reports encoded pixels, so a Retina Mac (logical 1440x900, stream
+  // 2880x1800) mapped the centre of the screen to its bottom-right corner and
+  // everything past halfway fell off the display entirely.
 
   // Enable/disable injection based on prop
   useEffect(() => {

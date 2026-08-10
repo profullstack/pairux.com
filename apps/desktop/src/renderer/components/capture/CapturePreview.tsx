@@ -344,20 +344,12 @@ export function CapturePreview({
     };
   }, [hasPendingControlRequests]);
 
-  const inputScreenSize = useMemo(() => {
-    if (!stream) return undefined;
-    const tracks = stream.getVideoTracks();
-    const track = tracks.length > 0 ? tracks[0] : undefined;
-    const settings = track?.getSettings();
-    const width = settings?.width;
-    const height = settings?.height;
-    if (!width || !height) return undefined;
-    return { width, height };
-  }, [stream]);
-
+  // No screenSize is passed on purpose: the injection backend reads the host's
+  // real screen geometry from the OS itself. The capture track's dimensions are
+  // the *encoded stream* size, which is a different number in different units,
+  // and using it put every remote click in the wrong place. See useInputInjection.
   const { injectEvent, diagnostics: inputDiagnostics } = useInputInjection({
     enabled: Boolean(participantWithControl) || grantedViewerId !== null,
-    screenSize: inputScreenSize,
   });
   const remoteInputCountRef = useRef(0);
   const showWaylandInputDiagnostics =

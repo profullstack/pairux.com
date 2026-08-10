@@ -17,6 +17,7 @@ interface UseRemoteControlOptions {
   containerRef: React.RefObject<HTMLElement | null>;
   onInputEvent: (event: InputEvent) => void;
   onCursorMove?: ((x: number, y: number, visible: boolean) => void) | undefined;
+  pointerLockPosition?: React.RefObject<{ x: number; y: number } | null> | undefined;
 }
 
 interface UseRemoteControlReturn {
@@ -45,6 +46,7 @@ export function useRemoteControl({
   containerRef,
   onInputEvent,
   onCursorMove,
+  pointerLockPosition,
 }: UseRemoteControlOptions): UseRemoteControlReturn {
   const [isCapturing, setIsCapturing] = useState(false);
   // Read once: it cannot change while the app runs. Kept out of module scope so
@@ -65,7 +67,14 @@ export function useRemoteControl({
 
   // Get relative coordinates (0-1) from a mouse event
   const getRelativeCoords = useCallback(
-    (event: MouseEvent): { x: number; y: number } | null => {
+    (event?: MouseEvent): { x: number; y: number } | null => {
+      if (pointerLockPosition?.current) {
+        const pos = pointerLockPosition.current;
+        return { x: pos.x, y: pos.y };
+      }
+
+      if (!event) return null;
+
       const container = containerRef.current;
       if (!container) return null;
 
@@ -79,7 +88,7 @@ export function useRemoteControl({
         y: Math.max(0, Math.min(1, y)),
       };
     },
-    [containerRef]
+    [containerRef, pointerLockPosition]
   );
 
   // Handle mouse move
@@ -88,9 +97,10 @@ export function useRemoteControl({
       const coords = getRelativeCoords(event);
       if (!coords) return;
 
-      // Always update cursor position (even when view-only)
+      // Always update cursor position (even when view-only).
+      // Skip when locked: the pointer-lock movement handler already does this.
       const now = Date.now();
-      if (now - lastCursorUpdateRef.current >= cursorThrottleMs) {
+      if (!pointerLockPosition?.current && now - lastCursorUpdateRef.current >= cursorThrottleMs) {
         lastCursorUpdateRef.current = now;
         onCursorMove?.(coords.x, coords.y, true);
       }
@@ -107,7 +117,7 @@ export function useRemoteControl({
 
       onInputEvent(inputEvent);
     },
-    [getRelativeCoords, canSendInput, onCursorMove, onInputEvent]
+    [getRelativeCoords, canSendInput, onCursorMove, onInputEvent, pointerLockPosition]
   );
 
   // Handle mouse down

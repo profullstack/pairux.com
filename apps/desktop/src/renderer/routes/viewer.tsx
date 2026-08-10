@@ -463,6 +463,7 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           controlState={controlState}
           onInputEvent={sendInput}
           onCursorMove={sendCursorPosition}
+          allowFullscreen
           className="flex flex-1 flex-col"
         >
           <VideoViewer

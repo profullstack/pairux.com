@@ -19,11 +19,41 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
+
+/**
+ * Every workspace package whose version tracks the app release.
+ *
+ * Omitting one leaves it pinned at whatever release last touched it by hand,
+ * and the drift stays invisible until something ships with two different
+ * versions inside it. `version-bump.test.ts` fails if a new workspace package
+ * appears in neither this list nor INDEPENDENTLY_VERSIONED below.
+ */
+export const PACKAGES_TO_UPDATE = [
+  'package.json',
+  'apps/web/package.json',
+  'apps/desktop/package.json',
+  'apps/installer/package.json',
+  'apps/livekit/package.json',
+  'apps/turn/package.json',
+  'packages/shared-types/package.json',
+];
+
+/**
+ * Packages deliberately left out: their versions mean something else.
+ *
+ * - packages/remote-input is published to npm on its own cadence
+ * - packages/ai-core and apps/mobile are not part of the app release yet
+ */
+export const INDEPENDENTLY_VERSIONED = [
+  'apps/mobile/package.json',
+  'packages/ai-core/package.json',
+  'packages/remote-input/package.json',
+];
 
 /**
  * @param {string} version
@@ -127,18 +157,8 @@ function main() {
 
   console.log(`\n📦 Bumping version: ${currentVersion} → ${newVersion} (${bumpType})\n`);
 
-  // Update all package.json files
-  const packagesToUpdate = [
-    'package.json',
-    'apps/web/package.json',
-    'apps/desktop/package.json',
-    'apps/installer/package.json',
-    'apps/turn/package.json',
-    'packages/shared-types/package.json',
-  ];
-
   console.log('📝 Updating package.json files:');
-  for (const pkg of packagesToUpdate) {
+  for (const pkg of PACKAGES_TO_UPDATE) {
     updatePackageJson(join(rootDir, pkg), newVersion);
   }
 
@@ -146,7 +166,7 @@ function main() {
   console.log('\n🔖 Creating git commit and tag...');
 
   try {
-    exec(`git add ${packagesToUpdate.join(' ')}`);
+    exec(`git add ${PACKAGES_TO_UPDATE.join(' ')}`);
     exec(`git commit --no-verify -m "chore(release): v${newVersion}"`);
     exec(`git tag -a v${newVersion} -m "Release v${newVersion}"`);
 
@@ -162,4 +182,8 @@ function main() {
   }
 }
 
-main();
+// Only bump when run as a command. Importing this module — as the tests do, to
+// check the package list — must not rewrite every package.json and tag a release.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}

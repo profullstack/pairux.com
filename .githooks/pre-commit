@@ -97,7 +97,10 @@ run_check "Format" "pnpm format:check"
 # 4. Run tests
 run_check "Tests" "pnpm test"
 
-# 5. Build check
+# 5. Run tests for scripts/ (not a workspace package, so `pnpm test` misses it)
+run_check "Script tests" "pnpm test:scripts"
+
+# 6. Build check
 run_check "Build" "pnpm build"
 
 # Final result

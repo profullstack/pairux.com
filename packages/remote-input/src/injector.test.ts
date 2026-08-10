@@ -419,6 +419,125 @@ describe('RemoteInputInjector held-input safety', () => {
       vi.useRealTimers();
     }
   });
+
+  // The failure that took a host's machine away from them.
+  //
+  // A lost "up" leaves the button held. The guest carries on moving the mouse,
+  // every move resets the idle watchdog, and it never fires. A held button
+  // makes dispatch treat movement as a drag and inject it, so the guest's
+  // pointer starts driving the host's and the host cannot use their own
+  // machine until control is revoked. The absolute timer is the only thing
+  // that ends this, so it must not be resettable by incoming movement.
+  it('releases a hold whose "up" was lost even while moves keep arriving', async () => {
+    vi.useFakeTimers();
+    try {
+      const backend = fakeBackend();
+      const injector = new RemoteInputInjector({
+        selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
+        createBackend: () => backend,
+        logger: silentLogger,
+        virtualCursor: false,
+        holdTimeoutMs: 1000,
+        maxHoldMs: 5000,
+      });
+      injector.enable();
+
+      await injector.inject(down());
+
+      // Movement never stops, so the idle timer is reset over and over and
+      // would on its own keep the button held indefinitely.
+      for (let i = 0; i < 20; i += 1) {
+        await vi.advanceTimersByTimeAsync(400);
+        await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
+      }
+
+      const ups = vi
+        .mocked(backend.inject)
+        .mock.calls.filter(([e]) => 'action' in e && e.action === 'up');
+      expect(ups.length).toBeGreaterThan(0);
+      expect(injector.getDiagnostics().heldButtons).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // The absolute timer must not turn into a guillotine for real drags either:
+  // it starts once per hold and is not restarted by each new press.
+  it('does not restart the absolute timer on every press', async () => {
+    vi.useFakeTimers();
+    try {
+      const backend = fakeBackend();
+      const injector = new RemoteInputInjector({
+        selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
+        createBackend: () => backend,
+        logger: silentLogger,
+        virtualCursor: false,
+        holdTimeoutMs: 1000,
+        maxHoldMs: 5000,
+      });
+      injector.enable();
+
+      await injector.inject(down());
+      for (let i = 0; i < 10; i += 1) {
+        await vi.advanceTimersByTimeAsync(400);
+        await injector.inject(down());
+      }
+
+      // 4s of presses is inside both windows, so nothing has been released.
+      expect(injector.getDiagnostics().heldButtons).toBe(1);
+
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(injector.getDiagnostics().heldButtons).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // A clean press/release must leave nothing armed, or the next hold inherits
+  // a timer that is already partway through its window.
+  it('clears the absolute timer when a button is released normally', async () => {
+    vi.useFakeTimers();
+    try {
+      const backend = fakeBackend();
+      const injector = new RemoteInputInjector({
+        selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
+        createBackend: () => backend,
+        logger: silentLogger,
+        virtualCursor: false,
+        holdTimeoutMs: 1000,
+        maxHoldMs: 5000,
+      });
+      injector.enable();
+
+      await injector.inject(down());
+      await vi.advanceTimersByTimeAsync(4000);
+      await injector.inject({
+        type: 'mouse',
+        action: 'up',
+        button: 'left',
+        x: 0.5,
+        y: 0.5,
+      });
+      vi.mocked(backend.inject).mockClear();
+
+      // A fresh hold, kept alive so only the absolute timer is under test.
+      // It gets a full 5s window; had it inherited the previous hold's timer
+      // there would be 1s left and the button would be released during this.
+      await injector.inject(down());
+      for (let i = 0; i < 10; i += 1) {
+        await vi.advanceTimersByTimeAsync(400);
+        await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
+      }
+
+      const ups = vi
+        .mocked(backend.inject)
+        .mock.calls.filter(([e]) => 'action' in e && e.action === 'up');
+      expect(ups).toHaveLength(0);
+      expect(injector.getDiagnostics().heldButtons).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 // Remote mouse movement must never spend the local pointer — that is what

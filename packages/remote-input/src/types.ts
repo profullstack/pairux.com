@@ -131,4 +131,14 @@ export interface InputDiagnostics {
   reason?: string;
   details?: Record<string, unknown>;
   stats: InputStats;
+  /**
+   * How many buttons and keys the injector believes are held right now.
+   *
+   * Worth surfacing because a stuck hold is not a quiet failure: a held button
+   * makes every remote move inject as a drag, so the guest's pointer drives
+   * the host's and the host loses their machine. Non-zero here while nobody is
+   * pressing anything is that state, and is otherwise invisible.
+   */
+  heldButtons: number;
+  heldKeys: number;
 }

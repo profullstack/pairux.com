@@ -13,6 +13,8 @@ vi.mock('../input/injector', () => ({
     backend: 'nut-js',
     backendSupported: true,
     stats: { received: 0, injected: 0, rejected: 0, errors: 0 },
+    heldButtons: 0,
+    heldKeys: 0,
   }),
   updateScreenSize: vi.fn(),
   emergencyStop: vi.fn().mockResolvedValue(undefined),
@@ -99,6 +101,8 @@ describe('IPC Input Handlers', () => {
         backend: 'nut-js',
         backendSupported: true,
         stats: { received: 0, injected: 0, rejected: 0, errors: 0 },
+        heldButtons: 0,
+        heldKeys: 0,
       });
       const handler = mockIpcMainHandlers.get('input:enable')!;
 
@@ -132,6 +136,8 @@ describe('IPC Input Handlers', () => {
         backend: 'nut-js',
         backendSupported: true,
         stats: { received: 1, injected: 1, rejected: 0, errors: 0 },
+        heldButtons: 0,
+        heldKeys: 0,
       });
       const handler = mockIpcMainHandlers.get('input:status')!;
 

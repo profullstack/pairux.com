@@ -3,6 +3,7 @@ import { existsSync } from 'fs';
 import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
 import { resolveModifiers } from '../modifiers.js';
+import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -518,8 +519,25 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
   private async mouseButton(event: MouseButtonEvent): Promise<void> {
     const { x, y } = this.toAbsoluteCoords(event.x, event.y);
-    await this.run(this.ydotoolCommand, ['mousemove', '--absolute', String(x), String(y)]);
-    await this.run(this.ydotoolCommand, ['click', ...clickCode(event.action, event.button)]);
+    const move = ['mousemove', '--absolute', String(x), String(y)];
+    const click = ['click', ...clickCode(event.action, event.button)];
+
+    if (isInputDebugEnabled()) {
+      // The exact commands, because everything about a ydotool click succeeds
+      // silently: exit 0 says the binary ran, not that the pointer moved. If
+      // clicks land in the wrong place these coordinates and this screen size
+      // are what to compare against the display's real geometry.
+      console.log('[InputInjector:debug] ydotool button', {
+        action: event.action,
+        button: event.button,
+        normalized: { x: event.x, y: event.y },
+        screen: { width: this.screenWidth, height: this.screenHeight },
+        commands: [move.join(' '), click.join(' ')],
+      });
+    }
+
+    await this.run(this.ydotoolCommand, move);
+    await this.run(this.ydotoolCommand, click);
   }
 
   private async scroll(event: MouseScrollEvent): Promise<void> {

@@ -640,25 +640,59 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(moves(backend)).toHaveLength(0);
   });
 
-  // Wayland gives clients no way to read the pointer.  Clicks still land at
-  // the right position — the pointer briefly jumps there — but remote moves
-  // never drive the host cursor, so the host keeps an independent pointer
-  // and compositor hot-corners never fire from remote input.
-  it('virtualizes moves and injects clicks even without pointer reporting', async () => {
+  // Regression. Two cursors rest on one absolute positioning call per click
+  // with nothing in between to correct it, which is only trustworthy where the
+  // pointer can be read back. On a host that cannot report it — Wayland with
+  // no compositor helper — that made every click a single unverified "move
+  // there, now press": the guest saw their cursor move and nothing respond.
+  // Where the pointer cannot be read, movement must drive the real cursor.
+  it('drives the cursor directly when the host cannot report the pointer', async () => {
     const backend = fakeBackend();
     delete (backend as { getCursorPosition?: unknown }).getCursorPosition;
     const injector = twoCursorInjector(backend);
     injector.enable();
 
-    // Move — must NOT reach the OS.
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
-    expect(backend.inject).not.toHaveBeenCalled();
 
-    // Click — must reach the OS.
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'down', button: 'left' })
+      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
     );
+  });
+
+  // The method can exist and still refuse to answer (KWin not reporting), so
+  // the first null has to switch the strategy rather than being shrugged off.
+  it('switches to driving the cursor once a position read comes back empty', async () => {
+    const backend = fakeBackend({ getCursorPosition: vi.fn().mockResolvedValue(null) });
+    const injector = twoCursorInjector(backend);
+    injector.enable();
+
+    // Before anything is known, movement stays virtual.
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.1 });
+    expect(moves(backend)).toHaveLength(0);
+
+    // A click reveals the pointer cannot be read.
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
+    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
+
+    // From here movement drives the real cursor, so clicks land where aimed.
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.7, y: 0.8 });
+    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.7, y: 0.8 });
+  });
+
+  // A host that *can* report the pointer must keep both cursors, or the fix
+  // above would quietly take two-cursor mode away from everyone.
+  it('keeps the cursors apart when the host can report the pointer', async () => {
+    const backend = reportingBackend();
+    const injector = twoCursorInjector(backend);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
+    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
+    vi.mocked(backend.inject).mockClear();
+
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.7, y: 0.8 });
+
+    expect(moves(backend)).toHaveLength(0);
   });
 
   it('drives the system cursor directly when virtualCursor is off', async () => {

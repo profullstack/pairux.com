@@ -171,9 +171,17 @@ export class RemoteInputInjector {
     // Wait for any in-flight inject to finish (so trackHeldState has run),
     // then let go of everything. releaseAll() is deliberately not gated on
     // `enabled` — releasing is always safe and must never be skipped.
-    void (this.pendingInject ?? Promise.resolve()).then(() =>
-      this.releaseAll('injection disabled')
-    );
+    void (this.pendingInject ?? Promise.resolve())
+      .then(() => this.releaseAll('injection disabled'))
+      // releaseAll only lets go of what this injector *tracked*. Follow it
+      // with an unconditional OS-level release so a press that ever escaped
+      // tracking cannot survive a control handoff — that is the difference
+      // between "the host takes back control" and "the host reboots".
+      // Releasing a button that is not pressed is a harmless no-op.
+      .then(() => this.backend?.emergencyStop())
+      .catch((error: unknown) => {
+        this.logger.error('[RemoteInput] Failed to release input on disable', { error });
+      });
     this.logger.log('[RemoteInput] Injection disabled');
   }
 
@@ -456,8 +464,21 @@ export class RemoteInputInjector {
    */
   async dispose(): Promise<void> {
     this.enabled = false;
+    if (this.pendingInject) await this.pendingInject;
     await this.releaseAll('shutting down');
     this.clearHoldWatchdog();
+
+    // The last chance to give the host their mouse back.
+    //
+    // releaseAll is driven by tracked state, so it does nothing if a press
+    // ever escaped tracking — and once this process exits, a button left down
+    // at the OS level stays down. There is no recovery short of a reboot, so
+    // release unconditionally rather than trusting the bookkeeping.
+    try {
+      await this.backend?.emergencyStop();
+    } catch (error) {
+      this.logger.error('[RemoteInput] Final input release failed', { error });
+    }
 
     try {
       await this.backend?.dispose?.();

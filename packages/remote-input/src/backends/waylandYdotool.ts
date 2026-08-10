@@ -1,6 +1,7 @@
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
 import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
+import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -24,12 +25,16 @@ interface YdotoolAvailability {
   socketPath: string | null;
 }
 
-interface YdotoolAutoStartDeps {
+interface YdotoolBackendDeps {
   startDaemon?: DaemonStarter;
   probeAvailability?: AvailabilityProbe;
   sleep?: SleepFn;
   diagnoseFailure?: FailureDiagnoser;
+  /** Injectable so tests never shell out to real compositor tools. */
+  detectScreenSize?: ScreenSizeDetector;
 }
+
+type ScreenSizeDetector = () => Promise<ScreenSize | null>;
 
 type FailureDiagnoser = () => Promise<string | null>;
 
@@ -121,59 +126,6 @@ function findYdotoolSocket(): string | null {
   ].filter((value): value is string => Boolean(value));
 
   return candidates.find((path) => existsSync(path)) ?? null;
-}
-
-/**
- * Try to detect the primary display resolution on Wayland.
- *
- * No single command works across every compositor — probe each in turn
- * and return the first match.  Falls back to null when nothing succeeds;
- * the caller should then keep the 1920×1080 default and warn.
- */
-function detectWaylandScreenSize(): { width: number; height: number } | null {
-  // wlr-randr (wlroots: Sway, Hyprland, River, …)
-  try {
-    const raw = execFileSync('wlr-randr', [], { encoding: 'utf8', timeout: 2000 });
-    const m = /(\d+)x(\d+)/.exec(raw);
-    if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch {
-    /* not available */
-  }
-
-  // kscreen-doctor (KDE Plasma)
-  try {
-    const raw = execFileSync('kscreen-doctor', ['--json'], { encoding: 'utf8', timeout: 2000 });
-    const m = /"size":\s*\{[^}]*"width":\s*(\d+)[^}]*"height":\s*(\d+)/.exec(raw);
-    if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch {
-    /* not available */
-  }
-
-  // GNOME Mutter (gdbus)
-  try {
-    const raw = execFileSync(
-      'gdbus',
-      [
-        'call',
-        '--session',
-        '--dest',
-        'org.gnome.Mutter.DisplayConfig',
-        '--object-path',
-        '/org/gnome/Mutter/DisplayConfig',
-        '--method',
-        'org.gnome.Mutter.DisplayConfig.GetResources',
-      ],
-      { encoding: 'utf8', timeout: 2000 }
-    );
-    // GNOME serialises an array of (x, y, width, height, …) tuples; grab the
-    // first width that follows an x,y pair.
-    const m = /<\d+,\s*\d+,\s*(\d+),\s*(\d+)/.exec(raw);
-    if (m) return { width: Number(m[1]), height: Number(m[2]) };
-  } catch {
-    /* not available */
-  }
-
-  return null;
 }
 
 function getYdotoolAvailability(): YdotoolAvailability {
@@ -398,17 +350,19 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   private autoStartMethod: string | undefined;
   private autoStartError: string | undefined;
   private diagnosedReason: string | undefined;
+  private readonly detectScreenSize: ScreenSizeDetector;
 
   constructor(
     run: ExecRunner = defaultExecRunner,
     availability: YdotoolAvailability = getYdotoolAvailability(),
-    deps: YdotoolAutoStartDeps = {}
+    deps: YdotoolBackendDeps = {}
   ) {
     this.run = run;
     this.startDaemon = deps.startDaemon ?? defaultStartYdotoolDaemon;
     this.probeAvailability = deps.probeAvailability ?? getYdotoolAvailability;
     this.sleep = deps.sleep ?? defaultSleep;
     this.diagnoseFailure = deps.diagnoseFailure ?? defaultDiagnoseDaemonFailure;
+    this.detectScreenSize = deps.detectScreenSize ?? detectWaylandScreenSize;
     this.availability = availability;
     this.supported = false;
     this.applyAvailability(availability);
@@ -484,12 +438,19 @@ export class WaylandYdotoolInputBackend implements InputBackend {
       return undefined;
     }
 
-    // Try to detect the actual screen size so coordinate mapping is
-    // correct from the first click.  The renderer will also call
-    // updateScreenSize() once capture starts, but init() runs earlier
-    // (before a session is even created) and the default 1920×1080
-    // maps a remote click ~2× off on a 4K display.
-    const detected = detectWaylandScreenSize();
+    // Try to detect the actual screen size so coordinate mapping is correct
+    // from the first click. The host also calls updateScreenSize() once capture
+    // starts, and that value wins, but init() runs before a session exists and
+    // the 1920×1080 default maps a remote click ~2× off on a 4K display.
+    //
+    // Never fatal: a wrong-but-usable size beats no input injection at all.
+    let detected: ScreenSize | null = null;
+    try {
+      detected = await this.detectScreenSize();
+    } catch (error) {
+      console.warn('[InputInjector] Wayland screen size detection failed', { error });
+    }
+
     if (detected) {
       this.screenWidth = detected.width;
       this.screenHeight = detected.height;

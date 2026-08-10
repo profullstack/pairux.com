@@ -31,6 +31,8 @@ describe('WaylandYdotoolInputBackend', () => {
         startDaemon,
         probeAvailability,
         sleep: vi.fn().mockResolvedValue(undefined),
+        // No compositor here: keep the default and stay out of child_process.
+        detectScreenSize: vi.fn().mockResolvedValue(null),
       }
     );
 
@@ -47,6 +49,28 @@ describe('WaylandYdotoolInputBackend', () => {
       ydotoolSocketPath: '/run/ydotoold/socket',
       autoStartAttempted: true,
     });
+  });
+
+  // The 1920×1080 default puts every click roughly half way to its target on a
+  // 4K display, so a detected size must actually be adopted.
+  it('adopts a detected screen size for coordinate mapping', async () => {
+    const backend = new WaylandYdotoolInputBackend(
+      vi.fn(),
+      { hasBinary: true, hasSocket: true, socketPath: '/run/ydotoold/socket' },
+      { detectScreenSize: vi.fn().mockResolvedValue({ width: 3840, height: 2160 }) }
+    );
+
+    await expect(backend.init()).resolves.toEqual({ screenWidth: 3840, screenHeight: 2160 });
+  });
+
+  it('keeps the default when detection fails', async () => {
+    const backend = new WaylandYdotoolInputBackend(
+      vi.fn(),
+      { hasBinary: true, hasSocket: true, socketPath: '/run/ydotoold/socket' },
+      { detectScreenSize: vi.fn().mockRejectedValue(new Error('no compositor tools')) }
+    );
+
+    await expect(backend.init()).resolves.toEqual({ screenWidth: 1920, screenHeight: 1080 });
   });
 
   it('emits mouse move command with absolute coordinates', async () => {

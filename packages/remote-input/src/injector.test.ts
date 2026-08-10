@@ -329,10 +329,9 @@ describe('RemoteInputInjector held-input safety', () => {
 });
 
 // Remote mouse movement must never spend the local pointer — that is what
-// made control feel like it had been stolen (the host cursor fought back,
-// and GNOME hot-corners fired when the guest brushed a screen edge).
-// Moves are always virtual (tracked, never injected); clicks briefly borrow
-// the pointer then restore it when possible.
+// made control feel like it had been stolen. Moves are tracked rather than
+// injected; clicks briefly borrow the pointer and hand it back. The one
+// exception is a drag, where the single real cursor has to follow the motion.
 describe('RemoteInputInjector two-cursor mode', () => {
   const moves = (backend: InputBackend) =>
     vi.mocked(backend.inject).mock.calls.filter(([e]) => 'action' in e && e.action === 'move');
@@ -383,8 +382,9 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(restore?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 
-  // Restoring between down and up would tear the drag apart.
-  it('keeps the pointer in place for the whole of a drag', async () => {
+  // Restoring between down and up would tear the drag apart, so the borrowed
+  // pointer is only handed back once every button is released.
+  it('holds the borrowed pointer until the drag ends', async () => {
     const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
     injector.enable();
@@ -392,10 +392,40 @@ describe('RemoteInputInjector two-cursor mode', () => {
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
 
-    expect(moves(backend)).toHaveLength(0);
+    // No restore yet — the only move so far is the drag motion itself.
+    expect(moves(backend).map(([e]) => e)).toEqual([expect.objectContaining({ x: 0.5, y: 0.5 })]);
 
     await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.5, y: 0.5 });
     expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
+  });
+
+  // A drag that only sends down-then-up is not a drag: text selection, canvas
+  // apps, HTML5 drag-and-drop and file managers all need the motion between.
+  it('injects motion while a button is held so drags do not tear', async () => {
+    const backend = reportingBackend();
+    const injector = twoCursorInjector(backend);
+    injector.enable();
+
+    // Before the press: virtual, nothing reaches the OS.
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.1 });
+    expect(moves(backend)).toHaveLength(0);
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
+
+    // During the press: every move reaches the OS, in order.
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.4, y: 0.4 });
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.6, y: 0.6 });
+
+    expect(moves(backend).map(([e]) => e)).toEqual([
+      expect.objectContaining({ x: 0.4, y: 0.4 }),
+      expect.objectContaining({ x: 0.6, y: 0.6 }),
+    ]);
+
+    // After release: virtual again (past the pointer restore).
+    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.6, y: 0.6 });
+    vi.mocked(backend.inject).mockClear();
+    await injector.inject({ type: 'mouse', action: 'move', x: 0.8, y: 0.8 });
+    expect(moves(backend)).toHaveLength(0);
   });
 
   // Wayland gives clients no way to read the pointer.  Clicks still land at
@@ -419,7 +449,7 @@ describe('RemoteInputInjector two-cursor mode', () => {
     );
   });
 
-  it('does not inject moves even when virtualCursor is off', async () => {
+  it('drives the system cursor directly when virtualCursor is off', async () => {
     const backend = fakeBackend();
     const injector = new RemoteInputInjector({
       selection: { kind: 'nut-js', platform: 'darwin', displayServer: 'macos' },
@@ -431,8 +461,9 @@ describe('RemoteInputInjector two-cursor mode', () => {
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
 
-    // Moves are always virtualized regardless of the virtualCursor flag.
-    expect(backend.inject).not.toHaveBeenCalled();
+    expect(backend.inject).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
+    );
   });
 
   it('hands the pointer back when stuck input is released', async () => {
@@ -446,29 +477,97 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 
-  it('clamps click coordinates away from screen edges to avoid hot-corners', async () => {
-    const backend = fakeBackend();
+  it('hands the pointer back after a scroll, which borrows it too', async () => {
+    const backend = reportingBackend();
     const injector = twoCursorInjector(backend);
     injector.enable();
 
-    // Click at the top-left corner — should be clamped inward.
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 0 });
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: 'down',
-        x: expect.closeTo(0.005, 3),
-        y: expect.closeTo(0.005, 3),
-      })
-    );
+    await injector.inject({
+      type: 'mouse',
+      action: 'scroll',
+      deltaX: 0,
+      deltaY: -100,
+      x: 0.3,
+      y: 0.3,
+    });
 
-    // Click at the bottom-right corner — should be clamped inward.
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ action: 'scroll' }));
+    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
+  });
+});
+
+// Compositor hot-corners (GNOME's Activities corner) fire from the corner
+// pixel, so a guest brushing it hijacks the host's desktop. Hosts that need it
+// opt in to a pixel inset; everyone else gets the guest's exact coordinates,
+// because an inset costs real clickable area at the screen edge.
+describe('RemoteInputInjector edge margin', () => {
+  function marginInjector(backend: InputBackend, edgeMarginPx: number): RemoteInputInjector {
+    return new RemoteInputInjector({
+      selection: { kind: 'nut-js', platform: 'linux', displayServer: 'wayland' },
+      createBackend: () => backend,
+      logger: silentLogger,
+      edgeMarginPx,
+    });
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('leaves coordinates untouched by default', async () => {
+    const backend = fakeBackend();
+    const injector = marginInjector(backend, 0);
+    injector.updateScreenSize(1000, 500);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 1 });
+
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 1 }));
+  });
+
+  it('insets corner clicks by the configured pixel margin', async () => {
+    const backend = fakeBackend();
+    const injector = marginInjector(backend, 1);
+    injector.updateScreenSize(1000, 500);
+    injector.enable();
+
+    // 1px of 1000 wide = 0.001; 1px of 500 tall = 0.002.
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 0 });
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0.001, y: 0.002 }));
+
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 1, y: 1 });
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: 'down',
-        x: expect.closeTo(0.995, 3),
-        y: expect.closeTo(0.995, 3),
-      })
-    );
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0.999, y: 0.998 }));
+  });
+
+  it('leaves interior clicks exactly where the guest put them', async () => {
+    const backend = fakeBackend();
+    const injector = marginInjector(backend, 1);
+    injector.updateScreenSize(1000, 500);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.5, y: 0.5 });
+
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0.5, y: 0.5 }));
+  });
+
+  it('cannot inset when the screen size is still unknown', async () => {
+    const backend = fakeBackend();
+    const injector = marginInjector(backend, 1);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 0 });
+
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0 }));
+  });
+
+  it('ignores a margin wider than half the screen rather than inverting it', async () => {
+    const backend = fakeBackend();
+    const injector = marginInjector(backend, 400);
+    injector.updateScreenSize(100, 100);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0, y: 0 });
+
+    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0 }));
   });
 });

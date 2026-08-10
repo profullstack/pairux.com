@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { getCaptureSources } from '../capture/sources';
+import { setPreferredDisplayMediaSource } from '../capture/displayMedia';
 import { registerAuthHandlers } from './auth';
 import { registerSessionHandlers } from './session';
 import { registerChatHandlers } from './chat';
@@ -53,6 +54,12 @@ export function registerIpcHandlers(): void {
       return getCaptureSources(args.types);
     }
   );
+
+  // Records which source the next getDisplayMedia() call should be granted.
+  // See main/capture/displayMedia.ts for why this cannot come off the request.
+  ipcMain.handle('capture:setPreferredSource', (_event, args: { sourceId: string | null }) => {
+    setPreferredDisplayMediaSource(args.sourceId);
+  });
 
   console.log('[IPC] IPC handlers registered');
 }

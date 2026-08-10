@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { isDisplayServerKnown, shouldShowInAppSourcePicker } from './capturePicker';
+import {
+  initialIsWaylandGuess,
+  isDisplayServerKnown,
+  shouldShowInAppSourcePicker,
+} from './capturePicker';
 
 describe('shouldShowInAppSourcePicker', () => {
   it('shows the in-app picker on X11/Windows/macOS', () => {
@@ -24,5 +28,23 @@ describe('isDisplayServerKnown', () => {
     expect(isDisplayServerKnown(null)).toBe(false);
     expect(isDisplayServerKnown(true)).toBe(true);
     expect(isDisplayServerKnown(false)).toBe(true);
+  });
+});
+
+describe('initialIsWaylandGuess', () => {
+  // Saves the "Detecting display server…" spinner flashing on every launch
+  // where the answer was never in doubt.
+  it('answers false immediately off Linux', () => {
+    expect(initialIsWaylandGuess('darwin')).toBe(false);
+    expect(initialIsWaylandGuess('win32')).toBe(false);
+  });
+
+  it('waits for platform:info on Linux', () => {
+    expect(initialIsWaylandGuess('linux')).toBeNull();
+  });
+
+  // Outside Electron there is no platform to read, so guessing is not an option.
+  it('waits when the platform is unavailable', () => {
+    expect(initialIsWaylandGuess(null)).toBeNull();
   });
 });

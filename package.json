@@ -1,6 +1,6 @@
 {
   "name": "pairux",
-  "version": "0.9.51",
+  "version": "0.9.54",
   "private": true,
   "description": "Collaborative desktop screen sharing with remote control",
   "type": "module",
@@ -30,7 +30,7 @@
     "lint:fix": "turbo run lint:fix",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "precommit": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build",
+    "precommit": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm test:scripts && pnpm build",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
     "clean": "turbo run clean && rm -rf node_modules .turbo",

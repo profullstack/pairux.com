@@ -19,6 +19,7 @@ import type {
   InputEvent,
   InputStats,
   MouseButton,
+  MouseInputEvent,
 } from './types.js';
 
 export interface RemoteInputInjectorOptions {
@@ -39,8 +40,21 @@ export interface RemoteInputInjectorOptions {
    * Remote movement then drives only a tracked position rather than the real
    * pointer, which is borrowed just long enough to place a click and handed
    * back. Set false to have remote input drive the system cursor directly.
+   *
+   * A drag is the exception in either mode: once a button is held, the motion
+   * has to reach the OS or the drag tears (see `dispatch`).
    */
   virtualCursor?: boolean;
+  /**
+   * Inset, in pixels, applied to injected pointer coordinates so remote input
+   * cannot land exactly on a screen edge or corner. Defaults to 0 (no inset).
+   *
+   * Exists because compositor hot-corners — GNOME's Activities corner above
+   * all — fire from the corner pixel, and a guest brushing it hijacks the
+   * host's desktop. Costs the outermost pixels of clickable area, so callers
+   * opt in only on the platforms that need it.
+   */
+  edgeMarginPx?: number;
   /** Called when an event is refused, for host-side logging or telemetry. */
   onRejected?: (reason: RejectionReason, event: InputEvent, detail?: string) => void;
   logger?: Pick<Console, 'log' | 'warn' | 'error'>;
@@ -67,6 +81,9 @@ export class RemoteInputInjector {
   // Two-cursor mode: remote movement never moves the local pointer, so both
   // people keep a usable cursor at the same time.
   private readonly virtualCursor: boolean;
+  private readonly edgeMarginPx: number;
+  /** Last known host screen size, used to convert `edgeMarginPx` to 0-1. */
+  private screenSize: { width: number; height: number } | null = null;
   private remotePosition = { x: 0.5, y: 0.5 };
   /** Where the local pointer was before a remote click borrowed it. */
   private borrowedFrom: { x: number; y: number } | null = null;
@@ -77,6 +94,7 @@ export class RemoteInputInjector {
     this.rateLimiter = new InputRateLimiter(options.maxEventsPerSecond ?? 1000);
     this.holdTimeoutMs = options.holdTimeoutMs ?? 5000;
     this.virtualCursor = options.virtualCursor ?? true;
+    this.edgeMarginPx = Math.max(0, options.edgeMarginPx ?? 0);
     this.onRejected = options.onRejected;
     this.logger = options.logger ?? console;
   }
@@ -101,6 +119,7 @@ export class RemoteInputInjector {
       const result = await backend.init();
 
       if (result?.screenWidth && result.screenHeight) {
+        this.screenSize = { width: result.screenWidth, height: result.screenHeight };
         this.logger.log(
           `[RemoteInput] Screen size: ${String(result.screenWidth)}x${String(result.screenHeight)}`
         );
@@ -198,65 +217,84 @@ export class RemoteInputInjector {
   /**
    * Put the event on the OS.
    *
-   * **Remote mouse moves never drive the system cursor.**  The remote
-   * position is tracked virtually so the host keeps an independent pointer.
-   * This avoids cursor wars (host and guest fighting over the same cursor)
-   * and prevents compositor hot-corners from triggering when the guest
-   * moves near a screen edge.
+   * In two-cursor mode (`virtualCursor`, the default) remote *movement* only
+   * advances a tracked position; the host's pointer is left alone so both
+   * people keep a usable cursor. The real pointer is borrowed for the instant
+   * a click or scroll needs to land somewhere, then handed back.
    *
-   * Clicks and scrolls DO move the real pointer to the event's coordinates
-   * before injecting, so the click lands where the guest intended.  When
-   * the backend can report the pointer, it is restored afterwards;
-   * otherwise the pointer stays where the click landed (same behaviour as
-   * TeamViewer, AnyDesk, etc.).
+   * A drag is the exception. There is only one real cursor, so once a remote
+   * button is held the motion has to reach the OS — otherwise a drag becomes
+   * "press at A, teleport, release at B" and anything that tracks intermediate
+   * motion (text selection, canvas apps, HTML5 drag-and-drop, file managers)
+   * never sees the drag at all. The pointer is handed back once everything is
+   * released.
+   *
+   * With `virtualCursor: false` every mouse event drives the system cursor
+   * directly, which is the classic single-cursor remote-control behaviour.
    */
   private async dispatch(event: InputEvent): Promise<void> {
-    // Keyboard events: always direct injection (they don't move the cursor).
+    // Keyboard events go straight to the OS; they never move the cursor.
+    //
+    // Deliberately not logged. This is the host's own typing — passwords
+    // included — and `key`/`code` in a log file is a keylogger by any other
+    // name. The counts in `getDiagnostics()` cover the debugging need.
     if (event.type === 'keyboard') {
-      this.logger.log(`[RemoteInput] Keyboard ${event.action} key=${event.key} code=${event.code}`);
       await this.getBackend().inject(event);
       return;
     }
 
-    // Mouse move: track position virtually.  The host cursor is deliberately
-    // left alone — even when the backend cannot report it (Wayland without
-    // KWin).  Driving the system cursor on every remote move causes the host
-    // to fight back, and on GNOME the Activities hot-corner fires when the
-    // guest brushes the top-left pixel.
+    const backend = this.getBackend();
+    const dragging = this.heldButtons.size > 0;
+
     if (event.action === 'move') {
       this.remotePosition = { x: event.x, y: event.y };
+
+      // Virtual by default, but a drag in progress needs the real motion.
+      if (this.virtualCursor && !dragging) return;
+
+      await backend.inject(this.withEdgeMargin(event));
       return;
     }
 
     // Click / scroll: inject at the remote position.
     this.remotePosition = { x: event.x, y: event.y };
 
-    // Clamp away from screen edges so compositor hot-corners don't fire.
-    const edgeMargin = 0.005; // 0.5% margin — ~19px on a 4K display
-    const clampedX = Math.min(1 - edgeMargin, Math.max(edgeMargin, event.x));
-    const clampedY = Math.min(1 - edgeMargin, Math.max(edgeMargin, event.y));
-
-    const backend = this.getBackend();
-
-    // Borrow the real pointer unless a previous press already did.
-    if (this.heldButtons.size === 0) {
+    // Borrow the real pointer, unless a previous press already borrowed it.
+    if (!dragging) {
       this.borrowedFrom ??= (await backend.getCursorPosition?.()) ?? null;
     }
 
-    // Inject with clamped coordinates so the click lands safely.
-    if (clampedX !== event.x || clampedY !== event.y) {
-      await backend.inject({ ...event, x: clampedX, y: clampedY } as InputEvent);
-    } else {
-      await backend.inject(event);
-    }
+    await backend.inject(this.withEdgeMargin(event));
 
-    // Hold the pointer in place for the duration of a drag.
+    // Hold the pointer in place for the duration of a drag. Held state is
+    // recorded after dispatch, so fold this event in to see what remains down.
     const remaining = new Set(this.heldButtons);
     if (event.action === 'down') remaining.add(event.button);
     else if (event.action === 'up') remaining.delete(event.button);
     if (remaining.size > 0) return;
 
     await this.restoreLocalPointer();
+  }
+
+  /**
+   * Nudge coordinates off the screen edge when `edgeMarginPx` is configured.
+   *
+   * Returns the event untouched when there is no margin or no known screen
+   * size, so the default build injects exactly what the guest sent.
+   */
+  private withEdgeMargin<T extends MouseInputEvent>(event: T): T {
+    if (this.edgeMarginPx === 0 || !this.screenSize) return event;
+
+    const marginX = this.edgeMarginPx / this.screenSize.width;
+    const marginY = this.edgeMarginPx / this.screenSize.height;
+    // A margin wider than half the screen would invert the range.
+    if (marginX >= 0.5 || marginY >= 0.5) return event;
+
+    const x = Math.min(1 - marginX, Math.max(marginX, event.x));
+    const y = Math.min(1 - marginY, Math.max(marginY, event.y));
+    if (x === event.x && y === event.y) return event;
+
+    return { ...event, x, y };
   }
 
   private async restoreLocalPointer(): Promise<void> {
@@ -322,6 +360,7 @@ export class RemoteInputInjector {
   }
 
   updateScreenSize(width: number, height: number): void {
+    this.screenSize = { width, height };
     this.getBackend().updateScreenSize(width, height);
   }
 

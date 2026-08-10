@@ -15,9 +15,17 @@ export type InputInjectionDiagnostics = InputDiagnostics;
 let injector: RemoteInputInjector | null = null;
 
 function getInjector(): RemoteInputInjector {
+  const selection = getInputBackendSelection();
+
   injector ??= new RemoteInputInjector({
     // Platform facts come from the app's Electron-aware detection.
-    selection: getInputBackendSelection(),
+    selection,
+    // Keep remote input one pixel off the screen edge on Linux: GNOME's
+    // Activities hot-corner fires from the corner pixel, so a guest brushing
+    // it would take over the host's desktop. One pixel is enough to miss the
+    // barrier while leaving corner UI (Start button, menu bar) clickable.
+    // Other platforms get the guest's exact coordinates.
+    edgeMarginPx: selection.platform === 'linux' ? 1 : 0,
     onRejected: (reason, event, detail) => {
       console.warn('[InputInjector] Rejected input event', {
         reason,

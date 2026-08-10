@@ -5,6 +5,7 @@
 import { ipcMain, app, shell, BrowserWindow } from 'electron';
 import {
   getPlatformInfo,
+  detectDisplayServer,
   checkPipeWireAvailable,
   checkXTESTAvailable,
   getLinuxDistro,
@@ -71,7 +72,9 @@ export function registerPlatformHandlers(): void {
       distro: getLinuxDistro(),
       hasPipeWire: checkPipeWireAvailable(),
       hasXTEST: checkXTESTAvailable(),
-      displayServer: process.env.XDG_SESSION_TYPE ?? 'unknown',
+      // Not raw XDG_SESSION_TYPE: that can be 'tty' or unset, neither of which
+      // is a DisplayServer. detectDisplayServer() also falls back to DISPLAY.
+      displayServer: detectDisplayServer(),
       waylandDisplay: process.env.WAYLAND_DISPLAY ?? null,
       x11Display: process.env.DISPLAY ?? null,
     };

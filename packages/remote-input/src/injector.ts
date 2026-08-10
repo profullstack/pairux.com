@@ -13,6 +13,7 @@ import {
   type InputBackendSelection,
 } from './factory.js';
 import { InputRateLimiter, validateInputEvent, type RejectionReason } from './safety.js';
+import { isInputDebugEnabled } from './debug.js';
 import type {
   InputBackend,
   InputDiagnostics,
@@ -287,6 +288,21 @@ export class RemoteInputInjector {
     const remaining = new Set(this.heldButtons);
     if (event.action === 'down') remaining.add(event.button);
     else if (event.action === 'up') remaining.delete(event.button);
+
+    if (isInputDebugEnabled()) {
+      // The two-cursor bookkeeping around a click. A restore firing between a
+      // down and its up would yank the pointer mid-click and is invisible from
+      // the backend's own trace, so it is recorded here.
+      this.logger.log('[RemoteInput:debug] click dispatch', {
+        action: event.action,
+        dragging,
+        heldBefore: [...this.heldButtons],
+        remainingAfter: [...remaining],
+        borrowedFrom: this.borrowedFrom,
+        willRestore: remaining.size === 0,
+      });
+    }
+
     if (remaining.size > 0) return;
 
     await this.restoreLocalPointer();

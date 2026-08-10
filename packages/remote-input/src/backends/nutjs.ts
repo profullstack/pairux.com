@@ -1,4 +1,5 @@
 import { resolveModifiers } from '../modifiers.js';
+import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
   MouseMoveEvent,
@@ -142,6 +143,19 @@ export class NutJsInputBackend implements InputBackend {
     const { screen } = await getNut();
     this.screenWidth = await screen.width();
     this.screenHeight = await screen.height();
+
+    if (isInputDebugEnabled()) {
+      // The other half of a mis-placed click: if this disagrees with the
+      // display's real geometry (Retina reporting physical pixels while
+      // setPosition expects logical points, say), every coordinate is scaled
+      // wrong and no settle delay will save it.
+      console.log('[InputInjector:debug] screen geometry from nut-js', {
+        width: this.screenWidth,
+        height: this.screenHeight,
+        platform: process.platform,
+      });
+    }
+
     return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };
   }
 
@@ -168,6 +182,28 @@ export class NutJsInputBackend implements InputBackend {
     // borrows the pointer, clicks, and hands it straight back, which without
     // a delay is a sub-millisecond blip that many controls simply ignore.
     await settle();
+
+    if (isInputDebugEnabled()) {
+      // Read the pointer back from the OS. If `actual` does not match
+      // `requested` here, the settle above is too short and the click is
+      // landing somewhere other than where the guest aimed.
+      let actual: { x: number; y: number } | null = null;
+      try {
+        actual = await mouse.getPosition();
+      } catch (error) {
+        console.warn('[InputInjector:debug] could not read pointer back', { error });
+      }
+
+      console.log('[InputInjector:debug] button', {
+        action: event.action,
+        button: event.button,
+        normalized: { x: event.x, y: event.y },
+        requested: { x, y },
+        actual,
+        drift: actual ? { x: actual.x - x, y: actual.y - y } : null,
+        screen: { width: this.screenWidth, height: this.screenHeight },
+      });
+    }
 
     switch (event.action) {
       case 'down':

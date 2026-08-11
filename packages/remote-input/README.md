@@ -71,67 +71,27 @@ Mouse coordinates are normalized `0-1` relative to the shared surface, not
 pixels. The viewer never needs to know the host's resolution, DPI, or monitor
 layout — call `updateScreenSize()` on the host and the injector maps them.
 
-## Two cursors on a one-cursor OS
+## One shared host pointer
 
-Every desktop OS we support has exactly one system pointer, and none of them
-lets an ordinary process create a second one (X11's XInput2 MPX aside, which
-does not exist on Wayland or macOS). Injecting remote movement into that single
-pointer is what makes remote control feel like the local user's mouse has been
-stolen.
+PairUX remote control drives the host's real system cursor directly. The host and
+guest can take turns naturally: when the guest stops moving, the host can move
+and click the same cursor anywhere in the system. No cursor is borrowed,
+restored, or rendered separately.
 
-So by default (`virtualCursor: true`) remote movement never touches the local
-pointer at all — it only advances a tracked position, which the host renders as
-the remote participant's cursor. The real pointer is borrowed for the instant a
-remote click or scroll has to land somewhere, then handed straight back to
-where its owner left it. Both people keep a usable cursor at the same time.
-
-```ts
-injector.getRemoteCursorPosition(); // { x, y } normalized — draw this
-```
-
-During a drag the pointer necessarily stays with the remote user until they
-release, otherwise the drag would tear.
-
-Restoration needs to read where the local pointer is. X11 and macOS answer
-directly. **Wayland refuses** — no protocol tells a client where the pointer
-is — so there the compositor is asked instead.
-
-### Wayland (KDE)
-
-`KWinCursorProvider` closes the gap on KWin. Since a KWin script can only talk
-_outward_ over DBus, and the bus rejects calls to a name nobody owns, the
-provider claims `org.profullstack.RemoteInput`, exposes a `SetCursorPos`
-method, then installs and loads a small script that pushes `workspace.cursorPos`
-to it — distance-throttled, since the signal fires on every motion event. This
-happens automatically; the user installs nothing.
-
-Enabled automatically on a KDE session running Wayland — the only environment
-it targets. `PAIRUX_WAYLAND_CURSOR_RESTORE=0` forces it off if a compositor
-misbehaves; `=1` forces it on for a KDE session that does not advertise itself
-in `XDG_CURRENT_DESKTOP`.
-
-Requires `gdbus` (`libglib2.0-bin`, present on essentially every desktop).
-Readings older than two seconds are discarded rather than used, so a
-half-working helper can never fling the pointer somewhere its owner never left
-it. If any part fails, `getCursorPosition()` returns null and behaviour falls
-back to leaving the pointer where the click landed.
-
-GNOME's equivalent (`global.get_pointer()` via a Shell extension) is not
-implemented yet.
-
-Pass `virtualCursor: false` for the old behaviour where remote input drives the
-system cursor directly.
+On Wayland, PairUX uses `ydotool` to inject into that one pointer. The host
+can revoke control or use the emergency-stop hotkey if a guest disconnects
+mid-drag.
 
 ## Platform support
 
-| Platform                | Backend           | Two cursors                                                                                                                                | Requirements                                         |
-| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| macOS                   | `nut-js`          | Full — local pointer restored                                                                                                              | Accessibility permission (see below)                 |
-| Windows                 | `nut-js`          | Full — local pointer restored                                                                                                              | None. Admin only to drive elevated windows.          |
-| Linux / X11             | `nut-js`          | Full — local pointer restored                                                                                                              | None                                                 |
-| Linux / Wayland (KDE)   | `wayland-ydotool` | Movement remains virtual; a click leaves the pointer where it landed. Experimental restoration requires `PAIRUX_WAYLAND_CURSOR_RESTORE=1`. | `ydotool` + running `ydotoold` with `/dev/uinput`    |
-| Linux / Wayland (other) | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed                                                          | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
-| Linux / Wayland         | `wayland-portal`  | n/a                                                                                                                                        | Diagnostic only — reports why control is unavailable |
+| Platform                | Backend           | Pointer behavior                           | Requirements                                         |
+| ----------------------- | ----------------- | ------------------------------------------ | ---------------------------------------------------- |
+| macOS                   | `nut-js`          | Drives the shared system pointer directly. | Accessibility permission (see below)                 |
+| Windows                 | `nut-js`          | Drives the shared system pointer directly. | None. Admin only to drive elevated windows.          |
+| Linux / X11             | `nut-js`          | Drives the shared system pointer directly. | None                                                 |
+| Linux / Wayland (KDE)   | `wayland-ydotool` | Drives the shared system pointer directly. | `ydotool` + running `ydotoold` with `/dev/uinput`    |
+| Linux / Wayland (other) | `wayland-ydotool` | Drives the shared system pointer directly. | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
+| Linux / Wayland         | `wayland-portal`  | n/a                                        | Diagnostic only — reports why control is unavailable |
 
 > This package injects into a real OS, so it runs only where one exists. A
 > browser cannot be the _controlled_ machine; a browser-based client can only

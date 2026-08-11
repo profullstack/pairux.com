@@ -191,7 +191,6 @@ sequenceDiagram
 | `JoinPage`         | Session join flow                         |
 | `ViewerCanvas`     | Render remote screen                      |
 | `InputCapture`     | Capture mouse/keyboard for remote control |
-| `CursorOverlay`    | Show multi-cursor positions               |
 | `ControlRequestUI` | Request/status of control                 |
 
 ## Network Architecture

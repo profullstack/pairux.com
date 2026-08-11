@@ -9,7 +9,6 @@ interface InputCaptureProps {
   enabled: boolean;
   controlState: ControlStateUI;
   onInputEvent: (event: InputEvent) => void;
-  onCursorMove?: ((x: number, y: number, visible: boolean) => void) | undefined;
   className?: string;
   /** When true, shows a fullscreen toggle and enables pointer lock. */
   allowFullscreen?: boolean;
@@ -30,22 +29,14 @@ export function InputCapture({
   enabled,
   controlState,
   onInputEvent,
-  onCursorMove,
   className = '',
   allowFullscreen = false,
 }: InputCaptureProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const handlePointerMove = useCallback(
-    (x: number, y: number, visible: boolean) => {
-      onCursorMove?.(x, y, visible);
-    },
-    [onCursorMove]
-  );
-
   const { isLocked, wasReleasedByUser, positionRef, lock, unlock, resetPosition } = usePointerLock({
-    onMove: handlePointerMove,
+    onMove: () => undefined,
   });
 
   // The guest has asked to drive, by clicking into the picture.
@@ -76,7 +67,6 @@ export function InputCapture({
     controlState,
     containerRef,
     onInputEvent,
-    onCursorMove,
     // Only once the lock is actually held. Under lock the event's clientX/Y
     // stop advancing, so the virtual position is the only real coordinate;
     // outside it, the event is.

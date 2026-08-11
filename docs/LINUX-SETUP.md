@@ -139,36 +139,11 @@ Wayland support requires PipeWire for screen capture. Input injection works via
 
 - ✅ Screen sharing via xdg-desktop-portal / PipeWire
 - ✅ Remote control (mouse + keyboard) via `ydotool`
-- ✅ Two-cursor mode: a guest's movement never takes over the host's pointer —
-  this needs nothing Wayland-specific
-- ✅ Restoring the host's pointer after a guest click, **on KDE**, via the KWin
-  helper below
-- ⚠️ On non-KDE compositors a guest's click leaves the pointer where it landed.
-  Wayland gives clients no way to read the pointer position, so there is nothing
-  to restore to. GNOME support (a Shell extension) is not implemented yet.
+- ✅ The host and guest share the one real system pointer. When the guest stops
+  moving, the host can immediately use that same pointer anywhere in the system.
+- ✅ No KWin helper, pointer borrowing, or pointer restoration is used.
 - ⚠️ The in-app source picker is skipped on Wayland: the portal cannot enumerate
   sources with thumbnails, so the system picker is used instead
-
-### Pointer restoration on KDE (KWin)
-
-Automatic on a KDE Wayland session — PairUX claims a DBus name and loads a small
-KWin script that reports `workspace.cursorPos`, then unloads it on quit. The
-report rate is capped, the script exists only while a guest holds control, and it
-self-disables after repeated failures. Set `PAIRUX_WAYLAND_CURSOR_RESTORE=0` to
-turn it off. The only requirement is `gdbus`:
-
-```bash
-sudo apt install libglib2.0-bin   # usually already present
-```
-
-Confirm it is working in the host's terminal output:
-
-```
-[RemoteInput] KWin cursor reporting active
-```
-
-If it says `Cursor reporting off: ...` instead, remote control still works — a
-guest's click just leaves the pointer where it landed.
 
 ### Required Packages (Wayland)
 

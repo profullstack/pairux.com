@@ -19,7 +19,6 @@ const mockUseWebRTC = {
   requestControl: vi.fn(),
   releaseControl: vi.fn(),
   sendInput: vi.fn(),
-  sendCursorPosition: vi.fn(),
   // Microphone
   micEnabled: false,
   hasMic: true,

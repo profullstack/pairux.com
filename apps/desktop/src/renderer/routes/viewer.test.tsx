@@ -47,7 +47,6 @@ const mockP2PHookResult: {
   qualityMetrics: null;
   networkQuality: string;
   sendInput: ReturnType<typeof vi.fn>;
-  sendCursorPosition: ReturnType<typeof vi.fn>;
 } = {
   connectionState: 'connected',
   remoteStream: null,
@@ -64,7 +63,6 @@ const mockP2PHookResult: {
   qualityMetrics: null,
   networkQuality: 'good',
   sendInput: vi.fn(),
-  sendCursorPosition: vi.fn(),
 };
 
 const mockSFUHookResult = {

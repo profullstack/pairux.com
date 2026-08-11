@@ -1,6 +1,5 @@
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
-import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
 import { resolveModifiers } from '../modifiers.js';
 import { resolveKey } from '../keymap.js';
@@ -401,9 +400,6 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   private readonly scrollY = new ScrollAccumulator();
   /** The shared region of the desktop, or null for "the whole primary screen". */
   private captureBounds: CaptureBounds | null = null;
-  // Wayland will not report the pointer, so ask the compositor instead. Only
-  // used to hand the local pointer back after a remote click borrows it.
-  private readonly cursorProvider = new KWinCursorProvider();
   private readonly run: ExecRunner;
   private readonly startDaemon: DaemonStarter;
   private readonly probeAvailability: AvailabilityProbe;
@@ -528,44 +524,6 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     }
 
     return { screenWidth: this.screenWidth, screenHeight: this.screenHeight };
-  }
-
-  /**
-   * Pointer position via the compositor, normalized 0-1.
-   *
-   * Null whenever KWin is not reporting — the injector then skips restoring
-   * rather than moving the pointer somewhere wrong.
-   */
-  async dispose(): Promise<void> {
-    await this.cursorProvider.stop();
-  }
-
-  /**
-   * Begin asking the compositor for the pointer position.
-   *
-   * Deliberately not called from init(): this installs a hook into KWin's input
-   * path, so it should only exist while someone actually has control.
-   */
-  async startCursorReporting(): Promise<void> {
-    await this.cursorProvider.start();
-  }
-
-  suspendCursorReporting(): void {
-    this.cursorProvider.suspendUpdates();
-  }
-
-  resumeCursorReporting(): void {
-    this.cursorProvider.resumeUpdates();
-  }
-
-  getCursorPosition(): Promise<{ x: number; y: number } | null> {
-    const point = this.cursorProvider.getPosition();
-    if (!point) return Promise.resolve(null);
-
-    return Promise.resolve({
-      x: Math.min(1, Math.max(0, point.x / this.screenWidth)),
-      y: Math.min(1, Math.max(0, point.y / this.screenHeight)),
-    });
   }
 
   updateScreenSize(width: number, height: number): void {

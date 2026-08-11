@@ -73,7 +73,6 @@ export type {
   MuteMessage,
   TailnetHelloMessage,
   ControlMessage,
-  CursorPositionMessage,
   PingMessage,
   PongMessage,
   ConnectionState,

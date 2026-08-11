@@ -6,7 +6,6 @@ import type {
   SignalMessage,
   InputMessage,
   ControlMessage,
-  CursorPositionMessage,
   ControlStateUI,
   NetworkQuality,
   KickMessage,
@@ -98,7 +97,6 @@ interface UseWebRTCHostOptions {
   onViewerLeft?: (viewerId: string) => void;
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
-  onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
 }
 
 interface UseWebRTCHostReturn {
@@ -130,7 +128,6 @@ export function useWebRTCHost({
   onViewerLeft,
   onControlRequest,
   onInputReceived,
-  onCursorUpdate,
 }: UseWebRTCHostOptions): UseWebRTCHostReturn {
   const [isHosting, setIsHosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,13 +149,11 @@ export function useWebRTCHost({
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
 
   // Keep refs updated
   localStreamRef.current = localStream;
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
-  onCursorUpdateRef.current = onCursorUpdate;
 
   // Calculate network quality from stats
   const calculateNetworkQuality = useCallback(
@@ -246,10 +241,7 @@ export function useWebRTCHost({
   // Handle data channel messages from a viewer
   const handleDataChannelMessage = useCallback((viewerId: string, event: MessageEvent<string>) => {
     try {
-      const message = JSON.parse(event.data) as
-        | ControlMessage
-        | InputMessage
-        | CursorPositionMessage;
+      const message = JSON.parse(event.data) as ControlMessage | InputMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -268,9 +260,6 @@ export function useWebRTCHost({
           }
           case 'input':
             onInputReceivedRef.current?.(viewerId, message);
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(viewerId, message);
             break;
         }
       }

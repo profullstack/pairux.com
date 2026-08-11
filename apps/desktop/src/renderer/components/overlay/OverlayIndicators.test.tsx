@@ -165,7 +165,7 @@ describe('OverlayIndicators', () => {
     it('displays participant name', () => {
       render(<ControlActiveIndicator participant={mockParticipant} />);
 
-      expect(screen.getByText('Test User has control')).toBeInTheDocument();
+      expect(screen.getByText(/Test User has control/)).toBeInTheDocument();
     });
 
     it('has monitor icon', () => {

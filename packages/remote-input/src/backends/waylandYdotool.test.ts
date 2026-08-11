@@ -73,26 +73,6 @@ describe('WaylandYdotoolInputBackend', () => {
     await expect(backend.init()).resolves.toEqual({ screenWidth: 1920, screenHeight: 1080 });
   });
 
-  it('passes pointer-borrow reporter suppression through to KWin', () => {
-    const backend = new WaylandYdotoolInputBackend(vi.fn(), {
-      hasBinary: true,
-      hasSocket: true,
-      socketPath: '/run/ydotoold/socket',
-    });
-    const cursorProvider = {
-      suspendUpdates: vi.fn(),
-      resumeUpdates: vi.fn(),
-    };
-    (backend as unknown as { cursorProvider: typeof cursorProvider }).cursorProvider =
-      cursorProvider;
-
-    backend.suspendCursorReporting();
-    backend.resumeCursorReporting();
-
-    expect(cursorProvider.suspendUpdates).toHaveBeenCalledOnce();
-    expect(cursorProvider.resumeUpdates).toHaveBeenCalledOnce();
-  });
-
   it('emits mouse move command with absolute coordinates', async () => {
     const run = vi.fn(async (_command: string, _args: string[]) => undefined);
     const backend = new WaylandYdotoolInputBackend(run, {

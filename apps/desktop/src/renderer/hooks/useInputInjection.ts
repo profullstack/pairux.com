@@ -44,7 +44,7 @@ export function useInputInjection({
   // IPC handlers may run concurrently. Keep every OS injection in the order
   // it arrived, especially move -> down -> up. Without this queue, a button
   // down that is waiting for a pending move batch can be overtaken by its up,
-  // leaving the virtual mouse button held on the host desktop.
+  // leaving a mouse button held on the host desktop.
   const injectionQueue = useRef<Promise<void>>(Promise.resolve());
 
   const enqueueInjection = useCallback(

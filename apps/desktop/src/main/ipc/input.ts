@@ -4,7 +4,6 @@
 
 import { ipcMain, globalShortcut, app } from 'electron';
 import type { InputEvent } from '@pairux/shared-types';
-import { showRemoteCursor, hideRemoteCursor, destroyRemoteCursor } from '../overlay/cursorOverlay';
 import { reportDaemonState } from '../daemon';
 import { getTailscaleState, checkTailnetPath } from '../daemon/tailscale';
 import {
@@ -24,13 +23,12 @@ let emergencyShortcutRegistered = false;
 /**
  * Register emergency revoke hotkey (Ctrl+Shift+Escape)
  */
-function registerEmergencyShortcut(): void {
-  if (emergencyShortcutRegistered) return;
+function registerEmergencyShortcut(): boolean {
+  if (emergencyShortcutRegistered) return true;
 
   const registered = globalShortcut.register('CommandOrControl+Shift+Escape', () => {
     console.log('[IPC:Input] Emergency revoke hotkey triggered');
     void (async () => {
-      destroyRemoteCursor();
       await emergencyStop();
       // Notify renderer
       const { BrowserWindow } = await import('electron');
@@ -44,8 +42,10 @@ function registerEmergencyShortcut(): void {
   if (registered) {
     emergencyShortcutRegistered = true;
     console.log('[IPC:Input] Emergency shortcut registered (Ctrl+Shift+Escape)');
+    return true;
   } else {
     console.warn('[IPC:Input] Failed to register emergency shortcut');
+    return false;
   }
 }
 
@@ -73,10 +73,16 @@ export function registerInputHandlers(): void {
 
   // Enable input injection (when control is granted to a viewer)
   ipcMain.handle('input:enable', () => {
-    enableInjection();
-    registerEmergencyShortcut();
+    const injectionEnabled = enableInjection();
+    const emergencyStopReady = injectionEnabled && registerEmergencyShortcut();
+    if (injectionEnabled && !emergencyStopReady) {
+      // Direct control owns the host's real pointer. Never start it unless the
+      // host has a verified, global way to stop a stuck guest input stream.
+      disableInjection();
+    }
     const diagnostics = getInjectionDiagnostics();
-    return { success: true, ...diagnostics };
+    const enabled = emergencyStopReady && diagnostics.enabled;
+    return { success: enabled, ...diagnostics, enabled };
   });
 
   // Disable input injection (when control is revoked)
@@ -90,17 +96,6 @@ export function registerInputHandlers(): void {
   ipcMain.handle('input:status', () => {
     return getInjectionDiagnostics();
   });
-
-  // Update screen size (when capture source changes)
-  // Paint the guest's cursor on the host's desktop, outside the app window.
-  ipcMain.handle(
-    'overlay:remoteCursor',
-    (_event, args: { x: number; y: number; name: string; visible: boolean }) => {
-      if (args.visible) showRemoteCursor(args.x, args.y, args.name);
-      else hideRemoteCursor();
-      return { success: true };
-    }
-  );
 
   // The renderer owns capture/session state; main mirrors it so the daemon's
   // HTTP endpoints can answer without a round trip.
@@ -149,11 +144,6 @@ export function registerInputHandlers(): void {
     return checkTailnetPath(args.ip);
   });
 
-  ipcMain.handle('overlay:clearRemoteCursor', () => {
-    destroyRemoteCursor();
-    return { success: true };
-  });
-
   ipcMain.handle('input:updateScreenSize', (_event, args: { width: number; height: number }) => {
     updateScreenSize(args.width, args.height);
     return { success: true };
@@ -192,8 +182,6 @@ export function registerInputHandlers(): void {
     event.preventDefault();
 
     unregisterEmergencyShortcut();
-    destroyRemoteCursor();
-
     // Bounded, so a wedged backend cannot make the app unquittable.
     const deadline = new Promise<void>((resolve) => setTimeout(resolve, 2000));
     void Promise.race([disposeInputInjector(), deadline])

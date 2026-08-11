@@ -149,7 +149,6 @@ describe('useWebRTC', () => {
     expect('requestControl' in result.current).toBe(true);
     expect('releaseControl' in result.current).toBe(true);
     expect('sendInput' in result.current).toBe(true);
-    expect('sendCursorPosition' in result.current).toBe(true);
   });
 
   describe('microphone capture', () => {

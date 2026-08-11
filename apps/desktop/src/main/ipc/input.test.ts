@@ -95,6 +95,24 @@ describe('IPC Input Handlers', () => {
   });
 
   describe('input:enable handler', () => {
+    it('refuses control when the global emergency shortcut cannot be registered', () => {
+      vi.mocked(globalShortcut.register).mockReturnValueOnce(false);
+      vi.mocked(getInjectionDiagnostics).mockReturnValueOnce({
+        enabled: true,
+        backend: 'nut-js',
+        backendSupported: true,
+        stats: { received: 0, injected: 0, rejected: 0, errors: 0, coalesced: 0 },
+        heldButtons: 0,
+        heldKeys: 0,
+      });
+      const handler = mockIpcMainHandlers.get('input:enable')!;
+
+      const result = handler();
+
+      expect(disableInjection).toHaveBeenCalled();
+      expect(result).toMatchObject({ success: false, enabled: false });
+    });
+
     it('should enable injection and register emergency shortcut', () => {
       vi.mocked(getInjectionDiagnostics).mockReturnValueOnce({
         enabled: true,

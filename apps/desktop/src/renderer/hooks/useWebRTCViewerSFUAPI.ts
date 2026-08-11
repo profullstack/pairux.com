@@ -26,7 +26,6 @@ import type {
   InputEvent,
   ControlMessage,
   ControlStateUI,
-  CursorPositionMessage,
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
@@ -40,7 +39,6 @@ interface UseWebRTCViewerSFUAPIOptions {
   onStreamReady?: (stream: MediaStream) => void;
   onStreamEnded?: () => void;
   onControlStateChange?: (state: ControlStateUI) => void;
-  onCursorUpdate?: (cursor: CursorPositionMessage) => void;
   onKicked?: (reason?: string) => void;
   onPresenceChange?: () => void;
 }
@@ -58,7 +56,6 @@ interface UseWebRTCViewerSFUAPIReturn {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -85,7 +82,6 @@ export function useWebRTCViewerSFUAPI({
   onStreamReady,
   onStreamEnded,
   onControlStateChange,
-  onCursorUpdate,
   onKicked,
   onPresenceChange,
 }: UseWebRTCViewerSFUAPIOptions): UseWebRTCViewerSFUAPIReturn {
@@ -108,7 +104,6 @@ export function useWebRTCViewerSFUAPI({
   const prevStatsTimestampRef = useRef(0);
 
   const onControlStateChangeRef = useRef(onControlStateChange);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onKickedRef = useRef(onKicked);
   const onPresenceChangeRef = useRef(onPresenceChange);
   const onStreamReadyRef = useRef(onStreamReady);
@@ -116,7 +111,6 @@ export function useWebRTCViewerSFUAPI({
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
 
   onControlStateChangeRef.current = onControlStateChange;
-  onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
   onPresenceChangeRef.current = onPresenceChange;
   onStreamReadyRef.current = onStreamReady;
@@ -133,14 +127,10 @@ export function useWebRTCViewerSFUAPI({
   }, []);
 
   const handleDataReceived = useCallback(
-    (payload: Uint8Array, participant?: RemoteParticipant) => {
+    (payload: Uint8Array, _participant?: RemoteParticipant) => {
       try {
         const text = decoder.decode(payload);
-        const message = JSON.parse(text) as
-          | ControlMessage
-          | CursorPositionMessage
-          | KickMessage
-          | MuteMessage;
+        const message = JSON.parse(text) as ControlMessage | KickMessage | MuteMessage;
 
         if ('type' in message) {
           switch (message.type) {
@@ -166,11 +156,6 @@ export function useWebRTCViewerSFUAPI({
             case 'control-revoke':
               setControlState('view-only');
               onControlStateChangeRef.current?.('view-only');
-              break;
-            case 'cursor':
-              if (participant?.identity !== participantId) {
-                onCursorUpdateRef.current?.(message);
-              }
               break;
             case 'kick':
               setError('You were removed from the session');
@@ -241,23 +226,6 @@ export function useWebRTCViewerSFUAPI({
       sendData(message);
     },
     [controlState, dataChannelReady, sendData]
-  );
-
-  // Send cursor position (lossy)
-  const sendCursorPosition = useCallback(
-    (x: number, y: number, visible: boolean) => {
-      if (!dataChannelReady) return;
-
-      const message: CursorPositionMessage = {
-        type: 'cursor',
-        participantId,
-        x,
-        y,
-        visible,
-      };
-      sendData(message, false);
-    },
-    [participantId, dataChannelReady, sendData]
   );
 
   // Collect stats
@@ -554,7 +522,6 @@ export function useWebRTCViewerSFUAPI({
     requestControl,
     releaseControl,
     sendInput,
-    sendCursorPosition,
     micEnabled,
     hasMic,
     toggleMic,

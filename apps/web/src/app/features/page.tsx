@@ -184,8 +184,8 @@ const technicalFeatures = [
   },
   {
     icon: Pointer,
-    title: 'Multi-cursor',
-    description: 'See remote cursor position in real-time.',
+    title: 'Shared control',
+    description: 'Host and guest take turns using the host system pointer.',
   },
   {
     icon: Keyboard,

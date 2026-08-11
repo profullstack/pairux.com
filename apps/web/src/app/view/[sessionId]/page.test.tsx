@@ -25,7 +25,6 @@ const mockRequestControl = vi.fn();
 const mockReleaseControl = vi.fn();
 const mockReconnect = vi.fn();
 const mockSendInput = vi.fn();
-const mockSendCursorPosition = vi.fn();
 
 const mockWebRTCResult = {
   connectionState: 'connected' as const,
@@ -39,7 +38,6 @@ const mockWebRTCResult = {
   requestControl: mockRequestControl,
   releaseControl: mockReleaseControl,
   sendInput: mockSendInput,
-  sendCursorPosition: mockSendCursorPosition,
   micEnabled: false,
   hasMic: true,
   toggleMic: mockToggleMic,
@@ -73,7 +71,6 @@ vi.mock('@/components/control', () => ({
   ControlRequestButton: () => <div data-testid="control-button">ControlButton</div>,
   ControlStatusIndicator: () => null,
   InputCapture: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  CursorOverlay: () => null,
 }));
 
 vi.mock('@/components/Logo', () => ({

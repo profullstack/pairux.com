@@ -15,7 +15,6 @@ import type {
   ConnectionState,
   NetworkQuality,
   InputMessage,
-  CursorPositionMessage,
   ControlMessage,
   KickMessage,
   MuteMessage,
@@ -100,7 +99,6 @@ interface UseWebRTCHostOptions {
   onViewerLeft?: (viewerId: string) => void;
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
-  onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
 }
 
 interface UseWebRTCHostReturn {
@@ -130,7 +128,6 @@ export function useWebRTCHost({
   onViewerLeft,
   onControlRequest,
   onInputReceived,
-  onCursorUpdate,
 }: UseWebRTCHostOptions): UseWebRTCHostReturn {
   const [isHosting, setIsHosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,10 +151,8 @@ export function useWebRTCHost({
   localStreamRef.current = localStream;
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
-  onCursorUpdateRef.current = onCursorUpdate;
 
   // Send signal via API
   const sendSignal = useCallback(
@@ -258,7 +253,7 @@ export function useWebRTCHost({
   // Handle data channel messages from viewer
   const handleDataChannelMessage = useCallback((viewerId: string, data: string) => {
     try {
-      const message = JSON.parse(data) as ControlMessage | InputMessage | CursorPositionMessage;
+      const message = JSON.parse(data) as ControlMessage | InputMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -276,9 +271,6 @@ export function useWebRTCHost({
           }
           case 'input':
             onInputReceivedRef.current?.(viewerId, message);
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(viewerId, message);
             break;
         }
       }

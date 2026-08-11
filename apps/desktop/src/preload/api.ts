@@ -242,16 +242,6 @@ export interface IPCChannels {
     return: { success: boolean };
   };
 
-  'overlay:remoteCursor': {
-    args: { x: number; y: number; name: string; visible: boolean };
-    return: { success: boolean };
-  };
-
-  'overlay:clearRemoteCursor': {
-    args: undefined;
-    return: { success: boolean };
-  };
-
   'webrtc:setIpPolicy': {
     args: { allowPrivate: boolean };
     return: { success: boolean; policy: string };

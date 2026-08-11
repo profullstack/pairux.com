@@ -607,7 +607,6 @@ type DataChannelMessage =
   | InputEventMessage
   | ControlRequestMessage
   | ControlResponseMessage
-  | CursorPositionMessage
   | PingMessage;
 
 interface InputEventMessage {
@@ -624,13 +623,6 @@ interface ControlResponseMessage {
   type: 'control-response';
   requestId: string;
   granted: boolean;
-}
-
-interface CursorPositionMessage {
-  type: 'cursor';
-  x: number; // 0-1 relative
-  y: number; // 0-1 relative
-  visible: boolean;
 }
 
 interface PingMessage {
@@ -659,9 +651,6 @@ function handleMessage(event: MessageEvent): void {
       break;
     case 'control-request':
       handleControlRequest(message.requestId);
-      break;
-    case 'cursor':
-      updateRemoteCursor(message.x, message.y);
       break;
     case 'ping':
       sendPong(message.timestamp);

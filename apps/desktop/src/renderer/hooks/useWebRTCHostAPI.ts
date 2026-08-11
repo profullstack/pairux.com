@@ -13,7 +13,6 @@ import type {
   ConnectionState,
   NetworkQuality,
   InputMessage,
-  CursorPositionMessage,
   ControlMessage,
   KickMessage,
   MuteMessage,
@@ -85,7 +84,6 @@ interface UseWebRTCHostAPIOptions {
   onViewerLeft?: (viewerId: string) => void;
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
-  onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
   /** A peer reporting its tailnet addresses (diagnostic only). */
   onTailnetHello?: (viewerId: string, ips: string[], isReply: boolean) => void;
 }
@@ -123,7 +121,6 @@ export function useWebRTCHostAPI({
   onViewerLeft,
   onControlRequest,
   onInputReceived,
-  onCursorUpdate,
   onTailnetHello,
 }: UseWebRTCHostAPIOptions): UseWebRTCHostAPIReturn {
   const [isHosting, setIsHosting] = useState(false);
@@ -155,11 +152,9 @@ export function useWebRTCHostAPI({
   localStreamRef.current = localStream;
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onTailnetHelloRef = useRef(onTailnetHello);
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
-  onCursorUpdateRef.current = onCursorUpdate;
   onTailnetHelloRef.current = onTailnetHello;
   // Sessions that disallow control must never surface a request or forward an
   // input event, even if a viewer sends one anyway.
@@ -354,10 +349,7 @@ export function useWebRTCHostAPI({
   // Handle data channel messages
   const handleDataChannelMessage = useCallback((viewerId: string, event: MessageEvent<string>) => {
     try {
-      const message = JSON.parse(event.data) as
-        | ControlMessage
-        | InputMessage
-        | CursorPositionMessage;
+      const message = JSON.parse(event.data) as ControlMessage | InputMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -385,9 +377,6 @@ export function useWebRTCHostAPI({
           case 'input':
             if (!allowControlRef.current) return;
             onInputReceivedRef.current?.(viewerId, message);
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(viewerId, message);
             break;
         }
       }

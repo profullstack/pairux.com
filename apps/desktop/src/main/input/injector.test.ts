@@ -212,7 +212,7 @@ describe('Input Injector', () => {
         expect(mouse.setPosition).toHaveBeenCalledWith({ x: 960, y: 540 });
       });
 
-      it('positions the pointer at the remote cursor when a click lands', async () => {
+      it('positions the shared host pointer before a click lands', async () => {
         await injectInput({ type: 'mouse', action: 'move', x: 0.25, y: 0.75 });
         await injectInput({
           type: 'mouse',

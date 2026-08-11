@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useRef, useCallback } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -20,7 +20,6 @@ import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicato
 import { useSessionPresence } from '@/hooks/useSessionPresence';
 import type {
   ConnectionState,
-  CursorPositionMessage,
   QualityMetrics,
   NetworkQuality,
   ControlStateUI,
@@ -29,14 +28,8 @@ import type {
 import { VideoViewer } from '@/components/video';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
-import {
-  ControlRequestButton,
-  ControlStatusIndicator,
-  InputCapture,
-  CursorOverlay,
-} from '@/components/control';
+import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
 import { Logo } from '@/components/Logo';
-import { useVideoContentRect } from '@/hooks/useVideoContentRect';
 
 interface Participant {
   id: string;
@@ -188,65 +181,21 @@ interface GuestViewerProps {
 }
 
 function P2PGuestViewer({ sessionId, session, participant, participantId }: GuestViewerProps) {
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
-
   const hookResult = useWebRTC({
     sessionId,
     participantId,
-    onCursorUpdate: handleCursorUpdate,
   });
 
-  return (
-    <GuestViewerContent
-      session={session}
-      participant={participant}
-      remoteCursors={remoteCursors}
-      {...hookResult}
-    />
-  );
+  return <GuestViewerContent session={session} participant={participant} {...hookResult} />;
 }
 
 function SFUGuestViewer({ sessionId, session, participant, participantId }: GuestViewerProps) {
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
-
   const hookResult = useWebRTCSFU({
     sessionId,
     participantId,
-    onCursorUpdate: handleCursorUpdate,
   });
 
-  return (
-    <GuestViewerContent
-      session={session}
-      participant={participant}
-      remoteCursors={remoteCursors}
-      {...hookResult}
-    />
-  );
+  return <GuestViewerContent session={session} participant={participant} {...hookResult} />;
 }
 
 // --- Shared viewer content (all JSX lives here) ---
@@ -254,7 +203,6 @@ function SFUGuestViewer({ sessionId, session, participant, participantId }: Gues
 interface GuestViewerContentProps {
   session: SessionData;
   participant: Participant;
-  remoteCursors: Map<string, CursorPositionMessage>;
   connectionState: ConnectionState;
   remoteStream: MediaStream | null;
   qualityMetrics: QualityMetrics | null;
@@ -266,7 +214,6 @@ interface GuestViewerContentProps {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -275,7 +222,6 @@ interface GuestViewerContentProps {
 function GuestViewerContent({
   session,
   participant,
-  remoteCursors,
   connectionState,
   remoteStream,
   qualityMetrics,
@@ -287,7 +233,6 @@ function GuestViewerContent({
   requestControl,
   releaseControl,
   sendInput,
-  sendCursorPosition,
   micEnabled,
   hasMic,
   toggleMic,
@@ -295,7 +240,6 @@ function GuestViewerContent({
   const videoContainerRef = useRef<HTMLDivElement>(null);
   // Cursors are normalized against the remote screen, which is letterboxed
   // inside the player, so the overlay needs the picture's rectangle.
-  const videoContentRect = useVideoContentRect(videoContainerRef);
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
@@ -361,7 +305,6 @@ function GuestViewerContent({
               enabled={allowControl}
               controlState={controlState}
               onInputEvent={sendInput}
-              onCursorMove={sendCursorPosition}
               allowFullscreen
               className="h-full"
             >
@@ -378,7 +321,6 @@ function GuestViewerContent({
                 className="h-full"
               />
             </InputCapture>
-            <CursorOverlay cursors={remoteCursors} contentRect={videoContentRect} />
           </div>
 
           {/* Control bar */}

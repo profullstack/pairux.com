@@ -462,68 +462,20 @@ interface KeyboardEventData {
 - Cannot be overridden by remote input
 - Works even if app is not focused (global hotkey)
 
-### 5.5 Simultaneous Input (two cursors)
+### 5.5 Shared Host Pointer
 
-**Design**: Both host and viewer work at the same time, each with their own
-cursor. Neither hands control over, and the host's pointer is never taken away.
+**Design**: The host and viewer share the host's one real system pointer.
 
-**How**: every OS has exactly one system pointer and none lets a normal process
-create a second, so the viewer's cursor is not a real one:
+**How**: Every remote movement, click, scroll, and drag is injected directly
+into the host operating system. When the viewer is idle, the host immediately
+uses the same pointer normally. There is no separate cursor, pointer borrowing,
+restoration, or compositor integration.
 
-- viewer movement only advances a tracked position, drawn as their cursor —
-  the host's pointer does not move for it
-- the real pointer is borrowed for the instant a viewer click or scroll lands,
-  then returned to where the host left it
-- during a drag it stays with the viewer until they release
-
-**Conflict resolution**: there is nothing to resolve for movement, since the two
-cursors are independent. A viewer click briefly borrows the real pointer; if the
-host clicks at the same moment, the OS orders them like any two events.
-
-**Platform note**: returning the pointer requires reading its position, which
-macOS, Windows, X11 and KDE/Wayland (via the KWin helper) allow. Other Wayland
-compositors leave the pointer where the click landed.
+**Conflict resolution**: Input that arrives at the same moment is ordered by the
+operating system. The emergency revoke hotkey always releases held input and
+stops injection.
 
 See `docs/REMOTE-CONTROL.md` and `@profullstack/remote-input`.
-
----
-
-## 6. Multi-Cursor Display
-
-### 6.1 Cursor Rendering
-
-**Host Side**:
-
-- Native OS cursor (always visible)
-- No overlay needed
-
-**Viewer Side**:
-
-- Remote cursor rendered as overlay
-- Shows host cursor position
-- Own cursor for control input
-
-### 6.2 Cursor Appearance
-
-| Participant          | Cursor Style     | Label      |
-| -------------------- | ---------------- | ---------- |
-| Host                 | Native OS cursor | None       |
-| Viewer (viewing)     | Arrow with color | Name badge |
-| Viewer (controlling) | Arrow with color | Name badge |
-
-**Cursor Colors**: Assigned automatically from palette
-
-- Viewer 1: Blue (#3B82F6)
-- Viewer 2: Green (#10B981)
-- Viewer 3: Purple (#8B5CF6)
-- Viewer 4: Orange (#F59E0B)
-
-### 6.3 Cursor Position Sync
-
-- Positions sent via DataChannel
-- Update rate: 60 Hz max
-- Throttled to reduce bandwidth
-- Interpolation for smooth movement
 
 ---
 
@@ -702,7 +654,6 @@ stateDiagram-v2
 **Display**:
 
 - Fit to window / Original size
-- Show remote cursor
 
 **Input**:
 

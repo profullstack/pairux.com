@@ -15,7 +15,6 @@ import type {
   InputEvent,
   ControlMessage,
   ControlStateUI,
-  CursorPositionMessage,
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
@@ -31,7 +30,6 @@ interface UseWebRTCSFUOptions {
   onStreamReady?: (stream: MediaStream) => void;
   onStreamEnded?: () => void;
   onControlStateChange?: (state: ControlStateUI) => void;
-  onCursorUpdate?: (cursor: CursorPositionMessage) => void;
   onKicked?: (reason?: string) => void;
 }
 
@@ -48,7 +46,6 @@ interface UseWebRTCSFUReturn {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -75,7 +72,6 @@ export function useWebRTCSFU({
   onStreamReady,
   onStreamEnded,
   onControlStateChange,
-  onCursorUpdate,
   onKicked,
 }: UseWebRTCSFUOptions): UseWebRTCSFUReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
@@ -94,28 +90,22 @@ export function useWebRTCSFU({
   const remoteMediaStreamRef = useRef<MediaStream | null>(null);
 
   const onControlStateChangeRef = useRef(onControlStateChange);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onKickedRef = useRef(onKicked);
   const onStreamReadyRef = useRef(onStreamReady);
   const onStreamEndedRef = useRef(onStreamEnded);
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
 
   onControlStateChangeRef.current = onControlStateChange;
-  onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
   onStreamReadyRef.current = onStreamReady;
   onStreamEndedRef.current = onStreamEnded;
 
   // Handle incoming data messages from LiveKit
   const handleDataReceived = useCallback(
-    (payload: Uint8Array, participant?: RemoteParticipant) => {
+    (payload: Uint8Array, _participant?: RemoteParticipant) => {
       try {
         const text = decoder.decode(payload);
-        const message = JSON.parse(text) as
-          | ControlMessage
-          | CursorPositionMessage
-          | KickMessage
-          | MuteMessage;
+        const message = JSON.parse(text) as ControlMessage | KickMessage | MuteMessage;
 
         if ('type' in message) {
           switch (message.type) {
@@ -126,12 +116,6 @@ export function useWebRTCSFU({
             case 'control-revoke':
               setControlState('view-only');
               onControlStateChangeRef.current?.('view-only');
-              break;
-            case 'cursor':
-              // Ignore cursor updates from ourselves
-              if (participant?.identity !== participantId) {
-                onCursorUpdateRef.current?.(message);
-              }
               break;
             case 'kick':
               setError('You were removed from the session');
@@ -211,23 +195,6 @@ export function useWebRTCSFU({
       sendData(message);
     },
     [controlState, dataChannelReady, sendData]
-  );
-
-  // Send cursor position (lossy - high frequency, okay to drop)
-  const sendCursorPosition = useCallback(
-    (x: number, y: number, visible: boolean) => {
-      if (!dataChannelReady) return;
-
-      const message: CursorPositionMessage = {
-        type: 'cursor',
-        participantId,
-        x,
-        y,
-        visible,
-      };
-      sendData(message, false); // lossy for cursor updates
-    },
-    [participantId, dataChannelReady, sendData]
   );
 
   // Collect stats
@@ -518,7 +485,6 @@ export function useWebRTCSFU({
     requestControl,
     releaseControl,
     sendInput,
-    sendCursorPosition,
     micEnabled,
     hasMic,
     toggleMic,

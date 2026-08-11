@@ -12,7 +12,6 @@ import type {
   NetworkQuality,
   InputMessage,
   ControlMessage,
-  CursorPositionMessage,
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
@@ -48,7 +47,6 @@ interface UseWebRTCHostSFUOptions {
   onViewerLeft?: (viewerId: string) => void;
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
-  onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
 }
 
 interface UseWebRTCHostSFUReturn {
@@ -79,7 +77,6 @@ export function useWebRTCHostSFU({
   onViewerLeft,
   onControlRequest,
   onInputReceived,
-  onCursorUpdate,
 }: UseWebRTCHostSFUOptions): UseWebRTCHostSFUReturn {
   const [isHosting, setIsHosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,13 +93,11 @@ export function useWebRTCHostSFU({
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onViewerJoinedRef = useRef(onViewerJoined);
   const onViewerLeftRef = useRef(onViewerLeft);
 
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
-  onCursorUpdateRef.current = onCursorUpdate;
   onViewerJoinedRef.current = onViewerJoined;
   onViewerLeftRef.current = onViewerLeft;
 
@@ -126,7 +121,7 @@ export function useWebRTCHostSFU({
 
     try {
       const text = decoder.decode(payload);
-      const message = JSON.parse(text) as ControlMessage | InputMessage | CursorPositionMessage;
+      const message = JSON.parse(text) as ControlMessage | InputMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -144,9 +139,6 @@ export function useWebRTCHostSFU({
           }
           case 'input':
             onInputReceivedRef.current?.(viewerId, message);
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(viewerId, message);
             break;
         }
       }

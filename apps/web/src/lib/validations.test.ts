@@ -7,6 +7,7 @@ import {
   joinSessionSchema,
   guestJoinSchema,
   createSessionSchema,
+  updateScheduledMeetingSchema,
 } from './validations';
 
 describe('signupSchema', () => {
@@ -290,6 +291,90 @@ describe('createSessionSchema', () => {
     const result = createSessionSchema.safeParse({
       mode: 'invalid',
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateScheduledMeetingSchema', () => {
+  it('normalises camelCase input to column names', () => {
+    const result = updateScheduledMeetingSchema.safeParse({
+      scheduledAt: '2026-09-02T18:30:00.000Z',
+      durationMinutes: 90,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        scheduled_at: '2026-09-02T18:30:00.000Z',
+        duration_minutes: 90,
+      });
+    }
+  });
+
+  it('accepts the column names directly', () => {
+    const result = updateScheduledMeetingSchema.safeParse({
+      scheduled_at: '2026-09-02T18:30:00.000Z',
+      duration_minutes: 30,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scheduled_at).toBe('2026-09-02T18:30:00.000Z');
+      expect(result.data.duration_minutes).toBe(30);
+    }
+  });
+
+  it('omits fields that were not supplied', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ title: 'Renamed' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ title: 'Renamed' });
+      expect('inviteeEmails' in result.data).toBe(false);
+    }
+  });
+
+  it('turns a cleared description into null', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ description: '   ' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.description).toBeNull();
+    }
+  });
+
+  it('lowercases, trims and de-duplicates invitee emails', () => {
+    const result = updateScheduledMeetingSchema.safeParse({
+      inviteeEmails: ['A@example.com', 'a@example.com', 'b@example.com'],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.inviteeEmails).toEqual(['a@example.com', 'b@example.com']);
+    }
+  });
+
+  it('keeps an empty invitee list distinct from an absent one', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ inviteeEmails: [] });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.inviteeEmails).toEqual([]);
+    }
+  });
+
+  it('rejects an invalid email', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ inviteeEmails: ['nope'] });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects more than 50 invitees', () => {
+    const emails = Array.from({ length: 51 }, (_, i) => `user${String(i)}@example.com`);
+    const result = updateScheduledMeetingSchema.safeParse({ inviteeEmails: emails });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an out-of-range duration', () => {
+    expect(updateScheduledMeetingSchema.safeParse({ durationMinutes: 5 }).success).toBe(false);
+    expect(updateScheduledMeetingSchema.safeParse({ durationMinutes: 600 }).success).toBe(false);
+  });
+
+  it('rejects a non-ISO date', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ scheduledAt: 'next tuesday' });
     expect(result.success).toBe(false);
   });
 });

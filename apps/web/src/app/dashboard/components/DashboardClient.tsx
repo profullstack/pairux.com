@@ -23,7 +23,7 @@ export function DashboardClient() {
           onClose={() => {
             setShowSchedule(false);
           }}
-          onCreated={handleCreated}
+          onSaved={handleCreated}
         />
       )}
 

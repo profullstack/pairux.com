@@ -3,12 +3,24 @@
 import { useState, useRef, type FormEvent } from 'react';
 import { X, Calendar, Clock, Users, Plus, Trash2, Loader2 } from 'lucide-react';
 
-interface Props {
-  onClose: () => void;
-  onCreated: () => void;
+/** The subset of a scheduled session the modal needs in order to edit it. */
+export interface EditableMeeting {
+  id: string;
+  title: string;
+  description: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  invitees?: { email: string }[];
 }
 
-interface CreateResponse {
+interface Props {
+  onClose: () => void;
+  onSaved: () => void;
+  /** Pass an existing meeting to edit it; omit to schedule a new one. */
+  meeting?: EditableMeeting;
+}
+
+interface SaveResponse {
   data?: { id: string; join_code: string; invitee_count: number };
   error?: string;
 }
@@ -27,18 +39,43 @@ function localDatetimeValue(date: Date): string {
   return `${String(date.getFullYear())}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
+function durationLabel(minutes: number): string {
+  return minutes < 60
+    ? `${String(minutes)} minutes`
+    : `${String(minutes / 60)} hour${minutes > 60 ? 's' : ''}`;
+}
+
+export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
+  const isEditing = meeting !== undefined;
+
   const defaultTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
   defaultTime.setMinutes(0, 0, 0);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [scheduledAt, setScheduledAt] = useState(localDatetimeValue(defaultTime));
-  const [durationMinutes, setDurationMinutes] = useState(60);
-  const [emails, setEmails] = useState<string[]>(['']);
+  const [title, setTitle] = useState(meeting?.title ?? '');
+  const [description, setDescription] = useState(meeting?.description ?? '');
+  const [scheduledAt, setScheduledAt] = useState(
+    localDatetimeValue(meeting ? new Date(meeting.scheduled_at) : defaultTime)
+  );
+  const [durationMinutes, setDurationMinutes] = useState(meeting?.duration_minutes ?? 60);
+  const [emails, setEmails] = useState<string[]>(() => {
+    const existing = meeting?.invitees?.map((i) => i.email) ?? [];
+    return existing.length > 0 ? existing : [''];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+
+  // A meeting booked with a custom duration must still show its own value.
+  const durationOptions = DURATION_OPTIONS.some((o) => o.value === durationMinutes)
+    ? DURATION_OPTIONS
+    : [...DURATION_OPTIONS, { label: durationLabel(durationMinutes), value: durationMinutes }].sort(
+        (a, b) => a.value - b.value
+      );
+
+  const originalEmails = new Set(meeting?.invitees?.map((i) => i.email.toLowerCase()) ?? []);
+  const currentEmails = new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean));
+  const addedCount = [...currentEmails].filter((e) => !originalEmails.has(e)).length;
+  const removedCount = [...originalEmails].filter((e) => !currentEmails.has(e)).length;
 
   function addEmailField() {
     setEmails((prev) => [...prev, '']);
@@ -80,26 +117,36 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
 
     setIsLoading(true);
     try {
-      const res = await fetch('/api/scheduled-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || undefined,
-          scheduledAt: localDate.toISOString(),
-          durationMinutes,
-          inviteeEmails: validEmails.length > 0 ? validEmails : undefined,
-        }),
-      });
+      const res = await fetch(
+        isEditing ? `/api/scheduled-sessions/${meeting.id}` : '/api/scheduled-sessions',
+        {
+          method: isEditing ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title.trim(),
+            // On edit, always send both fields so clearing them actually sticks.
+            description: isEditing ? description.trim() : description.trim() || undefined,
+            scheduledAt: localDate.toISOString(),
+            durationMinutes,
+            inviteeEmails: isEditing
+              ? validEmails
+              : validEmails.length > 0
+                ? validEmails
+                : undefined,
+          }),
+        }
+      );
 
-      const json = (await res.json()) as CreateResponse;
+      const json = (await res.json()) as SaveResponse;
 
       if (!res.ok) {
-        setError(json.error ?? 'Failed to schedule meeting');
+        setError(
+          json.error ?? (isEditing ? 'Failed to save changes' : 'Failed to schedule meeting')
+        );
         return;
       }
 
-      onCreated();
+      onSaved();
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -114,7 +161,9 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Schedule Meeting</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {isEditing ? 'Edit Meeting' : 'Schedule Meeting'}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -163,7 +212,7 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
                   setScheduledAt(e.target.value);
                 }}
                 required
-                min={localDatetimeValue(new Date())}
+                {...(isEditing ? {} : { min: localDatetimeValue(new Date()) })}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
@@ -179,7 +228,7 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
                 }}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
               >
-                {DURATION_OPTIONS.map((opt) => (
+                {durationOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -209,7 +258,8 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
           <div>
             <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
               <Users className="h-4 w-4 text-gray-400" />
-              Invite by Email <span className="text-gray-400">(optional)</span>
+              {isEditing ? 'Invitees' : 'Invite by Email'}{' '}
+              <span className="text-gray-400">(optional)</span>
             </label>
             <div className="space-y-2">
               {emails.map((email, idx) => (
@@ -231,7 +281,7 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
                     placeholder="colleague@example.com"
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                   />
-                  {emails.length > 1 && (
+                  {(emails.length > 1 || email.trim() !== '') && (
                     <button
                       type="button"
                       onClick={() => {
@@ -256,8 +306,17 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
               )}
             </div>
             <p className="mt-1.5 text-xs text-gray-400">
-              Invites sent immediately. Paste multiple addresses separated by commas.
+              {isEditing
+                ? 'New invitees are emailed an invite; removed ones are told they’re off the list. Paste multiple addresses separated by commas.'
+                : 'Invites sent immediately. Paste multiple addresses separated by commas.'}
             </p>
+            {isEditing && (addedCount > 0 || removedCount > 0) && (
+              <p className="mt-1 text-xs font-medium text-indigo-600">
+                {addedCount > 0 && `${String(addedCount)} to invite`}
+                {addedCount > 0 && removedCount > 0 && ' · '}
+                {removedCount > 0 && `${String(removedCount)} to remove`}
+              </p>
+            )}
           </div>
 
           {/* Actions */}
@@ -275,7 +334,13 @@ export function ScheduleMeetingModal({ onClose, onCreated }: Props) {
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
             >
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isLoading ? 'Scheduling...' : 'Schedule Meeting'}
+              {isEditing
+                ? isLoading
+                  ? 'Saving...'
+                  : 'Save Changes'
+                : isLoading
+                  ? 'Scheduling...'
+                  : 'Schedule Meeting'}
             </button>
           </div>
         </form>

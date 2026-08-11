@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   QUALITY_PRESETS,
+  isLocalControlTarget,
   modifiersFromDomEvent,
+  shouldIgnoreFollowUpMouse,
   type MouseEvent,
   type KeyboardEvent,
   type InputMessage,
@@ -262,6 +264,23 @@ describe('Input Types', () => {
         ctrl: true,
         accel: true,
       });
+    });
+  });
+
+  describe('remote input routing', () => {
+    it('processes pointer events before suppressing their follow-up mouse events', () => {
+      expect(shouldIgnoreFollowUpMouse(1_000, 1_000, true)).toBe(false);
+      expect(shouldIgnoreFollowUpMouse(1_000, 1_001, false)).toBe(true);
+      expect(shouldIgnoreFollowUpMouse(1_000, 1_100, false)).toBe(false);
+    });
+
+    it('recognizes controls that must stay local to the viewer', () => {
+      const local = { closest: () => ({ tagName: 'BUTTON' }) };
+      const remote = { closest: () => null };
+
+      expect(isLocalControlTarget(local)).toBe(true);
+      expect(isLocalControlTarget(remote)).toBe(false);
+      expect(isLocalControlTarget(null)).toBe(false);
     });
   });
 });

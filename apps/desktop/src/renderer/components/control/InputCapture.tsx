@@ -156,6 +156,7 @@ export function InputCapture({
 
       {allowFullscreen && controlState === 'granted' && (
         <button
+          data-pairux-local-control
           onClick={toggleFullscreen}
           className="absolute right-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/60 hover:text-white"
           title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen + pointer lock'}

@@ -182,10 +182,11 @@ Full requirements are in the
 - **Windows** — works out of the box; only elevated target windows need the app
   elevated too.
 - **Linux/X11** — works out of the box.
-- **Linux/Wayland** — needs `ydotool` plus a running `ydotoold` with
-  `/dev/uinput` access. The backend attempts a systemd auto-start and, if
-  control still is not possible, `CapturePreview` shows an actionable banner
-  built from `getInjectionDiagnostics()` instead of failing silently.
+- **Linux/Wayland (KDE)** — uses the compositor-approved XDG RemoteDesktop
+  portal. KDE asks the host to approve each control session; PairUX closes the
+  session on revoke. If the portal is unavailable or denied, remote control is
+  kept disabled and `CapturePreview` shows the diagnostic rather than falling
+  back to raw input injection.
 
 Native modules are unpacked from the asar (`asarUnpack: '**/*.node'` in
 `electron-builder.yml`), which packaged builds require.

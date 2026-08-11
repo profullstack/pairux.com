@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/remote-input",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Cross-platform OS input injection for remote control (macOS, Windows, Linux X11 and Wayland)",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "screen-sharing",
     "automation",
     "wayland",
-    "ydotool",
+    "xdg-desktop-portal",
     "cross-platform"
   ],
   "repository": {
@@ -49,6 +49,9 @@
     "@nut-tree-fork/nut-js": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "dbus-next": "^0.10.2"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

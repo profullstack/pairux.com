@@ -132,16 +132,20 @@ alias pairux='pairux --no-sandbox'
 
 ## Wayland Configuration
 
-Wayland support requires PipeWire for screen capture. Input injection works via
-`ydotool`, which needs a running `ydotoold` with access to `/dev/uinput`.
+Wayland support requires PipeWire for screen capture. On KDE, remote control
+uses the compositor-approved XDG RemoteDesktop portal; it does not depend on
+`ydotoold` or `/dev/uinput`.
 
 ### Current Wayland status
 
 - ✅ Screen sharing via xdg-desktop-portal / PipeWire
-- ✅ Remote control (mouse + keyboard) via `ydotool`
+- ✅ KDE remote control (mouse + keyboard) through XDG RemoteDesktop portal
 - ✅ The host and guest share the one real system pointer. When the guest stops
   moving, the host can immediately use that same pointer anywhere in the system.
-- ✅ No KWin helper, pointer borrowing, or pointer restoration is used.
+- ✅ KDE asks the host to approve every remote-control session; PairUX closes
+  that session as soon as control is revoked.
+- ✅ No KWin helper, `/dev/uinput` daemon, pointer borrowing, or pointer
+  restoration is used.
 - ⚠️ The in-app source picker is skipped on Wayland: the portal cannot enumerate
   sources with thumbnails, so the system picker is used instead
 
@@ -197,6 +201,17 @@ For KDE Plasma on Wayland:
 sudo apt install xdg-desktop-portal-kde  # Ubuntu/Debian
 sudo dnf install xdg-desktop-portal-kde  # Fedora
 ```
+
+Make sure the portal is running in the host's graphical session:
+
+```bash
+systemctl --user status xdg-desktop-portal
+```
+
+When PairUX grants a guest control, KDE displays a Remote Desktop approval
+dialog. Approve it before the guest can move the shared system cursor. If it is
+denied, PairUX keeps control disabled rather than falling back to raw input
+injection.
 
 ### Sway/wlroots Compositors
 

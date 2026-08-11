@@ -86,8 +86,8 @@ async function updateCaptureBounds(): Promise<void> {
 }
 
 /** Enable injection. False means this host cannot inject — surface it. */
-export function enableInjection(): boolean {
-  return getInjector().enable();
+export async function enableInjection(): Promise<boolean> {
+  return getInjector().enableWithAuthorization();
 }
 
 export function disableInjection(): void {

@@ -10,6 +10,17 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.71',
+    date: 'August 2026',
+    title: 'KDE/Wayland host-approved remote control',
+    changes: [
+      'KDE/Wayland remote input now uses the XDG RemoteDesktop portal instead of raw ydotool injection',
+      'KDE must approve a short-lived control session before a guest can send input',
+      'Revoking control or using the emergency stop closes the portal session and releases held input',
+      'The portal relative-pointer path positions the shared pointer before clicks and scrolling',
+    ],
+  },
+  {
     version: '0.9.70',
     date: 'August 2026',
     title: 'One shared host pointer for remote control',

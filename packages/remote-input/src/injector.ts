@@ -170,19 +170,69 @@ export class RemoteInputInjector {
     return true;
   }
 
+  /**
+   * Enable after satisfying any compositor-owned authorization gate.
+   *
+   * KDE/Wayland uses the XDG RemoteDesktop portal rather than pretending to be
+   * a hardware device through /dev/uinput. The portal displays its own consent
+   * dialog, and input is never accepted until it has granted the session.
+   */
+  async enableWithAuthorization(): Promise<boolean> {
+    // A revoke closes a Wayland portal session asynchronously. Do not race a
+    // new grant against that close or input might be sent to the old session.
+    await this.pendingInject;
+    const backend = this.getBackend();
+
+    if (!backend.supported) return this.enable();
+
+    try {
+      await backend.activate?.();
+    } catch (error) {
+      this.enabled = false;
+      this.logger.error('[RemoteInput] Input authorization failed', {
+        backend: backend.name,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+
+    return this.enable();
+  }
+
   disable(): void {
     this.enabled = false;
     // Wait for any in-flight inject to finish (so trackHeldState has run),
     // then let go of everything. releaseAll() is deliberately not gated on
     // `enabled` — releasing is always safe and must never be skipped.
     const cleanup = (this.pendingInject ?? Promise.resolve())
-      .then(() => this.releaseAll('injection disabled'))
-      // releaseAll only lets go of what this injector *tracked*. Follow it
-      // with an unconditional OS-level release so a press that ever escaped
-      // tracking cannot survive a control handoff — that is the difference
-      // between "the host takes back control" and "the host reboots".
-      // Releasing a button that is not pressed is a harmless no-op.
-      .then(() => this.backend?.emergencyStop())
+      .then(async () => {
+        try {
+          await this.releaseAll('injection disabled');
+        } catch (error) {
+          this.logger.error('[RemoteInput] Failed to release tracked input on disable', { error });
+        }
+
+        // releaseAll only lets go of what this injector *tracked*. Follow it
+        // with an unconditional OS-level release so a press that ever escaped
+        // tracking cannot survive a control handoff — that is the difference
+        // between "the host takes back control" and "the host reboots".
+        // Releasing a button that is not pressed is a harmless no-op.
+        try {
+          await this.backend?.emergencyStop();
+        } catch (error) {
+          this.logger.error('[RemoteInput] Failed to release OS input on disable', { error });
+        }
+
+        // A portal grant is deliberately short lived: closing it on every
+        // handoff lets KDE own authorization and prevents stale guest input
+        // from surviving a revoke. This must happen even if an OS-level release
+        // failed, because the session is the compositor's final safety gate.
+        try {
+          await this.backend?.deactivate?.();
+        } catch (error) {
+          this.logger.error('[RemoteInput] Failed to deactivate input backend', { error });
+        }
+      })
       .then(() => undefined)
       .catch((error: unknown) => {
         this.logger.error('[RemoteInput] Failed to release input on disable', { error });
@@ -517,6 +567,11 @@ export class RemoteInputInjector {
       await this.getBackend().emergencyStop();
     } catch (error) {
       this.logger.error('[RemoteInput] Error during emergency stop:', error);
+    }
+    try {
+      await this.getBackend().deactivate?.();
+    } catch (error) {
+      this.logger.error('[RemoteInput] Error deactivating backend during emergency stop:', error);
     }
   }
 

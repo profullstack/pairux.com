@@ -233,6 +233,28 @@ describe('RemoteInputInjector unconditional release', () => {
     });
   });
 
+  it('deactivates an authorized backend when control is revoked', async () => {
+    const backend = fakeBackend({ deactivate: vi.fn().mockResolvedValue(undefined) });
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    injector.disable();
+
+    await vi.waitFor(() => {
+      expect(backend.deactivate).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('deactivates an authorized backend during an emergency stop', async () => {
+    const backend = fakeBackend({ deactivate: vi.fn().mockResolvedValue(undefined) });
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    await injector.emergencyStop();
+
+    expect(backend.deactivate).toHaveBeenCalledOnce();
+  });
+
   // The press that escapes tracking is the one that strands the host, so the
   // release must not be skipped just because heldButtons looks empty.
   it('still releases when a press was never tracked', async () => {

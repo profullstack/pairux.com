@@ -108,7 +108,7 @@ export interface CaptureBounds {
  *
  * A backend reports `supported: false` with a human-readable `reason` rather
  * than throwing, so a host can explain to the user exactly why control is
- * unavailable (missing ydotool daemon, unimplemented portal, etc.).
+ * unavailable (for example, a missing desktop portal).
  */
 export interface InputBackend {
   readonly name: string;
@@ -116,6 +116,21 @@ export interface InputBackend {
   readonly reason?: string | undefined;
   readonly details?: Record<string, unknown> | undefined;
   init: () => Promise<InputBackendInitResult | undefined>;
+  /**
+   * Ask the compositor to authorize input before the host enables control.
+   *
+   * Wayland portals must show their own host-side approval UI. Other backends
+   * need no extra activation step.
+   */
+  activate?: () => Promise<void>;
+  /**
+   * End a compositor-authorized input session when the host revokes control.
+   *
+   * This is distinct from `emergencyStop`: it removes any held keys/buttons
+   * and also invalidates the permission token so a stale guest stream cannot
+   * resume injecting after a handoff.
+   */
+  deactivate?: () => Promise<void>;
   updateScreenSize: (width: number, height: number) => void;
   /**
    * Which rectangle of the desktop the viewer is actually looking at.

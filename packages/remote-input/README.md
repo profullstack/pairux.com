@@ -78,29 +78,31 @@ guest can take turns naturally: when the guest stops moving, the host can move
 and click the same cursor anywhere in the system. No cursor is borrowed,
 restored, or rendered separately.
 
-On Wayland, PairUX uses `ydotool` to inject into that one pointer. The host
-can revoke control or use the emergency-stop hotkey if a guest disconnects
-mid-drag.
+On KDE/Wayland, PairUX requests a short-lived XDG RemoteDesktop portal session
+for that same pointer. KDE shows the host an approval dialog when control is
+granted. PairUX closes the session on every revoke, so a previous guest cannot
+keep sending input after a handoff.
 
 ## Platform support
 
-| Platform                | Backend           | Pointer behavior                           | Requirements                                         |
-| ----------------------- | ----------------- | ------------------------------------------ | ---------------------------------------------------- |
-| macOS                   | `nut-js`          | Drives the shared system pointer directly. | Accessibility permission (see below)                 |
-| Windows                 | `nut-js`          | Drives the shared system pointer directly. | None. Admin only to drive elevated windows.          |
-| Linux / X11             | `nut-js`          | Drives the shared system pointer directly. | None                                                 |
-| Linux / Wayland (KDE)   | `wayland-ydotool` | Drives the shared system pointer directly. | `ydotool` + running `ydotoold` with `/dev/uinput`    |
-| Linux / Wayland (other) | `wayland-ydotool` | Drives the shared system pointer directly. | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
-| Linux / Wayland         | `wayland-portal`  | n/a                                        | Diagnostic only — reports why control is unavailable |
+| Platform                | Backend          | Pointer behavior                           | Requirements                                         |
+| ----------------------- | ---------------- | ------------------------------------------ | ---------------------------------------------------- |
+| macOS                   | `nut-js`         | Drives the shared system pointer directly. | Accessibility permission (see below)                 |
+| Windows                 | `nut-js`         | Drives the shared system pointer directly. | None. Admin only to drive elevated windows.          |
+| Linux / X11             | `nut-js`         | Drives the shared system pointer directly. | None                                                 |
+| Linux / Wayland (KDE)   | `wayland-portal` | Drives the shared system pointer directly. | A running XDG portal and host approval in KDE        |
+| Linux / Wayland (other) | `wayland-portal` | Drives the shared system pointer directly. | A RemoteDesktop-capable XDG portal and host approval |
 
 > This package injects into a real OS, so it runs only where one exists. A
 > browser cannot be the _controlled_ machine; a browser-based client can only
 > ever be the side doing the controlling.
 
-Backend selection is automatic. On Wayland the package probes `ydotool` first
-(and will try to auto-start `ydotoold` via systemd), then falls back to a
-backend whose only job is to explain, in `reason`, why control cannot work —
-rather than failing silently.
+Backend selection is automatic. On Wayland the package uses the compositor's
+XDG RemoteDesktop portal. It does not automatically fall back to `/dev/uinput`:
+an input daemon acknowledging a command cannot prove the compositor honored
+it, which is unsafe for a host's real pointer. A legacy `ydotool` backend is
+available only with `PAIRUX_WAYLAND_INPUT_BACKEND=ydotool` for administrator
+diagnosis of older desktops.
 
 ```ts
 import { detectDisplayServer, getInputBackendSelection } from '@profullstack/remote-input';
@@ -119,14 +121,11 @@ your behalf from a background process. Check
 
 ### Linux / Wayland
 
-```sh
-sudo apt install ydotool          # or your distro's package
-sudo systemctl enable --now ydotoold
-```
-
-`ydotoold` needs access to `/dev/uinput`. If the daemon starts and immediately
-dies, that is almost always the cause; the backend surfaces this in
-`getDiagnostics().reason`.
+Install and run your compositor's XDG desktop portal implementation. On KDE
+this is `xdg-desktop-portal-kde`. When a guest receives control, approve KDE's
+Remote Desktop request on the host. If the portal is unavailable or approval
+is denied, PairUX leaves remote input disabled and exposes the reason through
+`getDiagnostics()`.
 
 ## Safety
 

@@ -68,30 +68,27 @@ export function createInputBackend(selection = getInputBackendSelection()): Inpu
 }
 
 /**
- * Wayland has no single answer, so probe in order of how well each option
- * actually works and fall back to a backend whose only job is to explain why
- * control is unavailable.
+ * On Wayland, use the compositor-approved RemoteDesktop portal first. Raw
+ * /dev/uinput injection is deliberately never selected automatically: a
+ * daemon that says it accepted a command cannot prove KWin honoured it, and a
+ * lost release can strand the host's physical input. Administrators may opt
+ * into the legacy ydotool path while diagnosing older desktops.
  */
 function createWaylandBackend(): InputBackend {
   const portalBackend = new WaylandPortalInputBackend();
 
-  const ydotoolBackend = new WaylandYdotoolInputBackend();
-  const ydotoolDetails = ydotoolBackend.details as { hasYdotoolBinary?: boolean } | undefined;
-  if (ydotoolBackend.supported || ydotoolDetails?.hasYdotoolBinary) {
-    return ydotoolBackend;
-  }
+  if (portalBackend.supported) return portalBackend;
 
-  // If the portal is present, surface portal-specific diagnostics in the UI.
-  const portalDetails = portalBackend.details as { portalDesktopAvailable?: boolean } | undefined;
-  if (portalDetails?.portalDesktopAvailable) {
-    return portalBackend;
+  const ydotoolBackend = new WaylandYdotoolInputBackend();
+  if (process.env.PAIRUX_WAYLAND_INPUT_BACKEND === 'ydotool' && ydotoolBackend.supported) {
+    return ydotoolBackend;
   }
 
   return new UnsupportedWaylandInputBackend({
     reason:
-      ydotoolBackend.reason ??
       portalBackend.reason ??
-      'Wayland remote input backend is unavailable on this host.',
+      'Wayland remote input requires the approved XDG RemoteDesktop portal on this host. ' +
+        'The legacy ydotool backend is disabled by default because it cannot verify compositor input.',
     details: {
       portal: {
         backend: portalBackend.name,
@@ -102,6 +99,7 @@ function createWaylandBackend(): InputBackend {
         backend: ydotoolBackend.name,
         reason: ydotoolBackend.reason,
         details: ydotoolBackend.details,
+        optInEnvironment: 'PAIRUX_WAYLAND_INPUT_BACKEND=ydotool',
       },
     },
   });

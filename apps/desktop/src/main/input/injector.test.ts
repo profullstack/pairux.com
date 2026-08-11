@@ -151,16 +151,16 @@ describe('Input Injector', () => {
   });
 
   describe('enableInjection / disableInjection', () => {
-    it('should enable injection', () => {
+    it('should enable injection', async () => {
       expect(isInjectionEnabled()).toBe(false);
 
-      enableInjection();
+      await enableInjection();
 
       expect(isInjectionEnabled()).toBe(true);
     });
 
-    it('should disable injection', () => {
-      enableInjection();
+    it('should disable injection', async () => {
+      await enableInjection();
       expect(isInjectionEnabled()).toBe(true);
 
       disableInjection();
@@ -177,10 +177,10 @@ describe('Input Injector', () => {
   });
 
   describe('injectInput', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Ensure default screen size before each input test
       updateScreenSize(1920, 1080);
-      enableInjection();
+      await enableInjection();
     });
 
     it('should not inject if injection is disabled', async () => {
@@ -486,7 +486,7 @@ describe('Input Injector', () => {
 
   describe('emergencyStop', () => {
     it('should disable injection', async () => {
-      enableInjection();
+      await enableInjection();
       expect(isInjectionEnabled()).toBe(true);
 
       await emergencyStop();

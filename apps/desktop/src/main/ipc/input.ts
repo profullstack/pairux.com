@@ -72,8 +72,8 @@ export function registerInputHandlers(): void {
   });
 
   // Enable input injection (when control is granted to a viewer)
-  ipcMain.handle('input:enable', () => {
-    const injectionEnabled = enableInjection();
+  ipcMain.handle('input:enable', async () => {
+    const injectionEnabled = await enableInjection();
     const emergencyStopReady = injectionEnabled && registerEmergencyShortcut();
     if (injectionEnabled && !emergencyStopReady) {
       // Direct control owns the host's real pointer. Never start it unless the

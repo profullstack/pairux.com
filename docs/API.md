@@ -259,6 +259,105 @@ CREATE POLICY "Participants can view media sessions"
   );
 ```
 
+#### scheduled_sessions
+
+A meeting booked for a future time. The `join_code` is reserved at creation and checked for
+uniqueness against both `sessions` and `scheduled_sessions`. When the host starts the
+meeting, the dashboard posts that same code to `POST /api/sessions`, which forwards it to
+`create_session(p_join_code => ...)` — so the code in the invitation email is the code that
+opens the live room.
+
+`session_id` is currently vestigial: no code path writes it, so it stays NULL even after
+the meeting has been started. The link back to the live room is the shared `join_code`,
+not this column.
+
+```sql
+CREATE TABLE public.scheduled_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  host_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  duration_minutes INTEGER NOT NULL DEFAULT 60,
+  join_code TEXT NOT NULL UNIQUE,
+  session_id UUID REFERENCES public.sessions(id),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'cancelled', 'completed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_scheduled_sessions_host ON public.scheduled_sessions (host_user_id);
+CREATE INDEX idx_scheduled_sessions_scheduled_at ON public.scheduled_sessions (scheduled_at);
+CREATE INDEX idx_scheduled_sessions_status ON public.scheduled_sessions (status);
+
+ALTER TABLE public.scheduled_sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own scheduled sessions"
+  ON public.scheduled_sessions FOR ALL
+  TO authenticated
+  USING (host_user_id = auth.uid())
+  WITH CHECK (host_user_id = auth.uid());
+```
+
+Cancellation is soft — the row is retained with `status = 'cancelled'` rather than deleted.
+
+#### scheduled_session_invitees
+
+One row per invited email address. `invite_token` is a **bearer credential**: it is the
+whole of the authentication on the RSVP link, so it must never reach a client other than
+the invitee it belongs to.
+
+```sql
+CREATE TABLE public.scheduled_session_invitees (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  scheduled_session_id UUID NOT NULL REFERENCES public.scheduled_sessions(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  name TEXT,
+  rsvp_status TEXT NOT NULL DEFAULT 'pending' CHECK (rsvp_status IN ('pending', 'accepted', 'declined')),
+  invite_token TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'hex'),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (scheduled_session_id, email)
+);
+
+CREATE INDEX idx_invitees_scheduled_session ON public.scheduled_session_invitees (scheduled_session_id);
+CREATE INDEX idx_invitees_token ON public.scheduled_session_invitees (invite_token);
+
+ALTER TABLE public.scheduled_session_invitees ENABLE ROW LEVEL SECURITY;
+
+-- Hosts reach the invitees of their own meetings; nobody else reaches this table
+-- with the anon key at all.
+CREATE POLICY "Host manages invitees"
+  ON public.scheduled_session_invitees FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.scheduled_sessions ss
+      WHERE ss.id = scheduled_session_invitees.scheduled_session_id
+        AND ss.host_user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.scheduled_sessions ss
+      WHERE ss.id = scheduled_session_invitees.scheduled_session_id
+        AND ss.host_user_id = auth.uid()
+    )
+  );
+
+REVOKE SELECT, INSERT, UPDATE, DELETE ON public.scheduled_session_invitees FROM anon;
+```
+
+The `UNIQUE (scheduled_session_id, email)` constraint is what makes re-inviting an existing
+address a no-op rather than a duplicate.
+
+> **Do not add a permissive `anon` policy to this table.** The original migration shipped
+> `USING (true)` SELECT and UPDATE policies for `anon` to serve the RSVP page. Because RLS
+> cannot restrict *which columns* an UPDATE touches, that let anyone holding the anon key —
+> which ships to every browser — read every `invite_token` and rewrite any row.
+> `20260811120000_restrict_invitee_anon_access.sql` dropped both and revoked the grants.
+> The RSVP page is served by `/api/invite/[token]` through the service-role client, which
+> bypasses RLS, so no browser-facing policy is needed.
+
 ### Database Functions
 
 #### Create Session
@@ -829,6 +928,151 @@ const { data: mediaSession, error } = await supabase.rpc('end_media_session', {
   p_media_session_id: mediaSessionId,
 });
 ```
+
+### Scheduled Sessions API
+
+A scheduled session is a meeting booked for a future time. Unlike the endpoints above,
+these are Next.js route handlers served by `apps/web` (not PostgREST), so they are called
+with a plain `fetch` and authenticated by the Supabase session cookie rather than an
+explicit JWT header. Every endpoint is host-only: a meeting you do not host responds
+`404`, not `403`, so meeting ids cannot be probed.
+
+Responses follow the usual envelope — `{ "data": ... }` on success, `{ "error": "..." }`
+on failure.
+
+#### Create a Scheduled Meeting
+
+```typescript
+// POST /api/scheduled-sessions
+const res = await fetch('/api/scheduled-sessions', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    title: 'Design sync',
+    description: 'Weekly review',        // optional, max 500 chars
+    scheduledAt: '2026-09-01T15:00:00Z', // ISO 8601
+    durationMinutes: 60,                 // 15–480, defaults to 60
+    inviteeEmails: ['a@example.com'],    // optional, max 50
+  }),
+});
+
+// 201 Created
+{
+  "data": {
+    "id": "uuid",
+    "host_user_id": "uuid",
+    "title": "Design sync",
+    "scheduled_at": "2026-09-01T15:00:00Z",
+    "duration_minutes": 60,
+    "join_code": "ABC123",
+    "status": "pending",
+    "invitee_count": 1
+  }
+}
+```
+
+Each invitee row gets its own `invite_token`, and every invitee is emailed the meeting
+details plus the shared `join_code`. The join code is checked for uniqueness against both
+`sessions` and `scheduled_sessions` before it is assigned.
+
+#### List Scheduled Meetings
+
+```typescript
+// GET /api/scheduled-sessions?filter=upcoming
+// filter: 'upcoming' (default) | 'past' | 'all'
+```
+
+Returns the caller's own meetings ordered by `scheduled_at` ascending, each with an
+`invitees` array and an `invitee_count`. Cancelled meetings are always excluded.
+
+#### Get a Scheduled Meeting
+
+```typescript
+// GET /api/scheduled-sessions/{id}
+```
+
+#### Update a Scheduled Meeting
+
+`PATCH` edits meeting fields, the guest list, or both. Field names are accepted in either
+`snake_case` or `camelCase` (`scheduled_at` / `scheduledAt`).
+
+```typescript
+// PATCH /api/scheduled-sessions/{id}
+await fetch(`/api/scheduled-sessions/${id}`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    scheduledAt: '2026-09-02T15:00:00Z',
+    inviteeEmails: ['a@example.com', 'c@example.com'],
+  }),
+});
+```
+
+**`inviteeEmails` is the complete desired guest list, not a delta.** The API diffs it
+against the current invitees: addresses that are new get added and emailed an invite,
+addresses that have disappeared are deleted and emailed a withdrawal notice. Omitting the
+field entirely leaves the guest list untouched — sending `[]` removes everyone. Emails are
+lowercased, trimmed, and de-duplicated before the diff runs.
+
+Who gets email depends on what changed:
+
+| Change | Email sent |
+|---|---|
+| Address added to `inviteeEmails` | Invitation, with the join code |
+| Address dropped from `inviteeEmails` | Invitation withdrawn |
+| `title`, `description`, `scheduled_at`, or `duration_minutes` changed | Update notice to everyone still invited |
+| Only the guest list changed | Nothing to retained invitees |
+
+Editing a cancelled meeting returns `400`.
+
+#### Cancel a Scheduled Meeting
+
+```typescript
+// DELETE /api/scheduled-sessions/{id}
+// → { "data": { "cancelled": true } }
+```
+
+This is a soft cancel: the row is kept with `status: 'cancelled'` and every invitee is
+emailed a cancellation. Cancelled meetings stop appearing in the list endpoint.
+
+#### RSVP (Invitee-Facing, No Login)
+
+The invitation email links to `/invite/{token}`, backed by these two endpoints. They are
+the only scheduled-session endpoints that do not require a logged-in user — the
+`invite_token` from the URL *is* the credential, so treat the link as a secret.
+
+```typescript
+// GET /api/invite/{token}
+{
+  "data": {
+    "invitee": { "id": "uuid", "email": "a@example.com", "name": null, "rsvpStatus": "pending" },
+    "meeting": {
+      "id": "uuid",
+      "title": "Design sync",
+      "scheduledAt": "2026-09-01T15:00:00Z",
+      "durationMinutes": 60,
+      "joinCode": "ABC123",
+      "status": "pending",
+      "hostName": "Ada Lovelace"
+    }
+  }
+}
+
+// POST /api/invite/{token}   body: { "rsvpStatus": "accepted" | "declined" }
+// → { "data": { "rsvpStatus": "accepted" } }
+```
+
+An unrecognised token returns `404`. Both endpoints run through the service-role client,
+which is why the table needs no anon-facing RLS policy.
+
+#### Known Limitation: Removal Does Not Revoke Access
+
+A scheduled meeting has a single shared `join_code` that is emailed to every invitee, and
+removing an invitee does **not** rotate it. A removed invitee who kept their original
+invitation email can still join using that code, and there is currently no endpoint to
+re-issue a scheduled meeting's code. (`/api/sessions/{id}/regenerate-code` applies to live
+sessions, not scheduled ones.) To genuinely lock someone out, cancel the meeting and
+create a new one.
 
 ### Profiles API
 

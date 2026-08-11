@@ -7,7 +7,8 @@
  * locks the machine or opens a privileged surface.
  */
 
-import type { InputEvent, KeyboardInputEvent } from './types.js';
+import { resolveModifiers } from './modifiers.js';
+import type { InputEvent, KeyboardInputEvent, Platform } from './types.js';
 
 export type RejectionReason =
   | 'invalid-coordinates'
@@ -50,8 +51,24 @@ export const BLOCKED_COMBINATIONS: {
   { description: 'log out', ctrl: true, shift: true, meta: true, keys: ['q', 'Q'] },
 ];
 
-export function isDangerousCombination(event: KeyboardInputEvent): boolean {
-  const { modifiers, key } = event;
+/**
+ * Is this the combination the host would refuse, once the viewer's modifiers
+ * mean what they will actually mean here?
+ *
+ * The resolution step is the whole point. These combinations are written the
+ * way they are *on the host* — `meta: true` for the lock-screen chord means
+ * Cmd+L on a Mac and Super+L on Linux. But a viewer sends the accelerator as
+ * `accel`, not as a literal modifier, so a Mac viewer pressing Cmd+L reports
+ * `meta: false, accel: true` and matched none of these. The guard silently did
+ * not apply to exactly the cross-platform sessions the rest of this package
+ * exists to support, and a guest could lock the host out of their own machine.
+ */
+export function isDangerousCombination(
+  event: KeyboardInputEvent,
+  platform: Platform = process.platform
+): boolean {
+  const { key } = event;
+  const modifiers = resolveModifiers(event.modifiers, platform);
 
   return BLOCKED_COMBINATIONS.some((combo) => {
     if (!combo.keys.some((candidate) => candidate.toLowerCase() === key.toLowerCase())) {
@@ -59,7 +76,7 @@ export function isDangerousCombination(event: KeyboardInputEvent): boolean {
     }
     // Every modifier the combination names must be held. Extra modifiers are
     // allowed so Ctrl+Alt+Shift+Delete is blocked just like Ctrl+Alt+Delete.
-    if (combo.ctrl === true && !modifiers.ctrl) return false;
+    if (combo.ctrl === true && !modifiers.control) return false;
     if (combo.alt === true && !modifiers.alt) return false;
     if (combo.shift === true && !modifiers.shift) return false;
     if (combo.meta === true && !modifiers.meta) return false;
@@ -67,7 +84,10 @@ export function isDangerousCombination(event: KeyboardInputEvent): boolean {
   });
 }
 
-export function validateInputEvent(event: InputEvent): ValidationResult {
+export function validateInputEvent(
+  event: InputEvent,
+  platform: Platform = process.platform
+): ValidationResult {
   if (event.type === 'mouse') {
     if (!isNormalized(event.x) || !isNormalized(event.y)) {
       return {
@@ -96,7 +116,7 @@ export function validateInputEvent(event: InputEvent): ValidationResult {
     return { ok: false, reason: 'invalid-key', detail: 'key is implausibly long' };
   }
 
-  if (isDangerousCombination(event)) {
+  if (isDangerousCombination(event, platform)) {
     return {
       ok: false,
       reason: 'blocked-combination',

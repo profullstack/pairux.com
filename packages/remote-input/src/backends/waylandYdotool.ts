@@ -2,7 +2,9 @@ import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
 import { KWinCursorProvider } from '../wayland/kwinCursorProvider.js';
 import { detectWaylandScreenSize, type ScreenSize } from '../wayland/screenSize.js';
-import { resolveModifiers, resolveKeyCode } from '../modifiers.js';
+import { resolveModifiers } from '../modifiers.js';
+import { resolveKey } from '../keymap.js';
+import { ScrollAccumulator } from '../scroll.js';
 import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
@@ -13,6 +15,7 @@ import type {
   MouseButton,
   InputBackend,
   InputBackendInitResult,
+  CaptureBounds,
 } from '../types.js';
 
 type ExecRunner = (command: string, args: string[]) => Promise<void>;
@@ -202,10 +205,6 @@ function clickCode(action: MouseButtonEvent['action'], button: MouseButton): str
   }
 }
 
-function scrollRepeat(delta: number): number {
-  return Math.abs(Math.round(delta / 100)) || 1;
-}
-
 function scrollClickCode(base: number, repeat: number): string[] {
   return repeat > 1 ? ['--repeat', String(repeat), String(0xc0 | base)] : [String(0xc0 | base)];
 }
@@ -295,6 +294,52 @@ const KEYCODES = {
   ArrowDown: 108,
   PageDown: 109,
   Pause: 119,
+
+  // The right-hand modifiers. ControlRight's absence was not cosmetic: a Mac
+  // guest's right-Cmd translates to `ControlRight`, found nothing here, and
+  // fell through to the `Meta` alias — pressing Super after all, which is the
+  // exact key the original stuck-input report named.
+  ControlRight: 97,
+  AltRight: 100,
+  ContextMenu: 127,
+  PrintScreen: 99,
+
+  // Keypad. Distinct keycodes from the number row, and applications that care
+  // about the difference (spreadsheets, games, remote terminals) really care.
+  Numpad0: 82,
+  Numpad1: 79,
+  Numpad2: 80,
+  Numpad3: 81,
+  Numpad4: 75,
+  Numpad5: 76,
+  Numpad6: 77,
+  Numpad7: 71,
+  Numpad8: 72,
+  Numpad9: 73,
+  NumpadDecimal: 83,
+  NumpadEnter: 96,
+  NumpadAdd: 78,
+  NumpadSubtract: 74,
+  NumpadMultiply: 55,
+  NumpadDivide: 98,
+  NumpadEqual: 117,
+
+  F13: 183,
+  F14: 184,
+  F15: 185,
+  F16: 186,
+  F17: 187,
+  F18: 188,
+  F19: 189,
+  F20: 190,
+  F21: 191,
+  F22: 192,
+  F23: 193,
+  F24: 194,
+
+  AudioVolumeMute: 113,
+  AudioVolumeDown: 114,
+  AudioVolumeUp: 115,
 } satisfies Record<string, number>;
 
 function keyCodeFromEvent(event: KbEvent): number | null {
@@ -341,6 +386,13 @@ export class WaylandYdotoolInputBackend implements InputBackend {
   details?: Record<string, unknown>;
   private screenWidth = 1920;
   private screenHeight = 1080;
+  /** evdev keycodes this backend is currently holding down. See applyModifiers. */
+  private readonly heldModifiers = new Set<number>();
+  /** One per axis, so a fraction of a notch is carried rather than rounded up. */
+  private readonly scrollX = new ScrollAccumulator();
+  private readonly scrollY = new ScrollAccumulator();
+  /** The shared region of the desktop, or null for "the whole primary screen". */
+  private captureBounds: CaptureBounds | null = null;
   // Wayland will not report the pointer, so ask the compositor instead. Only
   // used to hand the local pointer back after a remote click borrows it.
   private readonly cursorProvider = new KWinCursorProvider();
@@ -505,10 +557,20 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     this.screenHeight = height;
   }
 
+  updateCaptureBounds(bounds: CaptureBounds | null): void {
+    this.captureBounds = bounds;
+  }
+
+  /** The rectangle the guest's 0-1 coordinates are relative to. */
+  private surface(): CaptureBounds {
+    return this.captureBounds ?? { x: 0, y: 0, width: this.screenWidth, height: this.screenHeight };
+  }
+
   private toAbsoluteCoords(relX: number, relY: number): { x: number; y: number } {
+    const { x, y, width, height } = this.surface();
     return {
-      x: Math.round(relX * this.screenWidth),
-      y: Math.round(relY * this.screenHeight),
+      x: Math.round(x + relX * width),
+      y: Math.round(y + relY * height),
     };
   }
 
@@ -546,72 +608,101 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
     // ydotool click supports wheel buttons via synthetic click button codes:
     // button 4 (up), 5 (down), 6 (left), 7 (right) => bases 3,4,5,6.
-    if (event.deltaY !== 0) {
-      const repeat = scrollRepeat(event.deltaY);
+    // Fractions of a notch carry over rather than rounding up, so a trackpad's
+    // stream of 3px deltas adds up to one notch instead of one notch each.
+    const notchesY = this.scrollY.add(event.deltaY, event.deltaMode);
+    if (notchesY !== 0) {
       // DOM deltaY is positive when scrolling down, which is button 5 (base 4).
-      const base = event.deltaY > 0 ? 0x04 : 0x03;
-      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, repeat)]);
+      const base = notchesY > 0 ? 0x04 : 0x03;
+      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, Math.abs(notchesY))]);
     }
 
-    if (event.deltaX !== 0) {
-      const repeat = scrollRepeat(event.deltaX);
-      const base = event.deltaX > 0 ? 0x06 : 0x05;
-      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, repeat)]);
+    const notchesX = this.scrollX.add(event.deltaX, event.deltaMode);
+    if (notchesX !== 0) {
+      const base = notchesX > 0 ? 0x06 : 0x05;
+      await this.run(this.ydotoolCommand, ['click', ...scrollClickCode(base, Math.abs(notchesX))]);
     }
+  }
+
+  /**
+   * Bring the host's held modifiers in line with what the guest is holding.
+   *
+   * Driven from the `modifiers` field alone, which every event restates in
+   * full, so a lost release self-heals on the next keystroke rather than
+   * leaving Super held down over a KDE session where that turns every click
+   * into a window-manager gesture. Emits nothing when nothing changed, so
+   * ordinary typing still costs one ydotool invocation per key.
+   */
+  private async applyModifiers(desired: number[]): Promise<void> {
+    const tokens: string[] = [];
+
+    for (const code of [...this.heldModifiers]) {
+      if (desired.includes(code)) continue;
+      tokens.push(keyToken(code, false));
+      this.heldModifiers.delete(code);
+    }
+
+    for (const code of desired) {
+      if (this.heldModifiers.has(code)) continue;
+      tokens.push(keyToken(code, true));
+      this.heldModifiers.add(code);
+    }
+
+    if (tokens.length === 0) return;
+    await this.run(this.ydotoolCommand, ['key', ...tokens]);
   }
 
   private async keyboard(event: KbEvent): Promise<void> {
     // A Mac guest's Cmd press must not arrive here as Super: on KDE that turns
-    // every subsequent click into a window-manager gesture. See resolveKeyCode.
-    const keycode = keyCodeFromEvent({
-      ...event,
-      code: resolveKeyCode(event.code, event.modifiers, 'linux'),
-    });
+    // every subsequent click into a window-manager gesture. See resolveKey.
+    const resolved = resolveKey(event, 'linux');
+    if (resolved === null) {
+      throw new Error(`Unsupported key for ydotool backend: ${event.code}`);
+    }
+
     const modifiers = modifierKeycodes(event.modifiers);
 
-    if (event.action === 'press' && modifiers.length === 0 && event.key.length === 1) {
-      await this.run(this.ydotoolCommand, ['type', event.key]);
+    // The modifier snapshot already says whether this key should be down.
+    if (resolved.kind === 'modifier') {
+      await this.applyModifiers(modifiers);
       return;
     }
 
+    if (resolved.kind === 'text') {
+      // Shift is dropped on purpose: the guest sent the character their layout
+      // produced, and shifting an already-shifted character types a different
+      // one. See keymap.ts.
+      await this.applyModifiers([]);
+      if (event.action !== 'up') await this.run(this.ydotoolCommand, ['type', resolved.text]);
+      return;
+    }
+
+    const keycode = keyCodeFromEvent({ ...event, code: resolved.code });
     if (keycode == null) {
-      if (event.action === 'press' && event.key.length > 0) {
-        await this.run(this.ydotoolCommand, ['type', event.key]);
-        return;
-      }
-      throw new Error(`Unsupported key for ydotool backend: ${event.key} (${event.code})`);
+      throw new Error(`Unsupported key for ydotool backend: ${resolved.code}`);
     }
 
     switch (event.action) {
-      case 'down': {
-        const tokens = [...modifiers.map((m) => keyToken(m, true)), keyToken(keycode, true)];
-        await this.run(this.ydotoolCommand, ['key', ...tokens]);
+      case 'down':
+        await this.applyModifiers(modifiers);
+        await this.run(this.ydotoolCommand, ['key', keyToken(keycode, true)]);
         break;
-      }
-      case 'up': {
-        const tokens = [
-          keyToken(keycode, false),
-          ...modifiers
-            .slice()
-            .reverse()
-            .map((m) => keyToken(m, false)),
-        ];
-        await this.run(this.ydotoolCommand, ['key', ...tokens]);
+      case 'up':
+        await this.run(this.ydotoolCommand, ['key', keyToken(keycode, false)]);
+        await this.applyModifiers(modifiers);
         break;
-      }
-      case 'press': {
-        const tokens = [
-          ...modifiers.map((m) => keyToken(m, true)),
+      case 'press':
+        // A complete keystroke, not half of a pair, so it leaves nothing held.
+        // A guest who really is still holding the modifier re-states it on the
+        // next event and applyModifiers presses it straight back.
+        await this.applyModifiers(modifiers);
+        await this.run(this.ydotoolCommand, [
+          'key',
           keyToken(keycode, true),
           keyToken(keycode, false),
-          ...modifiers
-            .slice()
-            .reverse()
-            .map((m) => keyToken(m, false)),
-        ];
-        await this.run(this.ydotoolCommand, ['key', ...tokens]);
+        ]);
+        await this.applyModifiers([]);
         break;
-      }
     }
   }
 
@@ -642,12 +733,25 @@ export class WaylandYdotoolInputBackend implements InputBackend {
 
   async emergencyStop(): Promise<void> {
     if (!this.supported) return;
+
+    // Everything below is released unconditionally, so the tracked set is now
+    // wrong in the safe direction. Clearing it means the next chord presses the
+    // modifiers it needs rather than assuming they are already down.
+    this.heldModifiers.clear();
+    // A half-notch of leftover scroll must not surface in whatever happens next.
+    this.scrollX.reset();
+    this.scrollY.reset();
+
     await this.run(this.ydotoolCommand, [
       'key',
       keyToken(KEYCODES.ControlLeft, false),
+      keyToken(KEYCODES.ControlRight, false),
       keyToken(KEYCODES.AltLeft, false),
+      keyToken(KEYCODES.AltRight, false),
       keyToken(KEYCODES.ShiftLeft, false),
+      keyToken(KEYCODES.ShiftRight, false),
       keyToken(KEYCODES.MetaLeft, false),
+      keyToken(KEYCODES.MetaRight, false),
     ]);
     await this.run(this.ydotoolCommand, [
       'click',

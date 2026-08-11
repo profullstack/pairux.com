@@ -202,6 +202,10 @@ export function useRemoteControl({
         action: 'scroll',
         deltaX: event.deltaX,
         deltaY: event.deltaY,
+        // Without this the host cannot tell a trackpad's pixel deltas from a
+        // wheel's notches, and treats every 3px of a two-finger drag as a full
+        // wheel click. See ScrollAccumulator in @profullstack/remote-input.
+        deltaMode: event.deltaMode,
         x: coords.x,
         y: coords.y,
       };

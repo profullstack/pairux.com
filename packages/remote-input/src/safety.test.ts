@@ -108,6 +108,37 @@ describe('isDangerousCombination', () => {
     ).toBe(true);
   });
 
+  // The bypass. A Mac viewer's Cmd+L reports `accel: true, meta: false`,
+  // because the accelerator is sent portably rather than as a literal modifier.
+  // Matching on the literal flags meant the lock-screen guard did not apply to
+  // any Mac-to-anywhere session — a guest could lock the host out of their own
+  // machine mid-session, which is precisely what the guard exists to prevent.
+  it("blocks a Mac viewer's Cmd+L, sent as the accelerator", () => {
+    const cmdL = key({ key: 'l', modifiers: { ...noModifiers, accel: true } });
+    expect(isDangerousCombination(cmdL, 'darwin')).toBe(true);
+  });
+
+  it("blocks a PC viewer's Super+L on a Linux host", () => {
+    const superL = key({ key: 'l', modifiers: { ...noModifiers, meta: true } });
+    expect(isDangerousCombination(superL, 'linux')).toBe(true);
+  });
+
+  // The accelerator is Control on Linux, so Ctrl+L there is "focus the address
+  // bar", not the lock screen. Resolving per host keeps ordinary shortcuts
+  // working rather than blocking them everywhere to be safe.
+  it("lets a Mac viewer's Cmd+L through as Ctrl+L on a Linux host", () => {
+    const cmdL = key({ key: 'l', modifiers: { ...noModifiers, accel: true } });
+    expect(isDangerousCombination(cmdL, 'linux')).toBe(false);
+  });
+
+  it("blocks a Mac viewer's Cmd+Alt+Escape force-quit picker", () => {
+    const forceQuit = key({
+      key: 'Escape',
+      modifiers: { ...noModifiers, alt: true, accel: true },
+    });
+    expect(isDangerousCombination(forceQuit, 'darwin')).toBe(true);
+  });
+
   it('allows the same key without the dangerous modifiers', () => {
     expect(isDangerousCombination(key({ key: 'Delete' }))).toBe(false);
     expect(isDangerousCombination(key({ key: 'l' }))).toBe(false);

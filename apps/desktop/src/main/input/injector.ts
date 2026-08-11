@@ -9,6 +9,7 @@
 import { RemoteInputInjector, type InputDiagnostics } from '@profullstack/remote-input';
 import type { InputEvent } from '@pairux/shared-types';
 import { getInputBackendSelection } from './backendFactory';
+import { resolveCaptureBoundsForSource } from '../capture/captureDisplay';
 
 export type InputInjectionDiagnostics = InputDiagnostics;
 
@@ -41,10 +42,35 @@ function getInjector(): RemoteInputInjector {
 /** Test seam: drop the singleton so the next call re-selects a backend. */
 export function resetInputInjector(): void {
   injector = null;
+  backendPrimary = null;
 }
 
+/**
+ * The primary display's size as the backend measured it, captured once at init.
+ *
+ * Kept here rather than read back from the injector because
+ * `updateCaptureBounds` replaces the injector's idea of the surface with the
+ * shared display — so asking it later would return the second monitor's size
+ * and scale every subsequent resolution against the wrong reference.
+ */
+let backendPrimary: { width: number; height: number } | null = null;
+
 export async function initInputInjector(): Promise<void> {
-  await getInjector().init();
+  const injector = getInjector();
+  await injector.init();
+  backendPrimary = injector.getScreenSize();
+}
+
+/**
+ * Point the injector at whichever display the guest is actually watching.
+ *
+ * Called whenever the shared source changes. A source that cannot be resolved
+ * to a display falls back to the primary one, which is the behaviour every
+ * single-monitor host has always had.
+ */
+export async function setCaptureSource(sourceId: string | null): Promise<void> {
+  const bounds = await resolveCaptureBoundsForSource(sourceId, backendPrimary);
+  getInjector().updateCaptureBounds(bounds);
 }
 
 /** Enable injection. False means this host cannot inject — surface it. */

@@ -35,6 +35,15 @@ export interface MouseScrollEvent {
    * remote scroll go the wrong way on every platform.
    */
   deltaY: number;
+  /**
+   * DOM `WheelEvent.deltaMode`: 0 pixels, 1 lines, 2 pages.
+   *
+   * Without it a trackpad and a mouse wheel look identical on the wire, and the
+   * trackpad's stream of 2-4px deltas each became a whole wheel notch on the
+   * host — a gentle two-finger drag arriving as thirty hard clicks. Optional so
+   * an older viewer that omits it is read as pixels.
+   */
+  deltaMode?: number;
   x: number;
   y: number;
 }

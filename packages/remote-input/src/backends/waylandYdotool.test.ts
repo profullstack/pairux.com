@@ -169,7 +169,125 @@ describe('WaylandYdotoolInputBackend', () => {
     };
     await backend.inject(event);
 
-    expect(run).toHaveBeenCalledWith('ydotool', ['key', '29:1', '46:1', '46:0', '29:0']);
+    // Modifiers move in their own invocation now: they are held across whole
+    // chords rather than re-pressed around each key, so the delta is emitted
+    // when it changes and the key event carries only the key.
+    expect(run).toHaveBeenNthCalledWith(1, 'ydotool', ['key', '29:1']);
+    expect(run).toHaveBeenNthCalledWith(2, 'ydotool', ['key', '46:1', '46:0']);
+    expect(run).toHaveBeenNthCalledWith(3, 'ydotool', ['key', '29:0']);
+  });
+
+  // The bug this whole layer exists for. A Mac guest's Cmd is `MetaLeft`, and
+  // injected literally on KDE it holds Super — where Super+click is a
+  // window-manager gesture, so every click stops reaching the application and
+  // the guest sees a cursor that moves over a desktop that ignores them.
+  it("presses Control for a Mac guest's Cmd, not Super", async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+
+    await backend.inject({
+      type: 'keyboard',
+      action: 'down',
+      key: 'Meta',
+      code: 'MetaLeft',
+      modifiers: { ctrl: false, alt: false, shift: false, meta: false, accel: true },
+    });
+
+    // 29 is ControlLeft, 125 is MetaLeft. Super must not appear at all.
+    expect(run).toHaveBeenCalledWith('ydotool', ['key', '29:1']);
+    expect(run).not.toHaveBeenCalledWith('ydotool', ['key', '125:1']);
+  });
+
+  // Right-Cmd took a different path and stayed broken after the left one was
+  // fixed: `ControlRight` had no keycode in the table, so the lookup fell
+  // through to the `Meta` name alias and pressed Super after all. `MetaRight`
+  // is the key the original stuck-input report actually named.
+  it("presses right Control for a Mac guest's right Cmd", async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+
+    await backend.inject({
+      type: 'keyboard',
+      action: 'down',
+      key: 'Meta',
+      code: 'MetaRight',
+      modifiers: { ctrl: false, alt: false, shift: false, meta: false, accel: true },
+    });
+
+    expect(run).toHaveBeenCalledWith('ydotool', ['key', '29:1']);
+    expect(run).not.toHaveBeenCalledWith('ydotool', ['key', '126:1']);
+  });
+
+  // A guest who lets go of Cmd while the release is lost would otherwise leave
+  // Super held. Every event restates the full modifier set, so the next one
+  // puts it right without needing the release that went missing.
+  it('releases a modifier whose key-up never arrived', async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+
+    const accel = { ctrl: false, alt: false, shift: false, meta: false, accel: true };
+    const none = { ctrl: false, alt: false, shift: false, meta: false };
+
+    await backend.inject({
+      type: 'keyboard',
+      action: 'down',
+      key: 'Meta',
+      code: 'MetaLeft',
+      modifiers: accel,
+    });
+    run.mockClear();
+
+    // No key-up for Meta — just an unrelated keystroke that happens to say the
+    // accelerator is no longer held.
+    await backend.inject({
+      type: 'keyboard',
+      action: 'down',
+      key: 'a',
+      code: 'KeyA',
+      modifiers: none,
+    });
+
+    expect(run).toHaveBeenCalledWith('ydotool', ['key', '29:0']);
+  });
+
+  // A trackpad reports the pixels your fingers moved, not notches. Rounding
+  // each 3px event up to a whole notch turned a gentle two-finger drag into a
+  // burst of hard wheel clicks — the "scrolling is insanely fast" report.
+  it('does not fire a wheel notch for every pixel of a trackpad drag', async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const backend = new WaylandYdotoolInputBackend(run, {
+      hasBinary: true,
+      hasSocket: true,
+      socketPath: '/tmp/.ydotool_socket',
+    });
+
+    for (let i = 0; i < 10; i += 1) {
+      await backend.inject({
+        type: 'mouse',
+        action: 'scroll',
+        deltaX: 0,
+        deltaY: 3,
+        deltaMode: 0,
+        x: 0.5,
+        y: 0.5,
+      });
+    }
+
+    // 30px of movement is under a third of a notch, so nothing should scroll.
+    const clicks = run.mock.calls.filter(([, args]) => args[0] === 'click');
+    expect(clicks).toHaveLength(0);
   });
 
   it('emits vertical scroll via wheel click codes', async () => {

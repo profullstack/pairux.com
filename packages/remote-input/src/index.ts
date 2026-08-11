@@ -17,6 +17,28 @@ export {
 } from './factory.js';
 
 export {
+  resolveCaptureBounds,
+  type CaptureBoundsInput,
+  type DisplayRect,
+} from './captureBounds.js';
+
+export {
+  resolveKey,
+  resolveKeyCode,
+  isModifierCode,
+  isSingleCharacter,
+  type ResolvedKey,
+} from './keymap.js';
+
+export {
+  ScrollAccumulator,
+  deltaToNotches,
+  DELTA_MODE_PIXEL,
+  DELTA_MODE_LINE,
+  DELTA_MODE_PAGE,
+} from './scroll.js';
+
+export {
   detectDisplayServer,
   detectPlatform,
   requiresAccessibilityPermission,
@@ -43,6 +65,7 @@ export { WaylandYdotoolInputBackend } from './backends/waylandYdotool.js';
 export { UnsupportedWaylandInputBackend } from './backends/unsupportedWayland.js';
 
 export type {
+  CaptureBounds,
   DisplayServer,
   InputBackend,
   InputBackendInitResult,

@@ -1,4 +1,6 @@
-import { resolveModifiers, resolveKeyCode } from '../modifiers.js';
+import { resolveModifiers } from '../modifiers.js';
+import { resolveKey, isSingleCharacter } from '../keymap.js';
+import { ScrollAccumulator } from '../scroll.js';
 import { isInputDebugEnabled } from '../debug.js';
 import type {
   InputEvent,
@@ -9,6 +11,7 @@ import type {
   MouseButton,
   InputBackend,
   InputBackendInitResult,
+  CaptureBounds,
 } from '../types.js';
 
 // Helper that performs the one-time dynamic import and configures nut-js
@@ -53,58 +56,31 @@ function mapMouseButton(button: MouseButton, Button: NutModule['Button']) {
   }
 }
 
-function mapKey(
-  key: string,
-  code: string,
-  Key: NutModule['Key']
-): NutModule['Key'][keyof NutModule['Key']] | string {
-  const specialKeys: Record<string, NutModule['Key'][keyof NutModule['Key']]> = {
-    Enter: Key.Enter,
-    Tab: Key.Tab,
-    Escape: Key.Escape,
-    Backspace: Key.Backspace,
-    Delete: Key.Delete,
-    Insert: Key.Insert,
-    Home: Key.Home,
-    End: Key.End,
-    PageUp: Key.PageUp,
-    PageDown: Key.PageDown,
-    ArrowUp: Key.Up,
-    ArrowDown: Key.Down,
-    ArrowLeft: Key.Left,
-    ArrowRight: Key.Right,
-    Space: Key.Space,
-    ' ': Key.Space,
-    Control: Key.LeftControl,
-    Shift: Key.LeftShift,
-    Alt: Key.LeftAlt,
-    Meta: Key.LeftSuper,
-    CapsLock: Key.CapsLock,
-    NumLock: Key.NumLock,
-    ScrollLock: Key.ScrollLock,
-    PrintScreen: Key.Print,
-    Pause: Key.Pause,
-    F1: Key.F1,
-    F2: Key.F2,
-    F3: Key.F3,
-    F4: Key.F4,
-    F5: Key.F5,
-    F6: Key.F6,
-    F7: Key.F7,
-    F8: Key.F8,
-    F9: Key.F9,
-    F10: Key.F10,
-    F11: Key.F11,
-    F12: Key.F12,
-  };
+type NutKeyValue = NutModule['Key'][keyof NutModule['Key']];
 
-  if (specialKeys[key]) return specialKeys[key];
-  if (key.length === 1) return key;
-  if (code.startsWith('Key')) return code.slice(3).toLowerCase();
-  if (code.startsWith('Digit')) return code.slice(5);
+/**
+ * Look a nut.js `Key` member up by name.
+ *
+ * The keymap deals in names so it can stay free of the nut.js import; this is
+ * the one place that turns a name back into the enum value. Returns undefined
+ * for a name this build of nut.js does not have, which the caller must treat as
+ * "cannot press that" rather than pressing something arbitrary.
+ */
+function nutKey(Key: NutModule['Key'], name: string): NutKeyValue | undefined {
+  // Presence, not shape: the enum member either exists in this build or it does
+  // not. Insisting on a number would reject any host that hands us an enum
+  // represented some other way, and silently drop every key it names.
+  return (Key as unknown as Record<string, NutKeyValue | undefined>)[name];
+}
 
-  console.warn(`[InputInjector] Unknown key: ${key} (code: ${code})`);
-  return key;
+/** Which nut.js modifier keys a resolved modifier set means. */
+function modifierKeyNames(resolved: ReturnType<typeof resolveModifiers>): Set<string> {
+  const names = new Set<string>();
+  if (resolved.control) names.add('LeftControl');
+  if (resolved.alt) names.add('LeftAlt');
+  if (resolved.shift) names.add('LeftShift');
+  if (resolved.meta) names.add('LeftSuper');
+  return names;
 }
 
 export class NutJsInputBackend implements InputBackend {
@@ -112,16 +88,39 @@ export class NutJsInputBackend implements InputBackend {
   readonly supported = true;
   private screenWidth = 1920;
   private screenHeight = 1080;
+  /** nut.js key names this backend is currently holding down. See applyModifiers. */
+  private readonly heldModifiers = new Set<string>();
+  /** One per axis, so a fraction of a notch is carried rather than rounded up. */
+  private readonly scrollX = new ScrollAccumulator();
+  private readonly scrollY = new ScrollAccumulator();
+  /** The shared region of the desktop, or null for "the whole primary screen". */
+  private captureBounds: CaptureBounds | null = null;
 
   updateScreenSize(width: number, height: number): void {
     this.screenWidth = width;
     this.screenHeight = height;
   }
 
+  updateCaptureBounds(bounds: CaptureBounds | null): void {
+    this.captureBounds = bounds;
+  }
+
+  /**
+   * The rectangle the viewer's 0-1 coordinates are relative to.
+   *
+   * Falls back to the primary display, which is what the whole path assumed
+   * before capture bounds existed — right for a single-monitor host, and the
+   * reason a second monitor put every click on the wrong screen.
+   */
+  private surface(): CaptureBounds {
+    return this.captureBounds ?? { x: 0, y: 0, width: this.screenWidth, height: this.screenHeight };
+  }
+
   private toAbsoluteCoords(relX: number, relY: number): { x: number; y: number } {
+    const { x, y, width, height } = this.surface();
     return {
-      x: Math.round(relX * this.screenWidth),
-      y: Math.round(relY * this.screenHeight),
+      x: Math.round(x + relX * width),
+      y: Math.round(y + relY * height),
     };
   }
 
@@ -130,9 +129,10 @@ export class NutJsInputBackend implements InputBackend {
     try {
       const { mouse } = await getNut();
       const point = await mouse.getPosition();
+      const { x, y, width, height } = this.surface();
       return {
-        x: Math.min(1, Math.max(0, point.x / this.screenWidth)),
-        y: Math.min(1, Math.max(0, point.y / this.screenHeight)),
+        x: Math.min(1, Math.max(0, (point.x - x) / width)),
+        y: Math.min(1, Math.max(0, (point.y - y) / height)),
       };
     } catch {
       return null;
@@ -226,58 +226,123 @@ export class NutJsInputBackend implements InputBackend {
     const { x, y } = this.toAbsoluteCoords(event.x, event.y);
     await mouse.setPosition({ x, y });
 
-    if (event.deltaY !== 0) {
-      const scrollAmount = Math.abs(Math.round(event.deltaY / 100)) || 1;
+    // Fractions of a notch carry over rather than rounding up, so a trackpad's
+    // stream of 3px deltas adds up to one notch instead of one notch each.
+    const notchesY = this.scrollY.add(event.deltaY, event.deltaMode);
+    if (notchesY !== 0) {
       // DOM deltaY is positive when scrolling down.
-      if (event.deltaY > 0) await mouse.scrollDown(scrollAmount);
-      else await mouse.scrollUp(scrollAmount);
+      if (notchesY > 0) await mouse.scrollDown(notchesY);
+      else await mouse.scrollUp(-notchesY);
     }
 
-    if (event.deltaX !== 0) {
-      const scrollAmount = Math.abs(Math.round(event.deltaX / 100)) || 1;
-      if (event.deltaX > 0) await mouse.scrollRight(scrollAmount);
-      else await mouse.scrollLeft(scrollAmount);
+    const notchesX = this.scrollX.add(event.deltaX, event.deltaMode);
+    if (notchesX !== 0) {
+      if (notchesX > 0) await mouse.scrollRight(notchesX);
+      else await mouse.scrollLeft(-notchesX);
+    }
+  }
+
+  /**
+   * Bring the host's held modifiers in line with what the viewer is holding.
+   *
+   * Modifiers are driven from the `modifiers` field alone, never from the
+   * modifier key events, because that field restates the whole truth on every
+   * single event. That is what makes this self-healing: if a Cmd release is
+   * lost to a dropped packet or a viewer that lost focus mid-chord, the very
+   * next keystroke carries `accel: false` and the modifier comes back up. The
+   * previous code pressed the whole snapshot before each key and released it
+   * after each key-up, which dropped a held Shift in the middle of a word and
+   * left the host's modifier state guessing between two sources.
+   */
+  private async applyModifiers(desired: Set<string>): Promise<void> {
+    const { keyboard, Key } = await getNut();
+
+    // Release first: going from Ctrl+Shift to Ctrl should not momentarily hold
+    // a modifier the viewer has already let go of.
+    for (const name of [...this.heldModifiers]) {
+      if (desired.has(name)) continue;
+      const key = nutKey(Key, name);
+      if (key !== undefined) await keyboard.releaseKey(key);
+      this.heldModifiers.delete(name);
+    }
+
+    for (const name of desired) {
+      if (this.heldModifiers.has(name)) continue;
+      const key = nutKey(Key, name);
+      if (key === undefined) continue;
+      await keyboard.pressKey(key);
+      this.heldModifiers.add(name);
     }
   }
 
   private async handleKeyboard(event: KbEvent): Promise<void> {
     const { keyboard, Key } = await getNut();
-    const { modifiers } = event;
-    // The modifier keypress itself needs translating too, not just the
-    // modifiers carried alongside it. See resolveKeyCode.
-    const key = mapKey(event.key, resolveKeyCode(event.code, modifiers, process.platform), Key);
+
+    const resolved = resolveKey(event, process.platform);
+    if (resolved === null) {
+      // The code, never the character: this is the host's own typing, and a key
+      // name in a log file is a keylogger by another name.
+      console.warn('[InputInjector] No mapping for key', { code: event.code });
+      return;
+    }
 
     // Resolved against *this* host, so a Mac viewer's Cmd+C becomes Ctrl+C here
     // rather than Super+C, and vice versa. LeftSuper is Cmd on macOS.
-    const resolved = resolveModifiers(modifiers, process.platform);
-    const modifierKeys: NutModule['Key'][keyof NutModule['Key']][] = [];
-    if (resolved.control) modifierKeys.push(Key.LeftControl);
-    if (resolved.alt) modifierKeys.push(Key.LeftAlt);
-    if (resolved.shift) modifierKeys.push(Key.LeftShift);
-    if (resolved.meta) modifierKeys.push(Key.LeftSuper);
+    const wanted = modifierKeyNames(resolveModifiers(event.modifiers, process.platform));
+
+    // A modifier key event carries no work of its own — the snapshot above
+    // already says whether it should be down, and pressing it separately would
+    // press it twice and release it once.
+    if (resolved.kind === 'modifier') {
+      await this.applyModifiers(wanted);
+      return;
+    }
+
+    if (resolved.kind === 'text') {
+      // Shift and Alt are deliberately dropped here. The viewer sent the
+      // character their layout produced — '@', not Shift+2 — so holding Shift
+      // while typing it applies the shift a second time and lands on a
+      // different character entirely on any non-US layout.
+      await this.applyModifiers(new Set());
+      if (event.action !== 'up') await keyboard.type(resolved.text);
+      return;
+    }
+
+    const key = nutKey(Key, resolved.name);
+    if (key === undefined) {
+      // This build of nut.js cannot name that physical key. If the viewer sent
+      // a character, typing it still gets the keystroke across — with the
+      // modifiers held, so Ctrl+C is a copy rather than a stray 'c'. Dropping
+      // the event instead would make the key silently do nothing.
+      if (isSingleCharacter(event.key)) {
+        await this.applyModifiers(wanted);
+        if (event.action !== 'up') await keyboard.type(event.key);
+        if (event.action === 'press') await this.applyModifiers(new Set());
+        return;
+      }
+
+      console.warn('[InputInjector] Host keyboard has no such key', { name: resolved.name });
+      return;
+    }
 
     switch (event.action) {
       case 'down':
-        for (const mod of modifierKeys) await keyboard.pressKey(mod);
-        if (typeof key === 'string') await keyboard.type(key);
-        else await keyboard.pressKey(key);
+        await this.applyModifiers(wanted);
+        await keyboard.pressKey(key);
         break;
       case 'up':
-        if (typeof key !== 'string') await keyboard.releaseKey(key);
-        for (const mod of modifierKeys.reverse()) await keyboard.releaseKey(mod);
+        await keyboard.releaseKey(key);
+        // After the key, so a chord releases in the order a human would.
+        await this.applyModifiers(wanted);
         break;
       case 'press':
-        if (modifierKeys.length > 0 || typeof key !== 'string') {
-          for (const mod of modifierKeys) await keyboard.pressKey(mod);
-          if (typeof key === 'string') await keyboard.type(key);
-          else {
-            await keyboard.pressKey(key);
-            await keyboard.releaseKey(key);
-          }
-          for (const mod of modifierKeys.reverse()) await keyboard.releaseKey(mod);
-        } else {
-          await keyboard.type(key);
-        }
+        // A complete keystroke, not half of a pair, so it leaves nothing held.
+        // A viewer who really is still holding the modifier re-states it on the
+        // next event and applyModifiers presses it straight back.
+        await this.applyModifiers(wanted);
+        await keyboard.pressKey(key);
+        await keyboard.releaseKey(key);
+        await this.applyModifiers(new Set());
         break;
     }
   }
@@ -299,6 +364,14 @@ export class NutJsInputBackend implements InputBackend {
 
   async emergencyStop(): Promise<void> {
     const { keyboard, mouse, Key, Button } = await getNut();
+
+    // Everything below is released unconditionally, so the tracked set is now
+    // wrong in the safe direction. Clearing it means the next chord presses the
+    // modifiers it needs instead of assuming they are already down.
+    this.heldModifiers.clear();
+    // A half-notch of leftover scroll must not surface in whatever happens next.
+    this.scrollX.reset();
+    this.scrollY.reset();
 
     await keyboard.releaseKey(Key.LeftControl);
     await keyboard.releaseKey(Key.LeftAlt);

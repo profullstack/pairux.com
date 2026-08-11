@@ -30,6 +30,15 @@ export interface MouseScrollEvent {
   action: 'scroll';
   deltaX: number;
   deltaY: number;
+  /**
+   * DOM `WheelEvent.deltaMode`: 0 pixels, 1 lines, 2 pages.
+   *
+   * Without it a trackpad and a mouse wheel are indistinguishable, and the
+   * trackpad's stream of 3px deltas each get treated as a whole wheel notch —
+   * which is why remote scrolling was unusably fast. Optional so an older
+   * viewer that omits it is read as pixels, the overwhelmingly common case.
+   */
+  deltaMode?: number;
   x: number;
   y: number;
 }
@@ -75,6 +84,26 @@ export interface InputBackendInitResult {
 }
 
 /**
+ * The region of the host's desktop the viewer's 0-1 coordinates describe.
+ *
+ * Normalized coordinates are meaningless without knowing what they are
+ * normalized *against*. The implicit answer used to be "the primary display",
+ * which silently breaks the moment a host shares their second monitor: the
+ * viewer aims at the middle of the screen they can see and the click lands in
+ * the middle of a screen they cannot.
+ *
+ * `x` and `y` place the rectangle in the desktop's global coordinate space —
+ * the same space the OS uses to lay monitors out side by side — so a display
+ * to the right of the primary one starts at its width, not at zero.
+ */
+export interface CaptureBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
  * An OS-specific way to move the pointer and press keys.
  *
  * A backend reports `supported: false` with a human-readable `reason` rather
@@ -88,6 +117,13 @@ export interface InputBackend {
   readonly details?: Record<string, unknown> | undefined;
   init: () => Promise<InputBackendInitResult | undefined>;
   updateScreenSize: (width: number, height: number) => void;
+  /**
+   * Which rectangle of the desktop the viewer is actually looking at.
+   *
+   * Optional; a backend that omits it maps onto the whole primary screen, which
+   * is only correct when that is what is being shared.
+   */
+  updateCaptureBounds?: (bounds: CaptureBounds | null) => void;
   inject: (event: InputEvent) => Promise<void>;
   emergencyStop: () => Promise<void>;
   /**

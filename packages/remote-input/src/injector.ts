@@ -15,6 +15,7 @@ import {
 import { InputRateLimiter, validateInputEvent, type RejectionReason } from './safety.js';
 import { isInputDebugEnabled } from './debug.js';
 import type {
+  CaptureBounds,
   InputBackend,
   InputDiagnostics,
   InputEvent,
@@ -214,7 +215,7 @@ export class RemoteInputInjector {
     // Wait for any in-flight inject to finish (so trackHeldState has run),
     // then let go of everything. releaseAll() is deliberately not gated on
     // `enabled` — releasing is always safe and must never be skipped.
-    void (this.pendingInject ?? Promise.resolve())
+    const cleanup = (this.pendingInject ?? Promise.resolve())
       .then(() => this.releaseAll('injection disabled'))
       // releaseAll only lets go of what this injector *tracked*. Follow it
       // with an unconditional OS-level release so a press that ever escaped
@@ -222,9 +223,17 @@ export class RemoteInputInjector {
       // between "the host takes back control" and "the host reboots".
       // Releasing a button that is not pressed is a harmless no-op.
       .then(() => this.backend?.emergencyStop())
+      .then(() => undefined)
       .catch((error: unknown) => {
         this.logger.error('[RemoteInput] Failed to release input on disable', { error });
       });
+
+    // Put the cleanup on the same chain every injection waits for. Without
+    // this, control granted again straight away races the release: the backend
+    // still believes it is holding modifiers that the emergency release is
+    // about to drop, so the next chord skips pressing them and arrives bare.
+    this.pendingInject = cleanup;
+    void cleanup;
     this.logger.log('[RemoteInput] Injection disabled');
   }
 
@@ -481,9 +490,39 @@ export class RemoteInputInjector {
     return this.enabled;
   }
 
+  /**
+   * The surface size the injector is currently mapping onto, or null before
+   * init. Callers resolving capture bounds need the *primary* display's size,
+   * so read this once at init rather than after a bounds update replaces it.
+   */
+  getScreenSize(): { width: number; height: number } | null {
+    return this.screenSize ? { ...this.screenSize } : null;
+  }
+
   updateScreenSize(width: number, height: number): void {
     this.screenSize = { width, height };
     this.getBackend().updateScreenSize(width, height);
+  }
+
+  /**
+   * Tell the injector which part of the desktop the viewer can actually see.
+   *
+   * Until this is set, normalized coordinates are mapped onto the primary
+   * display, which is wrong the moment a host shares anything else: the viewer
+   * aims at the middle of the screen in front of them and the pointer goes to
+   * the middle of a different monitor. Pass null to go back to the primary
+   * display — the right thing when capture stops, or for a source whose
+   * geometry cannot be resolved.
+   */
+  updateCaptureBounds(bounds: CaptureBounds | null): void {
+    const backend = this.getBackend();
+    if (!backend.updateCaptureBounds) return;
+
+    backend.updateCaptureBounds(bounds);
+    // The edge margin is about the corners of the surface the guest is
+    // pointing at, so it scales with that surface rather than the whole desktop.
+    if (bounds) this.screenSize = { width: bounds.width, height: bounds.height };
+    this.logger.log('[RemoteInput] Capture bounds', bounds ?? 'primary display');
   }
 
   private reject(reason: RejectionReason, event: InputEvent, detail?: string): void {

@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import { getCaptureSources } from '../capture/sources';
 import { setPreferredDisplayMediaSource } from '../capture/displayMedia';
+import { setCaptureSource } from '../input/injector';
 import { registerAuthHandlers } from './auth';
 import { registerSessionHandlers } from './session';
 import { registerChatHandlers } from './chat';
@@ -57,9 +58,24 @@ export function registerIpcHandlers(): void {
 
   // Records which source the next getDisplayMedia() call should be granted.
   // See main/capture/displayMedia.ts for why this cannot come off the request.
-  ipcMain.handle('capture:setPreferredSource', (_event, args: { sourceId: string | null }) => {
-    setPreferredDisplayMediaSource(args.sourceId);
-  });
+  ipcMain.handle(
+    'capture:setPreferredSource',
+    async (_event, args: { sourceId: string | null }) => {
+      setPreferredDisplayMediaSource(args.sourceId);
+
+      // The same pick decides where remote clicks land. Without this the
+      // injector keeps mapping the guest's coordinates onto the primary
+      // display, so a host sharing their second monitor watches the pointer
+      // move on a screen the guest cannot see. Failure here is not fatal —
+      // it just falls back to the primary display — so it must not take the
+      // capture down with it.
+      try {
+        await setCaptureSource(args.sourceId);
+      } catch (error) {
+        console.warn('[IPC] Could not align input with the shared source', { error });
+      }
+    }
+  );
 
   console.log('[IPC] IPC handlers registered');
 }

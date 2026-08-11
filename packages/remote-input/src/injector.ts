@@ -113,35 +113,16 @@ export class RemoteInputInjector {
   /** Where the local pointer was before a remote click borrowed it. */
   private borrowedFrom: { x: number; y: number } | null = null;
 
-  /**
-   * Whether this host can actually keep two cursors apart. Null until known.
-   *
-   * Two-cursor mode rests on a single absolute positioning call per click with
-   * nothing in between to correct it. That is only trustworthy where the
-   * backend can also read the pointer back — the same platforms whose absolute
-   * positioning is exact. Where it cannot (Wayland with no compositor helper),
-   * a click is one unverified "move there, now press" with no feedback, and if
-   * the move does not land the click happens wherever the host left the
-   * pointer. The guest sees their cursor move and nothing respond.
-   *
-   * So where the pointer cannot be read back, remote movement drives the real
-   * cursor instead. The host's pointer gets borrowed for as long as the guest
-   * is steering, which is the lesser cost: a click that lands beats a cursor
-   * that stayed put.
-   */
-  private cursorReportingWorks: boolean | null = null;
-
   // Every async operation that results in an OS-level button press or release
   // chains through this promise. disable() and emergencyStop() wait on it so
   // releaseAll always runs *after* trackHeldState has recorded the press.
   private pendingInject: Promise<void> | null = null;
-  /**
-   * Pointer moves waiting on the queue. See `supersededMove`.
-   *
-   * A counter rather than a flag: the in-flight move and the one behind it are
-   * different things, and only the second is safe to drop.
-   */
+  /** Number of real pointer moves in the serialized injection queue. */
   private queuedMoves = 0;
+  /** Newest non-drag move received while another move is still queued. */
+  private pendingCoalescedMove: MouseMoveEvent | null = null;
+  /** Callers awaiting discarded moves complete when their replacement lands. */
+  private pendingCoalescedMoveResolvers: (() => void)[] = [];
 
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
@@ -204,19 +185,12 @@ export class RemoteInputInjector {
     this.enabled = true;
     this.rateLimiter.reset();
 
-    // A backend with no way to read the pointer at all can be ruled out now,
-    // before a single event arrives, rather than after the first misplaced
-    // click. Backends that have the method but may still fail to answer are
-    // settled on first use, in `dispatch`.
-    this.cursorReportingWorks = backend.getCursorPosition ? null : false;
-
-    // Start cursor reporting so we can restore the host pointer after
-    // remote clicks. Where it cannot start, movement drives the real cursor
-    // instead so clicks keep landing — see `cursorReportingWorks`.
+    // Start cursor reporting so we can restore the host pointer after remote
+    // clicks. A failed report only means click restoration is unavailable; it
+    // must never make virtual movement take over the host's cursor.
     if (this.virtualCursor) {
       void backend.startCursorReporting?.().catch((error: unknown) => {
         this.logger.warn('[RemoteInput] Cursor reporting could not start', { error });
-        this.cursorReportingWorks = false;
       });
     }
 
@@ -334,11 +308,10 @@ export class RemoteInputInjector {
     if (event.action === 'move') {
       this.remotePosition = { x: event.x, y: event.y };
 
-      // Virtual by default. Two exceptions, both of which need real motion:
-      // a drag in progress, and a host whose pointer cannot be read back —
-      // there, keeping the cursors apart would stake every click on a single
-      // uncorrected positioning call. See `cursorReportingWorks`.
-      if (this.virtualCursor && this.cursorReportingWorks !== false && !dragging) return;
+      // Virtual movement must remain virtual even if cursor reporting fails.
+      // On that host a click cannot be restored, but constantly warping the
+      // host's pointer makes their UI unusable for the entire control session.
+      if (this.virtualCursor && !dragging) return;
 
       await backend.inject(this.withEdgeMargin(event));
       return;
@@ -350,13 +323,8 @@ export class RemoteInputInjector {
     // Borrow the real pointer, unless a previous press already borrowed it.
     if (!dragging) {
       const reported = (await backend.getCursorPosition?.()) ?? null;
-      // A null here means the compositor will not report the pointer, so two
-      // cursors cannot be kept apart accurately. Remember it: from now on
-      // movement drives the real cursor, and clicks stop depending on a single
-      // positioning call landing.
-      if (reported === null) this.cursorReportingWorks = false;
-      else this.cursorReportingWorks = true;
-
+      // A null here means the compositor will not report the pointer, so this
+      // click cannot later restore it. Movement nevertheless remains virtual.
       this.borrowedFrom ??= reported;
     }
 
@@ -544,31 +512,6 @@ export class RemoteInputInjector {
     this.onRejected?.(reason, event, detail);
   }
 
-  /**
-   * Is this move already obsolete?
-   *
-   * Every injection is serialized, and on some hosts each one costs a process
-   * spawn. A viewer streams pointer movement at their display's refresh rate,
-   * which arrives faster than that drains — so the queue grows without bound,
-   * the host's pointer trails further and further behind, and a click ends up
-   * stuck behind hundreds of stale positions before it is even attempted. The
-   * session reads as "laggy and I cannot click anything".
-   *
-   * Nothing is lost by dropping a superseded move: only the newest position
-   * matters, because a move is a statement about where the pointer *is*, not a
-   * step along a path. Clicks, scrolls and keystrokes are never dropped —
-   * those are discrete actions, and one of them going missing is a bug.
-   *
-   * A move that is part of a drag is also kept: there the intermediate motion
-   * is the point, since anything tracking a drag (text selection, canvas apps,
-   * file managers) needs to see the path and not just its endpoints.
-   */
-  private supersededMove(event: InputEvent): event is MouseMoveEvent {
-    if (event.type !== 'mouse' || event.action !== 'move') return false;
-    if (this.heldButtons.size > 0) return false;
-    return this.queuedMoves > 0;
-  }
-
   async inject(event: InputEvent): Promise<void> {
     this.stats.received += 1;
 
@@ -577,17 +520,34 @@ export class RemoteInputInjector {
       return;
     }
 
-    // Drop a move that a newer one has already replaced, before it can take a
-    // place in the queue. Tracked rather than inferred, because the queue is a
-    // promise chain with no length to inspect.
     const isMove = event.type === 'mouse' && event.action === 'move';
-    if (this.supersededMove(event)) {
-      // Remember it anyway: if this turns out to be the last move the viewer
-      // sends, the cursor overlay still needs to know where they stopped.
+    if (
+      event.type === 'mouse' &&
+      event.action === 'move' &&
+      this.heldButtons.size === 0 &&
+      this.queuedMoves > 0
+    ) {
+      // Preserve the latest position, rather than merely discarding a stale
+      // move. The queue flushes it before any following discrete input and
+      // once the in-flight move completes, so the cursor always settles where
+      // the viewer stopped.
+      this.pendingCoalescedMove = event;
       this.remotePosition = { x: event.x, y: event.y };
       this.stats.coalesced += 1;
+      await new Promise<void>((resolve) => this.pendingCoalescedMoveResolvers.push(resolve));
       return;
     }
+
+    // A click, scroll or key must run after the freshest pending move, not the
+    // stale one currently in flight. This is what keeps a rapid move-and-click
+    // sequence ordered without growing an unbounded move queue.
+    if (!isMove) this.flushCoalescedMove();
+    await this.enqueue(event);
+  }
+
+  /** Queue a real injection. Coalesced callers resolve when this one finishes. */
+  private async enqueue(event: InputEvent, resolvers: (() => void)[] = []): Promise<void> {
+    const isMove = event.type === 'mouse' && event.action === 'move';
     if (isMove) this.queuedMoves += 1;
 
     // Serialize every injection so disable() and emergencyStop() can wait for
@@ -633,7 +593,24 @@ export class RemoteInputInjector {
     } finally {
       if (isMove) this.queuedMoves = Math.max(0, this.queuedMoves - 1);
       resolve?.();
+      for (const done of resolvers) done();
+
+      // With no later discrete event to flush the move, queue it as soon as
+      // the current move drains. `void` is safe: all waiting callers hold its
+      // resolvers, and errors are handled inside enqueue.
+      if (isMove) this.flushCoalescedMove();
     }
+  }
+
+  /** Move the latest coalesced position onto the serialized queue. */
+  private flushCoalescedMove(): void {
+    const event = this.pendingCoalescedMove;
+    if (!event) return;
+
+    this.pendingCoalescedMove = null;
+    const resolvers = this.pendingCoalescedMoveResolvers;
+    this.pendingCoalescedMoveResolvers = [];
+    void this.enqueue(event, resolvers);
   }
 
   /**

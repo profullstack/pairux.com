@@ -640,13 +640,7 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(moves(backend)).toHaveLength(0);
   });
 
-  // Regression. Two cursors rest on one absolute positioning call per click
-  // with nothing in between to correct it, which is only trustworthy where the
-  // pointer can be read back. On a host that cannot report it — Wayland with
-  // no compositor helper — that made every click a single unverified "move
-  // there, now press": the guest saw their cursor move and nothing respond.
-  // Where the pointer cannot be read, movement must drive the real cursor.
-  it('drives the cursor directly when the host cannot report the pointer', async () => {
+  it('keeps movement virtual when the host cannot report the pointer', async () => {
     const backend = fakeBackend();
     delete (backend as { getCursorPosition?: unknown }).getCursorPosition;
     const injector = twoCursorInjector(backend);
@@ -654,14 +648,12 @@ describe('RemoteInputInjector two-cursor mode', () => {
 
     await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
 
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
-    );
+    expect(moves(backend)).toHaveLength(0);
   });
 
-  // The method can exist and still refuse to answer (KWin not reporting), so
-  // the first null has to switch the strategy rather than being shrugged off.
-  it('switches to driving the cursor once a position read comes back empty', async () => {
+  // The method can exist and still refuse to answer (KWin not reporting). A
+  // click then cannot be restored, but remote movement must remain virtual.
+  it('does not hijack movement once a position read comes back empty', async () => {
     const backend = fakeBackend({ getCursorPosition: vi.fn().mockResolvedValue(null) });
     const injector = twoCursorInjector(backend);
     injector.enable();
@@ -674,9 +666,10 @@ describe('RemoteInputInjector two-cursor mode', () => {
     await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
     await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
 
-    // From here movement drives the real cursor, so clicks land where aimed.
+    // From here a later click cannot restore the local pointer, but movement
+    // must not continuously warp it away from the host.
     await injector.inject({ type: 'mouse', action: 'move', x: 0.7, y: 0.8 });
-    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.7, y: 0.8 });
+    expect(moves(backend)).toHaveLength(0);
   });
 
   // A host that *can* report the pointer must keep both cursors, or the fix
@@ -878,7 +871,7 @@ describe('move coalescing', () => {
     await Promise.all(promises);
   }
 
-  it('drops moves that a newer position has already replaced', async () => {
+  it('keeps the newest superseding move when the queue drains', async () => {
     const { backend, release, injected } = blockingBackend();
     const injector = makeInjector(backend);
     injector.enable();
@@ -890,10 +883,11 @@ describe('move coalescing', () => {
 
     await drain(release, [inFlight, ...queued]);
 
-    // The middle position is gone: it was obsolete before it ever ran.
+    // The middle position is gone, but the final position is injected rather
+    // than silently lost with it.
     const xs = injected.filter((e) => 'x' in e).map((e) => (e as { x: number }).x);
     expect(xs).not.toContain(0.2);
-    expect(injected.length).toBeLessThan(3);
+    expect(xs).toContain(0.3);
   });
 
   it('never drops a click, however far behind the queue is', async () => {
@@ -932,8 +926,8 @@ describe('move coalescing', () => {
     expect(xs).toContain(0.3);
   });
 
-  it('reports where the viewer stopped even when the last move was dropped', async () => {
-    const { backend, release } = blockingBackend();
+  it('reports and injects where the viewer stopped after coalescing', async () => {
+    const { backend, release, injected } = blockingBackend();
     const injector = makeInjector(backend);
     injector.enable();
 
@@ -945,6 +939,7 @@ describe('move coalescing', () => {
 
     // The overlay still has to draw the guest's cursor where they left it.
     expect(injector.getRemoteCursorPosition().x).toBe(0.9);
+    expect(injected.some((event) => 'x' in event && event.x === 0.9)).toBe(true);
   });
 
   it('counts what it dropped, so a laggy host can be told apart from a busy one', async () => {

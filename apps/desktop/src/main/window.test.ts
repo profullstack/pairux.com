@@ -60,6 +60,24 @@ beforeEach(() => {
 });
 
 describe('createMainWindow', () => {
+  it('allows pointer lock through both Electron permission paths', async () => {
+    const { createMainWindow } = await import('./window');
+    await createMainWindow(false);
+
+    const requestHandler = vi
+      .mocked(session.defaultSession.setPermissionRequestHandler)
+      .mock.calls.at(-1)?.[0];
+    const checkHandler = vi
+      .mocked(session.defaultSession.setPermissionCheckHandler)
+      .mock.calls.at(-1)?.[0];
+    const callback = vi.fn();
+
+    requestHandler?.({} as Electron.WebContents, 'pointerLock', callback, {});
+
+    expect(callback).toHaveBeenCalledWith(true);
+    expect(checkHandler?.({} as Electron.WebContents, 'pointerLock', '', {})).toBe(true);
+  });
+
   it('keeps the renderer unthrottled in the background', async () => {
     const { createMainWindow } = await import('./window');
     await createMainWindow(false);

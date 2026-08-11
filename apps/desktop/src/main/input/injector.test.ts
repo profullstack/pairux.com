@@ -199,11 +199,7 @@ describe('Input Injector', () => {
     });
 
     describe('mouse move events', () => {
-      // Two-cursor mode: the remote participant's movement drives their own
-      // cursor overlay, never the host's physical pointer. Hijacking it on
-      // every move is what made control feel like the host's mouse had been
-      // taken away. The pointer is only borrowed at the moment of a click.
-      it('does not move the host pointer for remote movement', async () => {
+      it('moves the host pointer continuously for remote movement', async () => {
         const event: MouseMoveEvent = {
           type: 'mouse',
           action: 'move',
@@ -213,7 +209,7 @@ describe('Input Injector', () => {
 
         await injectInput(event);
 
-        expect(mouse.setPosition).not.toHaveBeenCalled();
+        expect(mouse.setPosition).toHaveBeenCalledWith({ x: 960, y: 540 });
       });
 
       it('positions the pointer at the remote cursor when a click lands', async () => {

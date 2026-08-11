@@ -594,6 +594,20 @@ describe('RemoteInputInjector two-cursor mode', () => {
     expect(restore?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 
+  it('pauses a compositor cursor reporter until the borrowed pointer is restored', async () => {
+    const backend = reportingBackend({
+      suspendCursorReporting: vi.fn(),
+      resumeCursorReporting: vi.fn(),
+    });
+    const injector = twoCursorInjector(backend);
+    injector.enable();
+
+    await injector.inject({ type: 'mouse', action: 'click', button: 'left', x: 0.2, y: 0.2 });
+
+    expect(backend.suspendCursorReporting).toHaveBeenCalledOnce();
+    expect(backend.resumeCursorReporting).toHaveBeenCalledOnce();
+  });
+
   // Restoring between down and up would tear the drag apart, so the borrowed
   // pointer is only handed back once every button is released.
   it('holds the borrowed pointer until the drag ends', async () => {

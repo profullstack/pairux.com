@@ -79,6 +79,20 @@ describe('KWinCursorProvider', () => {
     withPosition.position = { x: 100, y: 200, at: Date.now() - 10_000 };
     expect(provider.getPosition()).toBeNull();
   });
+
+  it('ignores synthetic movement while a pointer borrow is active', () => {
+    const provider = new KWinCursorProvider({ logger: silent });
+    const state = provider as unknown as {
+      position: { x: number; y: number; at: number } | null;
+      ignoreUpdatesUntil: number;
+    };
+
+    provider.suspendUpdates();
+    expect(state.ignoreUpdatesUntil).toBe(Number.POSITIVE_INFINITY);
+
+    provider.resumeUpdates();
+    expect(state.ignoreUpdatesUntil).toBeGreaterThan(Date.now());
+  });
 });
 
 describe('isKWinCursorRestoreEnabled', () => {
@@ -98,11 +112,9 @@ describe('isKWinCursorRestoreEnabled', () => {
     }
   }
 
-  // The helper only targets KDE on Wayland, and a user should not have to
-  // discover an env var to get working pointer restore there.
-  it('is on for a KDE Wayland session', () => {
+  it('is off by default, including on KDE Wayland', () => {
     env({ XDG_SESSION_TYPE: 'wayland', XDG_CURRENT_DESKTOP: 'KDE' });
-    expect(isKWinCursorRestoreEnabled()).toBe(true);
+    expect(isKWinCursorRestoreEnabled()).toBe(false);
   });
 
   it('is off where the helper does not apply', () => {

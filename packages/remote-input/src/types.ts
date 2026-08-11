@@ -151,6 +151,13 @@ export interface InputBackend {
    * participant actually holds control.
    */
   startCursorReporting?: () => Promise<void>;
+  /**
+   * Stop an optional cursor reporter from mistaking PairUX's own synthetic
+   * pointer motion for the host user's position while a click is borrowed.
+   */
+  suspendCursorReporting?: () => void;
+  /** Resume optional cursor reporting after a borrowed click has been restored. */
+  resumeCursorReporting?: () => void;
 }
 
 export interface InputStats {

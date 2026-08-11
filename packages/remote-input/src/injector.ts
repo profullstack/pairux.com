@@ -325,7 +325,13 @@ export class RemoteInputInjector {
       const reported = (await backend.getCursorPosition?.()) ?? null;
       // A null here means the compositor will not report the pointer, so this
       // click cannot later restore it. Movement nevertheless remains virtual.
-      this.borrowedFrom ??= reported;
+      if (reported) {
+        // A compositor reporter sees the ydotool motion required to land this
+        // click. Freeze it before injecting so the synthetic position cannot
+        // replace the host's origin before we restore it.
+        backend.suspendCursorReporting?.();
+        this.borrowedFrom ??= reported;
+      }
     }
 
     await backend.inject(this.withEdgeMargin(event));
@@ -390,6 +396,8 @@ export class RemoteInputInjector {
       });
     } catch (error) {
       this.logger.warn('[RemoteInput] Could not restore local pointer', { error });
+    } finally {
+      this.getBackend().resumeCursorReporting?.();
     }
   }
 

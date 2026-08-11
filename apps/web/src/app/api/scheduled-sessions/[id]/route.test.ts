@@ -105,16 +105,37 @@ function invitee(email: string, id: string) {
 function setupService(options: {
   existingInvitees?: { id: string; email: string; name: string | null; invite_token: string }[];
   meeting?: Partial<typeof baseMeeting>;
+  /** Simulate the host having already started the meeting under its join code. */
+  liveSession?: boolean;
+  /** Make the join_code UPDATE fail, as a unique-constraint clash would. */
+  rotateFails?: boolean;
 }) {
   const existingInvitees = options.existingInvitees ?? [];
   const meeting = { ...baseMeeting, ...options.meeting };
 
   const mock = createServiceMock((chain) => {
+    // Probing whether a candidate join code is free — matched on the filter rather
+    // than the table, since both tables are checked with the same shape of query.
+    if (chain.op === 'select' && chain.filters.join_code !== undefined) {
+      const isLive = chain.table === 'sessions' && chain.filters.join_code === meeting.join_code;
+      return {
+        data: isLive && options.liveSession === true ? { id: 'live-1' } : null,
+        error: null,
+      };
+    }
     if (chain.table === 'scheduled_sessions' && chain.op === 'select') {
       return {
         data: { ...meeting, scheduled_session_invitees: existingInvitees },
         error: null,
       };
+    }
+    if (
+      chain.table === 'scheduled_sessions' &&
+      chain.op === 'update' &&
+      (chain.payload as { join_code?: string }).join_code !== undefined &&
+      options.rotateFails === true
+    ) {
+      return { data: null, error: { message: 'duplicate key value' } };
     }
     if (chain.table === 'scheduled_sessions' && chain.op === 'update') {
       return { data: { ...meeting, ...(chain.payload as object) }, error: null };
@@ -234,6 +255,127 @@ describe('PATCH /api/scheduled-sessions/[id]', () => {
       inviteeEmails: ['drop@example.com'],
     });
     expect(mockSendMeetingInvites).not.toHaveBeenCalled();
+  });
+
+  describe('join code rotation on removal', () => {
+    it('rotates the join code so the removed invitee is actually locked out', async () => {
+      const mock = setupService({
+        existingInvitees: [invitee('stay@example.com', 'i1'), invitee('drop@example.com', 'i2')],
+      });
+
+      const response = await PATCH(patchRequest({ inviteeEmails: ['stay@example.com'] }), {
+        params,
+      });
+      const body = (await response.json()) as { data: { join_code: string } };
+
+      const rotate = mock.calls.find(
+        (c) =>
+          c.table === 'scheduled_sessions' &&
+          c.op === 'update' &&
+          (c.payload as { join_code?: string }).join_code !== undefined
+      );
+      const newCode = (rotate?.payload as { join_code: string }).join_code;
+
+      expect(rotate).toBeDefined();
+      expect(newCode).not.toBe('ABC123');
+      expect(newCode).toMatch(/^[A-Z0-9]{6}$/);
+      expect(rotate?.filters).toMatchObject({ id: MEETING_ID, host_user_id: mockUser.id });
+
+      // The caller sees the new code, so the dashboard stops showing the dead one.
+      expect(body.data.join_code).toBe(newCode);
+    });
+
+    it('tells the invitees who remain what the new code is', async () => {
+      setupService({
+        existingInvitees: [invitee('stay@example.com', 'i1'), invitee('drop@example.com', 'i2')],
+      });
+
+      await PATCH(patchRequest({ inviteeEmails: ['stay@example.com'] }), { params });
+
+      expect(mockSendMeetingUpdate).toHaveBeenCalledTimes(1);
+      const payload = mockSendMeetingUpdate.mock.calls[0]?.[0] as {
+        inviteeEmails: string[];
+        joinCode: string;
+        codeChanged: boolean;
+      };
+
+      // Only the retained invitee, and the email must carry the rotated code — sending
+      // the old one would leave them holding a code that no longer works.
+      expect(payload.inviteeEmails).toEqual(['stay@example.com']);
+      expect(payload.codeChanged).toBe(true);
+      expect(payload.joinCode).not.toBe('ABC123');
+    });
+
+    it('leaves the code alone when nobody was removed', async () => {
+      const mock = setupService({ existingInvitees: [invitee('a@example.com', 'i1')] });
+
+      await PATCH(patchRequest({ inviteeEmails: ['a@example.com', 'b@example.com'] }), { params });
+
+      const rotate = mock.calls.find(
+        (c) =>
+          c.table === 'scheduled_sessions' &&
+          c.op === 'update' &&
+          (c.payload as { join_code?: string }).join_code !== undefined
+      );
+      expect(rotate).toBeUndefined();
+
+      // A newly added invitee gets the existing code, which still works.
+      const invitePayload = mockSendMeetingInvites.mock.calls[0]?.[0] as { joinCode: string };
+      expect(invitePayload.joinCode).toBe('ABC123');
+    });
+
+    it('does not rotate once the meeting has started', async () => {
+      const mock = setupService({
+        existingInvitees: [invitee('stay@example.com', 'i1'), invitee('drop@example.com', 'i2')],
+        liveSession: true,
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const response = await PATCH(patchRequest({ inviteeEmails: ['stay@example.com'] }), {
+        params,
+      });
+
+      // The live room holds its own copy of the code, so rotating the scheduled row
+      // would claim a lockout that did not happen.
+      const rotate = mock.calls.find(
+        (c) =>
+          c.table === 'scheduled_sessions' &&
+          c.op === 'update' &&
+          (c.payload as { join_code?: string }).join_code !== undefined
+      );
+      expect(rotate).toBeUndefined();
+      expect(response.status).toBe(200);
+      expect(warn).toHaveBeenCalled();
+
+      // Nothing changed for the people staying, so they are not emailed.
+      expect(mockSendMeetingUpdate).not.toHaveBeenCalled();
+      // The removal itself still went through.
+      expect(mockSendInviteeRemoval).toHaveBeenCalledTimes(1);
+    });
+
+    it('still applies the removal when the rotation write fails', async () => {
+      const mock = setupService({
+        existingInvitees: [invitee('stay@example.com', 'i1'), invitee('drop@example.com', 'i2')],
+        rotateFails: true,
+      });
+
+      const response = await PATCH(patchRequest({ inviteeEmails: ['stay@example.com'] }), {
+        params,
+      });
+
+      expect(response.status).toBe(200);
+
+      const del = mock.calls.find(
+        (c) => c.table === 'scheduled_session_invitees' && c.op === 'delete'
+      );
+      expect(del?.filters.id).toEqual(['i2']);
+
+      // The code did not change, so retained invitees must not be told that it did.
+      const updateCall = mockSendMeetingUpdate.mock.calls[0]?.[0] as
+        | { codeChanged: boolean }
+        | undefined;
+      expect(updateCall?.codeChanged ?? false).toBe(false);
+    });
   });
 
   it('removes every invitee when given an empty list', async () => {

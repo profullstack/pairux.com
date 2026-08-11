@@ -9,6 +9,7 @@ import {
   sendMeetingUpdate,
   sendInviteeRemoval,
 } from '@/app/actions/meetings';
+import { getUniqueJoinCode, liveSessionExistsForCode } from '@/lib/join-code';
 import { randomBytes } from 'crypto';
 
 // GET /api/scheduled-sessions/[id]
@@ -140,6 +141,44 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     }
 
+    // Dropping someone from the list only revokes their access if the code they were
+    // already emailed stops working. The code is shared by the whole guest list, so
+    // rotating it means everyone still invited has to be told the new one — that is
+    // what `codeRotated` forces further down.
+    let joinCode = updated.join_code as string;
+    let codeRotated = false;
+
+    if (removed.length > 0) {
+      if (await liveSessionExistsForCode(svc, joinCode)) {
+        // The host already started this meeting, and the live room holds its own copy
+        // of the code. Rotating the scheduled row would not lock anyone out of it —
+        // /api/sessions/{id}/regenerate-code is the lever for a running session.
+        console.warn(`Not rotating join code for scheduled session ${id}: already started`);
+      } else {
+        try {
+          const nextCode = await getUniqueJoinCode(svc);
+
+          const { error: rotateErr } = await (svc as any)
+            .from('scheduled_sessions')
+            .update({ join_code: nextCode, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .eq('host_user_id', user.id);
+
+          if (rotateErr) {
+            // Keep the old code rather than failing the whole edit — the removal itself
+            // already succeeded, and a stale code is better than a half-applied PATCH.
+            console.error('Join code rotation error:', rotateErr);
+          } else {
+            joinCode = nextCode;
+            codeRotated = true;
+            updated = { ...updated, join_code: nextCode };
+          }
+        } catch (err) {
+          console.error('Join code rotation error:', err);
+        }
+      }
+    }
+
     // Host display name for the emails below
     const { data: profile } = await (svc as any)
       .from('profiles')
@@ -148,7 +187,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .maybeSingle();
     const hostName = (profile?.display_name as string | undefined) ?? user.email ?? 'Someone';
 
-    const joinCode = updated.join_code as string;
     const description = (updated.description as string | null) ?? undefined;
 
     if (added.length > 0) {
@@ -173,11 +211,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       });
     }
 
-    // Invitees who were already on the list only need a heads-up if something moved.
+    // Invitees who were already on the list only need a heads-up if something moved —
+    // or if the code they were given no longer opens the meeting.
     const removedIds = new Set(removed.map((i) => i.id));
     const retained = currentInvitees.filter((i) => !removedIds.has(i.id));
 
-    if (retained.length > 0 && detailsChanged(existing, updated)) {
+    if (retained.length > 0 && (codeRotated || detailsChanged(existing, updated))) {
       await sendMeetingUpdate({
         title: updated.title as string,
         description,
@@ -187,6 +226,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         joinCode,
         hostName,
         inviteeEmails: retained.map((i) => i.email),
+        codeChanged: codeRotated,
       });
     }
 

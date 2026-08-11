@@ -48,19 +48,15 @@ const REPORT_INTERVAL_MS = 100;
  * the report rate is capped, it exists only while a guest holds control, and it
  * gives up after repeated failures.
  *
- * PAIRUX_WAYLAND_CURSOR_RESTORE=0 forces it off (if a compositor misbehaves),
- * =1 forces it on (e.g. a KDE session that does not advertise itself).
+ * It is deliberately opt-in: KWin cannot identify whether a position change
+ * came from the host's mouse or from PairUX's synthetic ydotool event. A wrong
+ * restore is worse than no restore because it can repeatedly steal the host's
+ * pointer. Set PAIRUX_WAYLAND_CURSOR_RESTORE=1 only to try the experimental
+ * restore path; =0 is accepted for explicitness.
  */
 export function isKWinCursorRestoreEnabled(): boolean {
   const override = process.env.PAIRUX_WAYLAND_CURSOR_RESTORE;
-  if (override === '0') return false;
-  if (override === '1') return true;
-
-  const wayland =
-    process.env.XDG_SESSION_TYPE === 'wayland' || process.env.WAYLAND_DISPLAY !== undefined;
-  const kde = (process.env.XDG_CURRENT_DESKTOP ?? '').toUpperCase().includes('KDE');
-
-  return wayland && kde;
+  return override === '1';
 }
 
 /**
@@ -151,6 +147,8 @@ export interface KWinCursorProviderOptions {
 
 export class KWinCursorProvider {
   private position: { x: number; y: number; at: number } | null = null;
+  /** Ignore KWin notifications caused by our own move/click/restore cycle. */
+  private ignoreUpdatesUntil = 0;
   private started = false;
   private available = false;
   private bus: { disconnect: () => void } | null = null;
@@ -214,6 +212,21 @@ export class KWinCursorProvider {
     return { x: this.position.x, y: this.position.y };
   }
 
+  /**
+   * A borrowed click produces compositor cursor notifications of its own.
+   * Ignore them until after its restore has settled, or the next click would
+   * "restore" the host pointer to PairUX's previous synthetic position.
+   */
+  suspendUpdates(): void {
+    this.ignoreUpdatesUntil = Number.POSITIVE_INFINITY;
+  }
+
+  resumeUpdates(): void {
+    // ydotool and KWin are asynchronous. Keep ignoring the synthetic restore
+    // notification long enough for it to arrive before accepting host motion.
+    this.ignoreUpdatesUntil = Date.now() + 150;
+  }
+
   async stop(): Promise<void> {
     for (const iface of SCRIPTING_INTERFACES) {
       try {
@@ -245,6 +258,7 @@ export class KWinCursorProvider {
 
     const { Interface } = dbus.interface;
     const record = (x: number, y: number): void => {
+      if (Date.now() < this.ignoreUpdatesUntil) return;
       this.position = { x, y, at: Date.now() };
     };
 

@@ -550,6 +550,14 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     await this.cursorProvider.start();
   }
 
+  suspendCursorReporting(): void {
+    this.cursorProvider.suspendUpdates();
+  }
+
+  resumeCursorReporting(): void {
+    this.cursorProvider.resumeUpdates();
+  }
+
   getCursorPosition(): Promise<{ x: number; y: number } | null> {
     const point = this.cursorProvider.getPosition();
     if (!point) return Promise.resolve(null);

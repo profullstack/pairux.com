@@ -124,14 +124,14 @@ system cursor directly.
 
 ## Platform support
 
-| Platform                | Backend           | Two cursors                                                                                                         | Requirements                                                                    |
-| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| macOS                   | `nut-js`          | Full — local pointer restored                                                                                       | Accessibility permission (see below)                                            |
-| Windows                 | `nut-js`          | Full — local pointer restored                                                                                       | None. Admin only to drive elevated windows.                                     |
-| Linux / X11             | `nut-js`          | Full — local pointer restored                                                                                       | None                                                                            |
-| Linux / Wayland (KDE)   | `wayland-ydotool` | Full via `KWinCursorProvider` — without it, movement remains virtual and a click leaves the pointer where it landed | `ydotool` + running `ydotoold` with `/dev/uinput`; `gdbus` for cursor reporting |
-| Linux / Wayland (other) | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed                                   | `ydotool` + a running `ydotoold` with `/dev/uinput`                             |
-| Linux / Wayland         | `wayland-portal`  | n/a                                                                                                                 | Diagnostic only — reports why control is unavailable                            |
+| Platform                | Backend           | Two cursors                                                                                                                                | Requirements                                         |
+| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| macOS                   | `nut-js`          | Full — local pointer restored                                                                                                              | Accessibility permission (see below)                 |
+| Windows                 | `nut-js`          | Full — local pointer restored                                                                                                              | None. Admin only to drive elevated windows.          |
+| Linux / X11             | `nut-js`          | Full — local pointer restored                                                                                                              | None                                                 |
+| Linux / Wayland (KDE)   | `wayland-ydotool` | Movement remains virtual; a click leaves the pointer where it landed. Experimental restoration requires `PAIRUX_WAYLAND_CURSOR_RESTORE=1`. | `ydotool` + running `ydotoold` with `/dev/uinput`    |
+| Linux / Wayland (other) | `wayland-ydotool` | Partial — movement never hijacked, but a click leaves the pointer where it landed                                                          | `ydotool` + a running `ydotoold` with `/dev/uinput`  |
+| Linux / Wayland         | `wayland-portal`  | n/a                                                                                                                                        | Diagnostic only — reports why control is unavailable |
 
 > This package injects into a real OS, so it runs only where one exists. A
 > browser cannot be the _controlled_ machine; a browser-based client can only

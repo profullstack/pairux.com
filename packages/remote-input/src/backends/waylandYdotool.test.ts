@@ -361,3 +361,38 @@ describe('WaylandYdotoolInputBackend', () => {
     expect(run).toHaveBeenNthCalledWith(2, 'ydotool', ['click', '198']);
   });
 });
+
+// The click that never landed. `mousemove` and `click` are two separate
+// ydotool invocations writing to uinput, and the compositor processes that
+// stream asynchronously — so without a gap the press can be delivered while
+// the pointer is still where the host left it. The guest sees their cursor
+// over a button, clicks, and nothing happens. The nut.js backend has waited a
+// frame here since the same bug was found on macOS.
+describe('WaylandYdotoolInputBackend click timing', () => {
+  it('lets the pointer arrive before pressing', async () => {
+    const order: string[] = [];
+    const run = vi.fn(async (_command: string, args: string[]) => {
+      order.push(args[0] === 'mousemove' ? 'move' : 'click');
+    });
+    const sleep = vi.fn(async () => {
+      order.push('settle');
+    });
+
+    const backend = new WaylandYdotoolInputBackend(
+      run,
+      { hasBinary: true, hasSocket: true, socketPath: '/tmp/.ydotool_socket' },
+      { sleep }
+    );
+
+    await backend.inject({
+      type: 'mouse',
+      action: 'down',
+      button: 'left',
+      x: 0.5,
+      y: 0.5,
+    });
+
+    expect(order).toEqual(['move', 'settle', 'click']);
+    expect(sleep).toHaveBeenCalledWith(16);
+  });
+});

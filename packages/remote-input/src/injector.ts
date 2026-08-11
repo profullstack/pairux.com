@@ -22,6 +22,7 @@ import type {
   InputStats,
   MouseButton,
   MouseInputEvent,
+  MouseMoveEvent,
 } from './types.js';
 
 export interface RemoteInputInjectorOptions {
@@ -84,7 +85,13 @@ export class RemoteInputInjector {
   private readonly rateLimiter: InputRateLimiter;
   private readonly onRejected: RemoteInputInjectorOptions['onRejected'];
   private readonly logger: Pick<Console, 'log' | 'warn' | 'error'>;
-  private readonly stats: InputStats = { received: 0, injected: 0, rejected: 0, errors: 0 };
+  private readonly stats: InputStats = {
+    received: 0,
+    injected: 0,
+    rejected: 0,
+    errors: 0,
+    coalesced: 0,
+  };
 
   // What this injector is currently holding down on the host. Tracked so it
   // can always be released — a button left down puts the desktop into a
@@ -128,6 +135,13 @@ export class RemoteInputInjector {
   // chains through this promise. disable() and emergencyStop() wait on it so
   // releaseAll always runs *after* trackHeldState has recorded the press.
   private pendingInject: Promise<void> | null = null;
+  /**
+   * Pointer moves waiting on the queue. See `supersededMove`.
+   *
+   * A counter rather than a flag: the in-flight move and the one behind it are
+   * different things, and only the second is safe to drop.
+   */
+  private queuedMoves = 0;
 
   constructor(options: RemoteInputInjectorOptions = {}) {
     this.selection = options.selection ?? getInputBackendSelection();
@@ -530,6 +544,31 @@ export class RemoteInputInjector {
     this.onRejected?.(reason, event, detail);
   }
 
+  /**
+   * Is this move already obsolete?
+   *
+   * Every injection is serialized, and on some hosts each one costs a process
+   * spawn. A viewer streams pointer movement at their display's refresh rate,
+   * which arrives faster than that drains — so the queue grows without bound,
+   * the host's pointer trails further and further behind, and a click ends up
+   * stuck behind hundreds of stale positions before it is even attempted. The
+   * session reads as "laggy and I cannot click anything".
+   *
+   * Nothing is lost by dropping a superseded move: only the newest position
+   * matters, because a move is a statement about where the pointer *is*, not a
+   * step along a path. Clicks, scrolls and keystrokes are never dropped —
+   * those are discrete actions, and one of them going missing is a bug.
+   *
+   * A move that is part of a drag is also kept: there the intermediate motion
+   * is the point, since anything tracking a drag (text selection, canvas apps,
+   * file managers) needs to see the path and not just its endpoints.
+   */
+  private supersededMove(event: InputEvent): event is MouseMoveEvent {
+    if (event.type !== 'mouse' || event.action !== 'move') return false;
+    if (this.heldButtons.size > 0) return false;
+    return this.queuedMoves > 0;
+  }
+
   async inject(event: InputEvent): Promise<void> {
     this.stats.received += 1;
 
@@ -537,6 +576,19 @@ export class RemoteInputInjector {
       this.reject('not-enabled', event, 'control is not granted');
       return;
     }
+
+    // Drop a move that a newer one has already replaced, before it can take a
+    // place in the queue. Tracked rather than inferred, because the queue is a
+    // promise chain with no length to inspect.
+    const isMove = event.type === 'mouse' && event.action === 'move';
+    if (this.supersededMove(event)) {
+      // Remember it anyway: if this turns out to be the last move the viewer
+      // sends, the cursor overlay still needs to know where they stopped.
+      this.remotePosition = { x: event.x, y: event.y };
+      this.stats.coalesced += 1;
+      return;
+    }
+    if (isMove) this.queuedMoves += 1;
 
     // Serialize every injection so disable() and emergencyStop() can wait for
     // us to finish (including trackHeldState) before they release everything.
@@ -579,6 +631,7 @@ export class RemoteInputInjector {
         error: error instanceof Error ? error.message : String(error),
       });
     } finally {
+      if (isMove) this.queuedMoves = Math.max(0, this.queuedMoves - 1);
       resolve?.();
     }
   }

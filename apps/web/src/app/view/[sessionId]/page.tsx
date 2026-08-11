@@ -362,6 +362,7 @@ function GuestViewerContent({
               controlState={controlState}
               onInputEvent={sendInput}
               onCursorMove={sendCursorPosition}
+              allowFullscreen
               className="h-full"
             >
               <VideoViewer

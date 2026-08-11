@@ -12,7 +12,7 @@ vi.mock('../input/injector', () => ({
     enabled: false,
     backend: 'nut-js',
     backendSupported: true,
-    stats: { received: 0, injected: 0, rejected: 0, errors: 0 },
+    stats: { received: 0, injected: 0, rejected: 0, errors: 0, coalesced: 0 },
     heldButtons: 0,
     heldKeys: 0,
   }),
@@ -100,7 +100,7 @@ describe('IPC Input Handlers', () => {
         enabled: true,
         backend: 'nut-js',
         backendSupported: true,
-        stats: { received: 0, injected: 0, rejected: 0, errors: 0 },
+        stats: { received: 0, injected: 0, rejected: 0, errors: 0, coalesced: 0 },
         heldButtons: 0,
         heldKeys: 0,
       });
@@ -135,7 +135,7 @@ describe('IPC Input Handlers', () => {
         enabled: true,
         backend: 'nut-js',
         backendSupported: true,
-        stats: { received: 1, injected: 1, rejected: 0, errors: 0 },
+        stats: { received: 1, injected: 1, rejected: 0, errors: 0, coalesced: 0 },
         heldButtons: 0,
         heldKeys: 0,
       });

@@ -205,6 +205,14 @@ function clickCode(action: MouseButtonEvent['action'], button: MouseButton): str
   }
 }
 
+/**
+ * How long to wait for a synthetic pointer move to be applied before acting on
+ * it. Roughly one frame — long enough for the compositor, short enough that
+ * remote input still feels immediate. Mirrors POSITION_SETTLE_MS in the nut.js
+ * backend, which exists for the same reason.
+ */
+const POINTER_SETTLE_MS = 16;
+
 function scrollClickCode(base: number, repeat: number): string[] {
   return repeat > 1 ? ['--repeat', String(repeat), String(0xc0 | base)] : [String(0xc0 | base)];
 }
@@ -599,6 +607,17 @@ export class WaylandYdotoolInputBackend implements InputBackend {
     }
 
     await this.run(this.ydotoolCommand, move);
+    // Let the pointer actually arrive before pressing.
+    //
+    // These are two separate ydotool invocations writing to uinput, and the
+    // compositor processes that stream asynchronously — so without a gap the
+    // press can be delivered while the pointer is still where the host left
+    // it, and the click lands somewhere the guest never aimed. The guest sees
+    // their cursor over a button, clicks, and nothing happens.
+    //
+    // The nut.js backend has waited a frame here since the same bug was found
+    // on macOS; this path never got it.
+    await this.sleep(POINTER_SETTLE_MS);
     await this.run(this.ydotoolCommand, click);
   }
 

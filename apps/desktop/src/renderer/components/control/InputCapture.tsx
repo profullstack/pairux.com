@@ -48,13 +48,28 @@ export function InputCapture({
     onMove: handlePointerMove,
   });
 
+  // The guest has asked to drive, by clicking into the picture.
+  //
+  // Capture is deliberately not tied to fullscreen. Without the pointer held,
+  // the guest's real cursor walks straight out of the video the moment they
+  // push toward an edge — so they cannot reach a menu bar, a corner, or a
+  // window's controls, which is most of what taking control is *for*. Making
+  // that conditional on entering fullscreen first put the fix behind a step
+  // nobody found.
+  const [captureRequested, setCaptureRequested] = useState(false);
+  // The browser refused the lock. Rather than leaving the guest unable to do
+  // anything, fall back to plain absolute coordinates — worse at the edges,
+  // but working.
+  const [lockDenied, setLockDenied] = useState(false);
+
   // Wanting the lock and having it are different states, and conflating them is
   // a silent failure: a request can be denied (no user gesture, or Chromium's
-  // cooldown after an Escape) and then the guest sees their real cursor over a
-  // fullscreen video while every click is sent from a virtual position they
-  // are not steering. So the lock must be *granted* before coordinates come
-  // from anywhere but the event.
-  const wantsLock = controlState === 'granted' && isFullscreen && !wasReleasedByUser;
+  // cooldown after an Escape) and then the guest sees their real cursor over
+  // the video while every click is sent from a virtual position they are not
+  // steering. So the lock must be *granted* before coordinates come from
+  // anywhere but the event.
+  const wantsLock =
+    controlState === 'granted' && captureRequested && !wasReleasedByUser && !lockDenied;
 
   const { isCapturing, startCapture, stopCapture } = useRemoteControl({
     enabled,
@@ -83,6 +98,53 @@ export function InputCapture({
       containerRef.current.focus();
     }
   }, [isCapturing]);
+
+  // Clicking the picture takes control of the pointer.
+  //
+  // Capture phase, so this runs before useRemoteControl's own mousedown on the
+  // same container and can stop the click that *acquires* control from also
+  // being sent to the host — the guest is reaching for the window, not for
+  // whatever happens to be under it.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (controlState !== 'granted' || !enabled) return;
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (isLocked || lockDenied) return;
+      event.stopPropagation();
+      event.preventDefault();
+      // Clears the "they pressed Escape" latch, so asking again works.
+      resetPosition();
+      setCaptureRequested(true);
+      lock(container);
+    };
+
+    container.addEventListener('mousedown', onMouseDown, { capture: true });
+    return () => {
+      container.removeEventListener('mousedown', onMouseDown, { capture: true });
+    };
+  }, [controlState, enabled, isLocked, lockDenied, lock, resetPosition]);
+
+  // A refusal is not permanent, but it must not be retried on a loop either.
+  // Record it so coordinates stay absolute and the guest keeps working.
+  useEffect(() => {
+    if (!captureRequested || isLocked) return;
+    const timer = setTimeout(() => {
+      if (!document.pointerLockElement) setLockDenied(true);
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [captureRequested, isLocked]);
+
+  // Control ending resets the whole interaction, so the next grant starts from
+  // "click to take control" rather than from whatever state this was left in.
+  useEffect(() => {
+    if (controlState === 'granted') return;
+    setCaptureRequested(false);
+    setLockDenied(false);
+  }, [controlState]);
 
   // Pointer lock lifecycle: request when fullscreen and control is granted,
   // release when either ends.
@@ -171,6 +233,14 @@ export function InputCapture({
 
       {controlState === 'granted' && (
         <div className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-green-500/50" />
+      )}
+
+      {controlState === 'granted' && !isLocked && !lockDenied && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <div className="rounded-lg bg-black/70 px-4 py-2 text-sm font-medium text-white backdrop-blur">
+            Click to control · Esc to release
+          </div>
+        </div>
       )}
 
       {allowFullscreen && controlState === 'granted' && (

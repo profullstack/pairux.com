@@ -118,7 +118,10 @@ function setupService(options: {
     // than the table, since both tables are checked with the same shape of query.
     if (chain.op === 'select' && chain.filters.join_code !== undefined) {
       const isLive = chain.table === 'sessions' && chain.filters.join_code === meeting.join_code;
-      return { data: isLive && options.liveSession === true ? { id: 'live-1' } : null, error: null };
+      return {
+        data: isLive && options.liveSession === true ? { id: 'live-1' } : null,
+        error: null,
+      };
     }
     if (chain.table === 'scheduled_sessions' && chain.op === 'select') {
       return {

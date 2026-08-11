@@ -160,6 +160,11 @@ export function useWebRTCHostAPI({
   // input event, even if a viewer sends one anyway.
   const allowControlRef = useRef(allowControl);
   allowControlRef.current = allowControl;
+  // Never use React state alone to authorize OS input: a data-channel message
+  // can arrive between a grant/revoke and the next render. These refs are the
+  // synchronous authority for this transport.
+  const controllingViewerRef = useRef<string | null>(null);
+  const lastInputSequenceRef = useRef(new Map<string, number>());
 
   const getPreferredHostAudioTrack = useCallback(
     (streamOverride?: MediaStream | null): MediaStreamTrack | null => {
@@ -371,11 +376,32 @@ export function useWebRTCHostAPI({
               viewer.controlState = 'view-only';
               setViewers(new Map(viewersRef.current));
               setControllingViewer((prev) => (prev === viewerId ? null : prev));
+              if (controllingViewerRef.current === viewerId) controllingViewerRef.current = null;
             }
             break;
           }
           case 'input':
             if (!allowControlRef.current) return;
+            {
+              const viewer = viewersRef.current.get(viewerId);
+              const lastSequence = lastInputSequenceRef.current.get(viewerId);
+              if (
+                controllingViewerRef.current !== viewerId ||
+                viewer?.controlState !== 'granted' ||
+                !Number.isSafeInteger(message.sequence) ||
+                message.sequence < 0 ||
+                (lastSequence !== undefined && message.sequence <= lastSequence)
+              ) {
+                console.warn('[WebRTCHost] Dropping unauthorized or stale input', {
+                  viewerId,
+                  controller: controllingViewerRef.current,
+                  sequence: message.sequence,
+                  lastSequence: lastSequence ?? null,
+                });
+                return;
+              }
+              lastInputSequenceRef.current.set(viewerId, message.sequence);
+            }
             onInputReceivedRef.current?.(viewerId, message);
             break;
         }
@@ -1095,6 +1121,8 @@ export function useWebRTCHostAPI({
       };
       viewer.dataChannel.send(JSON.stringify(grantMessage));
       viewer.controlState = 'granted';
+      controllingViewerRef.current = viewerId;
+      lastInputSequenceRef.current.delete(viewerId);
       setControllingViewer(viewerId);
       setViewers(new Map(viewersRef.current));
     },
@@ -1113,6 +1141,7 @@ export function useWebRTCHostAPI({
     };
     viewer.dataChannel.send(JSON.stringify(message));
     viewer.controlState = 'view-only';
+    if (controllingViewerRef.current === viewerId) controllingViewerRef.current = null;
     setControllingViewer((prev) => (prev === viewerId ? null : prev));
     setViewers(new Map(viewersRef.current));
   }, []);

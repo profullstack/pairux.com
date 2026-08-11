@@ -70,7 +70,7 @@ describe('useInputInjection', () => {
 
   describe('initialization', () => {
     it('should initialize with default state', async () => {
-      const { result } = renderHook(() => useInputInjection({ enabled: false }));
+      const { result } = renderHook(() => useInputInjection({}));
 
       expect(result.current.isEnabled).toBe(false);
       expect(result.current.isInitialized).toBe(false);
@@ -106,6 +106,24 @@ describe('useInputInjection', () => {
   });
 
   describe('enabling/disabling', () => {
+    it('activates the backend before a host announces a control grant', async () => {
+      const { result } = renderHook(() => useInputInjection({}));
+
+      await act(async () => {
+        expect(await result.current.activate()).toBe(true);
+      });
+
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:init', undefined);
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:enable', undefined);
+      expect(result.current.isEnabled).toBe(true);
+
+      await act(async () => {
+        await result.current.deactivate();
+      });
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:disable', undefined);
+      expect(result.current.isEnabled).toBe(false);
+    });
+
     it('should enable injection when enabled prop is true', async () => {
       const { result } = renderHook(() => useInputInjection({ enabled: true }));
 

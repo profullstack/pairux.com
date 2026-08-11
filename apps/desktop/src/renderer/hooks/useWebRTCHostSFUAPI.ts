@@ -134,6 +134,11 @@ export function useWebRTCHostSFUAPI({
   // input event, even if a viewer sends one anyway.
   const allowControlRef = useRef(allowControl);
   allowControlRef.current = allowControl;
+  // Data messages do not wait for React renders. Keep controller ownership and
+  // per-viewer sequence state in refs so an old controller cannot inject in
+  // the handoff window.
+  const controllingViewerRef = useRef<string | null>(null);
+  const lastInputSequenceRef = useRef(new Map<string, number>());
 
   // Send data to a specific participant or all
   const sendData = useCallback((message: unknown, targetIdentity?: string, reliable = true) => {
@@ -177,11 +182,32 @@ export function useWebRTCHostSFUAPI({
               viewer.controlState = 'view-only';
               setViewers(new Map(viewersRef.current));
               setControllingViewer((prev) => (prev === viewerId ? null : prev));
+              if (controllingViewerRef.current === viewerId) controllingViewerRef.current = null;
             }
             break;
           }
           case 'input':
             if (!allowControlRef.current) return;
+            {
+              const viewer = viewersRef.current.get(viewerId);
+              const lastSequence = lastInputSequenceRef.current.get(viewerId);
+              if (
+                controllingViewerRef.current !== viewerId ||
+                viewer?.controlState !== 'granted' ||
+                !Number.isSafeInteger(message.sequence) ||
+                message.sequence < 0 ||
+                (lastSequence !== undefined && message.sequence <= lastSequence)
+              ) {
+                console.warn('[WebRTCHostSFU] Dropping unauthorized or stale input', {
+                  viewerId,
+                  controller: controllingViewerRef.current,
+                  sequence: message.sequence,
+                  lastSequence: lastSequence ?? null,
+                });
+                return;
+              }
+              lastInputSequenceRef.current.set(viewerId, message.sequence);
+            }
             onInputReceivedRef.current?.(viewerId, message);
             break;
         }
@@ -693,6 +719,8 @@ export function useWebRTCHostSFUAPI({
       const viewer = viewersRef.current.get(viewerId);
       if (viewer) viewer.controlState = 'granted';
 
+      controllingViewerRef.current = viewerId;
+      lastInputSequenceRef.current.delete(viewerId);
       setControllingViewer(viewerId);
       setViewers(new Map(viewersRef.current));
     },
@@ -712,6 +740,7 @@ export function useWebRTCHostSFUAPI({
       const viewer = viewersRef.current.get(viewerId);
       if (viewer) viewer.controlState = 'view-only';
 
+      if (controllingViewerRef.current === viewerId) controllingViewerRef.current = null;
       setControllingViewer((prev) => (prev === viewerId ? null : prev));
       setViewers(new Map(viewersRef.current));
     },

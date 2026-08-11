@@ -301,7 +301,18 @@ export function CapturePreview({
   // already in flight when control is granted lands afterwards carrying the
   // pre-grant state — which silently switched injection back off a few seconds
   // into a session. Host intent is authoritative; the poll only corroborates.
-  const [grantedViewerId, setGrantedViewerId] = useState<string | null>(null);
+  const [, setGrantedViewerId] = useState<string | null>(null);
+  // This ref is the only authorization source for OS injection. The database
+  // poll is intentionally not used here: it is eventually consistent and can
+  // contain a stale grant from a previous connection.
+  const grantedViewerIdRef = useRef<string | null>(null);
+  const lastInputSequenceRef = useRef(new Map<string, number>());
+
+  const setGrantedController = useCallback((viewerId: string | null) => {
+    grantedViewerIdRef.current = viewerId;
+    if (viewerId) lastInputSequenceRef.current.delete(viewerId);
+    setGrantedViewerId(viewerId);
+  }, []);
 
   // Read through refs so cursor updates (up to 60/s) never re-create the host
   // hook options and tear down the connection.
@@ -338,9 +349,12 @@ export function CapturePreview({
   // real screen geometry from the OS itself. The capture track's dimensions are
   // the *encoded stream* size, which is a different number in different units,
   // and using it put every remote click in the wrong place. See useInputInjection.
-  const { injectEvent, diagnostics: inputDiagnostics } = useInputInjection({
-    enabled: Boolean(participantWithControl) || grantedViewerId !== null,
-  });
+  const {
+    injectEvent,
+    diagnostics: inputDiagnostics,
+    activate: activateInput,
+    deactivate: deactivateInput,
+  } = useInputInjection({});
   const remoteInputCountRef = useRef(0);
   const showWaylandInputDiagnostics =
     Boolean(session) &&
@@ -430,7 +444,10 @@ export function CapturePreview({
         if (shouldChimeRef.current()) playLeaveSound();
         // A departing viewer's control ends with them, which also releases
         // anything they were still holding down on this machine.
-        setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
+        if (grantedViewerIdRef.current === viewerId) {
+          setGrantedController(null);
+          void deactivateInput();
+        }
         setPendingControlRequests((prev) =>
           prev.filter((request) => request.viewerId !== viewerId)
         );
@@ -439,6 +456,23 @@ export function CapturePreview({
       onControlRequest: handleControlRequested,
       onTailnetHello: handleTailnetHello,
       onInputReceived: (viewerId: string, input: InputMessage) => {
+        const controller = grantedViewerIdRef.current;
+        const lastSequence = lastInputSequenceRef.current.get(viewerId);
+        if (
+          viewerId !== controller ||
+          !Number.isSafeInteger(input.sequence) ||
+          input.sequence < 0 ||
+          (lastSequence !== undefined && input.sequence <= lastSequence)
+        ) {
+          console.warn('[CapturePreview] Rejected remote input', {
+            viewerId,
+            controller,
+            sequence: input.sequence,
+            lastSequence: lastSequence ?? null,
+          });
+          return;
+        }
+        lastInputSequenceRef.current.set(viewerId, input.sequence);
         remoteInputCountRef.current += 1;
         if (remoteInputCountRef.current <= 3 || remoteInputCountRef.current % 100 === 0) {
           console.log('[CapturePreview] Remote input received', {
@@ -446,7 +480,7 @@ export function CapturePreview({
             count: remoteInputCountRef.current,
             type: input.event.type,
             action: 'action' in input.event ? input.event.action : undefined,
-            grantedParticipantId: participantWithControl?.id ?? null,
+            grantedViewerId: controller,
           });
         }
         void injectEvent(input.event);
@@ -458,10 +492,11 @@ export function CapturePreview({
       stream,
       session?.settings.allowControl,
       injectEvent,
-      participantWithControl?.id,
       refreshSession,
       handleControlRequested,
       handleTailnetHello,
+      deactivateInput,
+      setGrantedController,
     ]
   );
 
@@ -882,7 +917,28 @@ export function CapturePreview({
   const handleGrantControl = useCallback(
     async (participantId: string) => {
       if (!session) return;
+      let backendActivated = false;
       try {
+        const viewerId = resolveViewerTargetId(participantId);
+        if (!viewerId) {
+          console.warn('[CapturePreview] Could not resolve viewer target for grant control', {
+            participantId,
+          });
+          return;
+        }
+
+        // Do not announce a grant until this host can actually inject. In
+        // particular, KDE's RemoteDesktop portal may show a host-side approval
+        // dialog; granting the guest first made it look as though control was
+        // broken while every one of their events was dropped.
+        backendActivated = await activateInput();
+        if (!backendActivated) {
+          console.warn('[CapturePreview] Refusing control grant: input backend is not ready', {
+            viewerId,
+          });
+          return;
+        }
+
         const response = await fetch(
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
@@ -893,32 +949,45 @@ export function CapturePreview({
         );
         if (!response.ok) {
           console.error('Failed to grant control');
+          await deactivateInput();
           return;
         }
 
-        const viewerId = resolveViewerTargetId(participantId);
-        if (viewerId) {
-          setGrantedViewerId(viewerId);
-          grantControl(viewerId);
-        } else {
-          console.warn('[CapturePreview] Could not resolve viewer target for grant control', {
-            participantId,
-          });
-        }
+        setGrantedController(viewerId);
+        grantControl(viewerId);
+        backendActivated = false;
 
         // Sync session participants so host-side input injection sees the granted state immediately.
         await refreshSession();
       } catch (err) {
         console.error('Error granting control:', err);
+        if (backendActivated) await deactivateInput();
       }
     },
-    [session, getAuthHeaders, resolveViewerTargetId, grantControl, refreshSession]
+    [
+      session,
+      getAuthHeaders,
+      resolveViewerTargetId,
+      activateInput,
+      deactivateInput,
+      setGrantedController,
+      grantControl,
+      refreshSession,
+    ]
   );
 
   const handleRevokeControl = useCallback(
     async (participantId: string) => {
       if (!session) return;
       try {
+        const viewerId = resolveViewerTargetId(participantId);
+        // Local safety wins over network/database round trips. Stop OS input
+        // first, then notify the viewer and persist the revocation.
+        if (viewerId && grantedViewerIdRef.current === viewerId) {
+          setGrantedController(null);
+          await deactivateInput();
+          revokeControl(viewerId);
+        }
         const response = await fetch(
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
           {
@@ -932,11 +1001,7 @@ export function CapturePreview({
           return;
         }
 
-        const viewerId = resolveViewerTargetId(participantId);
-        setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
-        if (viewerId) {
-          revokeControl(viewerId);
-        } else {
+        if (!viewerId) {
           console.warn('[CapturePreview] Could not resolve viewer target for revoke control', {
             participantId,
           });
@@ -948,7 +1013,15 @@ export function CapturePreview({
         console.error('Error revoking control:', err);
       }
     },
-    [session, getAuthHeaders, resolveViewerTargetId, revokeControl, refreshSession]
+    [
+      session,
+      getAuthHeaders,
+      resolveViewerTargetId,
+      deactivateInput,
+      setGrantedController,
+      revokeControl,
+      refreshSession,
+    ]
   );
 
   // A viewer id is whatever the transport calls the peer; map it back to the

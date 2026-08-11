@@ -10,6 +10,17 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.73',
+    date: 'August 2026',
+    title: 'Reliable shared-pointer control handoff',
+    changes: [
+      'A guest is granted control only after the host input backend is ready, including KDE portal approval',
+      'Only the approved guest can send ordered input; stale and replayed input is rejected before it reaches the host cursor',
+      'Revoking control now stops local input before notifying the guest, releasing the host pointer immediately',
+      'Wayland guidance now directs hosts to the supported portal path instead of suggesting automatic ydotool setup',
+    ],
+  },
+  {
     version: '0.9.72',
     date: 'August 2026',
     title: 'Wayland desktop startup repair',

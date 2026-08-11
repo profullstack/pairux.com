@@ -195,8 +195,8 @@ describe('useWebRTCHostSFUAPI', () => {
       return { result, onControlRequest, onInputReceived };
     }
 
-    it('surfaces control requests and input when the session allows control', async () => {
-      const { onControlRequest, onInputReceived } = await startHost(true);
+    it('only forwards ordered input from the host-granted viewer', async () => {
+      const { result, onControlRequest, onInputReceived } = await startHost(true);
 
       act(() => {
         mockRoomInstance.emit(
@@ -207,6 +207,8 @@ describe('useWebRTCHostSFUAPI', () => {
       });
       expect(onControlRequest).toHaveBeenCalledWith('viewer-1');
 
+      // Allowing control for a session is not a grant to every participant.
+      // Input before explicit host approval is discarded.
       act(() => {
         mockRoomInstance.emit(
           'dataReceived',
@@ -215,6 +217,39 @@ describe('useWebRTCHostSFUAPI', () => {
             timestamp: 1,
             sequence: 1,
             event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
+          }),
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
+        );
+      });
+      expect(onInputReceived).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.grantControl('viewer-1');
+      });
+
+      act(() => {
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({
+            type: 'input',
+            timestamp: 1,
+            sequence: 1,
+            event: { type: 'mouse', action: 'move', x: 0.5, y: 0.5 },
+          }),
+          { identity: 'viewer-1', audioTrackPublications: new Map() }
+        );
+      });
+      expect(onInputReceived).toHaveBeenCalledTimes(1);
+
+      // A delayed/replayed packet must never move the shared host pointer.
+      act(() => {
+        mockRoomInstance.emit(
+          'dataReceived',
+          encode({
+            type: 'input',
+            timestamp: 2,
+            sequence: 1,
+            event: { type: 'mouse', action: 'move', x: 0.75, y: 0.75 },
           }),
           { identity: 'viewer-1', audioTrackPublications: new Map() }
         );

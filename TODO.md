@@ -234,7 +234,6 @@
 
 - [x] **Overlay Indicators**
   - [x] "Control Active" visual indicator
-  - [x] Remote cursor visualization
   - [x] Recording/sharing indicator
 
 ### Platform-Specific

@@ -128,60 +128,16 @@ revokes the first.
 
 ---
 
-## Two cursors
+## One shared host pointer
 
-Both people keep a working cursor at the same time. Nobody hands control over,
-and the host's pointer is never taken away.
+PairUX drives the host's real system pointer for every guest movement, click,
+scroll, and drag. There is no synthetic cursor, overlay cursor, pointer
+borrowing, restoration, or compositor-specific cursor reader.
 
-Every OS we support has exactly one system pointer, and none lets an ordinary
-process create a second (X11's XInput2 MPX aside, which exists on neither
-Wayland nor macOS). So the second cursor comes from _not spending the real one
-on movement_:
-
-- remote movement only advances a tracked position, drawn by the host as the
-  participant's cursor (`RemoteCursorsContainer`, fed by `onCursorUpdate`)
-- the real pointer is borrowed for the instant a remote click or scroll has to
-  land, then returned to where its owner left it
-- during a drag it stays with the remote user until they release, since
-  restoring mid-drag would tear the drag apart
-
-This lives in `@profullstack/remote-input` (`virtualCursor`, on by default), so
-every host gets it without app-side logic.
-
-Restoring the pointer means reading where it is, which is platform-dependent:
-
-| Host                    | Restores the local pointer                        |
-| ----------------------- | ------------------------------------------------- |
-| macOS                   | Yes                                               |
-| Windows                 | Yes                                               |
-| Linux / X11             | Yes                                               |
-| Linux / Wayland (KDE)   | Yes, via the KWin helper below                    |
-| Linux / Wayland (other) | No — the click leaves the pointer where it landed |
-
-### The KWin helper (Wayland)
-
-Wayland refuses to tell a client where the pointer is, so on KDE the
-compositor is asked instead. A KWin script can only talk _outward_ over DBus,
-and the bus rejects calls to a name nobody owns, so PairUX claims
-`org.profullstack.RemoteInput`, exposes `SetCursorPos`, and installs plus loads
-a script that pushes `workspace.cursorPos` to it. Distance-throttled, because
-the signal fires on every motion event.
-
-Automatic — nothing for the user to install beyond `gdbus`
-(`libglib2.0-bin`), which desktops already have. Readings older than two
-seconds are discarded rather than used, and any failure falls back to leaving
-the pointer where the click landed. The script is unloaded on quit so it cannot
-outlive the app pushing at a dead name.
-
-Look for one of these in the host's terminal:
-
-```
-[RemoteInput] KWin cursor reporting active
-[RemoteInput] Cursor reporting off: KWin would not load the helper (<reason>)
-```
-
-GNOME's equivalent (`global.get_pointer()` via a Shell extension) is not
-implemented yet.
+The host and guest therefore take turns naturally: when the guest stops moving,
+the host can use the same physical pointer anywhere in the desktop. Input that
+arrives at the same moment is ordered by the operating system like any other
+input events.
 
 ## Coordinates
 

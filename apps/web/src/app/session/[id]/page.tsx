@@ -18,7 +18,6 @@ import {
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import type {
   ConnectionState,
-  CursorPositionMessage,
   QualityMetrics,
   NetworkQuality,
   ControlStateUI,
@@ -27,18 +26,12 @@ import type {
 import { VideoViewer } from '@/components/video';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
-import {
-  ControlRequestButton,
-  ControlStatusIndicator,
-  InputCapture,
-  CursorOverlay,
-} from '@/components/control';
+import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import { SessionSettingsPanel } from '@/components/session/SessionSettingsPanel';
 import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicator';
 import { useSessionPresence } from '@/hooks/useSessionPresence';
 import { Logo } from '@/components/Logo';
-import { useVideoContentRect } from '@/hooks/useVideoContentRect';
 
 type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
 
@@ -160,25 +153,11 @@ function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   // participantId with z.string().uuid(). useId() returns React opaque ids
   // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
   const [participantId] = useState(() => crypto.randomUUID());
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
 
   const hookResult = useWebRTC({
     sessionId,
     participantId,
     useApiSignalPost: true,
-    onCursorUpdate: handleCursorUpdate,
   });
 
   return (
@@ -186,7 +165,6 @@ function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
       sessionId={sessionId}
       session={session}
       participantId={participantId}
-      remoteCursors={remoteCursors}
       {...hookResult}
     />
   );
@@ -197,24 +175,10 @@ function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   // participantId with z.string().uuid(). useId() returns React opaque ids
   // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
   const [participantId] = useState(() => crypto.randomUUID());
-  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorPositionMessage>>(new Map());
-
-  const handleCursorUpdate = useCallback((cursor: CursorPositionMessage) => {
-    setRemoteCursors((prev) => {
-      const next = new Map(prev);
-      if (cursor.visible) {
-        next.set(cursor.participantId, cursor);
-      } else {
-        next.delete(cursor.participantId);
-      }
-      return next;
-    });
-  }, []);
 
   const hookResult = useWebRTCSFU({
     sessionId,
     participantId,
-    onCursorUpdate: handleCursorUpdate,
   });
 
   return (
@@ -222,7 +186,6 @@ function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
       sessionId={sessionId}
       session={session}
       participantId={participantId}
-      remoteCursors={remoteCursors}
       {...hookResult}
     />
   );
@@ -234,7 +197,6 @@ interface SessionViewerContentProps {
   sessionId: string;
   session: SessionData;
   participantId: string;
-  remoteCursors: Map<string, CursorPositionMessage>;
   connectionState: ConnectionState;
   remoteStream: MediaStream | null;
   qualityMetrics: QualityMetrics | null;
@@ -246,7 +208,6 @@ interface SessionViewerContentProps {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -256,7 +217,6 @@ function SessionViewerContent({
   sessionId,
   session,
   participantId: _participantId,
-  remoteCursors,
   connectionState,
   remoteStream,
   qualityMetrics,
@@ -268,7 +228,6 @@ function SessionViewerContent({
   requestControl,
   releaseControl,
   sendInput,
-  sendCursorPosition,
   micEnabled,
   hasMic,
   toggleMic,
@@ -278,7 +237,6 @@ function SessionViewerContent({
   const videoContainerRef = useRef<HTMLDivElement>(null);
   // Cursors are normalized against the remote screen, which is letterboxed
   // inside the player, so the overlay needs the picture's rectangle.
-  const videoContentRect = useVideoContentRect(videoContainerRef);
 
   // Track host presence in real-time
   const { status: sessionStatus, currentHostId, hostOnline } = useSessionPresence(sessionId);
@@ -353,7 +311,6 @@ function SessionViewerContent({
               enabled={allowControl}
               controlState={controlState}
               onInputEvent={sendInput}
-              onCursorMove={sendCursorPosition}
               allowFullscreen
               className="h-full"
             >
@@ -370,7 +327,6 @@ function SessionViewerContent({
                 className="h-full"
               />
             </InputCapture>
-            <CursorOverlay cursors={remoteCursors} contentRect={videoContentRect} />
           </div>
 
           {/* Control bar */}

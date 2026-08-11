@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/remote-input",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Cross-platform OS input injection for remote control (macOS, Windows, Linux X11 and Wayland)",
   "license": "MIT",
   "type": "module",
@@ -56,8 +56,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "optionalDependencies": {
-    "dbus-next": "^0.10.2"
   }
 }

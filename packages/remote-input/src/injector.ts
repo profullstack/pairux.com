@@ -13,7 +13,6 @@ import {
   type InputBackendSelection,
 } from './factory.js';
 import { InputRateLimiter, validateInputEvent, type RejectionReason } from './safety.js';
-import { isInputDebugEnabled } from './debug.js';
 import type {
   CaptureBounds,
   InputBackend,
@@ -51,17 +50,6 @@ export interface RemoteInputInjectorOptions {
    * and it is deliberately never reset.
    */
   maxHoldMs?: number;
-  /**
-   * Keep the local and remote cursors independent (default true).
-   *
-   * Remote movement then drives only a tracked position rather than the real
-   * pointer, which is borrowed just long enough to place a click and handed
-   * back. Set false to have remote input drive the system cursor directly.
-   *
-   * A drag is the exception in either mode: once a button is held, the motion
-   * has to reach the OS or the drag tears (see `dispatch`).
-   */
-  virtualCursor?: boolean;
   /**
    * Inset, in pixels, applied to injected pointer coordinates so remote input
    * cannot land exactly on a screen edge or corner. Defaults to 0 (no inset).
@@ -103,15 +91,9 @@ export class RemoteInputInjector {
   private readonly holdTimeoutMs: number;
   private readonly maxHoldMs: number;
 
-  // Two-cursor mode: remote movement never moves the local pointer, so both
-  // people keep a usable cursor at the same time.
-  private readonly virtualCursor: boolean;
   private readonly edgeMarginPx: number;
   /** Last known host screen size, used to convert `edgeMarginPx` to 0-1. */
   private screenSize: { width: number; height: number } | null = null;
-  private remotePosition = { x: 0.5, y: 0.5 };
-  /** Where the local pointer was before a remote click borrowed it. */
-  private borrowedFrom: { x: number; y: number } | null = null;
 
   // Every async operation that results in an OS-level button press or release
   // chains through this promise. disable() and emergencyStop() wait on it so
@@ -130,7 +112,6 @@ export class RemoteInputInjector {
     this.rateLimiter = new InputRateLimiter(options.maxEventsPerSecond ?? 1000);
     this.holdTimeoutMs = options.holdTimeoutMs ?? 5000;
     this.maxHoldMs = options.maxHoldMs ?? 30_000;
-    this.virtualCursor = options.virtualCursor ?? true;
     this.edgeMarginPx = Math.max(0, options.edgeMarginPx ?? 0);
     this.onRejected = options.onRejected;
     this.logger = options.logger ?? console;
@@ -184,15 +165,6 @@ export class RemoteInputInjector {
 
     this.enabled = true;
     this.rateLimiter.reset();
-
-    // Start cursor reporting so we can restore the host pointer after remote
-    // clicks. A failed report only means click restoration is unavailable; it
-    // must never make virtual movement take over the host's cursor.
-    if (this.virtualCursor) {
-      void backend.startCursorReporting?.().catch((error: unknown) => {
-        this.logger.warn('[RemoteInput] Cursor reporting could not start', { error });
-      });
-    }
 
     this.logger.log('[RemoteInput] Injection enabled', { backend: backend.name });
     return true;
@@ -256,8 +228,6 @@ export class RemoteInputInjector {
       }
     }
 
-    await this.restoreLocalPointer();
-
     for (const key of keys) {
       try {
         await backend.inject({
@@ -276,20 +246,10 @@ export class RemoteInputInjector {
   /**
    * Put the event on the OS.
    *
-   * In two-cursor mode (`virtualCursor`, the default) remote *movement* only
-   * advances a tracked position; the host's pointer is left alone so both
-   * people keep a usable cursor. The real pointer is borrowed for the instant
-   * a click or scroll needs to land somewhere, then handed back.
-   *
-   * A drag is the exception. There is only one real cursor, so once a remote
-   * button is held the motion has to reach the OS — otherwise a drag becomes
-   * "press at A, teleport, release at B" and anything that tracks intermediate
-   * motion (text selection, canvas apps, HTML5 drag-and-drop, file managers)
-   * never sees the drag at all. The pointer is handed back once everything is
-   * released.
-   *
-   * With `virtualCursor: false` every mouse event drives the system cursor
-   * directly, which is the classic single-cursor remote-control behaviour.
+   * Every guest mouse event drives the host's one real system pointer. The
+   * host and guest take turns naturally: whichever person moves last owns the
+   * pointer until the other person acts. PairUX never creates, borrows, or
+   * restores a second cursor.
    */
   private async dispatch(event: InputEvent): Promise<void> {
     // Keyboard events go straight to the OS; they never move the cursor.
@@ -302,63 +262,7 @@ export class RemoteInputInjector {
       return;
     }
 
-    const backend = this.getBackend();
-    const dragging = this.heldButtons.size > 0;
-
-    if (event.action === 'move') {
-      this.remotePosition = { x: event.x, y: event.y };
-
-      // Virtual movement must remain virtual even if cursor reporting fails.
-      // On that host a click cannot be restored, but constantly warping the
-      // host's pointer makes their UI unusable for the entire control session.
-      if (this.virtualCursor && !dragging) return;
-
-      await backend.inject(this.withEdgeMargin(event));
-      return;
-    }
-
-    // Click / scroll: inject at the remote position.
-    this.remotePosition = { x: event.x, y: event.y };
-
-    // Borrow the real pointer, unless a previous press already borrowed it.
-    if (!dragging) {
-      const reported = (await backend.getCursorPosition?.()) ?? null;
-      // A null here means the compositor will not report the pointer, so this
-      // click cannot later restore it. Movement nevertheless remains virtual.
-      if (reported) {
-        // A compositor reporter sees the ydotool motion required to land this
-        // click. Freeze it before injecting so the synthetic position cannot
-        // replace the host's origin before we restore it.
-        backend.suspendCursorReporting?.();
-        this.borrowedFrom ??= reported;
-      }
-    }
-
-    await backend.inject(this.withEdgeMargin(event));
-
-    // Hold the pointer in place for the duration of a drag. Held state is
-    // recorded after dispatch, so fold this event in to see what remains down.
-    const remaining = new Set(this.heldButtons);
-    if (event.action === 'down') remaining.add(event.button);
-    else if (event.action === 'up') remaining.delete(event.button);
-
-    if (isInputDebugEnabled()) {
-      // The two-cursor bookkeeping around a click. A restore firing between a
-      // down and its up would yank the pointer mid-click and is invisible from
-      // the backend's own trace, so it is recorded here.
-      this.logger.log('[RemoteInput:debug] click dispatch', {
-        action: event.action,
-        dragging,
-        heldBefore: [...this.heldButtons],
-        remainingAfter: [...remaining],
-        borrowedFrom: this.borrowedFrom,
-        willRestore: remaining.size === 0,
-      });
-    }
-
-    if (remaining.size > 0) return;
-
-    await this.restoreLocalPointer();
+    await this.getBackend().inject(this.withEdgeMargin(event));
   }
 
   /**
@@ -380,30 +284,6 @@ export class RemoteInputInjector {
     if (x === event.x && y === event.y) return event;
 
     return { ...event, x, y };
-  }
-
-  private async restoreLocalPointer(): Promise<void> {
-    const origin = this.borrowedFrom;
-    this.borrowedFrom = null;
-    if (!origin) return;
-
-    try {
-      await this.getBackend().inject({
-        type: 'mouse',
-        action: 'move',
-        x: origin.x,
-        y: origin.y,
-      });
-    } catch (error) {
-      this.logger.warn('[RemoteInput] Could not restore local pointer', { error });
-    } finally {
-      this.getBackend().resumeCursorReporting?.();
-    }
-  }
-
-  /** Where the remote participant's cursor currently sits, normalized 0-1. */
-  getRemoteCursorPosition(): { x: number; y: number } {
-    return { ...this.remotePosition };
   }
 
   private clearHoldWatchdog(): void {
@@ -540,7 +420,6 @@ export class RemoteInputInjector {
       // once the in-flight move completes, so the cursor always settles where
       // the viewer stopped.
       this.pendingCoalescedMove = event;
-      this.remotePosition = { x: event.x, y: event.y };
       this.stats.coalesced += 1;
       await new Promise<void>((resolve) => this.pendingCoalescedMoveResolvers.push(resolve));
       return;

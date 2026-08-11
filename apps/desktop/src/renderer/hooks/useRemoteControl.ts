@@ -21,7 +21,6 @@ interface UseRemoteControlOptions {
   controlState: ControlStateUI;
   containerRef: React.RefObject<HTMLElement | null>;
   onInputEvent: (event: InputEvent) => void;
-  onCursorMove?: ((x: number, y: number, visible: boolean) => void) | undefined;
   /**
    * Under pointer lock there is no cursor position to read from the event —
    * the browser reports movement deltas instead. When set, every click and
@@ -56,7 +55,6 @@ export function useRemoteControl({
   controlState,
   containerRef,
   onInputEvent,
-  onCursorMove,
   pointerLockPosition,
 }: UseRemoteControlOptions): UseRemoteControlReturn {
   const [isCapturing, setIsCapturing] = useState(false);
@@ -67,11 +65,9 @@ export function useRemoteControl({
   // an "up", or the host is left mid-drag with a stuck button.
   const heldButtonsRef = useRef<Set<MouseButton>>(new Set());
   const heldKeysRef = useRef<Set<string>>(new Set());
-  const lastCursorUpdateRef = useRef(0);
   // Pointer events fire before mouse events in Chromium. Storing the last
   // pointer event's timestamp lets the mouse handler skip a double-fire.
   const lastPointerEventRef = useRef(0);
-  const cursorThrottleMs = 16; // ~60fps throttle for cursor updates
 
   // Check if we can send input (enabled, granted control, and capturing)
   const canSendInput = enabled && controlState === 'granted' && isCapturing;
@@ -120,15 +116,6 @@ export function useRemoteControl({
       const coords = getRelativeCoords(event);
       if (!coords) return;
 
-      // Always update cursor position (even when view-only).
-      // Skip when locked: the pointer-lock movement handler already does this,
-      // and double-firing produces a cursor that jitters between two sources.
-      const now = Date.now();
-      if (!pointerLockPosition?.current && now - lastCursorUpdateRef.current >= cursorThrottleMs) {
-        lastCursorUpdateRef.current = now;
-        onCursorMove?.(coords.x, coords.y, true);
-      }
-
       // Only send input event if we have control
       if (!canSendInput) return;
 
@@ -141,7 +128,7 @@ export function useRemoteControl({
 
       onInputEvent(inputEvent);
     },
-    [getRelativeCoords, canSendInput, onCursorMove, onInputEvent, pointerLockPosition]
+    [getRelativeCoords, canSendInput, onInputEvent]
   );
 
   // Handle mouse down
@@ -259,11 +246,6 @@ export function useRemoteControl({
     heldKeysRef.current.clear();
   }, [onInputEvent]);
 
-  // Handle mouse leave (cursor left the container)
-  const handleMouseLeave = useCallback(() => {
-    onCursorMove?.(0, 0, false);
-  }, [onCursorMove]);
-
   // Handle key down
   const handleKeyDown = useCallback(
     (event: globalThis.KeyboardEvent) => {
@@ -356,8 +338,7 @@ export function useRemoteControl({
   const stopCapture = useCallback(() => {
     releaseHeldInput();
     setIsCapturing(false);
-    onCursorMove?.(0, 0, false);
-  }, [onCursorMove, releaseHeldInput]);
+  }, [releaseHeldInput]);
 
   // Attach/detach event listeners
   useEffect(() => {
@@ -375,7 +356,6 @@ export function useRemoteControl({
     container.addEventListener('pointerdown', handlePointerDown);
     container.addEventListener('pointerup', handlePointerUp);
     container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('contextmenu', handleContextMenu);
 
     // Keyboard events on document (when container is focused)
@@ -394,7 +374,6 @@ export function useRemoteControl({
       container.removeEventListener('pointerdown', handlePointerDown);
       container.removeEventListener('pointerup', handlePointerUp);
       container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -410,7 +389,6 @@ export function useRemoteControl({
     handleMouseDown,
     handleMouseUp,
     handleWheel,
-    handleMouseLeave,
     handleContextMenu,
     handlePointerDown,
     handlePointerUp,

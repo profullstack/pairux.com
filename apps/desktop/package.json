@@ -31,7 +31,6 @@
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
-    "dbus-next": "^0.10.2",
     "dotenv": "^17.2.3",
     "linkify-react": "^4.3.2",
     "linkifyjs": "^4.3.2",

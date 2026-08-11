@@ -71,7 +71,6 @@ describe('useWebRTCViewer', () => {
     expect(typeof result.current.requestControl).toBe('function');
     expect(typeof result.current.releaseControl).toBe('function');
     expect(typeof result.current.sendInput).toBe('function');
-    expect(typeof result.current.sendCursorPosition).toBe('function');
     expect(typeof result.current.toggleMic).toBe('function');
   });
 

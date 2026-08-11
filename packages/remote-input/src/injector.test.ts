@@ -25,8 +25,6 @@ function makeInjector(backend: InputBackend, maxEventsPerSecond?: number): Remot
     },
     createBackend: () => backend,
     logger: silentLogger,
-    // virtualCursor off by default for these non-cursor tests
-    virtualCursor: false,
     ...(maxEventsPerSecond === undefined ? {} : { maxEventsPerSecond }),
   };
   return new RemoteInputInjector(options);
@@ -95,7 +93,6 @@ describe('RemoteInputInjector', () => {
       selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
       createBackend: () => backend,
       logger: silentLogger,
-      virtualCursor: false,
       onRejected,
     });
 
@@ -375,7 +372,6 @@ describe('RemoteInputInjector held-input safety', () => {
         selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
         createBackend: () => backend,
         logger: silentLogger,
-        virtualCursor: false,
         holdTimeoutMs: 1000,
       });
       injector.enable();
@@ -399,7 +395,6 @@ describe('RemoteInputInjector held-input safety', () => {
         selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
         createBackend: () => backend,
         logger: silentLogger,
-        virtualCursor: false,
         holdTimeoutMs: 1000,
       });
       injector.enable();
@@ -436,7 +431,6 @@ describe('RemoteInputInjector held-input safety', () => {
         selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
         createBackend: () => backend,
         logger: silentLogger,
-        virtualCursor: false,
         holdTimeoutMs: 1000,
         maxHoldMs: 5000,
       });
@@ -471,7 +465,6 @@ describe('RemoteInputInjector held-input safety', () => {
         selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
         createBackend: () => backend,
         logger: silentLogger,
-        virtualCursor: false,
         holdTimeoutMs: 1000,
         maxHoldMs: 5000,
       });
@@ -503,7 +496,6 @@ describe('RemoteInputInjector held-input safety', () => {
         selection: { kind: 'nut-js', platform: 'linux', displayServer: 'x11' },
         createBackend: () => backend,
         logger: silentLogger,
-        virtualCursor: false,
         holdTimeoutMs: 1000,
         maxHoldMs: 5000,
       });
@@ -537,215 +529,6 @@ describe('RemoteInputInjector held-input safety', () => {
     } finally {
       vi.useRealTimers();
     }
-  });
-});
-
-// Remote mouse movement must never spend the local pointer — that is what
-// made control feel like it had been stolen. Moves are tracked rather than
-// injected; clicks briefly borrow the pointer and hand it back. The one
-// exception is a drag, where the single real cursor has to follow the motion.
-describe('RemoteInputInjector two-cursor mode', () => {
-  const moves = (backend: InputBackend) =>
-    vi.mocked(backend.inject).mock.calls.filter(([e]) => 'action' in e && e.action === 'move');
-
-  function twoCursorInjector(backend: InputBackend) {
-    return new RemoteInputInjector({
-      selection: { kind: 'nut-js', platform: 'darwin', displayServer: 'macos' },
-      createBackend: () => backend,
-      logger: silentLogger,
-    });
-  }
-
-  /** A host that can report its pointer, i.e. macOS/Windows/X11. */
-  function reportingBackend(overrides: Partial<InputBackend> = {}): InputBackend {
-    return fakeBackend({
-      getCursorPosition: vi.fn().mockResolvedValue({ x: 0.9, y: 0.9 }),
-      ...overrides,
-    });
-  }
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('does not move the local pointer for remote movement', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
-
-    expect(backend.inject).not.toHaveBeenCalled();
-    expect(injector.getRemoteCursorPosition()).toEqual({ x: 0.3, y: 0.4 });
-  });
-
-  it('borrows the pointer for a click and hands it straight back', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
-
-    // Last movement returns the local pointer to where its owner left it.
-    const restore = moves(backend).at(-1);
-    expect(restore?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
-  });
-
-  it('pauses a compositor cursor reporter until the borrowed pointer is restored', async () => {
-    const backend = reportingBackend({
-      suspendCursorReporting: vi.fn(),
-      resumeCursorReporting: vi.fn(),
-    });
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'click', button: 'left', x: 0.2, y: 0.2 });
-
-    expect(backend.suspendCursorReporting).toHaveBeenCalledOnce();
-    expect(backend.resumeCursorReporting).toHaveBeenCalledOnce();
-  });
-
-  // Restoring between down and up would tear the drag apart, so the borrowed
-  // pointer is only handed back once every button is released.
-  it('holds the borrowed pointer until the drag ends', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.5, y: 0.5 });
-
-    // No restore yet — the only move so far is the drag motion itself.
-    expect(moves(backend).map(([e]) => e)).toEqual([expect.objectContaining({ x: 0.5, y: 0.5 })]);
-
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.5, y: 0.5 });
-    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
-  });
-
-  // A drag that only sends down-then-up is not a drag: text selection, canvas
-  // apps, HTML5 drag-and-drop and file managers all need the motion between.
-  it('injects motion while a button is held so drags do not tear', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    // Before the press: virtual, nothing reaches the OS.
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.1 });
-    expect(moves(backend)).toHaveLength(0);
-
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-
-    // During the press: every move reaches the OS, in order.
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.4, y: 0.4 });
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.6, y: 0.6 });
-
-    expect(moves(backend).map(([e]) => e)).toEqual([
-      expect.objectContaining({ x: 0.4, y: 0.4 }),
-      expect.objectContaining({ x: 0.6, y: 0.6 }),
-    ]);
-
-    // After release: virtual again (past the pointer restore).
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.6, y: 0.6 });
-    vi.mocked(backend.inject).mockClear();
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.8, y: 0.8 });
-    expect(moves(backend)).toHaveLength(0);
-  });
-
-  it('keeps movement virtual when the host cannot report the pointer', async () => {
-    const backend = fakeBackend();
-    delete (backend as { getCursorPosition?: unknown }).getCursorPosition;
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
-
-    expect(moves(backend)).toHaveLength(0);
-  });
-
-  // The method can exist and still refuse to answer (KWin not reporting). A
-  // click then cannot be restored, but remote movement must remain virtual.
-  it('does not hijack movement once a position read comes back empty', async () => {
-    const backend = fakeBackend({ getCursorPosition: vi.fn().mockResolvedValue(null) });
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    // Before anything is known, movement stays virtual.
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.1, y: 0.1 });
-    expect(moves(backend)).toHaveLength(0);
-
-    // A click reveals the pointer cannot be read.
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
-
-    // From here a later click cannot restore the local pointer, but movement
-    // must not continuously warp it away from the host.
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.7, y: 0.8 });
-    expect(moves(backend)).toHaveLength(0);
-  });
-
-  // A host that *can* report the pointer must keep both cursors, or the fix
-  // above would quietly take two-cursor mode away from everyone.
-  it('keeps the cursors apart when the host can report the pointer', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.inject({ type: 'mouse', action: 'up', button: 'left', x: 0.2, y: 0.2 });
-    vi.mocked(backend.inject).mockClear();
-
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.7, y: 0.8 });
-
-    expect(moves(backend)).toHaveLength(0);
-  });
-
-  it('drives the system cursor directly when virtualCursor is off', async () => {
-    const backend = fakeBackend();
-    const injector = new RemoteInputInjector({
-      selection: { kind: 'nut-js', platform: 'darwin', displayServer: 'macos' },
-      createBackend: () => backend,
-      logger: silentLogger,
-      virtualCursor: false,
-    });
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'move', x: 0.3, y: 0.4 });
-
-    expect(backend.inject).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'move', x: 0.3, y: 0.4 })
-    );
-  });
-
-  it('hands the pointer back when stuck input is released', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({ type: 'mouse', action: 'down', button: 'left', x: 0.2, y: 0.2 });
-    await injector.releaseAll('viewer disconnected');
-
-    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
-  });
-
-  it('hands the pointer back after a scroll, which borrows it too', async () => {
-    const backend = reportingBackend();
-    const injector = twoCursorInjector(backend);
-    injector.enable();
-
-    await injector.inject({
-      type: 'mouse',
-      action: 'scroll',
-      deltaX: 0,
-      deltaY: -100,
-      x: 0.3,
-      y: 0.3,
-    });
-
-    expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ action: 'scroll' }));
-    expect(moves(backend).at(-1)?.[0]).toMatchObject({ x: 0.9, y: 0.9 });
   });
 });
 
@@ -940,7 +723,7 @@ describe('move coalescing', () => {
     expect(xs).toContain(0.3);
   });
 
-  it('reports and injects where the viewer stopped after coalescing', async () => {
+  it('injects where the viewer stopped after coalescing', async () => {
     const { backend, release, injected } = blockingBackend();
     const injector = makeInjector(backend);
     injector.enable();
@@ -951,8 +734,6 @@ describe('move coalescing', () => {
 
     await drain(release, [inFlight, dropped]);
 
-    // The overlay still has to draw the guest's cursor where they left it.
-    expect(injector.getRemoteCursorPosition().x).toBe(0.9);
     expect(injected.some((event) => 'x' in event && event.x === 0.9)).toBe(true);
   });
 

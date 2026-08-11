@@ -102,15 +102,6 @@ export type ControlMessage =
   | MuteMessage
   | TailnetHelloMessage;
 
-// Cursor position message (for multi-cursor overlay)
-export interface CursorPositionMessage {
-  type: 'cursor';
-  participantId: string;
-  x: number; // 0-1 relative position
-  y: number; // 0-1 relative position
-  visible: boolean;
-}
-
 // Ping/pong for latency measurement
 export interface PingMessage {
   type: 'ping';

@@ -65,7 +65,7 @@ const faqs = [
   {
     question: 'Does the viewer see my cursor?',
     answer:
-      "Yes, your cursor is captured as part of the screen share. When the viewer is granted control, you'll also see their remote cursor as an overlay.",
+      "Yes, your cursor is captured as part of the screen share. When control is granted, the viewer drives the host's real system pointer; either person can use it when the other is idle.",
   },
   {
     question: 'Can I share audio?',

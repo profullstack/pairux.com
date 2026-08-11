@@ -25,7 +25,6 @@ import type {
   CaptureSource,
   Session,
   InputMessage,
-  CursorPositionMessage,
   SessionParticipant,
 } from '@pairux/shared-types';
 import {
@@ -56,13 +55,7 @@ import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAutoStopServerStream } from '@/hooks/useAutoStopServerStream';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
 import { useInputInjection } from '@/hooks/useInputInjection';
-import {
-  SharingIndicator,
-  RecordingIndicator,
-  ControlActiveIndicator,
-  RemoteCursorsContainer,
-  useRemoteCursors,
-} from '@/components/overlay';
+import { SharingIndicator, RecordingIndicator, ControlActiveIndicator } from '@/components/overlay';
 
 // A control request the host has not answered yet. Expires so a request the
 // host ignored does not sit in the UI forever.
@@ -257,9 +250,6 @@ export function CapturePreview({
   );
   const canManageParticipantControl = Boolean(session);
 
-  // Remote cursors for showing viewer cursor positions
-  const { cursors: remoteCursors, updateCursor, removeCursor } = useRemoteCursors();
-
   // Determine mode from whichever session exists (joined OR auto-created by
   // quick-share). Both host hooks are always called; only the selection below
   // switches, and hosting doesn't start until a session exists, so the flip
@@ -438,11 +428,6 @@ export function CapturePreview({
       onViewerLeft: (viewerId: string) => {
         console.log('[CapturePreview] Viewer left:', viewerId);
         if (shouldChimeRef.current()) playLeaveSound();
-        void getElectronAPI()
-          .invoke('overlay:clearRemoteCursor', undefined)
-          .catch(() => {
-            // Best-effort.
-          });
         // A departing viewer's control ends with them, which also releases
         // anything they were still holding down on this machine.
         setGrantedViewerId((prev) => (prev === viewerId ? null : prev));
@@ -466,48 +451,6 @@ export function CapturePreview({
         }
         void injectEvent(input.event);
       },
-      onCursorUpdate: (viewerId: string, cursor: CursorPositionMessage) => {
-        // Show where the participant is pointing even when they are not
-        // driving. There is only one real system cursor, so this overlay is
-        // what makes two people working at once legible.
-        const api = getElectronAPI();
-
-        if (!cursor.visible) {
-          removeCursor(viewerId);
-          void api
-            .invoke('overlay:remoteCursor', { x: 0, y: 0, name: '', visible: false })
-            .catch(() => {
-              // Overlay is best-effort.
-            });
-          return;
-        }
-
-        // Also paint it on the desktop itself, so the guest's cursor is visible
-        // wherever they point — not just inside this window's video preview.
-        void api
-          .invoke('overlay:remoteCursor', {
-            x: cursor.x,
-            y: cursor.y,
-            name: participantNameRef.current(viewerId),
-            visible: true,
-          })
-          .catch(() => {
-            // Overlay is best-effort; never let it disturb the session.
-          });
-
-        // Cursor messages are normalized 0-1; the overlay scales from source
-        // pixels, so convert or every cursor lands in the top-left corner.
-        const source = sourceDimensionsRef.current;
-        updateCursor({
-          participantId: viewerId,
-          displayName: participantNameRef.current(viewerId),
-          position: {
-            x: cursor.x * source.width,
-            y: cursor.y * source.height,
-            timestamp: Date.now(),
-          },
-        });
-      },
     }),
     [
       session?.id,
@@ -519,8 +462,6 @@ export function CapturePreview({
       refreshSession,
       handleControlRequested,
       handleTailnetHello,
-      updateCursor,
-      removeCursor,
     ]
   );
 
@@ -1818,13 +1759,6 @@ export function CapturePreview({
               />
             </div>
           )}
-
-          {/* Remote cursors */}
-          <RemoteCursorsContainer
-            cursors={remoteCursors}
-            containerDimensions={containerDimensions}
-            sourceDimensions={sourceDimensions}
-          />
 
           {/* Loom-style camera bubble (optional) */}
           {camera.isEnabled && camera.stream && (

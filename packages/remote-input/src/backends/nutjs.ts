@@ -124,21 +124,6 @@ export class NutJsInputBackend implements InputBackend {
     };
   }
 
-  /** Normalized so the injector can restore it without knowing the screen. */
-  async getCursorPosition(): Promise<{ x: number; y: number } | null> {
-    try {
-      const { mouse } = await getNut();
-      const point = await mouse.getPosition();
-      const { x, y, width, height } = this.surface();
-      return {
-        x: Math.min(1, Math.max(0, (point.x - x) / width)),
-        y: Math.min(1, Math.max(0, (point.y - y) / height)),
-      };
-    } catch {
-      return null;
-    }
-  }
-
   async init(): Promise<InputBackendInitResult> {
     const { screen } = await getNut();
     this.screenWidth = await screen.width();
@@ -178,9 +163,8 @@ export class NutJsInputBackend implements InputBackend {
     // the window server asynchronously, so the press can be delivered before
     // the pointer has moved — the click lands wherever the pointer used to be.
     //
-    // It also puts a real gap between press and release. Two-cursor mode
-    // borrows the pointer, clicks, and hands it straight back, which without
-    // a delay is a sub-millisecond blip that many controls simply ignore.
+    // It also puts a real gap between press and release, so controls receive
+    // a genuine click even when the guest sends the events back to back.
     await settle();
 
     if (isInputDebugEnabled()) {

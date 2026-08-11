@@ -7,10 +7,8 @@ import { getContainRect, type ContainRect } from '@pairux/shared-types';
  * Anything drawn over the video has to be positioned against the picture
  * rather than the element: `object-contain` letterboxes the stream whenever
  * its aspect ratio differs from the window's, and a percentage of the
- * container is not a percentage of the picture. A remote cursor placed that
- * way drifts from the point the guest is actually aiming at — and since clicks
- * land on the aimed point, the cursor ends up pointing at one thing while the
- * click hits another, which is worse than not drawing it at all.
+ * container is not a percentage of the picture. Positioning content against
+ * the wrong rectangle makes it drift from the picture it belongs to.
  *
  * Recomputed on resize and once the stream's dimensions are known, since
  * `videoWidth` is 0 until metadata arrives.

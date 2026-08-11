@@ -18,7 +18,6 @@ import type {
   InputEvent,
   ControlMessage,
   ControlStateUI,
-  CursorPositionMessage,
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
@@ -73,7 +72,6 @@ interface UseWebRTCViewerOptions {
   onStreamReady?: (stream: MediaStream) => void;
   onStreamEnded?: () => void;
   onControlStateChange?: (state: ControlStateUI) => void;
-  onCursorUpdate?: (cursor: CursorPositionMessage) => void;
   onKicked?: (reason?: string) => void;
 }
 
@@ -90,7 +88,6 @@ interface UseWebRTCViewerReturn {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -102,7 +99,6 @@ export function useWebRTCViewer({
   onStreamReady,
   onStreamEnded,
   onControlStateChange,
-  onCursorUpdate,
   onKicked,
 }: UseWebRTCViewerOptions): UseWebRTCViewerReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
@@ -134,12 +130,10 @@ export function useWebRTCViewer({
 
   const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const onControlStateChangeRef = useRef(onControlStateChange);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onKickedRef = useRef(onKicked);
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
 
   onControlStateChangeRef.current = onControlStateChange;
-  onCursorUpdateRef.current = onCursorUpdate;
   onKickedRef.current = onKicked;
 
   const calculateNetworkQuality = useCallback((metrics: QualityMetrics): NetworkQuality => {
@@ -178,11 +172,7 @@ export function useWebRTCViewer({
   // Handle data channel messages
   const handleDataChannelMessage = useCallback((data: string) => {
     try {
-      const message = JSON.parse(data) as
-        | ControlMessage
-        | CursorPositionMessage
-        | KickMessage
-        | MuteMessage;
+      const message = JSON.parse(data) as ControlMessage | KickMessage | MuteMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -193,9 +183,6 @@ export function useWebRTCViewer({
           case 'control-revoke':
             setControlState('view-only');
             onControlStateChangeRef.current?.('view-only');
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(message);
             break;
           case 'kick':
             setError('You were removed from the session');
@@ -289,23 +276,6 @@ export function useWebRTCViewer({
       dc.send(JSON.stringify(message));
     },
     [controlState]
-  );
-
-  const sendCursorPosition = useCallback(
-    (x: number, y: number, visible: boolean) => {
-      const dc = dataChannelRef.current;
-      if (dc?.readyState !== 'open') return;
-
-      const message: CursorPositionMessage = {
-        type: 'cursor',
-        participantId,
-        x,
-        y,
-        visible,
-      };
-      dc.send(JSON.stringify(message));
-    },
-    [participantId]
   );
 
   // Collect stats for UI
@@ -834,7 +804,6 @@ export function useWebRTCViewer({
     requestControl,
     releaseControl,
     sendInput,
-    sendCursorPosition,
     micEnabled,
     hasMic,
     toggleMic,

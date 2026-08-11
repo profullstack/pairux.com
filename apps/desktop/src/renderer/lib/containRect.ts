@@ -10,8 +10,8 @@
 
 // The implementation lives in @pairux/shared-types, because the input path
 // needs the same rectangle and the two must not be allowed to disagree:
-// an overlay drawn against one and clicks mapped against the other put the
-// remote cursor somewhere the click does not land.
+// any element drawn against one and clicks mapped against the other drift
+// apart.
 export { getContainRect, type ContainRect as Rect } from '@pairux/shared-types';
 
 /** Clamp a value to the inclusive [min, max] range. */

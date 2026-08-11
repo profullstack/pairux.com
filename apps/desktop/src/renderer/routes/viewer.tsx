@@ -41,7 +41,6 @@ interface ViewerHookResult {
   requestControl: () => void;
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
-  sendCursorPosition: (x: number, y: number, visible: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
@@ -304,7 +303,6 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
     requestControl,
     releaseControl,
     sendInput,
-    sendCursorPosition,
     micEnabled,
     hasMic,
     toggleMic,
@@ -462,7 +460,6 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           enabled={allowControl}
           controlState={controlState}
           onInputEvent={sendInput}
-          onCursorMove={sendCursorPosition}
           allowFullscreen
           className="flex flex-1 flex-col"
         >

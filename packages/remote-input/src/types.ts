@@ -126,38 +126,7 @@ export interface InputBackend {
   updateCaptureBounds?: (bounds: CaptureBounds | null) => void;
   inject: (event: InputEvent) => Promise<void>;
   emergencyStop: () => Promise<void>;
-  /**
-   * Where the local pointer is right now, normalized 0-1, or null when the
-   * platform will not say.
-   *
-   * Needed to put the local user's pointer back after a remote click borrows
-   * it. X11 and macOS can answer; Wayland gives clients no way to query the
-   * pointer, so those backends omit this and lose exact restoration.
-   */
-  getCursorPosition?: () => Promise<{ x: number; y: number } | null>;
-  /**
-   * Release OS resources on shutdown.
-   *
-   * The Wayland backend installs a helper into the compositor, which would
-   * otherwise keep pushing to a DBus name that no longer exists once the app
-   * has quit.
-   */
   dispose?: () => Promise<void>;
-  /**
-   * Begin any optional machinery needed to report the cursor position.
-   *
-   * Separate from init() because on Wayland this installs a hook into the
-   * compositor's input path, which should only be present while a remote
-   * participant actually holds control.
-   */
-  startCursorReporting?: () => Promise<void>;
-  /**
-   * Stop an optional cursor reporter from mistaking PairUX's own synthetic
-   * pointer motion for the host user's position while a click is borrowed.
-   */
-  suspendCursorReporting?: () => void;
-  /** Resume optional cursor reporting after a borrowed click has been restored. */
-  resumeCursorReporting?: () => void;
 }
 
 export interface InputStats {

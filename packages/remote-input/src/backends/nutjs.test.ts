@@ -118,15 +118,6 @@ describe('NutJsInputBackend pointer mapping', () => {
     expect(mouse.setPosition).toHaveBeenCalledWith({ x: 3200, y: 720 });
   });
 
-  it('reads the pointer back relative to the shared display', async () => {
-    const backend = new NutJsInputBackend();
-    backend.updateScreenSize(1920, 1080);
-    backend.updateCaptureBounds({ x: 1920, y: 0, width: 2560, height: 1440 });
-    mouse.getPosition.mockResolvedValueOnce({ x: 3200, y: 720 });
-
-    expect(await backend.getCursorPosition()).toEqual({ x: 0.5, y: 0.5 });
-  });
-
   it('goes back to the primary display when the bounds are cleared', async () => {
     const backend = new NutJsInputBackend();
     backend.updateScreenSize(1920, 1080);

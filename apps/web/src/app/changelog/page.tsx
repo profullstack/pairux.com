@@ -10,15 +10,14 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: '0.9.36',
-    date: 'July 2026',
-    title: 'Two cursors, and remote control that stays out of your way',
+    version: '0.9.70',
+    date: 'August 2026',
+    title: 'One shared host pointer for remote control',
     changes: [
-      'Two independent cursors: a guest can point and click while you keep working — their movement never takes over your pointer',
-      'Your pointer is returned to where you left it after a guest clicks (macOS, Windows, Linux/X11, and KDE Wayland)',
-      'Fixed remote control freezing the host mouse until reboot',
-      'Guests joining from the desktop app can now request control',
-      'More reliable relay connections on networks with unreliable DNS',
+      'Remote input now drives the host’s one real system pointer directly',
+      'Host and guest can take turns naturally whenever the other is idle',
+      'Removed the overlay cursor, cursor-position transport, pointer borrowing, restoration, and KDE cursor helper',
+      'The host can always stop remote input with Ctrl+Shift+Escape',
     ],
   },
   {

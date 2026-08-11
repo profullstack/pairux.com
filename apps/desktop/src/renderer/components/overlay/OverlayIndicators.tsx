@@ -100,7 +100,9 @@ export function ControlActiveIndicator({ participant }: ControlActiveIndicatorPr
       data-testid="control-active-indicator"
     >
       <Monitor className="h-3 w-3 text-white" />
-      <span className="text-xs font-medium text-white">{participant.display_name} has control</span>
+      <span className="text-xs font-medium text-white">
+        {participant.display_name} has control · Ctrl+Shift+Esc to stop
+      </span>
     </div>
   );
 }

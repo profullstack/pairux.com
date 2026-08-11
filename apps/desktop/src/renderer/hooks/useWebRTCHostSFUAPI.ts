@@ -23,7 +23,6 @@ import type {
   NetworkQuality,
   InputMessage,
   ControlMessage,
-  CursorPositionMessage,
   KickMessage,
   MuteMessage,
 } from '@pairux/shared-types';
@@ -63,7 +62,6 @@ interface UseWebRTCHostSFUAPIOptions {
   onViewerLeft?: (viewerId: string) => void;
   onControlRequest?: (viewerId: string) => void;
   onInputReceived?: (viewerId: string, input: InputMessage) => void;
-  onCursorUpdate?: (viewerId: string, cursor: CursorPositionMessage) => void;
   /** A peer reporting its tailnet addresses (diagnostic only). */
   onTailnetHello?: (viewerId: string, ips: string[], isReply: boolean) => void;
 }
@@ -102,7 +100,6 @@ export function useWebRTCHostSFUAPI({
   onViewerLeft,
   onControlRequest,
   onInputReceived,
-  onCursorUpdate,
   onTailnetHello,
 }: UseWebRTCHostSFUAPIOptions): UseWebRTCHostSFUAPIReturn {
   const [isHosting, setIsHosting] = useState(false);
@@ -124,14 +121,12 @@ export function useWebRTCHostSFUAPI({
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
-  const onCursorUpdateRef = useRef(onCursorUpdate);
   const onTailnetHelloRef = useRef(onTailnetHello);
   const onViewerJoinedRef = useRef(onViewerJoined);
   const onViewerLeftRef = useRef(onViewerLeft);
 
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
-  onCursorUpdateRef.current = onCursorUpdate;
   onTailnetHelloRef.current = onTailnetHello;
   onViewerJoinedRef.current = onViewerJoined;
   onViewerLeftRef.current = onViewerLeft;
@@ -160,7 +155,7 @@ export function useWebRTCHostSFUAPI({
 
     try {
       const text = decoder.decode(payload);
-      const message = JSON.parse(text) as ControlMessage | InputMessage | CursorPositionMessage;
+      const message = JSON.parse(text) as ControlMessage | InputMessage;
 
       if ('type' in message) {
         switch (message.type) {
@@ -188,9 +183,6 @@ export function useWebRTCHostSFUAPI({
           case 'input':
             if (!allowControlRef.current) return;
             onInputReceivedRef.current?.(viewerId, message);
-            break;
-          case 'cursor':
-            onCursorUpdateRef.current?.(viewerId, message);
             break;
         }
       }

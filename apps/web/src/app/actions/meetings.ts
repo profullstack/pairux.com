@@ -20,6 +20,23 @@ interface CancellationPayload {
   inviteeEmails: string[];
 }
 
+interface UpdatePayload {
+  title: string;
+  description?: string | undefined;
+  scheduledAt: string;
+  previousScheduledAt: string;
+  durationMinutes: number;
+  joinCode: string;
+  hostName: string;
+  inviteeEmails: string[];
+}
+
+interface RemovalPayload {
+  title: string;
+  scheduledAt: string;
+  inviteeEmails: string[];
+}
+
 function formatDateTime(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleString('en-US', {
@@ -144,6 +161,112 @@ function cancellationEmailHtml(opts: { title: string; scheduledAt: string }): st
 </html>`;
 }
 
+function updateEmailHtml(opts: {
+  title: string;
+  description?: string;
+  scheduledAt: string;
+  previousScheduledAt: string;
+  durationMinutes: number;
+  joinCode: string;
+  hostName: string;
+  joinUrl: string;
+}): string {
+  const timeChanged =
+    new Date(opts.scheduledAt).getTime() !== new Date(opts.previousScheduledAt).getTime();
+  const durationLabel =
+    opts.durationMinutes >= 60
+      ? `${String(opts.durationMinutes / 60)} hour${opts.durationMinutes > 60 ? 's' : ''}`
+      : `${String(opts.durationMinutes)} minutes`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Updated: ${opts.title}</title>
+</head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+    <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:32px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;letter-spacing:-.5px;">PairUX</h1>
+      <p style="color:rgba(255,255,255,.85);margin:6px 0 0;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Meeting Updated</p>
+    </div>
+    <div style="padding:32px;">
+      <p style="color:#374151;margin:0 0 24px;"><strong>${opts.hostName}</strong> updated the details of a meeting you were invited to.</p>
+
+      <h2 style="margin:0 0 20px;font-size:20px;color:#111827;font-weight:700;">${opts.title}</h2>
+
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;width:110px;">New Time</td>
+            <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${formatDateTime(opts.scheduledAt)}</td>
+          </tr>
+          ${
+            timeChanged
+              ? `<tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Was</td>
+            <td style="padding:6px 0;color:#9ca3af;font-size:14px;text-decoration:line-through;">${formatDateTime(opts.previousScheduledAt)}</td>
+          </tr>`
+              : ''
+          }
+          <tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Duration</td>
+            <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${durationLabel}</td>
+          </tr>
+          ${
+            opts.description
+              ? `<tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;vertical-align:top;">Notes</td>
+            <td style="padding:6px 0;color:#374151;font-size:14px;">${opts.description}</td>
+          </tr>`
+              : ''
+          }
+        </table>
+      </div>
+
+      <div style="text-align:center;margin-bottom:28px;">
+        <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">Your join code (unchanged)</p>
+        <div style="display:inline-block;background:#ede9fe;border-radius:10px;padding:14px 28px;">
+          <span style="font-family:monospace;font-size:34px;font-weight:800;color:#4f46e5;letter-spacing:8px;">${opts.joinCode}</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;">
+        <a href="${opts.joinUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:600;font-size:15px;">Join Meeting</a>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:18px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Sent via <a href="https://pairux.com" style="color:#6366f1;text-decoration:none;">PairUX</a> · Real-time voice &amp; screen collaboration</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function removalEmailHtml(opts: { title: string; scheduledAt: string }): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Invitation Withdrawn</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+    <div style="background:#6b7280;padding:24px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">Invitation Withdrawn</h1>
+    </div>
+    <div style="padding:32px;text-align:center;">
+      <p style="color:#374151;font-size:16px;margin:0 0 8px;">You've been removed from this meeting:</p>
+      <h2 style="color:#111827;margin:0 0 8px;">${opts.title}</h2>
+      <p style="color:#6b7280;font-size:14px;">Scheduled for: ${formatDateTime(opts.scheduledAt)}</p>
+      <p style="color:#9ca3af;font-size:13px;margin-top:16px;">Your join code for this meeting no longer applies. The meeting itself is still going ahead without you.</p>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;"><a href="https://pairux.com" style="color:#6366f1;text-decoration:none;">PairUX</a></p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 export async function sendMeetingInvites(
   payload: InvitePayload
 ): Promise<{ ok: boolean; error?: string }> {
@@ -184,6 +307,69 @@ export async function sendMeetingInvites(
 
   if (errors.length > 0) {
     console.error('Some invite emails failed:', errors);
+  }
+
+  return { ok: true };
+}
+
+export async function sendMeetingUpdate(
+  payload: UpdatePayload
+): Promise<{ ok: boolean; error?: string }> {
+  if (payload.inviteeEmails.length === 0) return { ok: true };
+
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) return { ok: false, error: 'RESEND_API_KEY not configured' };
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com';
+  const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <hello@pairux.com>';
+  const emailer = createEmailer({ resendApiKey, defaultFrom });
+
+  const html = updateEmailHtml({
+    title: payload.title,
+    ...(payload.description !== undefined && { description: payload.description }),
+    scheduledAt: payload.scheduledAt,
+    previousScheduledAt: payload.previousScheduledAt,
+    durationMinutes: payload.durationMinutes,
+    joinCode: payload.joinCode,
+    hostName: payload.hostName,
+    joinUrl: `${appUrl}/join/${payload.joinCode}`,
+  });
+
+  try {
+    await (emailer as any).sendBulk({
+      to: payload.inviteeEmails,
+      subject: `Updated: ${payload.title}`,
+      html,
+    });
+  } catch (err) {
+    console.error('Meeting update email failed:', err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
+  return { ok: true };
+}
+
+export async function sendInviteeRemoval(
+  payload: RemovalPayload
+): Promise<{ ok: boolean; error?: string }> {
+  if (payload.inviteeEmails.length === 0) return { ok: true };
+
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) return { ok: false, error: 'RESEND_API_KEY not configured' };
+
+  const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <hello@pairux.com>';
+  const emailer = createEmailer({ resendApiKey, defaultFrom });
+  const html = removalEmailHtml({ title: payload.title, scheduledAt: payload.scheduledAt });
+
+  try {
+    await (emailer as any).sendBulk({
+      to: payload.inviteeEmails,
+      subject: `Removed from: ${payload.title}`,
+      html,
+    });
+  } catch (err) {
+    console.error('Invitee removal email failed:', err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 
   return { ok: true };

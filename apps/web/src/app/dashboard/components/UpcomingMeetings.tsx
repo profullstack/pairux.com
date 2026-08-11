@@ -7,12 +7,14 @@ import {
   Users,
   Clock,
   Play,
+  Pencil,
   Trash2,
   Loader2,
   CalendarPlus,
   CheckCircle,
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
+import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 
 interface Invitee {
   id: string;
@@ -87,6 +89,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   const [startingId, setStartingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [calendarOpenId, setCalendarOpenId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ScheduledSession | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -160,6 +163,19 @@ export function UpcomingMeetings({ onSchedule }: Props) {
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
+      {editing && (
+        <ScheduleMeetingModal
+          meeting={editing}
+          onClose={() => {
+            setEditing(null);
+          }}
+          onSaved={() => {
+            setEditing(null);
+            void fetchSessions();
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">Upcoming Meetings</h2>
         <button
@@ -312,6 +328,15 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                         </div>
                       )}
                     </div>
+                    <button
+                      onClick={() => {
+                        setEditing(session);
+                      }}
+                      className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-500"
+                      title="Edit meeting"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => void handleCancel(session.id)}
                       disabled={cancellingId === session.id}

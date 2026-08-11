@@ -135,12 +135,43 @@ export const scheduleMeetingSchema = z.object({
     .optional(),
 });
 
-export const updateScheduledMeetingSchema = z.object({
-  title: z.string().min(1).max(120).optional(),
-  description: z.string().max(500).optional(),
-  scheduled_at: z.string().datetime().optional(),
-  duration_minutes: z.number().int().min(15).max(480).optional(),
-});
+// Edit a scheduled meeting. Accepts either the column names (scheduled_at) or the
+// camelCase names the create endpoint uses (scheduledAt), and normalises to columns.
+// `inviteeEmails`, when present, is the complete desired guest list — the API diffs it
+// against the current invitees to work out who to add and who to drop.
+export const updateScheduledMeetingSchema = z
+  .object({
+    title: z.string().min(1, 'Title is required').max(120).optional(),
+    description: z.string().max(500).optional(),
+    scheduled_at: z.string().datetime('Invalid date/time').optional(),
+    scheduledAt: z.string().datetime('Invalid date/time').optional(),
+    duration_minutes: z.number().int().min(15).max(480).optional(),
+    durationMinutes: z.number().int().min(15).max(480).optional(),
+    inviteeEmails: z
+      .array(z.string().email('Invalid email address'))
+      .max(50, 'Maximum 50 invitees')
+      .optional(),
+  })
+  .transform((input) => {
+    const scheduledAt = input.scheduled_at ?? input.scheduledAt;
+    const durationMinutes = input.duration_minutes ?? input.durationMinutes;
+
+    // Clearing the description in the UI arrives as '' — store it as NULL.
+    const description =
+      input.description === undefined ? undefined : input.description.trim() || null;
+
+    const inviteeEmails = input.inviteeEmails
+      ? [...new Set(input.inviteeEmails.map((email) => email.toLowerCase().trim()))]
+      : undefined;
+
+    return {
+      ...(input.title !== undefined && { title: input.title.trim() }),
+      ...(description !== undefined && { description }),
+      ...(scheduledAt !== undefined && { scheduled_at: scheduledAt }),
+      ...(durationMinutes !== undefined && { duration_minutes: durationMinutes }),
+      ...(inviteeEmails !== undefined && { inviteeEmails }),
+    };
+  });
 
 export type ScheduleMeetingInput = z.infer<typeof scheduleMeetingSchema>;
 export type UpdateScheduledMeetingInput = z.infer<typeof updateScheduledMeetingSchema>;

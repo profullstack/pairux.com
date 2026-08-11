@@ -36,24 +36,25 @@ export function InputCapture({
 }: InputCaptureProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const locking = controlState === 'granted' && isFullscreen;
-
-  // Virtual position under pointer lock: where the guest aims, independent of
-  // where their real cursor is. Fed into useRemoteControl so click coordinates
-  // always come from the right place.
-  const virtualPositionRef = useRef({ x: 0.5, y: 0.5 });
 
   const handlePointerMove = useCallback(
     (x: number, y: number, visible: boolean) => {
-      virtualPositionRef.current = { x, y };
       onCursorMove?.(x, y, visible);
     },
     [onCursorMove]
   );
 
-  const { isLocked, lock, unlock, resetPosition } = usePointerLock({
+  const { isLocked, wasReleasedByUser, positionRef, lock, unlock, resetPosition } = usePointerLock({
     onMove: handlePointerMove,
   });
+
+  // Wanting the lock and having it are different states, and conflating them is
+  // a silent failure: a request can be denied (no user gesture, or Chromium's
+  // cooldown after an Escape) and then the guest sees their real cursor over a
+  // fullscreen video while every click is sent from a virtual position they
+  // are not steering. So the lock must be *granted* before coordinates come
+  // from anywhere but the event.
+  const wantsLock = controlState === 'granted' && isFullscreen && !wasReleasedByUser;
 
   const { isCapturing, startCapture, stopCapture } = useRemoteControl({
     enabled,
@@ -61,9 +62,10 @@ export function InputCapture({
     containerRef,
     onInputEvent,
     onCursorMove,
-    // When locked, coordinates come from the virtual position rather than
-    // the event's absolute clientX/Y (which are 0 under lock).
-    pointerLockPosition: locking ? virtualPositionRef : undefined,
+    // Only once the lock is actually held. Under lock the event's clientX/Y
+    // stop advancing, so the virtual position is the only real coordinate;
+    // outside it, the event is.
+    pointerLockPosition: isLocked ? positionRef : undefined,
   });
 
   // Capture only while control is actually granted.
@@ -82,60 +84,77 @@ export function InputCapture({
     }
   }, [isCapturing]);
 
-  // Pointer lock lifecycle: request when fullscreen + granted, release when
-  // fullscreen ends or control is revoked.
+  // Pointer lock lifecycle: request when fullscreen and control is granted,
+  // release when either ends.
+  //
+  // `wantsLock` folds in `wasReleasedByUser`, which is what stops this from
+  // fighting the guest. Escape releases the lock without leaving fullscreen, so
+  // without that flag this effect would see "fullscreen, granted, not locked"
+  // one render later and immediately ask for the lock back — Escape would
+  // appear to do nothing at all.
   useEffect(() => {
-    if (locking && containerRef.current && !isLocked) {
+    if (wantsLock && containerRef.current && !isLocked) {
       lock(containerRef.current);
-    } else if (!locking && isLocked) {
+    } else if (!wantsLock && isLocked) {
       unlock();
-      resetPosition();
     }
-  }, [locking, isLocked, lock, unlock, resetPosition]);
+  }, [wantsLock, isLocked, lock, unlock]);
 
-  // Reset on unlock so a re-lock starts from centre, not wherever the guest
-  // stopped moving last time.
-  useEffect(() => {
-    if (!isLocked) {
-      // Let the next absolute-coordinate move correct the position.
-      virtualPositionRef.current = { x: 0.5, y: 0.5 };
-    }
-  }, [isLocked]);
-
-  // Watch fs exit so state stays in sync when the user presses Escape or
-  // exits fullscreen through a browser shortcut.
+  // Watch fs exit so state stays in sync when the guest leaves fullscreen
+  // through Escape or a browser shortcut rather than the button.
   useEffect(() => {
     const onFsChange = () => {
-      if (!document.fullscreenElement) {
-        setIsFullscreen(false);
-        if (isLocked) {
-          unlock();
-          resetPosition();
-        }
-      }
+      if (document.fullscreenElement) return;
+      setIsFullscreen(false);
+      unlock();
+      // Leaving fullscreen is a fresh start: clear both the stale virtual
+      // position and the "they pressed Escape" latch, so the button works
+      // again next time.
+      resetPosition();
     };
     document.addEventListener('fullscreenchange', onFsChange);
     return () => {
       document.removeEventListener('fullscreenchange', onFsChange);
     };
-  }, [isLocked, unlock, resetPosition]);
+  }, [unlock, resetPosition]);
 
   const toggleFullscreen = useCallback(() => {
     // This handler fires from a button click, which is a user gesture that
     // fullscreen and pointer lock both require.
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const exit = isFullscreen;
-    if (exit) {
-      if (document.fullscreenElement) {
-        void document.exitFullscreen();
+    if (isFullscreen) {
+      // Still fullscreen but no longer locked means the guest pressed Escape to
+      // get their cursor back. The obvious next click is "capture it again",
+      // not "leave fullscreen" — and asking here rather than from an effect is
+      // what makes it work, since this click is the user gesture the browser
+      // requires and the cooldown after an Escape has passed.
+      if (!isLocked) {
+        resetPosition();
+        lock(container);
+        return;
       }
+
+      if (document.fullscreenElement) void document.exitFullscreen();
       setIsFullscreen(false);
-    } else {
-      void containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
+      return;
     }
-  }, [isFullscreen]);
+
+    // Only claim fullscreen once the browser has actually granted it. Setting
+    // the flag optimistically and then having the request rejected leaves the
+    // component believing it is fullscreen when it is not, which used to mean
+    // clicks were sent from a virtual pointer nobody was steering.
+    void container
+      .requestFullscreen()
+      .then(() => {
+        resetPosition();
+        setIsFullscreen(true);
+      })
+      .catch(() => {
+        setIsFullscreen(false);
+      });
+  }, [isFullscreen, isLocked, lock, resetPosition]);
 
   return (
     <div
@@ -158,7 +177,13 @@ export function InputCapture({
         <button
           onClick={toggleFullscreen}
           className="absolute right-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/60 hover:text-white"
-          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen + pointer lock'}
+          title={
+            !isFullscreen
+              ? 'Fullscreen + pointer lock'
+              : isLocked
+                ? 'Exit fullscreen'
+                : 'Capture pointer again'
+          }
         >
           <Fullscreen className="h-4 w-4" />
           {isLocked && (

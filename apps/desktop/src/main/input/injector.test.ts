@@ -10,6 +10,10 @@ vi.mock('../platform', () => ({
   detectDisplayServer: vi.fn().mockReturnValue('x11'),
 }));
 
+vi.mock('../capture/captureDisplay', () => ({
+  resolveCaptureBoundsForSource: vi.fn().mockResolvedValue(null),
+}));
+
 // Mock @nut-tree-fork/nut-js before imports
 // Note: All values must be defined inside the factory since vi.mock is hoisted
 vi.mock('@nut-tree-fork/nut-js', () => {
@@ -93,6 +97,7 @@ vi.mock('@nut-tree-fork/nut-js', () => {
 });
 
 import { mouse, keyboard, Button, Key, screen } from '@nut-tree-fork/nut-js';
+import { resolveCaptureBoundsForSource } from '../capture/captureDisplay';
 import {
   initInputInjector,
   enableInjection,
@@ -101,11 +106,14 @@ import {
   updateScreenSize,
   injectInput,
   emergencyStop,
+  resetInputInjector,
+  setCaptureSource,
 } from './injector';
 
 describe('Input Injector', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    resetInputInjector();
     // Reset injection state and screen size
     disableInjection();
     // Reset to default screen size for consistent tests
@@ -129,6 +137,16 @@ describe('Input Injector', () => {
 
       // Should not throw
       await expect(initInputInjector()).resolves.not.toThrow();
+    });
+
+    it('re-resolves a source selected before backend geometry was initialized', async () => {
+      await setCaptureSource('screen:second');
+      await initInputInjector();
+
+      expect(resolveCaptureBoundsForSource).toHaveBeenLastCalledWith('screen:second', {
+        width: 1920,
+        height: 1080,
+      });
     });
   });
 

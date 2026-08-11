@@ -43,6 +43,7 @@ function getInjector(): RemoteInputInjector {
 export function resetInputInjector(): void {
   injector = null;
   backendPrimary = null;
+  captureSourceId = null;
 }
 
 /**
@@ -54,11 +55,14 @@ export function resetInputInjector(): void {
  * and scale every subsequent resolution against the wrong reference.
  */
 let backendPrimary: { width: number; height: number } | null = null;
+/** The latest source requested, retained until backend dimensions are known. */
+let captureSourceId: string | null = null;
 
 export async function initInputInjector(): Promise<void> {
   const injector = getInjector();
   await injector.init();
   backendPrimary = injector.getScreenSize();
+  await updateCaptureBounds();
 }
 
 /**
@@ -69,7 +73,13 @@ export async function initInputInjector(): Promise<void> {
  * single-monitor host has always had.
  */
 export async function setCaptureSource(sourceId: string | null): Promise<void> {
-  const bounds = await resolveCaptureBoundsForSource(sourceId, backendPrimary);
+  captureSourceId = sourceId;
+  await updateCaptureBounds();
+}
+
+/** Re-resolve once both the selected source and backend geometry are available. */
+async function updateCaptureBounds(): Promise<void> {
+  const bounds = await resolveCaptureBoundsForSource(captureSourceId, backendPrimary);
   getInjector().updateCaptureBounds(bounds);
 }
 

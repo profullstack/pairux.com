@@ -119,26 +119,36 @@ export async function createMainWindow(isWayland: boolean): Promise<BrowserWindo
     { useSystemPicker: true }
   );
 
-  // Handle permission requests
-  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    const allowedPermissions = [
-      'media',
-      'display-capture',
-      'mediaKeySystem',
-      'geolocation',
-      'notifications',
-      'fullscreen',
-      'clipboard-sanitized-write',
-      'clipboard-read',
-    ];
+  // Keep this list shared by both Electron permission hooks. Chromium may use
+  // the synchronous check path for Pointer Lock, so approving only the request
+  // path would still leave the renderer unable to capture its cursor.
+  const allowedPermissions = new Set([
+    'media',
+    'display-capture',
+    'mediaKeySystem',
+    'geolocation',
+    'notifications',
+    'fullscreen',
+    'pointerLock',
+    'clipboard-sanitized-write',
+    'clipboard-read',
+  ]);
 
-    if (allowedPermissions.includes(permission)) {
+  // Handle permission requests.
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    if (allowedPermissions.has(permission)) {
       console.log('[Main] Permission granted:', permission);
       callback(true);
     } else {
       console.log('[Main] Permission denied:', permission);
       callback(false);
     }
+  });
+
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
+    const allowed = allowedPermissions.has(permission);
+    console.log(`[Main] Permission ${allowed ? 'granted' : 'denied'}:`, permission);
+    return allowed;
   });
 
   // Mirror renderer console output into the main process stdout.

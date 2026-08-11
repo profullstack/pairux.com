@@ -109,6 +109,83 @@ export function modifiersFromDomEvent(
   };
 }
 
+/** A rectangle in the coordinate space of whatever box it was measured against. */
+export interface ContainRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Where the picture actually is inside an `object-contain` video element.
+ *
+ * A remote screen almost never has the same aspect ratio as the box the viewer
+ * is watching it in, so the browser letterboxes it: the `<video>` element fills
+ * the container, but the *picture* is centred inside it with dead space on two
+ * sides. Everything that maps between screen positions and the host's desktop
+ * has to use this rectangle rather than the element's.
+ *
+ * Falls back to the full box when any dimension is non-positive, which covers
+ * the moment before the stream's metadata has arrived and `videoWidth` is
+ * still 0.
+ */
+export function getContainRect(
+  containerWidth: number,
+  containerHeight: number,
+  contentWidth: number,
+  contentHeight: number
+): ContainRect {
+  if (containerWidth <= 0 || containerHeight <= 0 || contentWidth <= 0 || contentHeight <= 0) {
+    return { x: 0, y: 0, width: Math.max(containerWidth, 0), height: Math.max(containerHeight, 0) };
+  }
+
+  const scale = Math.min(containerWidth / contentWidth, containerHeight / contentHeight);
+  const width = contentWidth * scale;
+  const height = contentHeight * scale;
+
+  return {
+    x: (containerWidth - width) / 2,
+    y: (containerHeight - height) / 2,
+    width,
+    height,
+  };
+}
+
+/**
+ * Turn a pointer position into coordinates on the host's screen.
+ *
+ * Normalizing against the video *element* instead of the picture inside it is
+ * the single largest source of "my clicks land in the wrong place". The error
+ * is an offset plus a scale, both proportional to how much the aspect ratios
+ * differ, so it is invisible when the viewer's window happens to match the
+ * host's screen shape and grows steadily worse as it stops matching — a
+ * side-panel opening is enough. The guest points at a button and the host's
+ * pointer lands somewhere above or below it.
+ *
+ * Positions in the letterbox bars clamp to the nearest edge of the picture.
+ * That keeps the screen edges reachable, which is the same reason the pointer
+ * is clamped rather than dropped everywhere else.
+ */
+export function normalizedPointOnVideo(
+  clientX: number,
+  clientY: number,
+  bounds: { left: number; top: number; width: number; height: number },
+  intrinsicWidth: number,
+  intrinsicHeight: number
+): { x: number; y: number } {
+  const content = getContainRect(bounds.width, bounds.height, intrinsicWidth, intrinsicHeight);
+  if (content.width <= 0 || content.height <= 0) return { x: 0, y: 0 };
+
+  const x = (clientX - bounds.left - content.x) / content.width;
+  const y = (clientY - bounds.top - content.y) / content.height;
+
+  return {
+    x: Math.max(0, Math.min(1, x)),
+    y: Math.max(0, Math.min(1, y)),
+  };
+}
+
 const POINTER_MOUSE_DEDUP_MS = 100;
 
 export function isLocalControlTarget(target: unknown): boolean {

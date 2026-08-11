@@ -38,6 +38,7 @@ import { SessionSettingsPanel } from '@/components/session/SessionSettingsPanel'
 import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicator';
 import { useSessionPresence } from '@/hooks/useSessionPresence';
 import { Logo } from '@/components/Logo';
+import { useVideoContentRect } from '@/hooks/useVideoContentRect';
 
 type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
 
@@ -275,6 +276,9 @@ function SessionViewerContent({
   const [activePanel, setActivePanel] = useState<SidebarPanel>('participants');
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  // Cursors are normalized against the remote screen, which is letterboxed
+  // inside the player, so the overlay needs the picture's rectangle.
+  const videoContentRect = useVideoContentRect(videoContainerRef);
 
   // Track host presence in real-time
   const { status: sessionStatus, currentHostId, hostOnline } = useSessionPresence(sessionId);
@@ -365,7 +369,7 @@ function SessionViewerContent({
                 className="h-full"
               />
             </InputCapture>
-            <CursorOverlay cursors={remoteCursors} />
+            <CursorOverlay cursors={remoteCursors} contentRect={videoContentRect} />
           </div>
 
           {/* Control bar */}

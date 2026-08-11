@@ -97,13 +97,16 @@ export type {
   ControlTransitionTrigger,
   CaptureSource,
   CaptureSettings,
+  ContainRect,
   QualityPreset,
 } from './input.js';
 
 export {
   QUALITY_PRESETS,
+  getContainRect,
   isLocalControlTarget,
   modifiersFromDomEvent,
+  normalizedPointOnVideo,
   shouldIgnoreFollowUpMouse,
 } from './input.js';
 

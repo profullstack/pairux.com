@@ -11,6 +11,7 @@ import type {
 import {
   isLocalControlTarget,
   modifiersFromDomEvent,
+  normalizedPointOnVideo,
   shouldIgnoreFollowUpMouse,
 } from '@pairux/shared-types';
 import { getAccelPlatform } from '@/lib/viewerPlatform';
@@ -90,15 +91,23 @@ export function useRemoteControl({
       const container = containerRef.current;
       if (!container) return null;
 
-      const rect = container.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = (event.clientY - rect.top) / rect.height;
+      // Against the picture, not the element around it. The remote screen is
+      // rendered `object-contain`, so it is letterboxed whenever its aspect
+      // ratio differs from the viewer's window — and normalizing against the
+      // element then offsets and rescales every coordinate by however much
+      // dead space there is. Opening a side panel is enough to put clicks
+      // visibly above or below what the guest aimed at.
+      const video = container.querySelector('video');
+      const target = video ?? container;
+      const rect = target.getBoundingClientRect();
 
-      // Clamp to valid range
-      return {
-        x: Math.max(0, Math.min(1, x)),
-        y: Math.max(0, Math.min(1, y)),
-      };
+      return normalizedPointOnVideo(
+        event.clientX,
+        event.clientY,
+        rect,
+        video?.videoWidth ?? 0,
+        video?.videoHeight ?? 0
+      );
     },
     [containerRef, pointerLockPosition]
   );

@@ -21,6 +21,13 @@ function getInjector(): RemoteInputInjector {
   injector ??= new RemoteInputInjector({
     // Platform facts come from the app's Electron-aware detection.
     selection,
+    // PairUX is a remote-control application: while a guest has control,
+    // their pointer must drive the host's *real* cursor continuously.  The
+    // library's two-cursor mode is useful for annotations, but on Wayland it
+    // can only approximate a second cursor and makes normal host navigation
+    // feel disconnected from the mouse.  Control revocation and the emergency
+    // stop hotkey remain the host's immediate way to take the cursor back.
+    virtualCursor: false,
     // Keep remote input one pixel off the screen edge on Linux: GNOME's
     // Activities hot-corner fires from the corner pixel, so a guest brushing
     // it would take over the host's desktop. One pixel is enough to miss the

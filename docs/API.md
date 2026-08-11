@@ -352,7 +352,7 @@ address a no-op rather than a duplicate.
 
 > **Do not add a permissive `anon` policy to this table.** The original migration shipped
 > `USING (true)` SELECT and UPDATE policies for `anon` to serve the RSVP page. Because RLS
-> cannot restrict *which columns* an UPDATE touches, that let anyone holding the anon key —
+> cannot restrict _which columns_ an UPDATE touches, that let anyone holding the anon key —
 > which ships to every browser — read every `invite_token` and rewrite any row.
 > `20260811120000_restrict_invitee_anon_access.sql` dropped both and revoked the grants.
 > The RSVP page is served by `/api/invite/[token]` through the service-role client, which
@@ -1016,13 +1016,13 @@ lowercased, trimmed, and de-duplicated before the diff runs.
 
 Who gets email depends on what changed:
 
-| Change | Email sent |
-|---|---|
-| Address added to `inviteeEmails` | Invitation, with the join code |
-| Address dropped from `inviteeEmails` | Invitation withdrawn |
-| Anyone dropped (so the code rotated) | Update notice to everyone still invited, carrying the new code |
-| `title`, `description`, `scheduled_at`, or `duration_minutes` changed | Update notice to everyone still invited |
-| Invitees only added, nothing else changed | Nothing to existing invitees |
+| Change                                                                | Email sent                                                     |
+| --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Address added to `inviteeEmails`                                      | Invitation, with the join code                                 |
+| Address dropped from `inviteeEmails`                                  | Invitation withdrawn                                           |
+| Anyone dropped (so the code rotated)                                  | Update notice to everyone still invited, carrying the new code |
+| `title`, `description`, `scheduled_at`, or `duration_minutes` changed | Update notice to everyone still invited                        |
+| Invitees only added, nothing else changed                             | Nothing to existing invitees                                   |
 
 Editing a cancelled meeting returns `400`.
 
@@ -1040,7 +1040,7 @@ emailed a cancellation. Cancelled meetings stop appearing in the list endpoint.
 
 The invitation email links to `/invite/{token}`, backed by these two endpoints. They are
 the only scheduled-session endpoints that do not require a logged-in user — the
-`invite_token` from the URL *is* the credential, so treat the link as a secret.
+`invite_token` from the URL _is_ the credential, so treat the link as a secret.
 
 ```typescript
 // GET /api/invite/{token}

@@ -239,3 +239,20 @@ Object.defineProperties(HTMLMediaElement.prototype, {
     value: (): void => undefined,
   },
 });
+
+// jsdom has no ResizeObserver, and anything that measures a laid-out element
+// against a changing container needs one. Nothing here lays anything out, so a
+// stand-in that records the callback and never fires it is honest: components
+// take their initial measurement and the test drives the rest.
+class FakeResizeObserver implements ResizeObserver {
+  constructor(private readonly callback: ResizeObserverCallback) {}
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+  /** Test seam: run the callback as if the element had been resized. */
+  trigger(entries: ResizeObserverEntry[] = []): void {
+    this.callback(entries, this);
+  }
+}
+
+Object.assign(globalThis, { ResizeObserver: FakeResizeObserver });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getContainRect } from '@pairux/shared-types';
 import { advanceVirtualPointer } from '@/lib/virtualPointer';
 
 interface UsePointerLockOptions {
@@ -52,16 +53,28 @@ export function usePointerLock({ onMove }: UsePointerLockOptions): UsePointerLoc
   // abuse heuristics refuse.
   const pendingRef = useRef(false);
 
-  // Resolve the surface size from the element under lock. The video element
-  // inside reports its own dimensions; the lock container's size would include
-  // padding and borders, which would under-count the guest's movement.
+  // The size of the *picture*, not of the element around it.
+  //
+  // The remote screen is letterboxed by `object-contain` whenever its aspect
+  // ratio differs from this window's, and movement has to be scaled against
+  // what the guest can actually see. Measuring the element instead makes the
+  // pointer travel too slowly along whichever axis carries the dead space, so
+  // crossing the screen takes further than it should on one axis and not the
+  // other — the drift that reads as "the cursor doesn't go where I push it".
   const getSurfaceSize = useCallback((): { width: number; height: number } => {
     const el = lockedElementRef.current;
     if (!el) return { width: 1, height: 1 };
+
     const video = el.querySelector('video');
-    const target = video ?? el;
-    const rect = target.getBoundingClientRect();
-    return { width: rect.width || 1, height: rect.height || 1 };
+    const rect = (video ?? el).getBoundingClientRect();
+    const content = getContainRect(
+      rect.width,
+      rect.height,
+      video?.videoWidth ?? 0,
+      video?.videoHeight ?? 0
+    );
+
+    return { width: content.width || 1, height: content.height || 1 };
   }, []);
 
   const handleMovement = useCallback(

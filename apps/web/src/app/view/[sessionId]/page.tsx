@@ -36,6 +36,7 @@ import {
   CursorOverlay,
 } from '@/components/control';
 import { Logo } from '@/components/Logo';
+import { useVideoContentRect } from '@/hooks/useVideoContentRect';
 
 interface Participant {
   id: string;
@@ -292,6 +293,9 @@ function GuestViewerContent({
   toggleMic,
 }: GuestViewerContentProps) {
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  // Cursors are normalized against the remote screen, which is letterboxed
+  // inside the player, so the overlay needs the picture's rectangle.
+  const videoContentRect = useVideoContentRect(videoContainerRef);
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
@@ -373,7 +377,7 @@ function GuestViewerContent({
                 className="h-full"
               />
             </InputCapture>
-            <CursorOverlay cursors={remoteCursors} />
+            <CursorOverlay cursors={remoteCursors} contentRect={videoContentRect} />
           </div>
 
           {/* Control bar */}

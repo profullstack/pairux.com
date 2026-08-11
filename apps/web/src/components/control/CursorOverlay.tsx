@@ -16,6 +16,18 @@ interface CursorOverlayProps {
   cursors: Map<string, CursorPositionMessage>;
   participantNames?: Map<string, string>;
   className?: string;
+  /**
+   * The picture's rectangle inside this overlay, when it is known.
+   *
+   * Cursor coordinates are normalized against the remote screen, and the
+   * remote screen is letterboxed inside the player whenever the aspect ratios
+   * differ. Positioning by percentage of the overlay therefore draws the
+   * cursor somewhere the guest is not pointing, while their clicks land where
+   * they aimed — the cursor and the click disagree, which is worse than having
+   * no cursor. Falls back to the full overlay when null, which is correct
+   * before the stream reports its dimensions.
+   */
+  contentRect?: { x: number; y: number; width: number; height: number } | null;
 }
 
 // Generate consistent color from participant ID
@@ -66,7 +78,12 @@ function CursorIcon({ color }: { color: string }) {
   );
 }
 
-export function CursorOverlay({ cursors, participantNames, className = '' }: CursorOverlayProps) {
+export function CursorOverlay({
+  cursors,
+  participantNames,
+  className = '',
+  contentRect = null,
+}: CursorOverlayProps) {
   // Convert map to array of cursors with colors
   const cursorList = useMemo(() => {
     const list: Cursor[] = [];
@@ -95,11 +112,19 @@ export function CursorOverlay({ cursors, participantNames, className = '' }: Cur
         <div
           key={cursor.participantId}
           className="absolute transition-all duration-75 ease-out"
-          style={{
-            left: `${String(cursor.x * 100)}%`,
-            top: `${String(cursor.y * 100)}%`,
-            transform: 'translate(-2px, -2px)',
-          }}
+          style={
+            contentRect
+              ? {
+                  left: `${String(contentRect.x + cursor.x * contentRect.width)}px`,
+                  top: `${String(contentRect.y + cursor.y * contentRect.height)}px`,
+                  transform: 'translate(-2px, -2px)',
+                }
+              : {
+                  left: `${String(cursor.x * 100)}%`,
+                  top: `${String(cursor.y * 100)}%`,
+                  transform: 'translate(-2px, -2px)',
+                }
+          }
         >
           <CursorIcon color={cursor.color ?? 'rgb(59, 130, 246)'} />
           {cursor.displayName && (

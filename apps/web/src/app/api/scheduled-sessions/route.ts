@@ -4,36 +4,8 @@ import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { scheduleMeetingSchema } from '@/lib/validations';
 import { sendMeetingInvites } from '@/app/actions/meetings';
+import { getUniqueJoinCode } from '@/lib/join-code';
 import { randomBytes } from 'crypto';
-
-function generateJoinCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-async function getUniqueJoinCode(svc: ReturnType<typeof serviceClient>): Promise<string> {
-  for (let i = 0; i < 10; i++) {
-    const code = generateJoinCode();
-
-    const { data: inSessions } = await (svc as any)
-      .from('sessions')
-      .select('id')
-      .eq('join_code', code)
-      .maybeSingle();
-
-    const { data: inScheduled } = await (svc as any)
-      .from('scheduled_sessions')
-      .select('id')
-      .eq('join_code', code)
-      .maybeSingle();
-    if (!inSessions && !inScheduled) return code;
-  }
-  throw new Error('Failed to generate unique join code');
-}
 
 // POST /api/scheduled-sessions — create a scheduled meeting + send invites
 export async function POST(request: Request) {

@@ -1020,8 +1020,9 @@ Who gets email depends on what changed:
 |---|---|
 | Address added to `inviteeEmails` | Invitation, with the join code |
 | Address dropped from `inviteeEmails` | Invitation withdrawn |
+| Anyone dropped (so the code rotated) | Update notice to everyone still invited, carrying the new code |
 | `title`, `description`, `scheduled_at`, or `duration_minutes` changed | Update notice to everyone still invited |
-| Only the guest list changed | Nothing to retained invitees |
+| Invitees only added, nothing else changed | Nothing to existing invitees |
 
 Editing a cancelled meeting returns `400`.
 
@@ -1065,14 +1066,33 @@ the only scheduled-session endpoints that do not require a logged-in user — th
 An unrecognised token returns `404`. Both endpoints run through the service-role client,
 which is why the table needs no anon-facing RLS policy.
 
-#### Known Limitation: Removal Does Not Revoke Access
+#### Join Code Rotation on Removal
 
-A scheduled meeting has a single shared `join_code` that is emailed to every invitee, and
-removing an invitee does **not** rotate it. A removed invitee who kept their original
-invitation email can still join using that code, and there is currently no endpoint to
-re-issue a scheduled meeting's code. (`/api/sessions/{id}/regenerate-code` applies to live
-sessions, not scheduled ones.) To genuinely lock someone out, cancel the meeting and
-create a new one.
+A scheduled meeting has a single shared `join_code` that is emailed to every invitee, so
+deleting an invitee row on its own would revoke nothing — the removed person still holds a
+working code. Whenever a `PATCH` drops at least one invitee, the meeting's `join_code` is
+therefore **rotated**, and the invitees who remain are emailed the replacement.
+
+```
+PATCH { inviteeEmails: [...] } removing someone
+  → new unique join_code written to scheduled_sessions
+  → removed invitees  : "Invitation withdrawn"
+  → retained invitees : "Updated", carrying the new code
+  → response body     : the rotated join_code
+```
+
+Because the code is shared, there is no way to revoke one person without reissuing it to
+everybody; that is inherent to a single shared code, not an implementation shortcut.
+Adding an invitee never rotates the code.
+
+**Once the meeting has started, rotation is skipped.** Starting a meeting creates a row in
+`sessions` carrying its own copy of the code, and rewriting the `scheduled_sessions` row
+would not evict anyone from the live room. The API detects this and leaves the code alone
+rather than reporting a lockout that did not happen — use
+`POST /api/sessions/{id}/regenerate-code` to rotate a running session's code instead.
+
+If the rotation write itself fails, the removal still stands: the invitee is deleted, the
+old code is kept, and retained invitees are not told the code changed.
 
 ### Profiles API
 

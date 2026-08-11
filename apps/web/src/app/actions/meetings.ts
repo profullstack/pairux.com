@@ -29,6 +29,9 @@ interface UpdatePayload {
   joinCode: string;
   hostName: string;
   inviteeEmails: string[];
+  // Set when someone was removed from the meeting: the join code was rotated, so the
+  // code in this email replaces the one the recipient was originally sent.
+  codeChanged?: boolean;
 }
 
 interface RemovalPayload {
@@ -170,6 +173,7 @@ function updateEmailHtml(opts: {
   joinCode: string;
   hostName: string;
   joinUrl: string;
+  codeChanged?: boolean;
 }): string {
   const timeChanged =
     new Date(opts.scheduledAt).getTime() !== new Date(opts.previousScheduledAt).getTime();
@@ -226,10 +230,15 @@ function updateEmailHtml(opts: {
       </div>
 
       <div style="text-align:center;margin-bottom:28px;">
-        <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">Your join code (unchanged)</p>
+        <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">${opts.codeChanged ? 'Your new join code' : 'Your join code (unchanged)'}</p>
         <div style="display:inline-block;background:#ede9fe;border-radius:10px;padding:14px 28px;">
           <span style="font-family:monospace;font-size:34px;font-weight:800;color:#4f46e5;letter-spacing:8px;">${opts.joinCode}</span>
         </div>
+        ${
+          opts.codeChanged
+            ? `<p style="color:#9ca3af;font-size:13px;margin:12px 0 0;">The guest list changed, so the previous code no longer works. Use this one instead.</p>`
+            : ''
+        }
       </div>
 
       <div style="text-align:center;">
@@ -333,6 +342,7 @@ export async function sendMeetingUpdate(
     joinCode: payload.joinCode,
     hostName: payload.hostName,
     joinUrl: `${appUrl}/join/${payload.joinCode}`,
+    ...(payload.codeChanged !== undefined && { codeChanged: payload.codeChanged }),
   });
 
   try {

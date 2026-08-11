@@ -20,6 +20,13 @@ interface CancellationPayload {
   inviteeEmails: string[];
 }
 
+interface RemovalPayload {
+  title: string;
+  scheduledAt: string;
+  inviteeEmail: string;
+  inviteeName: string | null;
+}
+
 function formatDateTime(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleString('en-US', {
@@ -144,6 +151,35 @@ function cancellationEmailHtml(opts: { title: string; scheduledAt: string }): st
 </html>`;
 }
 
+function removalEmailHtml(opts: {
+  title: string;
+  scheduledAt: string;
+  inviteeName: string | null;
+}): string {
+  const greeting = opts.inviteeName ? `Hi ${opts.inviteeName},` : 'Hi there,';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Invitation Withdrawn</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+    <div style="background:#6b7280;padding:24px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">Invitation Withdrawn</h1>
+    </div>
+    <div style="padding:32px;text-align:center;">
+      <p style="color:#374151;font-size:15px;margin:0 0 16px;">${greeting}</p>
+      <p style="color:#374151;font-size:15px;margin:0 0 8px;">You have been removed from this meeting:</p>
+      <h2 style="color:#111827;margin:0 0 8px;">${opts.title}</h2>
+      <p style="color:#6b7280;font-size:14px;margin:0;">Scheduled for: ${formatDateTime(opts.scheduledAt)}</p>
+      <p style="color:#9ca3af;font-size:13px;margin:16px 0 0;">Please disregard the join code from your earlier invitation.</p>
+    </div>
+    <div style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;"><a href="https://pairux.com" style="color:#6366f1;text-decoration:none;">PairUX</a></p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 export async function sendMeetingInvites(
   payload: InvitePayload
 ): Promise<{ ok: boolean; error?: string }> {
@@ -184,6 +220,34 @@ export async function sendMeetingInvites(
 
   if (errors.length > 0) {
     console.error('Some invite emails failed:', errors);
+  }
+
+  return { ok: true };
+}
+
+export async function sendInviteeRemoval(
+  payload: RemovalPayload
+): Promise<{ ok: boolean; error?: string }> {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) return { ok: false, error: 'RESEND_API_KEY not configured' };
+
+  const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <hello@pairux.com>';
+  const emailer = createEmailer({ resendApiKey, defaultFrom });
+  const html = removalEmailHtml({
+    title: payload.title,
+    scheduledAt: payload.scheduledAt,
+    inviteeName: payload.inviteeName,
+  });
+
+  try {
+    await (emailer as any).send({
+      to: payload.inviteeEmail,
+      subject: `Invitation withdrawn: ${payload.title}`,
+      html,
+    });
+  } catch (err) {
+    console.error('Removal email failed:', err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 
   return { ok: true };

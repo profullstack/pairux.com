@@ -142,8 +142,45 @@ export const updateScheduledMeetingSchema = z.object({
   duration_minutes: z.number().int().min(15).max(480).optional(),
 });
 
+// Maximum invitees a single scheduled meeting may hold
+export const MAX_INVITEES = 50;
+
+// Accepts either "a@b.com" or { email: 'a@b.com', name: 'A' } for each entry.
+// Emails are trimmed first so pasted lists with stray whitespace still validate.
+const inviteeEntrySchema = z.preprocess((value) => {
+  if (typeof value === 'string') return { email: value.trim() };
+  if (value && typeof value === 'object' && 'email' in value) {
+    const email = (value as { email: unknown }).email;
+    if (typeof email === 'string') return { ...value, email: email.trim() };
+  }
+  return value;
+}, z.object({
+  email: z.string().email('Invalid email address'),
+  name: z.string().trim().max(120, 'Name must be less than 120 characters').optional(),
+}));
+
+// Add invitees to an existing scheduled meeting
+export const addInviteesSchema = z.object({
+  invitees: z
+    .array(inviteeEntrySchema)
+    .min(1, 'At least one invitee is required')
+    .max(MAX_INVITEES, `Maximum ${String(MAX_INVITEES)} invitees`),
+});
+
+// Host-side edit of a single invitee
+export const updateInviteeSchema = z
+  .object({
+    name: z.string().trim().max(120).nullable().optional(),
+    rsvpStatus: z.enum(['pending', 'accepted', 'declined']).optional(),
+  })
+  .refine((data) => data.name !== undefined || data.rsvpStatus !== undefined, {
+    message: 'Nothing to update',
+  });
+
 export type ScheduleMeetingInput = z.infer<typeof scheduleMeetingSchema>;
 export type UpdateScheduledMeetingInput = z.infer<typeof updateScheduledMeetingSchema>;
+export type AddInviteesInput = z.infer<typeof addInviteesSchema>;
+export type UpdateInviteeInput = z.infer<typeof updateInviteeSchema>;
 
 // Publish a room to the public /live directory
 export const roomVisibilitySchema = z

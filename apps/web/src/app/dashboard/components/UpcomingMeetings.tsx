@@ -11,6 +11,11 @@ import {
   Loader2,
   CalendarPlus,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  UserPlus,
+  X,
+  XCircle,
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
@@ -42,6 +47,23 @@ interface StartResponse {
   data?: { id: string; join_code: string };
   error?: string;
 }
+
+interface AddInviteesResponse {
+  data?: { added: Invitee[]; skipped: string[]; invitee_count: number };
+  error?: string;
+}
+
+interface RemoveInviteeResponse {
+  data?: { removed: Invitee; notified: boolean; invitee_count: number };
+  error?: string;
+}
+
+const RSVP_PENDING_STYLE = 'bg-gray-100 text-gray-500';
+const RSVP_STYLES: Record<string, string> = {
+  accepted: 'bg-green-50 text-green-700',
+  declined: 'bg-red-50 text-red-600',
+  pending: RSVP_PENDING_STYLE,
+};
 
 function formatDate(isoString: string): string {
   const date = new Date(isoString);
@@ -87,6 +109,12 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   const [startingId, setStartingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [calendarOpenId, setCalendarOpenId] = useState<string | null>(null);
+  const [invitesOpenId, setInvitesOpenId] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [invitingId, setInvitingId] = useState<string | null>(null);
+  const [removingInviteeId, setRemovingInviteeId] = useState<string | null>(null);
+  const [notifyOnRemove, setNotifyOnRemove] = useState(false);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -135,6 +163,85 @@ export function UpcomingMeetings({ onSchedule }: Props) {
       setSessions((prev) => prev.filter((s) => s.id !== id));
     } finally {
       setCancellingId(null);
+    }
+  }
+
+  function toggleInvites(id: string) {
+    setInvitesOpenId(invitesOpenId === id ? null : id);
+    setInviteEmail('');
+    setInviteError(null);
+  }
+
+  async function handleAddInvitee(sessionId: string) {
+    const email = inviteEmail.trim();
+    if (!email) return;
+
+    setInvitingId(sessionId);
+    setInviteError(null);
+    try {
+      const res = await fetch(`/api/scheduled-sessions/${sessionId}/invitees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invitees: [email] }),
+      });
+      const json = (await res.json()) as AddInviteesResponse;
+      if (!res.ok || !json.data) throw new Error(json.error ?? 'Failed to add invitee');
+
+      const { added, skipped } = json.data;
+      const alreadyInvited = skipped[0];
+      if (added.length === 0 && alreadyInvited !== undefined) {
+        setInviteError(`${alreadyInvited} is already invited`);
+        return;
+      }
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                invitees: [...s.invitees, ...added],
+                invitee_count: s.invitee_count + added.length,
+              }
+            : s
+        )
+      );
+      setInviteEmail('');
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to add invitee');
+    } finally {
+      setInvitingId(null);
+    }
+  }
+
+  async function handleRemoveInvitee(sessionId: string, invitee: Invitee) {
+    if (!confirm(`Remove ${invitee.email} from this meeting?`)) return;
+
+    setRemovingInviteeId(invitee.id);
+    setInviteError(null);
+    try {
+      const query = notifyOnRemove ? '?notify=true' : '';
+      const res = await fetch(
+        `/api/scheduled-sessions/${sessionId}/invitees/${invitee.id}${query}`,
+        { method: 'DELETE' }
+      );
+      const json = (await res.json()) as RemoveInviteeResponse;
+      if (!res.ok) throw new Error(json.error ?? 'Failed to remove invitee');
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                invitees: s.invitees.filter((i) => i.id !== invitee.id),
+                invitee_count: Math.max(0, s.invitee_count - 1),
+              }
+            : s
+        )
+      );
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to remove invitee');
+    } finally {
+      setRemovingInviteeId(null);
     }
   }
 
@@ -205,18 +312,31 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                           ? `${String(session.duration_minutes)}m`
                           : `${String(session.duration_minutes / 60)}h`}
                       </span>
-                      {session.invitee_count > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {session.invitee_count} invited
-                          {accepted > 0 && (
-                            <span className="flex items-center gap-0.5 text-green-600">
-                              <CheckCircle className="h-3 w-3" />
-                              {accepted} accepted
-                            </span>
-                          )}
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          toggleInvites(session.id);
+                        }}
+                        className="flex items-center gap-1 rounded transition-colors hover:text-indigo-600"
+                        aria-expanded={invitesOpenId === session.id}
+                        title="Manage invitees"
+                      >
+                        <Users className="h-3 w-3" />
+                        {session.invitee_count > 0
+                          ? `${String(session.invitee_count)} invited`
+                          : 'Invite people'}
+                        {accepted > 0 && (
+                          <span className="flex items-center gap-0.5 text-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                            {accepted} accepted
+                          </span>
+                        )}
+                        {invitesOpenId === session.id ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </button>
                     </div>
                     {session.description && (
                       <p className="mt-1 truncate text-xs text-gray-400">{session.description}</p>
@@ -326,6 +446,105 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                     </button>
                   </div>
                 </div>
+
+                {invitesOpenId === session.id && (
+                  <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3">
+                    {session.invitees.length === 0 ? (
+                      <p className="text-xs text-gray-400">No one is invited yet.</p>
+                    ) : (
+                      <ul className="divide-y divide-gray-100">
+                        {session.invitees.map((invitee) => (
+                          <li
+                            key={invitee.id}
+                            className="flex items-center justify-between gap-2 py-1.5"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-gray-700">
+                                {invitee.name ?? invitee.email}
+                              </p>
+                              {invitee.name && (
+                                <p className="truncate text-[11px] text-gray-400">
+                                  {invitee.email}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                RSVP_STYLES[invitee.rsvp_status] ?? RSVP_PENDING_STYLE
+                              }`}
+                            >
+                              {invitee.rsvp_status}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => void handleRemoveInvitee(session.id, invitee)}
+                              disabled={removingInviteeId === invitee.id}
+                              className="rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                              title={`Remove ${invitee.email}`}
+                              aria-label={`Remove ${invitee.email}`}
+                            >
+                              {removingInviteeId === invitee.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <X className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void handleAddInvitee(session.id);
+                      }}
+                      className="mt-2 flex items-center gap-2"
+                    >
+                      <input
+                        type="email"
+                        value={inviteEmail}
+                        onChange={(e) => {
+                          setInviteEmail(e.target.value);
+                          setInviteError(null);
+                        }}
+                        placeholder="name@example.com"
+                        className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={invitingId === session.id || inviteEmail.trim() === ''}
+                        className="flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                      >
+                        {invitingId === session.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <UserPlus className="h-3.5 w-3.5" />
+                        )}
+                        Invite
+                      </button>
+                    </form>
+
+                    <label className="mt-2 flex cursor-pointer items-center gap-1.5 text-[11px] text-gray-500">
+                      <input
+                        type="checkbox"
+                        checked={notifyOnRemove}
+                        onChange={(e) => {
+                          setNotifyOnRemove(e.target.checked);
+                        }}
+                        className="h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-400"
+                      />
+                      Email people when I remove them
+                    </label>
+
+                    {inviteError && (
+                      <p className="mt-2 flex items-center gap-1 text-[11px] text-red-500">
+                        <XCircle className="h-3 w-3 shrink-0" />
+                        {inviteError}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

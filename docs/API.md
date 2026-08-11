@@ -858,6 +858,83 @@ const { data, error } = await supabase
   .single();
 ```
 
+### Scheduled Sessions API
+
+Next.js route handlers under `/api/scheduled-sessions`. Every endpoint requires an
+authenticated session and only ever operates on meetings the caller hosts — a
+non-host gets `404 Scheduled session not found` rather than `403`, so meeting ids
+cannot be probed.
+
+#### Create a scheduled meeting
+
+```typescript
+// POST /api/scheduled-sessions
+{
+  "title": "Design sync",
+  "description": "Weekly review",       // optional, max 500 chars
+  "scheduledAt": "2026-09-01T15:00:00Z",
+  "durationMinutes": 60,                 // 15–480
+  "inviteeEmails": ["a@example.com"]     // optional, max 50
+}
+// → 201 { data: { id, join_code, invitee_count, ... } }
+```
+
+#### List / read / update / cancel
+
+```typescript
+// GET    /api/scheduled-sessions?filter=upcoming   (upcoming | all | past)
+// GET    /api/scheduled-sessions/{id}
+// PATCH  /api/scheduled-sessions/{id}   { title?, description?, scheduled_at?, duration_minutes? }
+// DELETE /api/scheduled-sessions/{id}   → sets status='cancelled' and emails invitees
+```
+
+`DELETE` is a soft cancel: the row is kept with `status = 'cancelled'` so the join
+code stays reserved and cancellation emails can reference it.
+
+#### List invitees
+
+```typescript
+// GET /api/scheduled-sessions/{id}/invitees
+// → { data: [{ id, email, name, rsvp_status }] }   invite_token is never returned
+```
+
+#### Add invitees
+
+```typescript
+// POST /api/scheduled-sessions/{id}/invitees
+{ "invitees": ["new@example.com", { "email": "b@example.com", "name": "B" }] }
+// → 201 { data: { added: [...], skipped: ["already@invited.com"], invitee_count: 3 } }
+```
+
+Emails are trimmed and lowercased. Addresses already on the meeting come back under
+`skipped` instead of erroring, and **only newly added invitees are emailed** — adding
+one person never re-notifies the existing list. Returns `409` if the meeting is
+cancelled or completed, and `400` if the addition would push it past 50 invitees.
+
+#### Update an invitee
+
+```typescript
+// PATCH /api/scheduled-sessions/{id}/invitees/{inviteeId}
+{ "name": "Renamed", "rsvpStatus": "accepted" }   // at least one field required
+```
+
+#### Remove an invitee
+
+```typescript
+// DELETE /api/scheduled-sessions/{id}/invitees/{inviteeId}
+// DELETE /api/scheduled-sessions/{id}/invitees/{inviteeId}?notify=true
+// → { data: { removed: { id, email, ... }, notified: false, invitee_count: 2 } }
+```
+
+Removal is a hard delete of the invitee row and sends no email by default; pass
+`?notify=true` to send an "invitation withdrawn" notice.
+
+> **Note:** removing an invitee revokes their RSVP link, but a scheduled meeting has a
+> single shared `join_code` that is *not* rotated on removal. Someone who kept an earlier
+> invite email can still join with that code. There is currently no way to re-issue a
+> scheduled meeting's code — cancel and re-create the meeting if you need to lock a
+> removed person out.
+
 ---
 
 ## Realtime Channels

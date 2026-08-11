@@ -10,6 +10,15 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.72',
+    date: 'August 2026',
+    title: 'Wayland desktop startup repair',
+    changes: [
+      'Fixed the Linux AppImage startup failure caused by an optional legacy X11 module in the portal dependency',
+      'The KDE/Wayland RemoteDesktop portal path now starts without X11 installed',
+    ],
+  },
+  {
     version: '0.9.71',
     date: 'August 2026',
     title: 'KDE/Wayland host-approved remote control',

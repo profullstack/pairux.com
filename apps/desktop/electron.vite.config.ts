@@ -8,6 +8,15 @@ config();
 
 export default defineConfig({
   main: {
+    resolve: {
+      // dbus-next has an optional legacy X11 address-discovery branch. PairUX
+      // always requires DBUS_SESSION_BUS_ADDRESS for its Wayland portal path,
+      // so make that unused branch resolve to a harmless local module instead
+      // of emitting a runtime `require('x11')` in the AppImage.
+      alias: {
+        x11: resolve(__dirname, 'src/main/lib/x11-unavailable.ts'),
+      },
+    },
     plugins: [
       // Bundle the workspace input library into the main chunk instead of
       // leaving a bare require() for electron-builder to resolve through a

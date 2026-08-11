@@ -158,6 +158,15 @@ export interface InputStats {
   injected: number;
   rejected: number;
   errors: number;
+  /**
+   * Pointer moves dropped because a newer position had already replaced them.
+   *
+   * Expected to be large during normal use and is not a fault: a viewer streams
+   * movement far faster than any host can inject it, and only the newest
+   * position means anything. Worth watching all the same — if this is zero on a
+   * host that feels laggy, the backlog is somewhere else.
+   */
+  coalesced: number;
 }
 
 export interface InputDiagnostics {

@@ -817,3 +817,147 @@ describe('RemoteInputInjector edge margin', () => {
     expect(backend.inject).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0 }));
   });
 });
+
+/**
+ * Why the host felt laggy and unclickable.
+ *
+ * Every injection is serialized, and on Wayland each one costs a ydotool
+ * process spawn. A viewer streams pointer movement at their display's refresh
+ * rate, which arrives faster than that drains, so the queue grew without bound:
+ * the host's pointer trailed further and further behind and a click sat behind
+ * hundreds of stale positions before it was even attempted.
+ */
+describe('move coalescing', () => {
+  /** A backend whose injections only finish when the test says so. */
+  function blockingBackend(): {
+    backend: InputBackend;
+    release: () => void;
+    injected: InputEvent[];
+  } {
+    const injected: InputEvent[] = [];
+    let pending: (() => void)[] = [];
+
+    const backend = fakeBackend({
+      inject: vi.fn((event: InputEvent) => {
+        injected.push(event);
+        return new Promise<void>((resolve) => {
+          pending.push(resolve);
+        });
+      }),
+    });
+
+    return {
+      backend,
+      release: () => {
+        const waiting = pending;
+        pending = [];
+        for (const resolve of waiting) resolve();
+      },
+      injected,
+    };
+  }
+
+  function move(x: number): InputEvent {
+    return { type: 'mouse', action: 'move', x, y: 0.5 };
+  }
+
+  /**
+   * Let a blocked queue finish. Each release frees whatever is in flight, and
+   * the next entry needs a turn of the event loop to reach the backend, so this
+   * alternates until everything settles rather than guessing at a count.
+   */
+  async function drain(release: () => void, promises: Promise<unknown>[]): Promise<void> {
+    // Releasing an already-empty queue is a no-op, so this just runs enough
+    // rounds to outlast any queue these tests build rather than tracking when
+    // to stop.
+    for (let i = 0; i < 20; i += 1) {
+      release();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    await Promise.all(promises);
+  }
+
+  it('drops moves that a newer position has already replaced', async () => {
+    const { backend, release, injected } = blockingBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    // One injection in flight, then a burst behind it.
+    const inFlight = injector.inject(move(0.1));
+    await Promise.resolve();
+    const queued = [injector.inject(move(0.2)), injector.inject(move(0.3))];
+
+    await drain(release, [inFlight, ...queued]);
+
+    // The middle position is gone: it was obsolete before it ever ran.
+    const xs = injected.filter((e) => 'x' in e).map((e) => (e as { x: number }).x);
+    expect(xs).not.toContain(0.2);
+    expect(injected.length).toBeLessThan(3);
+  });
+
+  it('never drops a click, however far behind the queue is', async () => {
+    const { backend, release, injected } = blockingBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    const all = [
+      injector.inject(move(0.1)),
+      injector.inject(move(0.2)),
+      injector.inject(click),
+      injector.inject(move(0.3)),
+    ];
+
+    await drain(release, all);
+
+    expect(injected.some((e) => 'action' in e && e.action === 'down')).toBe(true);
+  });
+
+  // Intermediate motion is the entire content of a drag: anything tracking one
+  // (text selection, canvas apps, file managers) needs the path, not just its
+  // endpoints.
+  it('keeps every move while a button is held', async () => {
+    const { backend, release, injected } = blockingBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    const down = injector.inject(click);
+    await drain(release, [down]);
+
+    const drag = [injector.inject(move(0.2)), injector.inject(move(0.3))];
+    await drain(release, drag);
+
+    const xs = injected.filter((e) => 'x' in e).map((e) => (e as { x: number }).x);
+    expect(xs).toContain(0.2);
+    expect(xs).toContain(0.3);
+  });
+
+  it('reports where the viewer stopped even when the last move was dropped', async () => {
+    const { backend, release } = blockingBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    const inFlight = injector.inject(move(0.1));
+    await Promise.resolve();
+    const dropped = injector.inject(move(0.9));
+
+    await drain(release, [inFlight, dropped]);
+
+    // The overlay still has to draw the guest's cursor where they left it.
+    expect(injector.getRemoteCursorPosition().x).toBe(0.9);
+  });
+
+  it('counts what it dropped, so a laggy host can be told apart from a busy one', async () => {
+    const { backend, release } = blockingBackend();
+    const injector = makeInjector(backend);
+    injector.enable();
+
+    const inFlight = injector.inject(move(0.1));
+    await Promise.resolve();
+    const dropped = injector.inject(move(0.2));
+
+    await drain(release, [inFlight, dropped]);
+
+    expect(injector.getDiagnostics().stats.coalesced).toBeGreaterThan(0);
+  });
+});

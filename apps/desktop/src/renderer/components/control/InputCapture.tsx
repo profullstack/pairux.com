@@ -89,7 +89,7 @@ export function InputCapture({
     }
   }, [isCapturing]);
 
-  // Clicking the picture takes control of the pointer.
+  // Pressing the picture takes control of the pointer.
   //
   // Capture phase, so this runs before useRemoteControl's own mousedown on the
   // same container and can stop the click that *acquires* control from also
@@ -100,7 +100,7 @@ export function InputCapture({
     if (!container) return;
     if (controlState !== 'granted' || !enabled) return;
 
-    const onMouseDown = (event: MouseEvent) => {
+    const onPointerDown = (event: PointerEvent) => {
       if (isLocked || lockDenied) return;
       event.stopPropagation();
       event.preventDefault();
@@ -110,9 +110,12 @@ export function InputCapture({
       lock(container);
     };
 
-    container.addEventListener('mousedown', onMouseDown, { capture: true });
+    // Pointer lock must be requested in the same trusted pointer gesture.
+    // Mouse events are a later compatibility event on Chromium/macOS and can
+    // arrive after the browser has already consumed the gesture.
+    container.addEventListener('pointerdown', onPointerDown, { capture: true });
     return () => {
-      container.removeEventListener('mousedown', onMouseDown, { capture: true });
+      container.removeEventListener('pointerdown', onPointerDown, { capture: true });
     };
   }, [controlState, enabled, isLocked, lockDenied, lock, resetPosition]);
 
@@ -212,9 +215,7 @@ export function InputCapture({
     <div
       ref={containerRef}
       tabIndex={enabled ? 0 : -1}
-      className={`relative outline-none ${className} ${
-        controlState === 'granted' ? 'cursor-none' : ''
-      }`}
+      className={`relative outline-none ${className} ${isLocked ? 'cursor-none' : ''}`}
       style={{
         userSelect: isCapturing ? 'none' : 'auto',
       }}
@@ -231,6 +232,26 @@ export function InputCapture({
             Click to control · Esc to release
           </div>
         </div>
+      )}
+
+      {controlState === 'granted' && lockDenied && (
+        <button
+          type="button"
+          data-pairux-local-control
+          className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-black/25"
+          onClick={() => {
+            const container = containerRef.current;
+            if (!container) return;
+            resetPosition();
+            setLockDenied(false);
+            setCaptureRequested(true);
+            lock(container);
+          }}
+        >
+          <span className="rounded-lg bg-black/70 px-4 py-2 text-sm font-medium text-white backdrop-blur">
+            Pointer capture was unavailable · Click to try again
+          </span>
+        </button>
       )}
 
       {allowFullscreen && controlState === 'granted' && (

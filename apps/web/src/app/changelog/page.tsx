@@ -10,6 +10,16 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.74',
+    date: 'August 2026',
+    title: 'Reliable guest pointer capture',
+    changes: [
+      'Guest pointer lock is now requested directly from the trusted pointer gesture after focusing the shared display',
+      'The guest cursor is hidden only after pointer lock is confirmed, preventing a failed lock from looking like a stuck virtual cursor',
+      'A visible retry prompt and guest-side pointer-lock logs make a refused capture recoverable and diagnosable',
+    ],
+  },
+  {
     version: '0.9.73',
     date: 'August 2026',
     title: 'Reliable shared-pointer control handoff',

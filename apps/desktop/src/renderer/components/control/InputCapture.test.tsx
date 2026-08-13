@@ -88,9 +88,9 @@ function renderCapture(onInputEvent: (event: InputEvent) => void) {
   return { ...result, container };
 }
 
-function clickAt(container: Element, clientX: number, clientY: number): void {
+function pressAt(container: Element, clientX: number, clientY: number): void {
   container.dispatchEvent(
-    new MouseEvent('mousedown', { clientX, clientY, button: 0, bubbles: true })
+    new MouseEvent('pointerdown', { clientX, clientY, button: 0, bubbles: true })
   );
 }
 
@@ -107,7 +107,7 @@ describe('InputCapture pointer lock', () => {
     const { container } = renderCapture(vi.fn());
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
     });
 
     expect(browser.lockRequests).toHaveLength(1);
@@ -121,7 +121,7 @@ describe('InputCapture pointer lock', () => {
     const { container } = renderCapture(onInputEvent);
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
     });
 
     expect(onInputEvent).not.toHaveBeenCalled();
@@ -133,7 +133,7 @@ describe('InputCapture pointer lock', () => {
     const { container } = renderCapture(onInputEvent);
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
       browser.grantLock(container);
     });
 
@@ -147,7 +147,7 @@ describe('InputCapture pointer lock', () => {
     act(() => {
       // clientX/Y stop advancing under lock, so a click reporting (0,0) must
       // still land where the virtual pointer is.
-      clickAt(container, 0, 0);
+      pressAt(container, 0, 0);
     });
 
     expect(onInputEvent).toHaveBeenCalledWith(
@@ -165,7 +165,7 @@ describe('InputCapture pointer lock', () => {
       const { container } = renderCapture(onInputEvent);
 
       act(() => {
-        clickAt(container, 250, 250);
+        pressAt(container, 250, 250);
         browser.denyLock();
       });
 
@@ -176,7 +176,7 @@ describe('InputCapture pointer lock', () => {
 
       onInputEvent.mockClear();
       act(() => {
-        clickAt(container, 250, 250);
+        pressAt(container, 250, 250);
       });
 
       expect(onInputEvent).toHaveBeenCalledWith(
@@ -195,7 +195,7 @@ describe('InputCapture pointer lock', () => {
     const { container } = renderCapture(vi.fn());
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
       browser.grantLock(container);
     });
 
@@ -213,14 +213,14 @@ describe('InputCapture pointer lock', () => {
     const { container } = renderCapture(vi.fn());
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
       browser.grantLock(container);
       document.exitPointerLock();
     });
 
     const requestsBefore = browser.lockRequests.length;
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
     });
 
     expect(browser.lockRequests.length).toBe(requestsBefore + 1);
@@ -231,7 +231,7 @@ describe('InputCapture pointer lock', () => {
     const { container, rerender } = renderCapture(vi.fn());
 
     act(() => {
-      clickAt(container, 250, 250);
+      pressAt(container, 250, 250);
       browser.grantLock(container);
     });
 

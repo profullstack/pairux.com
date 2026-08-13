@@ -112,6 +112,7 @@ export function usePointerLock({ onMove }: UsePointerLockOptions): UsePointerLoc
       setIsLocked(locked);
 
       if (locked) {
+        console.info('[PointerLock] Pointer lock acquired');
         setWasReleasedByUser(false);
         return;
       }
@@ -122,7 +123,10 @@ export function usePointerLock({ onMove }: UsePointerLockOptions): UsePointerLoc
       // taken away again until they ask. Chromium also refuses a re-lock for
       // about a second after an Escape, so retrying here would fail silently
       // and strand the session with neither a lock nor real coordinates.
-      if (!exitingRef.current) setWasReleasedByUser(true);
+      if (!exitingRef.current) {
+        console.warn('[PointerLock] Pointer lock released or denied');
+        setWasReleasedByUser(true);
+      }
       exitingRef.current = false;
     };
 
@@ -142,14 +146,21 @@ export function usePointerLock({ onMove }: UsePointerLockOptions): UsePointerLoc
     pendingRef.current = true;
     lockedElementRef.current = element;
     exitingRef.current = false;
+    if (element instanceof HTMLElement) {
+      element.focus({ preventScroll: true });
+    }
     // Pointer lock requires a user gesture, which the button click provides.
     // The promise is intentionally unawaited: older Chromium returns undefined
     // here, and the outcome is observed through the events above either way.
-    void (element.requestPointerLock() as unknown as Promise<void> | undefined)?.catch(() => {
-      // Denied. The event handler has already put us back in the unlocked
-      // state; swallowing keeps it off the console as an unhandled rejection.
-      pendingRef.current = false;
-    });
+    console.info('[PointerLock] Requesting pointer lock');
+    void (element.requestPointerLock() as unknown as Promise<void> | undefined)?.catch(
+      (error: unknown) => {
+        // Denied. The event handler has already put us back in the unlocked
+        // state; swallowing keeps it off the console as an unhandled rejection.
+        pendingRef.current = false;
+        console.warn('[PointerLock] Request was rejected', error);
+      }
+    );
   }, []);
 
   const unlock = useCallback(() => {

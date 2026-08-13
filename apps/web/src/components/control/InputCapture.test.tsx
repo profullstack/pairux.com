@@ -94,6 +94,12 @@ function pressAt(container: Element, clientX: number, clientY: number): void {
   );
 }
 
+function pressMouseAt(container: Element, clientX: number, clientY: number): void {
+  container.dispatchEvent(
+    new MouseEvent('mousedown', { clientX, clientY, button: 0, bubbles: true })
+  );
+}
+
 describe('InputCapture pointer lock', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -108,6 +114,17 @@ describe('InputCapture pointer lock', () => {
 
     act(() => {
       pressAt(container, 250, 250);
+    });
+
+    expect(browser.lockRequests).toHaveLength(1);
+  });
+
+  it('also captures from the macOS mouse compatibility event', () => {
+    const browser = installBrowserApis();
+    const { container } = renderCapture(vi.fn());
+
+    act(() => {
+      pressMouseAt(container, 250, 250);
     });
 
     expect(browser.lockRequests).toHaveLength(1);
@@ -147,6 +164,61 @@ describe('InputCapture pointer lock', () => {
     act(() => {
       // clientX/Y stop advancing under lock, so a click reporting (0,0) must
       // still land where the virtual pointer is.
+      pressAt(container, 0, 0);
+    });
+
+    expect(onInputEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'down', x: 0.6, y: 0.6 })
+    );
+  });
+
+  it('uses pointermove deltas when a trackpad does not emit mousemove', () => {
+    const browser = installBrowserApis();
+    const onInputEvent = vi.fn();
+    const { container } = renderCapture(onInputEvent);
+
+    act(() => {
+      pressAt(container, 250, 250);
+      browser.grantLock(container);
+    });
+
+    act(() => {
+      document.dispatchEvent(
+        Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
+      );
+    });
+
+    onInputEvent.mockClear();
+    act(() => {
+      pressAt(container, 0, 0);
+    });
+
+    expect(onInputEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'down', x: 0.6, y: 0.6 })
+    );
+  });
+
+  it('does not count a paired mousemove twice after pointermove', () => {
+    const browser = installBrowserApis();
+    const onInputEvent = vi.fn();
+    const { container } = renderCapture(onInputEvent);
+
+    act(() => {
+      pressAt(container, 250, 250);
+      browser.grantLock(container);
+    });
+
+    act(() => {
+      document.dispatchEvent(
+        Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
+      );
+      document.dispatchEvent(
+        Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
+      );
+    });
+
+    onInputEvent.mockClear();
+    act(() => {
       pressAt(container, 0, 0);
     });
 

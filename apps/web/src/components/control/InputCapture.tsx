@@ -102,7 +102,7 @@ export function InputCapture({
     if (!container) return;
     if (controlState !== 'granted' || !enabled) return;
 
-    const onPointerDown = (event: PointerEvent) => {
+    const beginPointerCapture = (event: Event) => {
       if (isLocked || lockDenied) return;
       event.stopPropagation();
       event.preventDefault();
@@ -112,9 +112,15 @@ export function InputCapture({
       lock(container);
     };
 
-    container.addEventListener('pointerdown', onPointerDown, { capture: true });
+    // Pointer lock must be requested in the same trusted user gesture. Most
+    // Chromium builds expose that as pointerdown, but some macOS trackpad and
+    // Electron paths only deliver the mouse compatibility event to an embedded
+    // video surface. `lock` de-duplicates the paired events.
+    container.addEventListener('pointerdown', beginPointerCapture, { capture: true });
+    container.addEventListener('mousedown', beginPointerCapture, { capture: true });
     return () => {
-      container.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      container.removeEventListener('pointerdown', beginPointerCapture, { capture: true });
+      container.removeEventListener('mousedown', beginPointerCapture, { capture: true });
     };
   }, [controlState, enabled, isLocked, lockDenied, lock, resetPosition]);
 

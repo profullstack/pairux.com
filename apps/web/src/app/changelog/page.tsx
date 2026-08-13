@@ -10,6 +10,16 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '0.9.75',
+    date: 'August 2026',
+    title: 'Trackpad-safe guest pointer capture',
+    changes: [
+      'Guest control now captures from both Pointer Events and the macOS mouse compatibility event, retaining the trusted gesture needed for pointer lock',
+      'Relative remote movement now consumes pointermove as well as mousemove, so trackpad input can continue across the full shared screen',
+      'Paired browser compatibility events are de-duplicated so one physical movement is never sent to the host twice',
+    ],
+  },
+  {
     version: '0.9.74',
     date: 'August 2026',
     title: 'Reliable guest pointer capture',

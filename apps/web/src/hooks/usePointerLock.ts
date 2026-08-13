@@ -86,19 +86,31 @@ export function usePointerLock({ onMove }: UsePointerLockOptions): UsePointerLoc
     [onMove, getSurfaceSize]
   );
 
-  // Under pointer lock the browser keeps firing mousemove on the document, but
-  // clientX/Y stop advancing and movementX/Y carry the actual motion. That is
-  // the whole reason a virtual position has to be accumulated by hand.
+  // Under pointer lock clientX/Y stop advancing and movementX/Y carries the
+  // actual motion. Chromium normally emits both pointermove and mousemove for
+  // the same physical movement, while certain macOS trackpad/Electron paths
+  // emit only pointermove. Consume both without injecting either twice.
   useEffect(() => {
     if (!isLocked) return;
 
-    const onPointerMove = (event: MouseEvent) => {
+    let lastPointerMoveAt = Number.NEGATIVE_INFINITY;
+    const move = (event: MouseEvent) => {
       handleMovement(event.movementX, event.movementY);
     };
+    const onPointerMove = (event: PointerEvent) => {
+      lastPointerMoveAt = performance.now();
+      move(event);
+    };
+    const onMouseMove = (event: MouseEvent) => {
+      if (performance.now() - lastPointerMoveAt < 16) return;
+      move(event);
+    };
 
-    document.addEventListener('mousemove', onPointerMove);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('mousemove', onMouseMove);
     return () => {
-      document.removeEventListener('mousemove', onPointerMove);
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('mousemove', onMouseMove);
     };
   }, [isLocked, handleMovement]);
 

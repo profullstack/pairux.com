@@ -21,10 +21,11 @@
     "desktop:package:mac": "pnpm --filter @pairux/desktop package:mac",
     "desktop:package:win": "pnpm --filter @pairux/desktop package:win",
     "desktop:package:linux": "pnpm --filter @pairux/desktop package:linux",
-    "dev:mobile": "pnpm --filter @pairux/mobile dev",
-    "build:mobile": "pnpm --filter @pairux/mobile build",
-    "mobile:android": "pnpm --filter @pairux/mobile android",
-    "mobile:ios": "pnpm --filter @pairux/mobile ios",
+    "dev:mobile": "pnpm --filter @pairux/shared-types build && pnpm --filter @pairux/mobile dev",
+    "build:mobile": "pnpm --filter @pairux/shared-types build && pnpm --filter @pairux/mobile build",
+    "mobile:android": "pnpm --filter @pairux/shared-types build && pnpm --filter @pairux/mobile android",
+    "mobile:ios": "pnpm --filter @pairux/shared-types build && pnpm --filter @pairux/mobile ios",
+    "check:mobile": "turbo run lint typecheck test --filter=@pairux/mobile && pnpm --filter @pairux/mobile verify:bundle",
     "start:installer": "pnpm --filter @pairux/installer start",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
@@ -35,8 +36,8 @@
     "test:coverage": "turbo run test:coverage",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "clean:all": "pnpm clean && pnpm store prune",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,md,css}\"",
     "version:bump": "node scripts/version-bump.mjs",
     "release": "node scripts/release.mjs",
     "submit-packages": "npx tsx scripts/submit-packages.ts",
@@ -89,6 +90,65 @@
     "pair-programming"
   ],
   "pnpm": {
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-23hp-3jrh-7fpw"
+      ]
+    },
+    "packageExtensions": {
+      "@react-navigation/bottom-tabs@*": {
+        "peerDependencies": {
+          "@types/react": "*"
+        }
+      },
+      "@react-navigation/core@*": {
+        "peerDependencies": {
+          "@types/react": "*"
+        }
+      },
+      "@react-navigation/elements@*": {
+        "peerDependencies": {
+          "@types/react": "*"
+        }
+      },
+      "@react-navigation/native-stack@*": {
+        "peerDependencies": {
+          "@types/react": "*"
+        }
+      },
+      "@react-navigation/native@*": {
+        "peerDependencies": {
+          "@types/react": "*"
+        }
+      },
+      "expo-modules-core@*": {
+        "peerDependencies": {
+          "react": "*"
+        }
+      },
+      "expo-router@*": {
+        "peerDependencies": {
+          "@types/react": "*",
+          "react": "*"
+        }
+      },
+      "react-native-webrtc@*": {
+        "peerDependencies": {
+          "@types/react": "*",
+          "react": "*"
+        }
+      },
+      "@expo-google-fonts/inter@*": {
+        "peerDependencies": {
+          "react": "*"
+        }
+      },
+      "@expo-google-fonts/jetbrains-mono@*": {
+        "peerDependencies": {
+          "react": "*"
+        }
+      }
+    },
     "overrides": {
       "app-builder-bin": "4.0.0",
       "shell-quote@1": "^1.8.4",
@@ -107,6 +167,7 @@
       "form-data@2": "^2.5.4",
       "tar@6": "^7.5.19",
       "tar@7": "^7.5.19",
+      "@expo/cli>tar": "^6.2.1",
       "@electron/rebuild>tar": "^6.2.1"
     }
   },

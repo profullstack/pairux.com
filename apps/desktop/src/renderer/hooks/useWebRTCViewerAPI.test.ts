@@ -270,6 +270,7 @@ describe('useWebRTCViewerAPI', () => {
         type: 'offer',
         sdp: 'mock-sdp-offer',
         senderId: 'host-1',
+        negotiationId: 'desktop-offer-1',
         timestamp: Date.now(),
       });
       await Promise.resolve();
@@ -288,7 +289,7 @@ describe('useWebRTCViewerAPI', () => {
       'http://localhost:3000/api/sessions/session-1/signal',
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('"type":"answer"'),
+        body: expect.stringContaining('"negotiationId":"desktop-offer-1"'),
       })
     );
   });

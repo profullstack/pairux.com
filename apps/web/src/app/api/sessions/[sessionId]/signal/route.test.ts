@@ -21,6 +21,7 @@ describe('POST /api/sessions/[sessionId]/signal', () => {
     type: 'offer',
     sdp: 'v=0\r\no=- 123 1 IN IP4 127.0.0.1\r\n...',
     senderId: 'test-user-id',
+    negotiationId: 'offer-generation-1',
     timestamp: Date.now(),
   };
 
@@ -68,6 +69,7 @@ describe('POST /api/sessions/[sessionId]/signal', () => {
       payload: expect.objectContaining({
         type: 'offer',
         senderId: 'test-user-id',
+        negotiationId: 'offer-generation-1',
       }),
     });
   });

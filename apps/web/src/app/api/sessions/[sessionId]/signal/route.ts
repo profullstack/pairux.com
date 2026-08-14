@@ -22,6 +22,7 @@ const signalSchema = z.object({
     })
     .optional(),
   targetId: z.string().optional(),
+  negotiationId: z.string().min(1).optional(),
   senderId: z.string(),
   timestamp: z.number(),
 });
@@ -165,6 +166,7 @@ export async function POST(
         candidate: signal.candidate,
         senderId: effectiveSenderId,
         targetId: signal.targetId,
+        negotiationId: signal.negotiationId,
         timestamp: signal.timestamp,
       },
     });

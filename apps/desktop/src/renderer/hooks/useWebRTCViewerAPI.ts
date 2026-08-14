@@ -44,6 +44,7 @@ interface SignalMessage {
   candidate?: RTCIceCandidateInit;
   senderId: string;
   targetId?: string;
+  negotiationId?: string;
   timestamp: number;
 }
 
@@ -472,7 +473,6 @@ export function useWebRTCViewerAPI({
               type: 'offer',
               sdp: message.sdp,
             });
-
             const answer = await pc.createAnswer();
             // In-band FEC turns a lost packet into a duller syllable, not a gap.
             if (answer.sdp) answer.sdp = tuneOpusForVoice(answer.sdp);
@@ -484,6 +484,7 @@ export function useWebRTCViewerAPI({
                 sdp: answer.sdp,
                 senderId: getSignalSenderId(),
                 targetId: message.senderId,
+                ...(message.negotiationId ? { negotiationId: message.negotiationId } : {}),
                 timestamp: Date.now(),
               });
             }

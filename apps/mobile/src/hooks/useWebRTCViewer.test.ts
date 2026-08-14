@@ -123,6 +123,52 @@ describe('useWebRTCViewer', () => {
     expect(createEventSource).toHaveBeenCalledWith(expect.stringContaining('token=test-token'));
   });
 
+  it('echoes the host negotiation ID in its answer', async () => {
+    renderHook(() =>
+      useWebRTCViewer({
+        sessionId: 'session-1',
+        participantId: 'viewer-1',
+      })
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const connectedListener = mockAddEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'connected'
+    )?.[1] as ((event: { data: string }) => void) | undefined;
+    const signalListener = mockAddEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'signal'
+    )?.[1] as ((event: { data: string }) => void) | undefined;
+    expect(connectedListener).toBeDefined();
+    expect(signalListener).toBeDefined();
+
+    await act(async () => {
+      connectedListener?.({ data: '{}' });
+      signalListener?.({
+        data: JSON.stringify({
+          type: 'offer',
+          sdp: 'mobile-host-offer',
+          senderId: 'host-1',
+          negotiationId: 'mobile-offer-1',
+          timestamp: Date.now(),
+        }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://pairux.com/api/sessions/session-1/signal',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"negotiationId":"mobile-offer-1"'),
+      })
+    );
+  });
+
   it('should set error when not authenticated', async () => {
     vi.mocked(getStoredAuth).mockResolvedValueOnce(null);
 

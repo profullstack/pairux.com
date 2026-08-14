@@ -6,6 +6,7 @@ import { marked } from 'marked';
 import { createClient } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { createEmailer } from '@profullstack/emailer';
+import { partitionDeliverable } from '@/lib/deliverable';
 
 type Ok<T = undefined> = { ok: true } & (T extends undefined ? object : T);
 interface Err {
@@ -69,9 +70,15 @@ export async function sendBulkEmail(input: {
 
   if (emails.length === 0) return { ok: false, error: 'No users found to email.' };
 
+  // Test signups leave addresses on reserved domains behind. Resend rejects the
+  // whole batch over a single one, so they never get handed over — they are
+  // reported as skipped instead, which is the truthful outcome for them.
+  const { deliverable, skipped } = partitionDeliverable(emails);
+  if (deliverable.length === 0) return { ok: false, error: 'No deliverable addresses to email.' };
+
   const emailer = createEmailer({ resendApiKey, defaultFrom });
   const bulkOpts: Parameters<typeof emailer.sendBulk>[0] = {
-    to: emails,
+    to: deliverable,
     subject,
     html,
     text,
@@ -80,5 +87,13 @@ export async function sendBulkEmail(input: {
   const result = await emailer.sendBulk(bulkOpts);
 
   revalidatePath('/admin');
-  return { ok: true, ...result };
+  return {
+    ok: true,
+    ...result,
+    failed: result.failed + skipped.length,
+    errors: [
+      ...result.errors,
+      ...skipped.map((email) => ({ email, error: 'Skipped: not a deliverable address.' })),
+    ],
+  };
 }

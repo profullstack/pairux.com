@@ -90,6 +90,11 @@
     "pair-programming"
   ],
   "pnpm": {
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-23hp-3jrh-7fpw"
+      ]
+    },
     "packageExtensions": {
       "@react-navigation/bottom-tabs@*": {
         "peerDependencies": {

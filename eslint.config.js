@@ -113,14 +113,24 @@ export default tseslint.config(
 
   // Relax rules for config files (disable type-checked rules)
   {
-    files: ['*.config.{js,ts,mjs}', 'scripts/**/*.{js,mjs}'],
+    files: [
+      '*.config.{js,ts,mjs}',
+      'apps/mobile/plugins/**/*.js',
+      'apps/mobile/scripts/**/*.mjs',
+      'scripts/**/*.{js,mjs}',
+    ],
     languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
       parserOptions: {
         project: null,
         projectService: false,
       },
     },
     rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/await-thenable': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
@@ -145,6 +155,17 @@ export default tseslint.config(
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/non-nullable-type-assertion-style': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    },
+  },
+
+  // Expo config plugins run as CommonJS during prebuild.
+  {
+    files: ['apps/mobile/plugins/**/*.js'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+      },
     },
   },
 

@@ -6,6 +6,23 @@ import { scheduleMeetingSchema } from '@/lib/validations';
 import { sendMeetingInvites } from '@/app/actions/meetings';
 import { getUniqueJoinCode } from '@/lib/join-code';
 import { randomBytes } from 'crypto';
+import {
+  earliestPossibleCurrentMeetingStart,
+  isScheduledMeetingCurrent,
+  type ScheduledMeetingTiming,
+} from '@/lib/scheduled-meeting-timing';
+
+interface ScheduledSessionInvitee {
+  id: string;
+  email: string;
+  name: string | null;
+  rsvp_status: string;
+}
+
+interface ScheduledSessionRow extends ScheduledMeetingTiming {
+  scheduled_session_invitees: ScheduledSessionInvitee[] | null;
+  [key: string]: unknown;
+}
 
 // POST /api/scheduled-sessions — create a scheduled meeting + send invites
 export async function POST(request: Request) {
@@ -108,7 +125,8 @@ export async function GET(request: Request) {
     if (authError || !user) return errorResponse('Authentication required', 401);
 
     const svc = serviceClient();
-    const now = new Date().toISOString();
+    const nowMs = Date.now();
+    const now = new Date(nowMs).toISOString();
 
     let query = (svc as any)
       .from('scheduled_sessions')
@@ -118,7 +136,10 @@ export async function GET(request: Request) {
       .order('scheduled_at', { ascending: true });
 
     if (filter === 'upcoming') {
-      query = query.gte('scheduled_at', now);
+      // Include meetings that have started but are still within their scheduled
+      // duration. The old scheduled_at >= now filter made a meeting disappear
+      // exactly when its host needed the Start Now action.
+      query = query.gte('scheduled_at', earliestPossibleCurrentMeetingStart(nowMs));
     } else if (filter === 'past') {
       query = query.lt('scheduled_at', now);
     }
@@ -130,8 +151,15 @@ export async function GET(request: Request) {
       return errorResponse(error.message, 400);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const result = (data as any[]).map((s: any) => ({
+    const sessions = data as ScheduledSessionRow[];
+    let rows = sessions;
+    if (filter === 'upcoming') {
+      rows = sessions.filter((session) => isScheduledMeetingCurrent(session, nowMs));
+    } else if (filter === 'past') {
+      rows = sessions.filter((session) => !isScheduledMeetingCurrent(session, nowMs));
+    }
+
+    const result = rows.map((s) => ({
       ...s,
 
       invitee_count: Array.isArray(s.scheduled_session_invitees)

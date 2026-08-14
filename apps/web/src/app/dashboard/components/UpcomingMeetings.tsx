@@ -15,6 +15,10 @@ import {
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
+import {
+  isScheduledMeetingCurrent,
+  isScheduledMeetingStartable,
+} from '@/lib/scheduled-meeting-timing';
 
 interface Invitee {
   id: string;
@@ -45,17 +49,17 @@ interface StartResponse {
   error?: string;
 }
 
-function formatDate(isoString: string): string {
+function formatDate(isoString: string, nowMs: number): string {
   const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const now = new Date(nowMs);
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-  if (diffDays === 0) return `Today at ${timeStr}`;
-  if (diffDays === 1) return `Tomorrow at ${timeStr}`;
-  if (diffDays < 7) {
+  if (date.toDateString() === now.toDateString()) return `Today at ${timeStr}`;
+  if (date.toDateString() === tomorrow.toDateString()) return `Tomorrow at ${timeStr}`;
+  if (date.getTime() - nowMs < 7 * 24 * 60 * 60 * 1000) {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       hour: 'numeric',
@@ -70,26 +74,20 @@ function formatDate(isoString: string): string {
   });
 }
 
-function isStartable(isoString: string): boolean {
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  // Allow starting up to 15 min early or if it's overdue by less than duration
-  return diffMs <= 15 * 60 * 1000;
-}
-
 interface Props {
   onSchedule: () => void;
 }
 
 export function UpcomingMeetings({ onSchedule }: Props) {
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [calendarOpenId, setCalendarOpenId] = useState<string | null>(null);
   const [editing, setEditing] = useState<ScheduledSession | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -108,8 +106,19 @@ export function UpcomingMeetings({ onSchedule }: Props) {
     void fetchSessions();
   }, [fetchSessions]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 30_000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
   async function handleStart(session: ScheduledSession) {
     setStartingId(session.id);
+    setStartError(null);
     try {
       const res = await fetch('/api/sessions', {
         method: 'POST',
@@ -121,14 +130,20 @@ export function UpcomingMeetings({ onSchedule }: Props) {
           joinCode: session.join_code,
         }),
       });
-      const json = (await res.json()) as StartResponse;
+      const json = (await res.json().catch(() => ({}))) as StartResponse;
       if (res.ok && json.data?.id) {
         window.location.href = `/host/${json.data.id}`;
+        return;
       }
+      throw new Error(json.error ?? 'Failed to start the meeting');
+    } catch (err) {
+      setStartError(err instanceof Error ? err.message : 'Failed to start the meeting');
     } finally {
       setStartingId(null);
     }
   }
+
+  const currentSessions = sessions.filter((session) => isScheduledMeetingCurrent(session, nowMs));
 
   async function handleCancel(id: string) {
     if (!confirm('Cancel this scheduled meeting? Invitees will be notified.')) return;
@@ -187,7 +202,13 @@ export function UpcomingMeetings({ onSchedule }: Props) {
         </button>
       </div>
 
-      {sessions.length === 0 ? (
+      {startError && (
+        <p role="alert" className="mt-3 text-sm text-red-500">
+          {startError}
+        </p>
+      )}
+
+      {currentSessions.length === 0 ? (
         <div className="mt-4 flex flex-col items-center justify-center py-10 text-center">
           <Calendar className="h-10 w-10 text-gray-300" />
           <p className="mt-3 text-sm text-gray-500">No upcoming meetings scheduled</p>
@@ -201,8 +222,8 @@ export function UpcomingMeetings({ onSchedule }: Props) {
         </div>
       ) : (
         <div className="mt-4 divide-y divide-gray-100">
-          {sessions.map((session) => {
-            const startable = isStartable(session.scheduled_at);
+          {currentSessions.map((session) => {
+            const startable = isScheduledMeetingStartable(session, nowMs);
             const accepted = session.invitees.filter((i) => i.rsvp_status === 'accepted').length;
 
             return (
@@ -213,7 +234,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(session.scheduled_at)}
+                        {formatDate(session.scheduled_at, nowMs)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />

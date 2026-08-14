@@ -18,6 +18,9 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY package.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/ ./packages/
+# pnpm.patchedDependencies pins @expo/cli, and the install reads the patch file
+# itself to hash it — without this the whole build dies on ENOENT.
+COPY patches/ ./patches/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile --filter @pairux/web...

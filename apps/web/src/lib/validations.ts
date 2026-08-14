@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_SCHEDULED_MEETING_DURATION_MINUTES } from './scheduled-meeting-timing';
 
 // Password must be at least 8 characters with at least one uppercase letter and one number
 const passwordSchema = z
@@ -128,7 +129,7 @@ export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   scheduledAt: z.string().datetime('Invalid date/time'),
-  durationMinutes: z.number().int().min(15).max(480).default(60),
+  durationMinutes: z.number().int().min(15).max(MAX_SCHEDULED_MEETING_DURATION_MINUTES).default(60),
   inviteeEmails: z
     .array(z.string().email('Invalid email address'))
     .max(50, 'Maximum 50 invitees')
@@ -145,8 +146,18 @@ export const updateScheduledMeetingSchema = z
     description: z.string().max(500).optional(),
     scheduled_at: z.string().datetime('Invalid date/time').optional(),
     scheduledAt: z.string().datetime('Invalid date/time').optional(),
-    duration_minutes: z.number().int().min(15).max(480).optional(),
-    durationMinutes: z.number().int().min(15).max(480).optional(),
+    duration_minutes: z
+      .number()
+      .int()
+      .min(15)
+      .max(MAX_SCHEDULED_MEETING_DURATION_MINUTES)
+      .optional(),
+    durationMinutes: z
+      .number()
+      .int()
+      .min(15)
+      .max(MAX_SCHEDULED_MEETING_DURATION_MINUTES)
+      .optional(),
     inviteeEmails: z
       .array(z.string().email('Invalid email address'))
       .max(50, 'Maximum 50 invitees')

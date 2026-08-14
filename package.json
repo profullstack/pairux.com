@@ -167,8 +167,10 @@
       "form-data@2": "^2.5.4",
       "tar@6": "^7.5.19",
       "tar@7": "^7.5.19",
-      "@expo/cli>tar": "^6.2.1",
       "@electron/rebuild>tar": "^6.2.1"
+    },
+    "patchedDependencies": {
+      "@expo/cli@0.22.28": "patches/@expo__cli@0.22.28.patch"
     }
   },
   "dependencies": {

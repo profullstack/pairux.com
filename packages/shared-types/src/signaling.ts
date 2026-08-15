@@ -13,6 +13,9 @@ export interface IceCandidateInit {
 // Base signaling message
 export interface BaseSignalMessage {
   senderId: string;
+  targetId?: string;
+  /** Correlates an SDP answer with the exact offer that produced it. */
+  negotiationId?: string;
   timestamp: number;
 }
 

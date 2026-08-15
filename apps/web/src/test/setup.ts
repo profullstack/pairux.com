@@ -157,7 +157,8 @@ class FakeAudioNode {
 }
 
 class FakeMediaStream {
-  private readonly tracks: unknown[];
+  private tracks: unknown[];
+  private readonly listeners = new Map<string, Set<(event: { track: unknown }) => void>>();
   id = 'fake-stream';
   constructor(tracks: unknown[] = []) {
     this.tracks = [...tracks];
@@ -166,13 +167,25 @@ class FakeMediaStream {
     return this.tracks;
   }
   getAudioTracks(): unknown[] {
-    return this.tracks;
+    return this.tracks.filter((track) => (track as { kind?: string }).kind === 'audio');
   }
   getVideoTracks(): unknown[] {
-    return [];
+    return this.tracks.filter((track) => (track as { kind?: string }).kind === 'video');
   }
   addTrack(track: unknown): void {
     this.tracks.push(track);
+  }
+  removeTrack(track: unknown): void {
+    this.tracks = this.tracks.filter((candidate) => candidate !== track);
+    this.listeners.get('removetrack')?.forEach((listener) => listener({ track }));
+  }
+  addEventListener(type: string, listener: (event: { track: unknown }) => void): void {
+    const listeners = this.listeners.get(type) ?? new Set();
+    listeners.add(listener);
+    this.listeners.set(type, listeners);
+  }
+  removeEventListener(type: string, listener: (event: { track: unknown }) => void): void {
+    this.listeners.get(type)?.delete(listener);
   }
 }
 
@@ -214,7 +227,9 @@ class FakeAudioContext {
     });
   }
   createMediaStreamDestination(): FakeAudioNode & { stream: FakeMediaStream } {
-    return Object.assign(new FakeAudioNode(), { stream: new FakeMediaStream() });
+    return Object.assign(new FakeAudioNode(), {
+      stream: new FakeMediaStream([{ id: 'mixed-audio', kind: 'audio', stop: vi.fn() }]),
+    });
   }
 }
 

@@ -98,6 +98,51 @@ describe('VideoViewer', () => {
     expect(screen.getByTitle('Turn speaker on (M)')).toBeInTheDocument();
   });
 
+  it('mixes every remote audio track and disposes mixes when tracks change or unmount', () => {
+    const sourceSpy = vi.spyOn(AudioContext.prototype, 'createMediaStreamSource');
+    const firstStream = createMockStream(['video', 'audio', 'audio']);
+    const { container, rerender, unmount } = render(
+      <VideoViewer {...defaultProps} stream={firstStream} connectionState="connected" />
+    );
+
+    expect(sourceSpy).toHaveBeenCalledTimes(2);
+    const video = container.querySelector('video');
+    const firstPlayback = video?.srcObject as MediaStream;
+    expect(firstPlayback).not.toBe(firstStream);
+    expect(firstPlayback.getAudioTracks().map((track) => track.id)).toEqual(['mixed-audio']);
+    const [firstMixedTrack] = firstPlayback.getAudioTracks();
+
+    rerender(
+      <VideoViewer
+        {...defaultProps}
+        stream={firstStream}
+        connectionState="connected"
+        speakerGain={1.5}
+      />
+    );
+    expect(sourceSpy).toHaveBeenCalledTimes(2);
+
+    const replacementStream = createMockStream(['video', 'audio']);
+    rerender(
+      <VideoViewer
+        {...defaultProps}
+        stream={replacementStream}
+        connectionState="connected"
+        speakerGain={1.5}
+      />
+    );
+
+    expect(sourceSpy).toHaveBeenCalledTimes(3);
+    expect(firstMixedTrack?.stop).toHaveBeenCalledOnce();
+    const replacementPlayback = video?.srcObject as MediaStream;
+    const [replacementMixedTrack] = replacementPlayback.getAudioTracks();
+
+    unmount();
+
+    expect(replacementMixedTrack?.stop).toHaveBeenCalledOnce();
+    sourceSpy.mockRestore();
+  });
+
   it('honors controlled speakerMuted state and calls onSpeakerMutedChange', () => {
     const mockStream = createMockStream(['audio', 'video']);
     const onSpeakerMutedChange = vi.fn();

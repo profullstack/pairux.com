@@ -289,7 +289,7 @@ describe('useWebRTC', () => {
   });
 
   describe('ICE candidate buffering', () => {
-    it('should buffer ICE candidates that arrive before remote description', async () => {
+    it('drains every buffered ICE candidate even when one is stale', async () => {
       mockGetUserMedia.mockResolvedValue(createMockMicStream());
 
       mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
@@ -312,24 +312,51 @@ describe('useWebRTC', () => {
       expect(signalCall).toBeDefined();
       const signalHandler = signalCall![2] as (payload: { payload: unknown }) => void;
 
-      // Send ICE candidate before any offer (no remote description)
+      const pc = MockRTCPeerConnection.instances[0]!;
+
+      // Send two ICE candidates before any offer (no remote description).
+      await act(async () => {
+        for (const candidate of ['stale-candidate', 'valid-candidate']) {
+          signalHandler({
+            payload: {
+              type: 'ice-candidate',
+              candidate: { candidate },
+              senderId: 'host-1',
+              timestamp: Date.now(),
+            },
+          });
+        }
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.addIceCandidate).not.toHaveBeenCalled();
+      pc.addIceCandidate
+        .mockRejectedValueOnce(new Error('stale ICE generation'))
+        .mockResolvedValueOnce(undefined);
+
       await act(async () => {
         signalHandler({
           payload: {
-            type: 'ice-candidate',
-            candidate: { candidate: 'candidate-before-offer' },
+            type: 'offer',
+            sdp: 'host-offer',
             senderId: 'host-1',
+            negotiationId: 'offer-1',
             timestamp: Date.now(),
           },
         });
         await Promise.resolve();
         await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
       });
 
-      // The candidate should be buffered, not added directly
-      // (addIceCandidate may or may not be called depending on timing,
-      // but no error should occur)
-      // This verifies the hook doesn't crash on early ICE candidates
+      expect(pc.addIceCandidate).toHaveBeenNthCalledWith(1, {
+        candidate: 'stale-candidate',
+      });
+      expect(pc.addIceCandidate).toHaveBeenNthCalledWith(2, {
+        candidate: 'valid-candidate',
+      });
     });
 
     it('should process offer with signaling state rollback if not stable', async () => {
@@ -360,6 +387,7 @@ describe('useWebRTC', () => {
             type: 'offer',
             sdp: 'test-offer-sdp',
             senderId: 'host-1',
+            negotiationId: 'negotiation-1',
             timestamp: Date.now(),
           },
         });
@@ -377,6 +405,286 @@ describe('useWebRTC', () => {
       expect(pc.setLocalDescription).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'answer', sdp: 'test-answer-sdp' })
       );
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        type: 'broadcast',
+        event: 'signal',
+        payload: expect.objectContaining({
+          type: 'answer',
+          negotiationId: 'negotiation-1',
+        }),
+      });
+    });
+  });
+
+  describe('signaling routing', () => {
+    const initializeSubscribedViewer = async () => {
+      mockGetUserMedia.mockResolvedValue(createMockMicStream());
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      await act(async () => {
+        renderHook(() => useWebRTC(defaultOptions));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const signalCall = mockChannel.on.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'broadcast' && (call[1] as Record<string, string>).event === 'signal'
+      );
+      expect(signalCall).toBeDefined();
+
+      return {
+        pc: MockRTCPeerConnection.instances[0]!,
+        signalHandler: signalCall![2] as (payload: { payload: unknown }) => void,
+      };
+    };
+
+    it('ignores messages for another viewer and untargeted messages from a non-host peer', async () => {
+      const { pc, signalHandler } = await initializeSubscribedViewer();
+
+      await act(async () => {
+        signalHandler({
+          payload: {
+            type: 'offer',
+            sdp: 'other-viewer-offer',
+            senderId: 'host-1',
+            targetId: 'viewer-2',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.setRemoteDescription).not.toHaveBeenCalled();
+
+      await act(async () => {
+        signalHandler({
+          payload: {
+            type: 'offer',
+            sdp: 'host-offer',
+            senderId: 'host-1',
+            targetId: 'viewer-1',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.setRemoteDescription).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        signalHandler({
+          payload: {
+            type: 'offer',
+            sdp: 'viewer-restart-offer',
+            senderId: 'viewer-2',
+            timestamp: Date.now(),
+          },
+        });
+        signalHandler({
+          payload: {
+            type: 'ice-candidate',
+            candidate: { candidate: 'viewer-candidate' },
+            senderId: 'viewer-2',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.setRemoteDescription).toHaveBeenCalledTimes(1);
+      expect(pc.addIceCandidate).not.toHaveBeenCalled();
+    });
+
+    it('targets its answer, ICE candidates, and ICE-restart offer to the accepted host', async () => {
+      const { pc, signalHandler } = await initializeSubscribedViewer();
+
+      await act(async () => {
+        // Untargeted first offers remain supported for older hosts.
+        signalHandler({
+          payload: {
+            type: 'offer',
+            sdp: 'legacy-host-offer',
+            senderId: 'host-1',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        type: 'broadcast',
+        event: 'signal',
+        payload: expect.objectContaining({
+          type: 'answer',
+          senderId: 'viewer-1',
+          targetId: 'host-1',
+        }),
+      });
+
+      mockChannel.send.mockClear();
+      act(() => {
+        pc.onicecandidate?.({
+          candidate: {
+            toJSON: () => ({ candidate: 'viewer-candidate' }),
+          },
+        });
+      });
+
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        type: 'broadcast',
+        event: 'signal',
+        payload: expect.objectContaining({
+          type: 'ice-candidate',
+          senderId: 'viewer-1',
+          targetId: 'host-1',
+        }),
+      });
+
+      mockChannel.send.mockClear();
+      pc.iceConnectionState = 'failed';
+      await act(async () => {
+        pc.oniceconnectionstatechange?.();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.createOffer).toHaveBeenCalledWith({ iceRestart: true });
+      expect(mockChannel.send).toHaveBeenCalledWith({
+        type: 'broadcast',
+        event: 'signal',
+        payload: expect.objectContaining({
+          type: 'offer',
+          senderId: 'viewer-1',
+          targetId: 'host-1',
+        }),
+      });
+    });
+
+    it('accepts late ICE from an earlier offer on the same peer connection', async () => {
+      const { pc, signalHandler } = await initializeSubscribedViewer();
+
+      await act(async () => {
+        for (const [sdp, negotiationId] of [
+          ['initial-offer', 'offer-1'],
+          ['relay-offer', 'offer-2'],
+        ]) {
+          signalHandler({
+            payload: {
+              type: 'offer',
+              sdp,
+              senderId: 'host-1',
+              targetId: 'viewer-1',
+              negotiationId,
+              timestamp: Date.now(),
+            },
+          });
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        }
+
+        signalHandler({
+          payload: {
+            type: 'ice-candidate',
+            candidate: { candidate: 'late-initial-candidate' },
+            senderId: 'host-1',
+            targetId: 'viewer-1',
+            negotiationId: 'offer-1',
+            timestamp: Date.now(),
+          },
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(pc.addIceCandidate).toHaveBeenCalledWith({
+        candidate: 'late-initial-candidate',
+      });
+    });
+  });
+
+  describe('remote participant audio', () => {
+    const createRemoteAudioTrack = (id: string) => {
+      let endedListener: (() => void) | null = null;
+      const track = {
+        id,
+        kind: 'audio',
+        readyState: 'live',
+        addEventListener: vi.fn((type: string, listener: () => void) => {
+          if (type === 'ended') endedListener = listener;
+        }),
+        removeEventListener: vi.fn(),
+      } as unknown as MediaStreamTrack;
+
+      return {
+        track,
+        end: () => endedListener?.(),
+      };
+    };
+
+    it('retains simultaneous host and relayed participant audio tracks', async () => {
+      mockGetUserMedia.mockResolvedValue(createMockMicStream());
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      let hookResult: { current: ReturnType<typeof useWebRTC> };
+      await act(async () => {
+        const { result } = renderHook(() => useWebRTC(defaultOptions));
+        hookResult = result;
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const pc = MockRTCPeerConnection.instances[0]!;
+      const hostAudio = createRemoteAudioTrack('host-audio');
+      const participantAudio = createRemoteAudioTrack('participant-2-audio');
+      const hostStream = new MediaStream([hostAudio.track]);
+      const participantStream = new MediaStream([participantAudio.track]);
+
+      act(() => {
+        pc.ontrack?.({
+          streams: [hostStream],
+          track: hostAudio.track,
+        });
+        pc.ontrack?.({
+          streams: [participantStream],
+          track: participantAudio.track,
+        });
+      });
+
+      expect(hookResult!.current.remoteStream?.getAudioTracks().map((track) => track.id)).toEqual([
+        'host-audio',
+        'participant-2-audio',
+      ]);
+
+      act(() => {
+        // Negotiated sender removal fires removetrack while the receiver track
+        // can remain live/muted; it does not reliably fire ended.
+        participantStream.removeTrack(participantAudio.track);
+      });
+
+      expect(hookResult!.current.remoteStream?.getAudioTracks().map((track) => track.id)).toEqual([
+        'host-audio',
+      ]);
+
+      act(() => {
+        hostAudio.end();
+      });
+      expect(hookResult!.current.remoteStream).toBeNull();
     });
   });
 

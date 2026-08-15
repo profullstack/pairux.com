@@ -17,7 +17,7 @@
 import { clampAudioGain, DEFAULT_REMOTE_AUDIO_GAIN } from '@pairux/shared-types';
 import { getAudioContext, resumeAudioContext } from './audioContext';
 
-/** A remote track with a gain stage spliced in front of playback. */
+/** Remote audio with a gain stage spliced in front of playback. */
 export interface AmplifiedAudioTrack {
   /** Feed this to the media element instead of the raw track. */
   stream: MediaStream;
@@ -25,6 +25,18 @@ export interface AmplifiedAudioTrack {
   setGain: (value: number) => void;
   /** Tear down the graph. Safe to call more than once. */
   dispose: () => void;
+}
+
+function uniqueTracks(tracks: readonly MediaStreamTrack[]): MediaStreamTrack[] {
+  const seenTracks = new Set<MediaStreamTrack>();
+  const seenIds = new Set<string>();
+
+  return tracks.filter((track) => {
+    if (seenTracks.has(track) || seenIds.has(track.id)) return false;
+    seenTracks.add(track);
+    seenIds.add(track.id);
+    return true;
+  });
 }
 
 /**
@@ -59,24 +71,43 @@ function keepRemoteTrackFlowing(track: MediaStreamTrack): HTMLAudioElement {
 }
 
 /**
- * Splice a gain stage in front of a remote audio track.
+ * Splice one gain stage in front of a set of remote audio tracks.
+ *
+ * The sources are mixed into one destination track. Although a MediaStream can
+ * contain multiple audio tracks, media-element support for playing all of them
+ * is inconsistent. One mixed output makes every participant audible on every
+ * supported browser and applies the viewer's volume setting uniformly.
  *
  * Throws if Web Audio is unavailable or the track cannot be wired up. That is
  * deliberate: silently playing un-amplified audio would look like the volume
  * control simply not working, which is far harder to diagnose than a failure.
  */
-export function amplifyRemoteAudio(
-  track: MediaStreamTrack,
+export function amplifyRemoteAudioTracks(
+  tracks: readonly MediaStreamTrack[],
   initialGain: number = DEFAULT_REMOTE_AUDIO_GAIN
 ): AmplifiedAudioTrack {
+  const remoteTracks = uniqueTracks(tracks);
+
+  // Avoid opening Web Audio resources for a video-only stream. Keeping this
+  // case valid also makes callers safe while tracks are being renegotiated.
+  if (remoteTracks.length === 0) {
+    return {
+      stream: new MediaStream(),
+      setGain: () => undefined,
+      dispose: () => undefined,
+    };
+  }
+
   const ctx = getAudioContext();
   resumeAudioContext(ctx);
 
   // Before the graph, not after: the source node below reads whatever the
   // receiver has produced, and without a consumer it produces nothing.
-  const keepAlive = keepRemoteTrackFlowing(track);
+  const keepAlives = remoteTracks.map(keepRemoteTrackFlowing);
 
-  const source = ctx.createMediaStreamSource(new MediaStream([track]));
+  const sources = remoteTracks.map((track) =>
+    ctx.createMediaStreamSource(new MediaStream([track]))
+  );
   const gain = ctx.createGain();
   gain.gain.value = clampAudioGain(initialGain);
 
@@ -93,16 +124,20 @@ export function amplifyRemoteAudio(
 
   const destination = ctx.createMediaStreamDestination();
 
-  source.connect(gain);
+  sources.forEach((source) => {
+    source.connect(gain);
+  });
   gain.connect(limiter);
   limiter.connect(destination);
 
   // Silent playback is hard to tell apart from nobody talking, so record the
   // state of everything that decides between the two.
   console.log('[RemoteAudioGain] Attached gain stage', {
-    trackId: track.id,
-    trackMuted: track.muted,
-    trackReadyState: track.readyState,
+    trackIds: remoteTracks.map((track) => track.id),
+    trackStates: remoteTracks.map((track) => ({
+      muted: track.muted,
+      readyState: track.readyState,
+    })),
     contextState: ctx.state,
     gain: gain.gain.value,
   });
@@ -119,11 +154,27 @@ export function amplifyRemoteAudio(
     dispose: () => {
       if (disposed) return;
       disposed = true;
-      source.disconnect();
+      sources.forEach((source) => {
+        source.disconnect();
+      });
       gain.disconnect();
       limiter.disconnect();
-      keepAlive.pause();
-      keepAlive.srcObject = null;
+      destination.disconnect();
+      destination.stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      keepAlives.forEach((keepAlive) => {
+        keepAlive.pause();
+        keepAlive.srcObject = null;
+      });
     },
   };
+}
+
+/** Backwards-compatible single-track form used by host playback. */
+export function amplifyRemoteAudio(
+  track: MediaStreamTrack,
+  initialGain: number = DEFAULT_REMOTE_AUDIO_GAIN
+): AmplifiedAudioTrack {
+  return amplifyRemoteAudioTracks([track], initialGain);
 }

@@ -6,7 +6,7 @@ import { ConnectionStatus } from './ConnectionStatus';
 import { QualityIndicator } from './QualityIndicator';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 import { DEFAULT_REMOTE_AUDIO_GAIN } from '@pairux/shared-types';
-import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
+import { amplifyRemoteAudioTracks, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 
 interface VideoViewerProps {
   stream: MediaStream | null;
@@ -51,8 +51,15 @@ export function VideoViewer({
   // through a gain stage and swapped back into the stream before playback.
   // Video tracks pass through untouched.
   const amplifiedRef = useRef<AmplifiedAudioTrack | null>(null);
+  const speakerGainRef = useRef(speakerGain);
+  speakerGainRef.current = speakerGain;
   const [playbackStream, setPlaybackStream] = useState<MediaStream | null>(null);
-  const remoteAudioTrackId = stream?.getAudioTracks()[0]?.id ?? null;
+  const remoteAudioTrackIds =
+    stream
+      ?.getAudioTracks()
+      .map((track) => track.id)
+      .sort()
+      .join('\0') ?? null;
 
   useEffect(() => {
     if (!stream) {
@@ -60,14 +67,14 @@ export function VideoViewer({
       return;
     }
 
-    const audioTrack = stream.getAudioTracks()[0];
-    if (!audioTrack) {
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) {
       // Screen-share only — nothing to amplify.
       setPlaybackStream(stream);
       return;
     }
 
-    const amplified = amplifyRemoteAudio(audioTrack, speakerGain);
+    const amplified = amplifyRemoteAudioTracks(audioTracks, speakerGainRef.current);
     amplifiedRef.current = amplified;
 
     const composed = new MediaStream();
@@ -81,11 +88,13 @@ export function VideoViewer({
 
     return () => {
       amplified.dispose();
-      amplifiedRef.current = null;
+      if (amplifiedRef.current === amplified) {
+        amplifiedRef.current = null;
+      }
     };
-    // Rebuild when the underlying audio track is replaced, which renegotiation
-    // can do without changing the stream's identity.
-  }, [stream, remoteAudioTrackId, speakerGain]);
+    // Rebuild when any underlying audio track changes, which renegotiation can
+    // do without changing the stream's identity.
+  }, [stream, remoteAudioTrackIds]);
 
   // Adjust an existing graph in place rather than rebuilding it on every nudge
   // of a volume slider.

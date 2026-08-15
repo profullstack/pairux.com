@@ -90,12 +90,14 @@ export function useWebRTC({
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const remoteTrackCleanupRef = useRef<Map<string, () => void>>(new Map());
   const micStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const inputSequenceRef = useRef(0);
+  const hostPeerIdRef = useRef<string | null>(null);
   const maxReconnectAttempts = 3;
 
   const sendSignal = useCallback(
@@ -128,7 +130,7 @@ export function useWebRTC({
   );
 
   // Buffer ICE candidates that arrive before remote description is set
-  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const pendingCandidatesRef = useRef<{ candidate: RTCIceCandidateInit; senderId: string }[]>([]);
   // Serialize signaling message processing to prevent race conditions
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
 
@@ -201,20 +203,27 @@ export function useWebRTC({
       dataChannelRef.current = channel;
 
       channel.onopen = () => {
+        if (dataChannelRef.current !== channel) return;
         setDataChannelReady(true);
       };
 
       channel.onclose = () => {
+        if (dataChannelRef.current !== channel) return;
+        dataChannelRef.current = null;
         setDataChannelReady(false);
         setControlState('view-only');
       };
 
       channel.onerror = (err) => {
+        if (dataChannelRef.current !== channel) return;
         console.error('Data channel error:', err);
         setDataChannelReady(false);
       };
 
-      channel.onmessage = handleDataChannelMessage;
+      channel.onmessage = (event) => {
+        if (dataChannelRef.current !== channel) return;
+        handleDataChannelMessage(event as MessageEvent<string>);
+      };
     },
     [handleDataChannelMessage]
   );
@@ -326,6 +335,12 @@ export function useWebRTC({
       const pc = peerConnectionRef.current;
       if (!pc) return;
 
+      // Shared realtime channels carry signaling for every participant. Reject
+      // messages meant for another viewer, and never let a later peer replace
+      // the host selected by the first successfully applied offer.
+      if (message.targetId && message.targetId !== participantId) return;
+      if (hostPeerIdRef.current && message.senderId !== hostPeerIdRef.current) return;
+
       try {
         switch (message.type) {
           case 'offer': {
@@ -340,6 +355,7 @@ export function useWebRTC({
               type: 'offer',
               sdp: message.sdp,
             });
+            hostPeerIdRef.current ??= message.senderId;
 
             const answer = await pc.createAnswer();
             // In-band FEC turns a lost packet into a duller syllable, not a gap.
@@ -352,17 +368,27 @@ export function useWebRTC({
                 type: 'answer',
                 sdp: answer.sdp,
                 senderId: participantId,
+                targetId: message.senderId,
+                ...(message.negotiationId ? { negotiationId: message.negotiationId } : {}),
                 timestamp: Date.now(),
               });
             }
 
             // Drain any ICE candidates that arrived before remote description was set
-            const pending = pendingCandidatesRef.current;
+            const pending = pendingCandidatesRef.current.filter(
+              ({ senderId }) => senderId === message.senderId
+            );
+            pendingCandidatesRef.current = [];
             if (pending.length > 0) {
               console.log(`[WebRTC] Draining ${String(pending.length)} buffered ICE candidates`);
-              pendingCandidatesRef.current = [];
-              for (const candidate of pending) {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              for (const { candidate } of pending) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (err) {
+                  // A candidate from an earlier ICE generation can arrive
+                  // after renegotiation. Ignore it without dropping the rest.
+                  console.warn('[WebRTC] Ignoring invalid buffered ICE candidate', err);
+                }
               }
             }
             break;
@@ -370,11 +396,20 @@ export function useWebRTC({
 
           case 'ice-candidate': {
             if (message.candidate.candidate) {
-              // Buffer if remote description not yet set
+              // ICE gathering is scoped to the peer connection rather than a
+              // single SDP offer. A late candidate from an earlier offer can
+              // still be required after a relay-triggered renegotiation.
               if (!pc.remoteDescription) {
-                pendingCandidatesRef.current.push(message.candidate);
+                pendingCandidatesRef.current.push({
+                  candidate: message.candidate,
+                  senderId: message.senderId,
+                });
               } else {
-                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+                } catch (err) {
+                  console.warn('[WebRTC] Ignoring invalid ICE candidate', err);
+                }
               }
             }
             break;
@@ -385,15 +420,18 @@ export function useWebRTC({
         setError('Failed to process signaling message');
       }
     },
-    [participantId]
+    [participantId, sendSignal]
   );
 
   // Handle signaling messages — serialized via promise chain
   const handleSignalMessage = useCallback(
     (message: SignalMessage) => {
+      if (message.targetId && message.targetId !== participantId) return;
+      if (hostPeerIdRef.current && message.senderId !== hostPeerIdRef.current) return;
+
       signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message));
     },
-    [processSignalMessage]
+    [participantId, processSignalMessage]
   );
 
   // Handle connection failure with retry logic
@@ -413,10 +451,12 @@ export function useWebRTC({
           await pc.setLocalDescription(offer);
 
           if (offer.sdp) {
+            const targetId = hostPeerIdRef.current;
             void sendSignal({
               type: 'offer',
               sdp: offer.sdp,
               senderId: participantId,
+              ...(targetId ? { targetId } : {}),
               timestamp: Date.now(),
             });
           }
@@ -429,10 +469,39 @@ export function useWebRTC({
       setConnectionState('failed');
       setError('Connection failed after multiple attempts');
     }
-  }, [participantId]);
+  }, [participantId, sendSignal]);
 
   // Keep ref updated
   handleConnectionFailureRef.current = handleConnectionFailure;
+
+  const removeRemoteTrack = useCallback(
+    (trackId: string) => {
+      const cleanup = remoteTrackCleanupRef.current.get(trackId);
+      remoteTrackCleanupRef.current.delete(trackId);
+      cleanup?.();
+
+      const activeStream = remoteStreamRef.current;
+      if (!activeStream) return;
+
+      const remainingTracks = activeStream
+        .getTracks()
+        .filter((track) => track.id !== trackId && track.readyState !== 'ended');
+      if (remainingTracks.length === activeStream.getTracks().length) return;
+
+      if (remainingTracks.length === 0) {
+        remoteStreamRef.current = null;
+        setRemoteStream(null);
+        onStreamEnded?.();
+        return;
+      }
+
+      const updatedStream = new MediaStream(remainingTracks);
+      remoteStreamRef.current = updatedStream;
+      setRemoteStream(updatedStream);
+      onStreamReady?.(updatedStream);
+    },
+    [onStreamEnded, onStreamReady]
+  );
 
   // Create and configure peer connection
   const createPeerConnection = useCallback(() => {
@@ -443,21 +512,55 @@ export function useWebRTC({
 
     // Handle incoming tracks (video + audio from host and relayed viewers)
     pc.ontrack = (event) => {
+      if (peerConnectionRef.current !== pc) return;
       const incomingStream = event.streams[0];
 
       // Browsers may deliver audio/video on separate streams (or streamless) across
       // renegotiation, which can cause us to drop audio if we simply replace the stream.
+      // There can be one remote audio track for the host and one for every relayed
+      // viewer, so audio tracks must coexist. Screen sharing still has a single
+      // active video source and a republished video replaces the previous one.
       const current = remoteStreamRef.current;
       const composite = current ?? new MediaStream();
 
+      const detachTrackCleanup = (trackId: string) => {
+        const cleanup = remoteTrackCleanupRef.current.get(trackId);
+        remoteTrackCleanupRef.current.delete(trackId);
+        cleanup?.();
+      };
+
+      const registerTrackCleanup = (track: MediaStreamTrack) => {
+        if (remoteTrackCleanupRef.current.has(track.id)) return;
+
+        const handleEnded = () => {
+          removeRemoteTrack(track.id);
+        };
+        const handleRemoved = (removedEvent: MediaStreamTrackEvent) => {
+          if (removedEvent.track.id === track.id) removeRemoteTrack(track.id);
+        };
+
+        track.addEventListener('ended', handleEnded, { once: true });
+        incomingStream?.addEventListener('removetrack', handleRemoved);
+        remoteTrackCleanupRef.current.set(track.id, () => {
+          track.removeEventListener('ended', handleEnded);
+          incomingStream?.removeEventListener('removetrack', handleRemoved);
+        });
+      };
+
       const addTrackIfMissing = (track: MediaStreamTrack) => {
+        if (track.readyState === 'ended') return;
+
         const exists = composite.getTracks().some((existing) => existing.id === track.id);
         if (!exists) {
-          const sameKind = composite.getTracks().find((existing) => existing.kind === track.kind);
-          if (sameKind) {
-            composite.removeTrack(sameKind);
+          if (track.kind === 'video') {
+            composite.getVideoTracks().forEach((existing) => {
+              composite.removeTrack(existing);
+              detachTrackCleanup(existing.id);
+            });
           }
+
           composite.addTrack(track);
+          registerTrackCleanup(track);
         }
       };
 
@@ -476,11 +579,14 @@ export function useWebRTC({
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
+      if (peerConnectionRef.current !== pc) return;
       if (event.candidate) {
+        const targetId = hostPeerIdRef.current;
         void sendSignal({
           type: 'ice-candidate',
           candidate: event.candidate.toJSON(),
           senderId: participantId,
+          ...(targetId ? { targetId } : {}),
           timestamp: Date.now(),
         });
       }
@@ -488,6 +594,7 @@ export function useWebRTC({
 
     // Handle connection state changes
     pc.oniceconnectionstatechange = () => {
+      if (peerConnectionRef.current !== pc) return;
       const state = pc.iceConnectionState;
 
       switch (state) {
@@ -521,6 +628,10 @@ export function useWebRTC({
         case 'closed':
           setConnectionState('disconnected');
           remoteStreamRef.current = null;
+          remoteTrackCleanupRef.current.forEach((cleanup) => {
+            cleanup();
+          });
+          remoteTrackCleanupRef.current.clear();
           setRemoteStream(null);
           onStreamEnded?.();
           break;
@@ -529,6 +640,7 @@ export function useWebRTC({
 
     // Handle connection state (overall)
     pc.onconnectionstatechange = () => {
+      if (peerConnectionRef.current !== pc) return;
       const handler = handleConnectionFailureRef.current;
       if (pc.connectionState === 'failed' && handler) {
         void handler();
@@ -537,11 +649,19 @@ export function useWebRTC({
 
     // Handle incoming data channel from host
     pc.ondatachannel = (event) => {
+      if (peerConnectionRef.current !== pc) return;
       setupDataChannel(event.channel);
     };
 
     return pc;
-  }, [participantId, onStreamReady, onStreamEnded, setupDataChannel, sendSignal]);
+  }, [
+    participantId,
+    onStreamReady,
+    onStreamEnded,
+    removeRemoteTrack,
+    setupDataChannel,
+    sendSignal,
+  ]);
 
   // Disconnect
   const disconnect = useCallback(() => {
@@ -578,6 +698,12 @@ export function useWebRTC({
     }
 
     remoteStreamRef.current = null;
+    remoteTrackCleanupRef.current.forEach((cleanup) => {
+      cleanup();
+    });
+    remoteTrackCleanupRef.current.clear();
+    hostPeerIdRef.current = null;
+    pendingCandidatesRef.current = [];
     setRemoteStream(null);
     setConnectionState('disconnected');
     setQualityMetrics(null);

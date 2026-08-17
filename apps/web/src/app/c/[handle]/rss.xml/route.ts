@@ -94,8 +94,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ han
   const recordings = await getRecordings(handle);
   const channelUrl = `${SITE_URL}/@${channel.handle}`;
   const feedUrl = `${SITE_URL}/c/${encodeURIComponent(channel.handle)}/rss.xml`;
-  const description =
-    channel.description ?? `Past lives from ${channel.name}, recorded on PairUX.`;
+  const description = channel.description ?? `Past lives from ${channel.name}, recorded on PairUX.`;
   const artwork = channel.avatar_url ?? channel.banner_url;
 
   const xml = [

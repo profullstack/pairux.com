@@ -6,15 +6,21 @@ import { CORS_HEADERS } from '@/lib/cors';
 // can carry a fresh script nonce — that lets us drop 'unsafe-inline' from
 // script-src. Next.js reads the nonce from the request's CSP header and applies
 // it to its inline bootstrap scripts; our own inline <script>s read x-nonce.
-function buildCsp(nonce: string): string {
+function buildCsp(nonce: string, embeddable: boolean): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://feedback.profullstack.com`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
-    "media-src 'self' blob:",
+    // The embeddable player streams recordings from Supabase Storage over https.
+    embeddable ? "media-src 'self' blob: https:" : "media-src 'self' blob:",
     "connect-src 'self' https: wss: https://crawlproof.com",
-    "frame-ancestors 'self' chrome-extension:",
+    // /embed/* is the public player — any site may frame it. That is the whole
+    // point of the surface, and it is safe because the page is read-only: it
+    // renders a <video> plus outbound links, and performs no authenticated
+    // action, so there is nothing for a framing site to clickjack. Every other
+    // path keeps the restrictive list.
+    embeddable ? 'frame-ancestors *' : "frame-ancestors 'self' chrome-extension:",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
@@ -23,11 +29,16 @@ function buildCsp(nonce: string): string {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const isEmbed = pathname === '/embed' || pathname.startsWith('/embed/');
+
   const nonce = btoa(crypto.randomUUID());
-  const csp = buildCsp(nonce);
+  const csp = buildCsp(nonce, isEmbed);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('content-security-policy', csp);
+  // Lets the root layout drop chrome (analytics, feedback widget, PWA prompt)
+  // that has no business rendering inside someone else's page.
+  if (isEmbed) requestHeaders.set('x-embed', '1');
 
   // Vanity channel URL: pairux.com/@handle serves the channel page (/c/handle).
   const vanity = /^\/@([A-Za-z0-9_]{3,30})$/.exec(pathname);

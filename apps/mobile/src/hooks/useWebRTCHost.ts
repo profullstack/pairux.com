@@ -9,7 +9,7 @@
  *  - No HTMLAudioElement (audio handled by RN WebRTC)
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { MediaStreamTrack } from 'react-native-webrtc';
+import type { MediaStreamTrack, RTCRtpSender } from 'react-native-webrtc';
 import { RTCPeerConnection, RTCIceCandidate, MediaStream, mediaDevices } from 'react-native-webrtc';
 import type {
   ConnectionState,
@@ -93,7 +93,6 @@ interface SignalMessage {
 interface UseWebRTCHostOptions {
   sessionId: string;
   hostId: string;
-  localStream: MediaStream | null;
   allowControl?: boolean;
   onViewerJoined?: (viewerId: string) => void;
   onViewerLeft?: (viewerId: string) => void;
@@ -123,7 +122,6 @@ interface UseWebRTCHostReturn {
 export function useWebRTCHost({
   sessionId,
   hostId,
-  localStream,
   onViewerJoined,
   onViewerLeft,
   onControlRequest,
@@ -142,13 +140,14 @@ export function useWebRTCHost({
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const authTokenRef = useRef<string | null>(null);
   const isStartingRef = useRef(false);
-  const localStreamRef = useRef<MediaStream | null>(localStream);
+  const localStreamRef = useRef<MediaStream | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
+  const publishedStreamSendersRef = useRef<Map<string, Map<string, RTCRtpSender>>>(new Map());
+  const publishedStreamVersionRef = useRef(0);
 
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 
-  localStreamRef.current = localStream;
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   onControlRequestRef.current = onControlRequest;
@@ -156,7 +155,7 @@ export function useWebRTCHost({
 
   // Send signal via API
   const sendSignal = useCallback(
-    async (signal: SignalMessage) => {
+    async (signal: SignalMessage): Promise<boolean> => {
       try {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (authTokenRef.current) {
@@ -171,12 +170,41 @@ export function useWebRTCHost({
 
         if (!response.ok) {
           console.error('[WebRTCHost] Failed to send signal:', await response.text());
+          return false;
         }
+        return true;
       } catch (err) {
         console.error('[WebRTCHost] Error sending signal:', err);
+        return false;
       }
     },
     [sessionId]
+  );
+
+  const renegotiateViewer = useCallback(
+    async (viewer: ViewerConnection): Promise<void> => {
+      const offer = (await viewer.peerConnection.createOffer({})) as OfferAnswer;
+      if (offer.sdp) {
+        offer.sdp = tuneOpusForVoice(offer.sdp);
+      }
+      await viewer.peerConnection.setLocalDescription(offer);
+
+      if (!offer.sdp) {
+        throw new Error(`Failed to create an SDP offer for viewer ${viewer.id}`);
+      }
+
+      const sent = await sendSignal({
+        type: 'offer',
+        sdp: offer.sdp,
+        senderId: hostId,
+        targetId: viewer.id,
+        timestamp: Date.now(),
+      });
+      if (!sent) {
+        throw new Error(`Failed to signal viewer ${viewer.id}`);
+      }
+    },
+    [hostId, sendSignal]
   );
 
   // Report usage stats
@@ -326,12 +354,15 @@ export function useWebRTCHost({
         iceServers: iceServersRef.current,
         iceCandidatePoolSize: 10,
       });
+      const publishedSenders = new Map<string, RTCRtpSender>();
+      publishedStreamSendersRef.current.set(viewerId, publishedSenders);
 
       // Add local stream tracks
       const currentStream = localStreamRef.current;
       if (currentStream) {
         currentStream.getTracks().forEach((track) => {
-          pc.addTrack(track, currentStream);
+          const sender = pc.addTrack(track, currentStream);
+          publishedSenders.set(track.kind, sender);
         });
       }
 
@@ -453,6 +484,7 @@ export function useWebRTCHost({
         console.log('[WebRTCHost] Removing viewer:', viewerId);
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
+        publishedStreamSendersRef.current.delete(viewerId);
         pendingCandidatesRef.current.delete(viewerId);
         setViewers(new Map(viewersRef.current));
         onViewerLeft?.(viewerId);
@@ -628,6 +660,7 @@ export function useWebRTCHost({
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('connected', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       console.log('[WebRTCHost] SSE connected');
       isStartingRef.current = false;
       setIsHosting(true);
@@ -644,6 +677,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('signal', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const signal = JSON.parse(event.data) as SignalMessage;
         void handleSignalMessage(signal);
@@ -653,6 +687,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('presence-join', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string; role: string }[];
@@ -668,6 +703,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('presence-leave', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string }[];
@@ -681,6 +717,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('error', () => {
+      if (eventSourceRef.current !== eventSource) return;
       console.error('[WebRTCHost] SSE error');
       isStartingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
@@ -711,6 +748,13 @@ export function useWebRTCHost({
       viewer.peerConnection.close();
     });
     viewersRef.current.clear();
+    publishedStreamSendersRef.current.clear();
+    publishedStreamVersionRef.current += 1;
+    const publishedStream = localStreamRef.current;
+    localStreamRef.current = null;
+    publishedStream?.getTracks().forEach((track) => {
+      track.stop();
+    });
     setViewers(new Map());
     setIsHosting(false);
 
@@ -724,77 +768,121 @@ export function useWebRTCHost({
     setHasMic(false);
   }, []);
 
+  const removePublishedSenders = useCallback((viewer: ViewerConnection): boolean => {
+    const publishedSenders = publishedStreamSendersRef.current.get(viewer.id);
+    if (!publishedSenders || publishedSenders.size === 0) {
+      return false;
+    }
+
+    for (const sender of publishedSenders.values()) {
+      viewer.peerConnection.removeTrack(sender);
+    }
+    publishedSenders.clear();
+    return true;
+  }, []);
+
   // Publish screen share stream
   const publishStream = useCallback(
     async (stream: MediaStream) => {
       localStreamRef.current = stream;
+      const publishVersion = ++publishedStreamVersionRef.current;
 
-      for (const viewer of viewersRef.current.values()) {
-        if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
-          continue;
-
-        try {
-          stream.getTracks().forEach((track) => {
-            viewer.peerConnection.addTrack(track, stream);
-          });
-
-          const offer = (await viewer.peerConnection.createOffer({})) as OfferAnswer;
-          // In-band FEC turns a lost packet into a duller syllable, not a gap.
-          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-          await viewer.peerConnection.setLocalDescription(offer);
-
-          if (offer.sdp) {
-            await sendSignal({
-              type: 'offer',
-              sdp: offer.sdp,
-              senderId: hostId,
-              targetId: viewer.id,
-              timestamp: Date.now(),
-            });
+      try {
+        for (const viewer of viewersRef.current.values()) {
+          if (
+            publishedStreamVersionRef.current !== publishVersion ||
+            localStreamRef.current !== stream
+          ) {
+            return;
           }
-        } catch (err) {
-          console.error(`[WebRTCHost] Failed to publish stream to ${viewer.id}:`, err);
+          if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting') {
+            continue;
+          }
+
+          let publishedSenders = publishedStreamSendersRef.current.get(viewer.id);
+          if (!publishedSenders) {
+            publishedSenders = new Map();
+            publishedStreamSendersRef.current.set(viewer.id, publishedSenders);
+          }
+
+          const desiredTracks = new Map(stream.getTracks().map((track) => [track.kind, track]));
+          let negotiationNeeded = false;
+
+          for (const [kind, sender] of publishedSenders) {
+            const desiredTrack = desiredTracks.get(kind);
+            if (!desiredTrack || sender.track !== desiredTrack) {
+              viewer.peerConnection.removeTrack(sender);
+              publishedSenders.delete(kind);
+              negotiationNeeded = true;
+            }
+          }
+
+          for (const track of desiredTracks.values()) {
+            if (!publishedSenders.has(track.kind)) {
+              const sender = viewer.peerConnection.addTrack(track, stream);
+              publishedSenders.set(track.kind, sender);
+              negotiationNeeded = true;
+            }
+          }
+
+          if (negotiationNeeded) {
+            await renegotiateViewer(viewer);
+          }
         }
+      } catch (publishError) {
+        if (
+          publishedStreamVersionRef.current === publishVersion &&
+          localStreamRef.current === stream
+        ) {
+          localStreamRef.current = null;
+          publishedStreamVersionRef.current += 1;
+
+          for (const viewer of viewersRef.current.values()) {
+            if (!removePublishedSenders(viewer)) continue;
+            try {
+              await renegotiateViewer(viewer);
+            } catch (rollbackError) {
+              console.error(
+                `[WebRTCHost] Failed to roll back stream for ${viewer.id}:`,
+                rollbackError
+              );
+            }
+          }
+        }
+        throw publishError;
       }
     },
-    [hostId, sendSignal]
+    [removePublishedSenders, renegotiateViewer]
   );
 
   // Unpublish stream
   const unpublishStream = useCallback(async () => {
     localStreamRef.current = null;
+    const unpublishVersion = ++publishedStreamVersionRef.current;
+    const failures: string[] = [];
 
     for (const viewer of viewersRef.current.values()) {
-      if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+      if (publishedStreamVersionRef.current !== unpublishVersion) {
+        return;
+      }
+      if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting') {
         continue;
+      }
 
       try {
-        const senders = viewer.peerConnection.getSenders();
-        for (const sender of senders) {
-          if (sender.track?.kind === 'video') {
-            viewer.peerConnection.removeTrack(sender);
-          }
+        if (removePublishedSenders(viewer)) {
+          await renegotiateViewer(viewer);
         }
-
-        const offer = (await viewer.peerConnection.createOffer({})) as OfferAnswer;
-        // In-band FEC turns a lost packet into a duller syllable, not a gap.
-        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-        await viewer.peerConnection.setLocalDescription(offer);
-
-        if (offer.sdp) {
-          await sendSignal({
-            type: 'offer',
-            sdp: offer.sdp,
-            senderId: hostId,
-            targetId: viewer.id,
-            timestamp: Date.now(),
-          });
-        }
-      } catch (err) {
-        console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
+      } catch (unpublishError) {
+        failures.push(viewer.id);
+        console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, unpublishError);
       }
     }
-  }, [hostId, sendSignal]);
+
+    if (failures.length > 0) {
+      throw new Error(`Failed to unpublish screen share from ${String(failures.length)} viewer(s)`);
+    }
+  }, [removePublishedSenders, renegotiateViewer]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -802,23 +890,6 @@ export function useWebRTCHost({
       stopHosting();
     };
   }, [stopHosting]);
-
-  // Update stream when it changes
-  useEffect(() => {
-    if (!localStream || !isHosting) return;
-
-    viewersRef.current.forEach((viewer) => {
-      const senders = viewer.peerConnection.getSenders();
-      localStream.getTracks().forEach((track) => {
-        const existingSender = senders.find((s) => s.track?.kind === track.kind);
-        if (existingSender) {
-          void existingSender.replaceTrack(track);
-        } else {
-          viewer.peerConnection.addTrack(track, localStream);
-        }
-      });
-    });
-  }, [localStream, isHosting]);
 
   // Grant control
   const grantControl = useCallback(
@@ -885,6 +956,7 @@ export function useWebRTCHost({
 
       viewer.peerConnection.close();
       viewersRef.current.delete(viewerId);
+      publishedStreamSendersRef.current.delete(viewerId);
       setViewers(new Map(viewersRef.current));
       onViewerLeft?.(viewerId);
     },

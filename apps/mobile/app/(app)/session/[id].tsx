@@ -6,16 +6,16 @@
  *  - role: 'host' | 'viewer'
  *  - participantId: viewer's participant ID (viewer mode only)
  */
-import { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { MediaStream } from 'react-native-webrtc';
-import { mediaDevices } from 'react-native-webrtc';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import { useWebRTCViewer } from '@/hooks/useWebRTCViewer';
+import { useScreenShare } from '@/hooks/useScreenShare';
 import { useChat } from '@/hooks/useChat';
 import { sessionApi } from '@/lib/api/sessions';
+import { endHostSession } from '@/lib/host-session';
 import { VideoViewer } from '@/components/VideoViewer';
 import { ChatPanel } from '@/components/ChatPanel';
 import { SessionInfo } from '@/components/SessionInfo';
@@ -35,8 +35,6 @@ export default function SessionScreen() {
   const participantId = (params.participantId as string | undefined) ?? user?.id ?? '';
 
   const [joinCode, setJoinCode] = useState('');
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
   const [loadingSession, setLoadingSession] = useState(true);
 
   // Fetch session details
@@ -64,10 +62,6 @@ export default function SessionScreen() {
         sessionId={sessionId}
         hostId={user?.id ?? ''}
         joinCode={joinCode}
-        localStream={localStream}
-        isSharing={isSharing}
-        setLocalStream={setLocalStream}
-        setIsSharing={setIsSharing}
         chat={chat}
         currentUserId={user?.id}
         router={router}
@@ -95,10 +89,6 @@ interface HostSessionProps {
   sessionId: string;
   hostId: string;
   joinCode: string;
-  localStream: MediaStream | null;
-  isSharing: boolean;
-  setLocalStream: (s: MediaStream | null) => void;
-  setIsSharing: (b: boolean) => void;
   chat: ReturnType<typeof useChat>;
   currentUserId?: string;
   router: ReturnType<typeof useRouter>;
@@ -109,10 +99,6 @@ function HostSession({
   sessionId,
   hostId,
   joinCode,
-  localStream,
-  isSharing,
-  setLocalStream,
-  setIsSharing,
   chat,
   currentUserId,
   router,
@@ -121,8 +107,13 @@ function HostSession({
   const webrtc = useWebRTCHost({
     sessionId,
     hostId,
-    localStream,
   });
+  const screenShare = useScreenShare({
+    publishStream: webrtc.publishStream,
+    unpublishStream: webrtc.unpublishStream,
+  });
+  const stopScreenShare = screenShare.stop;
+  const endingSessionRef = useRef(false);
 
   // Auto-start hosting when session loads
   useEffect(() => {
@@ -132,28 +123,13 @@ function HostSession({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingSession]);
 
-  const startScreenShare = useCallback(async () => {
-    try {
-      const stream = await mediaDevices.getDisplayMedia();
-      setLocalStream(stream);
-      setIsSharing(true);
-      await webrtc.publishStream(stream);
-    } catch (err) {
-      console.error('[Session] Failed to start screen share:', err);
-      Alert.alert('Error', 'Failed to start screen sharing. Please check permissions.');
-    }
-  }, [webrtc, setLocalStream, setIsSharing]);
-
-  const stopScreenShare = useCallback(async () => {
-    if (localStream) {
-      localStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-      setLocalStream(null);
-    }
-    setIsSharing(false);
-    await webrtc.unpublishStream();
-  }, [localStream, webrtc, setLocalStream, setIsSharing]);
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        void stopScreenShare();
+      };
+    }, [stopScreenShare])
+  );
 
   function handleEndSession() {
     Alert.alert('End Session', 'Are you sure you want to end this session?', [
@@ -162,11 +138,23 @@ function HostSession({
         text: 'End',
         style: 'destructive',
         onPress: () => {
+          if (endingSessionRef.current) return;
+          endingSessionRef.current = true;
           void (async () => {
-            await stopScreenShare();
-            webrtc.stopHosting();
-            await sessionApi.end(sessionId);
-            router.back();
+            try {
+              await endHostSession({
+                stopScreenShare: screenShare.stop,
+                endSession: () => sessionApi.end(sessionId),
+                stopHosting: webrtc.stopHosting,
+                goBack: () => {
+                  router.back();
+                },
+              });
+            } catch (endError) {
+              console.error('[Session] Failed to end session:', endError);
+              endingSessionRef.current = false;
+              Alert.alert('Unable to end session', 'Please check your connection and try again.');
+            }
           })();
         },
       },
@@ -188,25 +176,50 @@ function HostSession({
           <Text className="text-sm text-red-300">{webrtc.error}</Text>
         </View>
       )}
+      {screenShare.error && (
+        <View className="bg-red-900/50 px-4 py-2">
+          <Text className="text-sm text-red-300">{screenShare.error}</Text>
+        </View>
+      )}
 
       {/* Main content */}
       <View className="flex-1 items-center justify-center">
         {!webrtc.isHosting ? (
           <ActivityIndicator size="large" color="#3b82f6" />
-        ) : !isSharing ? (
+        ) : screenShare.isBusy ? (
+          <View className="items-center gap-4 px-8">
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text className="text-center text-gray-300">
+              {screenShare.state === 'requesting'
+                ? 'Waiting for screen capture permission...'
+                : screenShare.state === 'publishing'
+                  ? 'Connecting the screen share to viewers...'
+                  : 'Stopping screen sharing...'}
+            </Text>
+          </View>
+        ) : !screenShare.isSharing ? (
           <View className="items-center gap-4 px-8">
             <Text className="text-lg font-semibold text-white">Ready to share</Text>
-            <Text className="text-center text-gray-400">
-              Tap the button below to start sharing your screen with viewers.
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                void startScreenShare();
-              }}
-              className="mt-4 rounded-xl bg-primary-600 px-8 py-4"
-            >
-              <Text className="text-lg font-bold text-white">Share Screen</Text>
-            </TouchableOpacity>
+            {Platform.OS === 'ios' ? (
+              <Text className="text-center text-gray-400">
+                Full-device sharing on iOS requires ReplayKit and is not available in this build.
+              </Text>
+            ) : (
+              <>
+                <Text className="text-center text-gray-400">
+                  Tap the button below to start sharing your screen with viewers.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    void screenShare.start();
+                  }}
+                  disabled={screenShare.isBusy}
+                  className="mt-4 rounded-xl bg-primary-600 px-8 py-4"
+                >
+                  <Text className="text-lg font-bold text-white">Share Screen</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         ) : (
           <View className="flex-1 items-center justify-center">
@@ -219,11 +232,12 @@ function HostSession({
 
       {/* Controls */}
       <View className="flex-row items-center justify-center gap-4 border-t border-gray-800 px-4 py-3">
-        {isSharing && (
+        {screenShare.isSharing && (
           <TouchableOpacity
             onPress={() => {
-              void stopScreenShare();
+              void screenShare.stop();
             }}
+            disabled={screenShare.isBusy}
             className="rounded-lg bg-yellow-600 px-4 py-2"
           >
             <Text className="text-sm font-medium text-white">Stop Sharing</Text>
@@ -277,6 +291,7 @@ function ViewerSession({
   router,
   loadingSession: _loadingSession,
 }: ViewerSessionProps) {
+  const leavingSessionRef = useRef(false);
   const webrtc = useWebRTCViewer({
     sessionId,
     participantId,
@@ -299,6 +314,8 @@ function ViewerSession({
         text: 'Leave',
         style: 'destructive',
         onPress: () => {
+          if (leavingSessionRef.current) return;
+          leavingSessionRef.current = true;
           webrtc.disconnect();
           router.back();
         },

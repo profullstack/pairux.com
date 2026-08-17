@@ -80,6 +80,11 @@ class MockRTCPeerConnection {
   _transceivers: unknown[] = [];
   _remoteStreams = new Map();
   _pendingTrackEvents: unknown[] = [];
+  _senders: {
+    track: { kind: string } | null;
+    getParameters: () => { encodings: Record<string, unknown>[] };
+    setParameters: ReturnType<typeof vi.fn>;
+  }[] = [];
 
   createOffer = vi.fn().mockResolvedValue({ type: 'offer', sdp: 'mock-sdp' });
   createAnswer = vi.fn().mockResolvedValue({ type: 'answer', sdp: 'mock-answer-sdp' });
@@ -90,13 +95,19 @@ class MockRTCPeerConnection {
     this.remoteDescription = desc;
   });
   addIceCandidate = vi.fn().mockResolvedValue(undefined);
-  addTrack = vi.fn().mockReturnValue({
-    getParameters: () => ({ encodings: [{}] }),
-    setParameters: vi.fn().mockResolvedValue(undefined),
-    track: null,
+  addTrack = vi.fn((track: { kind: string }) => {
+    const sender = {
+      getParameters: () => ({ encodings: [{}] }),
+      setParameters: vi.fn().mockResolvedValue(undefined),
+      track,
+    };
+    this._senders.push(sender);
+    return sender;
   });
-  removeTrack = vi.fn();
-  getSenders = vi.fn().mockReturnValue([]);
+  removeTrack = vi.fn((sender: (typeof this._senders)[number]) => {
+    this._senders = this._senders.filter((candidate) => candidate !== sender);
+  });
+  getSenders = vi.fn(() => [...this._senders]);
   getReceivers = vi.fn().mockReturnValue([]);
   getTransceivers = vi.fn().mockReturnValue([]);
   getStats = vi.fn().mockResolvedValue(new Map());

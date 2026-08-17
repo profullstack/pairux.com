@@ -87,6 +87,12 @@ notice only in Task Manager when notification permission is denied. The generate
 camera and system-overlay permissions inherited from the WebRTC dependency because PairUX currently
 uses screen capture and voice, not camera capture or overlay windows.
 
+The host UI reports sharing as active only after the captured stream has been published to the
+current viewers. Capture permission, publication, active sharing, and shutdown are serialized so
+repeated taps cannot start duplicate MediaProjection sessions. PairUX also stops and unpublishes the
+capture when Android ends it from the system controls, when the host leaves the session tab, or when
+the session screen unmounts.
+
 The generated iOS app includes native WebRTC and supports joining sessions and voice chat. Full
 device screen broadcasting on iOS additionally requires a ReplayKit Broadcast Upload Extension,
 an App Group, and matching Apple signing entitlements. Those are a separate native milestone; do

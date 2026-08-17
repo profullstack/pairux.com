@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useWebRTCHost } from './useWebRTCHost';
 import { createEventSource } from '../lib/event-source';
 import { getStoredAuth } from '../lib/secure-storage';
+import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 
 vi.mock('../config', () => ({
   API_BASE_URL: 'https://pairux.com',
@@ -44,7 +45,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -62,7 +62,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -82,7 +81,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -102,7 +100,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -119,7 +116,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -141,7 +137,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -162,7 +157,6 @@ describe('useWebRTCHost', () => {
       useWebRTCHost({
         sessionId: 'session-1',
         hostId: 'host-1',
-        localStream: null,
       })
     );
 
@@ -172,5 +166,138 @@ describe('useWebRTCHost', () => {
 
     unmount();
     expect(mockClose).toHaveBeenCalled();
+  });
+
+  it('removes only screen-share senders when unpublishing', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const presenceJoinListener = mockAddEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'presence-join'
+    )?.[1] as ((event: { data: string }) => void) | undefined;
+    act(() => {
+      presenceJoinListener?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-1', role: 'viewer' }] }),
+      });
+    });
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+
+    const viewer = result.current.viewers.get('viewer-1');
+    expect(viewer).toBeDefined();
+    const screenTrack = {
+      id: 'screen',
+      kind: 'video',
+      stop: vi.fn(),
+    } as unknown as MediaStreamTrack;
+    const screenStream = { getTracks: () => [screenTrack] } as unknown as MediaStream;
+
+    await act(async () => {
+      await result.current.publishStream(screenStream);
+    });
+    const screenSender = viewer?.peerConnection
+      .getSenders()
+      .find((sender) => sender.track === screenTrack);
+    expect(screenSender).toBeDefined();
+
+    await act(async () => {
+      await result.current.unpublishStream();
+    });
+
+    expect(viewer?.peerConnection.removeTrack).toHaveBeenCalledWith(screenSender);
+    expect(viewer?.peerConnection.getSenders()).not.toContain(screenSender);
+    expect(
+      viewer?.peerConnection.getSenders().some((sender) => sender.track?.kind === 'audio')
+    ).toBe(true);
+  });
+
+  it('does not add a duplicate sender when the same stream is published twice', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const presenceJoinListener = mockAddEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'presence-join'
+    )?.[1] as ((event: { data: string }) => void) | undefined;
+    act(() => {
+      presenceJoinListener?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-1', role: 'viewer' }] }),
+      });
+    });
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+
+    const viewer = result.current.viewers.get('viewer-1');
+    const screenTrack = {
+      id: 'screen',
+      kind: 'video',
+      stop: vi.fn(),
+    } as unknown as MediaStreamTrack;
+    const screenStream = { getTracks: () => [screenTrack] } as unknown as MediaStream;
+
+    await act(async () => {
+      await result.current.publishStream(screenStream);
+      await result.current.publishStream(screenStream);
+    });
+
+    const screenSenders = viewer?.peerConnection
+      .getSenders()
+      .filter((sender) => sender.track === screenTrack);
+    expect(screenSenders).toHaveLength(1);
+  });
+
+  it('rejects publishing and rolls back its sender when signaling fails', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const presenceJoinListener = mockAddEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'presence-join'
+    )?.[1] as ((event: { data: string }) => void) | undefined;
+    act(() => {
+      presenceJoinListener?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-1', role: 'viewer' }] }),
+      });
+    });
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+
+    const viewer = result.current.viewers.get('viewer-1');
+    const screenTrack = {
+      id: 'screen',
+      kind: 'video',
+      stop: vi.fn(),
+    } as unknown as MediaStreamTrack;
+    const screenStream = { getTracks: () => [screenTrack] } as unknown as MediaStream;
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      text: async () => 'signaling unavailable',
+    } as Response);
+
+    await act(async () => {
+      await expect(result.current.publishStream(screenStream)).rejects.toThrow(
+        'Failed to signal viewer viewer-1'
+      );
+    });
+
+    expect(viewer?.peerConnection.getSenders().some((sender) => sender.track === screenTrack)).toBe(
+      false
+    );
   });
 });

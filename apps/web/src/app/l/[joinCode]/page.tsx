@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Circle, Eye, MessageSquare, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
+import { SITE_URL, embedUrl, iframeSnippet, liveUrl, oembedUrl } from '@/lib/embed';
 import type { PublicSessionDetail, SessionComment } from '@pairux/shared-types';
 import { LikeButton } from './LikeButton';
 import { Comments } from './Comments';
+import { EmbedButton } from './EmbedButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,11 +52,55 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const s = await getSession(joinCode);
   if (!s) return { title: 'Live not found' };
   const title = s.subject ?? 'Live on PairUX';
+  const description =
+    s.description ?? `A public live by ${s.host_display_name ?? 'a PairUX creator'}.`;
   return {
     title,
-    description: s.description ?? `A public live by ${s.host_display_name ?? 'a PairUX creator'}.`,
-    openGraph: s.banner_url ? { title, images: [{ url: s.banner_url }] } : { title },
+    description,
+    alternates: {
+      canonical: liveUrl(s.join_code),
+      // Lets Slack, Notion, WordPress and friends discover the player and turn
+      // a pasted permalink into an embed.
+      types: { 'application/json+oembed': oembedUrl(s.join_code) },
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'video.other',
+      url: liveUrl(s.join_code),
+      ...(s.banner_url ? { images: [{ url: s.banner_url }] } : {}),
+    },
+    twitter: {
+      card: 'player',
+      title,
+      description,
+      ...(s.banner_url ? { images: [s.banner_url] } : {}),
+    },
   };
+}
+
+/** schema.org VideoObject so a finished live can surface as a video result. */
+function videoSchema(s: PublicSessionDetail): Record<string, unknown> {
+  const title = s.subject ?? 'Live on PairUX';
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: title,
+    description: s.description ?? `A public live by ${s.host_display_name ?? 'a PairUX creator'}.`,
+    uploadDate: s.published_at ?? s.created_at,
+    url: liveUrl(s.join_code),
+    embedUrl: embedUrl(s.join_code),
+    publisher: { '@type': 'Organization', name: 'PairUX', url: SITE_URL },
+  };
+  if (s.banner_url) schema.thumbnailUrl = [s.banner_url];
+  if (s.recording_url) schema.contentUrl = s.recording_url;
+  if (s.channel_name ?? s.host_display_name ?? s.host_username) {
+    schema.author = {
+      '@type': 'Person',
+      name: s.channel_name ?? s.host_display_name ?? s.host_username,
+    };
+  }
+  return schema;
 }
 
 function hostName(s: PublicSessionDetail): string {
@@ -67,9 +114,16 @@ export default async function LiveDetailPage({ params }: PageProps) {
 
   const comments = await getComments(session.id);
   const when = session.published_at ?? session.created_at;
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const snippet = iframeSnippet(session.join_code, { title: session.subject });
 
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema(session)) }}
+      />
       <Header />
 
       <main className="flex-1">
@@ -166,7 +220,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
             />
           )}
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <LikeButton
               sessionId={session.id}
               joinCode={session.join_code}
@@ -181,6 +235,10 @@ export default async function LiveDetailPage({ params }: PageProps) {
                 Watch for free
               </Link>
             )}
+          </div>
+
+          <div className="mt-4">
+            <EmbedButton snippet={snippet} />
           </div>
 
           <section className="mt-10 border-t border-gray-200 pt-8">

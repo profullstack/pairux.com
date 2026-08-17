@@ -118,7 +118,21 @@ const organizationSchema = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
+  // /embed/* renders inside a third party's page (flag set in middleware). Site
+  // chrome — org schema, install prompt, analytics, feedback widget — would be
+  // wrong there, so the embed gets the bare player and nothing else.
+  const isEmbed = requestHeaders.get('x-embed') === '1';
+
+  if (isEmbed) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className="font-sans">{children}</body>
+      </html>
+    );
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen font-sans">

@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Radio, Eye, Circle, PlayCircle, User as UserIcon } from 'lucide-react';
+import { Radio, Eye, Circle, PlayCircle, Rss, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
+import { SITE_URL, clockDuration } from '@/lib/embed';
 import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-types';
 import { SubscribeButton } from './SubscribeButton';
 import { ShareButtons } from './ShareButtons';
@@ -66,14 +67,8 @@ async function getRecordings(handle: string): Promise<ChannelRecording[]> {
   }
 }
 
-function formatDuration(seconds: number | null): string | null {
-  if (!seconds || seconds < 1) return null;
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const pad = (n: number): string => n.toString().padStart(2, '0');
-  return h > 0 ? `${String(h)}:${pad(m)}:${pad(s)}` : `${String(m)}:${pad(s)}`;
-}
+// Shared with the RSS feed's itunes:duration so both read the same.
+const formatDuration = clockDuration;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
@@ -91,7 +86,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      // Feed readers and podcast apps autodiscover the channel's back catalogue.
+      types: {
+        'application/rss+xml': `${SITE_URL}/c/${encodeURIComponent(ch.handle)}/rss.xml`,
+      },
+    },
     openGraph: {
       title,
       description,
@@ -282,10 +283,20 @@ export default async function ChannelPage({ params }: PageProps) {
         {recordings.length > 0 && (
           <section className="border-t border-gray-100 py-10">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <PlayCircle className="h-5 w-5 text-gray-400" />
-                Recordings
-              </h2>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <PlayCircle className="h-5 w-5 text-gray-400" />
+                  Recordings
+                </h2>
+                <a
+                  href={`/c/${encodeURIComponent(channel.handle)}/rss.xml`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  title="Subscribe in a podcast app or feed reader"
+                >
+                  <Rss className="h-3.5 w-3.5 text-orange-500" />
+                  RSS
+                </a>
+              </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {recordings.map((r) => {
                   const dur = formatDuration(r.duration_seconds);

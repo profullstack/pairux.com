@@ -223,7 +223,11 @@ export function useWebRTCViewerSFUAPI({
         sequence: inputSequenceRef.current++,
         event,
       };
-      sendData(message);
+      // Pointer motion and trackpad scroll are superseded by the next sample.
+      // Send them as datagrams so congestion drops stale movement instead of
+      // queueing it behind a flood of reliable data packets.
+      const isContinuous = event.type === 'mouse' && (event.action === 'move' || event.action === 'scroll');
+      sendData(message, !isContinuous);
     },
     [controlState, dataChannelReady, sendData]
   );

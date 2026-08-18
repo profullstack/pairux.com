@@ -7,6 +7,14 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import type { InputEvent } from '@pairux/shared-types';
 import type { InputInjectionDiagnostics } from '../../preload/api';
 
+// Network-originated input must not be able to grow the host's IPC queue
+// without bound. Continuous gestures are sampled once per frame, while button
+// and keyboard events are rate-limited below.
+const INPUT_FRAME_MS = 16;
+const MAX_DISCRETE_EVENTS_PER_SECOND = 30;
+const DISCRETE_EVENT_BURST = 15;
+const MAX_QUEUED_INJECTIONS = 32;
+
 interface UseInputInjectionOptions {
   /**
    * Optional declarative enablement. Omit it when the host needs to await
@@ -52,13 +60,20 @@ export function useInputInjection({
   const isEnabledRef = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [diagnostics, setDiagnostics] = useState<InputInjectionDiagnostics | null>(null);
-  const pendingEvents = useRef<InputEvent[]>([]);
+  const pendingMove = useRef<InputEvent | null>(null);
+  const pendingScroll = useRef<Extract<InputEvent, { type: 'mouse'; action: 'scroll' }> | null>(
+    null
+  );
   const flushTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   // IPC handlers may run concurrently. Keep every OS injection in the order
   // it arrived, especially move -> down -> up. Without this queue, a button
   // down that is waiting for a pending move batch can be overtaken by its up,
   // leaving a mouse button held on the host desktop.
   const injectionQueue = useRef<Promise<void>>(Promise.resolve());
+  const queuedInjectionCount = useRef(0);
+  const discreteRateLimit = useRef({ tokens: DISCRETE_EVENT_BURST, updatedAt: Date.now() });
+  const pressedMouseButtons = useRef(new Set<string>());
+  const pressedKeys = useRef(new Set<string>());
 
   const activate = useCallback(async (): Promise<boolean> => {
     try {
@@ -91,7 +106,19 @@ export function useInputInjection({
   }, []);
 
   const enqueueInjection = useCallback(
-    (operation: () => Promise<unknown>, errorMessage: string): Promise<void> => {
+    (
+      operation: () => Promise<unknown>,
+      errorMessage: string,
+      isRequiredRelease = false
+    ): Promise<void> => {
+      // A release for an accepted press gets a bounded exception: it
+      // prevents stuck input while the pressed-key/button sets limit how many
+      // such exceptions a sender can create.
+      if (queuedInjectionCount.current >= MAX_QUEUED_INJECTIONS && !isRequiredRelease) {
+        return Promise.resolve();
+      }
+
+      queuedInjectionCount.current += 1;
       const queued = injectionQueue.current.then(async () => {
         try {
           await operation();
@@ -102,11 +129,45 @@ export function useInputInjection({
 
       // The operation catches its own error, so later input is never blocked
       // behind a rejected promise.
-      injectionQueue.current = queued;
-      return queued;
+      injectionQueue.current = queued.finally(() => {
+        queuedInjectionCount.current -= 1;
+      });
+      return injectionQueue.current;
     },
     []
   );
+
+  const consumeDiscreteEventToken = useCallback((event: InputEvent): boolean => {
+    const isMouseRelease =
+      event.type === 'mouse' &&
+      event.action === 'up' &&
+      pressedMouseButtons.current.delete(event.button);
+    const isKeyRelease =
+      event.type === 'keyboard' && event.action === 'up' && pressedKeys.current.delete(event.code);
+
+    // A release for an accepted press must always get through. Otherwise rate
+    // limiting could leave the host with a key or button stuck down.
+    if (isMouseRelease || isKeyRelease) return true;
+
+    const now = Date.now();
+    const elapsedSeconds = Math.max(0, now - discreteRateLimit.current.updatedAt) / 1000;
+    discreteRateLimit.current.tokens = Math.min(
+      DISCRETE_EVENT_BURST,
+      discreteRateLimit.current.tokens + elapsedSeconds * MAX_DISCRETE_EVENTS_PER_SECOND
+    );
+    discreteRateLimit.current.updatedAt = now;
+
+    if (discreteRateLimit.current.tokens < 1) return false;
+    discreteRateLimit.current.tokens -= 1;
+
+    if (event.type === 'mouse' && event.action === 'down') {
+      pressedMouseButtons.current.add(event.button);
+    } else if (event.type === 'keyboard' && event.action === 'down') {
+      pressedKeys.current.add(event.code);
+    }
+
+    return true;
+  }, []);
 
   // Initialize input injection system on mount
   useEffect(() => {
@@ -178,10 +239,12 @@ export function useInputInjection({
 
   // Flush pending events in batch
   const flushEvents = useCallback(async () => {
-    if (pendingEvents.current.length === 0) return;
-
-    const events = [...pendingEvents.current];
-    pendingEvents.current = [];
+    const events = [pendingMove.current, pendingScroll.current].filter(
+      (event): event is InputEvent => event !== null
+    );
+    pendingMove.current = null;
+    pendingScroll.current = null;
+    if (events.length === 0) return;
 
     await enqueueInjection(
       () => window.electronAPI.invoke('input:injectBatch', { events }),
@@ -194,16 +257,43 @@ export function useInputInjection({
     async (event: InputEvent) => {
       if (!isEnabledRef.current) return;
 
-      // For mouse moves, batch them up
+      // Intermediate mouse positions are not useful to the host. Keep only
+      // the latest one and sample it once per frame.
       if (event.type === 'mouse' && event.action === 'move') {
-        pendingEvents.current.push(event);
+        pendingMove.current = event;
 
-        // Flush after a short delay to batch moves
+        // Flush after a short delay to sample at most once per frame.
         flushTimeout.current ??= setTimeout(() => {
           flushTimeout.current = null;
           void flushEvents();
-        }, 16); // ~60fps
+        }, INPUT_FRAME_MS); // ~60fps
+      } else if (event.type === 'mouse' && event.action === 'scroll') {
+        // Trackpads emit scrolls at a very high rate. Preserve the cumulative
+        // distance while turning the whole frame into one OS injection.
+        const existing = pendingScroll.current;
+        pendingScroll.current =
+          existing && existing.deltaMode === event.deltaMode
+            ? {
+                ...event,
+                deltaX: existing.deltaX + event.deltaX,
+                deltaY: existing.deltaY + event.deltaY,
+              }
+            : event;
+
+        flushTimeout.current ??= setTimeout(() => {
+          flushTimeout.current = null;
+          void flushEvents();
+        }, INPUT_FRAME_MS);
       } else {
+        const isRequiredRelease =
+          (event.type === 'mouse' &&
+            event.action === 'up' &&
+            pressedMouseButtons.current.has(event.button)) ||
+          (event.type === 'keyboard' &&
+            event.action === 'up' &&
+            pressedKeys.current.has(event.code));
+        if (!consumeDiscreteEventToken(event)) return;
+
         // For clicks and keyboard, inject immediately
         // But first flush any pending moves
         if (flushTimeout.current) {
@@ -217,13 +307,14 @@ export function useInputInjection({
         const moveFlush = flushEvents();
         const injection = enqueueInjection(
           () => window.electronAPI.invoke('input:inject', { event }),
-          '[useInputInjection] Failed to inject:'
+          '[useInputInjection] Failed to inject:',
+          isRequiredRelease
         );
         await moveFlush;
         await injection;
       }
     },
-    [flushEvents, enqueueInjection]
+    [flushEvents, enqueueInjection, consumeDiscreteEventToken]
   );
 
   // Inject multiple events in batch
@@ -254,10 +345,17 @@ export function useInputInjection({
 
   // Cleanup on unmount
   useEffect(() => {
+    const mouseButtons = pressedMouseButtons.current;
+    const keys = pressedKeys.current;
+
     return () => {
       if (flushTimeout.current) {
         clearTimeout(flushTimeout.current);
       }
+      pendingMove.current = null;
+      pendingScroll.current = null;
+      mouseButtons.clear();
+      keys.clear();
       // Disable injection when component unmounts
       if (isEnabled) {
         isEnabledRef.current = false;

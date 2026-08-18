@@ -1,5 +1,6 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 // Type for session (until Supabase types are regenerated)
@@ -26,27 +27,11 @@ const signalSchema = z.object({
   timestamp: z.number(),
 });
 
-// Simple in-memory rate limiter
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT = 100; // signals per minute (higher than chat - ICE candidates can be frequent)
-const RATE_WINDOW = 60 * 1000;
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-
-  if (!entry || now > entry.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_WINDOW });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
+// ICE candidates can legitimately arrive in bursts. Keep a generous
+// participant allowance while adding an IP ceiling to stop identity rotation
+// from bypassing the limiter.
+const signalsBySender = new FixedWindowRateLimiter(120, 60_000);
+const signalsByIp = new FixedWindowRateLimiter(300, 60_000);
 
 // POST /api/sessions/[sessionId]/signal - Send a signaling message
 export async function POST(
@@ -61,9 +46,9 @@ export async function POST(
     const supabase = await createClient();
     const { user } = await getAuthenticatedUser(supabase);
 
-    // Rate limit by sender ID
-    const rateLimitKey = signal.senderId;
-    if (!checkRateLimit(rateLimitKey)) {
+    const senderLimit = signalsBySender.check(`${sessionId}:${signal.senderId}`);
+    const ipLimit = signalsByIp.check(getClientIp(request));
+    if (!senderLimit.success || !ipLimit.success) {
       return errorResponse('Rate limit exceeded', 429);
     }
 

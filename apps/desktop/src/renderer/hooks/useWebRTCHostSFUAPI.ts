@@ -37,6 +37,8 @@ const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL ?? '';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const REJECTED_INPUT_LOG_INTERVAL_MS = 5_000;
+const MAX_CONTROL_MESSAGE_BYTES = 16 * 1024;
 
 export interface ViewerConnection {
   id: string;
@@ -139,6 +141,7 @@ export function useWebRTCHostSFUAPI({
   // the handoff window.
   const controllingViewerRef = useRef<string | null>(null);
   const lastInputSequenceRef = useRef(new Map<string, number>());
+  const lastRejectedInputLogAtRef = useRef(new Map<string, number>());
 
   // Send data to a specific participant or all
   const sendData = useCallback((message: unknown, targetIdentity?: string, reliable = true) => {
@@ -156,6 +159,7 @@ export function useWebRTCHostSFUAPI({
   // Handle data messages from viewers
   const handleDataReceived = useCallback((payload: Uint8Array, participant?: RemoteParticipant) => {
     if (!participant) return;
+    if (payload.byteLength > MAX_CONTROL_MESSAGE_BYTES) return;
     const viewerId = participant.identity;
 
     try {
@@ -198,12 +202,20 @@ export function useWebRTCHostSFUAPI({
                 message.sequence < 0 ||
                 (lastSequence !== undefined && message.sequence <= lastSequence)
               ) {
-                console.warn('[WebRTCHostSFU] Dropping unauthorized or stale input', {
-                  viewerId,
-                  controller: controllingViewerRef.current,
-                  sequence: message.sequence,
-                  lastSequence: lastSequence ?? null,
-                });
+                // Do not let a hostile sender freeze the renderer through its
+                // own console output. Keep enough telemetry to diagnose a bad
+                // client without logging thousands of rejected packets.
+                const now = Date.now();
+                const lastLoggedAt = lastRejectedInputLogAtRef.current.get(viewerId) ?? 0;
+                if (now - lastLoggedAt >= REJECTED_INPUT_LOG_INTERVAL_MS) {
+                  lastRejectedInputLogAtRef.current.set(viewerId, now);
+                  console.warn('[WebRTCHostSFU] Dropping unauthorized or stale input', {
+                    viewerId,
+                    controller: controllingViewerRef.current,
+                    sequence: message.sequence,
+                    lastSequence: lastSequence ?? null,
+                  });
+                }
                 return;
               }
               lastInputSequenceRef.current.set(viewerId, message.sequence);
@@ -301,6 +313,8 @@ export function useWebRTCHostSFUAPI({
     viewer?.amplifiedAudio?.dispose();
 
     viewersRef.current.delete(identity);
+    lastInputSequenceRef.current.delete(identity);
+    lastRejectedInputLogAtRef.current.delete(identity);
     setViewers(new Map(viewersRef.current));
     setControllingViewer((prev) => (prev === identity ? null : prev));
     onViewerLeftRef.current?.(identity);

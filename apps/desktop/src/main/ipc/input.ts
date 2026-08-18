@@ -155,12 +155,15 @@ export function registerInputHandlers(): void {
     return { success: true };
   });
 
-  // Batch inject multiple events (for better performance)
+  // Batch inject multiple events (for better performance). Keep this bounded:
+  // the renderer is not a trust boundary and a huge array would otherwise
+  // monopolize the main process before the injector's per-event limiter runs.
   ipcMain.handle('input:injectBatch', async (_event, args: { events: InputEvent[] }) => {
-    for (const event of args.events) {
+    const events = Array.isArray(args?.events) ? args.events.slice(0, 64) : [];
+    for (const event of events) {
       await injectInput(event);
     }
-    return { success: true, count: args.events.length };
+    return { success: true, count: events.length };
   });
 
   // Emergency stop - release all keys/buttons and disable injection

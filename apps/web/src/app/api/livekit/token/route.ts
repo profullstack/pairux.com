@@ -6,6 +6,13 @@ import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getIceServers } from '@/lib/ice-servers';
+import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
+
+// A token is valid for 24 hours, so legitimate clients never need to mint
+// them rapidly. These limits protect the database and LiveKit from connection
+// churn while still leaving generous headroom for reconnects.
+const tokenRequestsByIp = new FixedWindowRateLimiter(60, 60_000);
+const tokenRequestsByParticipant = new FixedWindowRateLimiter(20, 60_000);
 
 const tokenRequestSchema = z.object({
   sessionId: z.string().uuid('Invalid session ID'),
@@ -16,8 +23,21 @@ const tokenRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const ipLimit = tokenRequestsByIp.check(getClientIp(request));
+    if (!ipLimit.success) {
+      return errorResponse(`Too many token requests. Try again in ${String(ipLimit.retryAfterSeconds)} seconds.`, 429);
+    }
+
     const body: unknown = await request.json().catch(() => ({}));
     const { sessionId, participantName, participantId, isHost } = tokenRequestSchema.parse(body);
+
+    const participantLimit = tokenRequestsByParticipant.check(`${sessionId}:${participantId}`);
+    if (!participantLimit.success) {
+      return errorResponse(
+        `Too many connection attempts. Try again in ${String(participantLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
+    }
 
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;

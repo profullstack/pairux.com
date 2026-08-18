@@ -43,6 +43,8 @@ const BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
 
 // Stats collection and reporting interval
 const STATS_INTERVAL = 30000; // 30 seconds
+const REJECTED_INPUT_LOG_INTERVAL_MS = 5_000;
+const MAX_CONTROL_MESSAGE_BYTES = 16 * 1024;
 
 // Default ICE servers (STUN only — overridden with TURN from the SSE connected event)
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
@@ -165,6 +167,7 @@ export function useWebRTCHostAPI({
   // synchronous authority for this transport.
   const controllingViewerRef = useRef<string | null>(null);
   const lastInputSequenceRef = useRef(new Map<string, number>());
+  const lastRejectedInputLogAtRef = useRef(new Map<string, number>());
 
   const getPreferredHostAudioTrack = useCallback(
     (streamOverride?: MediaStream | null): MediaStreamTrack | null => {
@@ -353,6 +356,7 @@ export function useWebRTCHostAPI({
 
   // Handle data channel messages
   const handleDataChannelMessage = useCallback((viewerId: string, event: MessageEvent<string>) => {
+    if (typeof event.data !== 'string' || event.data.length > MAX_CONTROL_MESSAGE_BYTES) return;
     try {
       const message = JSON.parse(event.data) as ControlMessage | InputMessage;
 
@@ -392,12 +396,19 @@ export function useWebRTCHostAPI({
                 message.sequence < 0 ||
                 (lastSequence !== undefined && message.sequence <= lastSequence)
               ) {
-                console.warn('[WebRTCHost] Dropping unauthorized or stale input', {
-                  viewerId,
-                  controller: controllingViewerRef.current,
-                  sequence: message.sequence,
-                  lastSequence: lastSequence ?? null,
-                });
+                // Logging every rejected packet can itself make the renderer
+                // unresponsive when a peer floods this data channel.
+                const now = Date.now();
+                const lastLoggedAt = lastRejectedInputLogAtRef.current.get(viewerId) ?? 0;
+                if (now - lastLoggedAt >= REJECTED_INPUT_LOG_INTERVAL_MS) {
+                  lastRejectedInputLogAtRef.current.set(viewerId, now);
+                  console.warn('[WebRTCHost] Dropping unauthorized or stale input', {
+                    viewerId,
+                    controller: controllingViewerRef.current,
+                    sequence: message.sequence,
+                    lastSequence: lastSequence ?? null,
+                  });
+                }
                 return;
               }
               lastInputSequenceRef.current.set(viewerId, message.sequence);
@@ -650,6 +661,8 @@ export function useWebRTCHostAPI({
         viewer.peerConnection.close();
         viewersRef.current.delete(viewerId);
         pendingCandidatesRef.current.delete(viewerId);
+        lastInputSequenceRef.current.delete(viewerId);
+        lastRejectedInputLogAtRef.current.delete(viewerId);
         setViewers(new Map(viewersRef.current));
         onViewerLeft?.(viewerId);
       }

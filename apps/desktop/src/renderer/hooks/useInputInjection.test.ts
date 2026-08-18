@@ -242,7 +242,7 @@ describe('useInputInjection', () => {
       expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:inject', { event });
     });
 
-    it('should batch mouse move events', async () => {
+    it('should coalesce mouse moves to the most recent position each frame', async () => {
       const { result } = renderHook(() => useInputInjection({ enabled: true }));
 
       await act(async () => {
@@ -266,8 +266,91 @@ describe('useInputInjection', () => {
       });
 
       expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:injectBatch', {
-        events: expect.arrayContaining([moveEvent1, moveEvent2]),
+        events: [moveEvent2],
       });
+    });
+
+    it('should coalesce wheel events without losing their total distance', async () => {
+      const { result } = renderHook(() => useInputInjection({ enabled: true }));
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      await act(async () => {
+        await result.current.injectEvent({
+          type: 'mouse',
+          action: 'scroll',
+          deltaX: 2,
+          deltaY: 3,
+          deltaMode: 0,
+          x: 0.1,
+          y: 0.1,
+        });
+        await result.current.injectEvent({
+          type: 'mouse',
+          action: 'scroll',
+          deltaX: 4,
+          deltaY: 5,
+          deltaMode: 0,
+          x: 0.2,
+          y: 0.2,
+        });
+        await vi.advanceTimersByTimeAsync(20);
+      });
+
+      expect(mockElectronAPI.invoke).toHaveBeenCalledWith('input:injectBatch', {
+        events: [
+          {
+            type: 'mouse',
+            action: 'scroll',
+            deltaX: 6,
+            deltaY: 8,
+            deltaMode: 0,
+            x: 0.2,
+            y: 0.2,
+          },
+        ],
+      });
+    });
+
+    it('should rate-limit click floods but always release an accepted button', async () => {
+      const { result } = renderHook(() => useInputInjection({ enabled: true }));
+
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      const downEvent: InputEvent = {
+        type: 'mouse',
+        action: 'down',
+        button: 'left',
+        x: 0.5,
+        y: 0.5,
+      };
+      const upEvent: InputEvent = { ...downEvent, action: 'up' };
+
+      await act(async () => {
+        await result.current.injectEvent(downEvent);
+        await Promise.all(
+          Array.from({ length: 40 }, () =>
+            result.current.injectEvent({
+              type: 'mouse',
+              action: 'click',
+              button: 'left',
+              x: 0.5,
+              y: 0.5,
+            })
+          )
+        );
+        await result.current.injectEvent(upEvent);
+      });
+
+      const injected = mockElectronAPI.invoke.mock.calls.filter(
+        ([channel]) => channel === 'input:inject'
+      );
+      expect(injected.length).toBeLessThan(20);
+      expect(injected.at(-1)).toEqual(['input:inject', { event: upEvent }]);
     });
 
     it('should not inject when disabled', async () => {

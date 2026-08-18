@@ -1,28 +1,9 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { sendChatMessageSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { FixedWindowRateLimiter } from '@/lib/rate-limit';
 
-// Simple in-memory rate limiter (for MVP - use Redis in production)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT = 10; // messages per minute
-const RATE_WINDOW = 60 * 1000; // 1 minute in milliseconds
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-
-  if (!entry || now > entry.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_WINDOW });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
+const messagesBySender = new FixedWindowRateLimiter(10, 60_000);
 
 // POST /api/chat/send - Send a chat message
 export async function POST(request: Request) {
@@ -37,7 +18,7 @@ export async function POST(request: Request) {
 
     // Rate limit by user ID or participant ID
     const rateLimitKey = user?.id ?? participantId ?? 'anonymous';
-    if (!checkRateLimit(rateLimitKey)) {
+    if (!messagesBySender.check(rateLimitKey).success) {
       return errorResponse('Rate limit exceeded. Please wait before sending more messages.', 429);
     }
 

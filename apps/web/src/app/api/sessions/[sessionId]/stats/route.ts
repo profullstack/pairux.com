@@ -1,5 +1,6 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { FixedWindowRateLimiter } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 // Type for session (until Supabase types are regenerated)
@@ -62,21 +63,9 @@ const statsReportSchema = z.object({
   reportInterval: z.number().default(30000),
 });
 
-// Rate limit: 1 report per 10 seconds per participant
-const rateLimitMap = new Map<string, number>();
-const RATE_LIMIT_MS = 10000;
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const lastReport = rateLimitMap.get(key);
-
-  if (lastReport && now - lastReport < RATE_LIMIT_MS) {
-    return false;
-  }
-
-  rateLimitMap.set(key, now);
-  return true;
-}
+// Rate limit: 1 report per 10 seconds per participant. The shared limiter is
+// capped so generated participant IDs cannot turn this into a memory leak.
+const reportsByParticipant = new FixedWindowRateLimiter(1, 10_000);
 
 // POST /api/sessions/[sessionId]/stats - Report usage statistics
 export async function POST(
@@ -93,7 +82,7 @@ export async function POST(
 
     // Rate limit by participant ID
     const rateLimitKey = `${sessionId}:${stats.participantId}`;
-    if (!checkRateLimit(rateLimitKey)) {
+    if (!reportsByParticipant.check(rateLimitKey).success) {
       return errorResponse('Rate limit exceeded - report less frequently', 429);
     }
 

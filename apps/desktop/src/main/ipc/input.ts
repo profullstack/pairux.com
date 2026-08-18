@@ -159,7 +159,7 @@ export function registerInputHandlers(): void {
   // the renderer is not a trust boundary and a huge array would otherwise
   // monopolize the main process before the injector's per-event limiter runs.
   ipcMain.handle('input:injectBatch', async (_event, args: { events: InputEvent[] }) => {
-    const events = Array.isArray(args?.events) ? args.events.slice(0, 64) : [];
+    const events = Array.isArray(args.events) ? args.events.slice(0, 64) : [];
     for (const event of events) {
       await injectInput(event);
     }

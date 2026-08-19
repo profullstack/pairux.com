@@ -590,4 +590,108 @@ describe('useWebRTCHostSFUAPI', () => {
     expect(mockConnect).toHaveBeenCalledTimes(2);
     expect(result.current.isHosting).toBe(true);
   });
+
+  /**
+   * Regression: turning the camera bubble on swaps the raw screen track for a
+   * composited one and republishes. Publishing again left *both* tracks up, and
+   * the viewer — which folds every subscribed video track into one MediaStream
+   * and renders only the first — kept showing the pre-camera screen. The camera
+   * never reached anyone. Reported from a real session as "I was able to see
+   * myself in the preview window, but my pair was unable to see me".
+   */
+  describe('republishing the presentation track', () => {
+    const mockReplaceTrack = vi.fn().mockResolvedValue(undefined);
+
+    /** Mirror LiveKit: a successful publish shows up in trackPublications. */
+    function trackPublishingRoom() {
+      mockReplaceTrack.mockClear();
+      mockPublishTrack.mockImplementation((track: { id: string }, options: { source: string }) => {
+        const publication = {
+          source: options.source,
+          track: { mediaStreamTrack: track, replaceTrack: mockReplaceTrack },
+        };
+        mockTrackPublications.set(options.source, publication);
+        return Promise.resolve(publication);
+      });
+    }
+
+    async function hostWithScreenTrack() {
+      trackPublishingRoom();
+      const { result } = renderHook(() =>
+        useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+      );
+
+      await act(async () => {
+        await result.current.startHosting();
+        await Promise.resolve();
+      });
+
+      const screenTrack = { kind: 'video', id: 'screen-track' };
+      await act(async () => {
+        await result.current.publishStream(
+          new MockMediaStream([screenTrack]) as unknown as MediaStream
+        );
+      });
+
+      return { result, screenTrack };
+    }
+
+    it('replaces the published video instead of publishing a second track', async () => {
+      const { result } = await hostWithScreenTrack();
+
+      const videoPublishes = () =>
+        mockPublishTrack.mock.calls.filter(
+          (call) => (call[1] as { source: string }).source === 'screen_share'
+        );
+
+      expect(videoPublishes()).toHaveLength(1);
+
+      // Camera on: the composited canvas track replaces the screen track.
+      const compositeTrack = { kind: 'video', id: 'composite-track' };
+      await act(async () => {
+        await result.current.publishStream(
+          new MockMediaStream([compositeTrack]) as unknown as MediaStream
+        );
+      });
+
+      expect(videoPublishes()).toHaveLength(1);
+      expect(mockReplaceTrack).toHaveBeenCalledTimes(1);
+      expect(mockReplaceTrack).toHaveBeenCalledWith(compositeTrack);
+    });
+
+    it('does not replace when handed the track it is already publishing', async () => {
+      const { result, screenTrack } = await hostWithScreenTrack();
+
+      // A re-render republishing the identical track must be a no-op, not a
+      // needless renegotiation on every state change in the capture view.
+      await act(async () => {
+        await result.current.publishStream(
+          new MockMediaStream([screenTrack]) as unknown as MediaStream
+        );
+      });
+
+      expect(mockReplaceTrack).not.toHaveBeenCalled();
+      expect(
+        mockPublishTrack.mock.calls.filter(
+          (call) => (call[1] as { source: string }).source === 'screen_share'
+        )
+      ).toHaveLength(1);
+    });
+
+    it('marks the replacement track as detail content for the encoder', async () => {
+      const { result } = await hostWithScreenTrack();
+
+      const compositeTrack: { kind: string; id: string; contentHint?: string } = {
+        kind: 'video',
+        id: 'composite-track',
+      };
+      await act(async () => {
+        await result.current.publishStream(
+          new MockMediaStream([compositeTrack]) as unknown as MediaStream
+        );
+      });
+
+      expect(compositeTrack.contentHint).toBe('detail');
+    });
+  });
 });

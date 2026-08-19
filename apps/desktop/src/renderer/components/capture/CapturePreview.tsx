@@ -50,6 +50,7 @@ import { useLiveStreamEnabled } from '@/lib/liveStream';
 import { playJoinSound, playLeaveSound, useSessionSoundsEnabled } from '@/lib/sessionSounds';
 import { isPreferTailnetEnabled } from '@/lib/iceConfig';
 import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
+import { applyHostControlIntent } from '@/lib/controlIntent';
 import { useWebRTCHostAPI } from '@/hooks/useWebRTCHostAPI';
 import { useWebRTCHostSFUAPI } from '@/hooks/useWebRTCHostSFUAPI';
 import { useAutoStopServerStream } from '@/hooks/useAutoStopServerStream';
@@ -280,16 +281,6 @@ export function CapturePreview({
   // The remote participant the host has handed control to, which is what
   // enables input injection.
   //
-  // The host's own row is created with control_state 'granted' (they always
-  // control their own machine), so it must be excluded — otherwise injection
-  // switches on the moment a session is created, before anyone has joined.
-  const participantWithControl = useMemo(() => {
-    return (
-      participants.find((p) => p.control_state === 'granted' && !p.left_at && p.role !== 'host') ??
-      null
-    );
-  }, [participants]);
-
   // Viewers waiting on a control decision. Guests are anonymous and cannot
   // write control_state themselves, so requests arrive over the data channel
   // and live here until the host approves or denies them.
@@ -301,7 +292,7 @@ export function CapturePreview({
   // already in flight when control is granted lands afterwards carrying the
   // pre-grant state — which silently switched injection back off a few seconds
   // into a session. Host intent is authoritative; the poll only corroborates.
-  const [, setGrantedViewerId] = useState<string | null>(null);
+  const [grantedViewerId, setGrantedViewerId] = useState<string | null>(null);
   // This ref is the only authorization source for OS injection. The database
   // poll is intentionally not used here: it is eventually consistent and can
   // contain a stale grant from a previous connection.
@@ -313,6 +304,38 @@ export function CapturePreview({
     if (viewerId) lastInputSequenceRef.current.delete(viewerId);
     setGrantedViewerId(viewerId);
   }, []);
+
+  /**
+   * The participant list with `control_state` corrected to what the host
+   * actually decided.
+   *
+   * Everything the host sees about control — the "has control" banner, the
+   * per-participant badge, and whether the row offers Grant or Revoke — used to
+   * render straight from `participants`, which is a 5-second poll of the
+   * database. That poll is eventually consistent, so a response already in
+   * flight when the host revokes lands afterwards still carrying `granted`, and
+   * the UI re-asserts that the guest is in control seconds after input
+   * injection has already been switched off. Reported as "when I took control
+   * back from my pair, PairUX said my pair still had control".
+   *
+   * Host intent is authoritative here for exactly the same reason it is
+   * authoritative for injection: it is the decision, not an echo of it. The
+   * poll still supplies everything else about each participant.
+   */
+  const controlAdjustedParticipants = useMemo(
+    () => applyHostControlIntent(participants, grantedViewerId),
+    [participants, grantedViewerId]
+  );
+
+  // The remote participant the host has handed control to, which is what
+  // drives the on-screen "has control" banner.
+  const participantWithControl = useMemo(() => {
+    return (
+      controlAdjustedParticipants.find(
+        (p) => p.control_state === 'granted' && !p.left_at && p.role !== 'host'
+      ) ?? null
+    );
+  }, [controlAdjustedParticipants]);
 
   // Read through refs so cursor updates (up to 60/s) never re-create the host
   // hook options and tear down the connection.
@@ -981,12 +1004,25 @@ export function CapturePreview({
       if (!session) return;
       try {
         const viewerId = resolveViewerTargetId(participantId);
+        // Match on *either* identifier the grant could have been stored under.
+        // resolveViewerTargetId returns a single id and prefers whichever one
+        // is currently in hostedViewers, so a viewer that reconnected between
+        // the grant and the revoke resolves to the other candidate — and
+        // comparing only that one left OS injection enabled on a revoke that
+        // otherwise looked successful.
+        const participant = participants.find((p) => p.id === participantId);
+        const candidates = [participant?.user_id, participant?.id, viewerId].filter(
+          (value): value is string => typeof value === 'string' && value.length > 0
+        );
+        const holdsControl =
+          grantedViewerIdRef.current !== null && candidates.includes(grantedViewerIdRef.current);
+
         // Local safety wins over network/database round trips. Stop OS input
         // first, then notify the viewer and persist the revocation.
-        if (viewerId && grantedViewerIdRef.current === viewerId) {
+        if (holdsControl) {
           setGrantedController(null);
           await deactivateInput();
-          revokeControl(viewerId);
+          revokeControl(viewerId ?? candidates[0]);
         }
         const response = await fetch(
           `${API_BASE_URL}/api/sessions/${session.id}/participants/${participantId}/control`,
@@ -1015,6 +1051,7 @@ export function CapturePreview({
     },
     [
       session,
+      participants,
       getAuthHeaders,
       resolveViewerTargetId,
       deactivateInput,
@@ -1790,7 +1827,7 @@ export function CapturePreview({
       {session && showParticipants && (
         <div className="w-72 shrink-0 border-l border-border bg-background p-4">
           <ParticipantList
-            participants={participants}
+            participants={controlAdjustedParticipants}
             currentUserId={currentUserId}
             sessionId={session.id}
             isHost={canModerateSession}
@@ -1809,7 +1846,7 @@ export function CapturePreview({
         <ChatPanel
           sessionId={session.id}
           currentUserId={currentUserId}
-          participants={participants.filter((p) => !p.left_at)}
+          participants={controlAdjustedParticipants.filter((p) => !p.left_at)}
           isHost={canModerateSession}
           mutedParticipants={mutedParticipants}
           onGrantControl={

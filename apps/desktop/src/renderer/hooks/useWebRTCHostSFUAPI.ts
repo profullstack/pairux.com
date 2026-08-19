@@ -56,6 +56,11 @@ export interface ViewerConnection {
 interface UseWebRTCHostSFUAPIOptions {
   sessionId: string;
   hostId: string;
+  /**
+   * The raw capture stream. Retained so callers keep a single options shape
+   * across the P2P and SFU hooks; publishing is driven entirely by
+   * `publishStream()`, which is handed the *presentation* track instead.
+   */
   localStream: MediaStream | null;
   allowControl?: boolean;
   onViewerJoined?: (viewerId: string) => void;
@@ -94,7 +99,6 @@ interface UseWebRTCHostSFUAPIReturn {
 export function useWebRTCHostSFUAPI({
   sessionId,
   hostId,
-  localStream,
   allowControl = false,
   onViewerJoined,
   onViewerLeft,
@@ -553,7 +557,20 @@ export function useWebRTCHostSFUAPI({
     }
   }, [sessionId, hostId, addViewer, attachViewerAudio, removeViewer, handleDataReceived]);
 
-  // Publish a screen share stream to the LiveKit room
+  /**
+   * Publish the presentation stream, replacing whatever is already published.
+   *
+   * Republishing is not the same as publishing. Turning the camera bubble on
+   * swaps the raw screen track for a composited one and calls this again —
+   * and `publishTrack` would then leave *both* tracks published. Viewers fold
+   * every subscribed video track into one MediaStream and a <video> element
+   * renders only the first, so the second publication is invisible: the camera
+   * never arrives and the viewer watches the pre-camera screen forever.
+   *
+   * Replacing the track inside the existing publication keeps the same
+   * publication SID, so viewers switch over without resubscribing. The P2P
+   * host does exactly this, for exactly this reason — see useWebRTCHostAPI.
+   */
   const publishStream = useCallback(async (stream: MediaStream) => {
     const room = roomRef.current;
     if (room?.state !== LKConnectionState.Connected) {
@@ -561,10 +578,34 @@ export function useWebRTCHostSFUAPI({
       return;
     }
 
+    const publicationFor = (source: Track.Source): LocalTrackPublication | undefined =>
+      Array.from(room.localParticipant.trackPublications.values()).find(
+        (pub: LocalTrackPublication) => pub.source === source
+      );
+
     for (const track of stream.getTracks()) {
       try {
+        const source =
+          track.kind === 'video' ? Track.Source.ScreenShare : Track.Source.ScreenShareAudio;
+
         if (track.kind === 'video') {
           track.contentHint = 'detail';
+        }
+
+        const existing = publicationFor(source);
+        if (existing?.track) {
+          // Already publishing this exact track — a re-render, not a new source.
+          if (existing.track.mediaStreamTrack.id === track.id) continue;
+
+          await existing.track.replaceTrack(track);
+          console.log('[WebRTCHostSFUAPI] Replaced published track', {
+            source,
+            trackId: track.id,
+          });
+          continue;
+        }
+
+        if (track.kind === 'video') {
           await room.localParticipant.publishTrack(track, {
             source: Track.Source.ScreenShare,
             simulcast: false,
@@ -573,7 +614,7 @@ export function useWebRTCHostSFUAPI({
               maxFramerate: 60,
             },
           });
-        } else if (track.kind === 'audio') {
+        } else {
           await room.localParticipant.publishTrack(track, {
             source: Track.Source.ScreenShareAudio,
           });
@@ -651,22 +692,15 @@ export function useWebRTCHostSFUAPI({
     };
   }, [stopHosting]);
 
-  // Update published tracks when stream changes
-  useEffect(() => {
-    if (!localStream || !isHosting) return;
-
-    const room = roomRef.current;
-    if (room?.state !== LKConnectionState.Connected) return;
-
-    const videoTrack = localStream.getVideoTracks()[0];
-    const existingPub = Array.from(room.localParticipant.trackPublications.values()).find(
-      (pub: LocalTrackPublication) => pub.source === Track.Source.ScreenShare
-    );
-
-    if (existingPub?.track) {
-      void existingPub.track.replaceTrack(videoTrack);
-    }
-  }, [localStream, isHosting]);
+  // Republishing is handled entirely by publishStream(), which replaces the
+  // track inside the existing publication.
+  //
+  // There used to be an effect here that swapped the published video for
+  // `localStream`'s track whenever that stream or `isHosting` changed. It was
+  // wrong once the camera bubble existed: `localStream` is the *raw* screen
+  // capture, not the composited presentation track, so re-establishing a host
+  // connection with the camera on silently replaced the composite with the
+  // bare screen and dropped the bubble for every viewer.
 
   /** Tell a peer our tailnet addresses so it can test a direct path. */
   const sendTailnetHello = useCallback(

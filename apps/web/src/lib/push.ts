@@ -10,6 +10,16 @@ const DEFAULT_PREFERENCES = {
   hostDisconnected: true,
   creatorLive: true,
   directMessage: true,
+  // Meeting reminders, one key per lead time so a host can keep the day-before
+  // nudge and drop the one that fires while they are already walking to their
+  // desk. The same four keys gate the emailed reminder — see
+  // `meeting-reminders.ts`, which reads them from the same place — so turning
+  // one off here silences that lead time on both channels rather than only in
+  // the browser.
+  meetingReminder1Day: true,
+  meetingReminder1Hour: true,
+  meetingReminder15Min: true,
+  meetingReminder1Min: true,
 };
 
 export type PushEventType = keyof Omit<typeof DEFAULT_PREFERENCES, 'pushEnabled'>;

@@ -13,6 +13,10 @@ interface NotificationPrefs {
   hostDisconnected: boolean;
   creatorLive: boolean;
   directMessage: boolean;
+  meetingReminder1Day: boolean;
+  meetingReminder1Hour: boolean;
+  meetingReminder15Min: boolean;
+  meetingReminder1Min: boolean;
 }
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -24,9 +28,16 @@ const DEFAULT_PREFS: NotificationPrefs = {
   hostDisconnected: true,
   creatorLive: true,
   directMessage: true,
+  meetingReminder1Day: true,
+  meetingReminder1Hour: true,
+  meetingReminder15Min: true,
+  meetingReminder1Min: true,
 };
 
-const PREF_LABELS: Record<keyof Omit<NotificationPrefs, 'pushEnabled'>, string> = {
+const PREF_LABELS: Record<
+  Exclude<keyof NotificationPrefs, 'pushEnabled' | ReminderKey>,
+  string
+> = {
   controlRequest: 'Control requests',
   chatMessage: 'Chat messages',
   participantJoined: 'Participant joined',
@@ -34,6 +45,29 @@ const PREF_LABELS: Record<keyof Omit<NotificationPrefs, 'pushEnabled'>, string> 
   hostDisconnected: 'Host disconnected',
   creatorLive: 'A creator you follow goes live',
   directMessage: 'Someone sends you a direct message',
+};
+
+type ReminderKey =
+  | 'meetingReminder1Day'
+  | 'meetingReminder1Hour'
+  | 'meetingReminder15Min'
+  | 'meetingReminder1Min';
+
+/**
+ * Meeting reminders, kept out of the list above on purpose.
+ *
+ * The toggles above only render once the browser is subscribed to push, which
+ * is right for them — they describe push notifications and nothing else. These
+ * four also govern the *emailed* reminder, so hiding them behind a push
+ * subscription would leave anyone who has not enabled push, or cannot (an
+ * iPhone that has not installed the app, a locked-down browser), receiving
+ * emails they have no way to turn off.
+ */
+const REMINDER_LABELS: Record<ReminderKey, string> = {
+  meetingReminder1Day: '1 day before',
+  meetingReminder1Hour: '1 hour before',
+  meetingReminder15Min: '15 minutes before',
+  meetingReminder1Min: '1 minute before',
 };
 
 function Toggle({
@@ -197,6 +231,34 @@ export function NotificationPreferences() {
           )}
         </div>
       )}
+
+      {/*
+       * Always rendered, unlike the block above. These govern the emailed
+       * reminder as well as the pushed one, so somebody who has never enabled
+       * push still needs a way to turn them off.
+       */}
+      <div className="space-y-3 border-t border-gray-100 pt-4">
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            Meeting reminders
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Sent by email, and as a notification when push is on.
+          </p>
+        </div>
+        {(Object.entries(REMINDER_LABELS) as [ReminderKey, string][]).map(([key, label]) => (
+          <div key={key} className="flex items-center justify-between">
+            <span className="text-sm text-gray-700">{label}</span>
+            <Toggle
+              enabled={preferences[key]}
+              onChange={() => {
+                void savePreference(key, !preferences[key]);
+              }}
+              disabled={saving}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

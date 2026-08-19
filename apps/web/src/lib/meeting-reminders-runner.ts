@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { createEmailer } from '@profullstack/emailer';
 
 import { dueLead, timeUntil, wantsReminder, REMINDER_PREF_KEYS } from './meeting-reminders';
@@ -45,12 +45,22 @@ interface InviteeRow {
   rsvp_status: string;
 }
 
-function admin(): SupabaseClient {
+interface ProfileRow {
+  settings: unknown;
+  display_name: string | null;
+}
+
+// Inferred rather than annotated `SupabaseClient`: the bare type defaults its
+// schema parameters differently from what `createClient` returns, so naming it
+// turns a perfectly ordinary return into an unsafe-return lint error.
+function admin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('Missing Supabase environment variables');
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
+
+type Admin = ReturnType<typeof admin>;
 
 /**
  * Take the slot for one message, returning false if somebody already had it.
@@ -64,7 +74,7 @@ function admin(): SupabaseClient {
  * loses that reminder for good. That is the intended trade: see the migration.
  */
 async function claim(
-  db: SupabaseClient,
+  db: Admin,
   row: {
     scheduled_session_id: string;
     occurrence_at: string;
@@ -90,7 +100,7 @@ async function claim(
  * indexed read covers.
  */
 async function alreadySent(
-  db: SupabaseClient,
+  db: Admin,
   sessionId: string,
   occurrenceAt: string
 ): Promise<Map<string, Set<number>>> {
@@ -105,7 +115,7 @@ async function alreadySent(
     const r = row as { recipient_kind: string; recipient_key: string; channel: string; lead_minutes: number };
     const key = `${r.recipient_kind}:${r.recipient_key}:${r.channel}`;
     const set = byRecipient.get(key) ?? new Set<number>();
-    set.add(Number(r.lead_minutes));
+    set.add(r.lead_minutes);
     byRecipient.set(key, set);
   }
   return byRecipient;
@@ -176,7 +186,7 @@ export async function runMeetingReminders(now: Date = new Date()): Promise<Remin
   const emailer = resendApiKey ? createEmailer({ resendApiKey, defaultFrom }) : null;
   if (!emailer) summary.errors.push('RESEND_API_KEY not configured; push only');
 
-  for (const raw of meetings ?? []) {
+  for (const raw of meetings) {
     const meeting = raw as MeetingRow;
     summary.meetings += 1;
 
@@ -193,8 +203,14 @@ export async function runMeetingReminders(now: Date = new Date()): Promise<Remin
         .select('settings, display_name')
         .eq('id', meeting.host_user_id)
         .single();
-      const notifications = ((hostSettings.data?.settings ?? {}) as Record<string, unknown>)
+      // Narrowed once, here, rather than at each use. PostgREST types this row
+      // as `any`, so reading fields off it straight into a template or an object
+      // literal is an unsafe assignment; naming the shape is what makes the two
+      // values below ordinary strings.
+      const hostProfile = hostSettings.data as ProfileRow | null;
+      const notifications = ((hostProfile?.settings ?? {}) as Record<string, unknown>)
         .notifications as Record<string, unknown> | undefined;
+      const hostDisplayName = hostProfile?.display_name ?? null;
 
       const hostEmailLead = dueLead(
         startsAt,
@@ -209,7 +225,7 @@ export async function runMeetingReminders(now: Date = new Date()): Promise<Remin
 
       if (hostEmailLead && wantsReminder(notifications, hostEmailLead) && emailer) {
         const { data: user } = await db.auth.admin.getUserById(meeting.host_user_id);
-        const to = user?.user?.email;
+        const to = user.user?.email;
         if (to) {
           const claimed = await claim(db, {
             scheduled_session_id: meeting.id,
@@ -229,7 +245,7 @@ export async function runMeetingReminders(now: Date = new Date()): Promise<Remin
                 startsAtLabel,
                 joinUrl,
                 joinCode: meeting.join_code,
-                recipientName: hostSettings.data?.display_name ?? null,
+                recipientName: hostDisplayName,
               }),
             });
             summary.emails += 1;

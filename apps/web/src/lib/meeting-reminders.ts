@@ -79,12 +79,14 @@ export function dueLead(
 
   const remaining = remainingMs / 60_000;
 
-  for (let i = 0; i < LEAD_MINUTES.length; i += 1) {
-    const lead = LEAD_MINUTES[i] as LeadMinutes;
+  // `entries()` rather than an index loop: it hands back the element already
+  // typed, where `LEAD_MINUTES[i]` needs either a cast or a `!` to convince the
+  // compiler it exists, and this codebase's lint forbids both.
+  for (const [i, lead] of LEAD_MINUTES.entries()) {
     // The floor of this lead's band is the next tighter lead, or zero for the
     // last one. Exclusive at the bottom so the bands cannot both claim an
     // instant, inclusive at the top so a meeting exactly a day out fires.
-    const floor = i + 1 < LEAD_MINUTES.length ? (LEAD_MINUTES[i + 1] as number) : 0;
+    const floor: number = LEAD_MINUTES[i + 1] ?? 0;
 
     if (remaining <= lead && remaining > floor) {
       return alreadySent.has(lead) ? null : lead;
@@ -110,13 +112,13 @@ export function timeUntil(startsAt: Date, now: Date): string {
   const minutes = Math.round((startsAt.getTime() - now.getTime()) / 60_000);
 
   if (minutes <= 1) return 'in about a minute';
-  if (minutes < 60) return `in ${minutes} minutes`;
+  if (minutes < 60) return `in ${String(minutes)} minutes`;
 
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return hours === 1 ? 'in about an hour' : `in about ${hours} hours`;
+  if (hours < 24) return hours === 1 ? 'in about an hour' : `in about ${String(hours)} hours`;
 
   const days = Math.round(hours / 24);
-  return days === 1 ? 'tomorrow' : `in ${days} days`;
+  return days === 1 ? 'tomorrow' : `in ${String(days)} days`;
 }
 
 /**

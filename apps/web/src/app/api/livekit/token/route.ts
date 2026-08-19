@@ -25,7 +25,10 @@ export async function POST(request: Request) {
   try {
     const ipLimit = tokenRequestsByIp.check(getClientIp(request));
     if (!ipLimit.success) {
-      return errorResponse(`Too many token requests. Try again in ${String(ipLimit.retryAfterSeconds)} seconds.`, 429);
+      return errorResponse(
+        `Too many token requests. Try again in ${String(ipLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
     }
 
     const body: unknown = await request.json().catch(() => ({}));

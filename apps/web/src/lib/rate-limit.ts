@@ -58,6 +58,12 @@ export function getClientIp(request: Request): string {
   if (realIp) return realIp;
 
   const forwardedFor = request.headers.get('x-forwarded-for');
-  return forwardedFor?.split(',', 1)[0]?.trim() || 'unknown';
-}
+  const firstHop = forwardedFor?.split(',', 1)[0]?.trim();
 
+  // Deliberately not `?? 'unknown'`. An `x-forwarded-for` of ", 1.2.3.4" trims
+  // to an empty string, which `??` would happily return — and an empty key is a
+  // *different* rate-limit bucket from the shared fallback, so a client could
+  // double its own allowance just by prefixing a comma. Empty and absent both
+  // have to land on 'unknown'.
+  return firstHop !== undefined && firstHop !== '' ? firstHop : 'unknown';
+}

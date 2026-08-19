@@ -20,7 +20,10 @@ export async function GET(request: Request, { params }: RouteParams) {
     const { joinCode } = await params;
     const lookupLimit = joinLookupsByIp.check(getClientIp(request));
     if (!lookupLimit.success) {
-      return errorResponse(`Too many lookup requests. Try again in ${String(lookupLimit.retryAfterSeconds)} seconds.`, 429);
+      return errorResponse(
+        `Too many lookup requests. Try again in ${String(lookupLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
     }
     const supabase = await createClient();
 
@@ -104,9 +107,14 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { joinCode } = await params;
-    const joinLimit = joinAttemptsByIpAndCode.check(`${getClientIp(request)}:${joinCode.toUpperCase()}`);
+    const joinLimit = joinAttemptsByIpAndCode.check(
+      `${getClientIp(request)}:${joinCode.toUpperCase()}`
+    );
     if (!joinLimit.success) {
-      return errorResponse(`Too many join attempts. Try again in ${String(joinLimit.retryAfterSeconds)} seconds.`, 429);
+      return errorResponse(
+        `Too many join attempts. Try again in ${String(joinLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
     }
     const body = (await request.json().catch(() => ({}))) as { displayName?: string };
 

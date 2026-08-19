@@ -207,6 +207,16 @@ describe('IPC Input Handlers', () => {
       expect(injectInput).toHaveBeenCalledTimes(2);
       expect(result).toEqual({ success: true, count: 2 });
     });
+
+    it('caps oversized batches before they reach the main process injector', async () => {
+      const handler = mockIpcMainHandlers.get('input:injectBatch')!;
+      const event: InputEvent = { type: 'mouse', action: 'move', x: 0.5, y: 0.5 };
+
+      const result = await handler({}, { events: Array.from({ length: 100 }, () => event) });
+
+      expect(injectInput).toHaveBeenCalledTimes(64);
+      expect(result).toEqual({ success: true, count: 64 });
+    });
   });
 
   describe('input:emergencyStop handler', () => {

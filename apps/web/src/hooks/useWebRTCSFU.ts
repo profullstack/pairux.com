@@ -192,7 +192,11 @@ export function useWebRTCSFU({
         sequence: inputSequenceRef.current++,
         event,
       };
-      sendData(message);
+      // Stale motion is never useful; unreliable delivery prevents a lagging
+      // client from building an ever-growing reliable data backlog.
+      const isContinuous =
+        event.type === 'mouse' && (event.action === 'move' || event.action === 'scroll');
+      sendData(message, !isContinuous);
     },
     [controlState, dataChannelReady, sendData]
   );

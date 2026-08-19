@@ -14,6 +14,8 @@ import { resolveCaptureBoundsForSource } from '../capture/captureDisplay';
 export type InputInjectionDiagnostics = InputDiagnostics;
 
 let injector: RemoteInputInjector | null = null;
+const REJECTION_LOG_INTERVAL_MS = 5_000;
+let lastRejectionLogAt = 0;
 
 function getInjector(): RemoteInputInjector {
   const selection = getInputBackendSelection();
@@ -29,7 +31,13 @@ function getInjector(): RemoteInputInjector {
     // barrier while leaving corner UI (Start button, menu bar) clickable.
     // Other platforms get the guest's exact coordinates.
     edgeMarginPx: selection.platform === 'linux' ? 1 : 0,
+    // This is a second, process-side guard after renderer coalescing. It also
+    // protects IPC callers that bypass the normal host hook.
+    maxEventsPerSecond: 120,
     onRejected: (reason, event, detail) => {
+      const now = Date.now();
+      if (now - lastRejectionLogAt < REJECTION_LOG_INTERVAL_MS) return;
+      lastRejectionLogAt = now;
       console.warn('[InputInjector] Rejected input event', {
         reason,
         detail,
@@ -44,6 +52,7 @@ function getInjector(): RemoteInputInjector {
 /** Test seam: drop the singleton so the next call re-selects a backend. */
 export function resetInputInjector(): void {
   injector = null;
+  lastRejectionLogAt = 0;
   backendPrimary = null;
   captureSourceId = null;
 }

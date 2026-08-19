@@ -2,15 +2,29 @@ import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { guestJoinSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
+
+// Joining performs database work and can trigger a host notification. Bound it
+// by source IP and room code so a shared public link cannot be used to fan out
+// an unbounded burst of work.
+const joinLookupsByIp = new FixedWindowRateLimiter(120, 60_000);
+const joinAttemptsByIpAndCode = new FixedWindowRateLimiter(12, 60_000);
 
 interface RouteParams {
   params: Promise<{ joinCode: string }>;
 }
 
 // GET /api/sessions/join/[joinCode] - Lookup session by join code
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { joinCode } = await params;
+    const lookupLimit = joinLookupsByIp.check(getClientIp(request));
+    if (!lookupLimit.success) {
+      return errorResponse(
+        `Too many lookup requests. Try again in ${String(lookupLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
+    }
     const supabase = await createClient();
 
     // Lookup session by join code
@@ -93,6 +107,15 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { joinCode } = await params;
+    const joinLimit = joinAttemptsByIpAndCode.check(
+      `${getClientIp(request)}:${joinCode.toUpperCase()}`
+    );
+    if (!joinLimit.success) {
+      return errorResponse(
+        `Too many join attempts. Try again in ${String(joinLimit.retryAfterSeconds)} seconds.`,
+        429
+      );
+    }
     const body = (await request.json().catch(() => ({}))) as { displayName?: string };
 
     const supabase = await createClient();

@@ -2,6 +2,17 @@
 'use server';
 
 import { createEmailer } from '@profullstack/emailer';
+import { describeRecurrence, type RecurrenceRule } from '@/lib/recurrence';
+
+/** The "Repeats every week on Tuesday, forever" row, or '' for a one-off meeting. */
+function recurrenceRow(recurrence: RecurrenceRule | undefined, scheduledAt: string): string {
+  if (!recurrence?.freq) return '';
+  const label = describeRecurrence(recurrence, new Date(scheduledAt)).replace(/^Repeats /, '');
+  return `<tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Repeats</td>
+            <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${label}</td>
+          </tr>`;
+}
 
 interface InvitePayload {
   scheduledSessionId: string;
@@ -11,6 +22,8 @@ interface InvitePayload {
   durationMinutes: number;
   joinCode: string;
   hostName: string;
+  /** Set when the meeting repeats — the whole series shares this one invite. */
+  recurrence?: RecurrenceRule;
   invitees: { email: string; name: string | null; token: string }[];
 }
 
@@ -32,6 +45,9 @@ interface UpdatePayload {
   // Set when someone was removed from the meeting: the join code was rotated, so the
   // code in this email replaces the one the recipient was originally sent.
   codeChanged?: boolean;
+  recurrence?: RecurrenceRule;
+  /** The host changed how (or whether) the meeting repeats. */
+  recurrenceChanged?: boolean;
 }
 
 interface RemovalPayload {
@@ -64,6 +80,7 @@ function inviteEmailHtml(opts: {
   rsvpAcceptUrl: string;
   rsvpDeclineUrl: string;
   joinUrl: string;
+  recurrence?: RecurrenceRule;
 }): string {
   const formattedDate = formatDateTime(opts.scheduledAt);
   const greeting = opts.inviteeName ? `Hi ${opts.inviteeName},` : 'Hi there,';
@@ -101,6 +118,7 @@ function inviteEmailHtml(opts: {
             <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Duration</td>
             <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${durationLabel}</td>
           </tr>
+          ${recurrenceRow(opts.recurrence, opts.scheduledAt)}
           <tr>
             <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Host</td>
             <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${opts.hostName}</td>
@@ -174,6 +192,8 @@ function updateEmailHtml(opts: {
   hostName: string;
   joinUrl: string;
   codeChanged?: boolean;
+  recurrence?: RecurrenceRule;
+  recurrenceChanged?: boolean;
 }): string {
   const timeChanged =
     new Date(opts.scheduledAt).getTime() !== new Date(opts.previousScheduledAt).getTime();
@@ -218,6 +238,16 @@ function updateEmailHtml(opts: {
             <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Duration</td>
             <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${durationLabel}</td>
           </tr>
+          ${
+            opts.recurrence?.freq
+              ? recurrenceRow(opts.recurrence, opts.scheduledAt)
+              : opts.recurrenceChanged
+                ? `<tr>
+            <td style="padding:6px 0;color:#6b7280;font-size:13px;font-weight:600;text-transform:uppercase;">Repeats</td>
+            <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">No longer repeats</td>
+          </tr>`
+                : ''
+          }
           ${
             opts.description
               ? `<tr>
@@ -301,6 +331,7 @@ export async function sendMeetingInvites(
       joinUrl: `${appUrl}/join/${payload.joinCode}`,
       rsvpAcceptUrl: `${rsvpBase}?rsvp=accepted`,
       rsvpDeclineUrl: `${rsvpBase}?rsvp=declined`,
+      ...(payload.recurrence !== undefined && { recurrence: payload.recurrence }),
     });
 
     try {
@@ -343,6 +374,10 @@ export async function sendMeetingUpdate(
     hostName: payload.hostName,
     joinUrl: `${appUrl}/join/${payload.joinCode}`,
     ...(payload.codeChanged !== undefined && { codeChanged: payload.codeChanged }),
+    ...(payload.recurrence !== undefined && { recurrence: payload.recurrence }),
+    ...(payload.recurrenceChanged !== undefined && {
+      recurrenceChanged: payload.recurrenceChanged,
+    }),
   });
 
   try {

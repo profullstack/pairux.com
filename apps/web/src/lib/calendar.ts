@@ -1,9 +1,13 @@
+import { buildRrule, type RecurrenceRule } from './recurrence';
+
 export interface CalendarEvent {
   title: string;
   description: string | null;
   startIso: string;
   durationMinutes: number;
   joinUrl: string;
+  /** Set for a repeating meeting so the event lands as a series, not one date. */
+  recurrence?: RecurrenceRule | undefined;
 }
 
 function fmtIcs(d: Date): string {
@@ -24,6 +28,8 @@ export function buildGoogleCalendarUrl(event: CalendarEvent): string {
     details,
     location: event.joinUrl,
   });
+  const rrule = event.recurrence ? buildRrule(event.recurrence) : null;
+  if (rrule) params.set('recur', `RRULE:${rrule}`);
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
@@ -45,6 +51,7 @@ export function downloadIcs(event: CalendarEvent): void {
   const start = new Date(event.startIso);
   const end = new Date(start.getTime() + event.durationMinutes * 60000);
   const desc = [event.description, `Join at: ${event.joinUrl}`].filter(Boolean).join('\\n\\n');
+  const rrule = event.recurrence ? buildRrule(event.recurrence) : null;
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -52,6 +59,7 @@ export function downloadIcs(event: CalendarEvent): void {
     'BEGIN:VEVENT',
     `DTSTART:${fmtIcs(start)}`,
     `DTEND:${fmtIcs(end)}`,
+    ...(rrule ? [`RRULE:${rrule}`] : []),
     `SUMMARY:${event.title}`,
     `DESCRIPTION:${desc}`,
     `LOCATION:${event.joinUrl}`,

@@ -53,7 +53,7 @@ describe('ScheduleMeetingModal — edit mode', () => {
       />
     );
 
-    expect(screen.getByRole('combobox')).toHaveValue('75');
+    expect(screen.getByLabelText(/duration/i)).toHaveValue('75');
   });
 
   it('PATCHes the meeting, preserving the scheduled instant', async () => {
@@ -188,5 +188,119 @@ describe('ScheduleMeetingModal — create mode', () => {
     expect(url).toBe('/api/scheduled-sessions');
     expect(init.method).toBe('POST');
     expect(lastRequestBody(fetchMock).inviteeEmails).toBeUndefined();
+  });
+
+  it('sends no recurrence for a one-off meeting', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockFetchOk();
+
+    render(<ScheduleMeetingModal onClose={vi.fn()} onSaved={vi.fn()} />);
+    await user.type(screen.getByPlaceholderText('e.g. Weekly Team Sync'), 'One Off');
+    await user.click(screen.getByRole('button', { name: /schedule meeting/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    const body = lastRequestBody(fetchMock);
+    expect(body.recurrenceFreq).toBeUndefined();
+    expect(body.recurrenceInterval).toBeUndefined();
+  });
+
+  it('hides the repeat detail fields until a frequency is chosen', async () => {
+    const user = userEvent.setup();
+    mockFetchOk();
+
+    render(<ScheduleMeetingModal onClose={vi.fn()} onSaved={vi.fn()} />);
+    expect(screen.queryByLabelText(/number of times/i)).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText(/repeat/i), 'weekly');
+    expect(screen.getByLabelText(/number of times/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^every$/i)).toHaveValue(1);
+  });
+
+  it('POSTs the chosen recurrence', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockFetchOk();
+
+    render(<ScheduleMeetingModal onClose={vi.fn()} onSaved={vi.fn()} />);
+    await user.type(screen.getByPlaceholderText('e.g. Weekly Team Sync'), 'Standup');
+    await user.selectOptions(screen.getByLabelText(/repeat/i), 'daily');
+
+    const interval = screen.getByLabelText(/^every$/i);
+    await user.clear(interval);
+    await user.type(interval, '2');
+
+    const count = screen.getByLabelText(/number of times/i);
+    await user.clear(count);
+    await user.type(count, '10');
+
+    await user.click(screen.getByRole('button', { name: /schedule meeting/i }));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    const body = lastRequestBody(fetchMock);
+    expect(body.recurrenceFreq).toBe('daily');
+    expect(body.recurrenceInterval).toBe(2);
+    expect(body.recurrenceCount).toBe(10);
+  });
+
+  it('treats a count of 0 as repeating forever', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockFetchOk();
+
+    render(<ScheduleMeetingModal onClose={vi.fn()} onSaved={vi.fn()} />);
+    await user.type(screen.getByPlaceholderText('e.g. Weekly Team Sync'), 'Forever');
+    await user.selectOptions(screen.getByLabelText(/repeat/i), 'weekly');
+
+    expect(screen.getByLabelText(/number of times/i)).toHaveValue(0);
+    expect(screen.getByText('0 = forever')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /schedule meeting/i }));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    expect(lastRequestBody(fetchMock).recurrenceCount).toBe(0);
+  });
+});
+
+describe('ScheduleMeetingModal — editing a series', () => {
+  const series: EditableMeeting = {
+    ...meeting,
+    recurrence_freq: 'weekly',
+    recurrence_interval: 2,
+    recurrence_count: 8,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('prefills the existing recurrence', () => {
+    mockFetchOk();
+    render(<ScheduleMeetingModal meeting={series} onClose={vi.fn()} onSaved={vi.fn()} />);
+
+    expect(screen.getByLabelText(/repeat/i)).toHaveValue('weekly');
+    expect(screen.getByLabelText(/^every$/i)).toHaveValue(2);
+    expect(screen.getByLabelText(/number of times/i)).toHaveValue(8);
+  });
+
+  it('sends a null frequency when the series is turned off, so it actually clears', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockFetchOk();
+
+    render(<ScheduleMeetingModal meeting={series} onClose={vi.fn()} onSaved={vi.fn()} />);
+    await user.selectOptions(screen.getByLabelText(/repeat/i), '');
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    const body = lastRequestBody(fetchMock);
+    expect(body.recurrenceFreq).toBeNull();
+    expect('recurrenceInterval' in body).toBe(false);
   });
 });

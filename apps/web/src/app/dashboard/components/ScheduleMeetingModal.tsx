@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useRef, type FormEvent } from 'react';
-import { X, Calendar, Clock, Users, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, Calendar, Clock, Users, Plus, Trash2, Loader2, Repeat } from 'lucide-react';
+import {
+  describeRecurrence,
+  MAX_RECURRENCE_COUNT,
+  MAX_RECURRENCE_INTERVAL,
+  ruleFromRow,
+  type RecurrenceFreq,
+} from '@/lib/recurrence';
 
 /** The subset of a scheduled session the modal needs in order to edit it. */
 export interface EditableMeeting {
@@ -11,6 +18,9 @@ export interface EditableMeeting {
   scheduled_at: string;
   duration_minutes: number;
   invitees?: { email: string }[];
+  recurrence_freq?: string | null;
+  recurrence_interval?: number | null;
+  recurrence_count?: number | null;
 }
 
 interface Props {
@@ -39,6 +49,25 @@ function localDatetimeValue(date: Date): string {
   return `${String(date.getFullYear())}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+const REPEAT_OPTIONS: { label: string; value: RecurrenceFreq | '' }[] = [
+  { label: "Doesn't repeat", value: '' },
+  { label: 'Daily', value: 'daily' },
+  { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' },
+];
+
+const REPEAT_UNIT: Record<RecurrenceFreq, string> = {
+  daily: 'days',
+  weekly: 'weeks',
+  monthly: 'months',
+};
+
+/** Number inputs hand back NaN when cleared — keep the payload in range regardless. */
+function clamp(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
 function durationLabel(minutes: number): string {
   return minutes < 60
     ? `${String(minutes)} minutes`
@@ -57,6 +86,13 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
     localDatetimeValue(meeting ? new Date(meeting.scheduled_at) : defaultTime)
   );
   const [durationMinutes, setDurationMinutes] = useState(meeting?.duration_minutes ?? 60);
+
+  const existingRule = ruleFromRow(meeting ?? {});
+  const [repeatFreq, setRepeatFreq] = useState<RecurrenceFreq | ''>(existingRule.freq ?? '');
+  const [repeatInterval, setRepeatInterval] = useState(existingRule.interval);
+  // 0 means "keep repeating forever" — the same convention the API stores.
+  const [repeatCount, setRepeatCount] = useState(existingRule.count);
+
   const [emails, setEmails] = useState<string[]>(() => {
     const existing = meeting?.invitees?.map((i) => i.email) ?? [];
     return existing.length > 0 ? existing : [''];
@@ -128,6 +164,15 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             description: isEditing ? description.trim() : description.trim() || undefined,
             scheduledAt: localDate.toISOString(),
             durationMinutes,
+            // On edit, send the frequency even when it is null so switching a
+            // meeting back to a one-off actually clears the series.
+            ...(repeatFreq || isEditing ? { recurrenceFreq: repeatFreq || null } : {}),
+            ...(repeatFreq
+              ? {
+                  recurrenceInterval: clamp(repeatInterval, 1, MAX_RECURRENCE_INTERVAL),
+                  recurrenceCount: clamp(repeatCount, 0, MAX_RECURRENCE_COUNT),
+                }
+              : {}),
             inviteeEmails: isEditing
               ? validEmails
               : validEmails.length > 0
@@ -217,11 +262,15 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="duration-minutes"
+                className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+              >
                 <Clock className="h-4 w-4 text-gray-400" />
                 Duration
               </label>
               <select
+                id="duration-minutes"
                 value={durationMinutes}
                 onChange={(e) => {
                   setDurationMinutes(Number(e.target.value));
@@ -235,6 +284,89 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Repeat */}
+          <div>
+            <label
+              htmlFor="repeat-freq"
+              className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+            >
+              <Repeat className="h-4 w-4 text-gray-400" />
+              Repeat
+            </label>
+            <select
+              id="repeat-freq"
+              value={repeatFreq}
+              onChange={(e) => {
+                setRepeatFreq(e.target.value as RecurrenceFreq | '');
+              }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+            >
+              {REPEAT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            {repeatFreq && (
+              <>
+                <div className="mt-3 grid grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="repeat-interval"
+                      className="mb-1.5 block text-xs font-medium text-gray-600"
+                    >
+                      Every
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="repeat-interval"
+                        type="number"
+                        min={1}
+                        max={MAX_RECURRENCE_INTERVAL}
+                        value={repeatInterval}
+                        onChange={(e) => {
+                          setRepeatInterval(Number(e.target.value));
+                        }}
+                        className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                      />
+                      <span className="text-sm text-gray-500">{REPEAT_UNIT[repeatFreq]}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="repeat-count"
+                      className="mb-1.5 block text-xs font-medium text-gray-600"
+                    >
+                      Number of times
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="repeat-count"
+                        type="number"
+                        min={0}
+                        max={MAX_RECURRENCE_COUNT}
+                        value={repeatCount}
+                        onChange={(e) => {
+                          setRepeatCount(Number(e.target.value));
+                        }}
+                        className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                      />
+                      <span className="text-sm text-gray-500">0 = forever</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-indigo-600">
+                  {describeRecurrence(
+                    { freq: repeatFreq, interval: repeatInterval, count: repeatCount },
+                    new Date(scheduledAt)
+                  )}
+                  . Everyone keeps the same join code and link.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Description */}

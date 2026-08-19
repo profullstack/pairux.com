@@ -5,6 +5,8 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { scheduleMeetingSchema } from '@/lib/validations';
 import { sendMeetingInvites } from '@/app/actions/meetings';
 import { getUniqueJoinCode } from '@/lib/join-code';
+import { ruleFromRow, type RecurrenceRow } from '@/lib/recurrence';
+import { rollForwardHostSeries } from '@/lib/recurrence-rollforward';
 import { randomBytes } from 'crypto';
 import {
   earliestPossibleCurrentMeetingStart,
@@ -57,6 +59,13 @@ export async function POST(request: Request) {
         scheduled_at: input.scheduledAt,
         duration_minutes: input.durationMinutes,
         join_code: joinCode,
+        // A recurring meeting is one row: scheduled_at tracks the next occurrence
+        // and the anchor keeps the day of the month stable for monthly series.
+        recurrence_freq: input.recurrenceFreq ?? null,
+        recurrence_interval: input.recurrenceFreq ? (input.recurrenceInterval ?? 1) : 1,
+        recurrence_count: input.recurrenceFreq ? (input.recurrenceCount ?? 0) : 0,
+        occurrences_elapsed: 0,
+        recurrence_anchor_at: input.scheduledAt,
       })
       .select()
       .single();
@@ -100,6 +109,7 @@ export async function POST(request: Request) {
           durationMinutes: input.durationMinutes,
           joinCode,
           hostName,
+          recurrence: ruleFromRow(scheduled as RecurrenceRow),
           invitees: invitees.map((i) => ({ email: i.email, name: i.name, token: i.invite_token })),
         });
         if (!emailResult.ok) {
@@ -125,6 +135,12 @@ export async function GET(request: Request) {
     if (authError || !user) return errorResponse('Authentication required', 401);
 
     const svc = serviceClient();
+
+    // A recurring meeting whose occurrence has finished sits in the past until it
+    // is rolled forward — exactly what an "upcoming" query filters out — so
+    // advance this host's series before reading.
+    await rollForwardHostSeries(svc, user.id);
+
     const nowMs = Date.now();
     const now = new Date(nowMs).toISOString();
 

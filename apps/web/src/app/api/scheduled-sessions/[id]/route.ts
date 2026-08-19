@@ -10,6 +10,7 @@ import {
   sendInviteeRemoval,
 } from '@/app/actions/meetings';
 import { getUniqueJoinCode, liveSessionExistsForCode } from '@/lib/join-code';
+import { ruleFromRow, type RecurrenceRow } from '@/lib/recurrence';
 import { randomBytes } from 'crypto';
 
 // GET /api/scheduled-sessions/[id]
@@ -48,10 +49,58 @@ function detailsChanged(before: any, after: any): boolean {
   if ((before.title as string) !== (after.title as string)) return true;
   if ((before.description ?? null) !== (after.description ?? null)) return true;
   if ((before.duration_minutes as number) !== (after.duration_minutes as number)) return true;
+  if (recurrenceChanged(before, after)) return true;
   return (
     new Date(before.scheduled_at as string).getTime() !==
     new Date(after.scheduled_at as string).getTime()
   );
+}
+
+function recurrenceChanged(before: any, after: any): boolean {
+  const a = ruleFromRow(before as RecurrenceRow);
+  const b = ruleFromRow(after as RecurrenceRow);
+  return a.freq !== b.freq || a.interval !== b.interval || a.count !== b.count;
+}
+
+/**
+ * Bookkeeping the recurrence columns need alongside an edit.
+ *
+ * Moving the meeting, or changing how often it repeats, re-bases the series: the
+ * new time becomes the anchor and the occurrence count starts again, so "repeat
+ * 8 times" means eight more from here. Changing only the count leaves the tally
+ * alone — except when the new limit is already used up, where the occurrence now
+ * on the books becomes the last one rather than being cancelled out from under
+ * the invitees.
+ */
+function recurrenceUpdate(existing: any, fields: Record<string, unknown>): Record<string, unknown> {
+  const before = ruleFromRow(existing as RecurrenceRow);
+  const after = ruleFromRow({ ...existing, ...fields } as RecurrenceRow);
+
+  const movedTo =
+    typeof fields.scheduled_at === 'string' &&
+    new Date(fields.scheduled_at).getTime() !== new Date(existing.scheduled_at as string).getTime()
+      ? fields.scheduled_at
+      : null;
+
+  const rebased =
+    movedTo !== null || before.freq !== after.freq || before.interval !== after.interval;
+
+  if (rebased) {
+    const anchor = movedTo ?? (existing.scheduled_at as string);
+    return {
+      recurrence_anchor_at: anchor,
+      occurrences_elapsed: 0,
+      // A finished series that is given a new time runs again.
+      ...(existing.status === 'completed' ? { status: 'pending' } : {}),
+    };
+  }
+
+  const elapsed = (existing.occurrences_elapsed as number | null) ?? 0;
+  if (after.count > 0 && elapsed >= after.count) {
+    return { occurrences_elapsed: after.count - 1 };
+  }
+
+  return {};
 }
 
 // PATCH /api/scheduled-sessions/[id] — edit the meeting and/or its invitee list.
@@ -83,10 +132,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     let updated = existing;
 
+    const recurrenceEdits = recurrenceUpdate(existing, fields);
+
     if (Object.keys(fields).length > 0) {
       const { data, error } = await (svc as any)
         .from('scheduled_sessions')
-        .update({ ...fields, updated_at: new Date().toISOString() })
+        .update({ ...fields, ...recurrenceEdits, updated_at: new Date().toISOString() })
         .eq('id', id)
         .eq('host_user_id', user.id)
         .select()
@@ -198,6 +249,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         durationMinutes: updated.duration_minutes as number,
         joinCode,
         hostName,
+        recurrence: ruleFromRow(updated as RecurrenceRow),
         invitees: added.map((i) => ({ email: i.email, name: i.name, token: i.invite_token })),
       });
       if (!inviteResult.ok) console.error('Invite email error:', inviteResult.error);
@@ -225,6 +277,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         durationMinutes: updated.duration_minutes as number,
         joinCode,
         hostName,
+        recurrence: ruleFromRow(updated as RecurrenceRow),
+        recurrenceChanged: recurrenceChanged(existing, updated),
         inviteeEmails: retained.map((i) => i.email),
         codeChanged: codeRotated,
       });

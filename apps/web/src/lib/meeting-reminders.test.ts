@@ -43,7 +43,7 @@ describe('dueLead', () => {
     // answer at each. A gap would drop a reminder; an overlap would send two.
     for (let m = 1440; m >= 1; m -= 1) {
       const lead = dueLead(START, before(m));
-      expect(lead, `at ${m} minutes out`).not.toBeNull();
+      expect(lead, `at ${String(m)} minutes out`).not.toBeNull();
       expect(LEAD_MINUTES).toContain(lead);
     }
   });

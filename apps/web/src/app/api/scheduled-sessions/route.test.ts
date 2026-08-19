@@ -18,6 +18,12 @@ vi.mock('@/app/actions/meetings', () => ({
   sendMeetingInvites: vi.fn(),
 }));
 
+// Advancing recurring meetings has its own tests; here it only has to be called.
+const mockRollForwardHostSeries = vi.fn();
+vi.mock('@/lib/recurrence-rollforward', () => ({
+  rollForwardHostSeries: (...args: unknown[]) => mockRollForwardHostSeries(...args),
+}));
+
 interface ScheduledRow {
   id: string;
   scheduled_at: string;
@@ -110,6 +116,19 @@ describe('GET /api/scheduled-sessions', () => {
     expect(body.data).toHaveLength(1);
     expect(gte).not.toHaveBeenCalled();
     expect(lt).not.toHaveBeenCalled();
+  });
+
+  it('advances the host recurring meetings before listing them', async () => {
+    setupList([row('future', '2026-08-14T18:00:00.000Z')]);
+
+    const response = await GET(
+      new Request('http://localhost/api/scheduled-sessions?filter=upcoming')
+    );
+
+    expect(response.status).toBe(200);
+    // A lapsed occurrence sits in the past — exactly what "upcoming" filters out —
+    // so it has to be rolled forward before the query runs.
+    expect(mockRollForwardHostSeries).toHaveBeenCalledWith(expect.anything(), mockUser.id);
   });
 
   it('keeps currently running meetings out of the past filter', async () => {

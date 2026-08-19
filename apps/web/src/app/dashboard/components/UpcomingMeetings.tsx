@@ -12,9 +12,16 @@ import {
   Loader2,
   CalendarPlus,
   CheckCircle,
+  Repeat,
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
+import {
+  describeRecurrence,
+  occurrencesRemaining,
+  ruleFromRow,
+  shortRecurrenceLabel,
+} from '@/lib/recurrence';
 import {
   isScheduledMeetingCurrent,
   isScheduledMeetingStartable,
@@ -37,6 +44,10 @@ interface ScheduledSession {
   status: string;
   invitee_count: number;
   invitees: Invitee[];
+  recurrence_freq?: string | null;
+  recurrence_interval?: number | null;
+  recurrence_count?: number | null;
+  occurrences_elapsed?: number | null;
 }
 
 interface ListResponse {
@@ -72,6 +83,18 @@ function formatDate(isoString: string, nowMs: number): string {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+/** "Weekly", or "Weekly · 3 left" once a series has a finite number of dates left. */
+function repeatLabel(session: ScheduledSession): string | null {
+  const short = shortRecurrenceLabel(ruleFromRow(session));
+  if (!short) return null;
+
+  const left = occurrencesRemaining(
+    session.recurrence_count ?? 0,
+    session.occurrences_elapsed ?? 0
+  );
+  return left === null ? short : `${short} · ${String(left)} left`;
 }
 
 interface Props {
@@ -242,6 +265,18 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                           ? `${String(session.duration_minutes)}m`
                           : `${String(session.duration_minutes / 60)}h`}
                       </span>
+                      {repeatLabel(session) && (
+                        <span
+                          className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-600"
+                          title={describeRecurrence(
+                            ruleFromRow(session),
+                            new Date(session.scheduled_at)
+                          )}
+                        >
+                          <Repeat className="h-3 w-3" />
+                          {repeatLabel(session)}
+                        </span>
+                      )}
                       {session.invitee_count > 0 && (
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
@@ -300,6 +335,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                               startIso: session.scheduled_at,
                               durationMinutes: session.duration_minutes,
                               joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                              recurrence: ruleFromRow(session),
                             })}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -318,6 +354,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                               startIso: session.scheduled_at,
                               durationMinutes: session.duration_minutes,
                               joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                              recurrence: ruleFromRow(session),
                             })}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -338,6 +375,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                                 startIso: session.scheduled_at,
                                 durationMinutes: session.duration_minutes,
                                 joinUrl: `${window.location.origin}/join/${session.join_code}`,
+                                recurrence: ruleFromRow(session),
                               });
                               setCalendarOpenId(null);
                             }}

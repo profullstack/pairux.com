@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MAX_SCHEDULED_MEETING_DURATION_MINUTES } from './scheduled-meeting-timing';
+import { MAX_RECURRENCE_COUNT, MAX_RECURRENCE_INTERVAL } from './recurrence';
 
 // Password must be at least 8 characters with at least one uppercase letter and one number
 const passwordSchema = z
@@ -124,6 +125,16 @@ export const notificationPreferencesSchema = z.object({
   hostDisconnected: z.boolean().default(true),
 });
 
+// How a meeting repeats. Absent (or an explicit null frequency) means it happens once.
+// `recurrenceCount` is the number of occurrences, with 0 meaning "forever".
+const recurrenceFreqSchema = z.enum(['daily', 'weekly', 'monthly']);
+
+const recurrenceFields = {
+  recurrenceFreq: recurrenceFreqSchema.nullable().optional(),
+  recurrenceInterval: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL).optional(),
+  recurrenceCount: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).optional(),
+};
+
 // Schedule a meeting
 export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
@@ -134,6 +145,7 @@ export const scheduleMeetingSchema = z.object({
     .array(z.string().email('Invalid email address'))
     .max(50, 'Maximum 50 invitees')
     .optional(),
+  ...recurrenceFields,
 });
 
 // Edit a scheduled meeting. Accepts either the column names (scheduled_at) or the
@@ -162,6 +174,7 @@ export const updateScheduledMeetingSchema = z
       .array(z.string().email('Invalid email address'))
       .max(50, 'Maximum 50 invitees')
       .optional(),
+    ...recurrenceFields,
   })
   .transform((input) => {
     const scheduledAt = input.scheduled_at ?? input.scheduledAt;
@@ -175,12 +188,26 @@ export const updateScheduledMeetingSchema = z
       ? [...new Set(input.inviteeEmails.map((email) => email.toLowerCase().trim()))]
       : undefined;
 
+    // Turning recurrence off also clears its settings, so a meeting that is later
+    // made recurring again does not inherit a stale interval or count.
+    const recurrence =
+      input.recurrenceFreq === undefined
+        ? {}
+        : input.recurrenceFreq === null
+          ? { recurrence_freq: null, recurrence_interval: 1, recurrence_count: 0 }
+          : {
+              recurrence_freq: input.recurrenceFreq,
+              recurrence_interval: input.recurrenceInterval ?? 1,
+              recurrence_count: input.recurrenceCount ?? 0,
+            };
+
     return {
       ...(input.title !== undefined && { title: input.title.trim() }),
       ...(description !== undefined && { description }),
       ...(scheduledAt !== undefined && { scheduled_at: scheduledAt }),
       ...(durationMinutes !== undefined && { duration_minutes: durationMinutes }),
       ...(inviteeEmails !== undefined && { inviteeEmails }),
+      ...recurrence,
     };
   });
 

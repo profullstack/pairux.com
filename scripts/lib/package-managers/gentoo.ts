@@ -146,6 +146,7 @@ Exec=/opt/pairux/pairux-bin-${release.version}.AppImage --no-sandbox %U
 Icon=pairux
 Type=Application
 Categories=Network;RemoteAccess;
+MimeType=x-scheme-handler/pairux;
 StartupWMClass=PairUX
 `;
 

@@ -151,6 +151,7 @@ Exec=/opt/pairux/pairux.AppImage --no-sandbox %U
 Icon=pairux
 Type=Application
 Categories=Network;RemoteAccess;
+MimeType=x-scheme-handler/pairux;
 StartupWMClass=PairUX
 DESKTOP
     install -Dm644 "$srcdir/pairux.desktop" "$pkgdir/usr/share/applications/pairux.desktop"

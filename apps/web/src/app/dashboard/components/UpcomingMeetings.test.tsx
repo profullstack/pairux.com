@@ -36,14 +36,46 @@ async function renderMeetings() {
 }
 
 describe('UpcomingMeetings', () => {
+  const originalLocation = window.location;
+  let navigations: string[] = [];
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    // Starting a meeting navigates twice: once at pairux://, once at the web
+    // player if nothing answers. jsdom implements neither, so record both.
+    navigations = [];
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        get href() {
+          return navigations[navigations.length - 1] ?? '';
+        },
+        set href(value: string) {
+          navigations.push(value);
+        },
+      },
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
   });
+
+  async function startMeeting() {
+    vi.setSystemTime('2026-08-14T17:30:00.000Z');
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ data: [meeting] }))
+      .mockResolvedValueOnce(response({ data: { id: 'session-1', join_code: '8523BF' } }));
+
+    await renderMeetings();
+    fireEvent.click(screen.getByRole('button', { name: 'Start Now' }));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  }
 
   it('reveals Start Now when an open dashboard crosses the early-start boundary', async () => {
     vi.setSystemTime('2026-08-14T16:44:59.000Z');
@@ -107,5 +139,30 @@ describe('UpcomingMeetings', () => {
         body: expect.stringContaining('"joinCode":"8523BF"'),
       })
     );
+  });
+
+  it('offers the started meeting to the desktop app first', async () => {
+    await startMeeting();
+
+    expect(navigations).toEqual(['pairux://host/session-1']);
+    expect(screen.getByText('Opening the PairUX desktop app…')).toBeInTheDocument();
+  });
+
+  it('falls back to the web player when the desktop app does not answer', async () => {
+    await startMeeting();
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
+  });
+
+  it('lets the host bail out to this browser without waiting', async () => {
+    await startMeeting();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue in this browser' }));
+
+    expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
   });
 });

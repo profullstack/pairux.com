@@ -1160,6 +1160,7 @@ Icon=pairux
 Terminal=false
 Type=Application
 Categories=Network;RemoteAccess;
+MimeType=x-scheme-handler/pairux;
 StartupWMClass=PairUX
 Keywords=screen;share;remote;control;
 DESKTOP

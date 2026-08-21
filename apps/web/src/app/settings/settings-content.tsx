@@ -21,6 +21,8 @@ interface AppSettings {
   };
   session: {
     defaultMaxParticipants: number;
+    /** Try the desktop app before hosting a session in this browser. */
+    openInDesktopApp: boolean;
   };
   appearance: {
     theme: 'light' | 'dark' | 'system';
@@ -37,6 +39,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
   session: {
     defaultMaxParticipants: 5,
+    openInDesktopApp: true,
   },
   appearance: {
     theme: 'system',
@@ -299,6 +302,41 @@ export function SettingsContent({ user }: { user: UserData | null }) {
                     <option value={5}>5 viewers</option>
                     <option value={10}>10 viewers</option>
                   </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      Open Sessions in the Desktop App
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Starting a session opens the desktop app, where you can hand a guest control.
+                      Falls back to this browser if the app is not installed.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Open sessions in the desktop app"
+                    aria-pressed={settings.session.openInDesktopApp}
+                    onClick={() => {
+                      saveSettings({
+                        ...settings,
+                        session: {
+                          ...settings.session,
+                          openInDesktopApp: !settings.session.openInDesktopApp,
+                        },
+                      });
+                    }}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      settings.session.openInDesktopApp ? 'bg-primary-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        settings.session.openInDesktopApp ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">

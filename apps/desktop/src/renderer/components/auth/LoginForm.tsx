@@ -22,7 +22,12 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/';
+  // Keep the query string as well as the path: a `pairux://host/<id>` deep link
+  // arrives as `/?shareSessionId=<id>`, and dropping the search would land a
+  // freshly signed-in host on an empty Home instead of their meeting.
+  const requested = (location.state as { from?: { pathname: string; search?: string } } | null)
+    ?.from;
+  const from = requested ? `${requested.pathname}${requested.search ?? ''}` : '/';
 
   useEffect(() => {
     async function loadRememberedCredentials() {

@@ -265,6 +265,20 @@ graph TB
 
 6. **Monorepo with Turborepo**: Shared code between web and desktop. Unified CI/CD. Better developer experience.
 
+7. **`pairux://` deep links**: Starting a session on the web tries the desktop app before the browser player, because only the desktop app can inject input — a browser-hosted session is view-only. The web app fires the link and falls back to `/host/<id>` if the page still has focus after two seconds (there is no API that reports whether a scheme is registered). Hosts who want the browser can turn it off in Settings.
+
+## Deep Links
+
+`pairux://` is registered by the desktop app (`apps/desktop/src/main/deepLink.ts`, plus `protocols:` in `electron-builder.yml` and `MimeType=x-scheme-handler/pairux` in the Linux `.desktop` files). Links map onto renderer routes:
+
+| Link                   | Renderer route          | Meaning                            |
+| ---------------------- | ----------------------- | ---------------------------------- |
+| `pairux://host/<id>`   | `/?shareSessionId=<id>` | Host a session the API already has |
+| `pairux://join/<code>` | `/join?code=<CODE>`     | Join by six-character code         |
+| `pairux://view/<id>`   | `/viewer/<id>`          | Watch a session                    |
+
+Anything else is dropped rather than navigated: the URL comes from outside the app. macOS delivers links through `open-url`; Windows and Linux pass them in `argv`, either at cold start or via `second-instance`. A link that arrives before the renderer is up is held and flushed on `did-finish-load`.
+
 ## Performance Targets
 
 | Metric             | Target        | Measurement                                    |

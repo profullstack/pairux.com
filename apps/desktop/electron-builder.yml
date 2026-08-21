@@ -21,6 +21,14 @@ extraResources:
     filter:
       - '**/*'
 
+# pairux:// links from the web app open a session in this app rather than in a
+# browser tab. Generates CFBundleURLTypes on macOS, the NSIS registry entries on
+# Windows and MimeType=x-scheme-handler/pairux in the Linux .desktop file.
+protocols:
+  - name: PairUX
+    schemes:
+      - pairux
+
 asar: true
 asarUnpack:
   - '**/*.node'

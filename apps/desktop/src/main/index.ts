@@ -9,6 +9,12 @@ import { initializeMenu, showAboutDialog } from './platform';
 import { clearStoredAuth, clearStoredCredentials } from './auth/secure-storage';
 import { setMainWindow as setStreamingMainWindow } from './streaming';
 import { startDaemon, stopDaemon } from './daemon';
+import {
+  findDeepLinkArg,
+  handleDeepLink,
+  registerProtocolClient,
+  setDeepLinkWindow,
+} from './deepLink';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
@@ -143,13 +149,23 @@ if (process.platform === 'win32') {
   app.setAppUserModelId(app.getName());
 }
 
+// Claim pairux:// so the web app can hand a session to this app instead of
+// hosting it in a browser tab, which cannot inject input.
+registerProtocolClient();
+
+// macOS delivers deep links as an event, on a cold start before `whenReady`.
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
+});
+
 // Prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
     // Someone tried to run a second instance, focus our window
     const windows = BrowserWindow.getAllWindows();
     if (windows.length > 0) {
@@ -157,7 +173,16 @@ if (!gotTheLock) {
       if (existingWindow.isMinimized()) existingWindow.restore();
       existingWindow.focus();
     }
+
+    // Windows and Linux hand a deep link to the *second* instance as an argv
+    // entry; this is the running app being asked to open it.
+    const link = findDeepLinkArg(argv);
+    if (link) handleDeepLink(link);
   });
+
+  // Cold start from a link on Windows and Linux: it is already in our argv.
+  const initialLink = findDeepLinkArg(process.argv);
+  if (initialLink) handleDeepLink(initialLink);
 }
 
 let mainWindow: BrowserWindow | null = null;
@@ -165,9 +190,11 @@ let mainWindow: BrowserWindow | null = null;
 async function createWindow(): Promise<void> {
   mainWindow = await createMainWindow(isWayland);
   setStreamingMainWindow(mainWindow);
+  setDeepLinkWindow(mainWindow);
 
   mainWindow.on('closed', () => {
     setStreamingMainWindow(null);
+    setDeepLinkWindow(null);
     mainWindow = null;
   });
 }

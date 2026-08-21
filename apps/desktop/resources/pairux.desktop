@@ -5,5 +5,6 @@ Exec=pairux %U
 Icon=pairux
 Type=Application
 Categories=Network;RemoteAccess;
+MimeType=x-scheme-handler/pairux;
 StartupWMClass=pairux
 StartupNotify=true

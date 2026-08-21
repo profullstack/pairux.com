@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
+import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
+import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
 import {
   describeRecurrence,
   occurrencesRemaining,
@@ -110,6 +112,9 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [calendarOpenId, setCalendarOpenId] = useState<string | null>(null);
   const [editing, setEditing] = useState<ScheduledSession | null>(null);
+  // Starting a meeting belongs in the desktop app, which is the only place a
+  // guest can be handed control; the web player is the fallback.
+  const handoff = useDesktopHandoff();
   const [startError, setStartError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
@@ -155,7 +160,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
       });
       const json = (await res.json().catch(() => ({}))) as StartResponse;
       if (res.ok && json.data?.id) {
-        window.location.href = `/host/${json.data.id}`;
+        handoff.openSession(json.data.id);
         return;
       }
       throw new Error(json.error ?? 'Failed to start the meeting');
@@ -201,6 +206,11 @@ export function UpcomingMeetings({ onSchedule }: Props) {
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <DesktopHandoffOverlay
+        state={handoff.state}
+        onContinueInBrowser={handoff.continueInBrowser}
+      />
+
       {editing && (
         <ScheduleMeetingModal
           meeting={editing}

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users, Settings } from 'lucide-react';
 import { HeaderClient } from '@/components/header-client';
+import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
+import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
 
 interface SessionData {
   id: string;
@@ -27,6 +29,17 @@ export default function StartHostPage() {
   const [maxParticipants, setMaxParticipants] = useState(5);
   // allowGuestControl is always false for web hosting (disabled)
   const allowGuestControl = false;
+  // Guest control is exactly what the desktop app adds, so try it first and
+  // only host in this tab if nothing answers.
+  const {
+    state: handoffState,
+    openSession,
+    continueInBrowser,
+  } = useDesktopHandoff({
+    navigate: (path) => {
+      router.push(path);
+    },
+  });
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -74,19 +87,21 @@ export default function StartHostPage() {
       }
 
       if (data.data) {
-        // Redirect to the host session page
-        router.push(`/host/${data.data.id}`);
+        // Hand off to the desktop app, falling back to the host session page.
+        openSession(data.data.id);
       }
     } catch {
       setError('Failed to create session. Please try again.');
     } finally {
       setIsCreating(false);
     }
-  }, [router, maxParticipants, allowGuestControl]);
+  }, [router, openSession, maxParticipants, allowGuestControl]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <HeaderClient user={null} />
+
+      <DesktopHandoffOverlay state={handoffState} onContinueInBrowser={continueInBrowser} />
 
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">

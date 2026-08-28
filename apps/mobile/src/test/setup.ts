@@ -5,9 +5,23 @@ import * as React from 'react';
 // Make React available globally for JSX
 globalThis.React = React;
 
+const appStateMock = vi.hoisted(() => ({
+  currentState: 'active',
+  listeners: new Set<(state: string) => void>(),
+}));
+
+export function emitAppStateChange(state: 'active' | 'background' | 'inactive'): void {
+  appStateMock.currentState = state;
+  for (const listener of appStateMock.listeners) {
+    listener(state);
+  }
+}
+
 // Suppress console noise in tests
 const originalConsole = { ...console };
 beforeEach(() => {
+  appStateMock.currentState = 'active';
+  mockPeerConnections.length = 0;
   vi.stubGlobal('console', {
     ...originalConsole,
     error: vi.fn(),
@@ -19,6 +33,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  appStateMock.listeners.clear();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
@@ -60,6 +75,19 @@ vi.mock('react-native', () => ({
   ActivityIndicator: 'ActivityIndicator',
   KeyboardAvoidingView: 'KeyboardAvoidingView',
   Platform: { OS: 'ios' },
+  AppState: {
+    get currentState() {
+      return appStateMock.currentState;
+    },
+    addEventListener: vi.fn((_event: string, listener: (state: string) => void) => {
+      appStateMock.listeners.add(listener);
+      return {
+        remove: vi.fn(() => {
+          appStateMock.listeners.delete(listener);
+        }),
+      };
+    }),
+  },
   Animated: {
     View: 'Animated.View',
     Value: vi.fn(() => ({
@@ -70,6 +98,8 @@ vi.mock('react-native', () => ({
 }));
 
 // ── Mock: react-native-webrtc ─────────────────────────────────────
+const mockPeerConnections: MockRTCPeerConnection[] = [];
+
 class MockRTCPeerConnection {
   signalingState = 'stable';
   connectionState = 'new';
@@ -85,6 +115,10 @@ class MockRTCPeerConnection {
     getParameters: () => { encodings: Record<string, unknown>[] };
     setParameters: ReturnType<typeof vi.fn>;
   }[] = [];
+
+  constructor() {
+    mockPeerConnections.push(this);
+  }
 
   createOffer = vi.fn().mockResolvedValue({ type: 'offer', sdp: 'mock-sdp' });
   createAnswer = vi.fn().mockResolvedValue({ type: 'answer', sdp: 'mock-answer-sdp' });
@@ -161,7 +195,7 @@ vi.mock('react-native-webrtc', () => ({
 }));
 
 // Export for test use
-export { MockRTCPeerConnection };
+export { MockRTCPeerConnection, mockPeerConnections };
 
 // ── Mock: react-native-sse ────────────────────────────────────────
 vi.mock('react-native-sse', () => {

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 import { useScreenShare } from './useScreenShare';
+import { emitAppStateChange } from '../test/setup';
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -215,6 +216,33 @@ describe('useScreenShare', () => {
 
     expect(capture.track.stop).toHaveBeenCalledTimes(1);
     expect(unpublishStream).toHaveBeenCalledTimes(1);
+  });
+
+  it('survives an inactive interruption but stops cleanly in the background', async () => {
+    const capture = createCapture();
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+    await act(async () => {
+      await result.current.start();
+    });
+
+    act(() => {
+      emitAppStateChange('inactive');
+    });
+    expect(result.current.state).toBe('active');
+    expect(capture.track.stop).not.toHaveBeenCalled();
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    await waitFor(() => expect(result.current.state).toBe('idle'));
+
+    expect(capture.track.stop).toHaveBeenCalledTimes(1);
+    expect(unpublishStream).toHaveBeenCalledTimes(1);
+    expect(result.current.isSharing).toBe(false);
   });
 
   it('serializes duplicate stop requests', async () => {

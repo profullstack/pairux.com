@@ -6,7 +6,7 @@
  */
 import RNEventSource from 'react-native-sse';
 
-type PairUXEvents = 'connected' | 'signal' | 'presence-join' | 'presence-leave';
+type PairUXEvents = 'connected' | 'heartbeat' | 'signal' | 'presence-join' | 'presence-leave';
 
 export type SSEEventHandler = (event: { data: string }) => void;
 

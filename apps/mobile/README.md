@@ -56,6 +56,23 @@ pnpm mobile:android
 pnpm mobile:ios
 ```
 
+## Call continuity
+
+The mobile host and viewer intentionally close their SSE, WebRTC peer, media, and stats resources
+when the app leaves the foreground. If a call was active or still connecting, returning to the
+foreground starts exactly one fresh connection through the normal authentication and signaling
+path. A server heartbeat watchdog also replaces a connection that has stopped receiving SSE
+heartbeats for 75 seconds.
+
+Reconnects preserve the user's microphone mute choice. Async media and signaling callbacks are
+scoped to a connection generation, so a late callback from a backgrounded or unmounted screen
+cannot restore stale peers, viewers, chat history, or microphone state. This is foreground call
+recovery, not background audio support.
+
+An active screen share ends when the app reaches the background and must be started again after
+returning. The capture hook owns that teardown so its UI cannot report a stopped native track as
+still sharing. A brief iOS `inactive` transition alone does not tear down the call or screen share.
+
 ## EAS builds
 
 Link the app to the intended Expo project and provide its UUID through `EAS_PROJECT_ID`. No

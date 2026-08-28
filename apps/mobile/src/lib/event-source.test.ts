@@ -40,6 +40,15 @@ describe('event-source', () => {
     expect(mockAddEventListener).toHaveBeenCalled();
   });
 
+  it('should forward heartbeat listeners to the underlying EventSource', () => {
+    const connection = createEventSource('https://example.com/sse');
+
+    const handler = vi.fn();
+    connection.addEventListener('heartbeat', handler);
+
+    expect(mockAddEventListener).toHaveBeenCalledWith('heartbeat', expect.any(Function));
+  });
+
   it('should handle error events specially', () => {
     const connection = createEventSource('https://example.com/sse');
 

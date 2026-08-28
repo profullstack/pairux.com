@@ -22,14 +22,14 @@ describe('useChat', () => {
     vi.clearAllMocks();
   });
 
-  it('should initialize with loading state', () => {
+  it('should initialize without loading when disabled', () => {
     vi.mocked(chatApi.getHistory).mockResolvedValue({
       data: { messages: [], hasMore: false },
     });
 
     const { result } = renderHook(() => useChat({ sessionId: 'session-1', enabled: false }));
 
-    expect(result.current.loading).toBe(true);
+    expect(result.current.loading).toBe(false);
     expect(result.current.messages).toEqual([]);
     expect(result.current.sending).toBe(false);
     expect(result.current.error).toBeNull();
@@ -53,7 +53,7 @@ describe('useChat', () => {
     const { result } = renderHook(() => useChat({ sessionId: 'session-1', enabled: false }));
 
     expect(chatApi.getHistory).not.toHaveBeenCalled();
-    expect(result.current.loading).toBe(true);
+    expect(result.current.loading).toBe(false);
   });
 
   it('should send messages', async () => {
@@ -137,5 +137,143 @@ describe('useChat', () => {
     });
 
     expect(result.current.error).toBe('Send failed');
+  });
+
+  it('ignores history returned by a previous session generation', async () => {
+    let resolveOldHistory!: (value: {
+      data: { messages: ChatMessage[]; hasMore: boolean };
+    }) => void;
+    vi.mocked(chatApi.getHistory)
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOldHistory = resolve;
+        })
+      )
+      .mockResolvedValueOnce({
+        data: {
+          messages: [{ ...mockMessage, id: 'msg-new', session_id: 'session-2' }],
+          hasMore: false,
+        },
+      });
+
+    const { result, rerender } = renderHook(
+      ({ sessionId }: { sessionId: string }) => useChat({ sessionId, enabled: true }),
+      { initialProps: { sessionId: 'session-1' } }
+    );
+
+    rerender({ sessionId: 'session-2' });
+    await waitFor(() => {
+      expect(result.current.messages.map((message) => message.id)).toEqual(['msg-new']);
+    });
+
+    await act(async () => {
+      resolveOldHistory({ data: { messages: [mockMessage], hasMore: false } });
+      await Promise.resolve();
+    });
+
+    expect(result.current.messages.map((message) => message.id)).toEqual(['msg-new']);
+  });
+
+  it('does not overlap polling requests within the same generation', async () => {
+    vi.useFakeTimers();
+    let resolveFirstPoll!: (value: { data: { messages: ChatMessage[]; hasMore: boolean } }) => void;
+    vi.mocked(chatApi.getHistory)
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirstPoll = resolve;
+        })
+      )
+      .mockResolvedValue({ data: { messages: [], hasMore: false } });
+
+    try {
+      renderHook(() => useChat({ sessionId: 'session-1', enabled: true }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(chatApi.getHistory).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+      expect(chatApi.getHistory).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveFirstPoll({ data: { messages: [], hasMore: false } });
+        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+      expect(chatApi.getHistory).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('ignores a send response after the active session changes', async () => {
+    let resolveSend!: (value: { data: ChatMessage }) => void;
+    vi.mocked(chatApi.getHistory).mockResolvedValue({
+      data: { messages: [], hasMore: false },
+    });
+    vi.mocked(chatApi.send).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSend = resolve;
+      })
+    );
+
+    const { result, rerender } = renderHook(
+      ({ sessionId }: { sessionId: string }) => useChat({ sessionId, enabled: true }),
+      { initialProps: { sessionId: 'session-1' } }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage('old session message');
+    });
+    rerender({ sessionId: 'session-2' });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      resolveSend({ data: mockMessage });
+      await sendPromise;
+    });
+
+    expect(result.current.messages).toEqual([]);
+    expect(result.current.sending).toBe(false);
+  });
+
+  it('clears a stale sending state when chat is disabled and re-enabled', async () => {
+    let resolveSend!: (value: { data: ChatMessage }) => void;
+    vi.mocked(chatApi.getHistory).mockResolvedValue({
+      data: { messages: [], hasMore: false },
+    });
+    vi.mocked(chatApi.send).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSend = resolve;
+      })
+    );
+
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useChat({ sessionId: 'session-1', enabled }),
+      { initialProps: { enabled: true } }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage('message before disable');
+    });
+    expect(result.current.sending).toBe(true);
+
+    rerender({ enabled: false });
+    expect(result.current.sending).toBe(false);
+    rerender({ enabled: true });
+
+    await act(async () => {
+      resolveSend({ data: mockMessage });
+      await sendPromise;
+    });
+
+    expect(result.current.messages).toEqual([]);
+    expect(result.current.sending).toBe(false);
   });
 });

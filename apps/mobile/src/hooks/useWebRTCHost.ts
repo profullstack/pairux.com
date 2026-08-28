@@ -9,6 +9,7 @@
  *  - No HTMLAudioElement (audio handled by RN WebRTC)
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import type { MediaStreamTrack, RTCRtpSender } from 'react-native-webrtc';
 import { RTCPeerConnection, RTCIceCandidate, MediaStream, mediaDevices } from 'react-native-webrtc';
 import type {
@@ -63,6 +64,8 @@ const _BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
 };
 
 const STATS_INTERVAL = 30000;
+const HEARTBEAT_TIMEOUT = 75000;
+const HEARTBEAT_WATCHDOG_INTERVAL = 15000;
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -137,9 +140,16 @@ export function useWebRTCHost({
   const eventSourceRef = useRef<SSEConnection | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heartbeatWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastHeartbeatAtRef = useRef(0);
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
   const authTokenRef = useRef<string | null>(null);
   const isStartingRef = useRef(false);
+  const mountedRef = useRef(true);
+  const generationRef = useRef(0);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const resumeOnActiveRef = useRef(false);
+  const micEnabledIntentRef = useRef(true);
   const localStreamRef = useRef<MediaStream | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
   const publishedStreamSendersRef = useRef<Map<string, Map<string, RTCRtpSender>>>(new Map());
@@ -150,8 +160,19 @@ export function useWebRTCHost({
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
+  const onViewerJoinedRef = useRef(onViewerJoined);
+  const onViewerLeftRef = useRef(onViewerLeft);
+  const startHostingRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const stopHostingRef = useRef<(() => void) | undefined>(undefined);
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
+  onViewerJoinedRef.current = onViewerJoined;
+  onViewerLeftRef.current = onViewerLeft;
+
+  const isCurrentGeneration = useCallback(
+    (generation: number) => mountedRef.current && generationRef.current === generation,
+    []
+  );
 
   // Send signal via API
   const sendSignal = useCallback(
@@ -182,12 +203,22 @@ export function useWebRTCHost({
   );
 
   const renegotiateViewer = useCallback(
-    async (viewer: ViewerConnection): Promise<void> => {
+    async (viewer: ViewerConnection, generation: number): Promise<void> => {
+      if (!isCurrentGeneration(generation) || viewersRef.current.get(viewer.id) !== viewer) {
+        return;
+      }
+
       const offer = (await viewer.peerConnection.createOffer({})) as OfferAnswer;
+      if (!isCurrentGeneration(generation) || viewersRef.current.get(viewer.id) !== viewer) {
+        return;
+      }
       if (offer.sdp) {
         offer.sdp = tuneOpusForVoice(offer.sdp);
       }
       await viewer.peerConnection.setLocalDescription(offer);
+      if (!isCurrentGeneration(generation) || viewersRef.current.get(viewer.id) !== viewer) {
+        return;
+      }
 
       if (!offer.sdp) {
         throw new Error(`Failed to create an SDP offer for viewer ${viewer.id}`);
@@ -204,79 +235,87 @@ export function useWebRTCHost({
         throw new Error(`Failed to signal viewer ${viewer.id}`);
       }
     },
-    [hostId, sendSignal]
+    [hostId, isCurrentGeneration, sendSignal]
   );
 
   // Report usage stats
-  const reportStats = useCallback(async () => {
-    for (const viewer of viewersRef.current.values()) {
-      if (viewer.connectionState !== 'connected') continue;
+  const reportStats = useCallback(
+    async (generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
+      for (const viewer of viewersRef.current.values()) {
+        if (!isCurrentGeneration(generation)) return;
+        if (viewer.connectionState !== 'connected') continue;
 
-      try {
-        const stats = (await viewer.peerConnection.getStats()) as Map<
-          string,
-          Record<string, unknown>
-        >;
-        let bytesSent = 0;
-        let bytesReceived = 0;
-        let packetsSent = 0;
-        let packetsReceived = 0;
-        let packetsLost = 0;
-        let roundTripTime: number | undefined;
-        let frameRate: number | undefined;
-        let frameWidth: number | undefined;
-        let frameHeight: number | undefined;
+        try {
+          const stats = (await viewer.peerConnection.getStats()) as Map<
+            string,
+            Record<string, unknown>
+          >;
+          if (!isCurrentGeneration(generation) || viewersRef.current.get(viewer.id) !== viewer) {
+            return;
+          }
+          let bytesSent = 0;
+          let bytesReceived = 0;
+          let packetsSent = 0;
+          let packetsReceived = 0;
+          let packetsLost = 0;
+          let roundTripTime: number | undefined;
+          let frameRate: number | undefined;
+          let frameWidth: number | undefined;
+          let frameHeight: number | undefined;
 
-        stats.forEach((report: Record<string, unknown>) => {
-          if (report.type === 'outbound-rtp' && report.kind === 'video') {
-            bytesSent += (report.bytesSent as number | undefined) ?? 0;
-            packetsSent += (report.packetsSent as number | undefined) ?? 0;
-            frameRate = report.framesPerSecond as number | undefined;
-            frameWidth = report.frameWidth as number | undefined;
-            frameHeight = report.frameHeight as number | undefined;
-          }
-          if (report.type === 'inbound-rtp') {
-            bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
-            packetsReceived += (report.packetsReceived as number | undefined) ?? 0;
-          }
-          if (report.type === 'remote-inbound-rtp') {
-            packetsLost += (report.packetsLost as number | undefined) ?? 0;
-          }
-          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-            roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
-          }
-        });
+          stats.forEach((report: Record<string, unknown>) => {
+            if (report.type === 'outbound-rtp' && report.kind === 'video') {
+              bytesSent += (report.bytesSent as number | undefined) ?? 0;
+              packetsSent += (report.packetsSent as number | undefined) ?? 0;
+              frameRate = report.framesPerSecond as number | undefined;
+              frameWidth = report.frameWidth as number | undefined;
+              frameHeight = report.frameHeight as number | undefined;
+            }
+            if (report.type === 'inbound-rtp') {
+              bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
+              packetsReceived += (report.packetsReceived as number | undefined) ?? 0;
+            }
+            if (report.type === 'remote-inbound-rtp') {
+              packetsLost += (report.packetsLost as number | undefined) ?? 0;
+            }
+            if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+              roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
+            }
+          });
 
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authTokenRef.current) {
-          headers.Authorization = `Bearer ${authTokenRef.current}`;
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (authTokenRef.current) {
+            headers.Authorization = `Bearer ${authTokenRef.current}`;
+          }
+
+          await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              participantId: hostId,
+              role: 'host',
+              timestamp: Date.now(),
+              connectionState: viewer.connectionState,
+              bytesSent,
+              bytesReceived,
+              packetsSent,
+              packetsReceived,
+              packetsLost,
+              roundTripTime,
+              frameRate,
+              frameWidth,
+              frameHeight,
+              reportInterval: STATS_INTERVAL,
+            }),
+          });
+        } catch (err) {
+          console.error('[WebRTCHost] Failed to report stats:', err);
         }
-
-        await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            participantId: hostId,
-            role: 'host',
-            timestamp: Date.now(),
-            connectionState: viewer.connectionState,
-            bytesSent,
-            bytesReceived,
-            packetsSent,
-            packetsReceived,
-            packetsLost,
-            roundTripTime,
-            frameRate,
-            frameWidth,
-            frameHeight,
-            reportInterval: STATS_INTERVAL,
-          }),
-        });
-      } catch (err) {
-        console.error('[WebRTCHost] Failed to report stats:', err);
       }
-    }
-  }, [sessionId, hostId]);
+    },
+    [hostId, isCurrentGeneration, sessionId]
+  );
 
   // Handle data channel messages from viewer
   const handleDataChannelMessage = useCallback((viewerId: string, data: string) => {
@@ -309,10 +348,12 @@ export function useWebRTCHost({
 
   // Relay audio to other viewers
   const relayAudioToOtherViewers = useCallback(
-    async (sourceViewerId: string, audioTrack: MediaStreamTrack) => {
+    async (sourceViewerId: string, audioTrack: MediaStreamTrack, generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
       const audioStream = new MediaStream([audioTrack]);
 
       for (const [otherId, otherViewer] of viewersRef.current.entries()) {
+        if (!isCurrentGeneration(generation)) return;
         if (otherId === sourceViewerId) continue;
         if (
           otherViewer.connectionState !== 'connected' &&
@@ -322,11 +363,14 @@ export function useWebRTCHost({
 
         try {
           await prioritizeAudioSender(otherViewer.peerConnection.addTrack(audioTrack, audioStream));
+          if (!isCurrentGeneration(generation)) return;
 
           const offer = (await otherViewer.peerConnection.createOffer({})) as OfferAnswer;
+          if (!isCurrentGeneration(generation)) return;
           // In-band FEC turns a lost packet into a duller syllable, not a gap.
           if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
           await otherViewer.peerConnection.setLocalDescription(offer);
+          if (!isCurrentGeneration(generation)) return;
 
           if (offer.sdp) {
             await sendSignal({
@@ -342,12 +386,12 @@ export function useWebRTCHost({
         }
       }
     },
-    [hostId, sendSignal]
+    [hostId, isCurrentGeneration, sendSignal]
   );
 
   // Create peer connection for a viewer
   const createPeerConnection = useCallback(
-    (viewerId: string): RTCPeerConnection => {
+    (viewerId: string, generation: number): RTCPeerConnection => {
       console.log('[WebRTCHost] Creating peer connection for viewer:', viewerId);
 
       const pc = new RTCPeerConnection({
@@ -376,6 +420,12 @@ export function useWebRTCHost({
 
       // Handle incoming audio from viewer
       pc.addEventListener('track', (event) => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         const track = event.track;
         if (track?.kind === 'audio') {
           console.log(`[WebRTCHost] Received audio track from viewer: ${viewerId}`);
@@ -383,13 +433,19 @@ export function useWebRTCHost({
           if (viewer) {
             viewer.audioTrack = track;
             setViewers(new Map(viewersRef.current));
-            void relayAudioToOtherViewers(viewerId, track);
+            void relayAudioToOtherViewers(viewerId, track, generation);
           }
         }
       });
 
       // Handle ICE candidates
       pc.addEventListener('icecandidate', (event) => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         if (event.candidate) {
           void sendSignal({
             type: 'ice-candidate',
@@ -403,6 +459,12 @@ export function useWebRTCHost({
 
       // Handle connection state changes
       pc.addEventListener('connectionstatechange', () => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         const viewer = viewersRef.current.get(viewerId);
         if (viewer) {
           let newState: ConnectionState;
@@ -450,6 +512,12 @@ export function useWebRTCHost({
       const dc = pc.createDataChannel('control', { ordered: true });
 
       dc.addEventListener('open', () => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         const viewer = viewersRef.current.get(viewerId);
         if (viewer) {
           viewer.dataChannel = dc;
@@ -458,6 +526,12 @@ export function useWebRTCHost({
       });
 
       dc.addEventListener('close', () => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         const viewer = viewersRef.current.get(viewerId);
         if (viewer) {
           viewer.dataChannel = null;
@@ -468,42 +542,48 @@ export function useWebRTCHost({
       });
 
       dc.addEventListener('message', (event) => {
+        if (
+          !isCurrentGeneration(generation) ||
+          viewersRef.current.get(viewerId)?.peerConnection !== pc
+        ) {
+          return;
+        }
         handleDataChannelMessage(viewerId, typeof event.data === 'string' ? event.data : '');
       });
 
       return pc;
     },
-    [hostId, handleDataChannelMessage, sendSignal, relayAudioToOtherViewers]
+    [hostId, handleDataChannelMessage, isCurrentGeneration, sendSignal, relayAudioToOtherViewers]
   );
 
   // Remove viewer
-  const removeViewer = useCallback(
-    (viewerId: string) => {
-      const viewer = viewersRef.current.get(viewerId);
-      if (viewer) {
-        console.log('[WebRTCHost] Removing viewer:', viewerId);
-        viewer.peerConnection.close();
-        viewersRef.current.delete(viewerId);
-        publishedStreamSendersRef.current.delete(viewerId);
-        pendingCandidatesRef.current.delete(viewerId);
-        setViewers(new Map(viewersRef.current));
-        onViewerLeft?.(viewerId);
+  const removeViewer = useCallback((viewerId: string) => {
+    const viewer = viewersRef.current.get(viewerId);
+    if (viewer) {
+      console.log('[WebRTCHost] Removing viewer:', viewerId);
+      viewer.peerConnection.close();
+      viewersRef.current.delete(viewerId);
+      publishedStreamSendersRef.current.delete(viewerId);
+      pendingCandidatesRef.current.delete(viewerId);
+      setViewers(new Map(viewersRef.current));
+      if (mountedRef.current) {
+        onViewerLeftRef.current?.(viewerId);
       }
-    },
-    [onViewerLeft]
-  );
+    }
+  }, []);
 
   removeViewerRef.current = removeViewer;
 
   // Handle viewer joining
   const handleViewerJoin = useCallback(
-    async (viewerId: string) => {
+    async (viewerId: string, generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
       if (viewerId === hostId) return;
       if (viewersRef.current.has(viewerId)) return;
 
       console.log('[WebRTCHost] Viewer joining:', viewerId);
 
-      const pc = createPeerConnection(viewerId);
+      const pc = createPeerConnection(viewerId, generation);
 
       const viewer: ViewerConnection = {
         id: viewerId,
@@ -519,13 +599,15 @@ export function useWebRTCHost({
 
       viewersRef.current.set(viewerId, viewer);
       setViewers(new Map(viewersRef.current));
-      onViewerJoined?.(viewerId);
+      onViewerJoinedRef.current?.(viewerId);
 
       try {
         const offer = (await pc.createOffer({})) as OfferAnswer;
+        if (!isCurrentGeneration(generation) || viewersRef.current.get(viewerId) !== viewer) return;
         // In-band FEC turns a lost packet into a duller syllable, not a gap.
         if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
         await pc.setLocalDescription(offer);
+        if (!isCurrentGeneration(generation) || viewersRef.current.get(viewerId) !== viewer) return;
 
         if (offer.sdp) {
           await sendSignal({
@@ -538,15 +620,18 @@ export function useWebRTCHost({
         }
       } catch (err) {
         console.error('[WebRTCHost] Failed to create offer:', err);
-        removeViewer(viewerId);
+        if (isCurrentGeneration(generation)) {
+          removeViewer(viewerId);
+        }
       }
     },
-    [hostId, createPeerConnection, onViewerJoined, removeViewer, sendSignal]
+    [hostId, createPeerConnection, isCurrentGeneration, removeViewer, sendSignal]
   );
 
   // Handle incoming signals
   const handleSignalMessage = useCallback(
-    async (signal: SignalMessage) => {
+    async (signal: SignalMessage, generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
       if (signal.targetId && signal.targetId !== hostId) return;
 
       const viewerId = signal.senderId;
@@ -565,6 +650,9 @@ export function useWebRTCHost({
               type: 'answer',
               sdp: signal.sdp,
             });
+            if (!isCurrentGeneration(generation) || viewersRef.current.get(viewerId) !== viewer) {
+              return;
+            }
 
             // Drain buffered ICE candidates
             const pending = pendingCandidatesRef.current.get(viewerId);
@@ -572,6 +660,12 @@ export function useWebRTCHost({
               pendingCandidatesRef.current.delete(viewerId);
               for (const candidate of pending) {
                 await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                if (
+                  !isCurrentGeneration(generation) ||
+                  viewersRef.current.get(viewerId) !== viewer
+                ) {
+                  return;
+                }
               }
             }
           }
@@ -593,7 +687,7 @@ export function useWebRTCHost({
         }
       }
     },
-    [hostId]
+    [hostId, isCurrentGeneration]
   );
 
   // Toggle host microphone
@@ -604,16 +698,28 @@ export function useWebRTCHost({
     const tracks = micStream.getAudioTracks();
     if (tracks.length === 0) return;
 
-    const newEnabled = !micEnabled;
+    const newEnabled = !micEnabledIntentRef.current;
+    micEnabledIntentRef.current = newEnabled;
     tracks.forEach((track) => {
       track.enabled = newEnabled;
     });
     setMicEnabled(newEnabled);
-  }, [micEnabled]);
+  }, []);
 
   // Start hosting
   const startHosting = useCallback(async () => {
-    if (isStartingRef.current || eventSourceRef.current) return;
+    if (!mountedRef.current) {
+      return;
+    }
+    if (appStateRef.current !== 'active') {
+      resumeOnActiveRef.current = true;
+      return;
+    }
+    if (isStartingRef.current || eventSourceRef.current) {
+      return;
+    }
+
+    const generation = ++generationRef.current;
     isStartingRef.current = true;
 
     console.log('[WebRTCHost] Starting hosting for session:', sessionId);
@@ -621,6 +727,7 @@ export function useWebRTCHost({
     // Get auth token from secure storage
     try {
       const stored = await getStoredAuth();
+      if (!isCurrentGeneration(generation)) return;
       if (!stored || isAuthExpired(stored)) {
         isStartingRef.current = false;
         setError('Not authenticated. Please log in again.');
@@ -629,19 +736,32 @@ export function useWebRTCHost({
       authTokenRef.current = stored.accessToken;
     } catch (err) {
       console.error('[WebRTCHost] Failed to get auth token:', err);
-      isStartingRef.current = false;
-      setError('Failed to authenticate. Please log in again.');
+      if (isCurrentGeneration(generation)) {
+        isStartingRef.current = false;
+        setError('Failed to authenticate. Please log in again.');
+      }
       return;
     }
 
     // Capture host microphone
     try {
       const micStream = await mediaDevices.getUserMedia(voiceCaptureConstraints);
-      markTrackAsSpeech(micStream.getAudioTracks()[0]);
+      if (!isCurrentGeneration(generation)) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        return;
+      }
+      const audioTrack = micStream.getAudioTracks()[0];
+      markTrackAsSpeech(audioTrack);
+      micStream.getAudioTracks().forEach((track) => {
+        track.enabled = micEnabledIntentRef.current;
+      });
       hostMicStreamRef.current = micStream;
       setHasMic(true);
-      setMicEnabled(true);
+      setMicEnabled(micEnabledIntentRef.current);
     } catch {
+      if (!isCurrentGeneration(generation)) return;
       console.warn('[WebRTCHost] No microphone available');
       setHasMic(false);
       setMicEnabled(false);
@@ -657,11 +777,20 @@ export function useWebRTCHost({
 
     const sseUrl = `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?${sseParams.toString()}`;
     const eventSource = createEventSource(sseUrl);
+    if (!isCurrentGeneration(generation)) {
+      eventSource.close();
+      return;
+    }
     eventSourceRef.current = eventSource;
+    lastHeartbeatAtRef.current = Date.now();
+
+    const isCurrentEventSource = () =>
+      isCurrentGeneration(generation) && eventSourceRef.current === eventSource;
 
     eventSource.addEventListener('connected', (event) => {
-      if (eventSourceRef.current !== eventSource) return;
+      if (!isCurrentEventSource()) return;
       console.log('[WebRTCHost] SSE connected');
+      lastHeartbeatAtRef.current = Date.now();
       isStartingRef.current = false;
       setIsHosting(true);
       setError(null);
@@ -676,25 +805,30 @@ export function useWebRTCHost({
       }
     });
 
+    eventSource.addEventListener('heartbeat', () => {
+      if (!isCurrentEventSource()) return;
+      lastHeartbeatAtRef.current = Date.now();
+    });
+
     eventSource.addEventListener('signal', (event) => {
-      if (eventSourceRef.current !== eventSource) return;
+      if (!isCurrentEventSource()) return;
       try {
         const signal = JSON.parse(event.data) as SignalMessage;
-        void handleSignalMessage(signal);
+        void handleSignalMessage(signal, generation);
       } catch (err) {
         console.error('[WebRTCHost] Failed to parse signal:', err);
       }
     });
 
     eventSource.addEventListener('presence-join', (event) => {
-      if (eventSourceRef.current !== eventSource) return;
+      if (!isCurrentEventSource()) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string; role: string }[];
         };
         for (const presence of presences) {
           if (presence.role === 'viewer' && presence.user_id !== hostId) {
-            void handleViewerJoin(presence.user_id);
+            void handleViewerJoin(presence.user_id, generation);
           }
         }
       } catch (err) {
@@ -703,7 +837,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('presence-leave', (event) => {
-      if (eventSourceRef.current !== eventSource) return;
+      if (!isCurrentEventSource()) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string }[];
@@ -717,7 +851,7 @@ export function useWebRTCHost({
     });
 
     eventSource.addEventListener('error', () => {
-      if (eventSourceRef.current !== eventSource) return;
+      if (!isCurrentEventSource()) return;
       console.error('[WebRTCHost] SSE error');
       isStartingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
@@ -725,18 +859,42 @@ export function useWebRTCHost({
 
     // Start stats reporting
     statsIntervalRef.current = setInterval(() => {
-      void reportStats();
+      void reportStats(generation);
     }, STATS_INTERVAL);
-  }, [sessionId, hostId, handleSignalMessage, handleViewerJoin, removeViewer, reportStats]);
+    heartbeatWatchdogRef.current = setInterval(() => {
+      if (!isCurrentEventSource()) return;
+      if (Date.now() - lastHeartbeatAtRef.current <= HEARTBEAT_TIMEOUT) return;
+
+      setError('Connection heartbeat timed out. Reconnecting...');
+      stopHostingRef.current?.();
+      void startHostingRef.current?.();
+    }, HEARTBEAT_WATCHDOG_INTERVAL);
+  }, [
+    sessionId,
+    hostId,
+    handleSignalMessage,
+    handleViewerJoin,
+    isCurrentGeneration,
+    removeViewer,
+    reportStats,
+  ]);
+
+  startHostingRef.current = startHosting;
 
   // Stop hosting
   const stopHosting = useCallback(() => {
     console.log('[WebRTCHost] Stopping hosting');
+    generationRef.current += 1;
     isStartingRef.current = false;
 
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
+    }
+
+    if (heartbeatWatchdogRef.current) {
+      clearInterval(heartbeatWatchdogRef.current);
+      heartbeatWatchdogRef.current = null;
     }
 
     if (eventSourceRef.current) {
@@ -749,14 +907,9 @@ export function useWebRTCHost({
     });
     viewersRef.current.clear();
     publishedStreamSendersRef.current.clear();
+    pendingCandidatesRef.current.clear();
     publishedStreamVersionRef.current += 1;
-    const publishedStream = localStreamRef.current;
     localStreamRef.current = null;
-    publishedStream?.getTracks().forEach((track) => {
-      track.stop();
-    });
-    setViewers(new Map());
-    setIsHosting(false);
 
     if (hostMicStreamRef.current) {
       hostMicStreamRef.current.getTracks().forEach((track) => {
@@ -764,9 +917,18 @@ export function useWebRTCHost({
       });
       hostMicStreamRef.current = null;
     }
-    setMicEnabled(false);
-    setHasMic(false);
+    lastHeartbeatAtRef.current = 0;
+
+    if (mountedRef.current) {
+      setViewers(new Map());
+      setControllingViewer(null);
+      setIsHosting(false);
+      setMicEnabled(false);
+      setHasMic(false);
+    }
   }, []);
+
+  stopHostingRef.current = stopHosting;
 
   const removePublishedSenders = useCallback((viewer: ViewerConnection): boolean => {
     const publishedSenders = publishedStreamSendersRef.current.get(viewer.id);
@@ -784,12 +946,16 @@ export function useWebRTCHost({
   // Publish screen share stream
   const publishStream = useCallback(
     async (stream: MediaStream) => {
+      const generation = generationRef.current;
+      if (!isCurrentGeneration(generation)) return;
+
       localStreamRef.current = stream;
       const publishVersion = ++publishedStreamVersionRef.current;
 
       try {
         for (const viewer of viewersRef.current.values()) {
           if (
+            !isCurrentGeneration(generation) ||
             publishedStreamVersionRef.current !== publishVersion ||
             localStreamRef.current !== stream
           ) {
@@ -826,11 +992,12 @@ export function useWebRTCHost({
           }
 
           if (negotiationNeeded) {
-            await renegotiateViewer(viewer);
+            await renegotiateViewer(viewer, generation);
           }
         }
       } catch (publishError) {
         if (
+          isCurrentGeneration(generation) &&
           publishedStreamVersionRef.current === publishVersion &&
           localStreamRef.current === stream
         ) {
@@ -838,9 +1005,10 @@ export function useWebRTCHost({
           publishedStreamVersionRef.current += 1;
 
           for (const viewer of viewersRef.current.values()) {
+            if (!isCurrentGeneration(generation)) return;
             if (!removePublishedSenders(viewer)) continue;
             try {
-              await renegotiateViewer(viewer);
+              await renegotiateViewer(viewer, generation);
             } catch (rollbackError) {
               console.error(
                 `[WebRTCHost] Failed to roll back stream for ${viewer.id}:`,
@@ -852,17 +1020,23 @@ export function useWebRTCHost({
         throw publishError;
       }
     },
-    [removePublishedSenders, renegotiateViewer]
+    [isCurrentGeneration, removePublishedSenders, renegotiateViewer]
   );
 
   // Unpublish stream
   const unpublishStream = useCallback(async () => {
+    const generation = generationRef.current;
+    if (!isCurrentGeneration(generation)) return;
+
     localStreamRef.current = null;
     const unpublishVersion = ++publishedStreamVersionRef.current;
     const failures: string[] = [];
 
     for (const viewer of viewersRef.current.values()) {
-      if (publishedStreamVersionRef.current !== unpublishVersion) {
+      if (
+        !isCurrentGeneration(generation) ||
+        publishedStreamVersionRef.current !== unpublishVersion
+      ) {
         return;
       }
       if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting') {
@@ -871,7 +1045,7 @@ export function useWebRTCHost({
 
       try {
         if (removePublishedSenders(viewer)) {
-          await renegotiateViewer(viewer);
+          await renegotiateViewer(viewer, generation);
         }
       } catch (unpublishError) {
         failures.push(viewer.id);
@@ -882,11 +1056,40 @@ export function useWebRTCHost({
     if (failures.length > 0) {
       throw new Error(`Failed to unpublish screen share from ${String(failures.length)} viewer(s)`);
     }
-  }, [removePublishedSenders, renegotiateViewer]);
+  }, [isCurrentGeneration, removePublishedSenders, renegotiateViewer]);
 
-  // Cleanup on unmount
+  // Suspend native media and transport while backgrounded, then restore one
+  // fresh host connection only if hosting was active or starting beforehand.
   useEffect(() => {
+    mountedRef.current = true;
+    appStateRef.current = AppState.currentState;
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextState;
+
+      if (nextState === 'background') {
+        if (previousState !== 'background') {
+          const hadActiveHost =
+            isStartingRef.current || eventSourceRef.current !== null || viewersRef.current.size > 0;
+          resumeOnActiveRef.current = resumeOnActiveRef.current || hadActiveHost;
+          if (hadActiveHost) {
+            stopHosting();
+          }
+        }
+        return;
+      }
+
+      if (nextState === 'active' && previousState !== 'active' && resumeOnActiveRef.current) {
+        resumeOnActiveRef.current = false;
+        void startHostingRef.current?.();
+      }
+    });
+
     return () => {
+      subscription.remove();
+      mountedRef.current = false;
+      resumeOnActiveRef.current = false;
       stopHosting();
     };
   }, [stopHosting]);
@@ -953,14 +1156,9 @@ export function useWebRTCHost({
       if (controllingViewer === viewerId) {
         setControllingViewer(null);
       }
-
-      viewer.peerConnection.close();
-      viewersRef.current.delete(viewerId);
-      publishedStreamSendersRef.current.delete(viewerId);
-      setViewers(new Map(viewersRef.current));
-      onViewerLeft?.(viewerId);
+      removeViewer(viewerId);
     },
-    [controllingViewer, onViewerLeft]
+    [controllingViewer, removeViewer]
   );
 
   // Mute/unmute viewer

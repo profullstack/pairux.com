@@ -3,7 +3,9 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useWebRTCHost } from './useWebRTCHost';
 import { createEventSource } from '../lib/event-source';
 import { getStoredAuth } from '../lib/secure-storage';
+import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
+import { emitAppStateChange } from '../test/setup';
 
 vi.mock('../config', () => ({
   API_BASE_URL: 'https://pairux.com',
@@ -19,21 +21,37 @@ vi.mock('../lib/secure-storage', () => ({
   isAuthExpired: vi.fn().mockReturnValue(false),
 }));
 
-const { mockClose, mockAddEventListener } = vi.hoisted(() => ({
+const { mockClose, mockAddEventListener, mockEventSources } = vi.hoisted(() => ({
   mockClose: vi.fn(),
   mockAddEventListener: vi.fn(),
+  mockEventSources: [] as {
+    listeners: Map<string, (event: { data: string }) => void>;
+    close: ReturnType<typeof vi.fn>;
+  }[],
 }));
 
 vi.mock('../lib/event-source', () => ({
-  createEventSource: vi.fn(() => ({
-    addEventListener: mockAddEventListener,
-    close: mockClose,
-  })),
+  createEventSource: vi.fn(() => {
+    const listeners = new Map<string, (event: { data: string }) => void>();
+    const source = {
+      listeners,
+      addEventListener: vi.fn((event: string, listener: (payload: { data: string }) => void) => {
+        mockAddEventListener(event, listener);
+        listeners.set(event, listener);
+      }),
+      close: vi.fn(() => {
+        mockClose();
+      }),
+    };
+    mockEventSources.push(source);
+    return source;
+  }),
 }));
 
 describe('useWebRTCHost', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockEventSources.length = 0;
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       text: async () => 'ok',
@@ -299,5 +317,279 @@ describe('useWebRTCHost', () => {
     expect(viewer?.peerConnection.getSenders().some((sender) => sender.track === screenTrack)).toBe(
       false
     );
+  });
+
+  it('tears down once in the background and resumes exactly once when active', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    expect(createEventSource).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      emitAppStateChange('inactive');
+    });
+    expect(mockClose).not.toHaveBeenCalled();
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    expect(mockClose).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      emitAppStateChange('active');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(createEventSource).toHaveBeenCalledTimes(2);
+  });
+
+  it('accepts a viewer presence event during a transient inactive window', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const source = mockEventSources[0];
+    expect(source).toBeDefined();
+
+    act(() => {
+      source.listeners.get('connected')?.({ data: '{}' });
+      emitAppStateChange('inactive');
+    });
+    await act(async () => {
+      source.listeners.get('presence-join')?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-1', role: 'viewer' }] }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+    expect(result.current.viewers.has('viewer-1')).toBe(true);
+    expect(source.close).not.toHaveBeenCalled();
+  });
+
+  it('starts on foreground when hosting was requested while inactive', async () => {
+    emitAppStateChange('inactive');
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    expect(createEventSource).not.toHaveBeenCalled();
+
+    await act(async () => {
+      emitAppStateChange('active');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(createEventSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not stop a caller-owned screen stream when hosting stops', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+    await act(async () => {
+      await result.current.startHosting();
+    });
+
+    const screenTrack = {
+      id: 'screen',
+      kind: 'video',
+      stop: vi.fn(),
+    } as unknown as MediaStreamTrack & { stop: ReturnType<typeof vi.fn> };
+    const screenStream = { getTracks: () => [screenTrack] } as unknown as MediaStream;
+    await act(async () => {
+      await result.current.publishStream(screenStream);
+    });
+
+    act(() => {
+      result.current.stopHosting();
+    });
+
+    expect(screenTrack.stop).not.toHaveBeenCalled();
+  });
+
+  it('ignores presence callbacks from a retired background generation', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const stalePresenceListener = mockEventSources[0]?.listeners.get('presence-join');
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    await act(async () => {
+      emitAppStateChange('active');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const currentPresenceListener = mockEventSources[1]?.listeners.get('presence-join');
+
+    await act(async () => {
+      stalePresenceListener?.({
+        data: JSON.stringify({ presences: [{ user_id: 'stale-viewer', role: 'viewer' }] }),
+      });
+      await Promise.resolve();
+    });
+    expect(result.current.viewerCount).toBe(0);
+
+    act(() => {
+      currentPresenceListener?.({
+        data: JSON.stringify({ presences: [{ user_id: 'current-viewer', role: 'viewer' }] }),
+      });
+    });
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+    expect(result.current.viewers.has('current-viewer')).toBe(true);
+  });
+
+  it('preserves the host microphone mute intent across a foreground reconnect', async () => {
+    const tracks: (MediaStreamTrack & {
+      enabled: boolean;
+      stop: ReturnType<typeof vi.fn>;
+    })[] = [];
+    const makeMicStream = (): MediaStream => {
+      const track = {
+        kind: 'audio',
+        enabled: true,
+        stop: vi.fn(),
+      } as unknown as MediaStreamTrack & {
+        enabled: boolean;
+        stop: ReturnType<typeof vi.fn>;
+      };
+      tracks.push(track);
+      return {
+        getTracks: () => [track],
+        getAudioTracks: () => [track],
+      } as unknown as MediaStream;
+    };
+    vi.mocked(mediaDevices.getUserMedia)
+      .mockResolvedValueOnce(makeMicStream())
+      .mockResolvedValueOnce(makeMicStream());
+
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    act(() => {
+      result.current.toggleMic();
+    });
+    expect(tracks[0]?.enabled).toBe(false);
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    await act(async () => {
+      emitAppStateChange('active');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(tracks[1]?.enabled).toBe(false);
+    expect(result.current.micEnabled).toBe(false);
+  });
+
+  it('stops a late microphone stream when unmounted during startup', async () => {
+    let resolveMic!: (stream: MediaStream) => void;
+    const lateTrack = {
+      kind: 'audio',
+      enabled: true,
+      stop: vi.fn(),
+    } as unknown as MediaStreamTrack & { stop: ReturnType<typeof vi.fn> };
+    const lateStream = {
+      getTracks: () => [lateTrack],
+      getAudioTracks: () => [lateTrack],
+    } as unknown as MediaStream;
+    vi.mocked(mediaDevices.getUserMedia).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMic = resolve;
+      })
+    );
+
+    const { result, unmount } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    let startPromise!: Promise<void>;
+    await act(async () => {
+      startPromise = result.current.startHosting();
+      await Promise.resolve();
+    });
+    unmount();
+
+    await act(async () => {
+      resolveMic(lateStream);
+      await startPromise;
+    });
+
+    expect(lateTrack.stop).toHaveBeenCalledTimes(1);
+    expect(createEventSource).not.toHaveBeenCalled();
+  });
+
+  it('restarts once after the SSE heartbeat expires', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-28T00:00:00Z'));
+
+    try {
+      const { result } = renderHook(() =>
+        useWebRTCHost({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+        })
+      );
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(90_001);
+        await Promise.resolve();
+      });
+
+      expect(mockClose).toHaveBeenCalledTimes(1);
+      expect(createEventSource).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

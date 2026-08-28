@@ -36,72 +36,122 @@ export function useChat({
 
   const seenIdsRef = useRef<Set<string>>(new Set());
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollGenerationRef = useRef(0);
+  const pollInFlightRef = useRef<number | null>(null);
+  const sendOperationRef = useRef<symbol | null>(null);
+  const mountedRef = useRef(true);
+  const previousSessionIdRef = useRef(sessionId);
 
   // Fetch messages
-  const fetchMessages = useCallback(async () => {
-    try {
-      const result = await chatApi.getHistory(sessionId, { limit: 100 });
+  const fetchMessages = useCallback(
+    async (generation: number) => {
+      if (pollInFlightRef.current === generation) return;
+      pollInFlightRef.current = generation;
 
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
+      try {
+        const result = await chatApi.getHistory(sessionId, { limit: 100 });
+        if (!mountedRef.current || pollGenerationRef.current !== generation) return;
 
-      if (result.data?.messages) {
-        const newMessages: ChatMessage[] = [];
-        for (const msg of result.data.messages) {
-          if (!seenIdsRef.current.has(msg.id)) {
-            seenIdsRef.current.add(msg.id);
-            newMessages.push(msg);
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+
+        if (result.data?.messages) {
+          const newMessages: ChatMessage[] = [];
+          for (const msg of result.data.messages) {
+            if (!seenIdsRef.current.has(msg.id)) {
+              seenIdsRef.current.add(msg.id);
+              newMessages.push(msg);
+            }
           }
-        }
 
-        if (newMessages.length > 0) {
-          setMessages((prev) => {
-            const combined = [...prev, ...newMessages];
-            // Sort by timestamp ascending
-            combined.sort(
-              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            );
-            return combined;
-          });
-        }
+          if (newMessages.length > 0) {
+            setMessages((prev) => {
+              const combined = [...prev, ...newMessages];
+              // Sort by timestamp ascending
+              combined.sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+              return combined;
+            });
+          }
 
-        setError(null);
+          setError(null);
+        }
+      } catch {
+        if (mountedRef.current && pollGenerationRef.current === generation) {
+          setError('Failed to fetch messages');
+        }
+      } finally {
+        if (pollInFlightRef.current === generation) {
+          pollInFlightRef.current = null;
+        }
+        if (mountedRef.current && pollGenerationRef.current === generation) {
+          setLoading(false);
+        }
       }
-    } catch {
-      setError('Failed to fetch messages');
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId]);
+    },
+    [sessionId]
+  );
 
   // Start polling when enabled
   useEffect(() => {
-    if (!enabled) return;
+    const generation = ++pollGenerationRef.current;
+    const sessionChanged = previousSessionIdRef.current !== sessionId;
+    previousSessionIdRef.current = sessionId;
 
-    void fetchMessages();
+    // A generation change invalidates any send started by the previous chat
+    // lifecycle, including enable/disable transitions within the same session.
+    if (sendOperationRef.current) {
+      sendOperationRef.current = null;
+      setSending(false);
+    }
+
+    if (sessionChanged) {
+      seenIdsRef.current = new Set();
+      setMessages([]);
+      setError(null);
+      setLoading(true);
+    }
+
+    if (!enabled) {
+      setLoading(false);
+      return undefined;
+    }
+
+    setLoading(true);
+    void fetchMessages(generation);
 
     pollIntervalRef.current = setInterval(() => {
-      void fetchMessages();
+      void fetchMessages(generation);
     }, POLL_INTERVAL);
 
     return () => {
+      if (pollGenerationRef.current === generation) {
+        pollGenerationRef.current += 1;
+      }
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
       }
     };
-  }, [enabled, fetchMessages]);
+  }, [enabled, fetchMessages, sessionId]);
 
   // Send message
   const sendMessage = useCallback(
     async (content: string) => {
-      if (!content.trim()) return;
+      const trimmed = content.trim();
+      if (!trimmed || sendOperationRef.current) return;
+
+      const generation = pollGenerationRef.current;
+      const operation = Symbol('chat-send');
+      sendOperationRef.current = operation;
       setSending(true);
 
       try {
-        const result = await chatApi.send(sessionId, content.trim(), participantId);
+        const result = await chatApi.send(sessionId, trimmed, participantId);
+        if (!mountedRef.current || pollGenerationRef.current !== generation) return;
 
         if (result.error) {
           setError(result.error);
@@ -116,13 +166,29 @@ export function useChat({
 
         setError(null);
       } catch {
-        setError('Failed to send message');
+        if (mountedRef.current && pollGenerationRef.current === generation) {
+          setError('Failed to send message');
+        }
       } finally {
-        setSending(false);
+        if (sendOperationRef.current === operation) {
+          sendOperationRef.current = null;
+          if (mountedRef.current && pollGenerationRef.current === generation) {
+            setSending(false);
+          }
+        }
       }
     },
     [sessionId, participantId]
   );
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      pollGenerationRef.current += 1;
+      sendOperationRef.current = null;
+    };
+  }, []);
 
   return {
     messages,

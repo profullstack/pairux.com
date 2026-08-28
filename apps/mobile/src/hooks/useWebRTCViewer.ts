@@ -8,6 +8,7 @@
  *  - RTCPeerConnection from react-native-webrtc
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import type { MediaStream } from 'react-native-webrtc';
 import { RTCPeerConnection, RTCIceCandidate, mediaDevices } from 'react-native-webrtc';
 import type {
@@ -51,6 +52,8 @@ interface OfferAnswer {
 
 const STATS_INTERVAL = 30000;
 const STATS_DISPLAY_INTERVAL = 2000;
+const HEARTBEAT_TIMEOUT = 75000;
+const HEARTBEAT_WATCHDOG_INTERVAL = 15000;
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -120,22 +123,42 @@ export function useWebRTCViewer({
   const authTokenRef = useRef<string | null>(null);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statsReportIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heartbeatWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastHeartbeatAtRef = useRef(0);
   const reconnectAttemptsRef = useRef(0);
   const inputSequenceRef = useRef(0);
   const isConnectingRef = useRef(false);
+  const connectionFailureInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
+  const generationRef = useRef(0);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const resumeOnActiveRef = useRef(false);
+  const micEnabledIntentRef = useRef(true);
   const maxReconnectAttempts = 3;
 
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
 
-  const handleConnectionFailureRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const handleConnectionFailureRef = useRef<
+    ((generation: number, pc: RTCPeerConnection) => Promise<void>) | undefined
+  >(undefined);
   const onControlStateChangeRef = useRef(onControlStateChange);
   const onKickedRef = useRef(onKicked);
+  const onStreamReadyRef = useRef(onStreamReady);
+  const onStreamEndedRef = useRef(onStreamEnded);
   const disconnectRef = useRef<(() => void) | undefined>(undefined);
+  const initializeRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   onControlStateChangeRef.current = onControlStateChange;
   onKickedRef.current = onKicked;
+  onStreamReadyRef.current = onStreamReady;
+  onStreamEndedRef.current = onStreamEnded;
+
+  const isCurrentGeneration = useCallback(
+    (generation: number) => mountedRef.current && generationRef.current === generation,
+    []
+  );
 
   const calculateNetworkQuality = useCallback((metrics: QualityMetrics): NetworkQuality => {
     const { packetLoss, roundTripTime } = metrics;
@@ -191,6 +214,7 @@ export function useWebRTCViewer({
             onKickedRef.current?.(message.reason);
             break;
           case 'mute': {
+            micEnabledIntentRef.current = !message.muted;
             const micStream = micStreamRef.current;
             if (micStream) {
               micStream.getAudioTracks().forEach((track) => {
@@ -209,27 +233,34 @@ export function useWebRTCViewer({
 
   // Setup data channel
   const setupDataChannel = useCallback(
-    (channel: DataChannel) => {
+    (channel: DataChannel, generation: number) => {
       dataChannelRef.current = channel;
 
+      const isCurrentChannel = () =>
+        isCurrentGeneration(generation) && dataChannelRef.current === channel;
+
       channel.addEventListener('open', () => {
+        if (!isCurrentChannel()) return;
         setDataChannelReady(true);
       });
 
       channel.addEventListener('close', () => {
+        if (!isCurrentChannel()) return;
         setDataChannelReady(false);
         setControlState('view-only');
       });
 
       channel.addEventListener('error', () => {
+        if (!isCurrentChannel()) return;
         setDataChannelReady(false);
       });
 
       channel.addEventListener('message', (event) => {
+        if (!isCurrentChannel()) return;
         handleDataChannelMessage(typeof event.data === 'string' ? event.data : '');
       });
     },
-    [handleDataChannelMessage]
+    [handleDataChannelMessage, isCurrentGeneration]
   );
 
   // Control actions
@@ -280,117 +311,128 @@ export function useWebRTCViewer({
   );
 
   // Collect stats for UI
-  const collectStats = useCallback(async () => {
-    const pc = peerConnectionRef.current;
-    if (!pc?.connectionState || pc.connectionState !== 'connected') return;
+  const collectStats = useCallback(
+    async (generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
+      const pc = peerConnectionRef.current;
+      if (!pc?.connectionState || pc.connectionState !== 'connected') return;
 
-    try {
-      const stats = (await pc.getStats()) as Map<string, Record<string, unknown>>;
-      let bitrate = 0;
-      let frameRate = 0;
-      let packetLoss = 0;
-      let roundTripTime = 0;
-      let bytesReceived = 0;
-      let packetsLost = 0;
-      let packetsReceived = 0;
+      try {
+        const stats = (await pc.getStats()) as Map<string, Record<string, unknown>>;
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        let bitrate = 0;
+        let frameRate = 0;
+        let packetLoss = 0;
+        let roundTripTime = 0;
+        let bytesReceived = 0;
+        let packetsLost = 0;
+        let packetsReceived = 0;
 
-      stats.forEach((report: Record<string, unknown>) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          bytesReceived = (report.bytesReceived as number | undefined) ?? 0;
-          frameRate = (report.framesPerSecond as number | undefined) ?? 0;
-          packetsLost = (report.packetsLost as number | undefined) ?? 0;
-          packetsReceived = (report.packetsReceived as number | undefined) ?? 0;
+        stats.forEach((report: Record<string, unknown>) => {
+          if (report.type === 'inbound-rtp' && report.kind === 'video') {
+            bytesReceived = (report.bytesReceived as number | undefined) ?? 0;
+            frameRate = (report.framesPerSecond as number | undefined) ?? 0;
+            packetsLost = (report.packetsLost as number | undefined) ?? 0;
+            packetsReceived = (report.packetsReceived as number | undefined) ?? 0;
+          }
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
+          }
+        });
+
+        if (packetsReceived > 0) {
+          packetLoss = (packetsLost / (packetsReceived + packetsLost)) * 100;
         }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
-        }
-      });
 
-      if (packetsReceived > 0) {
-        packetLoss = (packetsLost / (packetsReceived + packetsLost)) * 100;
+        bitrate = bytesReceived * 8;
+
+        const metrics: QualityMetrics = { bitrate, frameRate, packetLoss, roundTripTime };
+        setQualityMetrics(metrics);
+        setNetworkQuality(calculateNetworkQuality(metrics));
+      } catch {
+        // Non-critical
       }
-
-      bitrate = bytesReceived * 8;
-
-      const metrics: QualityMetrics = { bitrate, frameRate, packetLoss, roundTripTime };
-      setQualityMetrics(metrics);
-      setNetworkQuality(calculateNetworkQuality(metrics));
-    } catch {
-      // Non-critical
-    }
-  }, [calculateNetworkQuality]);
+    },
+    [calculateNetworkQuality, isCurrentGeneration]
+  );
 
   // Report stats to API
-  const reportStats = useCallback(async () => {
-    const pc = peerConnectionRef.current;
-    if (pc?.connectionState !== 'connected') return;
+  const reportStats = useCallback(
+    async (generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
+      const pc = peerConnectionRef.current;
+      if (pc?.connectionState !== 'connected') return;
 
-    try {
-      const stats = (await pc.getStats()) as Map<string, Record<string, unknown>>;
-      let bytesSent = 0;
-      let bytesReceived = 0;
-      let packetsSent = 0;
-      let packetsReceived = 0;
-      let packetsLost = 0;
-      let roundTripTime: number | undefined;
-      let frameRate: number | undefined;
-      let frameWidth: number | undefined;
-      let frameHeight: number | undefined;
+      try {
+        const stats = (await pc.getStats()) as Map<string, Record<string, unknown>>;
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        let bytesSent = 0;
+        let bytesReceived = 0;
+        let packetsSent = 0;
+        let packetsReceived = 0;
+        let packetsLost = 0;
+        let roundTripTime: number | undefined;
+        let frameRate: number | undefined;
+        let frameWidth: number | undefined;
+        let frameHeight: number | undefined;
 
-      stats.forEach((report: Record<string, unknown>) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
-          packetsReceived += (report.packetsReceived as number | undefined) ?? 0;
-          frameRate = report.framesPerSecond as number | undefined;
-          frameWidth = report.frameWidth as number | undefined;
-          frameHeight = report.frameHeight as number | undefined;
-        }
-        if (report.type === 'outbound-rtp') {
-          bytesSent += (report.bytesSent as number | undefined) ?? 0;
-          packetsSent += (report.packetsSent as number | undefined) ?? 0;
-        }
-        if (report.type === 'remote-inbound-rtp') {
-          packetsLost += (report.packetsLost as number | undefined) ?? 0;
-        }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
-        }
-      });
+        stats.forEach((report: Record<string, unknown>) => {
+          if (report.type === 'inbound-rtp' && report.kind === 'video') {
+            bytesReceived += (report.bytesReceived as number | undefined) ?? 0;
+            packetsReceived += (report.packetsReceived as number | undefined) ?? 0;
+            frameRate = report.framesPerSecond as number | undefined;
+            frameWidth = report.frameWidth as number | undefined;
+            frameHeight = report.frameHeight as number | undefined;
+          }
+          if (report.type === 'outbound-rtp') {
+            bytesSent += (report.bytesSent as number | undefined) ?? 0;
+            packetsSent += (report.packetsSent as number | undefined) ?? 0;
+          }
+          if (report.type === 'remote-inbound-rtp') {
+            packetsLost += (report.packetsLost as number | undefined) ?? 0;
+          }
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            roundTripTime = ((report.currentRoundTripTime as number | undefined) ?? 0) * 1000;
+          }
+        });
 
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (authTokenRef.current) {
-        headers.Authorization = `Bearer ${authTokenRef.current}`;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (authTokenRef.current) {
+          headers.Authorization = `Bearer ${authTokenRef.current}`;
+        }
+
+        await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            participantId,
+            role: 'viewer',
+            timestamp: Date.now(),
+            connectionState: pc.connectionState,
+            bytesSent,
+            bytesReceived,
+            packetsSent,
+            packetsReceived,
+            packetsLost,
+            roundTripTime,
+            jitter: 0,
+            frameRate,
+            frameWidth,
+            frameHeight,
+            reportInterval: STATS_INTERVAL,
+          }),
+        });
+      } catch (err) {
+        console.error('[WebRTCViewer] Stats report error:', err);
       }
-
-      await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          participantId,
-          role: 'viewer',
-          timestamp: Date.now(),
-          connectionState: pc.connectionState,
-          bytesSent,
-          bytesReceived,
-          packetsSent,
-          packetsReceived,
-          packetsLost,
-          roundTripTime,
-          jitter: 0,
-          frameRate,
-          frameWidth,
-          frameHeight,
-          reportInterval: STATS_INTERVAL,
-        }),
-      });
-    } catch (err) {
-      console.error('[WebRTCViewer] Stats report error:', err);
-    }
-  }, [sessionId, participantId]);
+    },
+    [isCurrentGeneration, sessionId, participantId]
+  );
 
   // Process a single signaling message
   const processSignalMessage = useCallback(
-    async (message: SignalMessage) => {
+    async (message: SignalMessage, generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
       const pc = peerConnectionRef.current;
       if (!pc) return;
 
@@ -406,10 +448,12 @@ export function useWebRTCViewer({
 
             if (!message.sdp) break;
             await pc.setRemoteDescription({ type: 'offer', sdp: message.sdp });
+            if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
             const answer = (await pc.createAnswer()) as OfferAnswer;
             // In-band FEC turns a lost packet into a duller syllable, not a gap.
             if (answer.sdp) answer.sdp = tuneOpusForVoice(answer.sdp);
             await pc.setLocalDescription(answer);
+            if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
 
             if (answer.sdp) {
               await sendSignal({
@@ -428,6 +472,7 @@ export function useWebRTCViewer({
               pendingCandidatesRef.current = [];
               for (const candidate of pending) {
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
               }
             }
             break;
@@ -446,143 +491,175 @@ export function useWebRTCViewer({
         }
       } catch (err) {
         console.error('[WebRTCViewer] Error handling signal message:', err);
-        setError('Failed to process signaling message');
+        if (isCurrentGeneration(generation)) {
+          setError('Failed to process signaling message');
+        }
       }
     },
-    [participantId, sendSignal]
+    [isCurrentGeneration, participantId, sendSignal]
   );
 
   // Serialize signal processing
   const handleSignalMessage = useCallback(
-    (message: SignalMessage) => {
-      signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message));
+    (message: SignalMessage, generation: number) => {
+      signalQueueRef.current = signalQueueRef.current.then(() =>
+        processSignalMessage(message, generation)
+      );
     },
     [processSignalMessage]
   );
 
   // Handle connection failure with retry
-  const handleConnectionFailure = useCallback(async () => {
-    if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-      reconnectAttemptsRef.current++;
-      setConnectionState('reconnecting');
-      setError(
-        `Connection lost. Reconnecting (${String(reconnectAttemptsRef.current)}/${String(maxReconnectAttempts)})...`
-      );
-
-      const pc = peerConnectionRef.current;
-      if (pc) {
-        try {
-          const offer = (await pc.createOffer({ iceRestart: true })) as OfferAnswer;
-          await pc.setLocalDescription(offer);
-
-          if (offer.sdp) {
-            await sendSignal({
-              type: 'offer',
-              sdp: offer.sdp,
-              senderId: participantId,
-              timestamp: Date.now(),
-            });
-          }
-        } catch {
-          setConnectionState('failed');
-          setError('Failed to reconnect');
-        }
+  const handleConnectionFailure = useCallback(
+    async (generation: number, pc: RTCPeerConnection) => {
+      if (
+        connectionFailureInFlightRef.current ||
+        !isCurrentGeneration(generation) ||
+        peerConnectionRef.current !== pc
+      ) {
+        return;
       }
-    } else {
-      setConnectionState('failed');
-      setError('Connection failed after multiple attempts');
-    }
-  }, [participantId, sendSignal]);
+      connectionFailureInFlightRef.current = true;
+
+      try {
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current++;
+          setConnectionState('reconnecting');
+          setError(
+            `Connection lost. Reconnecting (${String(reconnectAttemptsRef.current)}/${String(maxReconnectAttempts)})...`
+          );
+
+          try {
+            const offer = (await pc.createOffer({ iceRestart: true })) as OfferAnswer;
+            if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+            await pc.setLocalDescription(offer);
+            if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+
+            if (offer.sdp) {
+              await sendSignal({
+                type: 'offer',
+                sdp: offer.sdp,
+                senderId: participantId,
+                timestamp: Date.now(),
+              });
+            }
+          } catch {
+            if (isCurrentGeneration(generation)) {
+              setConnectionState('failed');
+              setError('Failed to reconnect');
+            }
+          }
+        } else {
+          setConnectionState('failed');
+          setError('Connection failed after multiple attempts');
+        }
+      } finally {
+        connectionFailureInFlightRef.current = false;
+      }
+    },
+    [isCurrentGeneration, participantId, sendSignal]
+  );
 
   handleConnectionFailureRef.current = handleConnectionFailure;
 
   // Create peer connection
-  const createPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection({
-      iceServers: iceServersRef.current,
-      iceCandidatePoolSize: 10,
-    });
+  const createPeerConnection = useCallback(
+    (generation: number) => {
+      const pc = new RTCPeerConnection({
+        iceServers: iceServersRef.current,
+        iceCandidatePoolSize: 10,
+      });
 
-    pc.addEventListener('track', (event) => {
-      const stream = event.streams[0] as MediaStream | undefined;
-      if (!stream) return;
+      pc.addEventListener('track', (event) => {
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        const stream = event.streams[0] as MediaStream | undefined;
+        if (!stream) return;
 
-      const current = remoteStreamRef.current;
-      const currentHasVideo = Boolean(current && current.getVideoTracks().length > 0);
-      const incomingHasVideo = stream.getVideoTracks().length > 0;
+        const current = remoteStreamRef.current;
+        const currentHasVideo = Boolean(current && current.getVideoTracks().length > 0);
+        const incomingHasVideo = stream.getVideoTracks().length > 0;
 
-      // Keep video stream selected if a later audio-only stream arrives.
-      if (!current || (!currentHasVideo && incomingHasVideo)) {
-        remoteStreamRef.current = stream;
-        setRemoteStream(stream);
-        onStreamReady?.(stream);
-      }
-    });
-
-    pc.addEventListener('icecandidate', (event) => {
-      if (event.candidate) {
-        void sendSignal({
-          type: 'ice-candidate',
-          candidate: event.candidate.toJSON(),
-          senderId: participantId,
-          timestamp: Date.now(),
-        });
-      }
-    });
-
-    pc.addEventListener('iceconnectionstatechange', () => {
-      const state = pc.iceConnectionState;
-      switch (state) {
-        case 'checking':
-          setConnectionState('connecting');
-          break;
-        case 'connected':
-        case 'completed':
-          setConnectionState('connected');
-          setError(null);
-          reconnectAttemptsRef.current = 0;
-          // Re-apply mic priority now that negotiation is done. Some stacks
-          // report no encodings on a sender until then, which would have made
-          // the call made at addTrack() time a silent no-op.
-          for (const sender of pc.getSenders()) {
-            if (sender.track?.kind === 'audio') {
-              void prioritizeAudioSender(sender);
-            }
-          }
-          break;
-        case 'disconnected':
-          setConnectionState('reconnecting');
-          break;
-        case 'failed': {
-          const handler = handleConnectionFailureRef.current;
-          if (handler) void handler();
-          break;
+        // Keep video stream selected if a later audio-only stream arrives.
+        if (!current || (!currentHasVideo && incomingHasVideo)) {
+          remoteStreamRef.current = stream;
+          setRemoteStream(stream);
+          onStreamReadyRef.current?.(stream);
         }
-        case 'closed':
-          setConnectionState('disconnected');
-          remoteStreamRef.current = null;
-          setRemoteStream(null);
-          onStreamEnded?.();
-          break;
-      }
-    });
+      });
 
-    pc.addEventListener('connectionstatechange', () => {
-      const handler = handleConnectionFailureRef.current;
-      if (pc.connectionState === 'failed' && handler) {
-        void handler();
-      }
-    });
+      pc.addEventListener('icecandidate', (event) => {
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        if (event.candidate) {
+          void sendSignal({
+            type: 'ice-candidate',
+            candidate: event.candidate.toJSON(),
+            senderId: participantId,
+            timestamp: Date.now(),
+          });
+        }
+      });
 
-    pc.addEventListener('datachannel', (event) => {
-      setupDataChannel(event.channel);
-    });
+      pc.addEventListener('iceconnectionstatechange', () => {
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        const state = pc.iceConnectionState;
+        switch (state) {
+          case 'checking':
+            setConnectionState('connecting');
+            break;
+          case 'connected':
+          case 'completed':
+            setConnectionState('connected');
+            setError(null);
+            reconnectAttemptsRef.current = 0;
+            // Re-apply mic priority now that negotiation is done. Some stacks
+            // report no encodings on a sender until then, which would have made
+            // the call made at addTrack() time a silent no-op.
+            for (const sender of pc.getSenders()) {
+              if (sender.track?.kind === 'audio') {
+                void prioritizeAudioSender(sender);
+              }
+            }
+            break;
+          case 'disconnected':
+            setConnectionState('reconnecting');
+            break;
+          case 'failed': {
+            const handler = handleConnectionFailureRef.current;
+            if (handler) void handler(generation, pc);
+            break;
+          }
+          case 'closed':
+            setConnectionState('disconnected');
+            remoteStreamRef.current = null;
+            setRemoteStream(null);
+            onStreamEndedRef.current?.();
+            break;
+        }
+      });
 
-    return pc;
-  }, [participantId, onStreamReady, onStreamEnded, sendSignal, setupDataChannel]);
+      pc.addEventListener('connectionstatechange', () => {
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        const handler = handleConnectionFailureRef.current;
+        if (pc.connectionState === 'failed' && handler) {
+          void handler(generation, pc);
+        }
+      });
+
+      pc.addEventListener('datachannel', (event) => {
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        setupDataChannel(event.channel, generation);
+      });
+
+      return pc;
+    },
+    [isCurrentGeneration, participantId, sendSignal, setupDataChannel]
+  );
 
   // Disconnect
   const disconnect = useCallback(() => {
+    generationRef.current += 1;
+    const hadRemoteStream = remoteStreamRef.current !== null;
+
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
@@ -591,6 +668,11 @@ export function useWebRTCViewer({
     if (statsReportIntervalRef.current) {
       clearInterval(statsReportIntervalRef.current);
       statsReportIntervalRef.current = null;
+    }
+
+    if (heartbeatWatchdogRef.current) {
+      clearInterval(heartbeatWatchdogRef.current);
+      heartbeatWatchdogRef.current = null;
     }
 
     if (dataChannelRef.current) {
@@ -616,14 +698,23 @@ export function useWebRTCViewer({
     }
 
     isConnectingRef.current = false;
+    connectionFailureInFlightRef.current = false;
+    lastHeartbeatAtRef.current = 0;
+    pendingCandidatesRef.current = [];
+    signalQueueRef.current = Promise.resolve();
     remoteStreamRef.current = null;
-    setRemoteStream(null);
-    setConnectionState('disconnected');
-    setQualityMetrics(null);
-    setDataChannelReady(false);
-    setControlState('view-only');
-    setMicEnabled(false);
-    setHasMic(false);
+    if (mountedRef.current) {
+      setRemoteStream(null);
+      setConnectionState('disconnected');
+      setQualityMetrics(null);
+      setDataChannelReady(false);
+      setControlState('view-only');
+      setMicEnabled(false);
+      setHasMic(false);
+      if (hadRemoteStream) {
+        onStreamEndedRef.current?.();
+      }
+    }
   }, []);
 
   disconnectRef.current = disconnect;
@@ -636,16 +727,28 @@ export function useWebRTCViewer({
     const tracks = micStream.getAudioTracks();
     if (tracks.length === 0) return;
 
-    const newEnabled = !micEnabled;
+    const newEnabled = !micEnabledIntentRef.current;
+    micEnabledIntentRef.current = newEnabled;
     tracks.forEach((track) => {
       track.enabled = newEnabled;
     });
     setMicEnabled(newEnabled);
-  }, [micEnabled]);
+  }, []);
 
   // Initialize connection
   const initialize = useCallback(async () => {
-    if (isConnectingRef.current || eventSourceRef.current) return;
+    if (!mountedRef.current) {
+      return;
+    }
+    if (appStateRef.current !== 'active') {
+      resumeOnActiveRef.current = true;
+      return;
+    }
+    if (isConnectingRef.current || eventSourceRef.current) {
+      return;
+    }
+
+    const generation = ++generationRef.current;
     isConnectingRef.current = true;
 
     console.log('[WebRTCViewer] Starting viewer for session:', sessionId);
@@ -653,6 +756,7 @@ export function useWebRTCViewer({
     // Get auth token from secure storage
     try {
       const stored = await getStoredAuth();
+      if (!isCurrentGeneration(generation)) return;
       if (!stored || isAuthExpired(stored)) {
         isConnectingRef.current = false;
         setError('Not authenticated. Please log in again.');
@@ -661,19 +765,32 @@ export function useWebRTCViewer({
       authTokenRef.current = stored.accessToken;
     } catch (err) {
       console.error('[WebRTCViewer] Failed to get auth token:', err);
-      isConnectingRef.current = false;
-      setError('Failed to authenticate. Please log in again.');
+      if (isCurrentGeneration(generation)) {
+        isConnectingRef.current = false;
+        setError('Failed to authenticate. Please log in again.');
+      }
       return;
     }
 
     // Capture microphone
     try {
       const micStream = await mediaDevices.getUserMedia(voiceCaptureConstraints);
-      markTrackAsSpeech(micStream.getAudioTracks()[0]);
+      if (!isCurrentGeneration(generation)) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        return;
+      }
+      const audioTrack = micStream.getAudioTracks()[0];
+      markTrackAsSpeech(audioTrack);
+      micStream.getAudioTracks().forEach((track) => {
+        track.enabled = micEnabledIntentRef.current;
+      });
       micStreamRef.current = micStream;
       setHasMic(true);
-      setMicEnabled(true);
+      setMicEnabled(micEnabledIntentRef.current);
     } catch {
+      if (!isCurrentGeneration(generation)) return;
       console.warn('[WebRTCViewer] Could not access microphone');
       micStreamRef.current = null;
       setHasMic(false);
@@ -688,10 +805,20 @@ export function useWebRTCViewer({
 
     const sseUrl = `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?${sseParams.toString()}`;
     const eventSource = createEventSource(sseUrl);
+    if (!isCurrentGeneration(generation)) {
+      eventSource.close();
+      return;
+    }
     eventSourceRef.current = eventSource;
+    lastHeartbeatAtRef.current = Date.now();
+
+    const isCurrentEventSource = () =>
+      isCurrentGeneration(generation) && eventSourceRef.current === eventSource;
 
     eventSource.addEventListener('connected', (event) => {
+      if (!isCurrentEventSource()) return;
       console.log('[WebRTCViewer] SSE connected');
+      lastHeartbeatAtRef.current = Date.now();
       isConnectingRef.current = false;
       setConnectionState('connecting');
       setError(null);
@@ -705,10 +832,27 @@ export function useWebRTCViewer({
         // Use default ICE servers
       }
 
-      // Create peer connection after receiving ICE servers
+      // A reconnect can emit another connected event on the same SSE object.
+      // Retire the old peer before attaching a replacement.
+      const previousPeer = peerConnectionRef.current;
+      const previousStream = remoteStreamRef.current;
+      peerConnectionRef.current = null;
+      remoteStreamRef.current = null;
+      dataChannelRef.current?.close();
+      dataChannelRef.current = null;
+      previousPeer?.close();
+
+      setRemoteStream(null);
+      setQualityMetrics(null);
+      setDataChannelReady(false);
+      setControlState('view-only');
+      if (previousStream) {
+        onStreamEndedRef.current?.();
+      }
+
       pendingCandidatesRef.current = [];
       signalQueueRef.current = Promise.resolve();
-      const pc = createPeerConnection();
+      const pc = createPeerConnection(generation);
       peerConnectionRef.current = pc;
 
       // Add mic tracks
@@ -720,16 +864,23 @@ export function useWebRTCViewer({
       }
     });
 
+    eventSource.addEventListener('heartbeat', () => {
+      if (!isCurrentEventSource()) return;
+      lastHeartbeatAtRef.current = Date.now();
+    });
+
     eventSource.addEventListener('signal', (event) => {
+      if (!isCurrentEventSource()) return;
       try {
         const signal = JSON.parse(event.data) as SignalMessage;
-        handleSignalMessage(signal);
+        handleSignalMessage(signal, generation);
       } catch (err) {
         console.error('[WebRTCViewer] Failed to parse signal:', err);
       }
     });
 
     eventSource.addEventListener('presence-join', (event) => {
+      if (!isCurrentEventSource()) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string; role: string }[];
@@ -745,6 +896,7 @@ export function useWebRTCViewer({
     });
 
     eventSource.addEventListener('presence-leave', (event) => {
+      if (!isCurrentEventSource()) return;
       try {
         const { presences } = JSON.parse(event.data) as {
           presences: { user_id: string; role: string }[];
@@ -760,34 +912,89 @@ export function useWebRTCViewer({
     });
 
     eventSource.addEventListener('error', () => {
+      if (!isCurrentEventSource()) return;
       console.error('[WebRTCViewer] SSE error');
       isConnectingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
     });
 
-    // Start stats collection
-    statsIntervalRef.current = setInterval(() => void collectStats(), STATS_DISPLAY_INTERVAL);
-    statsReportIntervalRef.current = setInterval(() => void reportStats(), STATS_INTERVAL);
+    statsIntervalRef.current = setInterval(
+      () => void collectStats(generation),
+      STATS_DISPLAY_INTERVAL
+    );
+    statsReportIntervalRef.current = setInterval(
+      () => void reportStats(generation),
+      STATS_INTERVAL
+    );
+    heartbeatWatchdogRef.current = setInterval(() => {
+      if (!isCurrentEventSource()) return;
+      if (Date.now() - lastHeartbeatAtRef.current <= HEARTBEAT_TIMEOUT) return;
+
+      setError('Connection heartbeat timed out. Reconnecting...');
+      disconnectRef.current?.();
+      void initializeRef.current?.();
+    }, HEARTBEAT_WATCHDOG_INTERVAL);
   }, [
     sessionId,
     participantId,
+    isCurrentGeneration,
     handleSignalMessage,
     createPeerConnection,
     collectStats,
     reportStats,
   ]);
 
+  initializeRef.current = initialize;
+
   // Manual reconnect
   const reconnect = useCallback(() => {
+    resumeOnActiveRef.current = false;
     reconnectAttemptsRef.current = 0;
     disconnect();
-    void initialize();
-  }, [disconnect, initialize]);
+    void initializeRef.current?.();
+  }, [disconnect]);
 
-  // Initialize on mount
+  // Suspend native media and transport while backgrounded, then restore one
+  // fresh connection when the app becomes active again.
   useEffect(() => {
-    void initialize();
+    mountedRef.current = true;
+    appStateRef.current = AppState.currentState;
+
+    if (appStateRef.current === 'active') {
+      void initialize();
+    } else {
+      resumeOnActiveRef.current = true;
+    }
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextState;
+
+      if (nextState === 'background') {
+        if (previousState !== 'background') {
+          const hadActiveConnection =
+            isConnectingRef.current ||
+            eventSourceRef.current !== null ||
+            peerConnectionRef.current !== null;
+          resumeOnActiveRef.current = resumeOnActiveRef.current || hadActiveConnection;
+          if (hadActiveConnection) {
+            disconnect();
+          }
+        }
+        return;
+      }
+
+      if (nextState === 'active' && previousState !== 'active' && resumeOnActiveRef.current) {
+        resumeOnActiveRef.current = false;
+        reconnectAttemptsRef.current = 0;
+        void initializeRef.current?.();
+      }
+    });
+
     return () => {
+      subscription.remove();
+      mountedRef.current = false;
+      resumeOnActiveRef.current = false;
       disconnect();
     };
   }, [initialize, disconnect]);

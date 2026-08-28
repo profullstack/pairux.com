@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 
@@ -47,6 +48,7 @@ export function useScreenShare({
   const stopPromiseRef = useRef<Promise<void> | null>(null);
   const publicationRef = useRef<Promise<void> | null>(null);
   const endedListenersRef = useRef<Map<MediaStreamTrack, () => void>>(new Map());
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   const transition = useCallback((nextState: ScreenShareState) => {
     stateRef.current = nextState;
@@ -119,7 +121,7 @@ export function useScreenShare({
   );
 
   const start = useCallback(async (): Promise<boolean> => {
-    if (stateRef.current !== 'idle' || stopPromiseRef.current) {
+    if (appStateRef.current !== 'active' || stateRef.current !== 'idle' || stopPromiseRef.current) {
       return false;
     }
 
@@ -186,6 +188,23 @@ export function useScreenShare({
   const clearError = useCallback(() => {
     setError(null);
   }, []);
+
+  // Native capture belongs to this hook. End it explicitly when the app is
+  // backgrounded so the UI cannot keep claiming that a stopped track is live.
+  useEffect(() => {
+    appStateRef.current = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextState;
+      if (nextState === 'background' && previousState !== 'background') {
+        void stop();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [stop]);
 
   useEffect(() => {
     mountedRef.current = true;

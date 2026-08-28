@@ -112,7 +112,12 @@ async function alreadySent(
 
   const byRecipient = new Map<string, Set<number>>();
   for (const row of data ?? []) {
-    const r = row as { recipient_kind: string; recipient_key: string; channel: string; lead_minutes: number };
+    const r = row as {
+      recipient_kind: string;
+      recipient_key: string;
+      channel: string;
+      lead_minutes: number;
+    };
     const key = `${r.recipient_kind}:${r.recipient_key}:${r.channel}`;
     const set = byRecipient.get(key) ?? new Set<number>();
     set.add(r.lead_minutes);
@@ -292,11 +297,7 @@ export async function runMeetingReminders(now: Date = new Date()): Promise<Remin
           // Somebody who said no does not need four more messages about it.
           if (invitee.rsvp_status === 'declined') continue;
 
-          const lead = dueLead(
-            startsAt,
-            now,
-            sent.get(`invitee:${invitee.id}:email`) ?? new Set()
-          );
+          const lead = dueLead(startsAt, now, sent.get(`invitee:${invitee.id}:email`) ?? new Set());
           if (!lead) continue;
 
           // No preference lookup: an invitee has no account and therefore no

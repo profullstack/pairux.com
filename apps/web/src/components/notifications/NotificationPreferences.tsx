@@ -34,10 +34,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   meetingReminder1Min: true,
 };
 
-const PREF_LABELS: Record<
-  Exclude<keyof NotificationPrefs, 'pushEnabled' | ReminderKey>,
-  string
-> = {
+const PREF_LABELS: Record<Exclude<keyof NotificationPrefs, 'pushEnabled' | ReminderKey>, string> = {
   controlRequest: 'Control requests',
   chatMessage: 'Chat messages',
   participantJoined: 'Participant joined',

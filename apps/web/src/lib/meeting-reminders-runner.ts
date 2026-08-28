@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createEmailer } from '@profullstack/emailer';
 
 import { dueLead, timeUntil, wantsReminder, REMINDER_PREF_KEYS } from './meeting-reminders';
+import { claimReminderSlot } from './meeting-reminder-claim';
 import { sendPushToUser } from './push';
 
 /**
@@ -63,15 +64,8 @@ function admin() {
 type Admin = ReturnType<typeof admin>;
 
 /**
- * Take the slot for one message, returning false if somebody already had it.
- *
- * This is the whole concurrency story. The unique constraint on
- * `meeting_reminders` is claimed *before* the message goes out, so two runs of
- * the cron overlapping -- or one run retried after a timeout -- cannot both
- * send. Postgres reports the loser as 23505 and it simply moves on.
- *
- * The cost is that a crash between this returning true and the send completing
- * loses that reminder for good. That is the intended trade: see the migration.
+ * Take the slot for one message. See `meeting-reminder-claim.ts` -- the same
+ * ledger and the same claim now serve the "it has started" notice.
  */
 async function claim(
   db: Admin,
@@ -84,12 +78,7 @@ async function claim(
     channel: 'email' | 'push';
   }
 ): Promise<boolean> {
-  const { error } = await db.from('meeting_reminders').insert(row);
-  if (!error) return true;
-  // 23505 is unique_violation: somebody else already claimed it, which is a
-  // normal outcome here rather than a failure worth reporting.
-  if (error.code === '23505') return false;
-  throw new Error(`claim failed: ${error.message}`);
+  return claimReminderSlot(db, row);
 }
 
 /**

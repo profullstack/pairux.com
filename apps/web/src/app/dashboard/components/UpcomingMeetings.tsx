@@ -58,7 +58,7 @@ interface ListResponse {
 }
 
 interface StartResponse {
-  data?: { id: string; join_code: string };
+  data?: { session: { id: string; join_code: string }; joinCode: string; notified: number };
   error?: string;
 }
 
@@ -148,19 +148,16 @@ export function UpcomingMeetings({ onSchedule }: Props) {
     setStartingId(session.id);
     setStartError(null);
     try {
-      const res = await fetch('/api/sessions', {
+      // One endpoint rather than a bare session create: it ties the room to the
+      // meeting and mails the guest list, and a second click adopts the room
+      // that already exists instead of colliding on the join code.
+      const res = await fetch(`/api/scheduled-sessions/${session.id}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          maxParticipants: 10,
-          allowGuestControl: false,
-          mode: 'p2p',
-          joinCode: session.join_code,
-        }),
       });
       const json = (await res.json().catch(() => ({}))) as StartResponse;
-      if (res.ok && json.data?.id) {
-        handoff.openSession(json.data.id);
+      if (res.ok && json.data?.session.id) {
+        handoff.openSession(json.data.session.id);
         return;
       }
       throw new Error(json.error ?? 'Failed to start the meeting');

@@ -26,6 +26,33 @@ export interface TraySessionInfo {
   role: 'host' | 'viewer';
 }
 
+/** One of the host's booked meetings, as the web API reports it. */
+export interface ScheduledMeeting {
+  id: string;
+  title: string;
+  description: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  join_code: string;
+  status: string;
+  /** Set once the host has opened the room for this occurrence. */
+  session_id: string | null;
+  started_at: string | null;
+  recurrence_freq: string | null;
+  invitee_count: number;
+  invitees: { id: string; email: string; name: string | null; rsvp_status: string }[];
+}
+
+export interface StartMeetingResult {
+  success: true;
+  session: Session;
+  joinCode: string;
+  /** The room was already open, so nobody was mailed a second time. */
+  resumed: boolean;
+  /** Invitees told the meeting is starting on this call. */
+  notified: number;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -197,6 +224,17 @@ export interface IPCChannels {
   'session:join': {
     args: { joinCode: string; displayName?: string };
     return: { success: true; participant: SessionParticipant } | { success: false; error: string };
+  };
+
+  // Scheduled meeting channels
+  'meetings:list': {
+    args: undefined;
+    return: { success: true; meetings: ScheduledMeeting[] } | { success: false; error: string };
+  };
+
+  'meetings:start': {
+    args: { scheduledSessionId: string };
+    return: StartMeetingResult | { success: false; error: string };
   };
 
   // Chat channels

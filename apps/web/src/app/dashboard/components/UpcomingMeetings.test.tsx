@@ -67,7 +67,16 @@ describe('UpcomingMeetings', () => {
     vi.setSystemTime('2026-08-14T17:30:00.000Z');
     vi.mocked(fetch)
       .mockResolvedValueOnce(response({ data: [meeting] }))
-      .mockResolvedValueOnce(response({ data: { id: 'session-1', join_code: '8523BF' } }));
+      .mockResolvedValueOnce(
+        response({
+          data: {
+            session: { id: 'session-1', join_code: '8523BF' },
+            joinCode: '8523BF',
+            resumed: false,
+            notified: 2,
+          },
+        })
+      );
 
     await renderMeetings();
     fireEvent.click(screen.getByRole('button', { name: 'Start Now' }));
@@ -132,12 +141,11 @@ describe('UpcomingMeetings', () => {
     });
 
     expect(screen.getByRole('alert')).toHaveTextContent('Join code already in use');
+    // Started through the meeting, not through a bare session create: that is
+    // what ties the room to the meeting and mails the guest list.
     expect(fetch).toHaveBeenLastCalledWith(
-      '/api/sessions',
-      expect.objectContaining({
-        method: 'POST',
-        body: expect.stringContaining('"joinCode":"8523BF"'),
-      })
+      '/api/scheduled-sessions/meeting-1/start',
+      expect.objectContaining({ method: 'POST' })
     );
   });
 

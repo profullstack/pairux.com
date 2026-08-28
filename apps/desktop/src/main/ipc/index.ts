@@ -4,6 +4,7 @@ import { setPreferredDisplayMediaSource } from '../capture/displayMedia';
 import { setCaptureSource } from '../input/injector';
 import { registerAuthHandlers } from './auth';
 import { registerSessionHandlers } from './session';
+import { registerMeetingHandlers } from './meetings';
 import { registerChatHandlers } from './chat';
 import { registerInputHandlers } from './input';
 import { registerPermissionHandlers } from './permissions';
@@ -22,6 +23,9 @@ export function registerIpcHandlers(): void {
 
   // Register session handlers
   registerSessionHandlers();
+
+  // Register scheduled meeting handlers
+  registerMeetingHandlers();
 
   // Register chat handlers
   registerChatHandlers();

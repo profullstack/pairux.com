@@ -86,6 +86,11 @@ export async function rollForwardRows<T extends RecurringRow>(
         .update({
           scheduled_at: row.scheduled_at,
           occurrences_elapsed: row.occurrences_elapsed,
+          // The room the *previous* occurrence was held in belongs to that
+          // occurrence. Carrying it forward would show next week's meeting as
+          // already live, in a room whose host hung up days ago.
+          session_id: null,
+          started_at: null,
           ...(row.status === 'completed' ? { status: 'completed' } : {}),
           updated_at: new Date().toISOString(),
         })

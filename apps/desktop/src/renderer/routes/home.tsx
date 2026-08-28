@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Link2, Loader2, Mic, Radio, User as UserIcon } from 'lucide-react';
+import { Users, Link2, Loader2, Mic, Radio, Calendar, User as UserIcon } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import {
   initialIsWaylandGuess,
@@ -9,6 +9,7 @@ import {
 } from '@/lib/capturePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
+import { StartMeetingModal } from '@/components/StartMeetingModal';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
 import { API_BASE_URL } from '../../shared/config';
 import { useAuthStore } from '@/stores/auth';
@@ -86,6 +87,7 @@ export function HomePage() {
   );
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
+  const [showStartMeetingModal, setShowStartMeetingModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [loadingExistingSession, setLoadingExistingSession] = useState(false);
@@ -457,6 +459,17 @@ export function HomePage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
+                  setShowStartMeetingModal(true);
+                }}
+                disabled={isCapturing || loadingExistingSession}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                title="Open one of your scheduled meetings and email everyone invited"
+              >
+                <Calendar className="h-4 w-4" />
+                Start a Meeting
+              </button>
+              <button
+                onClick={() => {
                   setShowCreateLinkModal(true);
                 }}
                 disabled={isCapturing || loadingExistingSession}
@@ -563,6 +576,18 @@ export function HomePage() {
           initialSession={preCreatedSession}
         />
       )}
+
+      <StartMeetingModal
+        isOpen={showStartMeetingModal}
+        onClose={() => {
+          setShowStartMeetingModal(false);
+        }}
+        onStarted={(session) => {
+          setPreCreatedSession(session);
+          setSessionActive(true);
+          setShowStartMeetingModal(false);
+        }}
+      />
 
       <CreateLinkModal
         isOpen={showCreateLinkModal}

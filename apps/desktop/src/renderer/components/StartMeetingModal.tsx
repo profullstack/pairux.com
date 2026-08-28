@@ -6,8 +6,8 @@ import { getElectronAPI } from '@/lib/ipc';
 import {
   acceptedCount,
   clockTime,
+  isEarly,
   isLive,
-  isStartable,
   orderForPicker,
   relativeStart,
 } from '@/lib/meetingTiming';
@@ -57,8 +57,8 @@ export function StartMeetingModal({ isOpen, onClose, onStarted }: Props) {
     void load();
   }, [isOpen, load]);
 
-  // "in 3 minutes" going stale while the modal sits open is also the Start
-  // button staying disabled past the moment it should have unlocked.
+  // "in 3 minutes" going stale while the modal sits open is also the button
+  // still offering to start early on a meeting that is now due.
   useEffect(() => {
     if (!isOpen) return;
     const timer = window.setInterval(() => {
@@ -159,7 +159,7 @@ export function StartMeetingModal({ isOpen, onClose, onStarted }: Props) {
           {!isLoading &&
             ordered.map((meeting) => {
               const live = isLive(meeting, nowMs);
-              const startable = isStartable(meeting, nowMs);
+              const early = isEarly(meeting, nowMs);
               const accepted = acceptedCount(meeting);
 
               return (
@@ -198,20 +198,16 @@ export function StartMeetingModal({ isOpen, onClose, onStarted }: Props) {
 
                   <Button
                     onClick={() => void handleStart(meeting)}
-                    disabled={startingId !== null || !startable}
+                    disabled={startingId !== null}
                     className="shrink-0"
-                    title={
-                      startable
-                        ? undefined
-                        : 'Starts being available 15 minutes before the booked time'
-                    }
+                    title={early ? 'Opens the room now and emails everyone invited' : undefined}
                   >
                     {startingId === meeting.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
                         <Play className="mr-2 h-4 w-4" />
-                        {live ? 'Rejoin' : 'Start'}
+                        {live ? 'Rejoin' : early ? 'Start early' : 'Start'}
                       </>
                     )}
                   </Button>

@@ -24,10 +24,7 @@ import {
   ruleFromRow,
   shortRecurrenceLabel,
 } from '@/lib/recurrence';
-import {
-  isScheduledMeetingCurrent,
-  isScheduledMeetingStartable,
-} from '@/lib/scheduled-meeting-timing';
+import { isScheduledMeetingCurrent } from '@/lib/scheduled-meeting-timing';
 
 interface Invitee {
   id: string;
@@ -253,7 +250,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
       ) : (
         <div className="mt-4 divide-y divide-gray-100">
           {currentSessions.map((session) => {
-            const startable = isScheduledMeetingStartable(session, nowMs);
+            const early = nowMs < new Date(session.scheduled_at).getTime();
             const accepted = session.invitees.filter((i) => i.rsvp_status === 'accepted').length;
 
             return (
@@ -302,27 +299,25 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                    {startable ? (
-                      <button
-                        onClick={() => void handleStart(session)}
-                        disabled={startingId === session.id}
-                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
-                      >
-                        {startingId === session.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Play className="h-3.5 w-3.5" />
-                        )}
-                        Start Now
-                      </button>
-                    ) : (
-                      <Link
-                        href={`/join/${session.join_code}`}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50"
-                      >
-                        {session.join_code}
-                      </Link>
-                    )}
+                    <Link
+                      href={`/join/${session.join_code}`}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50"
+                    >
+                      {session.join_code}
+                    </Link>
+                    <button
+                      onClick={() => void handleStart(session)}
+                      disabled={startingId === session.id}
+                      title={early ? 'Opens the room now and emails everyone invited' : undefined}
+                      className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {startingId === session.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Play className="h-3.5 w-3.5" />
+                      )}
+                      {early ? 'Start Early' : 'Start Now'}
+                    </button>
                     <div className="relative">
                       <button
                         onClick={() => {

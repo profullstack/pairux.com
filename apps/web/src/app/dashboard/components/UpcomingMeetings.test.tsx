@@ -86,14 +86,16 @@ describe('UpcomingMeetings', () => {
     });
   }
 
-  it('reveals Start Now when an open dashboard crosses the early-start boundary', async () => {
-    vi.setSystemTime('2026-08-14T16:44:59.000Z');
+  it('says Start Early before the booked time and Start Now once it arrives', async () => {
+    vi.setSystemTime('2026-08-14T16:59:45.000Z');
     vi.mocked(fetch).mockResolvedValue(response({ data: [meeting] }));
 
     await renderMeetings();
 
+    // Startable either way — early is a label, not a lock — and the join code
+    // stays on the row whichever it says.
+    expect(screen.getByRole('button', { name: 'Start Early' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '8523BF' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Start Now' })).not.toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(30_000);
@@ -102,26 +104,24 @@ describe('UpcomingMeetings', () => {
     expect(screen.getByRole('button', { name: 'Start Now' })).toBeInTheDocument();
   });
 
-  it('keeps an overdue meeting startable until its scheduled end', async () => {
-    vi.setSystemTime('2026-08-14T17:30:00.000Z');
+  it('keeps a meeting startable hours after it should have ended', async () => {
+    // Three hours past a one-hour meeting: a host running late, which is the
+    // normal case rather than a meeting that no longer exists.
+    vi.setSystemTime('2026-08-14T20:00:00.000Z');
     vi.mocked(fetch).mockResolvedValue(response({ data: [meeting] }));
 
     await renderMeetings();
 
-    expect(screen.getByRole('button', { name: 'Start Now' })).toBeInTheDocument();
-    expect(screen.getByText(/Today at/)).toBeInTheDocument();
-  });
-
-  it('removes a meeting from the upcoming list when its duration ends', async () => {
-    vi.setSystemTime('2026-08-14T17:59:45.000Z');
-    vi.mocked(fetch).mockResolvedValue(response({ data: [meeting] }));
-
-    await renderMeetings();
     expect(screen.getByText('Weekly Team Sync')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start Now' })).toBeInTheDocument();
+  });
 
-    act(() => {
-      vi.advanceTimersByTime(30_000);
-    });
+  it('removes a meeting once its late grace is spent', async () => {
+    // Booked to end at 18:00, so it lapses twelve hours later at 06:00.
+    vi.setSystemTime('2026-08-15T06:01:00.000Z');
+    vi.mocked(fetch).mockResolvedValue(response({ data: [meeting] }));
+
+    await renderMeetings();
 
     expect(screen.queryByText('Weekly Team Sync')).not.toBeInTheDocument();
     expect(screen.getByText('No upcoming meetings scheduled')).toBeInTheDocument();

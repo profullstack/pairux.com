@@ -8,6 +8,8 @@
  * has finished, so no cron job is needed.
  */
 
+import { SCHEDULED_MEETING_LATE_GRACE_MS } from './scheduled-meeting-timing';
+
 export type RecurrenceFreq = 'daily' | 'weekly' | 'monthly';
 
 export const RECURRENCE_FREQUENCIES: RecurrenceFreq[] = ['daily', 'weekly', 'monthly'];
@@ -106,8 +108,15 @@ const MAX_ADVANCE_STEPS = 10_000;
  * Roll a series forward to its next unfinished occurrence.
  *
  * Returns null when nothing changed — the current occurrence has not ended yet,
- * or the series already ran out. An occurrence counts as elapsed only once its
- * full duration has passed, so a meeting stays startable while it is running.
+ * or the series already ran out.
+ *
+ * An occurrence is not retired the moment its booked minutes are up. Rolling
+ * forward is how a series forgets an occurrence: `scheduled_at` moves and the
+ * room it was held in is dropped, so a weekly sync that ran over — or started
+ * late, or has not started at all because the host is running behind — would
+ * become next week's meeting while its host was still trying to open it. It
+ * keeps its slot for `SCHEDULED_MEETING_LATE_GRACE_MS`, and never past the
+ * point where the next occurrence is itself due.
  */
 export function advanceSeries(state: SeriesState, now: Date): SeriesAdvance | null {
   const step = Math.max(1, Math.trunc(state.interval));
@@ -119,7 +128,9 @@ export function advanceSeries(state: SeriesState, now: Date): SeriesAdvance | nu
 
   for (let i = 0; i < MAX_ADVANCE_STEPS; i++) {
     const endsAt = scheduledAt.getTime() + state.durationMinutes * 60_000;
-    if (endsAt > now.getTime()) break;
+    const nextAt = nextOccurrence(scheduledAt, state.freq, step, anchorDay);
+    const lapsesAt = Math.min(endsAt + SCHEDULED_MEETING_LATE_GRACE_MS, nextAt.getTime());
+    if (lapsesAt > now.getTime()) break;
 
     elapsed += 1;
     changed = true;
@@ -129,7 +140,7 @@ export function advanceSeries(state: SeriesState, now: Date): SeriesAdvance | nu
       return { scheduledAt, elapsed, completed: true };
     }
 
-    scheduledAt = nextOccurrence(scheduledAt, state.freq, step, anchorDay);
+    scheduledAt = nextAt;
   }
 
   return changed ? { scheduledAt, elapsed, completed: false } : null;

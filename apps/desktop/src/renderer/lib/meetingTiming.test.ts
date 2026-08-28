@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { acceptedCount, isLive, isStartable, orderForPicker, relativeStart } from './meetingTiming';
+import { acceptedCount, isEarly, isLive, orderForPicker, relativeStart } from './meetingTiming';
 import type { ScheduledMeeting } from '../../preload/api';
 
 function meeting(overrides: Partial<ScheduledMeeting> = {}): ScheduledMeeting {
@@ -22,13 +22,13 @@ function meeting(overrides: Partial<ScheduledMeeting> = {}): ScheduledMeeting {
 
 const at = (iso: string) => Date.parse(iso);
 
-describe('isStartable', () => {
-  it('unlocks fifteen minutes early and locks at the scheduled end', () => {
+describe('isEarly', () => {
+  it('is true only before the booked start', () => {
     const m = meeting();
-    expect(isStartable(m, at('2026-09-01T14:44:59.999Z'))).toBe(false);
-    expect(isStartable(m, at('2026-09-01T14:45:00.000Z'))).toBe(true);
-    expect(isStartable(m, at('2026-09-01T15:59:59.999Z'))).toBe(true);
-    expect(isStartable(m, at('2026-09-01T16:00:00.000Z'))).toBe(false);
+    expect(isEarly(m, at('2026-09-01T14:59:59.999Z'))).toBe(true);
+    expect(isEarly(m, at('2026-09-01T15:00:00.000Z'))).toBe(false);
+    // Two hours late is not early — and is still perfectly startable.
+    expect(isEarly(m, at('2026-09-01T17:00:00.000Z'))).toBe(false);
   });
 });
 
@@ -39,6 +39,13 @@ describe('isLive', () => {
     const started = meeting({ started_at: '2026-09-01T15:00:10.000Z' });
     expect(isLive(started, at('2026-09-01T15:10:00.000Z'))).toBe(true);
     expect(isLive(started, at('2026-09-01T16:10:00.000Z'))).toBe(false);
+  });
+
+  it('gives a late start its full length rather than the rest of the booking', () => {
+    // Booked 15:00-16:00, opened at 17:00: live until 18:00, not already over.
+    const late = meeting({ started_at: '2026-09-01T17:00:00.000Z' });
+    expect(isLive(late, at('2026-09-01T17:45:00.000Z'))).toBe(true);
+    expect(isLive(late, at('2026-09-01T18:00:00.000Z'))).toBe(false);
   });
 });
 

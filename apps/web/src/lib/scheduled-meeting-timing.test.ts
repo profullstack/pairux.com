@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   earliestPossibleCurrentMeetingStart,
   isScheduledMeetingCurrent,
-  isScheduledMeetingStartable,
   scheduledMeetingEndTime,
+  SCHEDULED_MEETING_LATE_GRACE_MS,
 } from './scheduled-meeting-timing';
 
 const meeting = {
@@ -12,26 +12,26 @@ const meeting = {
 };
 
 describe('scheduled meeting timing', () => {
-  it('keeps a meeting current until its scheduled duration ends', () => {
-    expect(isScheduledMeetingCurrent(meeting, Date.parse('2026-08-14T17:59:59.999Z'))).toBe(true);
-    expect(isScheduledMeetingCurrent(meeting, Date.parse('2026-08-14T18:00:00.000Z'))).toBe(false);
+  it('ends when its booked minutes are up', () => {
     expect(scheduledMeetingEndTime(meeting)).toBe(Date.parse('2026-08-14T18:00:00.000Z'));
   });
 
-  it('allows the host to start 15 minutes early through the scheduled end', () => {
-    expect(isScheduledMeetingStartable(meeting, Date.parse('2026-08-14T16:44:59.999Z'))).toBe(
-      false
-    );
-    expect(isScheduledMeetingStartable(meeting, Date.parse('2026-08-14T16:45:00.000Z'))).toBe(true);
-    expect(isScheduledMeetingStartable(meeting, Date.parse('2026-08-14T17:30:00.000Z'))).toBe(true);
-    expect(isScheduledMeetingStartable(meeting, Date.parse('2026-08-14T18:00:00.000Z'))).toBe(
-      false
-    );
+  it('keeps an overrun meeting current, because meetings run late', () => {
+    // The host is two hours behind: this is still the meeting they are running.
+    expect(isScheduledMeetingCurrent(meeting, Date.parse('2026-08-14T20:00:00.000Z'))).toBe(true);
   });
 
-  it('uses the maximum allowed duration as the upcoming-query lookback', () => {
+  it('drops it once the grace period is spent', () => {
+    const lapses = scheduledMeetingEndTime(meeting) + SCHEDULED_MEETING_LATE_GRACE_MS;
+    expect(isScheduledMeetingCurrent(meeting, lapses - 1)).toBe(true);
+    expect(isScheduledMeetingCurrent(meeting, lapses)).toBe(false);
+  });
+
+  it('looks back far enough to catch the longest meeting still in grace', () => {
+    // Eight hours of meeting plus twelve of grace, so the query cannot miss a
+    // row the filter would have kept.
     expect(earliestPossibleCurrentMeetingStart(Date.parse('2026-08-14T17:30:00.000Z'))).toBe(
-      '2026-08-14T09:30:00.000Z'
+      '2026-08-13T21:30:00.000Z'
     );
   });
 });

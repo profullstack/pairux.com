@@ -1,30 +1,44 @@
 import type { ScheduledMeeting } from '../../preload/api';
 
 /**
- * When a meeting can be started, and how to say when it is.
+ * How the picker talks about a meeting's timing.
  *
- * Deliberately the same rules as the web dashboard's
- * `scheduled-meeting-timing.ts`: a host looking at the same meeting in the app
- * and in the browser must not be told two different things about whether it can
- * be started. Kept separate rather than imported because the desktop bundle
- * does not depend on the web app.
+ * Nothing here decides whether a meeting can be started: the booked time used
+ * to be a gate at both ends — fifteen minutes early at one end, the scheduled
+ * end at the other — and meetings run late, so a host two hours behind found
+ * the Start button dead on the meeting everybody had been emailed a link to.
+ * The time orders this list and tells the guests when to turn up; the host
+ * decides when the room opens, and the server has never checked the clock.
+ *
+ * What the app lists is what the web dashboard lists — see the web app's
+ * `scheduled-meeting-timing.ts` for the grace a lapsed meeting keeps.
  */
-
-export const START_EARLY_MS = 15 * 60 * 1000;
 
 export function meetingEndTime(meeting: ScheduledMeeting): number {
   return new Date(meeting.scheduled_at).getTime() + meeting.duration_minutes * 60 * 1000;
 }
 
-/** Startable from fifteen minutes early until its scheduled end. */
-export function isStartable(meeting: ScheduledMeeting, nowMs: number): boolean {
-  const startsAt = new Date(meeting.scheduled_at).getTime();
-  return nowMs >= startsAt - START_EARLY_MS && nowMs < meetingEndTime(meeting);
+/**
+ * Not due yet.
+ *
+ * Starting a meeting mails every invitee that it is beginning now, so a host
+ * opening one ahead of its slot is told that is what they are doing.
+ */
+export function isEarly(meeting: ScheduledMeeting, nowMs: number): boolean {
+  return nowMs < new Date(meeting.scheduled_at).getTime();
 }
 
-/** Already opened, and still inside the time it was booked for. */
+/**
+ * Already opened and still running.
+ *
+ * Measured from when the room actually opened as well as from the booked slot:
+ * a meeting started half an hour late is live for its full length, not for
+ * whatever was left of the booking.
+ */
 export function isLive(meeting: ScheduledMeeting, nowMs: number): boolean {
-  return Boolean(meeting.started_at) && nowMs < meetingEndTime(meeting);
+  if (!meeting.started_at) return false;
+  const ranUntil = new Date(meeting.started_at).getTime() + meeting.duration_minutes * 60 * 1000;
+  return nowMs < Math.max(meetingEndTime(meeting), ranUntil);
 }
 
 /**

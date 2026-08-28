@@ -71,12 +71,38 @@ describe('advanceSeries', () => {
     expect(result).toBeNull();
   });
 
-  it('advances once the occurrence has finished', () => {
+  it('leaves an occurrence that has only overrun alone', () => {
+    // Two hours past a 9am hour-long sync is a host running late, not next week.
     const result = advanceSeries(
       { ...base, scheduledAt: at(2026, 8, 19, 9, 0) },
-      at(2026, 8, 19, 10, 1)
+      at(2026, 8, 19, 12, 0)
+    );
+    expect(result).toBeNull();
+  });
+
+  it('advances once the occurrence has spent its grace', () => {
+    const result = advanceSeries(
+      { ...base, scheduledAt: at(2026, 8, 19, 9, 0) },
+      at(2026, 8, 19, 22, 1)
     );
     expect(result).toEqual({ scheduledAt: at(2026, 8, 26, 9, 0), elapsed: 1, completed: false });
+  });
+
+  it('never lets the grace run into the next occurrence', () => {
+    // A twenty-hour daily meeting ends at 5am and the next one starts at 9am:
+    // the grace has to give way at 9, or the series would never move on.
+    const marathon = {
+      ...base,
+      freq: 'daily' as const,
+      durationMinutes: 20 * 60,
+      scheduledAt: at(2026, 8, 19, 9, 0),
+    };
+    expect(advanceSeries(marathon, at(2026, 8, 20, 8, 59))).toBeNull();
+    expect(advanceSeries(marathon, at(2026, 8, 20, 9, 0))).toEqual({
+      scheduledAt: at(2026, 8, 20, 9, 0),
+      elapsed: 1,
+      completed: false,
+    });
   });
 
   it('skips every occurrence missed while nobody looked', () => {

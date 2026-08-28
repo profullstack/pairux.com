@@ -33,7 +33,7 @@ describe('rollForwardRow', () => {
   });
 
   it('moves a lapsed occurrence to the next one', () => {
-    const result = rollForwardRow(row(), new Date('2026-08-19T10:30:00.000Z'));
+    const result = rollForwardRow(row(), new Date('2026-08-19T22:30:00.000Z'));
     expect(result.changed).toBe(true);
     expect(new Date(result.row.scheduled_at).toISOString()).toBe('2026-08-26T09:00:00.000Z');
     expect(result.row.occurrences_elapsed).toBe(1);
@@ -54,6 +54,14 @@ describe('rollForwardRow', () => {
     const result = rollForwardRow(row(), new Date('2026-08-19T09:45:00.000Z'));
     expect(result.changed).toBe(false);
   });
+
+  it('does not move a meeting whose host is merely running late', () => {
+    // Two hours past a 9am sync the row must still be this week's meeting:
+    // rolling it forward is what took the Start button away from its host.
+    const result = rollForwardRow(row(), new Date('2026-08-19T11:00:00.000Z'));
+    expect(result.changed).toBe(false);
+    expect(new Date(result.row.scheduled_at).toISOString()).toBe('2026-08-19T09:00:00.000Z');
+  });
 });
 
 describe('rollForwardRows', () => {
@@ -67,7 +75,7 @@ describe('rollForwardRows', () => {
       row({ id: 'future', scheduled_at: '2027-01-01T09:00:00.000Z' }),
     ];
 
-    const result = await rollForwardRows(svc, rows, new Date('2026-08-19T10:30:00.000Z'));
+    const result = await rollForwardRows(svc, rows, new Date('2026-08-19T22:30:00.000Z'));
 
     expect(update).toHaveBeenCalledTimes(1);
     expect(eq).toHaveBeenCalledWith('id', 'moved');
@@ -84,7 +92,7 @@ describe('rollForwardRows', () => {
     const svc = { from: vi.fn().mockReturnValue({ update: vi.fn().mockReturnValue({ eq }) }) };
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    const result = await rollForwardRows(svc, [row()], new Date('2026-08-19T10:30:00.000Z'));
+    const result = await rollForwardRows(svc, [row()], new Date('2026-08-19T22:30:00.000Z'));
 
     expect(result[0]?.scheduled_at).toBe('2026-08-26T09:00:00.000Z');
     consoleError.mockRestore();

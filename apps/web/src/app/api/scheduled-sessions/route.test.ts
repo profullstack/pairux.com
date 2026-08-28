@@ -84,9 +84,12 @@ describe('GET /api/scheduled-sessions', () => {
     vi.useRealTimers();
   });
 
-  it('returns future and currently running meetings but excludes expired ones', async () => {
+  it('returns future, running and overrunning meetings but excludes lapsed ones', async () => {
     const { gte } = setupList([
-      row('expired', '2026-08-14T16:00:00.000Z'),
+      // Yesterday's: long past its grace, and gone.
+      row('lapsed', '2026-08-13T17:00:00.000Z'),
+      // Booked to end at 17:00 and it is 17:30 — a host running late.
+      row('overdue', '2026-08-14T16:00:00.000Z'),
       row('running', '2026-08-14T17:00:00.000Z'),
       row('future', '2026-08-14T18:00:00.000Z'),
     ]);
@@ -97,13 +100,19 @@ describe('GET /api/scheduled-sessions', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data.map((session: ScheduledRow) => session.id)).toEqual(['running', 'future']);
+    expect(body.data.map((session: ScheduledRow) => session.id)).toEqual([
+      'overdue',
+      'running',
+      'future',
+    ]);
     expect(body.data[0]).toMatchObject({
       invitee_count: 1,
       invitees: [{ email: 'guest@example.com', rsvp_status: 'accepted' }],
     });
     expect(body.data[0]).not.toHaveProperty('scheduled_session_invitees');
-    expect(gte).toHaveBeenCalledWith('scheduled_at', '2026-08-14T09:30:00.000Z');
+    // The longest allowed meeting plus its late grace, so the query cannot miss
+    // a row the filter would have kept.
+    expect(gte).toHaveBeenCalledWith('scheduled_at', '2026-08-13T21:30:00.000Z');
   });
 
   it('does not apply the running-meeting lookback to the all filter', async () => {
@@ -131,9 +140,10 @@ describe('GET /api/scheduled-sessions', () => {
     expect(mockRollForwardHostSeries).toHaveBeenCalledWith(expect.anything(), mockUser.id);
   });
 
-  it('keeps currently running meetings out of the past filter', async () => {
+  it('keeps running and overrunning meetings out of the past filter', async () => {
     const { gte, lt } = setupList([
-      row('expired', '2026-08-14T16:00:00.000Z'),
+      row('lapsed', '2026-08-13T17:00:00.000Z'),
+      row('overdue', '2026-08-14T16:00:00.000Z'),
       row('running', '2026-08-14T17:00:00.000Z'),
     ]);
 
@@ -141,7 +151,7 @@ describe('GET /api/scheduled-sessions', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data.map((session: ScheduledRow) => session.id)).toEqual(['expired']);
+    expect(body.data.map((session: ScheduledRow) => session.id)).toEqual(['lapsed']);
     expect(lt).toHaveBeenCalledWith('scheduled_at', '2026-08-14T17:30:00.000Z');
     expect(gte).not.toHaveBeenCalled();
   });

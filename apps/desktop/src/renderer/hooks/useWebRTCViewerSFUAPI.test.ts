@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { Room } from 'livekit-client';
 import { useWebRTCViewerSFUAPI } from './useWebRTCViewerSFUAPI';
 
 // Polyfill MediaStream for jsdom
@@ -304,7 +305,9 @@ describe('useWebRTCViewerSFUAPI', () => {
     });
 
     const mergedStream = hookResult!.current.remoteStream;
-    expect(mergedStream).toBe(firstStream);
+    // A NEW reference, not a mutated one: React bails on setState with the same
+    // object, so VideoViewer's srcObject effect would never re-bind.
+    expect(mergedStream).not.toBe(firstStream);
     expect(mergedStream?.getAudioTracks()).toHaveLength(1);
     expect(mergedStream?.getVideoTracks()).toHaveLength(1);
 
@@ -312,9 +315,71 @@ describe('useWebRTCViewerSFUAPI', () => {
       mockRoomInstance.emit('trackUnsubscribed', mockAudioTrack);
     });
 
-    expect(hookResult!.current.remoteStream).toBe(mergedStream);
+    expect(hookResult!.current.remoteStream).not.toBe(mergedStream);
     expect(hookResult!.current.remoteStream?.getAudioTracks()).toHaveLength(0);
     expect(hookResult!.current.remoteStream?.getVideoTracks()).toHaveLength(1);
+  });
+
+  it('should disable adaptiveStream so the screen share is never auto-paused', async () => {
+    await act(async () => {
+      renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // livekit only counts a track as "visible" when it was handed to
+    // track.attach(). We build the MediaStream by hand and set it as a
+    // <video> srcObject, so livekit sees zero attached elements and would
+    // disable the subscription part-way through a session.
+    expect(Room).toHaveBeenCalledWith(expect.objectContaining({ adaptiveStream: false }));
+  });
+
+  it('should emit a fresh stream when the host restarts sharing with mic still subscribed', async () => {
+    let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
+
+    await act(async () => {
+      const { result } = renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      hookResult = result;
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const mockAudioTrack = { kind: 'audio', mediaStreamTrack: { id: 'audio-1', kind: 'audio' } };
+    const firstVideo = { kind: 'video', mediaStreamTrack: { id: 'video-1', kind: 'video' } };
+    const secondVideo = { kind: 'video', mediaStreamTrack: { id: 'video-2', kind: 'video' } };
+
+    act(() => {
+      mockRoomInstance.emit('trackSubscribed', mockAudioTrack, {}, { identity: 'host-1' });
+      mockRoomInstance.emit('trackSubscribed', firstVideo, {}, { identity: 'host-1' });
+    });
+
+    const sharing = hookResult!.current.remoteStream;
+    expect(sharing?.getVideoTracks()).toHaveLength(1);
+
+    // Host stops sharing. Their mic stays subscribed, so the stream survives —
+    // this is the case that used to keep a stale reference alive.
+    act(() => {
+      mockRoomInstance.emit('trackUnsubscribed', firstVideo);
+    });
+
+    const audioOnly = hookResult!.current.remoteStream;
+    expect(audioOnly).not.toBeNull();
+    expect(audioOnly).not.toBe(sharing);
+    expect(audioOnly?.getVideoTracks()).toHaveLength(0);
+
+    // Host starts a new share.
+    act(() => {
+      mockRoomInstance.emit('trackSubscribed', secondVideo, {}, { identity: 'host-1' });
+    });
+
+    const restarted = hookResult!.current.remoteStream;
+    expect(restarted).not.toBe(audioOnly);
+    expect(restarted?.getVideoTracks()).toHaveLength(1);
+    expect((restarted?.getVideoTracks()[0] as { id?: string } | undefined)?.id).toBe('video-2');
   });
 
   it('should clear remoteStream on TrackUnsubscribed for video', async () => {

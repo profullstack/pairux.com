@@ -367,9 +367,16 @@ export function useWebRTCViewerSFUAPI({
         data: { token: string; url: string; roomName: string; iceServers?: RTCIceServer[] };
       };
 
-      // Create and connect room
+      // Create and connect room.
+      // adaptiveStream pauses video tracks that livekit doesn't see attached to
+      // a visible element via track.attach(). We render through a manually built
+      // MediaStream on a <video> srcObject, so livekit never registers the
+      // element and would pause the screen-share video mid-session — audio keeps
+      // flowing, video freezes then goes black. Disable it: the viewer always
+      // shows the one presenter stream, so there's nothing to adaptively pause.
+      // apps/web/src/hooks/useWebRTCSFU.ts made this same fix (#29).
       const room = new Room({
-        adaptiveStream: true,
+        adaptiveStream: false,
         dynacast: true,
       });
 
@@ -380,19 +387,25 @@ export function useWebRTCViewerSFUAPI({
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
           if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-            const stream = remoteMediaStreamRef.current ?? new MediaStream();
-            remoteMediaStreamRef.current = stream;
-
             const mediaTrack = track.mediaStreamTrack;
-            const hasTrack = stream.getTracks().some((t) => t.id === mediaTrack.id);
-            if (!hasTrack) {
-              stream.addTrack(mediaTrack);
-            }
+            const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
+            if (existingTracks.some((t) => t.id === mediaTrack.id)) return;
 
-            setRemoteStream(stream);
+            // Emit a NEW MediaStream reference on every track change. React bails
+            // on setState with the same object, so VideoViewer's srcObject effect
+            // (keyed on the stream identity) never re-runs — and a track added to
+            // a MediaStream that is already attached to a <video> is not reliably
+            // rendered. When a host stops and restarts sharing while their mic
+            // stays subscribed, the stream still holds the audio track, so the
+            // ref survives and the replacement video track was added in place:
+            // invisible to the viewer while the host's own preview looked fine.
+            // A fresh reference forces srcObject to re-bind.
+            const nextStream = new MediaStream([...existingTracks, mediaTrack]);
+            remoteMediaStreamRef.current = nextStream;
+            setRemoteStream(nextStream);
 
             if (track.kind === Track.Kind.Video) {
-              onStreamReadyRef.current?.(stream);
+              onStreamReadyRef.current?.(nextStream);
             }
           }
         }
@@ -401,24 +414,24 @@ export function useWebRTCViewerSFUAPI({
       // Track unsubscribed
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
         if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-          const stream = remoteMediaStreamRef.current;
-          if (!stream) return;
+          const prev = remoteMediaStreamRef.current;
+          if (!prev) return;
 
           const mediaTrack = track.mediaStreamTrack;
-          const existing = stream.getTracks().find((t) => t.id === mediaTrack.id);
-          if (existing) {
-            stream.removeTrack(existing);
-          }
+          const remaining = prev.getTracks().filter((t) => t.id !== mediaTrack.id);
+          if (remaining.length === prev.getTracks().length) return; // not present
 
-          if (track.kind === Track.Kind.Video && stream.getVideoTracks().length === 0) {
+          if (track.kind === Track.Kind.Video && !remaining.some((t) => t.kind === 'video')) {
             onStreamEndedRef.current?.();
           }
 
-          if (stream.getTracks().length === 0) {
+          if (remaining.length === 0) {
             remoteMediaStreamRef.current = null;
             setRemoteStream(null);
           } else {
-            setRemoteStream(stream);
+            const nextStream = new MediaStream(remaining);
+            remoteMediaStreamRef.current = nextStream;
+            setRemoteStream(nextStream);
           }
         }
       });

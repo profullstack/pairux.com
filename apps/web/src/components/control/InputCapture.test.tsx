@@ -198,6 +198,13 @@ describe('InputCapture pointer lock', () => {
     );
   });
 
+  // The paired mousemove is suppressed by a 16ms window on performance.now(),
+  // so the real wall-clock gap between the two dispatches below decides the
+  // outcome. On a loaded machine that gap can exceed 16ms, the mousemove lands
+  // as a second movement, and the pointer reads 0.7 instead of 0.6 -- a flaky
+  // test rather than a regression. Freeze the clock across the pair so the
+  // window is not a race. Only these two dispatches are covered; everything
+  // else in the test still runs on real time.
   it('does not count a paired mousemove twice after pointermove', () => {
     const browser = installBrowserApis();
     const onInputEvent = vi.fn();
@@ -208,14 +215,19 @@ describe('InputCapture pointer lock', () => {
       browser.grantLock(container);
     });
 
-    act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
-      );
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
-      );
-    });
+    const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
+    try {
+      act(() => {
+        document.dispatchEvent(
+          Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
+        );
+        document.dispatchEvent(
+          Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
+        );
+      });
+    } finally {
+      now.mockRestore();
+    }
 
     onInputEvent.mockClear();
     act(() => {

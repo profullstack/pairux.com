@@ -67,8 +67,7 @@ const SKIP_SECONDS = 10;
 
 const ICONS = {
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
-  pause:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
   replay:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>',
   back10:
@@ -248,7 +247,12 @@ export function createPlayer(
   });
   const shareButton = iconButton('pux-player__btn', 'Copy link at this time', ICONS.link, 'share');
   const pipButton = iconButton('pux-player__btn', 'Picture in picture', ICONS.pip, 'pip');
-  const fullscreenButton = iconButton('pux-player__btn', 'Fullscreen', ICONS.enterFullscreen, 'fullscreen');
+  const fullscreenButton = iconButton(
+    'pux-player__btn',
+    'Fullscreen',
+    ICONS.enterFullscreen,
+    'fullscreen'
+  );
 
   row.append(
     playButton,
@@ -293,7 +297,9 @@ export function createPlayer(
     opts?: AddEventListenerOptions
   ): void {
     target.addEventListener(type, handler, opts);
-    cleanups.push(() => { target.removeEventListener(type, handler, opts); });
+    cleanups.push(() => {
+      target.removeEventListener(type, handler, opts);
+    });
   }
 
   function showNotice(message: string, action?: { label: string; run: () => void }): void {
@@ -559,9 +565,15 @@ export function createPlayer(
     renderRate();
     savePrefs({ volume: video.volume, muted: video.muted, rate: video.playbackRate }, storage);
   });
-  on(video, 'waiting', () => { root.classList.add('pux-player--buffering'); });
-  on(video, 'playing', () => { root.classList.remove('pux-player--buffering'); });
-  on(video, 'canplay', () => { root.classList.remove('pux-player--buffering'); });
+  on(video, 'waiting', () => {
+    root.classList.add('pux-player--buffering');
+  });
+  on(video, 'playing', () => {
+    root.classList.remove('pux-player--buffering');
+  });
+  on(video, 'canplay', () => {
+    root.classList.remove('pux-player--buffering');
+  });
   on(video, 'error', () => {
     root.classList.remove('pux-player--buffering');
     root.classList.add('pux-player--failed');
@@ -570,8 +582,12 @@ export function createPlayer(
 
   on(overlay, 'click', togglePlay);
   on(playButton, 'click', togglePlay);
-  on(backButton, 'click', () => { seekBy(-SKIP_SECONDS); });
-  on(forwardButton, 'click', () => { seekBy(SKIP_SECONDS); });
+  on(backButton, 'click', () => {
+    seekBy(-SKIP_SECONDS);
+  });
+  on(forwardButton, 'click', () => {
+    seekBy(SKIP_SECONDS);
+  });
   on(muteButton, 'click', () => {
     video.muted = !video.muted;
   });
@@ -579,7 +595,9 @@ export function createPlayer(
     video.volume = Number(volumeInput.value);
     video.muted = Number(volumeInput.value) === 0;
   });
-  on(rateButton, 'click', () => { cycleRate(1); });
+  on(rateButton, 'click', () => {
+    cycleRate(1);
+  });
   on(shareButton, 'click', () => void copyLink());
   on(pipButton, 'click', () => void togglePip());
   on(fullscreenButton, 'click', () => void toggleFullscreen());
@@ -621,11 +639,15 @@ export function createPlayer(
   on(scrub, 'pointerup', endScrub);
   on(scrub, 'pointercancel', endScrub);
 
-  on(root, 'pointermove', () => { showControls(); });
+  on(root, 'pointermove', () => {
+    showControls();
+  });
   on(root, 'pointerleave', () => {
     if (!video.paused) root.classList.remove('pux-player--controls');
   });
-  on(root, 'focusin', () => { showControls(); });
+  on(root, 'focusin', () => {
+    showControls();
+  });
 
   /**
    * Keys.

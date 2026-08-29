@@ -19,7 +19,14 @@
      picture. Its focus ring would otherwise sit around the whole video. */
   outline: none;
   font-family:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   -webkit-user-select: none;
   user-select: none;
 }

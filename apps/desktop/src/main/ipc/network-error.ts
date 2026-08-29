@@ -7,12 +7,21 @@ interface FetchCause {
   message?: string;
 }
 
+// Codes apiFetch retries only reach a user once those retries are spent, so
+// each one needs text worth reading. UND_ERR_HEADERS_TIMEOUT is not retried —
+// the request was already sent, so a POST can't be replayed safely — but it
+// surfaces the same way, so it is spelled out here too.
 const FRIENDLY_CODES: Record<string, string> = {
   ENOTFOUND: 'DNS lookup failed',
   EAI_AGAIN: 'DNS lookup timed out',
   ECONNREFUSED: 'Connection refused',
   ECONNRESET: 'Connection reset',
   ETIMEDOUT: 'Connection timed out',
+  ENETUNREACH: 'Network unreachable',
+  EHOSTUNREACH: 'Host unreachable',
+  UND_ERR_CONNECT_TIMEOUT: 'Connection timed out',
+  UND_ERR_HEADERS_TIMEOUT: 'Server took too long to respond',
+  UND_ERR_SOCKET: 'Connection closed unexpectedly',
   CERT_HAS_EXPIRED: 'TLS certificate expired',
   DEPTH_ZERO_SELF_SIGNED_CERT: 'TLS certificate is self-signed',
   UNABLE_TO_VERIFY_LEAF_SIGNATURE: 'TLS certificate verification failed',

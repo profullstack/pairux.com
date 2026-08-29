@@ -152,6 +152,8 @@ export function CapturePreview({
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [speakerGain, setSpeakerGain] = useState(DEFAULT_REMOTE_AUDIO_GAIN);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
+  /** Set when the machine is short on memory; the string is what the user reads. */
+  const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [waylandInputDiagnosticsDismissed, setWaylandInputDiagnosticsDismissed] = useState(false);
 
@@ -851,6 +853,31 @@ export function CapturePreview({
     return unsubscribe;
   }, [endSession]);
 
+  // The machine is running out of memory.
+  //
+  // Main has already finalised the recording and stopped any egress by the time
+  // 'critical' arrives; capture and the WebRTC publication live here, so they
+  // have to be dropped here. Ending the session beats being the reason someone
+  // has to hold their power button — say why, so it does not look like a crash.
+  useEffect(() => {
+    const api = getElectronAPI();
+    const unsubscribeWarning = api.on('resource:warning', ({ availableMb }) => {
+      setMemoryNotice(
+        `This machine is low on memory (${String(availableMb)} MB free). Closing a few apps will keep the share stable.`
+      );
+    });
+    const unsubscribeCritical = api.on('resource:critical', ({ availableMb }) => {
+      setMemoryNotice(
+        `Sharing stopped: this machine was almost out of memory (${String(availableMb)} MB free). Any recording was saved.`
+      );
+      void endSession();
+    });
+    return () => {
+      unsubscribeWarning();
+      unsubscribeCritical();
+    };
+  }, [endSession]);
+
   // Poll for participant updates while session is active
   const refreshSessionRef = useRef(refreshSession);
   refreshSessionRef.current = refreshSession;
@@ -1497,6 +1524,14 @@ export function CapturePreview({
         {hostingError && (
           <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
             Streaming error: {hostingError}
+          </div>
+        )}
+
+        {/* Memory pressure */}
+        {memoryNotice && (
+          <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            {memoryNotice}
           </div>
         )}
 

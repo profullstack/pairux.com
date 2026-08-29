@@ -99,10 +99,29 @@ export function writeRecordingChunk(chunk: Buffer): Promise<boolean> {
       return Promise.resolve(true);
     }
     // Buffer full — wait for it to drain to disk before accepting more.
+    //
+    // A write stream that errors or closes while backpressured never emits
+    // 'drain', so waiting on it alone leaves this promise pending forever. The
+    // renderer awaits this call inside MediaRecorder's ondataavailable, which
+    // keeps firing every 250ms regardless: each stalled call would retain its
+    // chunk in both processes, growing unbounded until the machine is out of
+    // memory. Settle on whichever comes first.
     return new Promise<boolean>((resolve) => {
-      handle.once('drain', () => {
-        resolve(true);
-      });
+      const settle = (result: boolean) => {
+        handle.off('drain', onDrain);
+        handle.off('error', onFailure);
+        handle.off('close', onFailure);
+        resolve(result);
+      };
+      const onDrain = () => {
+        settle(true);
+      };
+      const onFailure = () => {
+        settle(false);
+      };
+      handle.once('drain', onDrain);
+      handle.once('error', onFailure);
+      handle.once('close', onFailure);
     });
   } catch (error) {
     console.error('[Recording] Failed to write chunk:', error);

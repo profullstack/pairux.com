@@ -9,6 +9,7 @@
 
 import { useEffect, useState, type RefObject } from 'react';
 import { clamp } from '@/lib/containRect';
+import { fitWithin, qualityResolution } from '@/lib/captureQuality';
 
 export interface BubbleGeometry {
   /** Horizontal center as a fraction (0-1) of the frame width. */
@@ -29,6 +30,18 @@ interface UseScreenCameraCompositorOptions {
 const FALLBACK_WIDTH = 1280;
 const FALLBACK_HEIGHT = 720;
 const FRAME_RATE = 30;
+/**
+ * captureStream(FRAME_RATE) samples the canvas at most FRAME_RATE times a
+ * second, so anything drawn between samples is discarded. requestAnimationFrame
+ * fires at the display's refresh rate — 60Hz, 144Hz on a gaming monitor — and
+ * `backgroundThrottling: false` (see main/window.ts) keeps it firing at full
+ * speed for the entire share, because the host window is backgrounded the whole
+ * time by design. Drawing every callback therefore burned 2-5x the pixel
+ * bandwidth for frames nobody ever read: a native-resolution 4K canvas is 33MB
+ * per clear+draw, which at 144Hz is several GB/s of wasted traffic against the
+ * same GPU the desktop is compositing with. Gate the work to the sample rate.
+ */
+const FRAME_INTERVAL_MS = 1000 / FRAME_RATE;
 
 /** Draw a video into a destination box using `object-cover`, optionally mirrored. */
 function drawCover(
@@ -88,10 +101,26 @@ export function useScreenCameraCompositor({
     }
 
     const canvas = document.createElement('canvas');
-    // Size the canvas to the screen track's native resolution so the recording is full quality.
+    // Size the canvas to the user's quality setting, not the screen track's
+    // native resolution.
+    //
+    // The track is asked to downscale with `ideal` only, which Chromium's
+    // desktop capturer is free to ignore and does — so a 4K monitor hands us a
+    // 3840x2160 track even when the user picked 1080p. Sizing off that meant
+    // compositing 8.3M pixels per frame, 33MB of clear+draw, for output that
+    // was going to be encoded at 1080p anyway. Honour the setting here, where
+    // it actually binds, and keep the source's aspect ratio so nothing
+    // stretches.
     const screenSettings = screenStream.getVideoTracks()[0].getSettings();
-    canvas.width = screenSettings.width ?? FALLBACK_WIDTH;
-    canvas.height = screenSettings.height ?? FALLBACK_HEIGHT;
+    const { width, height } = fitWithin(
+      {
+        width: screenSettings.width ?? FALLBACK_WIDTH,
+        height: screenSettings.height ?? FALLBACK_HEIGHT,
+      },
+      qualityResolution()
+    );
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d');
     // captureStream is unavailable in some test environments — bail out gracefully.
@@ -104,7 +133,17 @@ export function useScreenCameraCompositor({
     const cameraVideo = createHiddenVideo(cameraStream);
 
     let rafId = 0;
-    const draw = () => {
+    let lastDrawAt = -Infinity;
+    const draw = (now: number) => {
+      // Re-arm first so an early return still keeps the loop alive.
+      rafId = requestAnimationFrame(draw);
+
+      // Sub-millisecond tolerance: at 60Hz the 16.67ms callbacks would
+      // otherwise alternate just under the 33.3ms gate and halve the output
+      // to 20fps.
+      if (now - lastDrawAt < FRAME_INTERVAL_MS - 1) return;
+      lastDrawAt = now;
+
       const w = canvas.width;
       const h = canvas.height;
 
@@ -133,8 +172,6 @@ export function useScreenCameraCompositor({
       ctx.lineWidth = Math.max(2, diameter * 0.025);
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.stroke();
-
-      rafId = requestAnimationFrame(draw);
     };
 
     rafId = requestAnimationFrame(draw);
@@ -147,6 +184,10 @@ export function useScreenCameraCompositor({
       stream.getTracks().forEach((track) => {
         track.stop();
       });
+      // Pause before dropping the source: clearing srcObject alone leaves the
+      // element decoding until GC gets to it.
+      screenVideo.pause();
+      cameraVideo.pause();
       screenVideo.srcObject = null;
       cameraVideo.srcObject = null;
       setOutputStream(null);

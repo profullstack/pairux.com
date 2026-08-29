@@ -1,6 +1,6 @@
 {
   "name": "@pairux/livekit",
-  "version": "0.9.80",
+  "version": "0.9.81",
   "private": true,
   "description": "PairUX LiveKit SFU Server",
   "scripts": {

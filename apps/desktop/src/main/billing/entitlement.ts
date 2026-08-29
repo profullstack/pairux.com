@@ -5,12 +5,17 @@
  * authenticated /api/auth/session endpoint and cache it briefly so the
  * streaming gate doesn't hit the network on every start. On any failure we
  * fail closed to 'free' (YouTube-only), never open.
+ *
+ * Failing closed only stays fair if a blip isn't mistaken for a failure, so the
+ * session lookup goes through apiFetch: a transient connect timeout is retried
+ * rather than silently downgrading a paying user for the length of the cache.
  */
 
 import type { Plan, Profile } from '@pairux/shared-types';
 import { effectivePlan } from '@pairux/shared-types';
 import { API_BASE_URL } from '../../shared/config';
 import { getValidAuth } from '../auth/secure-storage';
+import { apiFetch } from '../lib/apiFetch';
 
 const CACHE_TTL_MS = 60_000;
 
@@ -31,7 +36,7 @@ async function fetchPlanFromServer(): Promise<Plan> {
   if (!stored) return 'free';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/auth/session`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${stored.accessToken}`,

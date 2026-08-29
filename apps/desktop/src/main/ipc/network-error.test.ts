@@ -20,4 +20,20 @@ describe('formatNetworkError', () => {
     expect(formatNetworkError(error)).toContain('DNS lookup failed');
     expect(formatNetworkError(error)).toContain('ENOTFOUND');
   });
+
+  // undici's connect timeout carries no hostname/syscall, only a code and a
+  // message, and it is the code most likely to reach a user: apiFetch retries
+  // it, so seeing it at all means the retries were already spent.
+  it('gives undici connect timeouts friendly text', () => {
+    const error = new Error('fetch failed') as Error & {
+      cause?: Record<string, unknown>;
+    };
+    error.cause = {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      message: 'Connect Timeout Error (attempted address: pairux.com:443, timeout: 10000ms)',
+    };
+
+    expect(formatNetworkError(error)).toContain('Connection timed out');
+    expect(formatNetworkError(error)).toContain('UND_ERR_CONNECT_TIMEOUT');
+  });
 });

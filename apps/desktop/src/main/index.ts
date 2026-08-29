@@ -9,6 +9,9 @@ import { initializeMenu, showAboutDialog } from './platform';
 import { clearStoredAuth, clearStoredCredentials } from './auth/secure-storage';
 import { setMainWindow as setStreamingMainWindow } from './streaming';
 import { startDaemon, stopDaemon } from './daemon';
+import { getRecordingStatus, stopRecording } from './recording';
+import { getAllStreamStatuses, stopAllStreams } from './streaming';
+import { startResourceGuard, type MemorySnapshot } from './health/resourceGuard';
 import {
   findDeepLinkArg,
   handleDeepLink,
@@ -187,6 +190,43 @@ if (!gotTheLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
+/** Torn down on quit; see the resource guard below. */
+let stopResourceGuard: (() => void) | null = null;
+
+/**
+ * Shed everything this app is doing, in the order that loses the least.
+ *
+ * Recording goes first and is awaited: stopping it closes the write stream,
+ * which is what gives the file the metadata that makes it playable. A machine
+ * that seizes instead takes the recording with it, so finalising here is the
+ * difference between the user keeping their session and losing it.
+ */
+async function shedLoad(snapshot: MemorySnapshot): Promise<void> {
+  if (getRecordingStatus().isRecording) {
+    try {
+      const result = await stopRecording();
+      console.error(`[ResourceGuard] Recording finalised at ${result.path ?? 'unknown path'}`);
+    } catch (error) {
+      console.error('[ResourceGuard] Failed to finalise the recording:', error);
+    }
+  }
+
+  const liveStreams = getAllStreamStatuses().length;
+  if (liveStreams > 0) {
+    stopAllStreams();
+    console.error(`[ResourceGuard] Stopped ${String(liveStreams)} outbound stream(s)`);
+  }
+
+  // The renderer owns capture and the WebRTC publication, so it has to stop
+  // those itself. It also owns the only UI that can explain what happened.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('resource:critical', {
+      availableMb: snapshot.availableMb,
+      totalMb: snapshot.totalMb,
+    });
+  }
+}
+
 async function createWindow(): Promise<void> {
   mainWindow = await createMainWindow(isWayland);
   setStreamingMainWindow(mainWindow);
@@ -229,6 +269,28 @@ void app.whenReady().then(async () => {
   registerIpcHandlers();
 
   await createWindow();
+
+  // Watch for the machine running out of memory. A host that keeps encoding
+  // through that does not fail politely — it takes the desktop with it.
+  stopResourceGuard = startResourceGuard({
+    // A plain screen share counts: it is the encode that costs, and the
+    // recording and the egress are both optional extras on top of it.
+    isSharing: () =>
+      getTraySession() !== null ||
+      getRecordingStatus().isRecording ||
+      getAllStreamStatuses().length > 0,
+    onCritical: (snapshot) => {
+      void shedLoad(snapshot);
+    },
+    onWarning: (snapshot) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('resource:warning', {
+          availableMb: snapshot.availableMb,
+          totalMb: snapshot.totalMb,
+        });
+      }
+    },
+  });
 
   if (isDaemonMode) {
     console.log('[Main] Daemon mode: accepting session commands from the web app');
@@ -323,6 +385,8 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   console.log('[Main] App quitting...');
+  stopResourceGuard?.();
+  stopResourceGuard = null;
   destroyTray();
   // Withdraw the tailnet mapping so a stopped daemon leaves nothing published.
   void stopDaemon();

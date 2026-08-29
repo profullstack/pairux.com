@@ -9,6 +9,7 @@
 
 import { useEffect, useState, type RefObject } from 'react';
 import { clamp } from '@/lib/containRect';
+import { fitWithin, qualityResolution } from '@/lib/captureQuality';
 
 export interface BubbleGeometry {
   /** Horizontal center as a fraction (0-1) of the frame width. */
@@ -100,10 +101,26 @@ export function useScreenCameraCompositor({
     }
 
     const canvas = document.createElement('canvas');
-    // Size the canvas to the screen track's native resolution so the recording is full quality.
+    // Size the canvas to the user's quality setting, not the screen track's
+    // native resolution.
+    //
+    // The track is asked to downscale with `ideal` only, which Chromium's
+    // desktop capturer is free to ignore and does — so a 4K monitor hands us a
+    // 3840x2160 track even when the user picked 1080p. Sizing off that meant
+    // compositing 8.3M pixels per frame, 33MB of clear+draw, for output that
+    // was going to be encoded at 1080p anyway. Honour the setting here, where
+    // it actually binds, and keep the source's aspect ratio so nothing
+    // stretches.
     const screenSettings = screenStream.getVideoTracks()[0].getSettings();
-    canvas.width = screenSettings.width ?? FALLBACK_WIDTH;
-    canvas.height = screenSettings.height ?? FALLBACK_HEIGHT;
+    const { width, height } = fitWithin(
+      {
+        width: screenSettings.width ?? FALLBACK_WIDTH,
+        height: screenSettings.height ?? FALLBACK_HEIGHT,
+      },
+      qualityResolution()
+    );
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d');
     // captureStream is unavailable in some test environments — bail out gracefully.

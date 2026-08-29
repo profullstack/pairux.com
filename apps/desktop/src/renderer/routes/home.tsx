@@ -17,36 +17,26 @@ import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
 import { VOICE_AUDIO_CONSTRAINTS } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
+import { qualityResolution, readQualitySetting } from '@/lib/captureQuality';
 
-// Standard resolution presets (all macroblock-aligned to prevent VP9 green bar artifacts)
-const CAPTURE_RESOLUTION: Record<string, { width: number; height: number }> = {
-  '720p': { width: 1280, height: 720 },
-  '1080p': { width: 1920, height: 1080 },
-  '4k': { width: 3840, height: 2160 },
-};
+/**
+ * Frames per second to ask a screen capture for.
+ *
+ * Screen content is mostly static, and every extra frame is one more encode of
+ * a full-resolution desktop — on the host, while it is also compositing, and
+ * possibly also writing a recording and feeding ffmpeg. Asking for up to 60
+ * doubled the encoder's work for detail nobody watching a shared editor can
+ * see. The canvas compositor already samples at 30.
+ */
+const CAPTURE_FRAME_RATE = 30;
 
 /**
  * Read the user's quality setting and force the video track to that standard resolution.
  * This prevents green bar artifacts from non-macroblock-aligned resolutions.
  */
 async function constrainTrackToQualitySetting(track: MediaStreamTrack): Promise<void> {
-  let quality = '1080p';
-  try {
-    const saved = localStorage.getItem('pairux-settings');
-    if (saved) {
-      const parsed = JSON.parse(saved) as { recording?: { defaultQuality?: string } };
-      if (
-        parsed.recording?.defaultQuality &&
-        parsed.recording.defaultQuality in CAPTURE_RESOLUTION
-      ) {
-        quality = parsed.recording.defaultQuality;
-      }
-    }
-  } catch {
-    // Use default
-  }
-
-  const target = CAPTURE_RESOLUTION[quality] ?? CAPTURE_RESOLUTION['1080p'];
+  const quality = readQualitySetting();
+  const target = qualityResolution(quality);
   const settings = track.getSettings();
 
   try {
@@ -198,6 +188,7 @@ export function HomePage() {
         console.log('[Renderer] Display server:', displayServer);
 
         let mediaStream: MediaStream;
+        const bound = qualityResolution();
 
         if (isWayland) {
           // Wayland: Use getDisplayMedia with PipeWire portal
@@ -209,9 +200,9 @@ export function HomePage() {
           mediaStream = await navigator.mediaDevices.getDisplayMedia({
             video: {
               displaySurface: source.type === 'screen' ? 'monitor' : 'window',
-              width: { ideal: 1920, max: 3840 },
-              height: { ideal: 1080, max: 2160 },
-              frameRate: { ideal: 30, max: 60 },
+              width: { ideal: bound.width, max: bound.width },
+              height: { ideal: bound.height, max: bound.height },
+              frameRate: { ideal: CAPTURE_FRAME_RATE, max: CAPTURE_FRAME_RATE },
             },
             audio: false,
           });
@@ -225,12 +216,18 @@ export function HomePage() {
               mandatory: {
                 chromeMediaSource: 'desktop',
                 chromeMediaSourceId: source.id,
-                minWidth: 1280,
-                maxWidth: 3840,
-                minHeight: 720,
-                maxHeight: 2160,
+                // Bounded by the quality setting rather than pinned at 4K60.
+                // These mandatory maxima are the only thing that constrains a
+                // desktopCapturer source: the applyConstraints() call below
+                // asks with `ideal`, which it may ignore. `minWidth`/`minHeight`
+                // are capped alongside so a 720p setting cannot invert the
+                // range and overconstrain the request.
+                minWidth: Math.min(1280, bound.width),
+                maxWidth: bound.width,
+                minHeight: Math.min(720, bound.height),
+                maxHeight: bound.height,
                 minFrameRate: 15,
-                maxFrameRate: 60,
+                maxFrameRate: CAPTURE_FRAME_RATE,
               },
             },
           });
@@ -294,11 +291,16 @@ export function HomePage() {
         // portal's own picker decides.
         await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
 
+        const captureBound = qualityResolution();
         const mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: { ideal: 1920, max: 3840 },
-            height: { ideal: 1080, max: 2160 },
-            frameRate: { ideal: 30, max: 60 },
+            // `max` is what actually binds here. applyConstraints() below can
+            // only ask with `ideal`, which the desktop capturer may ignore, so
+            // a capture left unbounded at this point stays native-resolution
+            // for the whole session.
+            width: { ideal: captureBound.width, max: captureBound.width },
+            height: { ideal: captureBound.height, max: captureBound.height },
+            frameRate: { ideal: CAPTURE_FRAME_RATE, max: CAPTURE_FRAME_RATE },
           },
           audio: false,
         });
@@ -389,11 +391,16 @@ export function HomePage() {
         // portal dialog, so no preference to honour.
         await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
 
+        const captureBound = qualityResolution();
         const mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: { ideal: 1920, max: 3840 },
-            height: { ideal: 1080, max: 2160 },
-            frameRate: { ideal: 30, max: 60 },
+            // `max` is what actually binds here. applyConstraints() below can
+            // only ask with `ideal`, which the desktop capturer may ignore, so
+            // a capture left unbounded at this point stays native-resolution
+            // for the whole session.
+            width: { ideal: captureBound.width, max: captureBound.width },
+            height: { ideal: captureBound.height, max: captureBound.height },
+            frameRate: { ideal: CAPTURE_FRAME_RATE, max: CAPTURE_FRAME_RATE },
           },
           audio: false,
         });

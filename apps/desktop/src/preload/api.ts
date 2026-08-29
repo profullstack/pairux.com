@@ -528,6 +528,11 @@ export interface IPCEvents {
   'recording:stopped': { path: string; duration: number };
   'recording:error': { error: string };
   'recording:space-warning': { availableGb: number };
+
+  // The machine is running out of memory. 'critical' means main has already
+  // stopped the recording and any egress, and the renderer must drop capture.
+  'resource:warning': { availableMb: number; totalMb: number };
+  'resource:critical': { availableMb: number; totalMb: number };
   'tray:end-session': undefined;
   'tray:toggle-pause': undefined;
   navigate: string;

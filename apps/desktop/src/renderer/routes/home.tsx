@@ -8,6 +8,7 @@ import {
   shouldShowInAppSourcePicker,
 } from '@/lib/capturePicker';
 import { CapturePreview } from '@/components/capture/CapturePreview';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { StartMeetingModal } from '@/components/StartMeetingModal';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
@@ -423,17 +424,13 @@ export function HomePage() {
   return (
     <div className="flex flex-1 flex-col p-6">
       {error && (
-        <div className="mb-4 rounded-lg bg-destructive/10 p-4 text-destructive">
-          {error}
-          <button
-            onClick={() => {
-              setError(null);
-            }}
-            className="ml-4 text-sm underline"
-          >
-            Dismiss
-          </button>
-        </div>
+        <ErrorBanner
+          message={error}
+          onDismiss={() => {
+            setError(null);
+          }}
+          className="mb-4"
+        />
       )}
 
       {!stream && !sessionActive ? (

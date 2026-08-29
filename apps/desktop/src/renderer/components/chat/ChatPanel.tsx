@@ -5,12 +5,11 @@ import {
   ChevronLeft,
   Wifi,
   WifiOff,
-  AlertCircle,
-  RefreshCw,
   Send,
   Loader2,
   ChevronUp,
 } from 'lucide-react';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { ChatMessage } from './ChatMessage';
 import { ParticipantList } from './ParticipantList';
 import { useChat } from './useChat';
@@ -52,11 +51,20 @@ export function ChatPanel({
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed ?? internalCollapsed;
 
-  const { messages, isConnected, isLoading, error, hasMore, sendMessage, loadMore, reconnect } =
-    useChat({
-      sessionId,
-      participantId,
-    });
+  const {
+    messages,
+    isConnected,
+    isLoading,
+    error,
+    hasMore,
+    sendMessage,
+    loadMore,
+    reconnect,
+    clearError,
+  } = useChat({
+    sessionId,
+    participantId,
+  });
 
   const { participants: liveParticipants, isLoading: participantsLoading } = useParticipants({
     sessionId,
@@ -172,17 +180,13 @@ export function ChatPanel({
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-center gap-2 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span className="flex-1">{error}</span>
-          <button
-            onClick={reconnect}
-            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium hover:bg-destructive/20"
-          >
-            <RefreshCw className="h-3 w-3" />
-            Retry
-          </button>
-        </div>
+        <ErrorBanner
+          message={error}
+          onRetry={reconnect}
+          retryLabel="Retry"
+          onDismiss={clearError}
+          className="rounded-none border-b border-destructive/20 px-4 py-2"
+        />
       )}
 
       {/* Participant list */}
@@ -244,9 +248,13 @@ export function ChatPanel({
       {/* Message input */}
       <div className="border-t border-border p-3">
         {sendError && (
-          <div className="mb-2 rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {sendError}
-          </div>
+          <ErrorBanner
+            message={sendError}
+            onDismiss={() => {
+              setSendError(null);
+            }}
+            className="mb-2 px-3 py-2"
+          />
         )}
 
         <div className="flex items-end gap-2">

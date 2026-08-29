@@ -10,9 +10,9 @@ import {
   Cloud,
   Loader2,
   Check,
-  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { StreamDestinations } from '@/components/streaming';
 import { LIVE_STREAM_CHANGED_EVENT } from '@/lib/liveStream';
 import { SESSION_SOUNDS_CHANGED_EVENT } from '@/lib/sessionSounds';
@@ -249,18 +249,13 @@ export function SettingsPage() {
 
       {/* Error message */}
       {saveError && (
-        <div className="mb-6 flex max-w-3xl items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>{saveError}</span>
-          <button
-            onClick={() => {
-              setSaveError(null);
-            }}
-            className="ml-auto text-xs underline"
-          >
-            Dismiss
-          </button>
-        </div>
+        <ErrorBanner
+          message={saveError}
+          onDismiss={() => {
+            setSaveError(null);
+          }}
+          className="mb-6 max-w-3xl p-3"
+        />
       )}
 
       <div className="grid max-w-3xl gap-6">

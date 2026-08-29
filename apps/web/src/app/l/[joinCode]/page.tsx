@@ -117,6 +117,9 @@ export default async function LiveDetailPage({ params }: PageProps) {
   const when = session.published_at ?? session.created_at;
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const snippet = iframeSnippet(session.join_code, { title: session.subject });
+  // A stream is credited to its channel when it has one — see the name link
+  // below — so the avatar follows the same precedence.
+  const avatarUrl = session.channel_avatar_url ?? session.host_avatar_url;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -177,13 +180,9 @@ export default async function LiveDetailPage({ params }: PageProps) {
           </h1>
 
           <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-            {session.host_avatar_url ? (
+            {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.host_avatar_url}
-                alt=""
-                className="h-7 w-7 rounded-full object-cover"
-              />
+              <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
             ) : (
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200">
                 <UserIcon className="h-4 w-4 text-gray-400" />

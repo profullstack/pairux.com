@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { useAuthStore } from '@/stores/auth';
 import { loginSchema } from '@/lib/validations';
 import { getElectronAPI } from '@/lib/ipc';
@@ -109,10 +109,12 @@ export function LoginForm() {
       <CardContent>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <ErrorBanner
+              message={error}
+              onDismiss={() => {
+                setError('');
+              }}
+            />
           )}
 
           <div className="space-y-2">

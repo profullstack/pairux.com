@@ -1,15 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  Monitor,
-  User,
-  Loader2,
-  AlertCircle,
-  Users,
-  ArrowLeft,
-  Calendar,
-  Clock,
-} from 'lucide-react';
+import { Monitor, User, Loader2, Users, ArrowLeft, Calendar, Clock } from 'lucide-react';
 
 /**
  * Parse a join code from user input. Handles both raw codes and full URLs.
@@ -138,7 +129,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI } from '@/lib/ipc';
 
@@ -474,10 +465,13 @@ export function JoinPage() {
           </CardHeader>
           <CardContent>
             {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <ErrorBanner
+                message={error}
+                onDismiss={() => {
+                  setError('');
+                }}
+                className="mb-4"
+              />
             )}
 
             {!session ? (

@@ -20,6 +20,7 @@ interface UseChatReturn extends ChatState {
   sendMessage: (content: string) => Promise<void>;
   loadMore: () => Promise<void>;
   reconnect: () => void;
+  clearError: () => void;
 }
 
 // Poll interval for new messages (in ms)
@@ -198,6 +199,10 @@ export function useChat({ sessionId, autoConnect = true }: UseChatOptions): UseC
     };
   }, [loadHistory, startPolling, autoConnect]);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     messages,
     isConnected,
@@ -207,5 +212,6 @@ export function useChat({ sessionId, autoConnect = true }: UseChatOptions): UseC
     sendMessage,
     loadMore,
     reconnect,
+    clearError,
   };
 }

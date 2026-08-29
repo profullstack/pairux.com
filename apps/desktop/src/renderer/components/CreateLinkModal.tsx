@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { X, Copy, Check, Loader2, Link2, Monitor, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
 import { APP_URL } from '../../shared/config';
@@ -105,16 +106,13 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-              <Button
-                variant="link"
-                className="ml-2 h-auto p-0 text-destructive"
-                onClick={() => void createSession()}
-              >
-                Try again
-              </Button>
-            </div>
+            <ErrorBanner
+              message={error}
+              onRetry={() => void createSession()}
+              onDismiss={() => {
+                setError(null);
+              }}
+            />
           )}
 
           {isCreating && (

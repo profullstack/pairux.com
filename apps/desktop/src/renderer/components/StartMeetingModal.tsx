@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { X, Calendar, Loader2, Play, Users, Repeat, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { getElectronAPI } from '@/lib/ipc';
 import {
   acceptedCount,
@@ -118,16 +119,13 @@ export function StartMeetingModal({ isOpen, onClose, onStarted }: Props) {
 
         <CardContent className="flex-1 space-y-3 overflow-y-auto">
           {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-              <Button
-                variant="link"
-                className="ml-2 h-auto p-0 text-destructive"
-                onClick={() => void load()}
-              >
-                Try again
-              </Button>
-            </div>
+            <ErrorBanner
+              message={error}
+              onRetry={() => void load()}
+              onDismiss={() => {
+                setError(null);
+              }}
+            />
           )}
 
           {isLoading && (

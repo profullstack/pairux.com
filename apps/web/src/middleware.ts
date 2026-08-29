@@ -6,14 +6,30 @@ import { CORS_HEADERS } from '@/lib/cors';
 // can carry a fresh script nonce — that lets us drop 'unsafe-inline' from
 // script-src. Next.js reads the nonce from the request's CSP header and applies
 // it to its inline bootstrap scripts; our own inline <script>s read x-nonce.
+
+// Session recordings are uploaded to Supabase Storage and streamed straight
+// from there by /l/<code> and the embeddable player, so that origin has to be
+// in media-src on EVERY page — scoping it to /embed/* left the site's own
+// replay pages silently blocking their <video> (nothing plays, console-only
+// error). Derived from the same env var that builds the playback URLs, with
+// the project wildcard as a fallback so a missing var can't re-break replay.
+function mediaOrigin(): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return 'https://*.supabase.co';
+  try {
+    return new URL(base).origin;
+  } catch {
+    return 'https://*.supabase.co';
+  }
+}
+
 function buildCsp(nonce: string, embeddable: boolean): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://feedback.profullstack.com`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
-    // The embeddable player streams recordings from Supabase Storage over https.
-    embeddable ? "media-src 'self' blob: https:" : "media-src 'self' blob:",
+    `media-src 'self' blob: ${mediaOrigin()}`,
     "connect-src 'self' https: wss: https://crawlproof.com",
     // /embed/* is the public player — any site may frame it. That is the whole
     // point of the surface, and it is safe because the page is read-only: it

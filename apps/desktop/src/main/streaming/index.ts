@@ -648,9 +648,22 @@ export async function writeStreamChunk(chunk: Buffer): Promise<void> {
         if (!hasRoom) {
           drains.push(
             new Promise<void>((resolve) => {
-              stdin.once('drain', () => {
+              // An ffmpeg that dies while its stdin is backpressured never
+              // emits 'drain' — the pipe just closes. Waiting only on 'drain'
+              // would leave this promise pending forever, and because the
+              // renderer awaits writeStreamChunk before producing the next
+              // chunk, every later chunk piles up retained in memory instead.
+              // 'close'/'error' are the pipe's terminal states: settle on them
+              // too and let the process exit handler do the real cleanup.
+              const settle = () => {
+                stdin.off('drain', settle);
+                stdin.off('close', settle);
+                stdin.off('error', settle);
                 resolve();
-              });
+              };
+              stdin.once('drain', settle);
+              stdin.once('close', settle);
+              stdin.once('error', settle);
             })
           );
         }

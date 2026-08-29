@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import { SITE_URL, embedUrl, iframeSnippet, liveUrl, oembedUrl } from '@/lib/embed';
 import type { PublicSessionDetail, SessionComment } from '@pairux/shared-types';
+import { RecordingPlayer } from '@/components/video/RecordingPlayer';
 import { LikeButton } from './LikeButton';
 import { Comments } from './Comments';
 import { EmbedButton } from './EmbedButton';
@@ -129,18 +130,12 @@ export default async function LiveDetailPage({ params }: PageProps) {
       <main className="flex-1">
         <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
           {session.recording_url && !session.is_live ? (
-            <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-black">
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster={session.banner_url ?? undefined}
-                src={session.recording_url}
-                className="h-full w-full"
-              >
-                Your browser does not support video playback.
-              </video>
-            </div>
+            <RecordingPlayer
+              src={session.recording_url}
+              mediaId={`session:${session.join_code}`}
+              poster={session.banner_url}
+              className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-black"
+            />
           ) : (
             session.banner_url && (
               <div className="mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-gray-100">

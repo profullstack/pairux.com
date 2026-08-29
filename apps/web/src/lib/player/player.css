@@ -1,0 +1,431 @@
+/* =============================================================== the player ==
+   Styles for lib/player/player.ts.
+
+   Plain class names and no build-tool syntax on purpose: this file is meant to
+   be pasted into genrewatch.com's and tipoffwatch.com's `styles.css` unchanged.
+   No Tailwind, no nesting, no custom properties borrowed from the host site --
+   the player has to look the same in three codebases that share no design
+   tokens, and the one thing every player agrees on is that it is dark.
+
+   Everything is scoped under .pux-player so it cannot leak into a host page. */
+
+.pux-player {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  /* The container is focusable so keyboard control works after a click on the
+     picture. Its focus ring would otherwise sit around the whole video. */
+  outline: none;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pux-player:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.pux-player video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* contain, not cover: cover crops, and cropping the top off a screen share
+     removes the menu bar somebody was demonstrating. */
+  object-fit: contain;
+  background: #000;
+}
+
+/* ------------------------------------------------------------- big play -- */
+
+.pux-player__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+.pux-player__overlay svg {
+  width: 4rem;
+  height: 4rem;
+  fill: currentColor;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 1rem;
+}
+/* While it is playing the overlay must not sit between the reader and the
+   picture -- but it stays clickable, because clicking the picture to pause is
+   the single most used control there is. */
+.pux-player--playing .pux-player__overlay {
+  opacity: 0;
+}
+.pux-player--playing:hover .pux-player__overlay svg,
+.pux-player--playing .pux-player__overlay:focus-visible svg {
+  opacity: 1;
+}
+.pux-player--playing .pux-player__overlay:focus-visible {
+  opacity: 1;
+}
+.pux-player--failed .pux-player__overlay {
+  display: none;
+}
+
+/* ------------------------------------------------------------ buffering -- */
+
+.pux-player__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: -1.25rem 0 0 -1.25rem;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 999px;
+  display: none;
+  animation: pux-spin 800ms linear infinite;
+}
+.pux-player--buffering .pux-player__spinner {
+  display: block;
+}
+@keyframes pux-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pux-player__spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* --------------------------------------------------------------- notice -- */
+
+/* Resume, copied links, and the reason a recording will not play. Top-left so
+   it never covers the controls the reader is reaching for. */
+.pux-player__notice {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 34rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.pux-player__notice[hidden] {
+  display: none;
+}
+.pux-player__notice-text {
+  flex: 1 1 auto;
+  /* An error message can be long; a URL can be very long and has no spaces. */
+  overflow-wrap: anywhere;
+}
+.pux-player__notice-action {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(248, 250, 252, 0.4);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.pux-player__notice-action:hover {
+  background: rgba(248, 250, 252, 0.12);
+}
+.pux-player__notice-action[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ bar -- */
+
+.pux-player__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2.5rem 0.75rem 0.6rem;
+  /* The gradient is what keeps white controls legible over a white slide. */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+  pointer-events: none;
+}
+.pux-player--controls .pux-player__bar {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+/* A paused or failed player keeps its controls: there is nothing to watch, and
+   hiding them is how a reader concludes the page is broken. */
+.pux-player:not(.pux-player--playing) .pux-player__bar,
+.pux-player--failed .pux-player__bar {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------------- scrub -- */
+
+.pux-player__scrub {
+  position: relative;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.pux-player__scrub:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+.pux-player__track {
+  position: relative;
+  width: 100%;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: height 120ms ease;
+}
+.pux-player__scrub:hover .pux-player__track,
+.pux-player__scrub:focus-visible .pux-player__track {
+  height: 0.4rem;
+}
+.pux-player__buffered,
+.pux-player__played {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 999px;
+}
+.pux-player__buffered {
+  width: 0;
+  background: rgba(255, 255, 255, 0.4);
+}
+.pux-player__played {
+  width: 0;
+  background: #6366f1;
+}
+.pux-player__handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: -0.425rem 0 0 -0.425rem;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.pux-player__scrub:hover .pux-player__handle,
+.pux-player__scrub:focus-visible .pux-player__handle,
+.pux-player--tv .pux-player__handle {
+  opacity: 1;
+}
+
+/* Chapter marks. Buttons rather than decorations, so they can be clicked and
+   reached, but small enough not to become the bar's main feature. */
+.pux-player__marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pux-player__mark {
+  position: absolute;
+  top: 50%;
+  width: 0.2rem;
+  height: 0.7rem;
+  margin: -0.35rem 0 0 -0.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.pux-player__mark:hover,
+.pux-player__mark:focus-visible {
+  background: #fff;
+  height: 1rem;
+  margin-top: -0.5rem;
+  outline: none;
+}
+
+.pux-player__tooltip {
+  position: absolute;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  pointer-events: none;
+}
+.pux-player__scrub:hover .pux-player__tooltip {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ row -- */
+
+.pux-player__row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  color: #fff;
+}
+.pux-player__btn {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.pux-player__btn svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: currentColor;
+}
+.pux-player__btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.pux-player__btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+.pux-player__btn[hidden] {
+  display: none;
+}
+.pux-player__btn--text {
+  width: auto;
+  min-width: 2.5rem;
+  padding: 0 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pux-player__volume {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+/* The slider is revealed on hover so the bar is not half volume control on a
+   narrow player, but it stays reachable by keyboard at all times. */
+.pux-player__volume-input {
+  width: 0;
+  opacity: 0;
+  margin: 0;
+  accent-color: #6366f1;
+  transition:
+    width 140ms ease,
+    opacity 140ms ease;
+}
+.pux-player__volume:hover .pux-player__volume-input,
+.pux-player__volume-input:focus-visible {
+  width: 4.5rem;
+  opacity: 1;
+  margin-left: 0.25rem;
+}
+.pux-player__volume-input[hidden] {
+  display: none;
+}
+
+.pux-player__time {
+  flex: 0 0 auto;
+  padding: 0 0.5rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pux-player__chapter {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-right: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pux-player__spacer {
+  flex: 1 1 auto;
+}
+
+/* A phone has no room for every control. The ones that go are the ones with a
+   keyboard shortcut or a system equivalent: volume is on the device, and
+   picture-in-picture is in the browser's own menu. */
+@media (max-width: 32rem) {
+  .pux-player__volume-input,
+  .pux-player__chapter {
+    display: none;
+  }
+  .pux-player__btn {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* ----------------------------------------------------------------- a tv -- */
+
+/* Everything grows: a control aimed at from three metres with a D-pad needs to
+   be visible from there, and the focus ring is the only cursor a television
+   has, so it is never subtle and never hidden. */
+.pux-player--tv .pux-player__bar {
+  padding: 3.5rem 1.5rem 1.25rem;
+}
+.pux-player--tv .pux-player__btn {
+  width: 3rem;
+  height: 3rem;
+}
+.pux-player--tv .pux-player__btn svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.pux-player--tv .pux-player__btn--text {
+  width: auto;
+  min-width: 3.25rem;
+  font-size: 1rem;
+}
+.pux-player--tv .pux-player__time,
+.pux-player--tv .pux-player__chapter {
+  font-size: 1rem;
+}
+.pux-player--tv .pux-player__track {
+  height: 0.4rem;
+}
+.pux-player--tv .pux-player__btn:focus,
+.pux-player--tv .pux-player__mark:focus,
+.pux-player--tv .pux-player__scrub:focus {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}

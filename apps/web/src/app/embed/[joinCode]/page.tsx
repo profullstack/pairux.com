@@ -4,6 +4,7 @@ import { Circle, Play } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { SITE_URL, liveUrl } from '@/lib/embed';
 import type { PublicSessionDetail } from '@pairux/shared-types';
+import { RecordingPlayer } from '@/components/video/RecordingPlayer';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,16 +57,15 @@ export default async function EmbedPlayerPage({ params }: PageProps) {
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black">
       <div className="relative min-h-0 flex-1">
         {showRecording ? (
-          <video
-            controls
-            playsInline
-            preload="metadata"
-            poster={session.banner_url ?? undefined}
-            src={session.recording_url ?? undefined}
+          <RecordingPlayer
+            src={session.recording_url ?? ''}
+            mediaId={`session:${session.join_code}`}
+            poster={session.banner_url}
+            // An iframe's own address is not something a reader can paste
+            // anywhere useful, so the embed keeps the button off.
+            shareable={false}
             className="h-full w-full bg-black"
-          >
-            Your browser does not support video playback.
-          </video>
+          />
         ) : (
           <a
             href={permalink}

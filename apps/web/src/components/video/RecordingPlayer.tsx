@@ -68,7 +68,9 @@ export function RecordingPlayer({
         : null,
     });
 
-    return () => { handle.destroy(); };
+    return () => {
+      handle.destroy();
+    };
     // `chapters` is intentionally not a dependency: rebuilding the whole player
     // on a new array identity would lose the reader's position. Chapters that
     // arrive later go through the handle's setChapters instead.

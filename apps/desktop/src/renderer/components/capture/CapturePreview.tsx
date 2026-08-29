@@ -704,9 +704,20 @@ export function CapturePreview({
       videoTracks: publishStream.getVideoTracks().length,
       audioTracks: publishStream.getAudioTracks().length,
       audioSource: hostMicStream ? 'host-mic' : 'capture-stream',
+      videoTrackId: presentationVideoTrack.id,
+      micTrackId: micTrack?.id,
     });
 
-    void hostPublishStream(publishStream);
+    // This effect re-runs on five dependencies, and `isHosting` alone flaps
+    // false/true on every reconnect — so a publish for capture session N is
+    // routinely still queued when the effect fires for N+1. `superseded` lets
+    // the host drop the stale one instead of replacing the live track with a
+    // track whose capture has already been stopped.
+    let superseded = false;
+    void hostPublishStream(publishStream, () => superseded);
+    return () => {
+      superseded = true;
+    };
   }, [presentationVideoTrack, hostMicStream, isHosting, hostPublishStream, stream]);
 
   // The stream handed to the RTMP broadcast. Like the recording — and unlike

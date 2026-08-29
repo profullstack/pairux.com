@@ -694,4 +694,161 @@ describe('useWebRTCHostSFUAPI', () => {
       expect(compositeTrack.contentHint).toBe('detail');
     });
   });
+
+  // Issue #70: on macOS the app terminated in ScreenCaptureKit/ReplayKit after
+  // repeatedly publishing the same screen_share track while the room recovered.
+  // The publish path decides replace-vs-publish *before* it awaits, so two
+  // overlapping callers both decided "publish".
+  describe('concurrent publication of the screen share', () => {
+    const mockReplaceTrack = vi.fn().mockResolvedValue(undefined);
+
+    /**
+     * Mirror livekit with a publish that stays in flight: the publication only
+     * appears in `trackPublications` once the returned promise resolves. That
+     * window is the entire bug, and the existing helper above cannot express it
+     * because it resolves synchronously.
+     */
+    function slowPublishingRoom() {
+      mockReplaceTrack.mockClear();
+      const pending: (() => void)[] = [];
+
+      const publicationFor = (track: { id: string }, options: { source: string }) => {
+        const publication = {
+          source: options.source,
+          track: { mediaStreamTrack: track, replaceTrack: mockReplaceTrack },
+        };
+        mockTrackPublications.set(options.source, publication);
+        return publication;
+      };
+
+      mockPublishTrack.mockImplementation((track: { id: string }, options: { source: string }) => {
+        // Only the screen share is held open. startHosting awaits the host mic
+        // publish inline, so deferring that one would hang the test before it
+        // ever reaches the code under test.
+        if (options.source !== 'screen_share') {
+          return Promise.resolve(publicationFor(track, options));
+        }
+        return new Promise((resolve) => {
+          pending.push(() => {
+            resolve(publicationFor(track, options));
+          });
+        });
+      });
+
+      return {
+        inFlight: () => pending.length,
+        settleAll: () => {
+          while (pending.length > 0) pending.shift()?.();
+        },
+      };
+    }
+
+    /** Let queued microtasks run without letting a hung promise stall the test. */
+    const flush = async () => {
+      for (let i = 0; i < 20; i++) await Promise.resolve();
+    };
+
+    async function hostingRoom() {
+      const { result } = renderHook(() =>
+        useWebRTCHostSFUAPI({ sessionId: 'session-1', hostId: 'host-1', localStream: null })
+      );
+      await act(async () => {
+        await result.current.startHosting();
+        await Promise.resolve();
+      });
+      return result;
+    }
+
+    const videoPublishes = () =>
+      mockPublishTrack.mock.calls.filter(
+        (call) => (call[1] as { source: string }).source === 'screen_share'
+      );
+
+    it('publishes the screen track once when two publishes overlap', async () => {
+      const room = slowPublishingRoom();
+      const result = await hostingRoom();
+
+      const screenTrack = { kind: 'video', id: 'screen-track' };
+
+      await act(async () => {
+        // Both calls are made before either can finish — the shape produced by
+        // the publish effect re-running while a publish is still awaiting.
+        const first = result.current.publishStream(
+          new MockMediaStream([screenTrack]) as unknown as MediaStream
+        );
+        const second = result.current.publishStream(
+          new MockMediaStream([screenTrack]) as unknown as MediaStream
+        );
+
+        await flush();
+        room.settleAll();
+        await flush();
+        // Settle again so an unserialised second publish resolves too, and this
+        // test fails on the assertion rather than timing out.
+        room.settleAll();
+        await Promise.all([first, second]);
+      });
+
+      expect(videoPublishes()).toHaveLength(1);
+    });
+
+    it('does not let an unpublish interleave with an in-flight publish', async () => {
+      const room = slowPublishingRoom();
+      const result = await hostingRoom();
+
+      const screenTrack = { kind: 'video', id: 'screen-track' };
+
+      await act(async () => {
+        const publishing = result.current.publishStream(
+          new MockMediaStream([screenTrack]) as unknown as MediaStream
+        );
+        await flush();
+
+        // The unpublish must wait its turn: running it now would tear down the
+        // publication the in-flight publish is still creating, leaving viewers
+        // on a black frame with the host still marked live.
+        const unpublishing = result.current.unpublishStream();
+        await flush();
+        expect(mockUnpublishTrack).not.toHaveBeenCalled();
+
+        room.settleAll();
+        await Promise.all([publishing, unpublishing]);
+      });
+
+      expect(mockUnpublishTrack).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats an already-published track as success, not an error', async () => {
+      const result = await hostingRoom();
+
+      // livekit's rejection when a duplicate slips through anyway. Surfacing it
+      // is what drove the caller into another retry, and the retries are what
+      // restarted capture underneath the running ScreenCaptureKit stream.
+      mockPublishTrack.mockRejectedValue(
+        new Error('a track with the same ID has already been published')
+      );
+
+      await act(async () => {
+        await expect(
+          result.current.publishStream(
+            new MockMediaStream([{ kind: 'video', id: 'screen-track' }]) as unknown as MediaStream
+          )
+        ).resolves.toBeUndefined();
+      });
+    });
+
+    it('skips a publish whose capture session has already been superseded', async () => {
+      slowPublishingRoom();
+      const result = await hostingRoom();
+
+      await act(async () => {
+        await result.current.publishStream(
+          new MockMediaStream([{ kind: 'video', id: 'stale-track' }]) as unknown as MediaStream,
+          () => true
+        );
+      });
+
+      expect(videoPublishes()).toHaveLength(0);
+    });
+  });
 });

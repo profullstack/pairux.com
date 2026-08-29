@@ -35,6 +35,19 @@ import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioG
 
 const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL ?? '';
 
+/**
+ * Did this publish fail only because the track is already on the air?
+ *
+ * livekit signals it as `TrackInvalidError: a track with the same ID has
+ * already been published`. There is no error code to match on, so the message
+ * is the only handle — matched loosely enough to survive rewording, and
+ * deliberately narrow enough not to swallow a genuine publish failure.
+ */
+function isAlreadyPublished(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return /already been published|already publish/i.test(message);
+}
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const REJECTED_INPUT_LOG_INTERVAL_MS = 5_000;
@@ -81,7 +94,12 @@ interface UseWebRTCHostSFUAPIReturn {
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
-  publishStream: (stream: MediaStream) => Promise<void>;
+  /**
+   * Publish the presentation stream. `isStale` is polled once the call reaches
+   * the front of the publish queue: return true to abandon a publication whose
+   * capture session has already been replaced or torn down.
+   */
+  publishStream: (stream: MediaStream, isStale?: () => boolean) => Promise<void>;
   unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
   sendTailnetHello: (viewerId: string, ips: string[], reply: boolean) => void;
@@ -118,6 +136,8 @@ export function useWebRTCHostSFUAPI({
 
   const roomRef = useRef<Room | null>(null);
   const startingRef = useRef(false);
+  // Serialises every mutation of the screen-share publication — see publishStream.
+  const publishQueueRef = useRef<Promise<void>>(Promise.resolve());
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const authTokenRef = useRef<string | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
@@ -572,6 +592,35 @@ export function useWebRTCHostSFUAPI({
   }, [sessionId, hostId, addViewer, attachViewerAudio, removeViewer, handleDataReceived]);
 
   /**
+   * Run `op` with exclusive access to the screen-share publication.
+   *
+   * Publishing is a read-then-await-then-write: `publicationFor()` decides
+   * replace-vs-publish, then the very next line yields at an `await`. Two
+   * overlapping callers therefore both read "nothing published yet" and both
+   * call `publishTrack` — livekit logs `publishing a second track with the same
+   * source: screen_share` and rejects the loser with `TrackInvalidError`. That
+   * rejection drives the caller into another retry, and on macOS the retries
+   * restart ScreenCaptureKit underneath the running stream, which terminates the
+   * app with `Collection <__NSArrayM> was mutated while being enumerated`.
+   *
+   * Overlap is easy to hit: the publish effect in CapturePreview re-runs on any
+   * of five dependencies, and a slow publish that ends in "publication of local
+   * track timed out" stays in flight for many seconds while it does.
+   *
+   * Chaining onto a single promise makes each decision-and-publish atomic. The
+   * queue itself must never settle rejected or every later op would be dropped,
+   * so the stored tail always swallows; the caller still sees its own error.
+   */
+  const enqueuePublishOp = useCallback((op: () => Promise<void>): Promise<void> => {
+    const run = publishQueueRef.current.then(op, op);
+    publishQueueRef.current = run.then(
+      () => undefined,
+      () => undefined
+    );
+    return run;
+  }, []);
+
+  /**
    * Publish the presentation stream, replacing whatever is already published.
    *
    * Republishing is not the same as publishing. Turning the camera bubble on
@@ -584,93 +633,142 @@ export function useWebRTCHostSFUAPI({
    * Replacing the track inside the existing publication keeps the same
    * publication SID, so viewers switch over without resubscribing. The P2P
    * host does exactly this, for exactly this reason — see useWebRTCHostAPI.
+   *
+   * Callers never run concurrently: every call is serialised by
+   * `enqueuePublishOp`, and the room/publication state is read *inside* the
+   * critical section so a queued call sees what the one ahead of it did.
    */
-  const publishStream = useCallback(async (stream: MediaStream) => {
-    const room = roomRef.current;
-    if (room?.state !== LKConnectionState.Connected) {
-      console.warn('[WebRTCHostSFUAPI] Cannot publish stream: room not connected');
-      return;
-    }
-
-    const publicationFor = (source: Track.Source): LocalTrackPublication | undefined =>
-      Array.from(room.localParticipant.trackPublications.values()).find(
-        (pub: LocalTrackPublication) => pub.source === source
-      );
-
-    for (const track of stream.getTracks()) {
-      try {
-        const source =
-          track.kind === 'video' ? Track.Source.ScreenShare : Track.Source.ScreenShareAudio;
-
-        if (track.kind === 'video') {
-          track.contentHint = 'detail';
+  const publishStream = useCallback(
+    (stream: MediaStream, isStale?: () => boolean): Promise<void> =>
+      enqueuePublishOp(async () => {
+        // Re-checked here rather than at call time: by the time this reaches the
+        // front of the queue the capture session may have been replaced or the
+        // host may have stopped, and republishing a dead track would knock the
+        // live one off the air.
+        if (isStale?.()) {
+          console.log('[WebRTCHostSFUAPI] Skipping stale publish (capture session changed)');
+          return;
         }
 
-        const existing = publicationFor(source);
-        if (existing?.track) {
-          // Already publishing this exact track — a re-render, not a new source.
-          if (existing.track.mediaStreamTrack.id === track.id) continue;
-
-          await existing.track.replaceTrack(track);
-          console.log('[WebRTCHostSFUAPI] Replaced published track', {
-            source,
-            trackId: track.id,
-          });
-          continue;
+        const room = roomRef.current;
+        if (room?.state !== LKConnectionState.Connected) {
+          console.warn('[WebRTCHostSFUAPI] Cannot publish stream: room not connected');
+          return;
         }
 
-        if (track.kind === 'video') {
-          await room.localParticipant.publishTrack(track, {
-            source: Track.Source.ScreenShare,
-            simulcast: false,
-            videoEncoding: {
-              maxBitrate: 8_000_000,
-              maxFramerate: 60,
-            },
-          });
-        } else {
-          await room.localParticipant.publishTrack(track, {
-            source: Track.Source.ScreenShareAudio,
-          });
+        const publicationFor = (source: Track.Source): LocalTrackPublication | undefined =>
+          Array.from(room.localParticipant.trackPublications.values()).find(
+            (pub: LocalTrackPublication) => pub.source === source
+          );
+
+        for (const track of stream.getTracks()) {
+          try {
+            const source =
+              track.kind === 'video' ? Track.Source.ScreenShare : Track.Source.ScreenShareAudio;
+
+            if (track.kind === 'video') {
+              track.contentHint = 'detail';
+            }
+
+            const existing = publicationFor(source);
+            if (existing?.track) {
+              // Already publishing this exact track — a re-render, not a new source.
+              if (existing.track.mediaStreamTrack.id === track.id) continue;
+
+              await existing.track.replaceTrack(track);
+              console.log('[WebRTCHostSFUAPI] Replaced published track', {
+                source,
+                trackId: track.id,
+              });
+              continue;
+            }
+
+            console.log('[WebRTCHostSFUAPI] Publishing track', { source, trackId: track.id });
+
+            if (track.kind === 'video') {
+              await room.localParticipant.publishTrack(track, {
+                source: Track.Source.ScreenShare,
+                simulcast: false,
+                videoEncoding: {
+                  maxBitrate: 8_000_000,
+                  maxFramerate: 60,
+                },
+              });
+            } else {
+              await room.localParticipant.publishTrack(track, {
+                source: Track.Source.ScreenShareAudio,
+              });
+            }
+          } catch (err) {
+            // Losing a publish race is not a failure: the track this call wanted
+            // on the air is already on the air. Serialisation should prevent it,
+            // but a livekit-internal retry can still land one, and treating it as
+            // an error is what turns a duplicate into a retry loop.
+            if (isAlreadyPublished(err)) {
+              console.log('[WebRTCHostSFUAPI] Track already published — treating as success', {
+                trackId: track.id,
+              });
+              continue;
+            }
+
+            // A transient ICE/consent blip can reject an in-flight publish ("publication
+            // of local track timed out") even though livekit reconnects and the track
+            // ends up published. Only treat it as fatal if the room is actually gone;
+            // otherwise swallow it so it never bubbles up as an uncaught rejection /
+            // scary "Streaming error" toast while the stream is still live. The cast
+            // widens room.state back to the full enum — it mutates across the await,
+            // so the narrowing from the early-return guard no longer holds here.
+            if ((room.state as LKConnectionState) === LKConnectionState.Disconnected) throw err;
+            console.warn('[WebRTCHostSFUAPI] publishTrack hiccup (room recovering):', err);
+          }
         }
-      } catch (err) {
-        // A transient ICE/consent blip can reject an in-flight publish ("publication
-        // of local track timed out") even though livekit reconnects and the track
-        // ends up published. Only treat it as fatal if the room is actually gone;
-        // otherwise swallow it so it never bubbles up as an uncaught rejection /
-        // scary "Streaming error" toast while the stream is still live. The cast
-        // widens room.state back to the full enum — it mutates across the await,
-        // so the narrowing from the early-return guard no longer holds here.
-        if ((room.state as LKConnectionState) === LKConnectionState.Disconnected) throw err;
-        console.warn('[WebRTCHostSFUAPI] publishTrack hiccup (room recovering):', err);
-      }
-    }
-  }, []);
+      }),
+    [enqueuePublishOp]
+  );
 
   // Unpublish screen share tracks (room stays connected, viewers stay connected)
-  const unpublishStream = useCallback(async () => {
-    const room = roomRef.current;
-    if (!room) return;
+  //
+  // Shares publishStream's queue. Interleaving the two is how a stop/start
+  // straddling a reconnect ends up unpublishing the track the restart just put
+  // on the air, leaving viewers on a black frame with the host still "live".
+  const unpublishStream = useCallback(
+    (): Promise<void> =>
+      enqueuePublishOp(async () => {
+        const room = roomRef.current;
+        if (!room) return;
 
-    const pubs = Array.from(room.localParticipant.trackPublications.values());
-    for (const pub of pubs) {
-      if (pub.source === Track.Source.ScreenShare || pub.source === Track.Source.ScreenShareAudio) {
-        if (pub.track) {
-          await room.localParticipant.unpublishTrack(pub.track);
+        const pubs = Array.from(room.localParticipant.trackPublications.values());
+        for (const pub of pubs) {
+          if (
+            pub.source === Track.Source.ScreenShare ||
+            pub.source === Track.Source.ScreenShareAudio
+          ) {
+            if (pub.track) {
+              console.log('[WebRTCHostSFUAPI] Unpublishing track', {
+                source: pub.source,
+                trackId: pub.track.mediaStreamTrack.id,
+              });
+              await room.localParticipant.unpublishTrack(pub.track);
+            }
+          }
         }
-      }
-    }
-  }, []);
+      }),
+    [enqueuePublishOp]
+  );
 
   // Stop hosting
   const stopHosting = useCallback(() => {
     const room = roomRef.current;
     if (room) {
-      room.localParticipant.trackPublications.forEach((pub: LocalTrackPublication) => {
+      // Snapshot first: unpublishTrack deletes from trackPublications, and
+      // deleting from a Map while forEach walks it is the same mutate-while-
+      // enumerating shape that crashes the native capture side. unpublishStream
+      // already snapshots; this path had been missed.
+      for (const pub of Array.from(room.localParticipant.trackPublications.values())) {
         if (pub.track) {
           void room.localParticipant.unpublishTrack(pub.track);
         }
-      });
+      }
       void room.disconnect();
       roomRef.current = null;
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Link2, Loader2, Mic, Radio, Calendar, User as UserIcon } from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
@@ -87,6 +87,30 @@ export function HomePage() {
     initialIsWaylandGuess(isElectron() ? getElectronAPI().platform : null)
   );
   const [isCapturing, setIsCapturing] = useState(false);
+  // `isCapturing` drives the UI, but it cannot guard the capture calls: a state
+  // update is not visible to another handler running in the same tick, so two
+  // clicks — or a click racing a room-recovery restart — both read `false` and
+  // both open a capture session. On macOS that means two concurrent
+  // ScreenCaptureKit `contentPickerDidSelectFilter:forStream:` callbacks
+  // mutating one stream collection, which terminates the app with an uncaught
+  // NSGenericException. The ref flips synchronously, so it actually excludes.
+  const capturingRef = useRef(false);
+
+  /** Run a capture start/restart with exclusive access, or skip if one is live. */
+  const runExclusiveCapture = useCallback(async (capture: () => Promise<void>) => {
+    if (capturingRef.current) {
+      console.warn('[Renderer] Capture already starting — ignoring concurrent request');
+      return;
+    }
+    capturingRef.current = true;
+    setIsCapturing(true);
+    try {
+      await capture();
+    } finally {
+      capturingRef.current = false;
+      setIsCapturing(false);
+    }
+  }, []);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [showStartMeetingModal, setShowStartMeetingModal] = useState(false);
   const [preCreatedSession, setPreCreatedSession] = useState<Session | null>(null);
@@ -158,180 +182,173 @@ export function HomePage() {
   }, [searchParams, preCreatedSession, sessionActive, loadingExistingSession]);
 
   const handleSourceSelect = async (source: CaptureSource) => {
-    // Prevent multiple concurrent capture attempts
-    if (isCapturing) return;
+    await runExclusiveCapture(async () => {
+      setSelectedSource(source);
+      setError(null);
 
-    setSelectedSource(source);
-    setError(null);
-    setIsCapturing(true);
+      try {
+        // Stop existing stream
+        if (stream) {
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          });
+        }
 
-    try {
-      // Stop existing stream
-      if (stream) {
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
+        console.log('[Renderer] Starting capture for source:', source.id);
+        console.log('[Renderer] Display server:', displayServer);
+
+        let mediaStream: MediaStream;
+
+        if (isWayland) {
+          // Wayland: Use getDisplayMedia with PipeWire portal
+          // This will show the system's screen picker dialog.
+          // Main's display-media handler cannot tell which source was picked
+          // from the request alone, so hand it the id first.
+          console.log('[Renderer] Using getDisplayMedia for Wayland');
+          await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: source.id });
+          mediaStream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              displaySurface: source.type === 'screen' ? 'monitor' : 'window',
+              width: { ideal: 1920, max: 3840 },
+              height: { ideal: 1080, max: 2160 },
+              frameRate: { ideal: 30, max: 60 },
+            },
+            audio: false,
+          });
+        } else {
+          // X11/Windows/macOS: Use getUserMedia with chromeMediaSource
+          console.log('[Renderer] Using getUserMedia with chromeMediaSource');
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              // @ts-expect-error Electron-specific constraint
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: source.id,
+                minWidth: 1280,
+                maxWidth: 3840,
+                minHeight: 720,
+                maxHeight: 2160,
+                minFrameRate: 15,
+                maxFrameRate: 60,
+              },
+            },
+          });
+        }
+
+        console.log('[Renderer] Capture started successfully');
+
+        // Set content hint on video track for screen sharing optimization
+        // 'detail' tells encoder to prioritize sharpness (good for text)
+        const videoTrack = mediaStream.getVideoTracks()[0];
+        videoTrack.contentHint = 'detail';
+
+        // Align resolution to 16px boundary to prevent VP9 green bar artifacts
+        await constrainTrackToQualitySetting(videoTrack);
+
+        // Add microphone audio for streaming to viewers
+        try {
+          const micStream = await navigator.mediaDevices.getUserMedia({
+            audio: VOICE_AUDIO_CONSTRAINTS,
+            video: false,
+          });
+          micStream.getAudioTracks().forEach((track) => {
+            mediaStream.addTrack(track);
+          });
+          console.log('[Renderer] Microphone audio added to stream');
+        } catch (micErr) {
+          console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
+        }
+
+        setStream(mediaStream);
+        setSessionActive(true);
+      } catch (err) {
+        console.error('[Renderer] Failed to start capture:', err);
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        // Provide more user-friendly error messages
+        if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+          setError('Screen capture was canceled or permission denied. Please try again.');
+        } else {
+          setError(`Failed to capture: ${message}`);
+        }
+        setSelectedSource(null);
       }
+    });
+  };
 
-      console.log('[Renderer] Starting capture for source:', source.id);
-      console.log('[Renderer] Display server:', displayServer);
+  // Handle Wayland direct capture (bypasses source picker)
+  const handleWaylandCapture = async () => {
+    await runExclusiveCapture(async () => {
+      setError(null);
 
-      let mediaStream: MediaStream;
+      try {
+        if (stream) {
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          });
+        }
 
-      if (isWayland) {
-        // Wayland: Use getDisplayMedia with PipeWire portal
-        // This will show the system's screen picker dialog.
-        // Main's display-media handler cannot tell which source was picked
-        // from the request alone, so hand it the id first.
-        console.log('[Renderer] Using getDisplayMedia for Wayland');
-        await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: source.id });
-        mediaStream = await navigator.mediaDevices.getDisplayMedia({
+        console.log('[Renderer] Starting Wayland capture with system picker');
+
+        // No in-app pick to honour here — clear any stale preference so the
+        // portal's own picker decides.
+        await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
+
+        const mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            displaySurface: source.type === 'screen' ? 'monitor' : 'window',
             width: { ideal: 1920, max: 3840 },
             height: { ideal: 1080, max: 2160 },
             frameRate: { ideal: 30, max: 60 },
           },
           audio: false,
         });
-      } else {
-        // X11/Windows/macOS: Use getUserMedia with chromeMediaSource
-        console.log('[Renderer] Using getUserMedia with chromeMediaSource');
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            // @ts-expect-error Electron-specific constraint
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-              minWidth: 1280,
-              maxWidth: 3840,
-              minHeight: 720,
-              maxHeight: 2160,
-              minFrameRate: 15,
-              maxFrameRate: 60,
-            },
-          },
+
+        // Create a synthetic source from the stream
+        const track = mediaStream.getVideoTracks()[0];
+
+        // Set content hint for screen sharing optimization
+        // 'detail' tells encoder to prioritize sharpness (good for text)
+        track.contentHint = 'detail';
+
+        // Align resolution to 16px boundary to prevent VP9 green bar artifacts
+        await constrainTrackToQualitySetting(track);
+
+        const settings = track.getSettings();
+
+        setSelectedSource({
+          id: track.id,
+          name: track.label || 'Screen',
+          type: 'screen',
+          thumbnail: undefined,
         });
+
+        // Add microphone audio for streaming to viewers
+        try {
+          const micStream = await navigator.mediaDevices.getUserMedia({
+            audio: VOICE_AUDIO_CONSTRAINTS,
+            video: false,
+          });
+          micStream.getAudioTracks().forEach((t) => {
+            mediaStream.addTrack(t);
+          });
+          console.log('[Renderer] Microphone audio added to Wayland stream');
+        } catch (micErr) {
+          console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
+        }
+
+        console.log('[Renderer] Wayland capture started:', settings);
+        setStream(mediaStream);
+        setSessionActive(true);
+      } catch (err) {
+        console.error('[Renderer] Failed to start Wayland capture:', err);
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+          setError('Screen capture was canceled or permission denied. Please try again.');
+        } else {
+          setError(`Failed to capture: ${message}`);
+        }
       }
-
-      console.log('[Renderer] Capture started successfully');
-
-      // Set content hint on video track for screen sharing optimization
-      // 'detail' tells encoder to prioritize sharpness (good for text)
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      videoTrack.contentHint = 'detail';
-
-      // Align resolution to 16px boundary to prevent VP9 green bar artifacts
-      await constrainTrackToQualitySetting(videoTrack);
-
-      // Add microphone audio for streaming to viewers
-      try {
-        const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: VOICE_AUDIO_CONSTRAINTS,
-          video: false,
-        });
-        micStream.getAudioTracks().forEach((track) => {
-          mediaStream.addTrack(track);
-        });
-        console.log('[Renderer] Microphone audio added to stream');
-      } catch (micErr) {
-        console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
-      }
-
-      setStream(mediaStream);
-      setSessionActive(true);
-    } catch (err) {
-      console.error('[Renderer] Failed to start capture:', err);
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      // Provide more user-friendly error messages
-      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
-        setError('Screen capture was canceled or permission denied. Please try again.');
-      } else {
-        setError(`Failed to capture: ${message}`);
-      }
-      setSelectedSource(null);
-    } finally {
-      setIsCapturing(false);
-    }
-  };
-
-  // Handle Wayland direct capture (bypasses source picker)
-  const handleWaylandCapture = async () => {
-    if (isCapturing) return;
-
-    setError(null);
-    setIsCapturing(true);
-
-    try {
-      if (stream) {
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
-      }
-
-      console.log('[Renderer] Starting Wayland capture with system picker');
-
-      // No in-app pick to honour here — clear any stale preference so the
-      // portal's own picker decides.
-      await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
-
-      const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: 1920, max: 3840 },
-          height: { ideal: 1080, max: 2160 },
-          frameRate: { ideal: 30, max: 60 },
-        },
-        audio: false,
-      });
-
-      // Create a synthetic source from the stream
-      const track = mediaStream.getVideoTracks()[0];
-
-      // Set content hint for screen sharing optimization
-      // 'detail' tells encoder to prioritize sharpness (good for text)
-      track.contentHint = 'detail';
-
-      // Align resolution to 16px boundary to prevent VP9 green bar artifacts
-      await constrainTrackToQualitySetting(track);
-
-      const settings = track.getSettings();
-
-      setSelectedSource({
-        id: track.id,
-        name: track.label || 'Screen',
-        type: 'screen',
-        thumbnail: undefined,
-      });
-
-      // Add microphone audio for streaming to viewers
-      try {
-        const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: VOICE_AUDIO_CONSTRAINTS,
-          video: false,
-        });
-        micStream.getAudioTracks().forEach((t) => {
-          mediaStream.addTrack(t);
-        });
-        console.log('[Renderer] Microphone audio added to Wayland stream');
-      } catch (micErr) {
-        console.warn('[Renderer] Could not access microphone, streaming without audio:', micErr);
-      }
-
-      console.log('[Renderer] Wayland capture started:', settings);
-      setStream(mediaStream);
-      setSessionActive(true);
-    } catch (err) {
-      console.error('[Renderer] Failed to start Wayland capture:', err);
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
-        setError('Screen capture was canceled or permission denied. Please try again.');
-      } else {
-        setError(`Failed to capture: ${message}`);
-      }
-    } finally {
-      setIsCapturing(false);
-    }
+    });
   };
 
   // Stop screen sharing only (session continues with voice)
@@ -360,65 +377,62 @@ export function HomePage() {
 
   // Start/restart screen capture from within an active session
   const handleStartCaptureInSession = async () => {
-    if (isCapturing) return;
-    setIsCapturing(true);
-
-    try {
-      if (stream) {
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
-      }
-
-      // Restarting capture mid-session: the user re-picks in the system /
-      // portal dialog, so no preference to honour.
-      await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
-
-      const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: 1920, max: 3840 },
-          height: { ideal: 1080, max: 2160 },
-          frameRate: { ideal: 30, max: 60 },
-        },
-        audio: false,
-      });
-
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      videoTrack.contentHint = 'detail';
-      await constrainTrackToQualitySetting(videoTrack);
-
-      setSelectedSource({
-        id: videoTrack.id,
-        name: videoTrack.label || 'Screen',
-        type: 'screen',
-        thumbnail: undefined,
-      });
-
-      // Add microphone audio
+    await runExclusiveCapture(async () => {
       try {
-        const micStream = await navigator.mediaDevices.getUserMedia({
-          audio: VOICE_AUDIO_CONSTRAINTS,
-          video: false,
-        });
-        micStream.getAudioTracks().forEach((t) => {
-          mediaStream.addTrack(t);
-        });
-      } catch {
-        // No mic available
-      }
+        if (stream) {
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          });
+        }
 
-      setStream(mediaStream);
-    } catch (err) {
-      console.error('[Home] Failed to start capture in session:', err);
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
-        setError('Screen capture was canceled or permission denied.');
-      } else {
-        setError(`Failed to capture: ${message}`);
+        // Restarting capture mid-session: the user re-picks in the system /
+        // portal dialog, so no preference to honour.
+        await getElectronAPI().invoke('capture:setPreferredSource', { sourceId: null });
+
+        const mediaStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: 1920, max: 3840 },
+            height: { ideal: 1080, max: 2160 },
+            frameRate: { ideal: 30, max: 60 },
+          },
+          audio: false,
+        });
+
+        const videoTrack = mediaStream.getVideoTracks()[0];
+        videoTrack.contentHint = 'detail';
+        await constrainTrackToQualitySetting(videoTrack);
+
+        setSelectedSource({
+          id: videoTrack.id,
+          name: videoTrack.label || 'Screen',
+          type: 'screen',
+          thumbnail: undefined,
+        });
+
+        // Add microphone audio
+        try {
+          const micStream = await navigator.mediaDevices.getUserMedia({
+            audio: VOICE_AUDIO_CONSTRAINTS,
+            video: false,
+          });
+          micStream.getAudioTracks().forEach((t) => {
+            mediaStream.addTrack(t);
+          });
+        } catch {
+          // No mic available
+        }
+
+        setStream(mediaStream);
+      } catch (err) {
+        console.error('[Home] Failed to start capture in session:', err);
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        if (message.includes('Permission denied') || message.includes('NotAllowedError')) {
+          setError('Screen capture was canceled or permission denied.');
+        } else {
+          setError(`Failed to capture: ${message}`);
+        }
       }
-    } finally {
-      setIsCapturing(false);
-    }
+    });
   };
 
   return (

@@ -18,6 +18,35 @@ describe('middleware', () => {
     vi.clearAllMocks();
   });
 
+  describe('Content-Security-Policy', () => {
+    async function cspFor(path: string): Promise<string> {
+      const { NextResponse } = await import('next/server');
+      vi.mocked(updateSession).mockResolvedValue(NextResponse.next());
+      const response = await middleware(createNextRequest(path));
+      return response.headers.get('content-security-policy') ?? '';
+    }
+
+    function mediaSrc(csp: string): string {
+      return csp.split('; ').find((d) => d.startsWith('media-src ')) ?? '';
+    }
+
+    // Regression: media-src allowed a remote origin only on /embed/*, so a
+    // recording played in the embeddable player but was blocked on the site's
+    // own replay pages — a silent, console-only failure.
+    it('allows the recording storage origin on replay pages', async () => {
+      expect(mediaSrc(await cspFor('/l/TER8XG'))).toContain('supabase');
+    });
+
+    it('allows the same media origins on /embed/* as on the site', async () => {
+      expect(mediaSrc(await cspFor('/embed/TER8XG'))).toBe(mediaSrc(await cspFor('/l/TER8XG')));
+    });
+
+    it('still restricts frame-ancestors off the embed player', async () => {
+      expect(await cspFor('/l/TER8XG')).toContain("frame-ancestors 'self' chrome-extension:");
+      expect(await cspFor('/embed/TER8XG')).toContain('frame-ancestors *');
+    });
+  });
+
   describe('CORS preflight', () => {
     it('returns 204 with CORS headers for OPTIONS on /api/ routes', async () => {
       const request = createNextRequest('/api/sessions/123/signal/stream', 'OPTIONS');

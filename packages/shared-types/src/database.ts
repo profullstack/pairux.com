@@ -226,6 +226,7 @@ export interface PublicSessionDetail {
   liked: boolean;
   channel_handle: string | null;
   channel_name: string | null;
+  channel_avatar_url: string | null;
   /** Playback URL of the latest finished recording, when available. */
   recording_url: string | null;
 }

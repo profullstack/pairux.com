@@ -18,6 +18,7 @@ import { API_BASE_URL } from '../../shared/config';
 import { getElectronAPI } from '@/lib/ipc';
 import { announceTailnet, buildTailnetHello } from '@/lib/tailnetHello';
 import { buildSfuRtcConfig } from '@/lib/iceConfig';
+import { amplifyRemoteAudio, type AmplifiedAudioTrack } from '@/lib/remoteAudioGain';
 import type {
   ConnectionState,
   QualityMetrics,
@@ -59,6 +60,27 @@ interface UseWebRTCViewerSFUAPIReturn {
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
+  /**
+   * Mute or unmute every remote participant at once.
+   *
+   * Remote audio no longer travels inside `remoteStream`, so muting the video
+   * element no longer silences anybody. The speaker toggle has to reach the
+   * per-participant elements instead.
+   */
+  setSpeakerMuted: (muted: boolean) => void;
+}
+
+/**
+ * One remote participant's audio playback.
+ *
+ * Each subscribed audio track gets its own element and its own gain stage,
+ * mirroring how the host already plays viewers back. See `attachRemoteAudio`
+ * for why they cannot share one.
+ */
+interface RemoteAudioPlayback {
+  track: MediaStreamTrack;
+  element: HTMLAudioElement;
+  amplified: AmplifiedAudioTrack;
 }
 
 function mapConnectionState(lkState: LKConnectionState): ConnectionState {
@@ -97,6 +119,9 @@ export function useWebRTCViewerSFUAPI({
 
   const roomRef = useRef<Room | null>(null);
   const inputSequenceRef = useRef(0);
+  // Remote audio, one entry per subscribed track, keyed by track id.
+  const remoteAudioRef = useRef(new Map<string, RemoteAudioPlayback>());
+  const speakerMutedRef = useRef(false);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const remoteMediaStreamRef = useRef<MediaStream | null>(null);
   // Track previous bytesReceived for delta-based bitrate calculation
@@ -116,33 +141,167 @@ export function useWebRTCViewerSFUAPI({
   onStreamReadyRef.current = onStreamReady;
   onStreamEndedRef.current = onStreamEnded;
 
+  /**
+   * Give one remote participant their own audio element.
+   *
+   * Every subscribed track used to be folded into the single `MediaStream`
+   * behind the `<video>` element, and a media element plays only the *first*
+   * audio track a stream carries. With one other person in the room that is
+   * invisible — there is only ever one. With three, each viewer heard whichever
+   * of the other two was subscribed first, and the other stayed silent for the
+   * whole session.
+   *
+   * So audio is played per participant, exactly as the host already plays its
+   * viewers back, and `remoteStream` carries video only.
+   */
+  const attachRemoteAudio = useCallback((track: MediaStreamTrack) => {
+    if (remoteAudioRef.current.has(track.id)) return;
+
+    // An element's volume tops out at 1.0, so the track passes through a gain
+    // stage first — the same one the host uses, for the same reason.
+    const amplified = amplifyRemoteAudio(track);
+
+    const element = new Audio();
+    element.srcObject = amplified.stream;
+    element.autoplay = true;
+    element.volume = 1.0;
+    element.muted = speakerMutedRef.current;
+    // Wrapped because `play()` predates its own promise and still returns
+    // undefined on some implementations; a bare `.catch` there would throw.
+    void Promise.resolve(element.play()).catch((err: unknown) => {
+      console.warn('[WebRTCViewerSFU] Failed to play remote audio:', err);
+    });
+
+    remoteAudioRef.current.set(track.id, { track, element, amplified });
+    console.log('[WebRTCViewerSFU] Remote audio attached', {
+      trackId: track.id,
+      total: remoteAudioRef.current.size,
+    });
+  }, []);
+
+  /** Stop and tear down one participant's playback. */
+  const detachRemoteAudio = useCallback((trackId: string) => {
+    const playback = remoteAudioRef.current.get(trackId);
+    if (!playback) return;
+
+    playback.element.pause();
+    playback.element.srcObject = null;
+    playback.amplified.dispose();
+    remoteAudioRef.current.delete(trackId);
+    console.log('[WebRTCViewerSFU] Remote audio detached', {
+      trackId,
+      total: remoteAudioRef.current.size,
+    });
+  }, []);
+
+  /** Tear down every participant's playback. */
+  const detachAllRemoteAudio = useCallback(() => {
+    for (const trackId of [...remoteAudioRef.current.keys()]) {
+      detachRemoteAudio(trackId);
+    }
+  }, [detachRemoteAudio]);
+
+  /**
+   * Mute or unmute every remote participant.
+   *
+   * Elements are created as tracks arrive, so the wanted state is held in a ref
+   * and applied to whoever joins later as well.
+   */
+  const setSpeakerMuted = useCallback((muted: boolean) => {
+    speakerMutedRef.current = muted;
+    for (const playback of remoteAudioRef.current.values()) {
+      playback.element.muted = muted;
+    }
+  }, []);
+
   // Handle incoming data messages from LiveKit
   // Send data through LiveKit
-  const sendData = useCallback((message: unknown, reliable = true) => {
+  /**
+   * Send to the room, or to one participant when `targetIdentity` is given.
+   *
+   * Control messages must be addressed. Broadcasting them means the other
+   * *viewers* act on decisions that were never about them: an untargeted
+   * `control-revoke` from whoever was driving put every other guest into
+   * `view-only` too, so releasing control silently stripped it from the
+   * person who actually held it. Harmless with one guest, wrong with two.
+   */
+  const sendData = useCallback((message: unknown, reliable = true, targetIdentity?: string) => {
     const room = roomRef.current;
     if (room?.state !== LKConnectionState.Connected) return;
 
     const data = encoder.encode(JSON.stringify(message));
-    void room.localParticipant.publishData(data, { reliable });
+    const opts: { reliable: boolean; destinationIdentities?: string[] } = { reliable };
+    if (targetIdentity) {
+      opts.destinationIdentities = [targetIdentity];
+    }
+    void room.localParticipant.publishData(data, opts);
+  }, []);
+
+  /**
+   * The identity of whoever is publishing screen video, i.e. the peer that
+   * control messages and input belong to.
+   *
+   * Everything a guest sends about control is for the presenter alone. Falling
+   * back to the participant marked `host` in metadata keeps a voice-only
+   * session (nobody sharing yet) working.
+   */
+  const findHostIdentity = useCallback((): string | undefined => {
+    const room = roomRef.current;
+    if (!room) return undefined;
+
+    let hostByMetadata: string | undefined;
+    for (const participant of room.remoteParticipants.values()) {
+      for (const publication of participant.videoTrackPublications.values()) {
+        if (publication.source === Track.Source.ScreenShare) return participant.identity;
+      }
+      if (hostByMetadata === undefined) {
+        try {
+          const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
+          if (meta.role === 'host') hostByMetadata = participant.identity;
+        } catch {
+          // metadata parse failed; fall through
+        }
+      }
+    }
+    return hostByMetadata;
   }, []);
 
   const handleDataReceived = useCallback(
-    (payload: Uint8Array, _participant?: RemoteParticipant) => {
+    (payload: Uint8Array, sender?: RemoteParticipant) => {
       try {
         const text = decoder.decode(payload);
         const message = JSON.parse(text) as ControlMessage | KickMessage | MuteMessage;
 
         if ('type' in message) {
+          // A control decision names who it is about. Acting on one addressed
+          // to somebody else is how a third participant in the room lost the
+          // control they had been granted: a guest releasing control broadcast
+          // `control-revoke`, and every other guest applied it to themselves.
+          //
+          // `tailnet-hello` is excluded because its `participantId` is the
+          // *sender*, not the addressee — it is a greeting, and dropping it
+          // here would silently kill the handshake. `kick` omits the field and
+          // is addressed by delivery alone.
+          const addressee = (message as { participantId?: unknown }).participantId;
+          if (
+            message.type !== 'tailnet-hello' &&
+            typeof addressee === 'string' &&
+            addressee !== participantId
+          ) {
+            return;
+          }
+
           switch (message.type) {
             case 'tailnet-hello': {
               // Diagnostic only. Reply once with our own addresses so the host
               // can test whether a direct WireGuard path exists; never reply to
               // a reply, or the two sides ping-pong forever.
               if (message.reply) break;
+              const replyTo = sender?.identity;
               void getElectronAPI()
                 .invoke('tailscale:info', undefined)
                 .then((info) => {
-                  sendData(buildTailnetHello(participantId, info.ips, true));
+                  sendData(buildTailnetHello(participantId, info.ips, true), true, replyTo);
                 })
                 .catch(() => {
                   // Diagnostics must never disturb a session.
@@ -194,8 +353,8 @@ export function useWebRTCViewerSFUAPI({
       participantId,
       timestamp: Date.now(),
     };
-    sendData(message);
-  }, [participantId, dataChannelReady, sendData]);
+    sendData(message, true, findHostIdentity());
+  }, [participantId, dataChannelReady, sendData, findHostIdentity]);
 
   // Release control
   const releaseControl = useCallback(() => {
@@ -209,8 +368,8 @@ export function useWebRTCViewerSFUAPI({
       participantId,
       timestamp: Date.now(),
     };
-    sendData(message);
-  }, [participantId, dataChannelReady, sendData]);
+    sendData(message, true, findHostIdentity());
+  }, [participantId, dataChannelReady, sendData, findHostIdentity]);
 
   // Send input event
   const sendInput = useCallback(
@@ -228,9 +387,12 @@ export function useWebRTCViewerSFUAPI({
       // queueing it behind a flood of reliable data packets.
       const isContinuous =
         event.type === 'mouse' && (event.action === 'move' || event.action === 'scroll');
-      sendData(message, !isContinuous);
+      // Addressed to the presenter. Input runs at up to 60 messages a second
+      // and only one machine can act on it; broadcasting sent every keystroke
+      // and mouse position to every other guest in the room as well.
+      sendData(message, !isContinuous, findHostIdentity());
     },
-    [controlState, dataChannelReady, sendData]
+    [controlState, dataChannelReady, sendData, findHostIdentity]
   );
 
   // Collect stats
@@ -307,6 +469,10 @@ export function useWebRTCViewerSFUAPI({
       roomRef.current = null;
     }
 
+    // Every participant's playback holds an element and a Web Audio graph;
+    // leaving them behind leaks a device connection per reconnect.
+    detachAllRemoteAudio();
+
     remoteMediaStreamRef.current = null;
     setRemoteStream(null);
     setConnectionState('disconnected');
@@ -315,7 +481,7 @@ export function useWebRTCViewerSFUAPI({
     setControlState('view-only');
     setMicEnabled(false);
     setHasMic(false);
-  }, []);
+  }, [detachAllRemoteAudio]);
 
   disconnectRef.current = disconnect;
 
@@ -386,53 +552,63 @@ export function useWebRTCViewerSFUAPI({
       room.on(
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
-          if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-            const mediaTrack = track.mediaStreamTrack;
-            const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
-            if (existingTracks.some((t) => t.id === mediaTrack.id)) return;
+          const mediaTrack = track.mediaStreamTrack;
 
-            // Emit a NEW MediaStream reference on every track change. React bails
-            // on setState with the same object, so VideoViewer's srcObject effect
-            // (keyed on the stream identity) never re-runs — and a track added to
-            // a MediaStream that is already attached to a <video> is not reliably
-            // rendered. When a host stops and restarts sharing while their mic
-            // stays subscribed, the stream still holds the audio track, so the
-            // ref survives and the replacement video track was added in place:
-            // invisible to the viewer while the host's own preview looked fine.
-            // A fresh reference forces srcObject to re-bind.
-            const nextStream = new MediaStream([...existingTracks, mediaTrack]);
-            remoteMediaStreamRef.current = nextStream;
-            setRemoteStream(nextStream);
-
-            if (track.kind === Track.Kind.Video) {
-              onStreamReadyRef.current?.(nextStream);
-            }
+          // Audio plays through its own element, one per participant, so that
+          // a third person in the room is not silently dropped. See
+          // attachRemoteAudio.
+          if (track.kind === Track.Kind.Audio) {
+            attachRemoteAudio(mediaTrack);
+            return;
           }
+
+          if (track.kind !== Track.Kind.Video) return;
+
+          const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
+          if (existingTracks.some((t) => t.id === mediaTrack.id)) return;
+
+          // Emit a NEW MediaStream reference on every track change. React bails
+          // on setState with the same object, so VideoViewer's srcObject effect
+          // (keyed on the stream identity) never re-runs — and a track added to
+          // a MediaStream that is already attached to a <video> is not reliably
+          // rendered. When a host stops and restarts sharing, a stream that
+          // survived in place was invisible to the viewer while the host's own
+          // preview looked fine. A fresh reference forces srcObject to re-bind.
+          const nextStream = new MediaStream([...existingTracks, mediaTrack]);
+          remoteMediaStreamRef.current = nextStream;
+          setRemoteStream(nextStream);
+          onStreamReadyRef.current?.(nextStream);
         }
       );
 
       // Track unsubscribed
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
-        if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-          const prev = remoteMediaStreamRef.current;
-          if (!prev) return;
+        const mediaTrack = track.mediaStreamTrack;
 
-          const mediaTrack = track.mediaStreamTrack;
-          const remaining = prev.getTracks().filter((t) => t.id !== mediaTrack.id);
-          if (remaining.length === prev.getTracks().length) return; // not present
+        if (track.kind === Track.Kind.Audio) {
+          detachRemoteAudio(mediaTrack.id);
+          return;
+        }
 
-          if (track.kind === Track.Kind.Video && !remaining.some((t) => t.kind === 'video')) {
-            onStreamEndedRef.current?.();
-          }
+        if (track.kind !== Track.Kind.Video) return;
 
-          if (remaining.length === 0) {
-            remoteMediaStreamRef.current = null;
-            setRemoteStream(null);
-          } else {
-            const nextStream = new MediaStream(remaining);
-            remoteMediaStreamRef.current = nextStream;
-            setRemoteStream(nextStream);
-          }
+        const prev = remoteMediaStreamRef.current;
+        if (!prev) return;
+
+        const remaining = prev.getTracks().filter((t) => t.id !== mediaTrack.id);
+        if (remaining.length === prev.getTracks().length) return; // not present
+
+        if (!remaining.some((t) => t.kind === 'video')) {
+          onStreamEndedRef.current?.();
+        }
+
+        if (remaining.length === 0) {
+          remoteMediaStreamRef.current = null;
+          setRemoteStream(null);
+        } else {
+          const nextStream = new MediaStream(remaining);
+          remoteMediaStreamRef.current = nextStream;
+          setRemoteStream(nextStream);
         }
       });
 
@@ -511,7 +687,15 @@ export function useWebRTCViewerSFUAPI({
       setConnectionState('failed');
       setError(err instanceof Error ? err.message : 'Failed to connect');
     }
-  }, [sessionId, participantId, handleDataReceived, collectStats, sendData]);
+  }, [
+    sessionId,
+    participantId,
+    handleDataReceived,
+    collectStats,
+    sendData,
+    attachRemoteAudio,
+    detachRemoteAudio,
+  ]);
 
   // Manual reconnect
   const reconnect = useCallback(() => {
@@ -543,5 +727,6 @@ export function useWebRTCViewerSFUAPI({
     micEnabled,
     hasMic,
     toggleMic,
+    setSpeakerMuted,
   };
 }

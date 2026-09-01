@@ -44,6 +44,16 @@ interface ViewerHookResult {
   micEnabled: boolean;
   hasMic: boolean;
   toggleMic: () => void;
+  /**
+   * Mute every remote participant, where the transport plays them back itself.
+   *
+   * The SFU path gives each participant their own audio element so that a third
+   * person in the room is audible at all, which puts their audio outside the
+   * `<video>` element the speaker button used to mute. The P2P path still
+   * carries its single remote track inside `remoteStream`, so it has no need
+   * for this and does not provide it.
+   */
+  setSpeakerMuted?: (muted: boolean) => void;
 }
 
 const PARTICIPANT_REFRESH_DEBOUNCE_MS = 250;
@@ -306,7 +316,15 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
     micEnabled,
     hasMic,
     toggleMic,
+    setSpeakerMuted: setTransportSpeakerMuted,
   } = hookResult;
+
+  // Reach the per-participant audio elements the SFU transport owns. Muting the
+  // video element alone stopped silencing anybody once remote audio moved out
+  // of it, so the speaker button has to drive both.
+  useEffect(() => {
+    setTransportSpeakerMuted?.(speakerMuted);
+  }, [setTransportSpeakerMuted, speakerMuted]);
 
   // Whether the host allows guests to ask for control at all. Fixed when the
   // session was created, so sessions made before it defaulted on stay off.

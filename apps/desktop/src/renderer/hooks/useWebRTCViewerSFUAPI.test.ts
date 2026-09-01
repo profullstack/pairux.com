@@ -39,6 +39,52 @@ vi.mock('@/lib/ipc', () => ({
   }),
 }));
 
+// Remote audio now plays through one element per participant, each fronted by a
+// Web Audio gain stage. jsdom has no AudioContext, so stand in for the graph and
+// record which tracks were wired up.
+interface AmplifiedStub {
+  track: { id?: string };
+  disposed: boolean;
+  setGain: ReturnType<typeof vi.fn>;
+  dispose: () => void;
+}
+const amplified: AmplifiedStub[] = [];
+vi.mock('@/lib/remoteAudioGain', () => ({
+  amplifyRemoteAudio: (track: { id?: string }) => {
+    const entry: AmplifiedStub = {
+      track,
+      disposed: false,
+      setGain: vi.fn(),
+      dispose: () => {
+        entry.disposed = true;
+      },
+    };
+    (entry as unknown as { stream: unknown }).stream = new MockMediaStream([track]);
+    amplified.push(entry);
+    return entry;
+  },
+}));
+
+/** The audio elements the hook created, in creation order. */
+const audioElements: { muted: boolean; paused: boolean; srcObject: unknown }[] = [];
+class MockAudio {
+  muted = false;
+  paused = false;
+  autoplay = false;
+  volume = 1;
+  srcObject: unknown = null;
+  constructor() {
+    audioElements.push(this);
+  }
+  play() {
+    return Promise.resolve();
+  }
+  pause() {
+    this.paused = true;
+  }
+}
+(globalThis as Record<string, unknown>).Audio = MockAudio;
+
 // Mock LiveKit Room
 const mockPublishData = vi.fn();
 const mockSetMicrophoneEnabled = vi.fn().mockResolvedValue(undefined);
@@ -118,6 +164,8 @@ describe('useWebRTCViewerSFUAPI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRemoteParticipants.clear();
+    amplified.length = 0;
+    audioElements.length = 0;
 
     // Re-set mock implementations (vi.restoreAllMocks clears them)
     mockFetch.mockResolvedValue({
@@ -270,7 +318,7 @@ describe('useWebRTCViewerSFUAPI', () => {
     expect(hookResult!.current.remoteStream).not.toBeNull();
   });
 
-  it('should merge subscribed audio and video tracks into one remote stream', async () => {
+  it('should keep remote audio out of the remote stream and play it per participant', async () => {
     let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
 
     await act(async () => {
@@ -282,42 +330,85 @@ describe('useWebRTCViewerSFUAPI', () => {
       await Promise.resolve();
     });
 
-    const mockAudioTrack = {
-      kind: 'audio',
-      mediaStreamTrack: { id: 'audio-1', kind: 'audio' },
-    };
-    const mockVideoTrack = {
-      kind: 'video',
-      mediaStreamTrack: { id: 'video-1', kind: 'video' },
-    };
+    const hostAudio = { kind: 'audio', mediaStreamTrack: { id: 'audio-host', kind: 'audio' } };
+    const peerAudio = { kind: 'audio', mediaStreamTrack: { id: 'audio-peer', kind: 'audio' } };
+    const mockVideoTrack = { kind: 'video', mediaStreamTrack: { id: 'video-1', kind: 'video' } };
 
+    // A media element plays only the FIRST audio track of the stream it is
+    // given, so folding both of these into remoteStream made whichever arrived
+    // second inaudible for the whole session. Each one gets its own element.
     act(() => {
-      mockRoomInstance.emit('trackSubscribed', mockAudioTrack, {}, { identity: 'host-1' });
+      mockRoomInstance.emit('trackSubscribed', hostAudio, {}, { identity: 'host-1' });
+      mockRoomInstance.emit('trackSubscribed', peerAudio, {}, { identity: 'viewer-2' });
     });
 
-    const firstStream = hookResult!.current.remoteStream;
-    expect(firstStream).not.toBeNull();
-    expect(firstStream?.getAudioTracks()).toHaveLength(1);
-    expect(firstStream?.getVideoTracks()).toHaveLength(0);
+    expect(hookResult!.current.remoteStream).toBeNull();
+    expect(audioElements).toHaveLength(2);
+    expect(amplified.map((a) => a.track.id)).toEqual(['audio-host', 'audio-peer']);
 
     act(() => {
       mockRoomInstance.emit('trackSubscribed', mockVideoTrack, {}, { identity: 'host-1' });
     });
 
-    const mergedStream = hookResult!.current.remoteStream;
-    // A NEW reference, not a mutated one: React bails on setState with the same
-    // object, so VideoViewer's srcObject effect would never re-bind.
-    expect(mergedStream).not.toBe(firstStream);
-    expect(mergedStream?.getAudioTracks()).toHaveLength(1);
-    expect(mergedStream?.getVideoTracks()).toHaveLength(1);
+    // The stream carries video and nothing else.
+    const videoStream = hookResult!.current.remoteStream;
+    expect(videoStream?.getVideoTracks()).toHaveLength(1);
+    expect(videoStream?.getAudioTracks()).toHaveLength(0);
 
+    // One participant leaving tears down only their own playback.
     act(() => {
-      mockRoomInstance.emit('trackUnsubscribed', mockAudioTrack);
+      mockRoomInstance.emit('trackUnsubscribed', peerAudio);
     });
 
-    expect(hookResult!.current.remoteStream).not.toBe(mergedStream);
-    expect(hookResult!.current.remoteStream?.getAudioTracks()).toHaveLength(0);
+    expect(amplified.find((a) => a.track.id === 'audio-peer')?.disposed).toBe(true);
+    expect(amplified.find((a) => a.track.id === 'audio-host')?.disposed).toBe(false);
     expect(hookResult!.current.remoteStream?.getVideoTracks()).toHaveLength(1);
+  });
+
+  it('should mute every remote participant through setSpeakerMuted', async () => {
+    let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
+
+    await act(async () => {
+      const { result } = renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      hookResult = result;
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    act(() => {
+      mockRoomInstance.emit(
+        'trackSubscribed',
+        { kind: 'audio', mediaStreamTrack: { id: 'audio-host', kind: 'audio' } },
+        {},
+        { identity: 'host-1' }
+      );
+    });
+
+    // Remote audio no longer lives in the <video>, so muting that element is not
+    // enough — the speaker button has to reach these.
+    act(() => {
+      hookResult!.current.setSpeakerMuted(true);
+    });
+    expect(audioElements.every((el) => el.muted)).toBe(true);
+
+    // Somebody joining while muted stays muted.
+    act(() => {
+      mockRoomInstance.emit(
+        'trackSubscribed',
+        { kind: 'audio', mediaStreamTrack: { id: 'audio-late', kind: 'audio' } },
+        {},
+        { identity: 'viewer-3' }
+      );
+    });
+    expect(audioElements).toHaveLength(2);
+    expect(audioElements.every((el) => el.muted)).toBe(true);
+
+    act(() => {
+      hookResult!.current.setSpeakerMuted(false);
+    });
+    expect(audioElements.every((el) => el.muted)).toBe(false);
   });
 
   it('should disable adaptiveStream so the screen share is never auto-paused', async () => {
@@ -360,16 +451,15 @@ describe('useWebRTCViewerSFUAPI', () => {
     const sharing = hookResult!.current.remoteStream;
     expect(sharing?.getVideoTracks()).toHaveLength(1);
 
-    // Host stops sharing. Their mic stays subscribed, so the stream survives —
-    // this is the case that used to keep a stale reference alive.
+    // Host stops sharing. Their mic stays subscribed but is played elsewhere,
+    // so the video stream empties out rather than surviving as a stale
+    // reference that a replacement track gets added to in place.
     act(() => {
       mockRoomInstance.emit('trackUnsubscribed', firstVideo);
     });
 
-    const audioOnly = hookResult!.current.remoteStream;
-    expect(audioOnly).not.toBeNull();
-    expect(audioOnly).not.toBe(sharing);
-    expect(audioOnly?.getVideoTracks()).toHaveLength(0);
+    expect(hookResult!.current.remoteStream).toBeNull();
+    expect(amplified.find((a) => a.track.id === 'audio-1')?.disposed).toBe(false);
 
     // Host starts a new share.
     act(() => {
@@ -377,7 +467,7 @@ describe('useWebRTCViewerSFUAPI', () => {
     });
 
     const restarted = hookResult!.current.remoteStream;
-    expect(restarted).not.toBe(audioOnly);
+    expect(restarted).not.toBe(sharing);
     expect(restarted?.getVideoTracks()).toHaveLength(1);
     expect((restarted?.getVideoTracks()[0] as { id?: string } | undefined)?.id).toBe('video-2');
   });
@@ -464,6 +554,92 @@ describe('useWebRTCViewerSFUAPI', () => {
     });
 
     expect(hookResult!.current.controlState).toBe('granted');
+  });
+
+  it('should ignore control messages addressed to another participant', async () => {
+    let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
+
+    await act(async () => {
+      const { result } = renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      hookResult = result;
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const encode = (message: unknown) => new TextEncoder().encode(JSON.stringify(message));
+
+    act(() => {
+      mockRoomInstance.emit(
+        'dataReceived',
+        encode({ type: 'control-grant', participantId: 'viewer-1', timestamp: Date.now() }),
+        { identity: 'host-1' }
+      );
+    });
+    expect(hookResult!.current.controlState).toBe('granted');
+
+    // Another guest releasing control used to be broadcast untargeted, and
+    // every other guest applied it to themselves — so the person actually
+    // driving was silently dropped back to view-only.
+    act(() => {
+      mockRoomInstance.emit(
+        'dataReceived',
+        encode({ type: 'control-revoke', participantId: 'viewer-2', timestamp: Date.now() }),
+        { identity: 'viewer-2' }
+      );
+    });
+    expect(hookResult!.current.controlState).toBe('granted');
+
+    // A revoke that really is ours still lands.
+    act(() => {
+      mockRoomInstance.emit(
+        'dataReceived',
+        encode({ type: 'control-revoke', participantId: 'viewer-1', timestamp: Date.now() }),
+        { identity: 'host-1' }
+      );
+    });
+    expect(hookResult!.current.controlState).toBe('view-only');
+  });
+
+  it('should address control requests to the participant sharing their screen', async () => {
+    let hookResult: { current: ReturnType<typeof useWebRTCViewerSFUAPI> };
+
+    mockRemoteParticipants.set('host-1', {
+      identity: 'host-1',
+      metadata: JSON.stringify({ role: 'host' }),
+      videoTrackPublications: new Map([['screen', { source: 'screen_share' }]]),
+    });
+    mockRemoteParticipants.set('viewer-2', {
+      identity: 'viewer-2',
+      metadata: JSON.stringify({ role: 'viewer' }),
+      videoTrackPublications: new Map(),
+    });
+
+    await act(async () => {
+      const { result } = renderHook(() => useWebRTCViewerSFUAPI(defaultOptions));
+      hookResult = result;
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Simulate connected state setting dataChannelReady
+    act(() => {
+      mockRoomInstance.emit('connectionStateChanged', 'connected');
+    });
+
+    mockPublishData.mockClear();
+    act(() => {
+      hookResult!.current.requestControl();
+    });
+
+    // Only the presenter can act on it, and only the presenter should see it.
+    expect(mockPublishData).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ destinationIdentities: ['host-1'] })
+    );
   });
 
   it('should send control request via publishData', async () => {

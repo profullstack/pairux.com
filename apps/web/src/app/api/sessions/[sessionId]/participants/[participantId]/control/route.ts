@@ -32,9 +32,49 @@ function normalizeLiveKitServiceUrl(url: string): string {
   return url;
 }
 
+/**
+ * Find the LiveKit identity belonging to a `session_participants` row.
+ *
+ * A participant row id is not a LiveKit identity, and the two have never
+ * matched: the desktop client joins as the auth user id and the web client as a
+ * freshly generated UUID. Addressing a data packet to the row id therefore
+ * reached nobody at all, in either client — the signal below has been silently
+ * dropped since it was written.
+ *
+ * What every client does carry is the `userId` its token embeds in metadata, so
+ * that is what the row is matched against. Identity is still checked directly
+ * first, so a client that ever does join under the row id keeps working.
+ */
+async function resolveLiveKitIdentity(
+  roomService: RoomServiceClient,
+  roomName: string,
+  participantId: string,
+  targetUserId: string | null
+): Promise<string | null> {
+  const participants = await roomService.listParticipants(roomName);
+
+  for (const participant of participants) {
+    if (participant.identity === participantId) return participant.identity;
+  }
+
+  if (targetUserId === null) return null;
+
+  for (const participant of participants) {
+    try {
+      const meta = JSON.parse(participant.metadata || '{}') as { userId?: string | null };
+      if (meta.userId === targetUserId) return participant.identity;
+    } catch {
+      // Metadata is client-supplied; a malformed blob is not a reason to fail.
+    }
+  }
+
+  return null;
+}
+
 async function sendLiveKitControlSignal(
   sessionId: string,
   participantId: string,
+  targetUserId: string | null,
   controlState: ControlSignalState
 ): Promise<void> {
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
@@ -56,22 +96,38 @@ async function sendLiveKitControlSignal(
     livekitApiSecret
   );
 
+  const roomName = `session-${sessionId}`;
+  const identity = await resolveLiveKitIdentity(roomService, roomName, participantId, targetUserId);
+
+  if (identity === null) {
+    console.warn('[ControlAPI] LiveKit control signal skipped (participant not in room)', {
+      sessionId,
+      participantId,
+      controlState,
+      roomName,
+    });
+    return;
+  }
+
+  // The recipient checks that a control message is addressed to it before
+  // acting, so this has to name the identity it is delivered to rather than the
+  // database row id.
   const payload = new TextEncoder().encode(
     JSON.stringify({
       type: controlState === 'granted' ? 'control-grant' : 'control-revoke',
-      participantId,
+      participantId: identity,
       timestamp: Date.now(),
     })
   );
 
-  const roomName = `session-${sessionId}`;
   await roomService.sendData(roomName, payload, DataPacket_Kind.RELIABLE, {
-    destinationIdentities: [participantId],
+    destinationIdentities: [identity],
   });
 
   console.info('[ControlAPI] LiveKit control signal sent', {
     sessionId,
     participantId,
+    identity,
     controlState,
     roomName,
   });
@@ -178,7 +234,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if ((control_state === 'granted' || control_state === 'view-only') && session.mode === 'sfu') {
       try {
-        await sendLiveKitControlSignal(sessionId, participantId, control_state);
+        // The updated row carries the user the grant is about, which is what
+        // maps this participant onto a LiveKit identity.
+        const targetUserId =
+          typeof (updatedParticipant as { user_id?: unknown } | null)?.user_id === 'string'
+            ? (updatedParticipant as { user_id: string }).user_id
+            : null;
+        await sendLiveKitControlSignal(sessionId, participantId, targetUserId, control_state);
       } catch (signalError) {
         console.error('[ControlAPI] Failed to send LiveKit control signal', {
           sessionId,

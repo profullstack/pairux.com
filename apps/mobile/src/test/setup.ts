@@ -10,6 +10,11 @@ const appStateMock = vi.hoisted(() => ({
   listeners: new Set<(state: string) => void>(),
 }));
 
+const platformMock = vi.hoisted(() => ({
+  OS: 'ios',
+  Version: 17 as string | number,
+}));
+
 export function emitAppStateChange(state: 'active' | 'background' | 'inactive'): void {
   appStateMock.currentState = state;
   for (const listener of appStateMock.listeners) {
@@ -21,6 +26,8 @@ export function emitAppStateChange(state: 'active' | 'background' | 'inactive'):
 const originalConsole = { ...console };
 beforeEach(() => {
   appStateMock.currentState = 'active';
+  platformMock.OS = 'ios';
+  platformMock.Version = 17;
   mockPeerConnections.length = 0;
   vi.stubGlobal('console', {
     ...originalConsole,
@@ -74,7 +81,18 @@ vi.mock('react-native', () => ({
   Alert: { alert: vi.fn() },
   ActivityIndicator: 'ActivityIndicator',
   KeyboardAvoidingView: 'KeyboardAvoidingView',
-  Platform: { OS: 'ios' },
+  Platform: platformMock,
+  PermissionsAndroid: {
+    PERMISSIONS: {
+      POST_NOTIFICATIONS: 'android.permission.POST_NOTIFICATIONS',
+    },
+    RESULTS: {
+      GRANTED: 'granted',
+      DENIED: 'denied',
+      NEVER_ASK_AGAIN: 'never_ask_again',
+    },
+    request: vi.fn().mockResolvedValue('granted'),
+  },
   AppState: {
     get currentState() {
       return appStateMock.currentState;

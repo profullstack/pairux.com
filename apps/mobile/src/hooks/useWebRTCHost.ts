@@ -27,6 +27,10 @@ import {
   markTrackAsSpeech,
 } from '@pairux/shared-types';
 import { API_BASE_URL } from '../config';
+import {
+  isAndroidNativePromptActive,
+  subscribeAndroidNativePrompt,
+} from '../lib/android-native-prompt';
 import { getStoredAuth, isAuthExpired } from '../lib/secure-storage';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
 
@@ -149,6 +153,7 @@ export function useWebRTCHost({
   const generationRef = useRef(0);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const resumeOnActiveRef = useRef(false);
+  const deferredBackgroundRef = useRef(false);
   const micEnabledIntentRef = useRef(true);
   const localStreamRef = useRef<MediaStream | null>(null);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
@@ -1064,32 +1069,51 @@ export function useWebRTCHost({
     mountedRef.current = true;
     appStateRef.current = AppState.currentState;
 
+    const suspendForBackground = () => {
+      const hadActiveHost =
+        isStartingRef.current || eventSourceRef.current !== null || viewersRef.current.size > 0;
+      resumeOnActiveRef.current = resumeOnActiveRef.current || hadActiveHost;
+      if (hadActiveHost) {
+        stopHosting();
+      }
+    };
+
     const subscription = AppState.addEventListener('change', (nextState) => {
       const previousState = appStateRef.current;
       appStateRef.current = nextState;
 
       if (nextState === 'background') {
         if (previousState !== 'background') {
-          const hadActiveHost =
-            isStartingRef.current || eventSourceRef.current !== null || viewersRef.current.size > 0;
-          resumeOnActiveRef.current = resumeOnActiveRef.current || hadActiveHost;
-          if (hadActiveHost) {
-            stopHosting();
+          if (isAndroidNativePromptActive()) {
+            deferredBackgroundRef.current = true;
+          } else {
+            suspendForBackground();
           }
         }
         return;
       }
 
-      if (nextState === 'active' && previousState !== 'active' && resumeOnActiveRef.current) {
-        resumeOnActiveRef.current = false;
-        void startHostingRef.current?.();
+      if (nextState === 'active') {
+        deferredBackgroundRef.current = false;
+        if (previousState !== 'active' && resumeOnActiveRef.current) {
+          resumeOnActiveRef.current = false;
+          void startHostingRef.current?.();
+        }
+      }
+    });
+    const unsubscribePrompt = subscribeAndroidNativePrompt((active) => {
+      if (!active && deferredBackgroundRef.current && appStateRef.current === 'background') {
+        deferredBackgroundRef.current = false;
+        suspendForBackground();
       }
     });
 
     return () => {
       subscription.remove();
+      unsubscribePrompt();
       mountedRef.current = false;
       resumeOnActiveRef.current = false;
+      deferredBackgroundRef.current = false;
       stopHosting();
     };
   }, [stopHosting]);

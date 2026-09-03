@@ -52,3 +52,9 @@ jobs:
 
       - name: Validate mobile app
         run: pnpm check:mobile
+
+      - name: Generate Android native project
+        run: pnpm --filter @pairux/mobile exec expo prebuild --platform android --clean --no-install
+
+      - name: Verify Android screen-share native config
+        run: pnpm --filter @pairux/mobile verify:android-screen-share

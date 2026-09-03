@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:bundle": "node scripts/verify-bundle-react.mjs"
+    "verify:bundle": "node scripts/verify-bundle-react.mjs",
+    "verify:android-screen-share": "node scripts/verify-android-screen-share.mjs"
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "10.0.0",

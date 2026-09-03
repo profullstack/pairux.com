@@ -71,7 +71,10 @@ recovery, not background audio support.
 
 An active screen share ends when the app reaches the background and must be started again after
 returning. The capture hook owns that teardown so its UI cannot report a stopped native track as
-still sharing. A brief iOS `inactive` transition alone does not tear down the call or screen share.
+still sharing. Android permission and MediaProjection dialogs briefly report the app as backgrounded;
+those prompt-owned transitions are ignored while a real background transition still tears down after
+the resume grace period. A brief iOS `inactive` transition alone does not tear down the call or screen
+share.
 
 ## EAS builds
 
@@ -89,6 +92,10 @@ eas build --platform android --profile preview
 eas build --platform ios --profile preview
 ```
 
+The Android preview profile produces an installable APK for internal testing.
+Running an EAS cloud build may consume the Profullstack account's build quota or
+paid plan, so confirm account billing before starting it.
+
 Signed device builds and store submission additionally require the matching Google Play and
 Apple Developer credentials. Keep those credentials in EAS or the platform account, never in
 the repository.
@@ -97,12 +104,14 @@ the repository.
 
 Android prebuilds enable the foreground MediaProjection service bundled with
 `react-native-webrtc`. This is required for screen capture on current Android releases. On Android
-13 and newer, a production app should declare and request `POST_NOTIFICATIONS` before screen
-capture if the foreground-service notification must remain visible in the notification drawer.
-MediaProjection can still start without that permission, but Android shows the foreground-service
-notice only in Task Manager when notification permission is denied. The generated app removes the
-camera and system-overlay permissions inherited from the WebRTC dependency because PairUX currently
-uses screen capture and voice, not camera capture or overlay windows.
+13 and newer, PairUX declares and requests `POST_NOTIFICATIONS` before screen capture so the
+foreground-service notification can remain visible in the notification drawer. Denial does not
+block MediaProjection; Android instead shows the foreground-service notice in Task Manager. The
+generated app removes the camera and system-overlay permissions inherited from the WebRTC dependency
+because PairUX currently uses screen capture and voice, not camera capture or overlay windows.
+
+Mobile CI runs a clean Android prebuild and verifies the required permissions, blocked permissions,
+and MediaProjection service initialization against the generated native project.
 
 The host UI reports sharing as active only after the captured stream has been published to the
 current viewers. Capture permission, publication, active sharing, and shutdown are serialized so

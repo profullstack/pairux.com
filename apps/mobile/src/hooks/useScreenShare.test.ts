@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PermissionsAndroid, Platform } from 'react-native';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 import { useScreenShare } from './useScreenShare';
@@ -42,6 +43,229 @@ function createCapture() {
 describe('useScreenShare', () => {
   beforeEach(() => {
     vi.mocked(mediaDevices.getDisplayMedia).mockReset();
+    vi.mocked(PermissionsAndroid.request)
+      .mockReset()
+      .mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+  });
+
+  it('requests Android 13 notification permission before starting capture', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 33 });
+    const capture = createCapture();
+    vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    await act(async () => {
+      await expect(result.current.start()).resolves.toBe(true);
+    });
+
+    expect(PermissionsAndroid.request).toHaveBeenCalledWith(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+    );
+    expect(vi.mocked(PermissionsAndroid.request).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(mediaDevices.getDisplayMedia).mock.invocationCallOrder[0]
+    );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([PermissionsAndroid.RESULTS.DENIED, PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN])(
+    'continues screen capture when notification permission is %s',
+    async (permission) => {
+      Object.assign(Platform, { OS: 'android', Version: 34 });
+      vi.mocked(PermissionsAndroid.request).mockResolvedValue(permission);
+      const capture = createCapture();
+      vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+      const publishStream = vi.fn().mockResolvedValue(undefined);
+      const unpublishStream = vi.fn().mockResolvedValue(undefined);
+      const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+      await act(async () => {
+        await expect(result.current.start()).resolves.toBe(true);
+      });
+
+      expect(result.current.state).toBe('active');
+      expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('continues screen capture when the notification permission request throws', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 33 });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.mocked(PermissionsAndroid.request).mockRejectedValue(new Error('permission API failed'));
+    const capture = createCapture();
+    vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    await act(async () => {
+      await expect(result.current.start()).resolves.toBe(true);
+    });
+
+    expect(result.current.state).toBe('active');
+    expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['Android 12', { OS: 'android', Version: 32 }],
+    ['iOS', { OS: 'ios', Version: 18 }],
+  ])('does not request notification permission on %s', async (_label, platform) => {
+    Object.assign(Platform, platform);
+    const capture = createCapture();
+    vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    await act(async () => {
+      await expect(result.current.start()).resolves.toBe(true);
+    });
+
+    expect(PermissionsAndroid.request).not.toHaveBeenCalled();
+  });
+
+  it('does not start capture if stop wins while notification permission is pending', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 33 });
+    const permission = deferred<Awaited<ReturnType<typeof PermissionsAndroid.request>>>();
+    vi.mocked(PermissionsAndroid.request).mockReturnValue(permission.promise);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    let startPromise!: Promise<boolean>;
+    act(() => {
+      startPromise = result.current.start();
+    });
+    await waitFor(() => expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await result.current.stop();
+    });
+
+    permission.resolve(PermissionsAndroid.RESULTS.GRANTED);
+    await act(async () => {
+      await expect(startPromise).resolves.toBe(false);
+    });
+
+    expect(mediaDevices.getDisplayMedia).not.toHaveBeenCalled();
+    expect(result.current.state).toBe('idle');
+  });
+
+  it('ignores the transient Android background event from the notification prompt', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 33 });
+    const permission = deferred<Awaited<ReturnType<typeof PermissionsAndroid.request>>>();
+    vi.mocked(PermissionsAndroid.request).mockReturnValue(permission.promise);
+    const capture = createCapture();
+    vi.mocked(mediaDevices.getDisplayMedia).mockResolvedValue(capture.stream);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    let startPromise!: Promise<boolean>;
+    act(() => {
+      startPromise = result.current.start();
+    });
+    await waitFor(() => expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1));
+    act(() => {
+      emitAppStateChange('background');
+    });
+    expect(result.current.state).toBe('requesting');
+
+    await act(async () => {
+      permission.resolve(PermissionsAndroid.RESULTS.GRANTED);
+      emitAppStateChange('active');
+      await expect(startPromise).resolves.toBe(true);
+    });
+    expect(result.current.state).toBe('active');
+    expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the transient Android background event from MediaProjection consent', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 32 });
+    const capture = createCapture();
+    const captureRequest = deferred<MediaStream>();
+    vi.mocked(mediaDevices.getDisplayMedia).mockReturnValue(captureRequest.promise);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    let startPromise!: Promise<boolean>;
+    act(() => {
+      startPromise = result.current.start();
+    });
+    await waitFor(() => expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1));
+    act(() => {
+      emitAppStateChange('background');
+    });
+    expect(result.current.state).toBe('requesting');
+
+    await act(async () => {
+      captureRequest.resolve(capture.stream);
+      emitAppStateChange('active');
+      await expect(startPromise).resolves.toBe(true);
+    });
+
+    expect(result.current.state).toBe('active');
+    expect(publishStream).toHaveBeenCalledWith(capture.stream);
+  });
+
+  it('abandons capture when Android stays backgrounded after MediaProjection consent', async () => {
+    vi.useFakeTimers();
+    Object.assign(Platform, { OS: 'android', Version: 32 });
+    const capture = createCapture();
+    const captureRequest = deferred<MediaStream>();
+    vi.mocked(mediaDevices.getDisplayMedia).mockReturnValue(captureRequest.promise);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useScreenShare({ publishStream, unpublishStream }));
+
+    let startPromise!: Promise<boolean>;
+    act(() => {
+      startPromise = result.current.start();
+    });
+    await vi.waitFor(() => expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1));
+    act(() => {
+      emitAppStateChange('background');
+    });
+
+    await act(async () => {
+      captureRequest.resolve(capture.stream);
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(1_500);
+      await expect(startPromise).resolves.toBe(false);
+    });
+
+    expect(capture.track.stop).toHaveBeenCalledTimes(1);
+    expect(publishStream).not.toHaveBeenCalled();
+    expect(unpublishStream).not.toHaveBeenCalled();
+    expect(result.current.state).toBe('idle');
+  });
+
+  it('does not start capture after unmount during the permission prompt', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 33 });
+    const permission = deferred<Awaited<ReturnType<typeof PermissionsAndroid.request>>>();
+    vi.mocked(PermissionsAndroid.request).mockReturnValue(permission.promise);
+    const publishStream = vi.fn().mockResolvedValue(undefined);
+    const unpublishStream = vi.fn().mockResolvedValue(undefined);
+    const { result, unmount } = renderHook(() =>
+      useScreenShare({ publishStream, unpublishStream })
+    );
+
+    let startPromise!: Promise<boolean>;
+    act(() => {
+      startPromise = result.current.start();
+    });
+    await waitFor(() => expect(PermissionsAndroid.request).toHaveBeenCalledTimes(1));
+    unmount();
+
+    permission.resolve(PermissionsAndroid.RESULTS.GRANTED);
+    await act(async () => {
+      await expect(startPromise).resolves.toBe(false);
+    });
+    expect(mediaDevices.getDisplayMedia).not.toHaveBeenCalled();
   });
 
   it('only reports active after capture publishing succeeds', async () => {
@@ -145,6 +369,7 @@ describe('useScreenShare', () => {
     act(() => {
       startPromise = result.current.start();
     });
+    await waitFor(() => expect(mediaDevices.getDisplayMedia).toHaveBeenCalledTimes(1));
     await act(async () => {
       await result.current.stop();
     });

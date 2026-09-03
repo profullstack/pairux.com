@@ -1,11 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { Platform } from 'react-native';
 import { useWebRTCHost } from './useWebRTCHost';
 import { createEventSource } from '../lib/event-source';
 import { getStoredAuth } from '../lib/secure-storage';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 import { emitAppStateChange } from '../test/setup';
+import { runAndroidNativePrompt } from '../lib/android-native-prompt';
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
 
 vi.mock('../config', () => ({
   API_BASE_URL: 'https://pairux.com',
@@ -56,6 +66,10 @@ describe('useWebRTCHost', () => {
       ok: true,
       text: async () => 'ok',
     } as Response);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('should initialize with default state', () => {
@@ -349,6 +363,75 @@ describe('useWebRTCHost', () => {
     });
 
     expect(createEventSource).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps hosting through the transient background event from an Android prompt', async () => {
+    Object.assign(Platform, { OS: 'android', Version: 34 });
+    let resolvePrompt!: () => void;
+    const promptAction = new Promise<void>((resolve) => {
+      resolvePrompt = resolve;
+    });
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const prompt = runAndroidNativePrompt(() => promptAction);
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    expect(mockClose).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolvePrompt();
+      emitAppStateChange('active');
+      await prompt;
+    });
+
+    expect(mockClose).not.toHaveBeenCalled();
+    expect(createEventSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('suspends hosting when Android stays backgrounded after a prompt settles', async () => {
+    vi.useFakeTimers();
+    Object.assign(Platform, { OS: 'android', Version: 34 });
+    const promptAction = deferred<undefined>();
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    act(() => {
+      mockEventSources[0]?.listeners.get('connected')?.({ data: '{}' });
+    });
+    expect(result.current.isHosting).toBe(true);
+    const prompt = runAndroidNativePrompt(() => promptAction.promise);
+
+    act(() => {
+      emitAppStateChange('background');
+    });
+    expect(mockClose).not.toHaveBeenCalled();
+
+    await act(async () => {
+      promptAction.resolve(undefined);
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(1_500);
+      await expect(prompt).resolves.toMatchObject({ resumed: false });
+    });
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(result.current.isHosting).toBe(false);
   });
 
   it('accepts a viewer presence event during a transient inactive window', async () => {

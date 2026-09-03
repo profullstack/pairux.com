@@ -49,6 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     permissions: [
       'INTERNET',
       'RECORD_AUDIO',
+      'POST_NOTIFICATIONS',
       'FOREGROUND_SERVICE',
       'FOREGROUND_SERVICE_MEDIA_PROJECTION',
     ],

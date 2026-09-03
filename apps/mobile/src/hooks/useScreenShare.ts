@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, PermissionsAndroid, Platform, type AppStateStatus } from 'react-native';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
+import {
+  isAndroidNativePromptActive,
+  runAndroidNativePrompt,
+  subscribeAndroidNativePrompt,
+} from '../lib/android-native-prompt';
 
 export type ScreenShareState = 'idle' | 'requesting' | 'publishing' | 'active' | 'stopping';
 
@@ -33,6 +38,24 @@ function getStartError(error: unknown): string {
   return 'Unable to start screen sharing. Please check the capture permission and try again.';
 }
 
+async function requestScreenShareNotificationPermission(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
+
+  const androidVersion = Platform.Version;
+  if (!Number.isFinite(androidVersion) || androidVersion < 33) return true;
+
+  const prompt = await runAndroidNativePrompt(async () => {
+    try {
+      // Android still allows MediaProjection when this is denied; its service is
+      // then visible in Task Manager instead of the notification drawer.
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    } catch (permissionError) {
+      console.warn('[ScreenShare] Could not request notification permission:', permissionError);
+    }
+  });
+  return prompt.resumed;
+}
+
 /** Owns the native capture stream and serializes every screen-share transition. */
 export function useScreenShare({
   publishStream,
@@ -49,6 +72,7 @@ export function useScreenShare({
   const publicationRef = useRef<Promise<void> | null>(null);
   const endedListenersRef = useRef<Map<MediaStreamTrack, () => void>>(new Map());
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const deferredBackgroundRef = useRef(false);
 
   const transition = useCallback((nextState: ScreenShareState) => {
     stateRef.current = nextState;
@@ -132,9 +156,15 @@ export function useScreenShare({
     let stream: MediaStream | null = null;
     let publication: Promise<void> | null = null;
     try {
-      stream = await mediaDevices.getDisplayMedia();
+      const notificationPromptResumed = await requestScreenShareNotificationPermission();
+      if (!notificationPromptResumed || generationRef.current !== generation) {
+        return false;
+      }
 
-      if (generationRef.current !== generation) {
+      const capturePrompt = await runAndroidNativePrompt(() => mediaDevices.getDisplayMedia());
+      stream = capturePrompt.value;
+
+      if (!capturePrompt.resumed || generationRef.current !== generation) {
         stopTracks(stream);
         return false;
       }
@@ -197,12 +227,26 @@ export function useScreenShare({
       const previousState = appStateRef.current;
       appStateRef.current = nextState;
       if (nextState === 'background' && previousState !== 'background') {
+        if (isAndroidNativePromptActive()) {
+          deferredBackgroundRef.current = true;
+          return;
+        }
+        void stop();
+      } else if (nextState === 'active') {
+        deferredBackgroundRef.current = false;
+      }
+    });
+    const unsubscribePrompt = subscribeAndroidNativePrompt((active) => {
+      if (!active && deferredBackgroundRef.current && appStateRef.current === 'background') {
+        deferredBackgroundRef.current = false;
         void stop();
       }
     });
 
     return () => {
       subscription.remove();
+      unsubscribePrompt();
+      deferredBackgroundRef.current = false;
     };
   }, [stop]);
 

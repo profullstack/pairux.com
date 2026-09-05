@@ -1,3 +1,4 @@
+import { gate } from '@/lib/crawl-gateway';
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 import { CORS_HEADERS } from '@/lib/cors';
@@ -43,6 +44,12 @@ function buildCsp(nonce: string, embeddable: boolean): string {
 }
 
 export async function middleware(request: NextRequest) {
+  // Crawl gateway first: AI training crawlers get 402 Payment Required (or the
+  // sales page at /crawl) unless they present a paid pass. People, Googlebot
+  // and retrieval crawlers fall through to everything below.
+  const answer = await gate(request);
+  if (answer) return answer;
+
   const { pathname } = request.nextUrl;
 
   const isEmbed = pathname === '/embed' || pathname.startsWith('/embed/');

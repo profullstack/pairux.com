@@ -10,7 +10,11 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       {children}
-      <aside data-cp-ad="" data-slot="edebbd57-5071-42f5-87b0-1267df95eb2f" data-format="text_link" />
+      <aside
+        data-cp-ad=""
+        data-slot="edebbd57-5071-42f5-87b0-1267df95eb2f"
+        data-format="text_link"
+      />
       <Script src="https://crawlproof.com/ad.js" strategy="afterInteractive" />
     </>
   );

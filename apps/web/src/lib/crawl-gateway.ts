@@ -16,10 +16,10 @@ import { x402Proxy } from '@profullstack/x402-gateway/next';
 const env = (name: string) => process.env[name];
 
 export const gateway = createGateway({
-  siteUrl: env('SITE_URL') || env('NEXT_PUBLIC_SITE_URL') || 'https://pairux.com',
+  siteUrl: env('SITE_URL') ?? env('NEXT_PUBLIC_SITE_URL') ?? 'https://pairux.com',
   siteName: 'PairUX',
-  coinpay: { apiKey: env('COINPAY_X402_KEY') },
-  payTo: env('CRAWL_PAY_TO'),
+  coinpay: { apiKey: env('COINPAY_X402_KEY') ?? '' },
+  payTo: env('CRAWL_PAY_TO') ?? '',
   contact: 'mailto:support@pairux.com',
 });
 

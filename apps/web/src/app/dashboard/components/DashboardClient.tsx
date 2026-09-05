@@ -6,6 +6,7 @@ import { Monitor, Users, Calendar } from 'lucide-react';
 import { RecentSessions } from './RecentSessions';
 import { UpcomingMeetings } from './UpcomingMeetings';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
+import { BookingPagesManager } from './BookingPagesManager';
 
 export function DashboardClient() {
   const [showSchedule, setShowSchedule] = useState(false);
@@ -108,6 +109,9 @@ export function DashboardClient() {
               setShowSchedule(true);
             }}
           />
+
+          {/* Booking links */}
+          <BookingPagesManager />
 
           {/* Recent Sessions */}
           <RecentSessions />

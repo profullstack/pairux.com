@@ -29,7 +29,7 @@ import {
   markTrackAsSpeech,
 } from '@pairux/shared-types';
 import { API_BASE_URL } from '../config';
-import { getStoredAuth, isAuthExpired } from '../lib/secure-storage';
+import { getValidAccessToken } from '../lib/auth-session';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
 
 // RN WebRTC's RTCDataChannel type (differs from browser global)
@@ -54,6 +54,8 @@ const STATS_INTERVAL = 30000;
 const STATS_DISPLAY_INTERVAL = 2000;
 const HEARTBEAT_TIMEOUT = 75000;
 const HEARTBEAT_WATCHDOG_INTERVAL = 15000;
+// Delay before rebuilding the SSE transport (with a fresh token) after an error
+const SSE_RECONNECT_DELAY = 3000;
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -120,10 +122,10 @@ export function useWebRTCViewer({
   const micStreamRef = useRef<MediaStream | null>(null);
   const eventSourceRef = useRef<SSEConnection | null>(null);
   const dataChannelRef = useRef<DataChannel | null>(null);
-  const authTokenRef = useRef<string | null>(null);
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statsReportIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const heartbeatWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sseReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHeartbeatAtRef = useRef(0);
   const reconnectAttemptsRef = useRef(0);
   const inputSequenceRef = useRef(0);
@@ -137,8 +139,21 @@ export function useWebRTCViewer({
   const maxReconnectAttempts = 3;
 
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
-  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  // Candidates that arrive before the host's offer, kept with their sender so
+  // draining can discard anything not from the negotiated host.
+  const pendingCandidatesRef = useRef<{ senderId: string; candidate: RTCIceCandidateInit }[]>([]);
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
+  // The SSE `connected` event carries the server-assigned subscriber ID; the
+  // stream only delivers signals targeted at that ID, so every outgoing
+  // senderId must use it (for an authenticated user it is the auth user id,
+  // not the participant row id). Matches the desktop viewer.
+  const signalSenderIdRef = useRef(participantId);
+  // The host's signaling ID, learned from the first offer addressed to us.
+  const hostSenderIdRef = useRef<string | null>(null);
+  // Roles by subscriber id from the server's presence events — the one
+  // authoritative signal for who the session host is (the server assigns
+  // role 'host' only to the session's host_user_id).
+  const peerRolesRef = useRef<Map<string, 'host' | 'viewer'>>(new Map());
 
   const handleConnectionFailureRef = useRef<
     ((generation: number, pc: RTCPeerConnection) => Promise<void>) | undefined
@@ -170,16 +185,22 @@ export function useWebRTCViewer({
 
   // Send signal via API
   const sendSignal = useCallback(
-    async (signal: SignalMessage) => {
+    async (signal: SignalMessage, generation: number) => {
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authTokenRef.current) {
-          headers.Authorization = `Bearer ${authTokenRef.current}`;
+        // Resolve the token per request so signaling keeps working after the
+        // access token expires mid-session (single-flight refresh). No token
+        // means signed out — never post with a stale cached credential, and
+        // never post for a generation that stopped while the token resolved.
+        const token = await getValidAccessToken();
+        if (!isCurrentGeneration(generation)) return;
+        if (!token) {
+          console.error('[WebRTCViewer] Not authenticated; dropping signal');
+          return;
         }
 
         const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/signal`, {
           method: 'POST',
-          headers,
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(signal),
         });
 
@@ -190,7 +211,7 @@ export function useWebRTCViewer({
         console.error('[WebRTCViewer] Error sending signal:', err);
       }
     },
-    [sessionId]
+    [isCurrentGeneration, sessionId]
   );
 
   // Handle data channel messages
@@ -396,14 +417,13 @@ export function useWebRTCViewer({
           }
         });
 
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authTokenRef.current) {
-          headers.Authorization = `Bearer ${authTokenRef.current}`;
-        }
+        const token = await getValidAccessToken();
+        if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
+        if (!token) return;
 
         await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
           method: 'POST',
-          headers,
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             participantId,
             role: 'viewer',
@@ -436,9 +456,33 @@ export function useWebRTCViewer({
       const pc = peerConnectionRef.current;
       if (!pc) return;
 
+      // Sender/target guards: the SSE stream forwards untargeted broadcasts to
+      // every subscriber, so another viewer's ICE-restart offer or ICE
+      // candidates would otherwise stomp this peer connection.
+      const selfId = signalSenderIdRef.current;
+      if (message.senderId === selfId) return;
+
       try {
         switch (message.type) {
           case 'offer': {
+            // The host addresses every offer to a specific viewer; an
+            // untargeted offer is another viewer's ICE-restart broadcast.
+            if (message.targetId !== selfId) return;
+            const senderRole = peerRolesRef.current.get(message.senderId);
+            // Presence marks the session host authoritatively — a sender the
+            // server called a viewer can never host-negotiate with us, even
+            // when it targets us explicitly.
+            if (senderRole === 'viewer') return;
+            if (
+              hostSenderIdRef.current !== null &&
+              message.senderId !== hostSenderIdRef.current &&
+              senderRole !== 'host'
+            ) {
+              // An unknown sender must not displace an ongoing negotiation.
+              return;
+            }
+            hostSenderIdRef.current = message.senderId;
+
             if (pc.signalingState !== 'stable') {
               console.warn(
                 `[WebRTCViewer] Received offer in ${pc.signalingState} state — rolling back`
@@ -456,22 +500,27 @@ export function useWebRTCViewer({
             if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
 
             if (answer.sdp) {
-              await sendSignal({
-                type: 'answer',
-                sdp: answer.sdp,
-                senderId: participantId,
-                targetId: message.senderId,
-                ...(message.negotiationId ? { negotiationId: message.negotiationId } : {}),
-                timestamp: Date.now(),
-              });
+              await sendSignal(
+                {
+                  type: 'answer',
+                  sdp: answer.sdp,
+                  senderId: selfId,
+                  targetId: message.senderId,
+                  ...(message.negotiationId ? { negotiationId: message.negotiationId } : {}),
+                  timestamp: Date.now(),
+                },
+                generation
+              );
             }
+            if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
 
-            // Drain buffered ICE candidates
+            // Drain buffered ICE candidates from the negotiated host only
             const pending = pendingCandidatesRef.current;
             if (pending.length > 0) {
               pendingCandidatesRef.current = [];
-              for (const candidate of pending) {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              for (const entry of pending) {
+                if (entry.senderId !== hostSenderIdRef.current) continue;
+                await pc.addIceCandidate(new RTCIceCandidate(entry.candidate));
                 if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
               }
             }
@@ -479,9 +528,22 @@ export function useWebRTCViewer({
           }
 
           case 'ice-candidate': {
+            const targetedAtUs = message.targetId === selfId;
+            // A candidate explicitly addressed to another subscriber is never
+            // ours — even when it comes from the host we negotiate with.
+            if (message.targetId && !targetedAtUs) return;
+            // Viewers never feed candidates into our host connection.
+            if (peerRolesRef.current.get(message.senderId) === 'viewer') return;
+            const knownHost = hostSenderIdRef.current;
+            if (knownHost !== null && message.senderId !== knownHost) return;
+            if (!targetedAtUs && knownHost === null) return;
+
             if (message.candidate?.candidate) {
               if (!pc.remoteDescription) {
-                pendingCandidatesRef.current.push(message.candidate);
+                pendingCandidatesRef.current.push({
+                  senderId: message.senderId,
+                  candidate: message.candidate,
+                });
               } else {
                 await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
               }
@@ -496,7 +558,7 @@ export function useWebRTCViewer({
         }
       }
     },
-    [isCurrentGeneration, participantId, sendSignal]
+    [isCurrentGeneration, sendSignal]
   );
 
   // Serialize signal processing
@@ -536,12 +598,18 @@ export function useWebRTCViewer({
             if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
 
             if (offer.sdp) {
-              await sendSignal({
-                type: 'offer',
-                sdp: offer.sdp,
-                senderId: participantId,
-                timestamp: Date.now(),
-              });
+              await sendSignal(
+                {
+                  type: 'offer',
+                  sdp: offer.sdp,
+                  senderId: signalSenderIdRef.current,
+                  // Address the restart at the host so it cannot disturb the
+                  // other viewers' peer connections.
+                  ...(hostSenderIdRef.current ? { targetId: hostSenderIdRef.current } : {}),
+                  timestamp: Date.now(),
+                },
+                generation
+              );
             }
           } catch {
             if (isCurrentGeneration(generation)) {
@@ -557,7 +625,7 @@ export function useWebRTCViewer({
         connectionFailureInFlightRef.current = false;
       }
     },
-    [isCurrentGeneration, participantId, sendSignal]
+    [isCurrentGeneration, sendSignal]
   );
 
   handleConnectionFailureRef.current = handleConnectionFailure;
@@ -590,12 +658,17 @@ export function useWebRTCViewer({
       pc.addEventListener('icecandidate', (event) => {
         if (!isCurrentGeneration(generation) || peerConnectionRef.current !== pc) return;
         if (event.candidate) {
-          void sendSignal({
-            type: 'ice-candidate',
-            candidate: event.candidate.toJSON(),
-            senderId: participantId,
-            timestamp: Date.now(),
-          });
+          void sendSignal(
+            {
+              type: 'ice-candidate',
+              candidate: event.candidate.toJSON(),
+              senderId: signalSenderIdRef.current,
+              // Address candidates at the host so other viewers never see them.
+              ...(hostSenderIdRef.current ? { targetId: hostSenderIdRef.current } : {}),
+              timestamp: Date.now(),
+            },
+            generation
+          );
         }
       });
 
@@ -652,7 +725,7 @@ export function useWebRTCViewer({
 
       return pc;
     },
-    [isCurrentGeneration, participantId, sendSignal, setupDataChannel]
+    [isCurrentGeneration, sendSignal, setupDataChannel]
   );
 
   // Disconnect
@@ -673,6 +746,11 @@ export function useWebRTCViewer({
     if (heartbeatWatchdogRef.current) {
       clearInterval(heartbeatWatchdogRef.current);
       heartbeatWatchdogRef.current = null;
+    }
+
+    if (sseReconnectTimerRef.current) {
+      clearTimeout(sseReconnectTimerRef.current);
+      sseReconnectTimerRef.current = null;
     }
 
     if (dataChannelRef.current) {
@@ -702,6 +780,8 @@ export function useWebRTCViewer({
     lastHeartbeatAtRef.current = 0;
     pendingCandidatesRef.current = [];
     signalQueueRef.current = Promise.resolve();
+    hostSenderIdRef.current = null;
+    peerRolesRef.current = new Map();
     remoteStreamRef.current = null;
     if (mountedRef.current) {
       setRemoteStream(null);
@@ -753,16 +833,18 @@ export function useWebRTCViewer({
 
     console.log('[WebRTCViewer] Starting viewer for session:', sessionId);
 
-    // Get auth token from secure storage
+    // Get a valid access token, refreshing through /api/auth/refresh if the
+    // stored one has expired (e.g. reconnecting after a long time away).
+    let sseToken: string;
     try {
-      const stored = await getStoredAuth();
+      const token = await getValidAccessToken();
       if (!isCurrentGeneration(generation)) return;
-      if (!stored || isAuthExpired(stored)) {
+      if (!token) {
         isConnectingRef.current = false;
         setError('Not authenticated. Please log in again.');
         return;
       }
-      authTokenRef.current = stored.accessToken;
+      sseToken = token;
     } catch (err) {
       console.error('[WebRTCViewer] Failed to get auth token:', err);
       if (isCurrentGeneration(generation)) {
@@ -797,14 +879,14 @@ export function useWebRTCViewer({
       setMicEnabled(false);
     }
 
-    // Build SSE URL
+    // Build SSE URL. The bearer token goes in the Authorization header
+    // (react-native-sse supports headers, unlike browser EventSource) so
+    // credentials never appear in proxy/request logs via the query string.
     const sseParams = new URLSearchParams({ participantId });
-    if (authTokenRef.current) {
-      sseParams.set('token', authTokenRef.current);
-    }
-
     const sseUrl = `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?${sseParams.toString()}`;
-    const eventSource = createEventSource(sseUrl);
+    const eventSource = createEventSource(sseUrl, {
+      headers: { Authorization: `Bearer ${sseToken}` },
+    });
     if (!isCurrentGeneration(generation)) {
       eventSource.close();
       return;
@@ -824,13 +906,30 @@ export function useWebRTCViewer({
       setError(null);
 
       try {
-        const data = JSON.parse(event.data) as { iceServers?: RTCIceServer[] };
+        const data = JSON.parse(event.data) as {
+          subscriberId?: string;
+          iceServers?: RTCIceServer[];
+        };
+        // The server filters targeted signals by this ID, so it must be the
+        // senderId on everything we post (auth user id, not participant id).
+        signalSenderIdRef.current = data.subscriberId ?? participantId;
+        if (data.subscriberId && data.subscriberId !== participantId) {
+          console.log(
+            '[WebRTCViewer] Using server-assigned signaling senderId:',
+            data.subscriberId
+          );
+        }
         if (data.iceServers && data.iceServers.length > 0) {
           iceServersRef.current = data.iceServers;
         }
       } catch {
-        // Use default ICE servers
+        // Use default ICE servers and the local participant identity
+        signalSenderIdRef.current = participantId;
       }
+      // The host will re-offer on this fresh subscription; re-learn who it
+      // is, along with the presence roles of every subscriber.
+      hostSenderIdRef.current = null;
+      peerRolesRef.current = new Map();
 
       // A reconnect can emit another connected event on the same SSE object.
       // Retire the old peer before attaching a replacement.
@@ -886,6 +985,12 @@ export function useWebRTCViewer({
           presences: { user_id: string; role: string }[];
         };
         for (const presence of presences) {
+          if (presence.user_id) {
+            peerRolesRef.current.set(
+              presence.user_id,
+              presence.role === 'host' ? 'host' : 'viewer'
+            );
+          }
           if (presence.role === 'host') {
             console.log('[WebRTCViewer] Host is present:', presence.user_id);
           }
@@ -916,6 +1021,15 @@ export function useWebRTCViewer({
       console.error('[WebRTCViewer] SSE error');
       isConnectingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
+      // The wrapper disables the library's stale-header auto-retry, so
+      // rebuild the transport ourselves with a freshly refreshed token.
+      if (sseReconnectTimerRef.current) return;
+      sseReconnectTimerRef.current = setTimeout(() => {
+        sseReconnectTimerRef.current = null;
+        if (!isCurrentEventSource()) return;
+        disconnectRef.current?.();
+        void initializeRef.current?.();
+      }, SSE_RECONNECT_DELAY);
     });
 
     statsIntervalRef.current = setInterval(

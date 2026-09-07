@@ -29,7 +29,7 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<{ needsConfirmation: boolean } | null>(null);
 
   async function handleSignup() {
     setError('');
@@ -62,6 +62,7 @@ export default function SignupScreen() {
       const result = await signup({
         email: email.trim(),
         password,
+        confirmPassword,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
       });
@@ -69,7 +70,7 @@ export default function SignupScreen() {
       if (result.error) {
         setError(result.error);
       } else {
-        setSuccess(true);
+        setSuccess({ needsConfirmation: result.needsConfirmation ?? true });
       }
     } catch {
       setError('An unexpected error occurred');
@@ -87,10 +88,13 @@ export default function SignupScreen() {
           className="mb-6 h-16 w-16"
           resizeMode="contain"
         />
-        <Text className="mb-2 text-xl font-bold text-gray-900">Check your email</Text>
+        <Text className="mb-2 text-xl font-bold text-gray-900">
+          {success.needsConfirmation ? 'Check your email' : 'Account created'}
+        </Text>
         <Text className="mb-6 text-center text-gray-500">
-          We&apos;ve sent a confirmation email to {email}. Please verify your email address to
-          continue.
+          {success.needsConfirmation
+            ? `We've sent a confirmation email to ${email}. Please verify your email address to continue.`
+            : 'Your account is ready. You can sign in now.'}
         </Text>
         <TouchableOpacity
           onPress={() => {

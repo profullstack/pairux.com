@@ -8,7 +8,7 @@
  * with Bearer token from secure store.
  */
 import { API_BASE_URL } from '../config';
-import { getStoredAuth, isAuthExpired } from './secure-storage';
+import { getValidAccessToken } from './auth-session';
 
 export interface ApiResponse<T> {
   data?: T;
@@ -16,9 +16,8 @@ export interface ApiResponse<T> {
 }
 
 export async function getAuthToken(): Promise<string | null> {
-  const stored = await getStoredAuth();
-  if (!stored || isAuthExpired(stored)) return null;
-  return stored.accessToken;
+  // Refreshes through /api/auth/refresh when the stored token is expired.
+  return getValidAccessToken();
 }
 
 export async function apiRequest<T>(

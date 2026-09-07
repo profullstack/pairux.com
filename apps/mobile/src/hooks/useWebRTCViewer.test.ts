@@ -2,23 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useWebRTCViewer } from './useWebRTCViewer';
 import { createEventSource } from '../lib/event-source';
-import { getStoredAuth } from '../lib/secure-storage';
+import { getValidAccessToken } from '../lib/auth-session';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 import { emitAppStateChange, mockPeerConnections } from '../test/setup';
+import {
+  viewerConnectedEventData,
+  AUTH_USER_ID,
+  PARTICIPANT_ROW_ID,
+  HOST_USER_ID,
+  OTHER_VIEWER_ID,
+} from '../test/fixtures/server-contracts';
 
 vi.mock('../config', () => ({
   API_BASE_URL: 'https://pairux.com',
 }));
 
-vi.mock('../lib/secure-storage', () => ({
-  getStoredAuth: vi.fn().mockResolvedValue({
-    accessToken: 'test-token',
-    refreshToken: 'refresh',
-    expiresAt: Date.now() + 3600000,
-    user: { id: 'viewer-1', email: 'viewer@example.com' },
-  }),
-  isAuthExpired: vi.fn().mockReturnValue(false),
+vi.mock('../lib/auth-session', () => ({
+  getValidAccessToken: vi.fn().mockResolvedValue('test-token'),
 }));
 
 const { mockClose, mockAddEventListener, mockEventSources } = vi.hoisted(() => ({
@@ -31,7 +32,7 @@ const { mockClose, mockAddEventListener, mockEventSources } = vi.hoisted(() => (
 }));
 
 vi.mock('../lib/event-source', () => ({
-  createEventSource: vi.fn(() => {
+  createEventSource: vi.fn((_url: string, _options?: { headers?: Record<string, string> }) => {
     const listeners = new Map<string, (event: { data: string }) => void>();
     const source = {
       listeners,
@@ -48,10 +49,19 @@ vi.mock('../lib/event-source', () => ({
   }),
 }));
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 describe('useWebRTCViewer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSources.length = 0;
+    vi.mocked(getValidAccessToken).mockResolvedValue('test-token');
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       text: async () => 'ok',
@@ -106,7 +116,8 @@ describe('useWebRTCViewer', () => {
     });
 
     expect(createEventSource).toHaveBeenCalledWith(
-      expect.stringContaining('/api/sessions/session-1/signal/stream')
+      expect.stringContaining('/api/sessions/session-1/signal/stream'),
+      expect.anything()
     );
   });
 
@@ -123,11 +134,12 @@ describe('useWebRTCViewer', () => {
     });
 
     expect(createEventSource).toHaveBeenCalledWith(
-      expect.stringContaining('participantId=viewer-42')
+      expect.stringContaining('participantId=viewer-42'),
+      expect.anything()
     );
   });
 
-  it('should include auth token in SSE URL params', async () => {
+  it('sends the SSE bearer token in the Authorization header, not the URL', async () => {
     renderHook(() =>
       useWebRTCViewer({
         sessionId: 'session-1',
@@ -139,7 +151,12 @@ describe('useWebRTCViewer', () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(createEventSource).toHaveBeenCalledWith(expect.stringContaining('token=test-token'));
+    const [url, options] = vi.mocked(createEventSource).mock.calls[0] as [
+      string,
+      { headers?: Record<string, string> } | undefined,
+    ];
+    expect(url).not.toContain('token=');
+    expect(options).toEqual({ headers: { Authorization: 'Bearer test-token' } });
   });
 
   it('echoes the host negotiation ID in its answer', async () => {
@@ -170,6 +187,7 @@ describe('useWebRTCViewer', () => {
           type: 'offer',
           sdp: 'mobile-host-offer',
           senderId: 'host-1',
+          targetId: 'viewer-1',
           negotiationId: 'mobile-offer-1',
           timestamp: Date.now(),
         }),
@@ -189,7 +207,7 @@ describe('useWebRTCViewer', () => {
   });
 
   it('should set error when not authenticated', async () => {
-    vi.mocked(getStoredAuth).mockResolvedValueOnce(null);
+    vi.mocked(getValidAccessToken).mockResolvedValueOnce(null);
 
     const { result } = renderHook(() =>
       useWebRTCViewer({
@@ -349,6 +367,7 @@ describe('useWebRTCViewer', () => {
           type: 'offer',
           sdp: 'mobile-host-offer',
           senderId: 'host-1',
+          targetId: 'viewer-1',
           negotiationId: 'inactive-offer-1',
           timestamp: Date.now(),
         }),
@@ -664,5 +683,434 @@ describe('useWebRTCViewer', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  describe('signaling identity and cross-viewer guards', () => {
+    const requestBody = (init?: RequestInit): string =>
+      typeof init?.body === 'string' ? init.body : '';
+
+    /** Connects the SSE stream and delivers one targeted host offer. */
+    async function connectAndReceiveHostOffer() {
+      renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const source = mockEventSources[0];
+      expect(source).toBeDefined();
+
+      act(() => {
+        source.listeners.get('connected')?.({ data: viewerConnectedEventData() });
+      });
+      const peer = mockPeerConnections[0];
+      expect(peer).toBeDefined();
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'host-offer-sdp',
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      return { source, peer };
+    }
+
+    it('adopts the server-assigned subscriberId for outgoing answers', async () => {
+      const { peer } = await connectAndReceiveHostOffer();
+
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+      await waitFor(() =>
+        expect(fetch).toHaveBeenCalledWith(
+          'https://pairux.com/api/sessions/session-1/signal',
+          expect.objectContaining({
+            method: 'POST',
+            body: expect.stringContaining(`"senderId":"${AUTH_USER_ID}"`),
+          })
+        )
+      );
+      // The answer goes back to the host, not broadcast
+      const answerCall = vi
+        .mocked(fetch)
+        .mock.calls.find(([, init]) => requestBody(init).includes('"type":"answer"'));
+      expect(answerCall).toBeDefined();
+      expect(requestBody(answerCall?.[1])).toContain(`"targetId":"${HOST_USER_ID}"`);
+      // The participant row id must not leak into signaling identities
+      expect(requestBody(answerCall?.[1])).not.toContain(PARTICIPANT_ROW_ID);
+    });
+
+    it("ignores another viewer's broadcast ICE-restart offer", async () => {
+      const { source, peer } = await connectAndReceiveHostOffer();
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'other-viewer-restart-offer',
+            senderId: OTHER_VIEWER_ID,
+            // no targetId: exactly how a viewer ICE restart is broadcast
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+    });
+
+    it("drops another viewer's broadcast ICE candidates but accepts the host's targeted ones", async () => {
+      const { source, peer } = await connectAndReceiveHostOffer();
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'other-viewer-candidate' },
+            senderId: OTHER_VIEWER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'host-candidate' },
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(peer.addIceCandidate).toHaveBeenCalledTimes(1);
+      expect(peer.addIceCandidate).toHaveBeenCalledWith(
+        expect.objectContaining({ candidate: 'host-candidate' })
+      );
+    });
+
+    it('targets outgoing ICE candidates at the host with the subscriber identity', async () => {
+      const { peer } = await connectAndReceiveHostOffer();
+
+      const iceListener = peer.addEventListener.mock.calls.find(
+        ([eventName]) => eventName === 'icecandidate'
+      )?.[1] as ((event: { candidate: { toJSON: () => unknown } | null }) => void) | undefined;
+      expect(iceListener).toBeDefined();
+
+      await act(async () => {
+        iceListener?.({ candidate: { toJSON: () => ({ candidate: 'local-candidate' }) } });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const candidateCall = vi
+        .mocked(fetch)
+        .mock.calls.find(([, init]) => requestBody(init).includes('"type":"ice-candidate"'));
+      expect(candidateCall).toBeDefined();
+      const body = requestBody(candidateCall?.[1]);
+      expect(body).toContain(`"senderId":"${AUTH_USER_ID}"`);
+      expect(body).toContain(`"targetId":"${HOST_USER_ID}"`);
+    });
+
+    it('refreshes the access token before opening the SSE stream', async () => {
+      vi.mocked(getValidAccessToken).mockResolvedValueOnce('refreshed-token');
+
+      renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const [, options] = vi.mocked(createEventSource).mock.calls[0] as [
+        string,
+        { headers?: Record<string, string> } | undefined,
+      ];
+      expect(options).toEqual({ headers: { Authorization: 'Bearer refreshed-token' } });
+    });
+
+    it("rejects the host's candidates explicitly targeted at another viewer", async () => {
+      const { source, peer } = await connectAndReceiveHostOffer();
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'for-other-viewer' },
+            senderId: HOST_USER_ID,
+            targetId: OTHER_VIEWER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(peer.addIceCandidate).not.toHaveBeenCalled();
+    });
+
+    it("ignores a known viewer's offer even when it targets us", async () => {
+      renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const source = mockEventSources[0];
+
+      act(() => {
+        source.listeners.get('connected')?.({ data: viewerConnectedEventData() });
+        // Server presence marks who is host and who is a fellow viewer
+        source.listeners.get('presence-join')?.({
+          data: JSON.stringify({
+            presences: [
+              { user_id: HOST_USER_ID, role: 'host' },
+              { user_id: OTHER_VIEWER_ID, role: 'viewer' },
+            ],
+          }),
+        });
+      });
+      const peer = mockPeerConnections[0];
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'viewer-crafted-offer',
+            senderId: OTHER_VIEWER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(peer.setRemoteDescription).not.toHaveBeenCalled();
+
+      // The real host still negotiates normally afterwards
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'host-offer-sdp',
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+      expect(peer.setRemoteDescription).toHaveBeenCalledWith({
+        type: 'offer',
+        sdp: 'host-offer-sdp',
+      });
+    });
+
+    it('does not let an unknown sender displace the host negotiation', async () => {
+      const { source, peer } = await connectAndReceiveHostOffer();
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'takeover-offer',
+            senderId: 'intruder-9999',
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(peer.setRemoteDescription).toHaveBeenCalledTimes(1);
+    });
+
+    it("drains only the negotiated host's early candidates after the offer arrives", async () => {
+      renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: viewerConnectedEventData() });
+      });
+      const peer = mockPeerConnections[0];
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'intruder-early' },
+            senderId: 'intruder-9999',
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'ice-candidate',
+            candidate: { candidate: 'host-early' },
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(peer.addIceCandidate).not.toHaveBeenCalled();
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'host-offer-sdp',
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      await waitFor(() => expect(peer.addIceCandidate).toHaveBeenCalledTimes(1));
+      expect(peer.addIceCandidate).toHaveBeenCalledWith(
+        expect.objectContaining({ candidate: 'host-early' })
+      );
+    });
+  });
+
+  describe('credential lifecycle guards', () => {
+    const requestBodies = () =>
+      vi
+        .mocked(fetch)
+        .mock.calls.map(([, init]) => (typeof init?.body === 'string' ? init.body : ''));
+
+    it('drops the answer instead of posting once no valid token can be resolved', async () => {
+      renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: viewerConnectedEventData() });
+      });
+
+      // The account signs out: refresh yields nothing from here on
+      vi.mocked(getValidAccessToken).mockResolvedValue(null);
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'host-offer-sdp',
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(requestBodies().some((body) => body.includes('"type":"answer"'))).toBe(false);
+    });
+
+    it('does not post the answer when disconnected while the token refresh is in flight', async () => {
+      const { result } = renderHook(() =>
+        useWebRTCViewer({
+          sessionId: 'session-1',
+          participantId: PARTICIPANT_ROW_ID,
+        })
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: viewerConnectedEventData() });
+      });
+
+      const tokenGate = deferred<string | null>();
+      vi.mocked(getValidAccessToken).mockReturnValue(tokenGate.promise);
+
+      await act(async () => {
+        source.listeners.get('signal')?.({
+          data: JSON.stringify({
+            type: 'offer',
+            sdp: 'host-offer-sdp',
+            senderId: HOST_USER_ID,
+            targetId: AUTH_USER_ID,
+            timestamp: Date.now(),
+          }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      act(() => {
+        result.current.disconnect();
+      });
+
+      await act(async () => {
+        tokenGate.resolve('late-token');
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(requestBodies().some((body) => body.includes('"type":"answer"'))).toBe(false);
+      const headers = vi
+        .mocked(fetch)
+        .mock.calls.map(([, init]) => JSON.stringify(init?.headers ?? {}));
+      expect(headers.some((header) => header.includes('late-token'))).toBe(false);
+    });
   });
 });

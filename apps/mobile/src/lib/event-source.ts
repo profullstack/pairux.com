@@ -10,13 +10,25 @@ type PairUXEvents = 'connected' | 'heartbeat' | 'signal' | 'presence-join' | 'pr
 
 export type SSEEventHandler = (event: { data: string }) => void;
 
+export interface SSEOptions {
+  /** Extra request headers, e.g. the Authorization bearer token. */
+  headers?: Record<string, string>;
+}
+
 export interface SSEConnection {
   addEventListener: (event: string, handler: SSEEventHandler) => void;
   close: () => void;
 }
 
-export function createEventSource(url: string): SSEConnection {
-  const es = new RNEventSource<PairUXEvents>(url);
+export function createEventSource(url: string, options: SSEOptions = {}): SSEConnection {
+  // pollingInterval: 0 disables the library's built-in auto-reconnect. Its
+  // retries would replay the captured Authorization header long after the
+  // token expired, silently downgrading the stream to a guest identity —
+  // callers own reconnection so every attempt carries a fresh token.
+  const es = new RNEventSource<PairUXEvents>(url, {
+    headers: options.headers,
+    pollingInterval: 0,
+  });
 
   return {
     addEventListener(event: string, handler: SSEEventHandler) {

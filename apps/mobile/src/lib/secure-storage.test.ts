@@ -61,6 +61,9 @@ describe('secure-storage', () => {
   });
 
   describe('isAuthExpired', () => {
+    it.each([NaN, Infinity, -Infinity])('treats non-finite expiry %s as expired', (expiresAt) => {
+      expect(isAuthExpired({ ...mockAuth, expiresAt })).toBe(true);
+    });
     it('should return false for non-expired token', () => {
       const auth: StoredAuth = {
         ...mockAuth,

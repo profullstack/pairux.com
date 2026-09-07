@@ -3,11 +3,12 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { Platform } from 'react-native';
 import { useWebRTCHost } from './useWebRTCHost';
 import { createEventSource } from '../lib/event-source';
-import { getStoredAuth } from '../lib/secure-storage';
+import { getValidAccessToken } from '../lib/auth-session';
 import { mediaDevices } from 'react-native-webrtc';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
-import { emitAppStateChange } from '../test/setup';
+import { emitAppStateChange, mockPeerConnections } from '../test/setup';
 import { runAndroidNativePrompt } from '../lib/android-native-prompt';
+import { hostConnectedEventData, HOST_USER_ID } from '../test/fixtures/server-contracts';
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -21,14 +22,8 @@ vi.mock('../config', () => ({
   API_BASE_URL: 'https://pairux.com',
 }));
 
-vi.mock('../lib/secure-storage', () => ({
-  getStoredAuth: vi.fn().mockResolvedValue({
-    accessToken: 'test-token',
-    refreshToken: 'refresh',
-    expiresAt: Date.now() + 3600000,
-    user: { id: 'host-1', email: 'host@example.com' },
-  }),
-  isAuthExpired: vi.fn().mockReturnValue(false),
+vi.mock('../lib/auth-session', () => ({
+  getValidAccessToken: vi.fn().mockResolvedValue('test-token'),
 }));
 
 const { mockClose, mockAddEventListener, mockEventSources } = vi.hoisted(() => ({
@@ -41,7 +36,7 @@ const { mockClose, mockAddEventListener, mockEventSources } = vi.hoisted(() => (
 }));
 
 vi.mock('../lib/event-source', () => ({
-  createEventSource: vi.fn(() => {
+  createEventSource: vi.fn((_url: string, _options?: { headers?: Record<string, string> }) => {
     const listeners = new Map<string, (event: { data: string }) => void>();
     const source = {
       listeners,
@@ -62,6 +57,7 @@ describe('useWebRTCHost', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSources.length = 0;
+    vi.mocked(getValidAccessToken).mockResolvedValue('test-token');
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       text: async () => 'ok',
@@ -121,12 +117,13 @@ describe('useWebRTCHost', () => {
     });
 
     expect(createEventSource).toHaveBeenCalledWith(
-      expect.stringContaining('/api/sessions/session-1/signal/stream')
+      expect.stringContaining('/api/sessions/session-1/signal/stream'),
+      expect.anything()
     );
   });
 
   it('should set error when not authenticated', async () => {
-    vi.mocked(getStoredAuth).mockResolvedValueOnce(null);
+    vi.mocked(getValidAccessToken).mockResolvedValueOnce(null);
 
     const { result } = renderHook(() =>
       useWebRTCHost({
@@ -671,6 +668,351 @@ describe('useWebRTCHost', () => {
 
       expect(mockClose).toHaveBeenCalledTimes(1);
       expect(createEventSource).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('sends the SSE bearer token in the Authorization header, not the URL', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-1',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+
+    const [url, options] = vi.mocked(createEventSource).mock.calls[0] as [
+      string,
+      { headers?: Record<string, string> } | undefined,
+    ];
+    expect(url).not.toContain('token=');
+    expect(options).toEqual({ headers: { Authorization: 'Bearer test-token' } });
+  });
+
+  it('signs offers with the server-assigned subscriberId, not the local hostId', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-local-id',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const source = mockEventSources[0];
+    expect(source).toBeDefined();
+
+    act(() => {
+      // The server identifies the authenticated host by its auth user id
+      source.listeners.get('connected')?.({ data: hostConnectedEventData() });
+    });
+
+    await act(async () => {
+      source.listeners.get('presence-join')?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const requestBody = (init?: RequestInit): string =>
+      typeof init?.body === 'string' ? init.body : '';
+    const offerCall = vi
+      .mocked(fetch)
+      .mock.calls.find(([, init]) => requestBody(init).includes('"type":"offer"'));
+    expect(offerCall).toBeDefined();
+    const body = requestBody(offerCall?.[1]);
+    expect(body).toContain(`"senderId":"${HOST_USER_ID}"`);
+    expect(body).toContain('"targetId":"viewer-sub-1"');
+    expect(body).not.toContain('host-local-id');
+  });
+
+  it('ignores answers addressed to a different subscriber', async () => {
+    const { result } = renderHook(() =>
+      useWebRTCHost({
+        sessionId: 'session-1',
+        hostId: 'host-local-id',
+      })
+    );
+
+    await act(async () => {
+      await result.current.startHosting();
+    });
+    const source = mockEventSources[0];
+
+    act(() => {
+      source.listeners.get('connected')?.({ data: hostConnectedEventData() });
+    });
+    await act(async () => {
+      source.listeners.get('presence-join')?.({
+        data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(result.current.viewerCount).toBe(1));
+
+    const viewer = result.current.viewers.get('viewer-sub-1');
+    expect(viewer).toBeDefined();
+    (viewer!.peerConnection as unknown as { signalingState: string }).signalingState =
+      'have-local-offer';
+
+    // Targeted at some other subscriber: must not touch our peer connection
+    await act(async () => {
+      source.listeners.get('signal')?.({
+        data: JSON.stringify({
+          type: 'answer',
+          sdp: 'answer-sdp',
+          senderId: 'viewer-sub-1',
+          targetId: 'someone-else',
+          timestamp: Date.now(),
+        }),
+      });
+      await Promise.resolve();
+    });
+    expect(viewer!.peerConnection.setRemoteDescription).not.toHaveBeenCalled();
+
+    // Targeted at our server-assigned subscriber id: processed
+    await act(async () => {
+      source.listeners.get('signal')?.({
+        data: JSON.stringify({
+          type: 'answer',
+          sdp: 'answer-sdp',
+          senderId: 'viewer-sub-1',
+          targetId: HOST_USER_ID,
+          timestamp: Date.now(),
+        }),
+      });
+      await Promise.resolve();
+    });
+    expect(viewer!.peerConnection.setRemoteDescription).toHaveBeenCalledWith({
+      type: 'answer',
+      sdp: 'answer-sdp',
+    });
+  });
+
+  it('posts the host liveness heartbeat while hosting and stops with it', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-28T00:00:00Z'));
+
+    const heartbeatCalls = () =>
+      vi
+        .mocked(fetch)
+        .mock.calls.filter(
+          ([url]) => typeof url === 'string' && url.includes('/api/sessions/session-1/heartbeat')
+        ).length;
+
+    try {
+      const { result } = renderHook(() =>
+        useWebRTCHost({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+        })
+      );
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      expect(heartbeatCalls()).toBe(0);
+
+      await act(async () => {
+        mockEventSources[0]?.listeners.get('connected')?.({ data: hostConnectedEventData() });
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      // Stamped immediately so the room appears live without a 30s wait
+      expect(heartbeatCalls()).toBe(1);
+      expect(fetch).toHaveBeenCalledWith(
+        'https://pairux.com/api/sessions/session-1/heartbeat',
+        expect.objectContaining({
+          method: 'POST',
+          headers: { Authorization: 'Bearer test-token' },
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30_000);
+      });
+      expect(heartbeatCalls()).toBe(2);
+
+      act(() => {
+        result.current.stopHosting();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60_000);
+      });
+      expect(heartbeatCalls()).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  describe('credential lifecycle guards', () => {
+    const requestBodies = () =>
+      vi
+        .mocked(fetch)
+        .mock.calls.map(([, init]) => (typeof init?.body === 'string' ? init.body : ''));
+
+    it('drops signals instead of posting once no valid token can be resolved', async () => {
+      const { result } = renderHook(() =>
+        useWebRTCHost({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+        })
+      );
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: hostConnectedEventData() });
+      });
+
+      // The account signs out: refresh yields nothing from here on
+      vi.mocked(getValidAccessToken).mockResolvedValue(null);
+
+      await act(async () => {
+        source.listeners.get('presence-join')?.({
+          data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // The offer for the joining viewer must not be posted with any
+      // previously cached credential
+      expect(requestBodies().some((body) => body.includes('"type":"offer"'))).toBe(false);
+    });
+
+    it('does not signal after hosting stops while the token refresh is in flight', async () => {
+      const { result } = renderHook(() =>
+        useWebRTCHost({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+        })
+      );
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: hostConnectedEventData() });
+      });
+
+      const tokenGate = deferred<string | null>();
+      vi.mocked(getValidAccessToken).mockReturnValue(tokenGate.promise);
+
+      await act(async () => {
+        source.listeners.get('presence-join')?.({
+          data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      act(() => {
+        result.current.stopHosting();
+      });
+
+      await act(async () => {
+        tokenGate.resolve('late-token');
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(requestBodies().some((body) => body.includes('"type":"offer"'))).toBe(false);
+      const headers = vi
+        .mocked(fetch)
+        .mock.calls.map(([, init]) => JSON.stringify(init?.headers ?? {}));
+      expect(headers.some((header) => header.includes('late-token'))).toBe(false);
+    });
+  });
+
+  it('keeps the published screen-share stream across an automatic SSE-error restart', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() =>
+        useWebRTCHost({
+          sessionId: 'session-1',
+          hostId: 'host-1',
+        })
+      );
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      const source = mockEventSources[0];
+      act(() => {
+        source.listeners.get('connected')?.({ data: hostConnectedEventData() });
+      });
+      await act(async () => {
+        source.listeners.get('presence-join')?.({
+          data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+        });
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(result.current.viewerCount).toBe(1);
+
+      const screenTrack = {
+        id: 'screen',
+        kind: 'video',
+        stop: vi.fn(),
+      } as unknown as MediaStreamTrack & { stop: ReturnType<typeof vi.fn> };
+      const screenStream = { getTracks: () => [screenTrack] } as unknown as MediaStream;
+      await act(async () => {
+        await result.current.publishStream(screenStream);
+      });
+
+      // Transient transport error: the hook rebuilds the SSE after 3s
+      await act(async () => {
+        source.listeners.get('error')?.({ data: '' });
+        await vi.advanceTimersByTimeAsync(3_100);
+      });
+      expect(mockEventSources).toHaveLength(2);
+      const rebuiltSource = mockEventSources[1];
+
+      act(() => {
+        rebuiltSource.listeners.get('connected')?.({ data: hostConnectedEventData() });
+      });
+      const pcCountBefore = mockPeerConnections.length;
+      await act(async () => {
+        rebuiltSource.listeners.get('presence-join')?.({
+          data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+        });
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(mockPeerConnections.length).toBe(pcCountBefore + 1);
+      const rebuiltPc = mockPeerConnections[mockPeerConnections.length - 1];
+
+      // The still-live capture re-attaches: no re-publish, no new capture
+      // permission prompt, and the caller-owned track is never stopped
+      expect(rebuiltPc.addTrack).toHaveBeenCalledWith(screenTrack, screenStream);
+      expect(screenTrack.stop).not.toHaveBeenCalled();
+
+      // A user-initiated stop still clears the published stream
+      act(() => {
+        result.current.stopHosting();
+      });
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      const freshSource = mockEventSources[2];
+      act(() => {
+        freshSource.listeners.get('connected')?.({ data: hostConnectedEventData() });
+      });
+      await act(async () => {
+        freshSource.listeners.get('presence-join')?.({
+          data: JSON.stringify({ presences: [{ user_id: 'viewer-sub-1', role: 'viewer' }] }),
+        });
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      const freshPc = mockPeerConnections[mockPeerConnections.length - 1];
+      expect(freshPc.addTrack).not.toHaveBeenCalledWith(screenTrack, expect.anything());
     } finally {
       vi.useRealTimers();
     }

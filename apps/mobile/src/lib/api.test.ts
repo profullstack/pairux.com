@@ -35,9 +35,41 @@ describe('api', () => {
       expect(token).toBeNull();
     });
 
-    it('should return null when auth is expired', async () => {
+    it('refreshes an expired token through /api/auth/refresh', async () => {
       vi.mocked(secureStorage.getStoredAuth).mockResolvedValue(mockAuth);
       vi.mocked(secureStorage.isAuthExpired).mockReturnValue(true);
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: {
+            session: {
+              accessToken: 'refreshed-token',
+              refreshToken: 'refresh-token-2',
+              expiresAt: 1_795_000_000,
+            },
+          },
+        }),
+      } as Response);
+
+      const token = await getAuthToken();
+      expect(fetch).toHaveBeenCalledWith(
+        'https://pairux.com/api/auth/refresh',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ refreshToken: 'refresh-token' }),
+        })
+      );
+      expect(token).toBe('refreshed-token');
+    });
+
+    it('returns null when the expired token cannot be refreshed', async () => {
+      vi.mocked(secureStorage.getStoredAuth).mockResolvedValue(mockAuth);
+      vi.mocked(secureStorage.isAuthExpired).mockReturnValue(true);
+      vi.mocked(fetch).mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({ error: 'Invalid Refresh Token' }),
+      } as Response);
 
       const token = await getAuthToken();
       expect(token).toBeNull();

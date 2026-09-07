@@ -12,8 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { Session } from '@pairux/shared-types';
-import { sessionApi } from '@/lib/api/sessions';
+import { sessionApi, isScheduledLookup, type JoinLookupResult } from '@/lib/api/sessions';
 
 export default function JoinScreen() {
   const router = useRouter();
@@ -21,7 +20,7 @@ export default function JoinScreen() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lookupResult, setLookupResult] = useState<Session | null>(null);
+  const [lookupResult, setLookupResult] = useState<JoinLookupResult | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
 
   async function handleLookup() {
@@ -38,8 +37,11 @@ export default function JoinScreen() {
         return;
       }
 
-      if (result.data?.session) {
-        setLookupResult(result.data.session);
+      // The route returns the session (or scheduled meeting) payload directly.
+      if (result.data) {
+        setLookupResult(result.data);
+      } else {
+        setError('Session not found or has ended');
       }
     } catch {
       setError('Failed to look up session');
@@ -62,10 +64,18 @@ export default function JoinScreen() {
       }
 
       if (result.data) {
+        // The participant row carries the authoritative session id.
+        const sessionId: string =
+          (result.data.session_id as string | undefined) ??
+          (lookupResult && !isScheduledLookup(lookupResult) ? lookupResult.id : '');
+        if (!sessionId) {
+          setError('Joined, but the server did not return a session ID');
+          return;
+        }
         router.push({
           pathname: '/(app)/session/[id]',
           params: {
-            id: lookupResult?.id ?? '',
+            id: sessionId,
             role: 'viewer',
             participantId: result.data.id,
           },
@@ -129,11 +139,24 @@ export default function JoinScreen() {
         </View>
 
         {/* Lookup result */}
-        {lookupResult ? (
+        {lookupResult && isScheduledLookup(lookupResult) ? (
+          <View className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <Text className="font-medium text-amber-800">Scheduled meeting</Text>
+            <Text className="mt-1 text-sm text-amber-700">{lookupResult.title}</Text>
+            <Text className="mt-1 text-sm text-amber-600">
+              Starts {new Date(lookupResult.scheduled_at).toLocaleString()} (
+              {lookupResult.duration_minutes} min)
+            </Text>
+            <Text className="mt-2 text-sm text-amber-600">
+              This meeting hasn&apos;t started yet. Try again once the host goes live.
+            </Text>
+          </View>
+        ) : lookupResult ? (
           <View className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
             <Text className="font-medium text-green-800">Session found</Text>
             <Text className="mt-1 text-sm text-green-600">
-              Status: {lookupResult.status} | Code: {lookupResult.join_code}
+              Status: {lookupResult.status} | Code: {lookupResult.join_code} | Participants:{' '}
+              {lookupResult.participant_count}
             </Text>
 
             {/* Display name input */}

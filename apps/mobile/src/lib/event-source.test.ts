@@ -23,12 +23,28 @@ describe('event-source', () => {
     vi.clearAllMocks();
   });
 
-  it('should create an SSEConnection wrapping RNEventSource', () => {
+  it('should create an SSEConnection wrapping RNEventSource without auto-reconnect', () => {
     const connection = createEventSource('https://example.com/sse');
 
-    expect(RNEventSource).toHaveBeenCalledWith('https://example.com/sse');
+    // pollingInterval 0: reconnects are owned by the caller so each attempt
+    // can carry a freshly refreshed Authorization header.
+    expect(RNEventSource).toHaveBeenCalledWith('https://example.com/sse', {
+      headers: undefined,
+      pollingInterval: 0,
+    });
     expect(connection).toHaveProperty('addEventListener');
     expect(connection).toHaveProperty('close');
+  });
+
+  it('passes request headers through to RNEventSource', () => {
+    createEventSource('https://example.com/sse', {
+      headers: { Authorization: 'Bearer token-1' },
+    });
+
+    expect(RNEventSource).toHaveBeenCalledWith('https://example.com/sse', {
+      headers: { Authorization: 'Bearer token-1' },
+      pollingInterval: 0,
+    });
   });
 
   it('should forward addEventListener calls to underlying EventSource', () => {

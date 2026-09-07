@@ -4,16 +4,15 @@
  * Provides login/signup/logout actions and persists auth state
  * via expo-secure-store. Auto-restores session on mount.
  */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
-  getStoredAuth,
   isAuthExpired,
-  clearStoredAuth,
   storeCredentials,
   getStoredCredentials,
   clearStoredCredentials,
   type StoredCredentials,
 } from '@/lib/secure-storage';
+import { clearAuthSession, readAuthSession, refreshAuthSession } from '@/lib/auth-session';
 import { authApi } from '@/lib/api/auth';
 
 interface AuthUser {
@@ -32,9 +31,10 @@ interface AuthContextValue {
   signup: (params: {
     email: string;
     password: string;
+    confirmPassword: string;
     firstName: string;
     lastName: string;
-  }) => Promise<{ error?: string; success?: boolean }>;
+  }) => Promise<{ error?: string; success?: boolean; needsConfirmation?: boolean }>;
   logout: () => Promise<void>;
 }
 
@@ -44,22 +44,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
+  // Bumped when a login or logout starts so a slower restore (or an older
+  // login) that resolves afterwards cannot publish stale auth state.
+  const authOpSeqRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      authOpSeqRef.current += 1;
+    };
+  }, []);
 
   // Restore session from secure storage on mount
   useEffect(() => {
+    const seq = authOpSeqRef.current;
+    const canPublish = () => mountedRef.current && authOpSeqRef.current === seq;
     async function restore() {
       try {
-        const stored = await getStoredAuth();
-        if (stored && !isAuthExpired(stored)) {
-          setUser(stored.user);
-        } else if (stored) {
-          // Token expired — clear it
-          await clearStoredAuth();
+        const stored = await readAuthSession();
+        if (!stored) return;
+        if (!isAuthExpired(stored)) {
+          if (canPublish()) setUser(stored.user);
+          return;
         }
+        // Token expired — refresh instead of forcing a re-login
+        const { auth, failure } = await refreshAuthSession();
+        if (auth) {
+          if (canPublish()) setUser(auth.user);
+        } else if (failure === 'rejected') {
+          // The server refused the refresh token; this session is dead.
+          if (canPublish()) await clearAuthSession();
+        } else if (failure === 'transient') {
+          // Offline start or server hiccup: keep the stored session (the
+          // refresh token may still be good) and retry per API request.
+          if (canPublish()) setUser(stored.user);
+        }
+        // 'superseded'/'signed-out': a login or logout already owns the state.
       } catch {
-        // Failed to read storage
+        // Failed to read storage — stay signed out without destroying tokens.
       } finally {
-        setIsLoading(false);
+        if (canPublish()) setIsLoading(false);
       }
     }
     void restore();
@@ -67,16 +93,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
+      const seq = ++authOpSeqRef.current;
       const result = await authApi.login(email, password);
       if (result.error) {
+        if (mountedRef.current && authOpSeqRef.current === seq) setIsLoading(false);
         return { error: result.error };
       }
       if (result.data) {
-        setUser(result.data.user);
-        if (rememberMe) {
-          await storeCredentials({ email, password });
-        } else {
-          await clearStoredCredentials();
+        // Publish only if no logout/newer login started while we awaited.
+        if (mountedRef.current && authOpSeqRef.current === seq) {
+          setUser(result.data.user);
+          setIsLoading(false);
+          if (rememberMe) {
+            await storeCredentials({ email, password });
+          } else {
+            await clearStoredCredentials();
+          }
         }
       }
       return {};
@@ -85,12 +117,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signup = useCallback(
-    async (params: { email: string; password: string; firstName: string; lastName: string }) => {
+    async (params: {
+      email: string;
+      password: string;
+      confirmPassword: string;
+      firstName: string;
+      lastName: string;
+    }) => {
       const result = await authApi.signup(params);
       if (result.error) {
         return { error: result.error };
       }
-      return { success: true };
+      return { success: true, needsConfirmation: result.data?.needsConfirmation ?? true };
     },
     []
   );
@@ -100,8 +138,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // Sign out locally first; the epoch bump inside authApi.logout ->
+    // clearAuthSession invalidates in-flight refreshes/logins, and the
+    // server-side revoke is fire-and-forget.
+    authOpSeqRef.current += 1;
+    if (mountedRef.current) {
+      setUser(null);
+      setIsLoading(false);
+    }
     await authApi.logout();
-    setUser(null);
   }, []);
 
   return (

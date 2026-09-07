@@ -125,3 +125,33 @@ an App Group, and matching Apple signing entitlements. Those are a separate nati
 not treat a successful JavaScript bundle as proof that iOS broadcasting is configured. The PairUX
 app config currently enables the `voip` background mode; remove it or add the matching
 CallKit/PushKit flow before an App Store submission.
+
+## Zero-credit validation checklist
+
+Session reads and refreshes fail closed for the current app process if secure-store deletion
+fails during logout. A failed login does not unblock the old tokens; a successfully committed
+login does. This also applies when the auth provider remounts. It is not a guarantee of persistent
+deletion across an app restart when the OS storage operation failed; verify that failure mode
+and recovery on a device before treating it as a release guarantee.
+
+Run every step below before considering an EAS cloud build. Each one is free and catches a class
+of defect that a green cloud build would only package.
+
+1. `pnpm --filter @pairux/shared-types build` — the mobile app compiles against the built types.
+2. `pnpm check:mobile` from the repository root — lint, typecheck, the full unit suite, and the
+   production bundle verifier. Run it uncached (`--force`) when validating a release candidate.
+3. Contract check: any change touching `/api` calls must be validated against the actual route
+   handler in `apps/web/src/app/api/**` — response envelopes are `{ data, error }`, auth expiry
+   is in seconds, and the join lookup returns its payload without a wrapper. Update
+   `src/test/fixtures/server-contracts.ts` from the route source, never from memory.
+4. Identity check: signaling tests must keep the authenticated user id, the participant row id,
+   and the SSE `subscriberId` distinct. A test that reuses one id for all three can pass while
+   the live flow deadlocks.
+5. `pnpm --filter @pairux/mobile build -- --no-install --clean` — clean native prebuild, then
+   `pnpm --filter @pairux/mobile verify:android-screen-share` against the generated project.
+6. If a local Android SDK is available: `pnpm mobile:android` on a device/emulator, then smoke
+   the supported flow with two distinct accounts — login, join-code lookup, join, host offer /
+   viewer answer, audio/chat, kill-network reconnect, clean leave.
+7. Record anything not exercised (real TURN traversal, background/foreground on physical
+   hardware, iOS ReplayKit) as an explicit device-only gap instead of assuming the build proves
+   it.

@@ -31,7 +31,7 @@ import {
   isAndroidNativePromptActive,
   subscribeAndroidNativePrompt,
 } from '../lib/android-native-prompt';
-import { getStoredAuth, isAuthExpired } from '../lib/secure-storage';
+import { getValidAccessToken } from '../lib/auth-session';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
 
 // RN WebRTC's RTCDataChannel type (differs from browser global)
@@ -70,6 +70,11 @@ const _BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
 const STATS_INTERVAL = 30000;
 const HEARTBEAT_TIMEOUT = 75000;
 const HEARTBEAT_WATCHDOG_INTERVAL = 15000;
+// Delay before rebuilding the SSE transport (with a fresh token) after an error
+const SSE_RECONNECT_DELAY = 3000;
+// Cadence of the host liveness ping that keeps a public room on /live
+// (matches the desktop host in CapturePreview.tsx)
+const HOST_LIVENESS_INTERVAL = 30000;
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -95,6 +100,16 @@ interface SignalMessage {
   senderId: string;
   targetId?: string;
   timestamp: number;
+}
+
+interface StopHostingOptions {
+  /**
+   * Keep the caller-owned published stream reference so an automatic
+   * transport restart re-attaches the live screen-share tracks to the
+   * rebuilt peer connections. Without this, every transient SSE drop would
+   * blank the share and force a brand-new native capture permission flow.
+   */
+  preservePublishedStream?: boolean;
 }
 
 interface UseWebRTCHostOptions {
@@ -145,9 +160,10 @@ export function useWebRTCHost({
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const statsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const heartbeatWatchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const livenessIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sseReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHeartbeatAtRef = useRef(0);
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
-  const authTokenRef = useRef<string | null>(null);
   const isStartingRef = useRef(false);
   const mountedRef = useRef(true);
   const generationRef = useRef(0);
@@ -162,13 +178,17 @@ export function useWebRTCHost({
 
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
+  // The SSE `connected` event carries the server-assigned subscriber ID; the
+  // stream only delivers answers/ICE targeted at that ID, so it must be the
+  // senderId on every offer this host posts. Falls back to the hostId prop.
+  const hostSignalIdRef = useRef(hostId);
 
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onViewerJoinedRef = useRef(onViewerJoined);
   const onViewerLeftRef = useRef(onViewerLeft);
   const startHostingRef = useRef<(() => Promise<void>) | undefined>(undefined);
-  const stopHostingRef = useRef<(() => void) | undefined>(undefined);
+  const stopHostingRef = useRef<((options?: StopHostingOptions) => void) | undefined>(undefined);
   onControlRequestRef.current = onControlRequest;
   onInputReceivedRef.current = onInputReceived;
   onViewerJoinedRef.current = onViewerJoined;
@@ -181,16 +201,22 @@ export function useWebRTCHost({
 
   // Send signal via API
   const sendSignal = useCallback(
-    async (signal: SignalMessage): Promise<boolean> => {
+    async (signal: SignalMessage, generation: number): Promise<boolean> => {
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authTokenRef.current) {
-          headers.Authorization = `Bearer ${authTokenRef.current}`;
+        // Resolve the token per request so signaling keeps working after the
+        // access token expires mid-session (single-flight refresh). No token
+        // means signed out — never post with a stale cached credential, and
+        // never post for a generation that stopped while the token resolved.
+        const token = await getValidAccessToken();
+        if (!isCurrentGeneration(generation)) return false;
+        if (!token) {
+          console.error('[WebRTCHost] Not authenticated; dropping signal');
+          return false;
         }
 
         const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/signal`, {
           method: 'POST',
-          headers,
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(signal),
         });
 
@@ -204,7 +230,7 @@ export function useWebRTCHost({
         return false;
       }
     },
-    [sessionId]
+    [isCurrentGeneration, sessionId]
   );
 
   const renegotiateViewer = useCallback(
@@ -229,18 +255,21 @@ export function useWebRTCHost({
         throw new Error(`Failed to create an SDP offer for viewer ${viewer.id}`);
       }
 
-      const sent = await sendSignal({
-        type: 'offer',
-        sdp: offer.sdp,
-        senderId: hostId,
-        targetId: viewer.id,
-        timestamp: Date.now(),
-      });
+      const sent = await sendSignal(
+        {
+          type: 'offer',
+          sdp: offer.sdp,
+          senderId: hostSignalIdRef.current,
+          targetId: viewer.id,
+          timestamp: Date.now(),
+        },
+        generation
+      );
       if (!sent) {
         throw new Error(`Failed to signal viewer ${viewer.id}`);
       }
     },
-    [hostId, isCurrentGeneration, sendSignal]
+    [isCurrentGeneration, sendSignal]
   );
 
   // Report usage stats
@@ -289,14 +318,15 @@ export function useWebRTCHost({
             }
           });
 
-          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-          if (authTokenRef.current) {
-            headers.Authorization = `Bearer ${authTokenRef.current}`;
+          const token = await getValidAccessToken();
+          if (!isCurrentGeneration(generation) || viewersRef.current.get(viewer.id) !== viewer) {
+            return;
           }
+          if (!token) continue;
 
           await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/stats`, {
             method: 'POST',
-            headers,
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({
               participantId: hostId,
               role: 'host',
@@ -378,20 +408,23 @@ export function useWebRTCHost({
           if (!isCurrentGeneration(generation)) return;
 
           if (offer.sdp) {
-            await sendSignal({
-              type: 'offer',
-              sdp: offer.sdp,
-              senderId: hostId,
-              targetId: otherId,
-              timestamp: Date.now(),
-            });
+            await sendSignal(
+              {
+                type: 'offer',
+                sdp: offer.sdp,
+                senderId: hostSignalIdRef.current,
+                targetId: otherId,
+                timestamp: Date.now(),
+              },
+              generation
+            );
           }
         } catch (err) {
           console.error(`[WebRTCHost] Failed to relay audio to ${otherId}:`, err);
         }
       }
     },
-    [hostId, isCurrentGeneration, sendSignal]
+    [isCurrentGeneration, sendSignal]
   );
 
   // Create peer connection for a viewer
@@ -452,13 +485,16 @@ export function useWebRTCHost({
           return;
         }
         if (event.candidate) {
-          void sendSignal({
-            type: 'ice-candidate',
-            candidate: event.candidate.toJSON(),
-            senderId: hostId,
-            targetId: viewerId,
-            timestamp: Date.now(),
-          });
+          void sendSignal(
+            {
+              type: 'ice-candidate',
+              candidate: event.candidate.toJSON(),
+              senderId: hostSignalIdRef.current,
+              targetId: viewerId,
+              timestamp: Date.now(),
+            },
+            generation
+          );
         }
       });
 
@@ -558,7 +594,7 @@ export function useWebRTCHost({
 
       return pc;
     },
-    [hostId, handleDataChannelMessage, isCurrentGeneration, sendSignal, relayAudioToOtherViewers]
+    [handleDataChannelMessage, isCurrentGeneration, sendSignal, relayAudioToOtherViewers]
   );
 
   // Remove viewer
@@ -583,7 +619,7 @@ export function useWebRTCHost({
   const handleViewerJoin = useCallback(
     async (viewerId: string, generation: number) => {
       if (!isCurrentGeneration(generation)) return;
-      if (viewerId === hostId) return;
+      if (viewerId === hostSignalIdRef.current || viewerId === hostId) return;
       if (viewersRef.current.has(viewerId)) return;
 
       console.log('[WebRTCHost] Viewer joining:', viewerId);
@@ -615,13 +651,16 @@ export function useWebRTCHost({
         if (!isCurrentGeneration(generation) || viewersRef.current.get(viewerId) !== viewer) return;
 
         if (offer.sdp) {
-          await sendSignal({
-            type: 'offer',
-            sdp: offer.sdp,
-            senderId: hostId,
-            targetId: viewerId,
-            timestamp: Date.now(),
-          });
+          await sendSignal(
+            {
+              type: 'offer',
+              sdp: offer.sdp,
+              senderId: hostSignalIdRef.current,
+              targetId: viewerId,
+              timestamp: Date.now(),
+            },
+            generation
+          );
         }
       } catch (err) {
         console.error('[WebRTCHost] Failed to create offer:', err);
@@ -637,7 +676,11 @@ export function useWebRTCHost({
   const handleSignalMessage = useCallback(
     async (signal: SignalMessage, generation: number) => {
       if (!isCurrentGeneration(generation)) return;
-      if (signal.targetId && signal.targetId !== hostId) return;
+      // Only process signals addressed to this host (viewer answers/ICE are
+      // targeted at the senderId we used in the offer) and never our own
+      // broadcasts echoed back.
+      if (signal.senderId === hostSignalIdRef.current) return;
+      if (signal.targetId && signal.targetId !== hostSignalIdRef.current) return;
 
       const viewerId = signal.senderId;
 
@@ -692,7 +735,7 @@ export function useWebRTCHost({
         }
       }
     },
-    [hostId, isCurrentGeneration]
+    [isCurrentGeneration]
   );
 
   // Toggle host microphone
@@ -710,6 +753,27 @@ export function useWebRTCHost({
     });
     setMicEnabled(newEnabled);
   }, []);
+
+  // Liveness heartbeat: while actively hosting, ping the server so a published
+  // room shows as live on pairux.com/live — and, critically, so it falls OFF
+  // /live automatically when this app is closed/killed (the pings just stop).
+  // Same route and cadence as the desktop host (CapturePreview.tsx).
+  const sendLivenessHeartbeat = useCallback(
+    async (generation: number) => {
+      if (!isCurrentGeneration(generation)) return;
+      try {
+        const token = await getValidAccessToken();
+        if (!token || !isCurrentGeneration(generation)) return;
+        await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/heartbeat`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // best effort — a missed ping just delays the live/offline flip
+      }
+    },
+    [isCurrentGeneration, sessionId]
+  );
 
   // Start hosting
   const startHosting = useCallback(async () => {
@@ -729,16 +793,18 @@ export function useWebRTCHost({
 
     console.log('[WebRTCHost] Starting hosting for session:', sessionId);
 
-    // Get auth token from secure storage
+    // Get a valid access token, refreshing through /api/auth/refresh if the
+    // stored one has expired.
+    let sseToken: string;
     try {
-      const stored = await getStoredAuth();
+      const token = await getValidAccessToken();
       if (!isCurrentGeneration(generation)) return;
-      if (!stored || isAuthExpired(stored)) {
+      if (!token) {
         isStartingRef.current = false;
         setError('Not authenticated. Please log in again.');
         return;
       }
-      authTokenRef.current = stored.accessToken;
+      sseToken = token;
     } catch (err) {
       console.error('[WebRTCHost] Failed to get auth token:', err);
       if (isCurrentGeneration(generation)) {
@@ -772,16 +838,16 @@ export function useWebRTCHost({
       setMicEnabled(false);
     }
 
-    // Build SSE URL
+    // Build SSE URL. The bearer token goes in the Authorization header
+    // (react-native-sse supports headers, unlike browser EventSource) so
+    // credentials never appear in proxy/request logs via the query string.
     const sseParams = new URLSearchParams({
       participantId: hostId,
     });
-    if (authTokenRef.current) {
-      sseParams.set('token', authTokenRef.current);
-    }
-
     const sseUrl = `${API_BASE_URL}/api/sessions/${sessionId}/signal/stream?${sseParams.toString()}`;
-    const eventSource = createEventSource(sseUrl);
+    const eventSource = createEventSource(sseUrl, {
+      headers: { Authorization: `Bearer ${sseToken}` },
+    });
     if (!isCurrentGeneration(generation)) {
       eventSource.close();
       return;
@@ -801,13 +867,31 @@ export function useWebRTCHost({
       setError(null);
 
       try {
-        const data = JSON.parse(event.data) as { iceServers?: RTCIceServer[] };
+        const data = JSON.parse(event.data) as {
+          subscriberId?: string;
+          iceServers?: RTCIceServer[];
+        };
+        // Viewers answer to the senderId in our offers; the stream only
+        // delivers signals targeted at this server-assigned ID.
+        hostSignalIdRef.current = data.subscriberId ?? hostId;
         if (data.iceServers && data.iceServers.length > 0) {
           iceServersRef.current = data.iceServers;
         }
       } catch {
-        // Use default ICE servers
+        // Use default ICE servers and the local host identity
+        hostSignalIdRef.current = hostId;
       }
+
+      // Start the liveness ping now that the room is actually being hosted.
+      // Stamp immediately so the room appears live without a 30s wait.
+      if (livenessIntervalRef.current) {
+        clearInterval(livenessIntervalRef.current);
+      }
+      void sendLivenessHeartbeat(generation);
+      livenessIntervalRef.current = setInterval(
+        () => void sendLivenessHeartbeat(generation),
+        HOST_LIVENESS_INTERVAL
+      );
     });
 
     eventSource.addEventListener('heartbeat', () => {
@@ -832,7 +916,7 @@ export function useWebRTCHost({
           presences: { user_id: string; role: string }[];
         };
         for (const presence of presences) {
-          if (presence.role === 'viewer' && presence.user_id !== hostId) {
+          if (presence.role === 'viewer' && presence.user_id !== hostSignalIdRef.current) {
             void handleViewerJoin(presence.user_id, generation);
           }
         }
@@ -860,6 +944,15 @@ export function useWebRTCHost({
       console.error('[WebRTCHost] SSE error');
       isStartingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
+      // The wrapper disables the library's stale-header auto-retry, so
+      // rebuild the transport ourselves with a freshly refreshed token.
+      if (sseReconnectTimerRef.current) return;
+      sseReconnectTimerRef.current = setTimeout(() => {
+        sseReconnectTimerRef.current = null;
+        if (!isCurrentEventSource()) return;
+        stopHostingRef.current?.({ preservePublishedStream: true });
+        void startHostingRef.current?.();
+      }, SSE_RECONNECT_DELAY);
     });
 
     // Start stats reporting
@@ -871,7 +964,7 @@ export function useWebRTCHost({
       if (Date.now() - lastHeartbeatAtRef.current <= HEARTBEAT_TIMEOUT) return;
 
       setError('Connection heartbeat timed out. Reconnecting...');
-      stopHostingRef.current?.();
+      stopHostingRef.current?.({ preservePublishedStream: true });
       void startHostingRef.current?.();
     }, HEARTBEAT_WATCHDOG_INTERVAL);
   }, [
@@ -882,12 +975,15 @@ export function useWebRTCHost({
     isCurrentGeneration,
     removeViewer,
     reportStats,
+    sendLivenessHeartbeat,
   ]);
 
   startHostingRef.current = startHosting;
 
-  // Stop hosting
-  const stopHosting = useCallback(() => {
+  // Stop hosting. The automatic restart paths pass preservePublishedStream
+  // so the still-live capture tracks re-attach to the rebuilt connections;
+  // user-initiated stops, background suspends, and unmount clear everything.
+  const stopHostingInternal = useCallback((options?: StopHostingOptions) => {
     console.log('[WebRTCHost] Stopping hosting');
     generationRef.current += 1;
     isStartingRef.current = false;
@@ -902,6 +998,16 @@ export function useWebRTCHost({
       heartbeatWatchdogRef.current = null;
     }
 
+    if (livenessIntervalRef.current) {
+      clearInterval(livenessIntervalRef.current);
+      livenessIntervalRef.current = null;
+    }
+
+    if (sseReconnectTimerRef.current) {
+      clearTimeout(sseReconnectTimerRef.current);
+      sseReconnectTimerRef.current = null;
+    }
+
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
@@ -914,7 +1020,9 @@ export function useWebRTCHost({
     publishedStreamSendersRef.current.clear();
     pendingCandidatesRef.current.clear();
     publishedStreamVersionRef.current += 1;
-    localStreamRef.current = null;
+    if (!options?.preservePublishedStream) {
+      localStreamRef.current = null;
+    }
 
     if (hostMicStreamRef.current) {
       hostMicStreamRef.current.getTracks().forEach((track) => {
@@ -933,7 +1041,11 @@ export function useWebRTCHost({
     }
   }, []);
 
-  stopHostingRef.current = stopHosting;
+  stopHostingRef.current = stopHostingInternal;
+
+  const stopHosting = useCallback(() => {
+    stopHostingInternal();
+  }, [stopHostingInternal]);
 
   const removePublishedSenders = useCallback((viewer: ViewerConnection): boolean => {
     const publishedSenders = publishedStreamSendersRef.current.get(viewer.id);

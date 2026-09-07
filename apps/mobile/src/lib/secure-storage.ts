@@ -35,7 +35,7 @@ export async function clearStoredAuth(): Promise<void> {
 
 export function isAuthExpired(auth: StoredAuth): boolean {
   // Consider expired if within 5 minutes of expiry
-  return Date.now() >= auth.expiresAt - 5 * 60 * 1000;
+  return !Number.isFinite(auth.expiresAt) || Date.now() >= auth.expiresAt - 5 * 60 * 1000;
 }
 
 // --- Remembered credentials (separate from session tokens) ---

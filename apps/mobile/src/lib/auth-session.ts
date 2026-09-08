@@ -145,6 +145,7 @@ export interface RefreshResult {
 }
 
 let refreshInFlight: { epoch: number; promise: Promise<RefreshResult> } | null = null;
+const REFRESH_TIMEOUT_MS = 10000;
 
 /**
  * Refresh the access token using the stored refresh token. Concurrent calls
@@ -181,12 +182,19 @@ async function runRefresh(startedEpoch: number): Promise<RefreshResult> {
     return { auth: null, failure: 'signed-out' };
   }
 
+  // A stalled refresh must not pin every API/reconnect caller to one flight.
+  // Use the RN-compatible abort pattern, keeping the deadline through body reads.
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, REFRESH_TIMEOUT_MS);
   let session: SessionEnvelope | null = null;
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: stored.refreshToken }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -203,6 +211,8 @@ async function runRefresh(startedEpoch: number): Promise<RefreshResult> {
   } catch (error) {
     console.error('[Auth] Token refresh error:', error);
     return failureResult('transient');
+  } finally {
+    clearTimeout(timer);
   }
 
   if (!session) {

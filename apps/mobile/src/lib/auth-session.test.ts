@@ -72,6 +72,7 @@ describe('auth-session', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: 'refresh-token-1' }),
+        signal: expect.any(AbortSignal),
       });
       expect(token).toBe('access-token-2');
 

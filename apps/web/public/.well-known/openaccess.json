@@ -1,0 +1,64 @@
+{
+  "openaccess": "0.1",
+  "name": "PairUX",
+  "url": "https://pairux.com",
+  "operator": "https://logicsrc.com/.well-known/openprofile.md",
+  "redirect_uris": [
+    "https://pairux.com/api/v1/openaccess/callback"
+  ],
+  "jwks": {
+    "keys": [
+      {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "kid": "v2qRoJG4Cc6e",
+        "x": "GUf7enwMo4nm-w3u2TYx5v-fOIEkDmRLl9iJQmBHmKw",
+        "alg": "EdDSA",
+        "use": "sig"
+      }
+    ]
+  },
+  "scopes": {},
+  "offers": [
+    {
+      "product": "pairux.com/plus",
+      "name": "Plus",
+      "price": "1 USD/month",
+      "links": {
+        "pay": "https://pairux.com/pricing?principal={principal}",
+        "cancel": "https://pairux.com/settings",
+        "manage": "https://pairux.com/settings"
+      }
+    },
+    {
+      "product": "pairux.com/pro",
+      "name": "Pro",
+      "price": "12 USD/month",
+      "links": {
+        "pay": "https://pairux.com/pricing?principal={principal}",
+        "cancel": "https://pairux.com/settings",
+        "manage": "https://pairux.com/settings"
+      }
+    },
+    {
+      "product": "pairux.com/team",
+      "name": "Team",
+      "price": "49 USD/month",
+      "links": {
+        "pay": "https://pairux.com/pricing?principal={principal}",
+        "cancel": "https://pairux.com/settings",
+        "manage": "https://pairux.com/settings"
+      }
+    }
+  ],
+  "honours": [
+    "profullstack.com/all-access",
+    "pairux.com/plus",
+    "pairux.com/pro",
+    "pairux.com/team"
+  ],
+  "webhooks": "https://pairux.com/api/v1/openaccess/events",
+  "hubs": [
+    "https://openaccess.logicsrc.com"
+  ]
+}

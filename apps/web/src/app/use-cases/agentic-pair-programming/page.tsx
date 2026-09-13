@@ -36,6 +36,12 @@ export default function AgenticPairProgrammingPage() {
       <main>
         <section className="bg-gray-900 py-24 text-white sm:py-32">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <Link
+              href="/use-cases"
+              className="mb-8 inline-block text-sm text-gray-300 hover:text-white"
+            >
+              ← All use cases
+            </Link>
             <p className="text-primary-300 font-semibold">Agentic pair programming</p>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
               Two people. One agent session.

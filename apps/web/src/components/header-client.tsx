@@ -21,6 +21,7 @@ const navigation = [
   { name: 'Live', href: '/live' },
   { name: 'Channels', href: '/channels' },
   { name: 'Features', href: '/features' },
+  { name: 'Use cases', href: '/use-cases' },
   { name: 'Download', href: '/download' },
   { name: 'Docs', href: '/docs' },
   { name: 'Blog', href: '/blog' },
@@ -84,7 +85,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
         <Logo />
 
         {/* Desktop navigation */}
-        <div className="hidden md:flex md:items-center md:gap-8">
+        <div className="hidden lg:flex lg:items-center lg:gap-4 xl:gap-6">
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -97,7 +98,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex md:items-center md:gap-4">
+        <div className="hidden lg:flex lg:items-center lg:gap-4">
           <Link
             href="https://github.com/profullstack/pairux.com"
             target="_blank"
@@ -188,7 +189,9 @@ export function HeaderClient({ user }: HeaderClientProps) {
         {/* Mobile menu button */}
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation"
           onClick={() => {
             setMobileMenuOpen(!mobileMenuOpen);
           }}
@@ -199,7 +202,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
       </nav>
 
       {/* Mobile menu */}
-      <div className={cn('md:hidden', mobileMenuOpen ? 'block' : 'hidden')}>
+      <div id="mobile-navigation" className={cn('lg:hidden', mobileMenuOpen ? 'block' : 'hidden')}>
         <div className="space-y-1 px-4 pb-4">
           {navigation.map((item) => (
             <Link

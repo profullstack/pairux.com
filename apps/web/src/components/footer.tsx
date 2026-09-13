@@ -30,6 +30,7 @@ function TwitterIcon({ className }: { className?: string }) {
 const footerLinks = {
   product: [
     { name: 'Features', href: '/features' },
+    { name: 'Use cases', href: '/use-cases' },
     { name: 'Download', href: '/download' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Changelog', href: '/changelog' },

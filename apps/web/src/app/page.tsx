@@ -303,6 +303,14 @@ export default async function HomePage() {
               >
                 Pair with moshcode and PairUX <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
+              <p className="mt-4">
+                <Link
+                  href="/use-cases"
+                  className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
+                >
+                  Browse all use cases
+                </Link>
+              </p>
             </div>
             <div className="rounded-2xl border border-gray-700 bg-gray-800 p-8">
               <h3 className="text-xl font-semibold">Watch, discuss, then work together</h3>

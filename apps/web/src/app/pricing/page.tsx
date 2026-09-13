@@ -365,6 +365,23 @@ export default async function PricingPage() {
           </div>
         </section>
 
+        <section className="border-y border-blue-100 bg-blue-50 py-12">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <p className="text-primary-700 text-sm font-semibold">Planned for premium plans</p>
+            <h2 className="mt-3 text-2xl font-bold text-gray-900">AI note taker</h2>
+            <p className="mt-4 leading-relaxed text-gray-600">
+              Draft session notes, decisions, and action items are planned for premium plans. AI
+              note taking is not available yet; upgrading today does not enable it.
+            </p>
+            <Link
+              href="/use-cases/ai-note-taker"
+              className="text-primary-600 mt-5 inline-block font-semibold hover:underline"
+            >
+              Explore AI notes and discuss premium access →
+            </Link>
+          </div>
+        </section>
+
         {/* Cost Comparison Table */}
         <section className="bg-gray-50 py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

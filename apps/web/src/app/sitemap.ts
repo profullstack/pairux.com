@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { useCases } from '@/lib/use-cases';
 
 const BASE = 'https://pairux.com';
 
@@ -15,11 +16,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/download`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/docs`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     {
-      url: `${BASE}/use-cases/agentic-pair-programming`,
+      url: `${BASE}/use-cases`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    ...useCases.map(({ slug }) => ({
+      url: `${BASE}/use-cases/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
     { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
     {

@@ -14,6 +14,20 @@
 
 ---
 
+## Live video direction
+
+The product direction for a shared live video workflow is:
+
+- **PairUX** is the camera and videography app, responsible for capturing and
+  preparing the video feed.
+- **Nixamp** is the live streamer, responsible for broadcasting and the viewer
+  experience.
+
+The intended handoff is **PairUX → Nixamp → audience**: PairUX supplies the
+video feed, and Nixamp broadcasts it to viewers.
+
+---
+
 ## ✨ Features
 
 - 🖥️ **Real-time screen sharing** — Low-latency WebRTC streaming

@@ -283,6 +283,42 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* Agentic pair programming */}
+        <section className="bg-gray-900 py-20 text-white sm:py-28">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+            <div>
+              <p className="text-primary-300 text-sm font-semibold tracking-wide uppercase">
+                Agentic pair programming
+              </p>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                Two people. One agent session.
+              </h2>
+              <p className="mt-5 text-lg text-gray-300">
+                Bring a teammate into the work while your coding agent runs. Follow the same
+                terminal, review the app together, and decide what to ask the agent next.
+              </p>
+              <Link
+                href="/use-cases/agentic-pair-programming"
+                className="text-primary-300 mt-6 inline-flex items-center gap-2 font-semibold hover:text-white"
+              >
+                Pair with moshcode and PairUX <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-gray-700 bg-gray-800 p-8">
+              <h3 className="text-xl font-semibold">Watch, discuss, then work together</h3>
+              <ol className="mt-5 space-y-4 text-gray-300">
+                <li>1. Start a live moshcode session and share it with your team.</li>
+                <li>2. Use PairUX to show the terminal and the app you are building.</li>
+                <li>3. Review the agent’s changes together and let your teammate participate.</li>
+              </ol>
+              <p className="mt-6 text-sm text-gray-400">
+                Useful for onboarding contractors, debugging together, and reviewing work before it
+                ships.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Security Section */}
         <section className="bg-gray-50 py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

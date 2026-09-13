@@ -3,9 +3,7 @@
   "name": "PairUX",
   "url": "https://pairux.com",
   "operator": "https://logicsrc.com/.well-known/openprofile.md",
-  "redirect_uris": [
-    "https://pairux.com/api/v1/openaccess/callback"
-  ],
+  "redirect_uris": ["https://pairux.com/api/v1/openaccess/callback"],
   "jwks": {
     "keys": [
       {
@@ -58,7 +56,5 @@
     "pairux.com/team"
   ],
   "webhooks": "https://pairux.com/api/v1/openaccess/events",
-  "hubs": [
-    "https://openaccess.logicsrc.com"
-  ]
+  "hubs": ["https://openaccess.logicsrc.com"]
 }

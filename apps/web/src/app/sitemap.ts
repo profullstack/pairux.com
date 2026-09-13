@@ -14,6 +14,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/pricing`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/download`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/docs`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    {
+      url: `${BASE}/use-cases/agentic-pair-programming`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
     { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
     {

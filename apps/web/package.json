@@ -30,7 +30,7 @@
     "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.468.0",
     "marked": "^18.0.5",
-    "next": "^16.2.9",
+    "next": "^16.3.3",
     "posthog-js": "^1.381.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -76,6 +76,25 @@ those prompt-owned transitions are ignored while a real background transition st
 the resume grace period. A brief iOS `inactive` transition alone does not tear down the call or screen
 share.
 
+## Chat delivery
+
+Chat reads and sends have a 15-second waiting deadline, including authentication
+and response parsing. Leaving a room, disabling chat or unmounting cancels active
+requests. This does not undo a message the server may already have saved.
+
+Known rejections keep the draft. Timeouts and interrupted sends warn that delivery
+is unknown; sending again is a manual choice and can duplicate the message. Newer
+typing is never overwritten: a separate saved-draft block must be restored into an
+empty input or explicitly discarded before another send. Drafts are in memory,
+not persisted after leaving the session. There is no automatic resend or claim of
+exactly-once delivery. Messages with known server IDs are deduplicated as before.
+
+The collapsed badge counts newly received messages, excluding own messages and
+initial history. Opening the panel clears the local badge; this is not a shared
+read receipt. Tests cover hooks, the panel through DOM/native callback adapters,
+and bounded transport behavior; they do not certify native keyboard or layout
+behavior on an actual iOS/Android device.
+
 ## EAS builds
 
 Link the app to the intended Expo project and provide its UUID through `EAS_PROJECT_ID`. No

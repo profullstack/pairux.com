@@ -76,7 +76,12 @@ describe('useChat', () => {
       await result.current.sendMessage('Hello world');
     });
 
-    expect(chatApi.send).toHaveBeenCalledWith('session-1', 'Hello world', 'participant-1');
+    expect(chatApi.send).toHaveBeenCalledWith(
+      'session-1',
+      'Hello world',
+      'participant-1',
+      expect.any(AbortSignal)
+    );
     expect(result.current.messages).toHaveLength(1);
   });
 
@@ -225,7 +230,7 @@ describe('useChat', () => {
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let sendPromise!: Promise<void>;
+    let sendPromise!: ReturnType<typeof result.current.sendMessage>;
     act(() => {
       sendPromise = result.current.sendMessage('old session message');
     });
@@ -258,7 +263,7 @@ describe('useChat', () => {
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let sendPromise!: Promise<void>;
+    let sendPromise!: ReturnType<typeof result.current.sendMessage>;
     act(() => {
       sendPromise = result.current.sendMessage('message before disable');
     });

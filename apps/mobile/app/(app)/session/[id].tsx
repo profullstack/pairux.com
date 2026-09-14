@@ -260,11 +260,14 @@ function HostSession({
 
       {/* Chat */}
       <ChatPanel
+        key={sessionId}
         messages={chat.messages}
         onSend={chat.sendMessage}
         sending={chat.sending}
         currentUserId={currentUserId}
         loading={chat.loading}
+        historyReady={chat.historyReady}
+        error={chat.error}
       />
     </View>
   );
@@ -374,11 +377,14 @@ function ViewerSession({
 
       {/* Chat */}
       <ChatPanel
+        key={sessionId}
         messages={chat.messages}
         onSend={chat.sendMessage}
         sending={chat.sending}
         currentUserId={currentUserId}
         loading={chat.loading}
+        historyReady={chat.historyReady}
+        error={chat.error}
       />
     </View>
   );

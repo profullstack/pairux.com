@@ -68,32 +68,45 @@ describe('bounded chat requests', () => {
     const controller = new AbortController();
     const pending = chatApi.send('room', 'cancelled draft', undefined, controller.signal);
     controller.abort();
-    expect(await pending).toMatchObject({ failureKind: 'unknown' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await pending).toEqual({ error: 'Chat request interrupted', failureKind: 'unknown' });
     finishAuth('late-token');
     await vi.advanceTimersByTimeAsync(1);
     expect(fetch).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('keeps a timed-out send unknown when its body subsequently resolves', async () => {
-    let finishBody!: (value: unknown) => void;
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () =>
-        new Promise((resolve) => {
-          finishBody = resolve;
-        }),
-    } as Response);
-    const pending = chatApi.send('room', 'once');
-    await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
-    const outcome = await pending;
-    expect(outcome).toMatchObject({ failureKind: 'unknown' });
-    finishBody({ data: { id: 'committed-message', session_id: 'room' } });
-    await vi.advanceTimersByTimeAsync(1);
-    expect(await pending).toBe(outcome);
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(vi.getTimerCount()).toBe(0);
-  });
+  it.each(['fetch', 'body'] as const)(
+    'handles the %s rejection produced by a deadline abort',
+    async (stage) => {
+      const rejected = vi.fn();
+      vi.mocked(fetch).mockImplementation((_url, options) => {
+        const waitForAbort = () =>
+          new Promise<never>((_resolve, reject) => {
+            options?.signal?.addEventListener(
+              'abort',
+              () => {
+                rejected();
+                reject(new DOMException('Aborted', 'AbortError'));
+              },
+              { once: true }
+            );
+          });
+        if (stage === 'fetch') return waitForAbort();
+        const response = new Response(null, { status: 200 });
+        vi.spyOn(response, 'json').mockImplementation(waitForAbort);
+        return Promise.resolve(response);
+      });
+      const pending = chatApi.send('room', 'once');
+      await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
+      expect(await pending).toEqual({ error: 'Chat request interrupted', failureKind: 'unknown' });
+      await vi.advanceTimersByTimeAsync(1);
+      expect(rejected).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  );
 
   it('removes cancellation listeners and deadlines after a successful send', async () => {
     const response = { data: { id: 'confirmed-message', session_id: 'room' } };
@@ -116,11 +129,14 @@ describe('bounded chat requests', () => {
     vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
     const pending = chatApi.getHistory('room', { limit: 25 });
     await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
-    expect(await pending).toMatchObject({ failureKind: 'unknown' });
+    expect(await pending).toEqual({ error: 'Chat request interrupted', failureKind: 'unknown' });
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain(
-      '/api/chat/history?sessionId=room&limit=25'
-    );
+    const request = vi.mocked(fetch).mock.calls[0]?.[0];
+    if (!request) throw new Error('Expected a history request');
+    const url = new URL(request instanceof Request ? request.url : request);
+    expect(url.pathname).toBe('/api/chat/history');
+    expect(url.searchParams.get('sessionId')).toBe('room');
+    expect(url.searchParams.get('limit')).toBe('25');
     expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
   });

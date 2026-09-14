@@ -16,11 +16,16 @@ interface UseChatOptions {
   enabled?: boolean;
 }
 
+export interface ChatSendOutcome {
+  status: 'sent' | 'failed' | 'unknown' | 'cancelled' | 'ignored';
+}
+
 interface UseChatReturn {
   messages: ChatMessage[];
   loading: boolean;
+  historyReady: boolean;
   error: string | null;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string) => Promise<ChatSendOutcome>;
   sending: boolean;
 }
 
@@ -31,6 +36,7 @@ export function useChat({
 }: UseChatOptions): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [historyReady, setHistoryReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
@@ -40,16 +46,20 @@ export function useChat({
   const pollInFlightRef = useRef<number | null>(null);
   const sendOperationRef = useRef<symbol | null>(null);
   const mountedRef = useRef(true);
+  const isMounted = useCallback(() => mountedRef.current, []);
   const previousSessionIdRef = useRef(sessionId);
+  const requestsRef = useRef(new Set<AbortController>());
 
   // Fetch messages
   const fetchMessages = useCallback(
     async (generation: number) => {
       if (pollInFlightRef.current === generation) return;
       pollInFlightRef.current = generation;
+      const controller = new AbortController();
+      requestsRef.current.add(controller);
 
       try {
-        const result = await chatApi.getHistory(sessionId, { limit: 100 });
+        const result = await chatApi.getHistory(sessionId, { limit: 100 }, controller.signal);
         if (!mountedRef.current || pollGenerationRef.current !== generation) return;
 
         if (result.error) {
@@ -78,12 +88,14 @@ export function useChat({
           }
 
           setError(null);
+          setHistoryReady(true);
         }
       } catch {
         if (mountedRef.current && pollGenerationRef.current === generation) {
           setError('Failed to fetch messages');
         }
       } finally {
+        requestsRef.current.delete(controller);
         if (pollInFlightRef.current === generation) {
           pollInFlightRef.current = null;
         }
@@ -98,6 +110,7 @@ export function useChat({
   // Start polling when enabled
   useEffect(() => {
     const generation = ++pollGenerationRef.current;
+    const requests = requestsRef.current;
     const sessionChanged = previousSessionIdRef.current !== sessionId;
     previousSessionIdRef.current = sessionId;
 
@@ -111,6 +124,7 @@ export function useChat({
     if (sessionChanged) {
       seenIdsRef.current = new Set();
       setMessages([]);
+      setHistoryReady(false);
       setError(null);
       setLoading(true);
     }
@@ -128,6 +142,8 @@ export function useChat({
     }, POLL_INTERVAL);
 
     return () => {
+      for (const controller of requests) controller.abort();
+      requests.clear();
       if (pollGenerationRef.current === generation) {
         pollGenerationRef.current += 1;
       }
@@ -140,45 +156,55 @@ export function useChat({
 
   // Send message
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string): Promise<ChatSendOutcome> => {
       const trimmed = content.trim();
-      if (!trimmed || sendOperationRef.current) return;
+      if (!trimmed || sendOperationRef.current) return { status: 'ignored' };
+      if (!enabled || !isMounted()) return { status: 'cancelled' };
 
       const generation = pollGenerationRef.current;
       const operation = Symbol('chat-send');
       sendOperationRef.current = operation;
       setSending(true);
+      const controller = new AbortController();
+      requestsRef.current.add(controller);
 
       try {
-        const result = await chatApi.send(sessionId, trimmed, participantId);
-        if (!mountedRef.current || pollGenerationRef.current !== generation) return;
+        const result = await chatApi.send(sessionId, trimmed, participantId, controller.signal);
+        if (!isMounted() || pollGenerationRef.current !== generation) return { status: 'unknown' };
 
         if (result.error) {
           setError(result.error);
-          return;
+          return { status: result.failureKind === 'rejected' ? 'failed' : 'unknown' };
         }
 
         const msg = result.data;
-        if (msg && !seenIdsRef.current.has(msg.id)) {
+        if (!msg || typeof msg.id !== 'string' || !msg.id || msg.session_id !== sessionId) {
+          setError('Message delivery could not be confirmed');
+          return { status: 'unknown' };
+        }
+        if (!seenIdsRef.current.has(msg.id)) {
           seenIdsRef.current.add(msg.id);
           setMessages((prev) => [...prev, msg]);
         }
 
         setError(null);
+        return { status: 'sent' };
       } catch {
-        if (mountedRef.current && pollGenerationRef.current === generation) {
+        if (isMounted() && pollGenerationRef.current === generation) {
           setError('Failed to send message');
         }
+        return { status: 'unknown' };
       } finally {
+        requestsRef.current.delete(controller);
         if (sendOperationRef.current === operation) {
           sendOperationRef.current = null;
-          if (mountedRef.current && pollGenerationRef.current === generation) {
+          if (isMounted()) {
             setSending(false);
           }
         }
       }
     },
-    [sessionId, participantId]
+    [sessionId, participantId, enabled, isMounted]
   );
 
   useEffect(() => {
@@ -193,6 +219,7 @@ export function useChat({
   return {
     messages,
     loading,
+    historyReady,
     error,
     sendMessage,
     sending,

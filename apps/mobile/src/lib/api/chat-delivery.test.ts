@@ -58,6 +58,73 @@ describe('bounded chat requests', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('does not POST after cancellation while authentication is pending', async () => {
+    let finishAuth!: (value: string) => void;
+    vi.mocked(getValidAccessToken).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishAuth = resolve;
+      })
+    );
+    const controller = new AbortController();
+    const pending = chatApi.send('room', 'cancelled draft', undefined, controller.signal);
+    controller.abort();
+    expect(await pending).toMatchObject({ failureKind: 'unknown' });
+    finishAuth('late-token');
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('keeps a timed-out send unknown when its body subsequently resolves', async () => {
+    let finishBody!: (value: unknown) => void;
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: () =>
+        new Promise((resolve) => {
+          finishBody = resolve;
+        }),
+    } as Response);
+    const pending = chatApi.send('room', 'once');
+    await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
+    const outcome = await pending;
+    expect(outcome).toMatchObject({ failureKind: 'unknown' });
+    finishBody({ data: { id: 'committed-message', session_id: 'room' } });
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toBe(outcome);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('removes cancellation listeners and deadlines after a successful send', async () => {
+    const response = { data: { id: 'confirmed-message', session_id: 'room' } };
+    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => response } as Response);
+    const controller = new AbortController();
+    const add = vi.spyOn(controller.signal, 'addEventListener');
+    const remove = vi.spyOn(controller.signal, 'removeEventListener');
+    expect(await chatApi.send('room', 'once', undefined, controller.signal)).toEqual(response);
+    const listener = add.mock.calls.find(([event]) => event === 'abort')?.[1];
+    expect(listener).toBeTypeOf('function');
+    expect(remove).toHaveBeenCalledWith('abort', listener);
+    controller.abort();
+    await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal?.aborted).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('bounds stalled history requests without creating additional requests', async () => {
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+    const pending = chatApi.getHistory('room', { limit: 25 });
+    await vi.advanceTimersByTimeAsync(CHAT_REQUEST_TIMEOUT_MS);
+    expect(await pending).toMatchObject({ failureKind: 'unknown' });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain(
+      '/api/chat/history?sessionId=room&limit=25'
+    );
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it.each([400, 401, 403, 404, 413, 422, 429])(
     'classifies explicit %s rejection without retry',
     async (status) => {

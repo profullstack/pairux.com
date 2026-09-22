@@ -73,7 +73,11 @@ export function VideoViewer({
   // Video tracks pass through untouched.
   const amplifiedRef = useRef<AmplifiedAudioTrack | null>(null);
   const [playbackStream, setPlaybackStream] = useState<MediaStream | null>(null);
-  const remoteAudioTrackId = stream?.getAudioTracks()[0]?.id ?? null;
+  const remoteAudioTrackIds =
+    stream
+      ?.getAudioTracks()
+      .map((track) => track.id)
+      .join(',') ?? '';
 
   useEffect(() => {
     if (!stream) {
@@ -81,17 +85,14 @@ export function VideoViewer({
       return;
     }
 
-    const audioTrack = stream.getAudioTracks()[0];
-    // The index access is typed non-optional here, but an audio-free stream
-    // really does yield undefined — a screen share with no mic attached.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!audioTrack) {
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) {
       // Screen-share only — nothing to amplify.
       setPlaybackStream(stream);
       return;
     }
 
-    const amplified = amplifyRemoteAudio(audioTrack, speakerGain);
+    const amplified = amplifyRemoteAudio(audioTracks, speakerGain);
     amplifiedRef.current = amplified;
 
     const composed = new MediaStream();
@@ -109,7 +110,7 @@ export function VideoViewer({
     };
     // Rebuild when the underlying audio track is replaced, which renegotiation
     // can do without changing the stream's identity.
-  }, [stream, remoteAudioTrackId, speakerGain]);
+  }, [stream, remoteAudioTrackIds, speakerGain]);
 
   // Adjust an existing graph in place rather than rebuilding it on every nudge
   // of a volume slider.

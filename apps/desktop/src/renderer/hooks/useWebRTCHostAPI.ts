@@ -45,6 +45,8 @@ const BITRATE_PRESETS: Record<NetworkQuality, BitratePreset> = {
 const STATS_INTERVAL = 30000; // 30 seconds
 const REJECTED_INPUT_LOG_INTERVAL_MS = 5_000;
 const MAX_CONTROL_MESSAGE_BYTES = 16 * 1024;
+const OFFER_RETRY_INTERVAL_MS = 10_000;
+const MAX_OFFER_ATTEMPTS = 3;
 
 // Default ICE servers (STUN only — overridden with TURN from the SSE connected event)
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
@@ -74,7 +76,20 @@ interface SignalMessage {
   candidate?: RTCIceCandidateInit;
   senderId: string;
   targetId?: string;
+  negotiationId?: string;
   timestamp: number;
+}
+
+interface ViewerNegotiationState {
+  makingOffer: boolean;
+  applyingAnswer: boolean;
+  needsNegotiation: boolean;
+  currentNegotiationId: string | null;
+  retryTimer: ReturnType<typeof setTimeout> | null;
+}
+
+function canNegotiate(pc: RTCPeerConnection, state: ViewerNegotiationState): boolean {
+  return pc.signalingState === 'stable' && !state.applyingAnswer;
 }
 
 interface UseWebRTCHostAPIOptions {
@@ -149,6 +164,9 @@ export function useWebRTCHostAPI({
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   // Buffer ICE candidates per viewer until their remote description is set
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
+  const negotiationStatesRef = useRef(new Map<string, ViewerNegotiationState>());
+  const negotiationSequenceRef = useRef(0);
+  const negotiationInstanceRef = useRef<string | null>(null);
 
   // Keep refs updated
   localStreamRef.current = localStream;
@@ -213,16 +231,116 @@ export function useWebRTCHostAPI({
           method: 'POST',
           headers,
           body: JSON.stringify(signal),
+          signal: AbortSignal.timeout(OFFER_RETRY_INTERVAL_MS),
         });
 
         if (!response.ok) {
           console.error('[WebRTCHost] Failed to send signal:', await response.text());
         }
+        return response.ok;
       } catch (err) {
         console.error('[WebRTCHost] Error sending signal:', err);
+        return false;
       }
     },
     [sessionId]
+  );
+
+  // Coalesce track changes per peer until its outstanding offer is answered.
+  const requestViewerNegotiation = useCallback(
+    async function negotiate(viewerId: string, pc: RTCPeerConnection): Promise<void> {
+      if (viewersRef.current.get(viewerId)?.peerConnection !== pc) return;
+      let state = negotiationStatesRef.current.get(viewerId);
+      if (!state) {
+        state = {
+          makingOffer: false,
+          applyingAnswer: false,
+          needsNegotiation: false,
+          currentNegotiationId: null,
+          retryTimer: null,
+        };
+        negotiationStatesRef.current.set(viewerId, state);
+      }
+      const current = () =>
+        viewersRef.current.get(viewerId)?.peerConnection === pc &&
+        negotiationStatesRef.current.get(viewerId) === state;
+      state.needsNegotiation = true;
+      if (state.makingOffer || !canNegotiate(pc, state)) return;
+      state.makingOffer = true;
+      state.needsNegotiation = false;
+      let offered = false;
+      try {
+        const offer = await pc.createOffer();
+        if (!current()) return;
+        if (!canNegotiate(pc, state)) {
+          state.needsNegotiation = true;
+          return;
+        }
+        if (!offer.sdp) throw new Error('Peer connection produced an empty offer');
+        offer.sdp = tuneOpusForVoice(offer.sdp);
+        await pc.setLocalDescription(offer);
+        if (!current()) return;
+
+        negotiationInstanceRef.current ??= crypto.randomUUID();
+        const negotiationId = `${negotiationInstanceRef.current}:${hostId}:${viewerId}:${String(++negotiationSequenceRef.current)}`;
+        state.currentNegotiationId = negotiationId;
+        const signal: SignalMessage = {
+          type: 'offer',
+          sdp: offer.sdp,
+          senderId: hostId,
+          targetId: viewerId,
+          negotiationId,
+          timestamp: Date.now(),
+        };
+        const pending = () => current() && state.currentNegotiationId === negotiationId;
+        let attempts = 0;
+        // Retry the SAME SDP, not a replacement offer: old clients without
+        // negotiation IDs can safely answer it after a missed SSE message.
+        const transmit = async (): Promise<void> => {
+          if (!pending()) return;
+          attempts += 1;
+          // Include gathered ICE on retries: the original trickle events may
+          // have been lost alongside the first offer during an SSE outage.
+          await sendSignal({ ...signal, sdp: pc.localDescription?.sdp ?? signal.sdp });
+          if (!pending()) return;
+          const checkAnswer = () => {
+            state.retryTimer = null;
+            if (!pending()) return;
+            if (state.applyingAnswer) {
+              state.retryTimer = setTimeout(checkAnswer, OFFER_RETRY_INTERVAL_MS);
+              return;
+            }
+            if (attempts >= MAX_OFFER_ATTEMPTS) {
+              if (pc.connectionState === 'connected') {
+                setError(
+                  'Participant media is still connected, but changes could not be synchronized. Ask them to rejoin if changes remain missing.'
+                );
+                return;
+              }
+              setError('A participant connection timed out. Ask them to leave and rejoin.');
+              removeViewerRef.current?.(viewerId);
+              return;
+            }
+            void transmit();
+          };
+          state.retryTimer = setTimeout(checkAnswer, OFFER_RETRY_INTERVAL_MS);
+        };
+        offered = true;
+        await transmit();
+      } catch (err) {
+        state.needsNegotiation = true;
+        throw err;
+      } finally {
+        state.makingOffer = false;
+        // The SSE answer can arrive before the offer's HTTP request finishes.
+        if (offered && current() && state.needsNegotiation && canNegotiate(pc, state)) {
+          void negotiate(viewerId, pc).catch((err: unknown) => {
+            console.error('[WebRTCHost] Failed to negotiate queued changes:', err);
+          });
+        }
+      }
+    },
+    [hostId, sendSignal]
   );
 
   // Report usage stats
@@ -427,11 +545,13 @@ export function useWebRTCHostAPI({
     async (sourceViewerId: string, audioTrack: MediaStreamTrack) => {
       const audioStream = new MediaStream([audioTrack]);
 
-      for (const [otherId, otherViewer] of viewersRef.current.entries()) {
+      for (const [otherId, otherViewer] of Array.from(viewersRef.current.entries())) {
+        if (viewersRef.current.get(sourceViewerId)?.audioTrack !== audioTrack) return;
         if (otherId === sourceViewerId) continue;
         if (
           otherViewer.connectionState !== 'connected' &&
-          otherViewer.connectionState !== 'connecting'
+          otherViewer.connectionState !== 'connecting' &&
+          otherViewer.connectionState !== 'reconnecting'
         )
           continue;
 
@@ -440,27 +560,13 @@ export function useWebRTCHostAPI({
           await prioritizeAudioSender(relaySender);
           console.log(`[WebRTCHost] Added ${sourceViewerId}'s audio to ${otherId}, renegotiating`);
 
-          // Renegotiate
-          const offer = await otherViewer.peerConnection.createOffer();
-          // In-band FEC turns a lost packet into a duller syllable, not a gap.
-          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-          await otherViewer.peerConnection.setLocalDescription(offer);
-
-          if (offer.sdp) {
-            await sendSignal({
-              type: 'offer',
-              sdp: offer.sdp,
-              senderId: hostId,
-              targetId: otherId,
-              timestamp: Date.now(),
-            });
-          }
+          await requestViewerNegotiation(otherId, otherViewer.peerConnection);
         } catch (err) {
           console.error(`[WebRTCHost] Failed to relay audio to ${otherId}:`, err);
         }
       }
     },
-    [hostId, sendSignal]
+    [requestViewerNegotiation]
   );
 
   // Create peer connection for a viewer
@@ -520,6 +626,7 @@ export function useWebRTCHostAPI({
 
       // Handle incoming tracks from viewer (their mic audio)
       pc.ontrack = (event) => {
+        if (viewersRef.current.get(viewerId)?.peerConnection !== pc) return;
         if (event.track.kind === 'audio') {
           console.log(`[WebRTCHost] Received audio track from viewer: ${viewerId}`);
           const viewer = viewersRef.current.get(viewerId);
@@ -553,6 +660,7 @@ export function useWebRTCHostAPI({
 
       // Handle ICE candidates
       pc.onicecandidate = (event) => {
+        if (viewersRef.current.get(viewerId)?.peerConnection !== pc) return;
         if (event.candidate) {
           void sendSignal({
             type: 'ice-candidate',
@@ -567,7 +675,7 @@ export function useWebRTCHostAPI({
       // Handle connection state changes
       pc.onconnectionstatechange = () => {
         const viewer = viewersRef.current.get(viewerId);
-        if (viewer) {
+        if (viewer?.peerConnection === pc) {
           let newState: ConnectionState;
           switch (pc.connectionState) {
             case 'connecting':
@@ -615,7 +723,7 @@ export function useWebRTCHostAPI({
 
       dc.onopen = () => {
         const viewer = viewersRef.current.get(viewerId);
-        if (viewer) {
+        if (viewer?.peerConnection === pc) {
           viewer.dataChannel = dc;
           setViewers(new Map(viewersRef.current));
         }
@@ -623,7 +731,7 @@ export function useWebRTCHostAPI({
 
       dc.onclose = () => {
         const viewer = viewersRef.current.get(viewerId);
-        if (viewer) {
+        if (viewer?.peerConnection === pc) {
           viewer.dataChannel = null;
           viewer.controlState = 'view-only';
           setViewers(new Map(viewersRef.current));
@@ -632,6 +740,7 @@ export function useWebRTCHostAPI({
       };
 
       dc.onmessage = (event: MessageEvent<string>) => {
+        if (viewersRef.current.get(viewerId)?.peerConnection !== pc) return;
         handleDataChannelMessage(viewerId, event);
       };
 
@@ -651,6 +760,11 @@ export function useWebRTCHostAPI({
     (viewerId: string) => {
       const viewer = viewersRef.current.get(viewerId);
       if (viewer) {
+        // Invalidate callbacks before close() emits any further peer events.
+        viewersRef.current.delete(viewerId);
+        const negotiation = negotiationStatesRef.current.get(viewerId);
+        if (negotiation?.retryTimer) clearTimeout(negotiation.retryTimer);
+        negotiationStatesRef.current.delete(viewerId);
         console.log('[WebRTCHost] Removing viewer:', viewerId);
         // Clean up audio element
         if (viewer.audioElement) {
@@ -659,10 +773,11 @@ export function useWebRTCHostAPI({
         }
         viewer.amplifiedAudio?.dispose();
         viewer.peerConnection.close();
-        viewersRef.current.delete(viewerId);
         pendingCandidatesRef.current.delete(viewerId);
         lastInputSequenceRef.current.delete(viewerId);
         lastRejectedInputLogAtRef.current.delete(viewerId);
+        if (controllingViewerRef.current === viewerId) controllingViewerRef.current = null;
+        setControllingViewer((previous) => (previous === viewerId ? null : previous));
         setViewers(new Map(viewersRef.current));
         onViewerLeft?.(viewerId);
       }
@@ -703,26 +818,13 @@ export function useWebRTCHostAPI({
 
       // Create and send offer
       try {
-        const offer = await pc.createOffer();
-        // In-band FEC turns a lost packet into a duller syllable, not a gap.
-        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-        await pc.setLocalDescription(offer);
-
-        if (offer.sdp) {
-          await sendSignal({
-            type: 'offer',
-            sdp: offer.sdp,
-            senderId: hostId,
-            targetId: viewerId,
-            timestamp: Date.now(),
-          });
-        }
+        await requestViewerNegotiation(viewerId, pc);
       } catch (err) {
         console.error('[WebRTCHost] Failed to create offer:', err);
-        removeViewer(viewerId);
+        if (viewersRef.current.get(viewerId)?.peerConnection === pc) removeViewer(viewerId);
       }
     },
-    [hostId, createPeerConnection, onViewerJoined, removeViewer, sendSignal]
+    [hostId, createPeerConnection, onViewerJoined, removeViewer, requestViewerNegotiation]
   );
 
   // Handle incoming signals
@@ -736,30 +838,46 @@ export function useWebRTCHostAPI({
         case 'answer': {
           const viewer = viewersRef.current.get(viewerId);
           if (viewer && signal.sdp) {
+            const pc = viewer.peerConnection;
+            const state = negotiationStatesRef.current.get(viewerId);
             // Only set remote description if we're expecting an answer
-            if (viewer.peerConnection.signalingState !== 'have-local-offer') {
+            if (pc.signalingState !== 'have-local-offer') {
               console.warn(
                 `[WebRTCHost] Ignoring answer from ${viewerId} — signaling state is ${viewer.peerConnection.signalingState}`
               );
               break;
             }
+            if (
+              !state?.currentNegotiationId ||
+              state.applyingAnswer ||
+              (signal.negotiationId && signal.negotiationId !== state.currentNegotiationId)
+            )
+              break;
             console.log('[WebRTCHost] Received answer from:', viewerId);
-            await viewer.peerConnection.setRemoteDescription({
-              type: 'answer',
-              sdp: signal.sdp,
-            });
-
-            // Drain any ICE candidates that arrived before the answer
-            const pending = pendingCandidatesRef.current.get(viewerId);
-            if (pending && pending.length > 0) {
-              console.log(
-                `[WebRTCHost] Draining ${String(pending.length)} buffered ICE candidates for ${viewerId}`
-              );
+            const current = () =>
+              viewersRef.current.get(viewerId)?.peerConnection === pc &&
+              negotiationStatesRef.current.get(viewerId) === state;
+            state.applyingAnswer = true;
+            try {
+              await pc.setRemoteDescription({ type: 'answer', sdp: signal.sdp });
+              if (!current()) return;
+              state.currentNegotiationId = null;
+              if (state.retryTimer) clearTimeout(state.retryTimer);
+              state.retryTimer = null;
+              const pending = pendingCandidatesRef.current.get(viewerId) ?? [];
               pendingCandidatesRef.current.delete(viewerId);
               for (const candidate of pending) {
-                await viewer.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                if (!current()) return;
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (err) {
+                  console.warn('[WebRTCHost] Ignoring invalid buffered ICE:', err);
+                }
               }
+            } finally {
+              state.applyingAnswer = false;
             }
+            if (current() && state.needsNegotiation) await requestViewerNegotiation(viewerId, pc);
           }
           break;
         }
@@ -780,7 +898,7 @@ export function useWebRTCHostAPI({
         }
       }
     },
-    [hostId]
+    [hostId, requestViewerNegotiation]
   );
 
   // Start hosting (sets up SSE signaling -- screen sharing is optional)
@@ -855,6 +973,7 @@ export function useWebRTCHostAPI({
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('connected', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       console.log('[WebRTCHost] SSE connected:', event.data);
       isStartingRef.current = false;
       setIsHosting(true);
@@ -875,15 +994,19 @@ export function useWebRTCHostAPI({
     });
 
     eventSource.addEventListener('signal', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const signal = JSON.parse(event.data as string) as SignalMessage;
-        void handleSignalMessage(signal);
+        void handleSignalMessage(signal).catch((err: unknown) => {
+          console.error('[WebRTCHost] Failed to apply signal:', err);
+        });
       } catch (err) {
         console.error('[WebRTCHost] Failed to parse signal:', err);
       }
     });
 
     eventSource.addEventListener('presence-join', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string; role: string }[];
@@ -899,6 +1022,7 @@ export function useWebRTCHostAPI({
     });
 
     eventSource.addEventListener('presence-leave', (event) => {
+      if (eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string }[];
@@ -912,6 +1036,7 @@ export function useWebRTCHostAPI({
     });
 
     eventSource.addEventListener('error', () => {
+      if (eventSourceRef.current !== eventSource) return;
       console.error('[WebRTCHost] SSE error');
       isStartingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
@@ -938,7 +1063,18 @@ export function useWebRTCHostAPI({
       eventSourceRef.current = null;
     }
 
-    viewersRef.current.forEach((viewer) => {
+    const previousViewers = Array.from(viewersRef.current.values());
+    viewersRef.current.clear();
+    negotiationStatesRef.current.forEach((state) => {
+      if (state.retryTimer) clearTimeout(state.retryTimer);
+    });
+    negotiationStatesRef.current.clear();
+    pendingCandidatesRef.current.clear();
+    lastInputSequenceRef.current.clear();
+    lastRejectedInputLogAtRef.current.clear();
+    controllingViewerRef.current = null;
+    setControllingViewer(null);
+    previousViewers.forEach((viewer) => {
       if (viewer.audioElement) {
         viewer.audioElement.pause();
         viewer.audioElement.srcObject = null;
@@ -946,7 +1082,6 @@ export function useWebRTCHostAPI({
       viewer.amplifiedAudio?.dispose();
       viewer.peerConnection.close();
     });
-    viewersRef.current.clear();
     setViewers(new Map());
     setIsHosting(false);
 
@@ -997,13 +1132,19 @@ export function useWebRTCHostAPI({
         };
       }
 
-      for (const viewer of viewersRef.current.values()) {
-        if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+      for (const viewer of Array.from(viewersRef.current.values())) {
+        if (viewersRef.current.get(viewer.id) !== viewer) continue;
+        if (
+          viewer.connectionState !== 'connected' &&
+          viewer.connectionState !== 'connecting' &&
+          viewer.connectionState !== 'reconnecting'
+        )
           continue;
 
         try {
           const pc = viewer.peerConnection;
           await syncHostAudioSender(viewer, preferredHostAudioTrack);
+          if (viewersRef.current.get(viewer.id) !== viewer) continue;
           const existingVideoSenders = pc
             .getSenders()
             .filter((sender) => sender.track?.kind === 'video');
@@ -1024,35 +1165,26 @@ export function useWebRTCHostAPI({
             pc.removeTrack(staleSender);
           }
 
-          // Renegotiate so viewer receives the new tracks
-          const offer = await pc.createOffer();
-          // In-band FEC turns a lost packet into a duller syllable, not a gap.
-          if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-          await pc.setLocalDescription(offer);
-
-          if (offer.sdp) {
-            await sendSignal({
-              type: 'offer',
-              sdp: offer.sdp,
-              senderId: hostId,
-              targetId: viewer.id,
-              timestamp: Date.now(),
-            });
-          }
+          await requestViewerNegotiation(viewer.id, pc);
         } catch (err) {
           console.error(`[WebRTCHost] Failed to publish stream to ${viewer.id}:`, err);
         }
       }
     },
-    [getPreferredHostAudioTrack, hostId, sendSignal, syncHostAudioSender]
+    [getPreferredHostAudioTrack, requestViewerNegotiation, syncHostAudioSender]
   );
 
   // Unpublish the screen share stream (remove video tracks) without closing connections
   const unpublishStream = useCallback(async () => {
     localStreamRef.current = null;
 
-    for (const viewer of viewersRef.current.values()) {
-      if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+    for (const viewer of Array.from(viewersRef.current.values())) {
+      if (viewersRef.current.get(viewer.id) !== viewer) continue;
+      if (
+        viewer.connectionState !== 'connected' &&
+        viewer.connectionState !== 'connecting' &&
+        viewer.connectionState !== 'reconnecting'
+      )
         continue;
 
       try {
@@ -1066,26 +1198,12 @@ export function useWebRTCHostAPI({
 
         await syncHostAudioSender(viewer, getPreferredHostAudioTrack(null));
 
-        // Renegotiate so viewer sees track removal
-        const offer = await viewer.peerConnection.createOffer();
-        // In-band FEC turns a lost packet into a duller syllable, not a gap.
-        if (offer.sdp) offer.sdp = tuneOpusForVoice(offer.sdp);
-        await viewer.peerConnection.setLocalDescription(offer);
-
-        if (offer.sdp) {
-          await sendSignal({
-            type: 'offer',
-            sdp: offer.sdp,
-            senderId: hostId,
-            targetId: viewer.id,
-            timestamp: Date.now(),
-          });
-        }
+        await requestViewerNegotiation(viewer.id, viewer.peerConnection);
       } catch (err) {
         console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
       }
     }
-  }, [getPreferredHostAudioTrack, hostId, sendSignal, syncHostAudioSender]);
+  }, [getPreferredHostAudioTrack, requestViewerNegotiation, syncHostAudioSender]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -1170,23 +1288,9 @@ export function useWebRTCHostAPI({
         viewer.dataChannel.send(JSON.stringify(message));
       }
 
-      if (controllingViewer === viewerId) {
-        setControllingViewer(null);
-      }
-
-      // Clean up audio element
-      if (viewer.audioElement) {
-        viewer.audioElement.pause();
-        viewer.audioElement.srcObject = null;
-      }
-      viewer.amplifiedAudio?.dispose();
-
-      viewer.peerConnection.close();
-      viewersRef.current.delete(viewerId);
-      setViewers(new Map(viewersRef.current));
-      onViewerLeft?.(viewerId);
+      removeViewer(viewerId);
     },
-    [controllingViewer, onViewerLeft]
+    [removeViewer]
   );
 
   // Mute/unmute a viewer

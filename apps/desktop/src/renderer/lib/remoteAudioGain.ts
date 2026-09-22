@@ -66,17 +66,19 @@ function keepRemoteTrackFlowing(track: MediaStreamTrack): HTMLAudioElement {
  * control simply not working, which is far harder to diagnose than a failure.
  */
 export function amplifyRemoteAudio(
-  track: MediaStreamTrack,
+  trackOrTracks: MediaStreamTrack | MediaStreamTrack[],
   initialGain: number = DEFAULT_REMOTE_AUDIO_GAIN
 ): AmplifiedAudioTrack {
   const ctx = getAudioContext();
   resumeAudioContext(ctx);
+  const tracks = Array.isArray(trackOrTracks) ? trackOrTracks : [trackOrTracks];
 
   // Before the graph, not after: the source node below reads whatever the
   // receiver has produced, and without a consumer it produces nothing.
-  const keepAlive = keepRemoteTrackFlowing(track);
-
-  const source = ctx.createMediaStreamSource(new MediaStream([track]));
+  const keepAlive = tracks.map(keepRemoteTrackFlowing);
+  // A multi-track MediaStream source only selects one track. Give every
+  // participant a source and mix into one output for the media element.
+  const sources = tracks.map((track) => ctx.createMediaStreamSource(new MediaStream([track])));
   const gain = ctx.createGain();
   gain.gain.value = clampAudioGain(initialGain);
 
@@ -93,16 +95,16 @@ export function amplifyRemoteAudio(
 
   const destination = ctx.createMediaStreamDestination();
 
-  source.connect(gain);
+  sources.forEach((source) => {
+    source.connect(gain);
+  });
   gain.connect(limiter);
   limiter.connect(destination);
 
   // Silent playback is hard to tell apart from nobody talking, so record the
   // state of everything that decides between the two.
   console.log('[RemoteAudioGain] Attached gain stage', {
-    trackId: track.id,
-    trackMuted: track.muted,
-    trackReadyState: track.readyState,
+    trackIds: tracks.map((track) => track.id),
     contextState: ctx.state,
     gain: gain.gain.value,
   });
@@ -119,11 +121,15 @@ export function amplifyRemoteAudio(
     dispose: () => {
       if (disposed) return;
       disposed = true;
-      source.disconnect();
+      sources.forEach((source) => {
+        source.disconnect();
+      });
       gain.disconnect();
       limiter.disconnect();
-      keepAlive.pause();
-      keepAlive.srcObject = null;
+      keepAlive.forEach((sink) => {
+        sink.pause();
+        sink.srcObject = null;
+      });
     },
   };
 }

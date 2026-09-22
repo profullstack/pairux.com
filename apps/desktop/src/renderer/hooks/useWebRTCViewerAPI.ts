@@ -48,6 +48,21 @@ interface SignalMessage {
   timestamp: number;
 }
 
+interface AnsweredOffer {
+  peer: RTCPeerConnection;
+  senderId: string;
+  negotiationId?: string;
+  offerSdp?: string;
+  answer: SignalMessage;
+}
+
+function isOlderNegotiation(incoming: string, previous: string): boolean {
+  const current = /^(.*):(\d+)$/.exec(incoming);
+  const last = /^(.*):(\d+)$/.exec(previous);
+  if (!current || !last) return false;
+  return current[1] === last[1] && Number(current[2]) < Number(last[2]);
+}
+
 interface UseWebRTCViewerAPIOptions {
   sessionId: string;
   participantId: string;
@@ -120,6 +135,7 @@ export function useWebRTCViewerAPI({
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   // Serialize signaling message processing to prevent race conditions
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const answeredOfferRef = useRef<AnsweredOffer | null>(null);
   // Use the server-assigned subscriber ID for signaling POSTs (desktop token auth can differ
   // from the locally generated participantId used to open the SSE stream).
   const signalSenderIdRef = useRef(participantId);
@@ -159,6 +175,7 @@ export function useWebRTCViewerAPI({
           method: 'POST',
           headers,
           body: JSON.stringify(signal),
+          signal: AbortSignal.timeout(10_000),
         });
 
         if (!response.ok) {
@@ -424,9 +441,9 @@ export function useWebRTCViewerAPI({
 
   // Process a single signaling message (called sequentially via signalQueueRef)
   const processSignalMessage = useCallback(
-    async (message: SignalMessage) => {
-      const pc = peerConnectionRef.current;
-      if (!pc) return;
+    async (message: SignalMessage, pc: RTCPeerConnection) => {
+      const current = () => peerConnectionRef.current === pc;
+      if (!current()) return;
 
       const addIceCandidateSafely = async (candidateInit: RTCIceCandidateInit) => {
         try {
@@ -452,6 +469,26 @@ export function useWebRTCViewerAPI({
       try {
         switch (message.type) {
           case 'offer': {
+            const previous = answeredOfferRef.current;
+            if (previous?.peer === pc && previous.senderId === message.senderId) {
+              if (message.negotiationId && previous.negotiationId) {
+                if (isOlderNegotiation(message.negotiationId, previous.negotiationId)) break;
+                if (
+                  message.negotiationId === previous.negotiationId &&
+                  message.sdp === previous.offerSdp
+                ) {
+                  await sendSignal({
+                    ...previous.answer,
+                    sdp:
+                      pc.localDescription?.type === 'answer'
+                        ? pc.localDescription.sdp
+                        : previous.answer.sdp,
+                    timestamp: Date.now(),
+                  });
+                  break;
+                }
+              }
+            }
             // If we're not in 'stable' state (e.g. already processing an offer),
             // rollback first so we can accept the new offer.
             if (pc.signalingState !== 'stable') {
@@ -459,6 +496,7 @@ export function useWebRTCViewerAPI({
                 `[WebRTCViewer] Received offer in ${pc.signalingState} state — rolling back`
               );
               await pc.setLocalDescription({ type: 'rollback' });
+              if (!current()) return;
             }
 
             // Drop buffered candidates from prior offers; mids can change across renegotiation.
@@ -473,20 +511,32 @@ export function useWebRTCViewerAPI({
               type: 'offer',
               sdp: message.sdp,
             });
+            if (!current()) return;
             const answer = await pc.createAnswer();
+            if (!current()) return;
             // In-band FEC turns a lost packet into a duller syllable, not a gap.
             if (answer.sdp) answer.sdp = tuneOpusForVoice(answer.sdp);
             await pc.setLocalDescription(answer);
+            if (!current()) return;
 
             if (answer.sdp) {
-              await sendSignal({
+              const reply: SignalMessage = {
                 type: 'answer',
                 sdp: answer.sdp,
                 senderId: getSignalSenderId(),
                 targetId: message.senderId,
                 ...(message.negotiationId ? { negotiationId: message.negotiationId } : {}),
                 timestamp: Date.now(),
-              });
+              };
+              answeredOfferRef.current = {
+                peer: pc,
+                senderId: message.senderId,
+                negotiationId: message.negotiationId,
+                offerSdp: message.sdp,
+                answer: reply,
+              };
+              await sendSignal(reply);
+              if (!current()) return;
             }
 
             // Drain any ICE candidates that arrived before remote description was set
@@ -516,6 +566,7 @@ export function useWebRTCViewerAPI({
           }
         }
       } catch (err) {
+        if (!current()) return;
         console.error('[WebRTCViewer] Error handling signal message:', err);
         setError('Failed to process signaling message');
       }
@@ -526,7 +577,9 @@ export function useWebRTCViewerAPI({
   // Handle signaling messages from SSE — serialized via promise chain
   const handleSignalMessage = useCallback(
     (message: SignalMessage) => {
-      signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message));
+      const pc = peerConnectionRef.current;
+      if (!pc) return;
+      signalQueueRef.current = signalQueueRef.current.then(() => processSignalMessage(message, pc));
     },
     [processSignalMessage]
   );
@@ -577,6 +630,7 @@ export function useWebRTCViewerAPI({
 
     // Handle incoming tracks (video + audio from host)
     pc.ontrack = (event) => {
+      if (peerConnectionRef.current !== pc) return;
       const incomingStream = event.streams[0] as MediaStream | undefined;
       console.log('[WebRTCViewer] ontrack', {
         kind: event.track.kind,
@@ -598,8 +652,9 @@ export function useWebRTCViewerAPI({
       const addTrackIfMissing = (track: MediaStreamTrack) => {
         const exists = composite.getTracks().some((existing) => existing.id === track.id);
         if (!exists) {
-          // Replace stale track of same kind if present (e.g., renegotiation/re-publish).
-          const sameKind = composite.getTracks().find((existing) => existing.kind === track.kind);
+          // One screen, but many microphones: another participant must not
+          // replace the audio tracks already being played.
+          const sameKind = track.kind === 'video' ? composite.getVideoTracks()[0] : undefined;
           if (sameKind) {
             composite.removeTrack(sameKind);
           }
@@ -618,6 +673,13 @@ export function useWebRTCViewerAPI({
           kind: event.track.kind,
           id: event.track.id,
         });
+        if (peerConnectionRef.current !== pc) return;
+        const remaining = new MediaStream(
+          (remoteStreamRef.current?.getTracks() ?? []).filter((track) => track !== event.track)
+        );
+        remoteStreamRef.current = remaining;
+        setRemoteStream(remaining);
+        onStreamReady?.(remaining);
       };
       event.track.onmute = () => {
         console.warn('[WebRTCViewer] Remote track muted', {
@@ -720,6 +782,7 @@ export function useWebRTCViewerAPI({
 
   // Disconnect and clean up
   const disconnect = useCallback(() => {
+    answeredOfferRef.current = null;
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;

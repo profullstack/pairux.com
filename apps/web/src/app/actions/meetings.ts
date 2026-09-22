@@ -3,6 +3,35 @@
 
 import { createEmailer } from '@profullstack/emailer';
 import { describeRecurrence, type RecurrenceRule } from '@/lib/recurrence';
+import {
+  buildGoogleCalendarUrl,
+  buildIcs,
+  buildOutlookUrl,
+  calendarLinksHtml,
+  icsFilename,
+  type CalendarEvent,
+} from '@/lib/calendar';
+
+/** One calendar event per meeting, shared by the links and the .ics attachment. */
+function calendarEventFor(opts: {
+  scheduledSessionId?: string;
+  title: string;
+  description?: string | undefined;
+  scheduledAt: string;
+  durationMinutes: number;
+  joinUrl: string;
+  recurrence?: RecurrenceRule | undefined;
+}): CalendarEvent {
+  return {
+    title: opts.title,
+    description: opts.description ?? null,
+    startIso: opts.scheduledAt,
+    durationMinutes: opts.durationMinutes,
+    joinUrl: opts.joinUrl,
+    recurrence: opts.recurrence?.freq ? opts.recurrence : undefined,
+    uid: opts.scheduledSessionId ? `${opts.scheduledSessionId}@pairux.com` : undefined,
+  };
+}
 
 /** The "Repeats every week on Tuesday, forever" row, or '' for a one-off meeting. */
 function recurrenceRow(recurrence: RecurrenceRule | undefined, scheduledAt: string): string {
@@ -81,8 +110,14 @@ function inviteEmailHtml(opts: {
   rsvpDeclineUrl: string;
   joinUrl: string;
   recurrence?: RecurrenceRule;
+  calendar: CalendarEvent;
 }): string {
   const formattedDate = formatDateTime(opts.scheduledAt);
+  const calendarRow = calendarLinksHtml({
+    googleCalendarUrl: buildGoogleCalendarUrl(opts.calendar),
+    outlookUrl: buildOutlookUrl(opts.calendar),
+    attached: true,
+  });
   const greeting = opts.inviteeName ? `Hi ${opts.inviteeName},` : 'Hi there,';
   const durationLabel =
     opts.durationMinutes >= 60
@@ -144,6 +179,7 @@ function inviteEmailHtml(opts: {
 
       <div style="text-align:center;margin-bottom:24px;">
         <a href="${opts.joinUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:600;font-size:15px;">Join Meeting</a>
+        ${calendarRow}
       </div>
 
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;text-align:center;margin-bottom:8px;">
@@ -194,7 +230,13 @@ function updateEmailHtml(opts: {
   codeChanged?: boolean;
   recurrence?: RecurrenceRule;
   recurrenceChanged?: boolean;
+  calendar: CalendarEvent;
 }): string {
+  const calendarRow = calendarLinksHtml({
+    googleCalendarUrl: buildGoogleCalendarUrl(opts.calendar),
+    outlookUrl: buildOutlookUrl(opts.calendar),
+    attached: false,
+  });
   const timeChanged =
     new Date(opts.scheduledAt).getTime() !== new Date(opts.previousScheduledAt).getTime();
   const durationLabel =
@@ -273,6 +315,7 @@ function updateEmailHtml(opts: {
 
       <div style="text-align:center;">
         <a href="${opts.joinUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:600;font-size:15px;">Join Meeting</a>
+        ${calendarRow}
       </div>
     </div>
     <div style="background:#f9fafb;padding:18px 32px;text-align:center;border-top:1px solid #e5e7eb;">
@@ -317,6 +360,22 @@ export async function sendMeetingInvites(
   const emailer = createEmailer({ resendApiKey, defaultFrom });
 
   const errors: string[] = [];
+  const joinUrl = `${appUrl}/join/${payload.joinCode}`;
+  const calendar = calendarEventFor({
+    scheduledSessionId: payload.scheduledSessionId,
+    title: payload.title,
+    description: payload.description,
+    scheduledAt: payload.scheduledAt,
+    durationMinutes: payload.durationMinutes,
+    joinUrl,
+    recurrence: payload.recurrence,
+  });
+  const attachments = [
+    {
+      filename: icsFilename(payload.title),
+      content: Buffer.from(buildIcs(calendar)).toString('base64'),
+    },
+  ];
 
   for (const invitee of payload.invitees) {
     const rsvpBase = `${appUrl}/invite/${invitee.token}`;
@@ -328,10 +387,11 @@ export async function sendMeetingInvites(
       joinCode: payload.joinCode,
       hostName: payload.hostName,
       inviteeName: invitee.name,
-      joinUrl: `${appUrl}/join/${payload.joinCode}`,
+      joinUrl,
       rsvpAcceptUrl: `${rsvpBase}?rsvp=accepted`,
       rsvpDeclineUrl: `${rsvpBase}?rsvp=declined`,
       ...(payload.recurrence !== undefined && { recurrence: payload.recurrence }),
+      calendar,
     });
 
     try {
@@ -339,6 +399,7 @@ export async function sendMeetingInvites(
         to: invitee.email,
         subject: `Meeting Invitation: ${payload.title}`,
         html,
+        attachments,
       });
     } catch (err) {
       errors.push(`${invitee.email}: ${err instanceof Error ? err.message : String(err)}`);
@@ -364,6 +425,7 @@ export async function sendMeetingUpdate(
   const defaultFrom = process.env.EMAIL_FROM ?? 'PairUX <hello@pairux.com>';
   const emailer = createEmailer({ resendApiKey, defaultFrom });
 
+  const joinUrl = `${appUrl}/join/${payload.joinCode}`;
   const html = updateEmailHtml({
     title: payload.title,
     ...(payload.description !== undefined && { description: payload.description }),
@@ -372,7 +434,17 @@ export async function sendMeetingUpdate(
     durationMinutes: payload.durationMinutes,
     joinCode: payload.joinCode,
     hostName: payload.hostName,
-    joinUrl: `${appUrl}/join/${payload.joinCode}`,
+    joinUrl,
+    // Bulk sends go through Resend's batch endpoint, which cannot carry an
+    // attachment, so the update email links out and skips the .ics.
+    calendar: calendarEventFor({
+      title: payload.title,
+      description: payload.description,
+      scheduledAt: payload.scheduledAt,
+      durationMinutes: payload.durationMinutes,
+      joinUrl,
+      recurrence: payload.recurrence,
+    }),
     ...(payload.codeChanged !== undefined && { codeChanged: payload.codeChanged }),
     ...(payload.recurrence !== undefined && { recurrence: payload.recurrence }),
     ...(payload.recurrenceChanged !== undefined && {

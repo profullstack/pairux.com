@@ -4,7 +4,13 @@ import { createEmailer } from '@profullstack/emailer';
 import { dueLead, timeUntil, wantsReminder, REMINDER_PREF_KEYS } from './meeting-reminders';
 import { claimReminderSlot } from './meeting-reminder-claim';
 import { sendPushToUser } from './push';
-import { buildGoogleCalendarUrl, buildIcs, buildOutlookUrl, icsFilename } from './calendar';
+import {
+  buildGoogleCalendarUrl,
+  buildIcs,
+  buildOutlookUrl,
+  calendarLinksHtml,
+  icsFilename,
+} from './calendar';
 import { ruleFromRow, type RecurrenceRow } from './recurrence';
 
 /**
@@ -130,7 +136,11 @@ export interface ReminderEmailOptions {
 
 export function reminderEmailHtml(opts: ReminderEmailOptions): string {
   const greeting = opts.recipientName ? `Hi ${opts.recipientName},` : 'Hi,';
-  const calendarLink = 'color:#4f46e5;text-decoration:underline;';
+  const calendar = calendarLinksHtml({
+    googleCalendarUrl: opts.googleCalendarUrl,
+    outlookUrl: opts.outlookUrl,
+    attached: true,
+  });
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><title>${opts.title}</title></head>
@@ -145,7 +155,7 @@ export function reminderEmailHtml(opts: ReminderEmailOptions): string {
       <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">${opts.startsAtLabel}</p>
       <a href="${opts.joinUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:600;font-size:15px;">Join Meeting</a>
       <p style="color:#9ca3af;font-size:13px;margin-top:20px;">Join code: <strong>${opts.joinCode}</strong></p>
-      <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">Add to calendar: <a href="${opts.googleCalendarUrl}" style="${calendarLink}">Google</a> · <a href="${opts.outlookUrl}" style="${calendarLink}">Outlook</a> · open the attached <strong>.ics</strong> for Apple Calendar and others</p>
+      ${calendar}
     </div>
     <div style="background:#f9fafb;padding:18px 32px;text-align:center;border-top:1px solid #e5e7eb;">
       <p style="color:#9ca3af;font-size:12px;margin:0;">Sent via <a href="https://pairux.com" style="color:#6366f1;text-decoration:none;">PairUX</a> · Manage reminders in <a href="https://pairux.com/settings#notifications" style="color:#6366f1;text-decoration:none;">settings</a></p>

@@ -106,6 +106,22 @@ export function buildIcs(event: CalendarEvent, now: Date = new Date()): string {
   return `${lines.map(foldIcsLine).join('\r\n')}\r\n`;
 }
 
+/**
+ * The "Add to calendar" row for an email. `attached` says whether the message
+ * carries the .ics; Resend's batch endpoint cannot attach, so bulk sends omit it.
+ */
+export function calendarLinksHtml(opts: {
+  googleCalendarUrl: string;
+  outlookUrl: string;
+  attached: boolean;
+}): string {
+  const link = 'color:#4f46e5;text-decoration:underline;';
+  const ics = opts.attached
+    ? ' · open the attached <strong>.ics</strong> for Apple Calendar and others'
+    : '';
+  return `<p style="color:#6b7280;font-size:13px;margin:16px 0 0;">Add to calendar: <a href="${opts.googleCalendarUrl}" style="${link}">Google</a> · <a href="${opts.outlookUrl}" style="${link}">Outlook</a>${ics}</p>`;
+}
+
 export function icsFilename(title: string): string {
   return `${title.replace(/[^a-z0-9]/gi, '-')}.ics`;
 }

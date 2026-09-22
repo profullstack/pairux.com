@@ -58,6 +58,151 @@ function deferred<T>() {
 }
 
 describe('useWebRTCViewer', () => {
+  async function connectChannel() {
+    const track = { kind: 'audio', enabled: true, readyState: 'live', stop: vi.fn() };
+    vi.mocked(mediaDevices.getUserMedia).mockResolvedValueOnce({
+      getTracks: () => [track],
+      getAudioTracks: () => [track],
+    } as unknown as MediaStream);
+    const hook = renderHook(() =>
+      useWebRTCViewer({ sessionId: 'session-1', participantId: 'viewer-1' })
+    );
+    await waitFor(() => expect(mockEventSources).toHaveLength(1));
+    await act(async () => {
+      mockEventSources[0].listeners.get('connected')?.({ data: '{}' });
+      mockEventSources[0].listeners.get('signal')?.({
+        data: JSON.stringify({
+          type: 'offer',
+          sdp: 'offer',
+          senderId: 'host-1',
+          targetId: 'viewer-1',
+          timestamp: Date.now(),
+        }),
+      });
+    });
+    await waitFor(() => expect(mockPeerConnections.length).toBeGreaterThan(0));
+    const listeners = new Map<string, (event: { data: string }) => void>();
+    const channel = {
+      readyState: 'open',
+      addEventListener: (name: string, callback: (event: { data: string }) => void) =>
+        listeners.set(name, callback),
+      close: vi.fn(),
+    };
+    const receive = mockPeerConnections[0].addEventListener.mock.calls.find(
+      ([name]) => name === 'datachannel'
+    )?.[1] as (event: unknown) => void;
+    act(() => receive({ channel }));
+    const send = (value: unknown) =>
+      act(() => listeners.get('message')?.({ data: JSON.stringify(value) }));
+    return { ...hook, track, send, listeners };
+  }
+
+  it('clears an old unmute request when the same SSE connection replaces its peer', async () => {
+    const f = await connectChannel();
+    f.send({ type: 'mute', muted: true });
+    f.send({ type: 'mute', muted: false });
+    expect(f.result.current.unmuteRequested).toBe(true);
+    act(() => {
+      mockEventSources[0].listeners.get('connected')?.({ data: '{}' });
+    });
+    expect(f.result.current.unmuteRequested).toBe(false);
+    f.send({ type: 'mute', muted: false });
+    expect(f.result.current.unmuteRequested).toBe(false);
+    expect(f.track.enabled).toBe(false);
+  });
+
+  it('recognizes native denial and preserves the initial-on policy on Settings-style resume', async () => {
+    vi.mocked(mediaDevices.getUserMedia).mockRejectedValueOnce({
+      name: 'SecurityError',
+      message: 'Permission denied.',
+    });
+    const f = renderHook(() =>
+      useWebRTCViewer({ sessionId: 'session-1', participantId: 'viewer-1' })
+    );
+    await waitFor(() => expect(f.result.current.micFailure).toBe('permission'));
+    act(() => {
+      emitAppStateChange('background');
+    });
+    act(() => {
+      emitAppStateChange('active');
+    });
+    await waitFor(() => expect(f.result.current.hasMic).toBe(true));
+    expect(f.result.current.micFailure).toBeNull();
+    // Existing initial-on policy is preserved; Settings does not add a new opt-in gate.
+    expect(f.result.current.micEnabled).toBe(true);
+  });
+
+  it('turns host unmute into a request, with local action required to enable tracks', async () => {
+    const f = await connectChannel();
+    f.send({ type: 'mute', muted: true });
+    expect(f.track.enabled).toBe(false);
+    f.send({ type: 'mute', muted: false });
+    f.send({ type: 'mute', muted: false });
+    expect(f.track.enabled).toBe(false);
+    expect(f.result.current.unmuteRequested).toBe(true);
+    expect(mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+    act(() => f.result.current.toggleMic());
+    expect(f.track.enabled).toBe(true);
+    expect(f.result.current.unmuteRequested).toBe(false);
+    f.send({ type: 'mute', muted: false });
+    expect(f.result.current.unmuteRequested).toBe(false);
+  });
+  it.each([undefined, 'false', 0, null])('ignores malformed mute value %s', async (muted) => {
+    const f = await connectChannel();
+    f.send({ type: 'mute', muted: true });
+    f.send({ type: 'mute', muted });
+    expect(f.track.enabled).toBe(false);
+    expect(f.result.current.unmuteRequested).toBe(false);
+  });
+  it('drops stale channel requests after reconnect and persists host mute into a late stream', async () => {
+    const f = await connectChannel();
+    f.send({ type: 'mute', muted: true });
+    f.send({ type: 'mute', muted: false });
+    const mic = deferred<MediaStream>();
+    vi.mocked(mediaDevices.getUserMedia).mockReturnValueOnce(mic.promise);
+    act(() => emitAppStateChange('background'));
+    expect(f.result.current.unmuteRequested).toBe(false);
+    await act(async () => emitAppStateChange('active'));
+    f.send({ type: 'mute', muted: false });
+    expect(f.result.current.unmuteRequested).toBe(false);
+    const track = { kind: 'audio', enabled: true, readyState: 'live', stop: vi.fn() };
+    await act(async () =>
+      mic.resolve({
+        getTracks: () => [track],
+        getAudioTracks: () => [track],
+      } as unknown as MediaStream)
+    );
+    expect(track.enabled).toBe(false);
+    expect(f.result.current.micEnabled).toBe(false);
+  });
+  it('does not pretend an ended track can unmute', async () => {
+    const f = await connectChannel();
+    f.send({ type: 'mute', muted: true });
+    f.track.readyState = 'ended';
+    act(() => f.result.current.toggleMic());
+    expect(f.result.current.micEnabled).toBe(false);
+    expect(f.result.current.hasMic).toBe(false);
+    expect(f.result.current.micFailure).toBe('unavailable');
+  });
+  it.each(['NotAllowedError', 'DeviceError', 'Error'])(
+    'exposes a conservative mic failure for %s',
+    async (name) => {
+      vi.mocked(mediaDevices.getUserMedia).mockRejectedValueOnce(
+        Object.assign(new Error('PRIVATE'), { name })
+      );
+      const { result } = renderHook(() =>
+        useWebRTCViewer({ sessionId: 'session-1', participantId: 'viewer-1' })
+      );
+      await waitFor(() =>
+        expect(result.current.micFailure).toBe(
+          name === 'NotAllowedError' ? 'permission' : 'unavailable'
+        )
+      );
+      expect(result.current.hasMic).toBe(false);
+      expect(createEventSource).toHaveBeenCalled();
+    }
+  );
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSources.length = 0;

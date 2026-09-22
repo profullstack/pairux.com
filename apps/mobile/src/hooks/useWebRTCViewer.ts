@@ -31,6 +31,7 @@ import {
 import { API_BASE_URL } from '../config';
 import { getValidAccessToken } from '../lib/auth-session';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
+import { microphoneFailure, type MicrophoneFailure } from '../lib/microphone';
 
 // RN WebRTC's RTCDataChannel type (differs from browser global)
 type DataChannel = ReturnType<RTCPeerConnection['createDataChannel']>;
@@ -96,6 +97,8 @@ interface UseWebRTCViewerReturn {
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
   hasMic: boolean;
+  micFailure: MicrophoneFailure | null;
+  unmuteRequested: boolean;
   toggleMic: () => void;
 }
 
@@ -116,6 +119,8 @@ export function useWebRTCViewer({
   const [dataChannelReady, setDataChannelReady] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [micFailure, setMicFailure] = useState<MicrophoneFailure | null>(null);
+  const [unmuteRequested, setUnmuteRequested] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
@@ -235,14 +240,21 @@ export function useWebRTCViewer({
             onKickedRef.current?.(message.reason);
             break;
           case 'mute': {
-            micEnabledIntentRef.current = !message.muted;
+            if (typeof message.muted !== 'boolean') break;
+            if (!message.muted) {
+              // A remote request is never permission to enable local capture.
+              setUnmuteRequested(!micEnabledIntentRef.current);
+              break;
+            }
+            micEnabledIntentRef.current = false;
+            setUnmuteRequested(false);
             const micStream = micStreamRef.current;
             if (micStream) {
               micStream.getAudioTracks().forEach((track) => {
-                track.enabled = !message.muted;
+                track.enabled = false;
               });
-              setMicEnabled(!message.muted);
             }
+            setMicEnabled(false);
             break;
           }
         }
@@ -269,11 +281,13 @@ export function useWebRTCViewer({
         if (!isCurrentChannel()) return;
         setDataChannelReady(false);
         setControlState('view-only');
+        setUnmuteRequested(false);
       });
 
       channel.addEventListener('error', () => {
         if (!isCurrentChannel()) return;
         setDataChannelReady(false);
+        setUnmuteRequested(false);
       });
 
       channel.addEventListener('message', (event) => {
@@ -791,6 +805,8 @@ export function useWebRTCViewer({
       setControlState('view-only');
       setMicEnabled(false);
       setHasMic(false);
+      setMicFailure(null);
+      setUnmuteRequested(false);
       if (hadRemoteStream) {
         onStreamEndedRef.current?.();
       }
@@ -804,8 +820,14 @@ export function useWebRTCViewer({
     const micStream = micStreamRef.current;
     if (!micStream) return;
 
-    const tracks = micStream.getAudioTracks();
-    if (tracks.length === 0) return;
+    const tracks = micStream.getAudioTracks().filter((track) => track.readyState !== 'ended');
+    if (tracks.length === 0) {
+      setHasMic(false);
+      setMicEnabled(false);
+      setMicFailure('unavailable');
+      setUnmuteRequested(false);
+      return;
+    }
 
     const newEnabled = !micEnabledIntentRef.current;
     micEnabledIntentRef.current = newEnabled;
@@ -813,6 +835,7 @@ export function useWebRTCViewer({
       track.enabled = newEnabled;
     });
     setMicEnabled(newEnabled);
+    setUnmuteRequested(false);
   }, []);
 
   // Initialize connection
@@ -830,6 +853,8 @@ export function useWebRTCViewer({
 
     const generation = ++generationRef.current;
     isConnectingRef.current = true;
+    setMicFailure(null);
+    setUnmuteRequested(false);
 
     console.log('[WebRTCViewer] Starting viewer for session:', sessionId);
 
@@ -863,19 +888,27 @@ export function useWebRTCViewer({
         });
         return;
       }
-      const audioTrack = micStream.getAudioTracks()[0];
+      const audioTrack = micStream.getAudioTracks().find((track) => track.readyState !== 'ended');
+      if (!audioTrack) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        throw new Error('No live microphone track');
+      }
       markTrackAsSpeech(audioTrack);
       micStream.getAudioTracks().forEach((track) => {
         track.enabled = micEnabledIntentRef.current;
       });
       micStreamRef.current = micStream;
       setHasMic(true);
+      setMicFailure(null);
       setMicEnabled(micEnabledIntentRef.current);
-    } catch {
+    } catch (micError) {
       if (!isCurrentGeneration(generation)) return;
       console.warn('[WebRTCViewer] Could not access microphone');
       micStreamRef.current = null;
       setHasMic(false);
+      setMicFailure(microphoneFailure(micError));
       setMicEnabled(false);
     }
 
@@ -945,6 +978,7 @@ export function useWebRTCViewer({
       setQualityMetrics(null);
       setDataChannelReady(false);
       setControlState('view-only');
+      setUnmuteRequested(false);
       if (previousStream) {
         onStreamEndedRef.current?.();
       }
@@ -1128,6 +1162,8 @@ export function useWebRTCViewer({
     sendInput,
     micEnabled,
     hasMic,
+    micFailure,
+    unmuteRequested,
     toggleMic,
   };
 }

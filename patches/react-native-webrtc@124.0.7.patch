@@ -1,0 +1,38 @@
+diff --git a/lib/commonjs/getUserMedia.js b/lib/commonjs/getUserMedia.js
+index 5af2a05207db0dd7a47a70928cd38d04f3cb01dd..149ea9b01e07f279f6900d4f4310fe7c3692c0c1 100644
+--- a/lib/commonjs/getUserMedia.js
++++ b/lib/commonjs/getUserMedia.js
+@@ -95,7 +95,7 @@ function getUserMedia() {
+         reject(error);
+       };
+       WebRTCModule.getUserMedia(constraints, success, failure);
+-    });
++    }).catch(reject);
+   });
+ }
+ //# sourceMappingURL=getUserMedia.js.map
+diff --git a/lib/module/getUserMedia.js b/lib/module/getUserMedia.js
+index 65c755f6e06ed4f5f823092c126ed938b2bfb139..e38122ad3d2730a1fb60470bed5e33574983a314 100644
+--- a/lib/module/getUserMedia.js
++++ b/lib/module/getUserMedia.js
+@@ -86,7 +86,7 @@ export default function getUserMedia() {
+         reject(error);
+       };
+       WebRTCModule.getUserMedia(constraints, success, failure);
+-    });
++    }).catch(reject);
+   });
+ }
+ //# sourceMappingURL=getUserMedia.js.map
+diff --git a/src/getUserMedia.ts b/src/getUserMedia.ts
+index 6ebad9159a4f101d0aa0d5d9bccfd41555a27841..43969fe7be03bdaa4503232cc84d2c09a3f434ec 100644
+--- a/src/getUserMedia.ts
++++ b/src/getUserMedia.ts
+@@ -106,6 +106,6 @@ export default function getUserMedia(constraints: Constraints = {}): Promise<Med
+             };
+ 
+             WebRTCModule.getUserMedia(constraints, success, failure);
+-        });
++        }).catch(reject);
+     });
+ }

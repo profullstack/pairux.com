@@ -847,6 +847,265 @@ describe('useWebRTCHost', () => {
   });
 
   describe('audio relay lifecycle', () => {
+    it.each(['connected', 'connecting', 'disconnected'])(
+      'relays new participant audio after a destination transitions through %s',
+      async (destinationState) => {
+        const { result, joinHandler, signalHandler, unmount } = await initializeSubscribedHost();
+
+        try {
+          await act(async () => {
+            joinHandler({
+              newPresences: [
+                { user_id: 'viewer-1', role: 'viewer' },
+                { user_id: 'viewer-2', role: 'viewer' },
+              ],
+            });
+            await flushAsyncWork();
+            for (const viewerId of ['viewer-1', 'viewer-2']) {
+              signalHandler({
+                payload: {
+                  type: 'answer',
+                  sdp: `${viewerId}-initial-answer`,
+                  senderId: viewerId,
+                  targetId: 'host-1',
+                  timestamp: Date.now(),
+                },
+              });
+            }
+            await flushAsyncWork();
+          });
+
+          const sourcePc = MockRTCPeerConnection.instances[0]!;
+          const targetPc = MockRTCPeerConnection.instances[1]!;
+          const sourceTrack = {
+            id: 'viewer-1-new-audio',
+            kind: 'audio',
+            enabled: true,
+          } as MediaStreamTrack;
+
+          await act(async () => {
+            sourcePc.connectionState = 'connected';
+            sourcePc.onconnectionstatechange?.();
+            targetPc.connectionState = destinationState;
+            targetPc.onconnectionstatechange?.();
+            await flushAsyncWork();
+          });
+          expect(result.current.viewers.get('viewer-2')?.connectionState).toBe(
+            destinationState === 'disconnected' ? 'reconnecting' : destinationState
+          );
+
+          await act(async () => {
+            sourcePc.ontrack?.({ track: sourceTrack, streams: [] });
+            await flushAsyncWork();
+            targetPc.connectionState = 'connected';
+            targetPc.onconnectionstatechange?.();
+            await flushAsyncWork();
+          });
+
+          expect(result.current.viewers.get('viewer-2')?.connectionState).toBe('connected');
+          expect(result.current.viewers.get('viewer-1')?.audioTrack).toBe(sourceTrack);
+          expect(
+            targetPc.addTrack.mock.calls.filter(([track]) => track === sourceTrack)
+          ).toHaveLength(1);
+        } finally {
+          unmount();
+        }
+      }
+    );
+
+    describe('reconnecting destinations', () => {
+      const connectViewers = async (answerTarget = true) => {
+        const host = await initializeSubscribedHost();
+        const answer = async (viewerId = 'viewer-2') => {
+          await act(async () => {
+            host.signalHandler({
+              payload: {
+                type: 'answer',
+                sdp: `${viewerId}-answer`,
+                senderId: viewerId,
+                targetId: 'host-1',
+                timestamp: Date.now(),
+              },
+            });
+            await flushAsyncWork();
+          });
+        };
+        await act(async () => {
+          host.joinHandler({
+            newPresences: ['viewer-1', 'viewer-2'].map((user_id) => ({ user_id, role: 'viewer' })),
+          });
+          await flushAsyncWork();
+        });
+        await answer('viewer-1');
+        if (answerTarget) await answer();
+        const source = MockRTCPeerConnection.instances[0]!;
+        const target = MockRTCPeerConnection.instances[1]!;
+        const setTargetState = (state: string) => {
+          act(() => {
+            target.connectionState = state;
+            target.onconnectionstatechange?.();
+          });
+        };
+        setTargetState('disconnected');
+        const receive = async (id: string) => {
+          const track = { id, kind: 'audio', enabled: true } as MediaStreamTrack;
+          await act(async () => {
+            source.ontrack?.({ track, streams: [] });
+            await flushAsyncWork();
+          });
+          return track;
+        };
+        const screen = (id: string) => {
+          const video = { id: `${id}-video`, kind: 'video', contentHint: '' } as MediaStreamTrack;
+          const audio = { id: `${id}-audio`, kind: 'audio' } as MediaStreamTrack;
+          return new MediaStream([video, audio]);
+        };
+        return { ...host, source, target, answer, setTargetState, receive, screen };
+      };
+
+      it('queues relay changes behind the outstanding offer and targets the next offer', async () => {
+        const host = await connectViewers(false);
+        try {
+          const track = await host.receive('queued-mic');
+          expect(host.target.addTrack).toHaveBeenCalledWith(track, expect.anything());
+          expect(host.target.createOffer).toHaveBeenCalledTimes(1);
+          expect(host.target.signalingState).toBe('have-local-offer');
+          await host.answer();
+          expect(host.target.createOffer).toHaveBeenCalledTimes(2);
+          expect(mockChannel.send).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              payload: expect.objectContaining({ type: 'offer', targetId: 'viewer-2' }),
+            })
+          );
+          host.setTargetState('connected');
+          expect(host.target.createOffer).toHaveBeenCalledTimes(2);
+        } finally {
+          host.unmount();
+        }
+      });
+
+      it('replaces a muted relay once while disconnected, without echoing it to its source', async () => {
+        const host = await connectViewers();
+        try {
+          host.setTargetState('connected');
+          const oldTrack = await host.receive('old-mic');
+          await host.answer();
+          const oldSender = host.target.getSenders().find((sender) => sender.track === oldTrack)!;
+          act(() => host.result.current.muteViewer('viewer-1', true));
+          host.setTargetState('disconnected');
+          const replacement = await host.receive('new-mic');
+          await act(async () => {
+            host.source.ontrack?.({ track: replacement, streams: [] });
+            await flushAsyncWork();
+          });
+          host.setTargetState('connected');
+          expect(replacement.enabled).toBe(false);
+          expect(host.target.removeTrack).toHaveBeenCalledWith(oldSender);
+          expect(
+            host.target.getSenders().filter((sender) => sender.track === replacement)
+          ).toHaveLength(1);
+          expect(host.target.getSenders().some((sender) => sender.track === oldTrack)).toBe(false);
+          expect(
+            host.target.addTrack.mock.calls.filter(([track]) => track === replacement)
+          ).toHaveLength(1);
+          expect(host.source.addTrack).not.toHaveBeenCalledWith(replacement, expect.anything());
+        } finally {
+          host.unmount();
+        }
+      });
+
+      it('removes a departed source while disconnected and does not resurrect it on recovery', async () => {
+        const host = await connectViewers();
+        try {
+          host.setTargetState('connected');
+          const track = await host.receive('departing-mic');
+          expect(host.target.getSenders().some((sender) => sender.track === track)).toBe(true);
+          host.setTargetState('disconnected');
+          await act(async () => {
+            host.leaveHandler({ leftPresences: [{ user_id: 'viewer-1', role: 'viewer' }] });
+            await flushAsyncWork();
+          });
+          await host.answer();
+          host.setTargetState('connected');
+          expect(host.target.getSenders().some((sender) => sender.track === track)).toBe(false);
+          expect(host.result.current.viewers.has('viewer-1')).toBe(false);
+        } finally {
+          host.unmount();
+        }
+      });
+
+      it.each(['publish', 'replace', 'unpublish'])(
+        'keeps %s synchronized during reconnection without removing host mic or relays',
+        async (operation) => {
+          const host = await connectViewers();
+          try {
+            host.setTargetState('connected');
+            const relay = await host.receive('retained-mic');
+            await host.answer();
+            const voiceSenders = host.target
+              .getSenders()
+              .filter((sender) => sender.track?.kind === 'audio');
+            const voiceTracks = voiceSenders.map((sender) => sender.track);
+
+            // Set up the prior state while connected so this test isolates only
+            // the next publish/unpublish operation during disconnection.
+            host.setTargetState('connected');
+            await act(async () => {
+              if (operation === 'publish') await host.result.current.unpublishStream();
+              else await host.result.current.publishStream(host.screen('previous'));
+              await flushAsyncWork();
+            });
+            await host.answer('viewer-1');
+            await host.answer();
+            host.setTargetState('disconnected');
+            const before = host.target
+              .getSenders()
+              .filter((sender) => sender.track && !voiceSenders.includes(sender));
+            const next = host.screen('next');
+
+            await act(async () => {
+              if (operation === 'unpublish') await host.result.current.unpublishStream();
+              else await host.result.current.publishStream(next);
+              await flushAsyncWork();
+            });
+            host.setTargetState('connected');
+
+            expect(voiceSenders.map((sender) => sender.track)).toEqual(voiceTracks);
+            expect(host.target.getSenders().some((sender) => sender.track === relay)).toBe(true);
+            for (const sender of before) expect(sender.track).toBeNull();
+            const remainingScreen = host.target
+              .getSenders()
+              .filter((sender) => sender.track && !voiceSenders.includes(sender));
+            expect(remainingScreen.map((sender) => sender.track)).toEqual(
+              operation === 'unpublish' ? [] : next.getTracks()
+            );
+          } finally {
+            host.unmount();
+          }
+        }
+      );
+
+      it.each(['failed', 'closed'])('does not add tracks to a %s peer', async (state) => {
+        const host = await connectViewers();
+        try {
+          host.setTargetState(state);
+          const additions = host.target.addTrack.mock.calls.length;
+          const offers = host.target.createOffer.mock.calls.length;
+          await host.receive('late-mic');
+          await act(async () => {
+            await host.result.current.publishStream(host.screen('late'));
+            await host.result.current.unpublishStream();
+            await flushAsyncWork();
+          });
+          expect(host.result.current.viewers.has('viewer-2')).toBe(false);
+          expect(host.target.addTrack).toHaveBeenCalledTimes(additions);
+          expect(host.target.createOffer).toHaveBeenCalledTimes(offers);
+        } finally {
+          host.unmount();
+        }
+      });
+    });
+
     it('still relays audio and retries playback when local amplification fails', async () => {
       const { result, joinHandler, signalHandler } = await initializeSubscribedHost();
 

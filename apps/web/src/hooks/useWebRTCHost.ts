@@ -390,7 +390,8 @@ export function useWebRTCHost({
     [hostId]
   );
 
-  // Relay a viewer's audio track to all other connected viewers via renegotiation
+  // Temporary media disconnection must not discard track updates. Signaling
+  // still queues offers independently, so reconnecting peers stay in sync.
   const relayAudioToOtherViewers = useCallback(
     async (sourceViewerId: string, audioTrack: MediaStreamTrack) => {
       const audioStream = new MediaStream([audioTrack]);
@@ -401,7 +402,8 @@ export function useWebRTCHost({
         if (otherId === sourceViewerId) continue;
         if (
           otherViewer.connectionState !== 'connected' &&
-          otherViewer.connectionState !== 'connecting'
+          otherViewer.connectionState !== 'connecting' &&
+          otherViewer.connectionState !== 'reconnecting'
         )
           continue;
 
@@ -1032,7 +1034,11 @@ export function useWebRTCHost({
           localStreamRef.current !== stream
         )
           break;
-        if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+        if (
+          viewer.connectionState !== 'connected' &&
+          viewer.connectionState !== 'connecting' &&
+          viewer.connectionState !== 'reconnecting'
+        )
           continue;
 
         try {
@@ -1082,7 +1088,11 @@ export function useWebRTCHost({
 
     for (const viewer of viewersRef.current.values()) {
       if (publishedStreamVersionRef.current !== unpublishVersion) break;
-      if (viewer.connectionState !== 'connected' && viewer.connectionState !== 'connecting')
+      if (
+        viewer.connectionState !== 'connected' &&
+        viewer.connectionState !== 'connecting' &&
+        viewer.connectionState !== 'reconnecting'
+      )
         continue;
 
       try {

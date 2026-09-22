@@ -15,12 +15,17 @@ function createAudioContextMock() {
     disconnect: vi.fn(),
   });
 
-  const destinationStream = { id: 'amplified' } as unknown as MediaStream;
+  const outputTrack = { stop: vi.fn() };
+  const destinationStream = {
+    id: 'amplified',
+    getTracks: () => [outputTrack],
+  } as unknown as MediaStream;
 
   return {
     connections,
     gainParam,
     destinationStream,
+    outputTrack,
     ctx: {
       state: 'running',
       currentTime: 0,
@@ -99,6 +104,39 @@ afterEach(() => {
 });
 
 describe('amplifyRemoteAudio', () => {
+  it.each(['source', 'connect'] as const)(
+    'cleans a partially built graph after %s fails',
+    async (stage) => {
+      const { amplifyRemoteAudio } = await loadModule();
+      const input = { id: 'input', kind: 'audio', stop: vi.fn() } as unknown as MediaStreamTrack;
+      if (stage === 'source') {
+        const first = mock.ctx.createMediaStreamSource();
+        mock.ctx.createMediaStreamSource
+          .mockClear()
+          .mockReturnValueOnce(first)
+          .mockImplementationOnce(() => {
+            throw new Error('source failed');
+          });
+      } else {
+        const gain = mock.ctx.createGain();
+        gain.connect.mockImplementation(() => {
+          throw new Error('connect failed');
+        });
+        mock.ctx.createGain.mockClear().mockReturnValue(gain);
+      }
+      expect(() => amplifyRemoteAudio([input, track])).toThrow(`${stage} failed`);
+      for (const sink of FakeAudioElement.instances) {
+        expect(sink.pause).toHaveBeenCalledOnce();
+        expect(sink.srcObject).toBeNull();
+      }
+      for (const result of mock.ctx.createMediaStreamSource.mock.results) {
+        if (result.type === 'return') expect(result.value.disconnect).toHaveBeenCalledOnce();
+      }
+      if (stage === 'connect') expect(mock.outputTrack.stop).toHaveBeenCalledOnce();
+      expect(input.stop).not.toHaveBeenCalled();
+    }
+  );
+
   it('mixes all group-call microphones into a single gain and limiter output', async () => {
     const { amplifyRemoteAudio } = await loadModule();
     const tracks = [
@@ -121,6 +159,7 @@ describe('amplifyRemoteAudio', () => {
     }
     amplified.dispose();
     amplified.dispose();
+    expect(mock.outputTrack.stop).toHaveBeenCalledOnce();
     for (const sink of FakeAudioElement.instances) {
       expect(sink.pause).toHaveBeenCalledOnce();
       expect(sink.srcObject).toBeNull();

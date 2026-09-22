@@ -54,6 +54,26 @@ describe('VideoViewer', () => {
     expect(screen.getByText('The stream will appear here when ready')).toBeInTheDocument();
   });
 
+  it('adjusts gain without recreating playback or stopping the input track', () => {
+    const dispose = vi.fn();
+    const setGain = vi.fn();
+    const mix = vi.spyOn(remoteAudioGain, 'amplifyRemoteAudio').mockReturnValue({
+      stream: new MediaStream(),
+      dispose,
+      setGain,
+    });
+    const stream = createMockStream(['audio']);
+    const { rerender, unmount } = render(
+      <VideoViewer stream={stream} connectionState="connected" speakerGain={1} />
+    );
+    rerender(<VideoViewer stream={stream} connectionState="connected" speakerGain={2} />);
+    expect(mix).toHaveBeenCalledOnce();
+    expect(dispose).not.toHaveBeenCalled();
+    expect(setGain).toHaveBeenLastCalledWith(2);
+    unmount();
+    mix.mockRestore();
+  });
+
   it('renders connecting spinner when connecting', () => {
     render(<VideoViewer stream={null} connectionState="connecting" />);
 

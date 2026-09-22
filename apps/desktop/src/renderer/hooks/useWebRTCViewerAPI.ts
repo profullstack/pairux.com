@@ -112,6 +112,9 @@ export function useWebRTCViewerAPI({
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const remoteTrackCleanupRef = useRef(new Map<string, () => void>());
+  const hostPeerIdRef = useRef<string | null>(null);
+  const lifecycleRef = useRef(0);
   const micStreamRef = useRef<MediaStream | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
@@ -132,7 +135,7 @@ export function useWebRTCViewerAPI({
   // ICE servers received from the SSE connected event (includes TURN)
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   // Buffer ICE candidates that arrive before remote description is set
-  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const pendingCandidatesRef = useRef<{ candidate: RTCIceCandidateInit; senderId: string }[]>([]);
   // Serialize signaling message processing to prevent race conditions
   const signalQueueRef = useRef<Promise<void>>(Promise.resolve());
   const answeredOfferRef = useRef<AnsweredOffer | null>(null);
@@ -251,24 +254,31 @@ export function useWebRTCViewerAPI({
       dataChannelRef.current = channel;
 
       channel.onopen = () => {
+        if (dataChannelRef.current !== channel) return;
         setDataChannelReady(true);
         void announceTailnet(participantIdRef.current, (message) => {
-          if (dataChannelRef.current?.readyState !== 'open') return;
+          if (dataChannelRef.current !== channel || channel.readyState !== 'open') return;
           dataChannelRef.current.send(JSON.stringify(message));
         });
       };
 
       channel.onclose = () => {
+        if (dataChannelRef.current !== channel) return;
+        dataChannelRef.current = null;
         setDataChannelReady(false);
         setControlState('view-only');
       };
 
       channel.onerror = (err) => {
+        if (dataChannelRef.current !== channel) return;
         console.error('[WebRTCViewer] Data channel error:', err);
         setDataChannelReady(false);
       };
 
-      channel.onmessage = handleDataChannelMessage;
+      channel.onmessage = (event) => {
+        if (dataChannelRef.current !== channel) return;
+        handleDataChannelMessage(event as MessageEvent<string>);
+      };
     },
     [handleDataChannelMessage]
   );
@@ -444,8 +454,11 @@ export function useWebRTCViewerAPI({
     async (message: SignalMessage, pc: RTCPeerConnection) => {
       const current = () => peerConnectionRef.current === pc;
       if (!current()) return;
+      if (message.targetId && message.targetId !== getSignalSenderId()) return;
+      if (hostPeerIdRef.current && message.senderId !== hostPeerIdRef.current) return;
 
       const addIceCandidateSafely = async (candidateInit: RTCIceCandidateInit) => {
+        if (!current()) return;
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidateInit));
         } catch (err) {
@@ -462,7 +475,7 @@ export function useWebRTCViewerAPI({
             return;
           }
 
-          throw err;
+          console.warn('[WebRTCViewer] Ignoring invalid ICE candidate:', err);
         }
       };
 
@@ -499,19 +512,12 @@ export function useWebRTCViewerAPI({
               if (!current()) return;
             }
 
-            // Drop buffered candidates from prior offers; mids can change across renegotiation.
-            if (pendingCandidatesRef.current.length > 0) {
-              console.log(
-                `[WebRTCViewer] Clearing ${String(pendingCandidatesRef.current.length)} buffered ICE candidates before applying new offer`
-              );
-              pendingCandidatesRef.current = [];
-            }
-
             await pc.setRemoteDescription({
               type: 'offer',
               sdp: message.sdp,
             });
             if (!current()) return;
+            hostPeerIdRef.current = message.senderId;
             const answer = await pc.createAnswer();
             if (!current()) return;
             // In-band FEC turns a lost packet into a duller syllable, not a gap.
@@ -540,13 +546,16 @@ export function useWebRTCViewerAPI({
             }
 
             // Drain any ICE candidates that arrived before remote description was set
-            const pending = pendingCandidatesRef.current;
+            const pending = pendingCandidatesRef.current.filter(
+              (item) => item.senderId === message.senderId
+            );
+            pendingCandidatesRef.current = [];
             if (pending.length > 0) {
               console.log(
                 `[WebRTCViewer] Draining ${String(pending.length)} buffered ICE candidates`
               );
               pendingCandidatesRef.current = [];
-              for (const candidate of pending) {
+              for (const { candidate } of pending) {
                 await addIceCandidateSafely(candidate);
               }
             }
@@ -557,7 +566,10 @@ export function useWebRTCViewerAPI({
             if (message.candidate?.candidate) {
               // Buffer if remote description not yet set
               if (!pc.remoteDescription) {
-                pendingCandidatesRef.current.push(message.candidate);
+                pendingCandidatesRef.current.push({
+                  candidate: message.candidate,
+                  senderId: message.senderId,
+                });
               } else {
                 await addIceCandidateSafely(message.candidate);
               }
@@ -595,20 +607,25 @@ export function useWebRTCViewerAPI({
 
       // Attempt ICE restart
       const pc = peerConnectionRef.current;
-      if (pc) {
+      const targetId = hostPeerIdRef.current;
+      if (pc && targetId) {
         try {
           const offer = await pc.createOffer({ iceRestart: true });
+          if (peerConnectionRef.current !== pc) return;
           await pc.setLocalDescription(offer);
+          if (peerConnectionRef.current !== pc) return;
 
           if (offer.sdp) {
             await sendSignal({
               type: 'offer',
               sdp: offer.sdp,
               senderId: getSignalSenderId(),
+              targetId,
               timestamp: Date.now(),
             });
           }
         } catch {
+          if (peerConnectionRef.current !== pc) return;
           setConnectionState('failed');
           setError('Failed to reconnect');
         }
@@ -650,16 +667,47 @@ export function useWebRTCViewerAPI({
       const composite = current ?? new MediaStream();
 
       const addTrackIfMissing = (track: MediaStreamTrack) => {
-        const exists = composite.getTracks().some((existing) => existing.id === track.id);
-        if (!exists) {
+        if (track.readyState === 'ended') return;
+        const existing = composite.getTracks().find((item) => item.id === track.id);
+        if (existing !== track) {
+          if (existing) {
+            remoteTrackCleanupRef.current.get(existing.id)?.();
+            remoteTrackCleanupRef.current.delete(existing.id);
+            composite.removeTrack(existing);
+          }
           // One screen, but many microphones: another participant must not
           // replace the audio tracks already being played.
           const sameKind = track.kind === 'video' ? composite.getVideoTracks()[0] : undefined;
           if (sameKind) {
+            remoteTrackCleanupRef.current.get(sameKind.id)?.();
+            remoteTrackCleanupRef.current.delete(sameKind.id);
             composite.removeTrack(sameKind);
           }
           composite.addTrack(track);
         }
+        if (remoteTrackCleanupRef.current.has(track.id)) return;
+        const previousEnded = track.onended;
+        const remove = () => {
+          if (peerConnectionRef.current !== pc) return;
+          if (!remoteStreamRef.current?.getTracks().includes(track)) return;
+          remoteTrackCleanupRef.current.get(track.id)?.();
+          remoteTrackCleanupRef.current.delete(track.id);
+          const remaining = remoteStreamRef.current.getTracks().filter((item) => item !== track);
+          const next = remaining.length ? new MediaStream(remaining) : null;
+          remoteStreamRef.current = next;
+          setRemoteStream(next);
+          if (next) onStreamReady?.(next);
+          else onStreamEnded?.();
+        };
+        const removed = (event: MediaStreamTrackEvent) => {
+          if (event.track === track) remove();
+        };
+        track.onended = remove;
+        incomingStream?.addEventListener('removetrack', removed);
+        remoteTrackCleanupRef.current.set(track.id, () => {
+          if (track.onended === remove) track.onended = previousEnded;
+          incomingStream?.removeEventListener('removetrack', removed);
+        });
       };
 
       if (incomingStream) {
@@ -667,20 +715,8 @@ export function useWebRTCViewerAPI({
       } else {
         addTrackIfMissing(event.track);
       }
+      if (composite.getTracks().length === 0) return;
 
-      event.track.onended = () => {
-        console.warn('[WebRTCViewer] Remote track ended', {
-          kind: event.track.kind,
-          id: event.track.id,
-        });
-        if (peerConnectionRef.current !== pc) return;
-        const remaining = new MediaStream(
-          (remoteStreamRef.current?.getTracks() ?? []).filter((track) => track !== event.track)
-        );
-        remoteStreamRef.current = remaining;
-        setRemoteStream(remaining);
-        onStreamReady?.(remaining);
-      };
       event.track.onmute = () => {
         console.warn('[WebRTCViewer] Remote track muted', {
           kind: event.track.kind,
@@ -717,11 +753,15 @@ export function useWebRTCViewerAPI({
 
     // Handle ICE candidates — send via API
     pc.onicecandidate = (event) => {
+      if (peerConnectionRef.current !== pc) return;
+      const targetId = hostPeerIdRef.current;
+      if (!targetId) return;
       if (event.candidate) {
         void sendSignal({
           type: 'ice-candidate',
           candidate: event.candidate.toJSON(),
           senderId: getSignalSenderId(),
+          targetId,
           timestamp: Date.now(),
         });
       }
@@ -729,6 +769,7 @@ export function useWebRTCViewerAPI({
 
     // Handle connection state changes
     pc.oniceconnectionstatechange = () => {
+      if (peerConnectionRef.current !== pc) return;
       const state = pc.iceConnectionState;
       switch (state) {
         case 'checking':
@@ -766,6 +807,7 @@ export function useWebRTCViewerAPI({
     };
 
     pc.onconnectionstatechange = () => {
+      if (peerConnectionRef.current !== pc) return;
       const handler = handleConnectionFailureRef.current;
       if (pc.connectionState === 'failed' && handler) {
         void handler();
@@ -774,6 +816,7 @@ export function useWebRTCViewerAPI({
 
     // Handle incoming data channel from host
     pc.ondatachannel = (event) => {
+      if (peerConnectionRef.current !== pc) return;
       setupDataChannel(event.channel);
     };
 
@@ -782,6 +825,13 @@ export function useWebRTCViewerAPI({
 
   // Disconnect and clean up
   const disconnect = useCallback(() => {
+    lifecycleRef.current++;
+    hostPeerIdRef.current = null;
+    pendingCandidatesRef.current = [];
+    remoteTrackCleanupRef.current.forEach((cleanup) => {
+      cleanup();
+    });
+    remoteTrackCleanupRef.current.clear();
     answeredOfferRef.current = null;
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
@@ -794,13 +844,15 @@ export function useWebRTCViewerAPI({
     }
 
     if (dataChannelRef.current) {
-      dataChannelRef.current.close();
+      const channel = dataChannelRef.current;
       dataChannelRef.current = null;
+      channel.close();
     }
 
     if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
+      const pc = peerConnectionRef.current;
       peerConnectionRef.current = null;
+      pc.close();
     }
 
     if (micStreamRef.current) {
@@ -847,6 +899,8 @@ export function useWebRTCViewerAPI({
   const initialize = useCallback(async () => {
     if (isConnectingRef.current || eventSourceRef.current) return;
     isConnectingRef.current = true;
+    const generation = ++lifecycleRef.current;
+    const current = () => lifecycleRef.current === generation;
 
     console.log('[WebRTCViewer] Starting viewer for session:', sessionId);
 
@@ -854,8 +908,10 @@ export function useWebRTCViewerAPI({
     try {
       const api = getElectronAPI();
       const { token } = await api.invoke('auth:getToken', undefined);
+      if (!current()) return;
       authTokenRef.current = token;
     } catch (err) {
+      if (!current()) return;
       console.error('[WebRTCViewer] Failed to get auth token:', err);
       isConnectingRef.current = false;
       setError('Failed to authenticate. Please log in again.');
@@ -868,12 +924,19 @@ export function useWebRTCViewerAPI({
         audio: VOICE_AUDIO_CONSTRAINTS,
         video: false,
       });
+      if (!current()) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        return;
+      }
       markTrackAsSpeech(micStream.getAudioTracks()[0]);
       micStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
       console.log('[WebRTCViewer] Microphone captured');
     } catch (err: unknown) {
+      if (!current()) return;
       console.warn('[WebRTCViewer] Could not access microphone:', err);
       micStreamRef.current = null;
       setHasMic(false);
@@ -896,6 +959,7 @@ export function useWebRTCViewerAPI({
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('connected', (event) => {
+      if (!current() || eventSourceRef.current !== eventSource) return;
       console.log('[WebRTCViewer] SSE connected:', event.data);
       isConnectingRef.current = false;
       setConnectionState('connecting');
@@ -927,9 +991,26 @@ export function useWebRTCViewerAPI({
       }
 
       // Close existing peer connection before creating a new one (prevents leak on SSE reconnect)
+      hostPeerIdRef.current = null;
+      answeredOfferRef.current = null;
+      remoteTrackCleanupRef.current.forEach((cleanup) => {
+        cleanup();
+      });
+      remoteTrackCleanupRef.current.clear();
+      const hadStream = remoteStreamRef.current !== null;
+      remoteStreamRef.current = null;
+      setRemoteStream(null);
+      if (hadStream) onStreamEnded?.();
+      const oldChannel = dataChannelRef.current;
+      dataChannelRef.current = null;
+      oldChannel?.close();
+      setDataChannelReady(false);
+      setControlState('view-only');
       if (peerConnectionRef.current) {
+        const oldPeer = peerConnectionRef.current;
+        peerConnectionRef.current = null;
         try {
-          peerConnectionRef.current.close();
+          oldPeer.close();
         } catch {
           // Ignore
         }
@@ -952,6 +1033,7 @@ export function useWebRTCViewerAPI({
     });
 
     eventSource.addEventListener('signal', (event) => {
+      if (!current() || eventSourceRef.current !== eventSource) return;
       try {
         const signal = JSON.parse(event.data as string) as SignalMessage;
         handleSignalMessage(signal);
@@ -961,6 +1043,7 @@ export function useWebRTCViewerAPI({
     });
 
     eventSource.addEventListener('presence-join', (event) => {
+      if (!current() || eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string; role: string }[];
@@ -977,6 +1060,7 @@ export function useWebRTCViewerAPI({
     });
 
     eventSource.addEventListener('presence-leave', (event) => {
+      if (!current() || eventSourceRef.current !== eventSource) return;
       try {
         const { presences } = JSON.parse(event.data as string) as {
           presences: { user_id: string; role: string }[];
@@ -994,6 +1078,7 @@ export function useWebRTCViewerAPI({
     });
 
     eventSource.addEventListener('error', () => {
+      if (!current() || eventSourceRef.current !== eventSource) return;
       console.error('[WebRTCViewer] SSE error');
       isConnectingRef.current = false;
       setError('Connection to server lost. Reconnecting...');
@@ -1011,6 +1096,7 @@ export function useWebRTCViewerAPI({
     createPeerConnection,
     collectStats,
     reportStats,
+    onStreamEnded,
   ]);
 
   // Manual reconnect

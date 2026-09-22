@@ -70,6 +70,16 @@ export interface ViewerConnection {
   isMuted: boolean;
 }
 
+function disposeViewerAudio(viewer: ViewerConnection): void {
+  if (viewer.audioElement) {
+    viewer.audioElement.pause();
+    viewer.audioElement.srcObject = null;
+    viewer.audioElement = null;
+  }
+  viewer.amplifiedAudio?.dispose();
+  viewer.amplifiedAudio = null;
+}
+
 interface SignalMessage {
   type: 'offer' | 'answer' | 'ice-candidate';
   sdp?: string;
@@ -113,7 +123,7 @@ interface UseWebRTCHostAPIReturn {
   error: string | null;
   startHosting: () => Promise<void>;
   stopHosting: () => void;
-  publishStream: (stream: MediaStream) => Promise<void>;
+  publishStream: (stream: MediaStream, isSuperseded?: () => boolean) => Promise<void>;
   unpublishStream: () => Promise<void>;
   grantControl: (viewerId: string) => void;
   revokeControl: (viewerId: string) => void;
@@ -152,9 +162,14 @@ export function useWebRTCHostAPI({
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
   const statsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const removeViewerRef = useRef<((viewerId: string) => void) | undefined>(undefined);
+  const relayedAudioSendersRef = useRef(new Map<string, Map<string, RTCRtpSender>>());
+  const mutedViewerIdsRef = useRef(new Set<string>());
+  const publishedStreamVersionRef = useRef(0);
+  const mediaQueueRef = useRef<Promise<void>>(Promise.resolve());
   const authTokenRef = useRef<string | null>(null);
   const isStartingRef = useRef(false);
   const localStreamRef = useRef<MediaStream | null>(localStream);
+  const isPublishedStreamSupersededRef = useRef<() => boolean>(() => false);
   const hostMicStreamRef = useRef<MediaStream | null>(null);
   // Current playback gain, so a viewer who joins later starts at the level the
   // host already chose rather than snapping back to the default.
@@ -169,7 +184,6 @@ export function useWebRTCHostAPI({
   const negotiationInstanceRef = useRef<string | null>(null);
 
   // Keep refs updated
-  localStreamRef.current = localStream;
   const onControlRequestRef = useRef(onControlRequest);
   const onInputReceivedRef = useRef(onInputReceived);
   const onTailnetHelloRef = useRef(onTailnetHello);
@@ -189,7 +203,7 @@ export function useWebRTCHostAPI({
 
   const getPreferredHostAudioTrack = useCallback(
     (streamOverride?: MediaStream | null): MediaStreamTrack | null => {
-      const stream = streamOverride ?? localStreamRef.current;
+      const stream = streamOverride === undefined ? localStreamRef.current : streamOverride;
       const streamAudioTrack = stream?.getAudioTracks()[0] ?? null;
       if (streamAudioTrack) return streamAudioTrack;
       return hostMicStreamRef.current?.getAudioTracks()[0] ?? null;
@@ -203,7 +217,7 @@ export function useWebRTCHostAPI({
 
       if (preferredTrack) {
         if (viewer.hostAudioSender) {
-          if (viewer.hostAudioSender.track?.id !== preferredTrack.id) {
+          if (viewer.hostAudioSender.track !== preferredTrack) {
             await viewer.hostAudioSender.replaceTrack(preferredTrack);
           }
         } else {
@@ -547,6 +561,7 @@ export function useWebRTCHostAPI({
 
       for (const [otherId, otherViewer] of Array.from(viewersRef.current.entries())) {
         if (viewersRef.current.get(sourceViewerId)?.audioTrack !== audioTrack) return;
+        if (viewersRef.current.get(otherId) !== otherViewer) continue;
         if (otherId === sourceViewerId) continue;
         if (
           otherViewer.connectionState !== 'connected' &&
@@ -556,8 +571,20 @@ export function useWebRTCHostAPI({
           continue;
 
         try {
+          let senders = relayedAudioSendersRef.current.get(otherId);
+          if (!senders) {
+            senders = new Map();
+            relayedAudioSendersRef.current.set(otherId, senders);
+          }
+          const previous = senders.get(sourceViewerId);
+          if (previous?.track === audioTrack) continue;
+          if (previous) {
+            otherViewer.peerConnection.removeTrack(previous);
+            senders.delete(sourceViewerId);
+          }
           const relaySender = otherViewer.peerConnection.addTrack(audioTrack, audioStream);
-          await prioritizeAudioSender(relaySender);
+          senders.set(sourceViewerId, relaySender);
+          void prioritizeAudioSender(relaySender);
           console.log(`[WebRTCHost] Added ${sourceViewerId}'s audio to ${otherId}, renegotiating`);
 
           await requestViewerNegotiation(otherId, otherViewer.peerConnection);
@@ -578,9 +605,13 @@ export function useWebRTCHostAPI({
         iceServers: iceServersRef.current,
         iceCandidatePoolSize: 10,
       });
+      const relayedSenders = new Map<string, RTCRtpSender>();
+      relayedAudioSendersRef.current.set(viewerId, relayedSenders);
 
       // Add local stream tracks (if currently sharing)
-      const currentStream = localStreamRef.current;
+      const currentStream = isPublishedStreamSupersededRef.current()
+        ? null
+        : localStreamRef.current;
       if (currentStream) {
         // Screen-share publishing only uses video tracks here; host mic is handled separately.
         currentStream.getVideoTracks().forEach((track) => {
@@ -607,9 +638,11 @@ export function useWebRTCHostAPI({
       // Add existing viewers' audio tracks to this new viewer's PC
       for (const [otherId, otherViewer] of viewersRef.current.entries()) {
         if (otherId === viewerId) continue;
-        if (otherViewer.audioTrack && !otherViewer.isMuted) {
+        if (otherViewer.audioTrack) {
           const audioStream = new MediaStream([otherViewer.audioTrack]);
-          void prioritizeAudioSender(pc.addTrack(otherViewer.audioTrack, audioStream));
+          const sender = pc.addTrack(otherViewer.audioTrack, audioStream);
+          relayedSenders.set(otherId, sender);
+          void prioritizeAudioSender(sender);
         }
       }
 
@@ -631,24 +664,35 @@ export function useWebRTCHostAPI({
           console.log(`[WebRTCHost] Received audio track from viewer: ${viewerId}`);
           const viewer = viewersRef.current.get(viewerId);
           if (viewer) {
+            if (viewer.audioTrack !== event.track) {
+              disposeViewerAudio(viewer);
+            }
             viewer.audioTrack = event.track;
+            event.track.enabled = !viewer.isMuted;
 
             // Play viewer audio locally so the host can hear participants.
             // The element's own volume tops out at 1.0, so the track goes
             // through a gain stage first — that is the only way to make a
             // quiet talker louder rather than merely un-muted.
-            const amplified = amplifyRemoteAudio(event.track, speakerGainRef.current);
-            viewer.amplifiedAudio = amplified;
+            try {
+              if (!viewer.amplifiedAudio || !viewer.audioElement) {
+                const amplified = amplifyRemoteAudio(event.track, speakerGainRef.current);
+                viewer.amplifiedAudio = amplified;
 
-            const audioEl = new Audio();
-            audioEl.srcObject = amplified.stream;
-            audioEl.autoplay = true;
-            audioEl.volume = 1.0;
-            audioEl.muted = viewer.isMuted;
-            void audioEl.play().catch((err: unknown) => {
-              console.warn('[WebRTCHost] Failed to play viewer audio:', err);
-            });
-            viewer.audioElement = audioEl;
+                const audioEl = new Audio();
+                audioEl.srcObject = amplified.stream;
+                audioEl.autoplay = true;
+                audioEl.volume = 1.0;
+                audioEl.muted = viewer.isMuted;
+                void audioEl.play().catch((err: unknown) => {
+                  console.warn('[WebRTCHost] Failed to play viewer audio:', err);
+                });
+                viewer.audioElement = audioEl;
+              }
+            } catch (err) {
+              disposeViewerAudio(viewer);
+              console.warn('[WebRTCHost] Local playback unavailable:', err);
+            }
 
             setViewers(new Map(viewersRef.current));
 
@@ -725,13 +769,23 @@ export function useWebRTCHostAPI({
         const viewer = viewersRef.current.get(viewerId);
         if (viewer?.peerConnection === pc) {
           viewer.dataChannel = dc;
+          if (viewer.isMuted) {
+            dc.send(
+              JSON.stringify({
+                type: 'mute',
+                participantId: viewerId,
+                muted: true,
+                timestamp: Date.now(),
+              } satisfies MuteMessage)
+            );
+          }
           setViewers(new Map(viewersRef.current));
         }
       };
 
       dc.onclose = () => {
         const viewer = viewersRef.current.get(viewerId);
-        if (viewer?.peerConnection === pc) {
+        if (viewer?.peerConnection === pc && viewer.dataChannel === dc) {
           viewer.dataChannel = null;
           viewer.controlState = 'view-only';
           setViewers(new Map(viewersRef.current));
@@ -740,7 +794,11 @@ export function useWebRTCHostAPI({
       };
 
       dc.onmessage = (event: MessageEvent<string>) => {
-        if (viewersRef.current.get(viewerId)?.peerConnection !== pc) return;
+        if (
+          viewersRef.current.get(viewerId)?.peerConnection !== pc ||
+          viewersRef.current.get(viewerId)?.dataChannel !== dc
+        )
+          return;
         handleDataChannelMessage(viewerId, event);
       };
 
@@ -762,16 +820,29 @@ export function useWebRTCHostAPI({
       if (viewer) {
         // Invalidate callbacks before close() emits any further peer events.
         viewersRef.current.delete(viewerId);
+        relayedAudioSendersRef.current.delete(viewerId);
+        for (const [destinationId, destination] of viewersRef.current) {
+          const senders = relayedAudioSendersRef.current.get(destinationId);
+          const sender = senders?.get(viewerId);
+          if (!sender) continue;
+          senders?.delete(viewerId);
+          try {
+            destination.peerConnection.removeTrack(sender);
+            void requestViewerNegotiation(destinationId, destination.peerConnection).catch(
+              (err: unknown) => {
+                console.warn('[WebRTCHost] Failed to negotiate departed audio:', err);
+              }
+            );
+          } catch (err) {
+            console.warn('[WebRTCHost] Failed to detach departed audio:', err);
+          }
+        }
         const negotiation = negotiationStatesRef.current.get(viewerId);
         if (negotiation?.retryTimer) clearTimeout(negotiation.retryTimer);
         negotiationStatesRef.current.delete(viewerId);
         console.log('[WebRTCHost] Removing viewer:', viewerId);
         // Clean up audio element
-        if (viewer.audioElement) {
-          viewer.audioElement.pause();
-          viewer.audioElement.srcObject = null;
-        }
-        viewer.amplifiedAudio?.dispose();
+        disposeViewerAudio(viewer);
         viewer.peerConnection.close();
         pendingCandidatesRef.current.delete(viewerId);
         lastInputSequenceRef.current.delete(viewerId);
@@ -782,7 +853,7 @@ export function useWebRTCHostAPI({
         onViewerLeft?.(viewerId);
       }
     },
-    [onViewerLeft]
+    [onViewerLeft, requestViewerNegotiation]
   );
 
   removeViewerRef.current = removeViewer;
@@ -809,7 +880,7 @@ export function useWebRTCHostAPI({
         audioTrack: null,
         audioElement: null,
         amplifiedAudio: null,
-        isMuted: false,
+        isMuted: mutedViewerIdsRef.current.has(viewerId),
       };
 
       viewersRef.current.set(viewerId, viewer);
@@ -1064,6 +1135,11 @@ export function useWebRTCHostAPI({
     }
 
     const previousViewers = Array.from(viewersRef.current.values());
+    publishedStreamVersionRef.current++;
+    localStreamRef.current = null;
+    mediaQueueRef.current = Promise.resolve();
+    relayedAudioSendersRef.current.clear();
+    mutedViewerIdsRef.current.clear();
     viewersRef.current.clear();
     negotiationStatesRef.current.forEach((state) => {
       if (state.retryTimer) clearTimeout(state.retryTimer);
@@ -1075,11 +1151,7 @@ export function useWebRTCHostAPI({
     controllingViewerRef.current = null;
     setControllingViewer(null);
     previousViewers.forEach((viewer) => {
-      if (viewer.audioElement) {
-        viewer.audioElement.pause();
-        viewer.audioElement.srcObject = null;
-      }
-      viewer.amplifiedAudio?.dispose();
+      disposeViewerAudio(viewer);
       viewer.peerConnection.close();
     });
     setViewers(new Map());
@@ -1099,40 +1171,110 @@ export function useWebRTCHostAPI({
 
   // Publish a screen share stream to all connected viewers
   const publishStream = useCallback(
-    async (stream: MediaStream) => {
+    async (stream: MediaStream, isSuperseded: () => boolean = () => false) => {
+      if (isSuperseded()) return;
+      const version = ++publishedStreamVersionRef.current;
       localStreamRef.current = stream;
-      const videoTracks = stream.getVideoTracks();
-      const preferredHostAudioTrack = getPreferredHostAudioTrack(stream);
-      console.log('[WebRTCHost] Publishing stream:', {
-        videoTracks: videoTracks.length,
-        audioTracks: stream.getAudioTracks().length,
-      });
-      for (const track of videoTracks) {
-        console.log('[WebRTCHost] Publish video track', {
-          id: track.id,
-          label: track.label,
-          muted: track.muted,
-          readyState: track.readyState,
-          settings: track.getSettings(),
+      isPublishedStreamSupersededRef.current = isSuperseded;
+      const current = () =>
+        version === publishedStreamVersionRef.current &&
+        localStreamRef.current === stream &&
+        !isSuperseded();
+      const publish = async () => {
+        if (!current()) return;
+        const videoTracks = stream.getVideoTracks();
+        const preferredHostAudioTrack = getPreferredHostAudioTrack(stream);
+        console.log('[WebRTCHost] Publishing stream:', {
+          videoTracks: videoTracks.length,
+          audioTracks: stream.getAudioTracks().length,
         });
-        track.onmute = () => {
-          console.warn('[WebRTCHost] Video track muted', {
+        for (const track of videoTracks) {
+          console.log('[WebRTCHost] Publish video track', {
             id: track.id,
+            label: track.label,
+            muted: track.muted,
             readyState: track.readyState,
+            settings: track.getSettings(),
           });
-        };
-        track.onunmute = () => {
-          console.log('[WebRTCHost] Video track unmuted', {
-            id: track.id,
-            readyState: track.readyState,
-          });
-        };
-        track.onended = () => {
-          console.warn('[WebRTCHost] Video track ended', { id: track.id });
-        };
-      }
+          track.onmute = () => {
+            console.warn('[WebRTCHost] Video track muted', {
+              id: track.id,
+              readyState: track.readyState,
+            });
+          };
+          track.onunmute = () => {
+            console.log('[WebRTCHost] Video track unmuted', {
+              id: track.id,
+              readyState: track.readyState,
+            });
+          };
+          track.onended = () => {
+            console.warn('[WebRTCHost] Video track ended', { id: track.id });
+          };
+        }
 
+        for (const viewer of Array.from(viewersRef.current.values())) {
+          if (!current()) return;
+          if (viewersRef.current.get(viewer.id) !== viewer) continue;
+          if (
+            viewer.connectionState !== 'connected' &&
+            viewer.connectionState !== 'connecting' &&
+            viewer.connectionState !== 'reconnecting'
+          )
+            continue;
+
+          try {
+            const pc = viewer.peerConnection;
+            await syncHostAudioSender(viewer, preferredHostAudioTrack);
+            if (!current()) return;
+            if (viewersRef.current.get(viewer.id) !== viewer) continue;
+            const existingVideoSenders = pc
+              .getSenders()
+              .filter((sender) => sender.track?.kind === 'video');
+
+            // Replace existing video sender(s) instead of adding duplicate transceivers on every republish.
+            for (const [index, track] of videoTracks.entries()) {
+              track.contentHint = 'detail';
+              const existingSender = existingVideoSenders.at(index);
+              if (existingSender) {
+                await existingSender.replaceTrack(track);
+                if (!current()) return;
+                if (viewersRef.current.get(viewer.id) !== viewer) break;
+              } else {
+                pc.addTrack(track, stream);
+              }
+            }
+
+            if (viewersRef.current.get(viewer.id) !== viewer) continue;
+            // Remove any stale video senders if the new stream has fewer video tracks.
+            for (const staleSender of existingVideoSenders.slice(videoTracks.length)) {
+              pc.removeTrack(staleSender);
+            }
+
+            void requestViewerNegotiation(viewer.id, pc).catch((err: unknown) => {
+              console.warn('[WebRTCHost] Failed to negotiate publication:', err);
+            });
+          } catch (err) {
+            console.error(`[WebRTCHost] Failed to publish stream to ${viewer.id}:`, err);
+          }
+        }
+      };
+      // Serialize sender mutations, not HTTP signaling. An in-flight replaceTrack
+      // cannot be cancelled; the next operation must run after it settles.
+      const pending = mediaQueueRef.current.then(publish);
+      mediaQueueRef.current = pending.catch(() => undefined);
+      await pending;
+    },
+    [getPreferredHostAudioTrack, requestViewerNegotiation, syncHostAudioSender]
+  );
+
+  // Unpublish the screen share stream (remove video tracks) without closing connections
+  const unpublishStream = useCallback(async () => {
+    const version = ++publishedStreamVersionRef.current;
+    localStreamRef.current = null;
+    const unpublish = async () => {
       for (const viewer of Array.from(viewersRef.current.values())) {
+        if (version !== publishedStreamVersionRef.current) return;
         if (viewersRef.current.get(viewer.id) !== viewer) continue;
         if (
           viewer.connectionState !== 'connected' &&
@@ -1142,67 +1284,28 @@ export function useWebRTCHostAPI({
           continue;
 
         try {
-          const pc = viewer.peerConnection;
-          await syncHostAudioSender(viewer, preferredHostAudioTrack);
-          if (viewersRef.current.get(viewer.id) !== viewer) continue;
-          const existingVideoSenders = pc
-            .getSenders()
-            .filter((sender) => sender.track?.kind === 'video');
-
-          // Replace existing video sender(s) instead of adding duplicate transceivers on every republish.
-          for (const [index, track] of videoTracks.entries()) {
-            track.contentHint = 'detail';
-            const existingSender = existingVideoSenders.at(index);
-            if (existingSender) {
-              await existingSender.replaceTrack(track);
-            } else {
-              pc.addTrack(track, stream);
+          // Remove video senders (keep audio path active)
+          const senders = viewer.peerConnection.getSenders();
+          for (const sender of senders) {
+            if (sender.track?.kind === 'video') {
+              viewer.peerConnection.removeTrack(sender);
             }
           }
 
-          // Remove any stale video senders if the new stream has fewer video tracks.
-          for (const staleSender of existingVideoSenders.slice(videoTracks.length)) {
-            pc.removeTrack(staleSender);
-          }
-
-          await requestViewerNegotiation(viewer.id, pc);
+          await syncHostAudioSender(viewer, getPreferredHostAudioTrack(null));
+          if (version !== publishedStreamVersionRef.current) return;
+          if (viewersRef.current.get(viewer.id) !== viewer) continue;
+          void requestViewerNegotiation(viewer.id, viewer.peerConnection).catch((err: unknown) => {
+            console.warn('[WebRTCHost] Failed to negotiate unpublication:', err);
+          });
         } catch (err) {
-          console.error(`[WebRTCHost] Failed to publish stream to ${viewer.id}:`, err);
+          console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
         }
       }
-    },
-    [getPreferredHostAudioTrack, requestViewerNegotiation, syncHostAudioSender]
-  );
-
-  // Unpublish the screen share stream (remove video tracks) without closing connections
-  const unpublishStream = useCallback(async () => {
-    localStreamRef.current = null;
-
-    for (const viewer of Array.from(viewersRef.current.values())) {
-      if (viewersRef.current.get(viewer.id) !== viewer) continue;
-      if (
-        viewer.connectionState !== 'connected' &&
-        viewer.connectionState !== 'connecting' &&
-        viewer.connectionState !== 'reconnecting'
-      )
-        continue;
-
-      try {
-        // Remove video senders (keep audio path active)
-        const senders = viewer.peerConnection.getSenders();
-        for (const sender of senders) {
-          if (sender.track?.kind === 'video') {
-            viewer.peerConnection.removeTrack(sender);
-          }
-        }
-
-        await syncHostAudioSender(viewer, getPreferredHostAudioTrack(null));
-
-        await requestViewerNegotiation(viewer.id, viewer.peerConnection);
-      } catch (err) {
-        console.error(`[WebRTCHost] Failed to unpublish stream from ${viewer.id}:`, err);
-      }
-    }
+    };
+    const pending = mediaQueueRef.current.then(unpublish);
+    mediaQueueRef.current = pending.catch(() => undefined);
+    await pending;
   }, [getPreferredHostAudioTrack, requestViewerNegotiation, syncHostAudioSender]);
 
   // Cleanup on unmount
@@ -1212,12 +1315,8 @@ export function useWebRTCHostAPI({
     };
   }, [stopHosting]);
 
-  // Update stream when it changes via prop
-  useEffect(() => {
-    // Keep ref in sync so newly joining viewers get the current screen stream in createPeerConnection().
-    // Actual publishing/renegotiation happens through publishStream()/unpublishStream().
-    localStreamRef.current = localStream;
-  }, [localStream]);
+  // After initialization, only publish/unpublish may change the shared stream.
+  // The prop is raw capture; the published stream may contain a camera composite.
 
   // Grant control
   const grantControl = useCallback(
@@ -1297,6 +1396,9 @@ export function useWebRTCHostAPI({
   const muteViewer = useCallback((viewerId: string, muted: boolean) => {
     const viewer = viewersRef.current.get(viewerId);
     if (!viewer) return;
+    if (muted) mutedViewerIdsRef.current.add(viewerId);
+    else mutedViewerIdsRef.current.delete(viewerId);
+    if (viewer.audioTrack) viewer.audioTrack.enabled = !muted;
 
     // Send mute command via data channel
     if (viewer.dataChannel?.readyState === 'open') {

@@ -6,13 +6,15 @@ vi.mock('../../shared/config', () => ({ API_BASE_URL: 'http://localhost:3000' })
 vi.mock('@/lib/ipc', () => ({
   getElectronAPI: () => ({ invoke: vi.fn().mockResolvedValue({ token: 'local-test-token' }) }),
 }));
-vi.mock('@/lib/remoteAudioGain', () => ({
-  amplifyRemoteAudio: (track: MediaStreamTrack) => ({
+const playback = vi.hoisted(() => ({ amplify: vi.fn() }));
+vi.mock('@/lib/remoteAudioGain', () => ({ amplifyRemoteAudio: playback.amplify }));
+function amplify(track: MediaStreamTrack) {
+  return {
     stream: new MediaStream([track]),
     dispose: vi.fn(),
     setGain: vi.fn(),
-  }),
-}));
+  };
+}
 
 class TestEventSource {
   static latest: TestEventSource;
@@ -157,7 +159,7 @@ async function setup() {
     mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(new MediaStream([hostMic])) },
   });
   const localStream = new MediaStream([hostMic]);
-  const { result, unmount } = renderHook(() =>
+  const { result, unmount, rerender } = renderHook(() =>
     useWebRTCHostAPI({ sessionId: 'group', hostId: 'host', localStream })
   );
   await act(async () => {
@@ -166,10 +168,11 @@ async function setup() {
   await emit('connected', {});
   const peer = (id: string) =>
     result.current.viewers.get(id)!.peerConnection as unknown as TestPeer;
-  return { result, peer, unmount, hostMic };
+  return { result, peer, unmount, hostMic, rerender };
 }
 
 beforeEach(() => {
+  playback.amplify.mockReset().mockImplementation(amplify);
   signals.length = 0;
   mockFetch.mockClear();
   vi.stubGlobal('EventSource', TestEventSource);
@@ -201,6 +204,234 @@ afterEach(() => {
 });
 
 describe('desktop P2P group negotiation', () => {
+  it('owns one relay per source and removes it on leave before a same-ID rejoin', async () => {
+    const { peer } = await setup();
+    await join('source');
+    await join('target');
+    await answer('source');
+    await answer('target');
+    const first = track('first');
+    await act(async () => {
+      peer('source').ontrack?.({ track: first });
+      await flush();
+    });
+    await answer('target');
+    await act(async () => {
+      peer('source').ontrack?.({ track: first });
+      await flush();
+    });
+    expect(
+      peer('target')
+        .getSenders()
+        .filter((s) => s.track === first)
+    ).toHaveLength(1);
+    expect(playback.amplify).toHaveBeenCalledTimes(1);
+    // A new receiver object may retain the previous SDP msid.
+    const replacement = track('first');
+    await act(async () => {
+      peer('source').ontrack?.({ track: replacement });
+      await flush();
+    });
+    expect(
+      peer('target')
+        .getSenders()
+        .filter((s) => s.track === first)
+    ).toHaveLength(0);
+    expect(playback.amplify).toHaveBeenCalledTimes(2);
+    await emit('presence-leave', { presences: [{ user_id: 'source' }] });
+    expect(
+      peer('target')
+        .getSenders()
+        .filter((s) => s.track === replacement)
+    ).toHaveLength(0);
+    await answer('target');
+    await join('source');
+    const rejoined = track('rejoined');
+    await act(async () => {
+      peer('source').ontrack?.({ track: rejoined });
+      await flush();
+    });
+    expect(
+      peer('target')
+        .getSenders()
+        .filter((s) => s.track?.kind === 'audio')
+    ).toHaveLength(2);
+  });
+
+  it('keeps muted relays for late joiners and preserves mute until channel open and rejoin', async () => {
+    const { result, peer } = await setup();
+    await join('source');
+    act(() => result.current.muteViewer('source', true));
+    const mic = track('muted');
+    await act(async () => {
+      peer('source').ontrack?.({ track: mic });
+      await flush();
+    });
+    expect(mic.enabled).toBe(false);
+    await join('target');
+    expect(
+      peer('target')
+        .getSenders()
+        .some((s) => s.track === mic)
+    ).toBe(true);
+    act(() => {
+      peer('source').dataChannel.readyState = 'open';
+      peer('source').dataChannel.onopen?.();
+    });
+    expect(peer('source').dataChannel.send).toHaveBeenCalledWith(
+      expect.stringContaining('"muted":true')
+    );
+    act(() => result.current.muteViewer('source', false));
+    expect(mic.enabled).toBe(true);
+    act(() => result.current.muteViewer('source', true));
+    await emit('presence-leave', { presences: [{ user_id: 'source' }] });
+    await join('source');
+    const next = track('next-muted');
+    act(() => peer('source').ontrack?.({ track: next }));
+    expect(next.enabled).toBe(false);
+  });
+
+  it('disposes replaced host playback and relays even when amplification fails', async () => {
+    const { peer } = await setup();
+    await join('source');
+    await join('target');
+    await answer('target');
+    await act(async () => {
+      peer('source').ontrack?.({ track: track('old') });
+      await flush();
+    });
+    const old = playback.amplify.mock.results[0].value as ReturnType<typeof amplify>;
+    const next = track('next');
+    playback.amplify.mockImplementationOnce(() => {
+      throw new Error('audio unavailable');
+    });
+    await act(async () => {
+      peer('source').ontrack?.({ track: next });
+      await flush();
+    });
+    expect(old.dispose).toHaveBeenCalledOnce();
+    expect(
+      peer('target')
+        .getSenders()
+        .some((s) => s.track === next)
+    ).toBe(true);
+  });
+
+  it('does not restore video after unpublish supersedes an awaited audio replacement', async () => {
+    const { result, peer } = await setup();
+    await join('target');
+    await answer('target');
+    const pending = deferred<undefined>();
+    peer('target').senders[0].replaceTrack.mockImplementationOnce(
+      async (replacement: MediaStreamTrack) => {
+        await pending.promise;
+        peer('target').senders[0].track = replacement;
+      }
+    );
+    let publishing!: Promise<void>;
+    let stopping!: Promise<void>;
+    await act(async () => {
+      publishing = result.current.publishStream(
+        new MediaStream([track('screen', 'video'), track('other-audio')])
+      );
+      await flush();
+      stopping = result.current.unpublishStream();
+      pending.resolve(undefined);
+      await Promise.all([publishing, stopping]);
+      await flush();
+    });
+    expect(
+      peer('target')
+        .getSenders()
+        .some((s) => s.track?.kind === 'video')
+    ).toBe(false);
+    expect(
+      peer('target')
+        .getSenders()
+        .some((s) => s.track?.id === 'host-mic')
+    ).toBe(true);
+  });
+
+  it('skips a publication already superseded by its caller', async () => {
+    const { result, peer } = await setup();
+    await join('target');
+    await answer('target');
+    await act(async () => {
+      await result.current.publishStream(new MediaStream([track('stale', 'video')]), () => true);
+    });
+    expect(
+      peer('target')
+        .getSenders()
+        .some((s) => s.track?.id === 'stale')
+    ).toBe(false);
+  });
+
+  it.each(['publish', 'unpublish'] as const)(
+    'continues %s for later viewers when one leaves during replaceTrack',
+    async (operation) => {
+      const { result, peer } = await setup();
+      for (const id of ['first', 'middle', 'last']) {
+        await join(id);
+        await answer(id);
+      }
+      const oldVideo = track('old-screen', 'video');
+      const screenAudio = track('screen-audio');
+      await act(async () => {
+        await result.current.publishStream(new MediaStream([oldVideo, screenAudio]));
+      });
+      for (const id of ['first', 'middle', 'last']) await answer(id);
+      const middle = peer('middle');
+      const sender = middle.senders.find(
+        (item) => item.track?.kind === (operation === 'publish' ? 'video' : 'audio')
+      )!;
+      const pending = deferred<undefined>();
+      sender.replaceTrack.mockImplementationOnce(async (replacement: MediaStreamTrack) => {
+        await pending.promise;
+        sender.track = replacement;
+      });
+      const newVideo = track('new-screen', 'video');
+      let updating!: Promise<void>;
+      await act(async () => {
+        updating =
+          operation === 'publish'
+            ? result.current.publishStream(new MediaStream([newVideo, screenAudio]))
+            : result.current.unpublishStream();
+        await flush();
+      });
+      expect(sender.replaceTrack).toHaveBeenCalled();
+      await emit('presence-leave', { presences: [{ user_id: 'middle' }] });
+      await act(async () => {
+        pending.resolve(undefined);
+        await updating;
+      });
+      const videos = peer('last').senders.filter((item) => item.track?.kind === 'video');
+      expect(videos.map((item) => item.track)).toEqual(operation === 'publish' ? [newVideo] : []);
+    }
+  );
+
+  it('keeps the presentation stream across renders and excludes cancelled streams from late joins', async () => {
+    const { result, peer, rerender } = await setup();
+    const video = track('presentation', 'video');
+    let cancelled = false;
+    await act(async () => {
+      await result.current.publishStream(new MediaStream([video]), () => cancelled);
+    });
+    rerender();
+    await join('late');
+    expect(peer('late').senders.some((sender) => sender.track === video)).toBe(true);
+    cancelled = true;
+    await join('after-cancel');
+    expect(peer('after-cancel').senders.some((sender) => sender.track?.kind === 'video')).toBe(
+      false
+    );
+    await act(async () => {
+      await result.current.unpublishStream();
+    });
+    rerender();
+    await join('after-stop');
+    expect(peer('after-stop').senders.some((sender) => sender.track?.kind === 'video')).toBe(false);
+  });
+
   it('does not time out a participant while the final answer is being applied', async () => {
     vi.useFakeTimers();
     const { result, peer } = await setup();

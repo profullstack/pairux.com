@@ -47,15 +47,21 @@ export interface AmplifiedAudioTrack {
  */
 function keepRemoteTrackFlowing(track: MediaStreamTrack): HTMLAudioElement {
   const sink = new Audio();
-  sink.srcObject = new MediaStream([track]);
-  sink.muted = true;
-  sink.autoplay = true;
-  // Wrapped because `play()` predates its own promise and still returns
-  // undefined on some implementations; a bare `.catch` there would throw.
-  void Promise.resolve(sink.play()).catch((err: unknown) => {
-    console.warn('[RemoteAudioGain] Keep-alive element failed to play:', err);
-  });
-  return sink;
+  try {
+    sink.srcObject = new MediaStream([track]);
+    sink.muted = true;
+    sink.autoplay = true;
+    // Wrapped because `play()` predates its own promise and still returns
+    // undefined on some implementations; a bare `.catch` there would throw.
+    void Promise.resolve(sink.play()).catch((err: unknown) => {
+      console.warn('[RemoteAudioGain] Keep-alive element failed to play:', err);
+    });
+    return sink;
+  } catch (error) {
+    sink.pause();
+    sink.srcObject = null;
+    throw error;
+  }
 }
 
 /**
@@ -73,63 +79,78 @@ export function amplifyRemoteAudio(
   resumeAudioContext(ctx);
   const tracks = Array.isArray(trackOrTracks) ? trackOrTracks : [trackOrTracks];
 
-  // Before the graph, not after: the source node below reads whatever the
-  // receiver has produced, and without a consumer it produces nothing.
-  const keepAlive = tracks.map(keepRemoteTrackFlowing);
-  // A multi-track MediaStream source only selects one track. Give every
-  // participant a source and mix into one output for the media element.
-  const sources = tracks.map((track) => ctx.createMediaStreamSource(new MediaStream([track])));
-  const gain = ctx.createGain();
-  gain.gain.value = clampAudioGain(initialGain);
-
-  // Catch peaks introduced by the boost rather than letting them clip. A high
-  // ratio above a threshold below full scale is a limiter; the fast attack
-  // stops transients getting through, and the slower release keeps it from
-  // pumping on speech.
-  const limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -6;
-  limiter.knee.value = 0;
-  limiter.ratio.value = 20;
-  limiter.attack.value = 0.003;
-  limiter.release.value = 0.25;
-
-  const destination = ctx.createMediaStreamDestination();
-
-  sources.forEach((source) => {
-    source.connect(gain);
-  });
-  gain.connect(limiter);
-  limiter.connect(destination);
-
-  // Silent playback is hard to tell apart from nobody talking, so record the
-  // state of everything that decides between the two.
-  console.log('[RemoteAudioGain] Attached gain stage', {
-    trackIds: tracks.map((track) => track.id),
-    contextState: ctx.state,
-    gain: gain.gain.value,
-  });
-
+  const keepAlive: HTMLAudioElement[] = [];
+  const nodes: AudioNode[] = [];
+  let destination: MediaStreamAudioDestinationNode | undefined;
   let disposed = false;
-
-  return {
-    stream: destination.stream,
-    setGain: (value: number) => {
-      if (disposed) return;
-      // Ramp rather than jump: an abrupt gain change is an audible click.
-      gain.gain.setTargetAtTime(clampAudioGain(value), ctx.currentTime, 0.02);
-    },
-    dispose: () => {
-      if (disposed) return;
-      disposed = true;
-      sources.forEach((source) => {
-        source.disconnect();
-      });
-      gain.disconnect();
-      limiter.disconnect();
-      keepAlive.forEach((sink) => {
-        sink.pause();
-        sink.srcObject = null;
-      });
-    },
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    nodes.forEach((node) => {
+      node.disconnect();
+    });
+    destination?.stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+    keepAlive.forEach((sink) => {
+      sink.pause();
+      sink.srcObject = null;
+    });
   };
+  try {
+    // Record each allocation before the next one can fail.
+    for (const track of tracks) keepAlive.push(keepRemoteTrackFlowing(track));
+    // A multi-track MediaStream source only selects one track. Give every
+    // participant a source and mix into one output for the media element.
+    const sources = tracks.map((track) => {
+      const source = ctx.createMediaStreamSource(new MediaStream([track]));
+      nodes.push(source);
+      return source;
+    });
+    const gain = ctx.createGain();
+    nodes.push(gain);
+    gain.gain.value = clampAudioGain(initialGain);
+
+    // Catch peaks introduced by the boost rather than letting them clip. A high
+    // ratio above a threshold below full scale is a limiter; the fast attack
+    // stops transients getting through, and the slower release keeps it from
+    // pumping on speech.
+    const limiter = ctx.createDynamicsCompressor();
+    nodes.push(limiter);
+    limiter.threshold.value = -6;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.25;
+
+    destination = ctx.createMediaStreamDestination();
+    nodes.push(destination);
+
+    sources.forEach((source) => {
+      source.connect(gain);
+    });
+    gain.connect(limiter);
+    limiter.connect(destination);
+
+    // Silent playback is hard to tell apart from nobody talking, so record the
+    // state of everything that decides between the two.
+    console.log('[RemoteAudioGain] Attached gain stage', {
+      trackIds: tracks.map((track) => track.id),
+      contextState: ctx.state,
+      gain: gain.gain.value,
+    });
+
+    return {
+      stream: destination.stream,
+      setGain: (value: number) => {
+        if (disposed) return;
+        // Ramp rather than jump: an abrupt gain change is an audible click.
+        gain.gain.setTargetAtTime(clampAudioGain(value), ctx.currentTime, 0.02);
+      },
+      dispose,
+    };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

@@ -33,6 +33,7 @@ import {
 } from '../lib/android-native-prompt';
 import { getValidAccessToken } from '../lib/auth-session';
 import { createEventSource, type SSEConnection } from '../lib/event-source';
+import { microphoneFailure, type MicrophoneFailure } from '../lib/microphone';
 
 // RN WebRTC's RTCDataChannel type (differs from browser global)
 type DataChannel = ReturnType<RTCPeerConnection['createDataChannel']>;
@@ -138,6 +139,7 @@ interface UseWebRTCHostReturn {
   muteViewer: (viewerId: string, muted: boolean) => void;
   micEnabled: boolean;
   hasMic: boolean;
+  micFailure: MicrophoneFailure | null;
   toggleMic: () => void;
 }
 
@@ -155,6 +157,7 @@ export function useWebRTCHost({
   const [controllingViewer, setControllingViewer] = useState<string | null>(null);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [micFailure, setMicFailure] = useState<MicrophoneFailure | null>(null);
 
   const eventSourceRef = useRef<SSEConnection | null>(null);
   const viewersRef = useRef<Map<string, ViewerConnection>>(new Map());
@@ -743,8 +746,13 @@ export function useWebRTCHost({
     const micStream = hostMicStreamRef.current;
     if (!micStream) return;
 
-    const tracks = micStream.getAudioTracks();
-    if (tracks.length === 0) return;
+    const tracks = micStream.getAudioTracks().filter((track) => track.readyState !== 'ended');
+    if (tracks.length === 0) {
+      setHasMic(false);
+      setMicEnabled(false);
+      setMicFailure('unavailable');
+      return;
+    }
 
     const newEnabled = !micEnabledIntentRef.current;
     micEnabledIntentRef.current = newEnabled;
@@ -790,6 +798,7 @@ export function useWebRTCHost({
 
     const generation = ++generationRef.current;
     isStartingRef.current = true;
+    setMicFailure(null);
 
     console.log('[WebRTCHost] Starting hosting for session:', sessionId);
 
@@ -823,18 +832,26 @@ export function useWebRTCHost({
         });
         return;
       }
-      const audioTrack = micStream.getAudioTracks()[0];
+      const audioTrack = micStream.getAudioTracks().find((track) => track.readyState !== 'ended');
+      if (!audioTrack) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        throw new Error('No live microphone track');
+      }
       markTrackAsSpeech(audioTrack);
       micStream.getAudioTracks().forEach((track) => {
         track.enabled = micEnabledIntentRef.current;
       });
       hostMicStreamRef.current = micStream;
       setHasMic(true);
+      setMicFailure(null);
       setMicEnabled(micEnabledIntentRef.current);
-    } catch {
+    } catch (micError) {
       if (!isCurrentGeneration(generation)) return;
       console.warn('[WebRTCHost] No microphone available');
       setHasMic(false);
+      setMicFailure(microphoneFailure(micError));
       setMicEnabled(false);
     }
 
@@ -1038,6 +1055,7 @@ export function useWebRTCHost({
       setIsHosting(false);
       setMicEnabled(false);
       setHasMic(false);
+      setMicFailure(null);
     }
   }, []);
 
@@ -1332,6 +1350,7 @@ export function useWebRTCHost({
     muteViewer,
     micEnabled,
     hasMic,
+    micFailure,
     toggleMic,
   };
 }

@@ -20,6 +20,7 @@ import { VideoViewer } from '@/components/VideoViewer';
 import { ChatPanel } from '@/components/ChatPanel';
 import { SessionInfo } from '@/components/SessionInfo';
 import { ConnectionBadge } from '@/components/ConnectionBadge';
+import { MicrophoneNotice } from '@/components/MicrophoneNotice';
 
 export default function SessionScreen() {
   const router = useRouter();
@@ -231,7 +232,8 @@ function HostSession({
       </View>
 
       {/* Controls */}
-      <View className="flex-row items-center justify-center gap-4 border-t border-gray-800 px-4 py-3">
+      <MicrophoneNotice failure={webrtc.micFailure} />
+      <View className="flex-row flex-wrap items-center justify-center gap-4 border-t border-gray-800 px-4 py-3">
         {screenShare.isSharing && (
           <TouchableOpacity
             onPress={() => {
@@ -351,7 +353,8 @@ function ViewerSession({
       </View>
 
       {/* Controls */}
-      <View className="flex-row items-center justify-center gap-4 border-t border-gray-800 bg-gray-900 px-4 py-3">
+      <MicrophoneNotice failure={webrtc.micFailure} unmuteRequested={webrtc.unmuteRequested} />
+      <View className="flex-row flex-wrap items-center justify-center gap-4 border-t border-gray-800 bg-gray-900 px-4 py-3">
         {webrtc.connectionState === 'failed' && (
           <TouchableOpacity
             onPress={webrtc.reconnect}

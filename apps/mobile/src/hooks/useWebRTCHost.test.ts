@@ -54,6 +54,25 @@ vi.mock('../lib/event-source', () => ({
 }));
 
 describe('useWebRTCHost', () => {
+  it.each(['NotAllowedError', 'DeviceError', 'Error'])(
+    'exposes a conservative host mic failure for %s',
+    async (name) => {
+      vi.mocked(mediaDevices.getUserMedia).mockRejectedValueOnce(
+        Object.assign(new Error('PRIVATE'), { name })
+      );
+      const { result } = renderHook(() =>
+        useWebRTCHost({ sessionId: 'session-1', hostId: 'host-1' })
+      );
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      expect(result.current.micFailure).toBe(
+        name === 'NotAllowedError' ? 'permission' : 'unavailable'
+      );
+      expect(result.current.hasMic).toBe(false);
+      expect(createEventSource).toHaveBeenCalled();
+    }
+  );
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSources.length = 0;

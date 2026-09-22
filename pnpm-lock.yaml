@@ -30,6 +30,9 @@ patchedDependencies:
   '@expo/cli@0.22.28':
     hash: fs73wozxs3ogshmyebbg4hu7gy
     path: patches/@expo__cli@0.22.28.patch
+  react-native-webrtc@124.0.7:
+    hash: hpexqv2sjbemlvzvz7bqlepg7y
+    path: patches/react-native-webrtc@124.0.7.patch
 
 importers:
 
@@ -301,7 +304,7 @@ importers:
         version: 1.2.1
       react-native-webrtc:
         specifier: ^124.0.4
-        version: 124.0.7(@types/react@18.3.31)(react-native@0.76.9(@babel/core@7.28.6)(@babel/preset-env@7.28.6(@babel/core@7.28.6))(@types/react@18.3.31)(encoding@0.1.13)(react@18.3.1))(react@18.3.1)
+        version: 124.0.7(patch_hash=hpexqv2sjbemlvzvz7bqlepg7y)(@types/react@18.3.31)(react-native@0.76.9(@babel/core@7.28.6)(@babel/preset-env@7.28.6(@babel/core@7.28.6))(@types/react@18.3.31)(encoding@0.1.13)(react@18.3.1))(react@18.3.1)
       zod:
         specifier: ^3.24.0
         version: 3.25.76
@@ -17162,7 +17165,7 @@ snapshots:
 
   react-native-sse@1.2.1: {}
 
-  react-native-webrtc@124.0.7(@types/react@18.3.31)(react-native@0.76.9(@babel/core@7.28.6)(@babel/preset-env@7.28.6(@babel/core@7.28.6))(@types/react@18.3.31)(encoding@0.1.13)(react@18.3.1))(react@18.3.1):
+  react-native-webrtc@124.0.7(patch_hash=hpexqv2sjbemlvzvz7bqlepg7y)(@types/react@18.3.31)(react-native@0.76.9(@babel/core@7.28.6)(@babel/preset-env@7.28.6(@babel/core@7.28.6))(@types/react@18.3.31)(encoding@0.1.13)(react@18.3.1))(react@18.3.1):
     dependencies:
       '@types/react': 18.3.31
       base64-js: 1.5.1

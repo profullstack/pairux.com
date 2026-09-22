@@ -170,7 +170,8 @@
       "@electron/rebuild>tar": "^6.2.1"
     },
     "patchedDependencies": {
-      "@expo/cli@0.22.28": "patches/@expo__cli@0.22.28.patch"
+      "@expo/cli@0.22.28": "patches/@expo__cli@0.22.28.patch",
+      "react-native-webrtc@124.0.7": "patches/react-native-webrtc@124.0.7.patch"
     }
   },
   "dependencies": {

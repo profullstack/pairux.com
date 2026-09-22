@@ -354,8 +354,8 @@ importers:
         specifier: ^0.1.3
         version: 0.1.3(@supabase/ssr@0.5.2(@supabase/supabase-js@2.91.0))(next@16.3.3(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@profullstack/x402-gateway':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.7.0
+        version: 0.7.0
       '@serwist/next':
         specifier: ^9.5.0
         version: 9.5.0(next@16.3.3(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
@@ -2772,6 +2772,10 @@ packages:
   '@profullstack/emailer@1.0.3':
     resolution: {integrity: sha512-VyAtCcfnSI6LOwJvWogCr3ZNmEsaZw+iuWrqnosLsdcKsbRyCrCmXigMNZJZEjlgYlR+lK//PwNPG+xtCFvWAw==}
 
+  '@profullstack/keys@0.1.0':
+    resolution: {integrity: sha512-Vys47LvS5ivhdZu4SYOxh9Le3DEmWhjP0+CtrU45RhXAbY0ZFG/2Dk9V1bIIUGDp8UWMJqctvUD21JrNjfh04w==}
+    engines: {node: '>=20.11'}
+
   '@profullstack/referrals@0.1.0':
     resolution: {integrity: sha512-u66SdBVpsv3kc0N+NWISPoYD5vjCERyv5wfD07iSkZwQeC2IA+ihX5jNA4e7Xr+Y4AUvxLycG+3b4VaROqzgRg==}
     engines: {node: '>=18'}
@@ -2796,8 +2800,8 @@ packages:
       react:
         optional: true
 
-  '@profullstack/x402-gateway@0.1.0':
-    resolution: {integrity: sha512-B7tWvWk/bIEoqyec6UoyRF1pO7X/+b+wFRv2ZFIClqskmEpyxoA559ZgdTvnxqAIvuDeE9v56nVpYRQ+lmOZQQ==}
+  '@profullstack/x402-gateway@0.7.0':
+    resolution: {integrity: sha512-xsZRWHdOD9Y9EuRS4PsRmykVS2geOu/luY0jBlliOF3SEgxiLhgmx7ks+2jOUtGlq+cIfSonnk5eEObRGCOJ9w==}
     engines: {node: '>=20.11'}
 
   '@radix-ui/react-compose-refs@1.0.0':
@@ -11705,6 +11709,8 @@ snapshots:
 
   '@profullstack/emailer@1.0.3': {}
 
+  '@profullstack/keys@0.1.0': {}
+
   '@profullstack/referrals@0.1.0(react@19.2.3)':
     optionalDependencies:
       react: 19.2.3
@@ -11718,7 +11724,9 @@ snapshots:
       next: 16.3.3(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
 
-  '@profullstack/x402-gateway@0.1.0': {}
+  '@profullstack/x402-gateway@0.7.0':
+    dependencies:
+      '@profullstack/keys': 0.1.0
 
   '@radix-ui/react-compose-refs@1.0.0(react@18.3.1)':
     dependencies:

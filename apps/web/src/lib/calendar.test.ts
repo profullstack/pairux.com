@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
-import { buildGoogleCalendarUrl, buildIcs, buildOutlookUrl, icsFilename } from './calendar';
+import {
+  buildGoogleCalendarUrl,
+  buildIcs,
+  buildOutlookUrl,
+  calendarLinksHtml,
+  icsFilename,
+} from './calendar';
 
 const event = {
   title: 'Pairux 3+ particpant test mac/win',
@@ -78,5 +84,22 @@ describe('calendar links', () => {
 
   it('filename keeps only safe characters', () => {
     expect(icsFilename(event.title)).toBe('Pairux-3--particpant-test-mac-win.ics');
+  });
+});
+
+describe('calendarLinksHtml', () => {
+  const urls = { googleCalendarUrl: 'https://g.example/x', outlookUrl: 'https://o.example/y' };
+
+  it('links both providers and mentions the attachment when one is carried', () => {
+    const html = calendarLinksHtml({ ...urls, attached: true });
+    expect(html).toContain('href="https://g.example/x"');
+    expect(html).toContain('href="https://o.example/y"');
+    expect(html).toContain('attached <strong>.ics</strong>');
+  });
+
+  it('omits the attachment note for a bulk send that cannot carry one', () => {
+    const html = calendarLinksHtml({ ...urls, attached: false });
+    expect(html).toContain('Add to calendar');
+    expect(html).not.toContain('.ics');
   });
 });

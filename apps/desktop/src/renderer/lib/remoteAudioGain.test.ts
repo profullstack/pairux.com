@@ -99,6 +99,37 @@ afterEach(() => {
 });
 
 describe('amplifyRemoteAudio', () => {
+  it('mixes all group-call microphones into a single gain and limiter output', async () => {
+    const { amplifyRemoteAudio } = await loadModule();
+    const tracks = [
+      track,
+      ...['second', 'third'].map((id) => ({ id, kind: 'audio' }) as MediaStreamTrack),
+    ];
+    const amplified = amplifyRemoteAudio(tracks);
+    expect(mock.ctx.createMediaStreamSource).toHaveBeenCalledTimes(3);
+    expect(mock.connections).toEqual([
+      'source->gain',
+      'source->gain',
+      'source->gain',
+      'gain->limiter',
+      'limiter->destination',
+    ]);
+    expect(amplified.stream).toBe(mock.destinationStream);
+    for (const [index, sink] of FakeAudioElement.instances.entries()) {
+      expect((sink.srcObject as { tracks: MediaStreamTrack[] }).tracks).toEqual([tracks[index]]);
+      expect(sink.muted).toBe(true);
+    }
+    amplified.dispose();
+    amplified.dispose();
+    for (const sink of FakeAudioElement.instances) {
+      expect(sink.pause).toHaveBeenCalledOnce();
+      expect(sink.srcObject).toBeNull();
+    }
+    for (const result of mock.ctx.createMediaStreamSource.mock.results) {
+      expect(result.value.disconnect).toHaveBeenCalledOnce();
+    }
+  });
+
   it('returns a replacement stream, not the raw track', async () => {
     const { amplifyRemoteAudio } = await loadModule();
     const amplified = amplifyRemoteAudio(track);

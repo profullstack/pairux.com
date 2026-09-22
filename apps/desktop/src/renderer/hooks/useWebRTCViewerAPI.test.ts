@@ -54,6 +54,7 @@ class MockRTCPeerConnection {
   iceConnectionState = 'new';
   signalingState = 'stable';
   remoteDescription: RTCSessionDescriptionInit | null = null;
+  localDescription: RTCSessionDescriptionInit | null = null;
 
   ontrack: ((event: unknown) => void) | null = null;
   onicecandidate: ((event: unknown) => void) | null = null;
@@ -144,7 +145,9 @@ describe('useWebRTCViewerAPI', () => {
     });
   });
 
-  afterEach(() => {});
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   const defaultOptions = {
     sessionId: 'session-1',
@@ -292,6 +295,152 @@ describe('useWebRTCViewerAPI', () => {
         body: expect.stringContaining('"negotiationId":"desktop-offer-1"'),
       })
     );
+  });
+
+  it('resends a cached answer for a duplicate offer without applying it twice', async () => {
+    const { es, pc } = await initWithConnected();
+    const offer = {
+      type: 'offer',
+      senderId: 'host-1',
+      sdp: 'sdp-1',
+      negotiationId: 'epoch:host:viewer:1',
+    };
+    await act(async () => {
+      es.emit('signal', offer);
+    });
+    pc.localDescription = { type: 'answer', sdp: 'answer-with-gathered-ICE' };
+    await act(async () => {
+      es.emit('signal', offer);
+    });
+    expect(pc.setRemoteDescription).toHaveBeenCalledOnce();
+    expect(pc.createAnswer).toHaveBeenCalledOnce();
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.stringContaining('answer-with-gathered-ICE'),
+      })
+    );
+  });
+
+  it('never labels a local ICE-restart offer as a cached answer', async () => {
+    const { es, pc } = await initWithConnected();
+    const offer = {
+      type: 'offer',
+      senderId: 'host-1',
+      sdp: 'sdp-1',
+      negotiationId: 'epoch:host:viewer:1',
+    };
+    await act(async () => {
+      es.emit('signal', offer);
+    });
+    pc.localDescription = { type: 'offer', sdp: 'local-restart-offer' };
+    pc.signalingState = 'have-local-offer';
+    await act(async () => {
+      es.emit('signal', offer);
+    });
+    expect(pc.createAnswer).toHaveBeenCalledOnce();
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.stringContaining('"sdp":"mock-sdp-answer"'),
+      })
+    );
+  });
+
+  it('ignores an old retried offer delivered after a newer negotiation', async () => {
+    const { es, pc, hookResult } = await initWithConnected();
+    for (const sequence of [1, 2, 1]) {
+      await act(async () => {
+        es.emit('signal', {
+          type: 'offer',
+          senderId: 'host-1',
+          sdp: `sdp-${String(sequence)}`,
+          negotiationId: `epoch:host:viewer:${String(sequence)}`,
+        });
+      });
+    }
+    expect(pc.setRemoteDescription).toHaveBeenCalledTimes(2);
+    expect(pc.remoteDescription?.sdp).toBe('sdp-2');
+    expect(hookResult.current.error).toBeNull();
+  });
+
+  it('applies gathered ICE from an updated retry of the current offer', async () => {
+    const { es, pc } = await initWithConnected();
+    for (const sdp of ['initial-sdp', 'sdp-with-gathered-ICE']) {
+      await act(async () => {
+        es.emit('signal', {
+          type: 'offer',
+          senderId: 'host-1',
+          sdp,
+          negotiationId: 'epoch:host:viewer:1',
+        });
+      });
+    }
+    expect(pc.remoteDescription?.sdp).toBe('sdp-with-gathered-ICE');
+    expect(pc.createAnswer).toHaveBeenCalledTimes(2);
+  });
+
+  it('still accepts legacy offers without negotiation IDs', async () => {
+    const { es, pc } = await initWithConnected();
+    for (const sdp of ['first', 'second']) {
+      await act(async () => {
+        es.emit('signal', { type: 'offer', senderId: 'host-1', sdp });
+      });
+    }
+    expect(pc.createAnswer).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not send an answer after disconnecting during SDP processing', async () => {
+    const { es, pc, hookResult } = await initWithConnected();
+    let resolve!: () => void;
+    pc.setRemoteDescription.mockImplementationOnce(
+      () =>
+        new Promise<void>((done) => {
+          resolve = done;
+        })
+    );
+    await act(async () => {
+      es.emit('signal', { type: 'offer', senderId: 'host-1', sdp: 'pending' });
+    });
+    act(() => {
+      hookResult.current.disconnect();
+    });
+    await act(async () => {
+      resolve();
+    });
+    expect(pc.createAnswer).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('preserves every participant microphone and removes only an ended track', async () => {
+    const { pc, hookResult } = await initWithConnected();
+    const makeTrack = (id: string) => ({
+      id,
+      kind: 'audio',
+      onended: null as (() => void) | null,
+      getSettings: () => ({}),
+    });
+    const microphones = [makeTrack('host'), makeTrack('second'), makeTrack('third')];
+    for (const track of microphones) {
+      act(() => {
+        pc.ontrack?.({ track, streams: [], transceiver: { mid: track.id } });
+      });
+    }
+    expect(hookResult.current.remoteStream?.getAudioTracks()).toEqual(microphones);
+    act(() => {
+      microphones[1].onended?.();
+    });
+    expect(hookResult.current.remoteStream?.getAudioTracks()).toEqual([
+      microphones[0],
+      microphones[2],
+    ]);
+    act(() => {
+      hookResult.current.disconnect();
+    });
+    act(() => {
+      pc.ontrack?.({ track: makeTrack('stale'), streams: [], transceiver: { mid: 'stale' } });
+    });
+    expect(hookResult.current.remoteStream).toBeNull();
   });
 
   it('should handle ICE candidate signal after offer', async () => {

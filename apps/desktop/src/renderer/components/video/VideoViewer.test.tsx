@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { VideoViewer } from './VideoViewer';
 import type { ConnectionState } from '@pairux/shared-types';
+import * as remoteAudioGain from '@/lib/remoteAudioGain';
 
 describe('VideoViewer', () => {
   beforeEach(() => {
@@ -16,6 +17,35 @@ describe('VideoViewer', () => {
       getAudioTracks: vi.fn().mockReturnValue(tracks.filter((t) => t.kind === 'audio')),
     } as unknown as MediaStream;
   };
+
+  it('mixes every remote microphone and disposes the old graph on participant changes', async () => {
+    const play = vi.spyOn(HTMLVideoElement.prototype, 'play').mockResolvedValue(undefined);
+    const dispose = vi.fn();
+    const mix = vi.spyOn(remoteAudioGain, 'amplifyRemoteAudio').mockImplementation(() => ({
+      stream: new MediaStream(),
+      dispose,
+      setGain: vi.fn(),
+    }));
+    const first = createMockStream(['audio', 'audio']);
+    const { rerender, unmount } = render(
+      <VideoViewer stream={first} connectionState="connected" />
+    );
+    expect(mix).toHaveBeenLastCalledWith(first.getAudioTracks(), expect.any(Number));
+    const next = createMockStream(['audio', 'audio', 'audio']);
+    rerender(<VideoViewer stream={next} connectionState="connected" />);
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(mix).toHaveBeenLastCalledWith(next.getAudioTracks(), expect.any(Number));
+    const video = document.querySelector('video')!;
+    fireEvent.click(screen.getByTitle('Turn speaker off'));
+    expect(video.muted).toBe(true);
+    unmount();
+    expect(dispose).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    mix.mockRestore();
+    play.mockRestore();
+  });
 
   it('renders waiting state when no stream and idle', () => {
     render(<VideoViewer stream={null} connectionState="idle" />);

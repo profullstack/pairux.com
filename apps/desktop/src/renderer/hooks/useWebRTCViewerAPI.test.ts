@@ -476,6 +476,177 @@ describe('useWebRTCViewerAPI', () => {
     expect(pc.addIceCandidate).toHaveBeenCalled();
   });
 
+  it('filters peer broadcasts after accepting a host and targets its ICE and restart offers', async () => {
+    const { es, pc } = await initWithConnected();
+    await act(async () => {
+      es.emit('signal', {
+        type: 'offer',
+        senderId: 'host-1',
+        sdp: 'host-offer',
+        targetId: 'viewer-1',
+      });
+    });
+    pc.setRemoteDescription.mockClear();
+    await act(async () => {
+      es.emit('signal', { type: 'offer', senderId: 'other-viewer', sdp: 'foreign' });
+      es.emit('signal', {
+        type: 'ice-candidate',
+        senderId: 'other-viewer',
+        candidate: { candidate: 'foreign' },
+      });
+      es.emit('signal', {
+        type: 'offer',
+        senderId: 'host-1',
+        targetId: 'elsewhere',
+        sdp: 'other-target',
+      });
+    });
+    expect(pc.setRemoteDescription).not.toHaveBeenCalled();
+    expect(pc.addIceCandidate).not.toHaveBeenCalled();
+    mockFetch.mockClear();
+    await act(async () => {
+      pc.onicecandidate?.({ candidate: { toJSON: () => ({ candidate: 'ours' }) } });
+      pc.connectionState = 'failed';
+      pc.onconnectionstatechange?.();
+    });
+    const sent = mockFetch.mock.calls.map(([, init]) =>
+      JSON.parse((init as RequestInit).body as string)
+    );
+    expect(sent).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'ice-candidate', targetId: 'host-1' }),
+        expect.objectContaining({ type: 'offer', targetId: 'host-1' }),
+      ])
+    );
+  });
+
+  it('drains only the accepted host early ICE and continues after a bad candidate', async () => {
+    const { es, pc, hookResult } = await initWithConnected();
+    pc.addIceCandidate.mockRejectedValueOnce(new Error('OperationError: wrong ufrag'));
+    await act(async () => {
+      for (const [senderId, candidate] of [
+        ['other', 'foreign'],
+        ['host-1', 'bad'],
+        ['host-1', 'good'],
+      ]) {
+        es.emit('signal', { type: 'ice-candidate', senderId, candidate: { candidate } });
+      }
+      es.emit('signal', { type: 'offer', senderId: 'host-1', sdp: 'offer' });
+    });
+    expect(
+      pc.addIceCandidate.mock.calls.map(
+        ([candidate]) => (candidate as MockRTCIceCandidate).candidate
+      )
+    ).toEqual(['bad', 'good']);
+    expect(hookResult.current.error).toBeNull();
+  });
+
+  it('ignores retired peers and data channels after SSE replaces the connection', async () => {
+    const { es, pc, hookResult } = await initWithConnected();
+    const channel = () => ({
+      readyState: 'open',
+      close: vi.fn(),
+      send: vi.fn(),
+      onopen: null as (() => void) | null,
+      onclose: null as (() => void) | null,
+      onmessage: null as ((event: { data: string }) => void) | null,
+    });
+    const old = channel();
+    act(() => {
+      pc.ondatachannel?.({ channel: old });
+      old.onopen?.();
+    });
+    act(() => es.emit('connected', connectedEventData));
+    const next = MockRTCPeerConnection.instances.at(-1)!;
+    const live = channel();
+    act(() => {
+      next.ondatachannel?.({ channel: live });
+      live.onopen?.();
+    });
+    mockFetch.mockClear();
+    act(() => {
+      old.onclose?.();
+      old.onmessage?.({ data: JSON.stringify({ type: 'kick' }) });
+      pc.ondatachannel?.({ channel: old });
+      pc.connectionState = 'failed';
+      pc.onconnectionstatechange?.();
+      pc.onicecandidate?.({ candidate: { toJSON: () => ({ candidate: 'stale' }) } });
+    });
+    expect(hookResult.current.dataChannelReady).toBe(true);
+    expect(next.createOffer).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(hookResult.current.error).toBeNull();
+  });
+
+  it('removes remote stream tracks without treating ordinary mute as a departure', async () => {
+    class Stream extends EventTarget {
+      constructor(private tracks: MediaStreamTrack[] = []) {
+        super();
+        this.tracks = [...tracks];
+      }
+      getTracks() {
+        return [...this.tracks];
+      }
+      getAudioTracks() {
+        return this.tracks.filter((t) => t.kind === 'audio');
+      }
+      getVideoTracks() {
+        return this.tracks.filter((t) => t.kind === 'video');
+      }
+      addTrack(t: MediaStreamTrack) {
+        this.tracks.push(t);
+      }
+      removeTrack(t: MediaStreamTrack) {
+        this.tracks = this.tracks.filter((item) => item !== t);
+      }
+    }
+    vi.stubGlobal('MediaStream', Stream);
+    const onStreamEnded = vi.fn();
+    const { es, pc, hookResult } = await initWithConnected({ ...defaultOptions, onStreamEnded });
+    const audio = {
+      id: 'audio',
+      kind: 'audio',
+      readyState: 'live',
+      getSettings: () => ({}),
+    } as unknown as MediaStreamTrack;
+    const video = {
+      id: 'video',
+      kind: 'video',
+      readyState: 'live',
+      getSettings: () => ({}),
+    } as unknown as MediaStreamTrack;
+    const stream = new Stream([audio, video]);
+    act(() => pc.ontrack?.({ track: video, streams: [stream], transceiver: { mid: '0' } }));
+    act(() => {
+      video.onmute?.(new Event('mute'));
+    });
+    expect(hookResult.current.remoteStream?.getTracks()).toHaveLength(2);
+    act(() => {
+      stream.dispatchEvent(Object.assign(new Event('removetrack'), { track: video }));
+    });
+    expect(hookResult.current.remoteStream?.getTracks()).toEqual([audio]);
+    act(() => {
+      stream.dispatchEvent(Object.assign(new Event('removetrack'), { track: audio }));
+    });
+    expect(hookResult.current.remoteStream).toBeNull();
+    expect(onStreamEnded).toHaveBeenCalledOnce();
+    const ended = { id: 'audio', kind: 'audio', readyState: 'ended', getSettings: () => ({}) };
+    act(() => pc.ontrack?.({ track: ended, streams: [], transceiver: { mid: '0' } }));
+    expect(hookResult.current.remoteStream).toBeNull();
+    act(() => pc.ontrack?.({ track: audio, streams: [], transceiver: { mid: '0' } }));
+    const staleEnded = audio.onended;
+    const replacement = { id: 'audio', kind: 'audio', readyState: 'live', getSettings: () => ({}) };
+    act(() => pc.ontrack?.({ track: replacement, streams: [], transceiver: { mid: '0' } }));
+    expect(hookResult.current.remoteStream?.getTracks()[0]).toBe(replacement);
+    act(() => {
+      staleEnded?.call(audio, new Event('ended'));
+    });
+    expect(hookResult.current.remoteStream?.getTracks()[0]).toBe(replacement);
+    act(() => es.emit('connected', connectedEventData));
+    expect(hookResult.current.remoteStream).toBeNull();
+    expect(onStreamEnded).toHaveBeenCalledTimes(2);
+  });
+
   it('should handle kick message from data channel', async () => {
     const onKicked = vi.fn();
     const { hookResult, pc } = await initWithConnected({ ...defaultOptions, onKicked });
@@ -681,13 +852,13 @@ describe('useWebRTCViewerAPI', () => {
         await Promise.resolve();
       });
 
-      // After the offer is processed, buffered candidates from the prior offer context
-      // are cleared to avoid applying stale mids during renegotiation.
       expect(pc.setRemoteDescription).toHaveBeenCalledWith({
         type: 'offer',
         sdp: 'mock-sdp-offer',
       });
-      expect(pc.addIceCandidate).not.toHaveBeenCalled();
+      expect(pc.addIceCandidate).toHaveBeenCalledWith(
+        expect.objectContaining({ candidate: 'buffered-candidate-1' })
+      );
     });
 
     it('should directly add ICE candidate when remote description exists', async () => {

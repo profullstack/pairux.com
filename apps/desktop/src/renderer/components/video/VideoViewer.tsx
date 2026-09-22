@@ -72,6 +72,8 @@ export function VideoViewer({
   // through a gain stage and swapped back into the stream before playback.
   // Video tracks pass through untouched.
   const amplifiedRef = useRef<AmplifiedAudioTrack | null>(null);
+  const speakerGainRef = useRef(speakerGain);
+  speakerGainRef.current = speakerGain;
   const [playbackStream, setPlaybackStream] = useState<MediaStream | null>(null);
   const remoteAudioTrackIds =
     stream
@@ -92,7 +94,7 @@ export function VideoViewer({
       return;
     }
 
-    const amplified = amplifyRemoteAudio(audioTracks, speakerGain);
+    const amplified = amplifyRemoteAudio(audioTracks, speakerGainRef.current);
     amplifiedRef.current = amplified;
 
     const composed = new MediaStream();
@@ -110,7 +112,7 @@ export function VideoViewer({
     };
     // Rebuild when the underlying audio track is replaced, which renegotiation
     // can do without changing the stream's identity.
-  }, [stream, remoteAudioTrackIds, speakerGain]);
+  }, [stream, remoteAudioTrackIds]);
 
   // Adjust an existing graph in place rather than rebuilding it on every nudge
   // of a volume slider.

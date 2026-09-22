@@ -21,6 +21,8 @@ interface ChannelDir {
   banner_url: string | null;
   subscriber_count: number;
   is_live: boolean;
+  live_count: number;
+  recording_count: number;
 }
 
 async function getChannels(): Promise<ChannelDir[]> {
@@ -120,6 +122,14 @@ export default async function ChannelsPage() {
                         <p className="text-xs text-gray-500">
                           {c.subscriber_count}{' '}
                           {c.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
+                          {' · '}
+                          {c.live_count > 0 ? (
+                            <span className="font-medium text-red-600">{c.live_count} live</span>
+                          ) : (
+                            '0 live'
+                          )}
+                          {' · '}
+                          {c.recording_count} {c.recording_count === 1 ? 'recording' : 'recordings'}
                         </p>
                       </div>
                     </div>

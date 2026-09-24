@@ -1,4 +1,4 @@
-import webpush from 'web-push';
+import { sendPush, vapidKeysFromEnv, type VapidKeys } from '@profullstack/notifications/server';
 import { createClient } from '@supabase/supabase-js';
 
 const DEFAULT_PREFERENCES = {
@@ -31,22 +31,21 @@ interface PushPayload {
   tag?: string;
 }
 
-// Lazy-initialize web-push with VAPID details
-let initialized = false;
+const PUSH_SUBJECT = 'mailto:support@pairux.com';
+
+// VAPID keys, read at RUN time. `process.env.NEXT_PUBLIC_…` written out in
+// code is replaced by Next at build time (even on the server), so a key that
+// was missing from the build compiled to undefined and silently disabled every
+// push; vapidKeysFromEnv looks the names up dynamically instead.
+let vapidKeys: VapidKeys | null = null;
 
 function initWebPush(): boolean {
-  if (initialized) return true;
-
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-
-  if (!publicKey || !privateKey) {
-    console.warn('[Push] Missing VAPID environment variables, push notifications disabled');
+  if (vapidKeys) return true;
+  vapidKeys = vapidKeysFromEnv(process.env);
+  if (!vapidKeys) {
+    console.warn('[Push] Missing VAPID keys (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY); push disabled');
     return false;
   }
-
-  webpush.setVapidDetails('mailto:support@pairux.com', publicKey, privateKey);
-  initialized = true;
   return true;
 }
 
@@ -188,23 +187,19 @@ async function sendToSubscriptions(
   let failed = 0;
   const staleIds: string[] = [];
 
-  const jsonPayload = JSON.stringify(payload);
+  const keys = vapidKeys;
+  if (!keys) return { sent: 0, failed: subscriptions.length };
 
-  await Promise.allSettled(
+  await Promise.all(
     subscriptions.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          jsonPayload
-        );
-        sent++;
-      } catch (err: unknown) {
-        const error = err as { statusCode?: number };
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          staleIds.push(sub.id);
-        }
-        failed++;
-      }
+      const result = await sendPush(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload,
+        { keys, subject: PUSH_SUBJECT }
+      );
+      if (result.sent) sent++;
+      else failed++;
+      if (result.gone) staleIds.push(sub.id);
     })
   );
 

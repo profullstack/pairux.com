@@ -1,63 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// Set VAPID key before module load (vi.hoisted runs before imports)
-vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY =
-    'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkOs-qy7505aFNGpOTN_4Bz8T5RA8ZjqO1QjAPGeZs';
+const mocks = vi.hoisted(() => {
+  class PushError extends Error {
+    reason: string;
+    constructor(reason: string, message = reason) {
+      super(message);
+      this.reason = reason;
+    }
+  }
+  return {
+    PushError,
+    pushSupport: vi.fn(),
+    getSubscription: vi.fn(),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+  };
 });
+
+vi.mock('@profullstack/notifications/client', () => mocks);
 
 import { usePushNotifications } from './usePushNotifications';
 
-const mockSubscription = {
+const subscriptionJson = {
   endpoint: 'https://fcm.googleapis.com/fcm/send/test-endpoint',
-  toJSON: () => ({
-    endpoint: 'https://fcm.googleapis.com/fcm/send/test-endpoint',
-    keys: { p256dh: 'test-p256dh', auth: 'test-auth' },
-  }),
-  unsubscribe: vi.fn().mockResolvedValue(true),
+  keys: { p256dh: 'test-p256dh', auth: 'test-auth' },
 };
 
-const mockPushManager = {
-  getSubscription: vi.fn().mockResolvedValue(null),
-  subscribe: vi.fn().mockResolvedValue(mockSubscription),
-};
+const mockSubscription = { endpoint: subscriptionJson.endpoint };
 
-const mockRegistration = {
-  pushManager: mockPushManager,
-};
+const SUPPORTED = { supported: true, reason: null, message: null, permission: 'default' };
 
 describe('usePushNotifications', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPushManager.getSubscription.mockResolvedValue(null);
-    mockPushManager.subscribe.mockResolvedValue(mockSubscription);
-    mockSubscription.unsubscribe.mockResolvedValue(true);
-
-    // Mock browser APIs
-    Object.defineProperty(window, 'Notification', {
-      value: {
-        permission: 'default' as NotificationPermission,
-        requestPermission: vi.fn().mockResolvedValue('granted'),
-      },
-      writable: true,
-      configurable: true,
-    });
-
-    Object.defineProperty(navigator, 'serviceWorker', {
-      value: {
-        ready: Promise.resolve(mockRegistration),
-      },
-      writable: true,
-      configurable: true,
-    });
-
-    // Ensure PushManager exists
-    Object.defineProperty(window, 'PushManager', {
-      value: vi.fn(),
-      writable: true,
-      configurable: true,
-    });
+    mocks.pushSupport.mockReturnValue(SUPPORTED);
+    mocks.getSubscription.mockResolvedValue(null);
+    mocks.unsubscribe.mockResolvedValue(true);
+    // The package hands the new subscription to `save`; PairUX's save POSTs it.
+    mocks.subscribe.mockImplementation(
+      async (opts: { save: (json: typeof subscriptionJson) => Promise<void> }) => {
+        await opts.save(subscriptionJson);
+        return mockSubscription;
+      }
+    );
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -69,17 +55,22 @@ describe('usePushNotifications', () => {
     const { result } = renderHook(() => usePushNotifications());
 
     expect(result.current.isSupported).toBe(true);
+    expect(result.current.unsupportedReason).toBeNull();
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('should detect unsupported browser', () => {
-    // Must delete the property so 'PushManager' in window returns false
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).PushManager;
+  it('should detect unsupported browser and say why', () => {
+    mocks.pushSupport.mockReturnValue({
+      supported: false,
+      reason: 'ios-needs-install',
+      message: 'On iPhone and iPad, add this site to your Home Screen.',
+      permission: 'unsupported',
+    });
 
     const { result } = renderHook(() => usePushNotifications());
 
     expect(result.current.isSupported).toBe(false);
+    expect(result.current.unsupportedReason).toMatch(/Home Screen/);
   });
 
   it('should start as not subscribed', () => {
@@ -89,7 +80,7 @@ describe('usePushNotifications', () => {
   });
 
   it('should detect existing subscription on mount', async () => {
-    mockPushManager.getSubscription.mockResolvedValueOnce(mockSubscription);
+    mocks.getSubscription.mockResolvedValueOnce(mockSubscription);
 
     const { result } = renderHook(() => usePushNotifications());
 
@@ -100,7 +91,7 @@ describe('usePushNotifications', () => {
     expect(result.current.isSubscribed).toBe(true);
   });
 
-  it('should subscribe successfully', async () => {
+  it('should subscribe with the runtime VAPID key endpoint', async () => {
     const { result } = renderHook(() => usePushNotifications());
 
     let success = false;
@@ -110,6 +101,12 @@ describe('usePushNotifications', () => {
 
     expect(success).toBe(true);
     expect(result.current.isSubscribed).toBe(true);
+    expect(mocks.subscribe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vapidKeyUrl: '/api/push/vapid-public-key',
+        serviceWorkerUrl: '/sw.js',
+      })
+    );
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/push/subscribe',
       expect.objectContaining({ method: 'POST' })
@@ -117,8 +114,8 @@ describe('usePushNotifications', () => {
   });
 
   it('should return false when permission is denied', async () => {
-    (window.Notification.requestPermission as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
-      'denied'
+    mocks.subscribe.mockRejectedValueOnce(
+      new mocks.PushError('denied', 'Notifications are blocked for this site.')
     );
 
     const { result } = renderHook(() => usePushNotifications());
@@ -130,11 +127,16 @@ describe('usePushNotifications', () => {
 
     expect(success).toBe(false);
     expect(result.current.isSubscribed).toBe(false);
+    expect(result.current.permission).toBe('denied');
   });
 
   it('should return false when not supported', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).PushManager;
+    mocks.pushSupport.mockReturnValue({
+      supported: false,
+      reason: 'no-push-manager',
+      message: 'This browser does not support push notifications.',
+      permission: 'unsupported',
+    });
 
     const { result } = renderHook(() => usePushNotifications());
 
@@ -144,10 +146,11 @@ describe('usePushNotifications', () => {
     });
 
     expect(success).toBe(false);
+    expect(mocks.subscribe).not.toHaveBeenCalled();
   });
 
   it('should unsubscribe successfully', async () => {
-    mockPushManager.getSubscription.mockResolvedValueOnce(mockSubscription);
+    mocks.getSubscription.mockResolvedValue(mockSubscription);
 
     const { result } = renderHook(() => usePushNotifications());
 
@@ -164,7 +167,7 @@ describe('usePushNotifications', () => {
 
     expect(success).toBe(true);
     expect(result.current.isSubscribed).toBe(false);
-    expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+    expect(mocks.unsubscribe).toHaveBeenCalled();
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/push/unsubscribe',
       expect.objectContaining({ method: 'POST' })
@@ -180,6 +183,7 @@ describe('usePushNotifications', () => {
     });
 
     expect(success).toBe(true);
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/push/unsubscribe', expect.anything());
   });
 
   it('should include participantId when provided', async () => {

@@ -41,11 +41,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (!(await orgRole(g.db, g.orgId, userId))) {
       return errorResponse('Invite them to the organization first', 400);
     }
-    await g.db
-      .from('team_members')
-      .upsert({ team_id: g.teamId, user_id: userId, role } as never, {
-        onConflict: 'team_id,user_id',
-      });
+    await g.db.from('team_members').upsert({ team_id: g.teamId, user_id: userId, role } as never, {
+      onConflict: 'team_id,user_id',
+    });
     return successResponse({ userId, role });
   } catch (error) {
     return handleApiError(error);

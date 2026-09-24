@@ -26,6 +26,11 @@ vi.mock('@/app/actions/meetings', () => ({
   sendMeetingCancellation: (...args: unknown[]) => mockSendMeetingCancellation(...args),
 }));
 
+const mockCanBroadcastOnChannel = vi.fn();
+vi.mock('@/lib/meeting-channel', () => ({
+  canBroadcastOnChannel: (...args: unknown[]) => mockCanBroadcastOnChannel(...args),
+}));
+
 interface Chain {
   table: string;
   op: 'select' | 'insert' | 'update' | 'delete';
@@ -95,6 +100,7 @@ const baseMeeting = {
   duration_minutes: 60,
   join_code: 'ABC123',
   status: 'pending',
+  channel_id: null as string | null,
 };
 
 function invitee(email: string, id: string) {
@@ -171,6 +177,7 @@ function patchRequest(body: unknown) {
 }
 
 const params = Promise.resolve({ id: MEETING_ID });
+const CHANNEL_ID = '6f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f';
 
 describe('PATCH /api/scheduled-sessions/[id]', () => {
   beforeEach(() => {
@@ -180,6 +187,7 @@ describe('PATCH /api/scheduled-sessions/[id]', () => {
     mockSendMeetingInvites.mockResolvedValue({ ok: true });
     mockSendMeetingUpdate.mockResolvedValue({ ok: true });
     mockSendInviteeRemoval.mockResolvedValue({ ok: true });
+    mockCanBroadcastOnChannel.mockResolvedValue(true);
   });
 
   it('requires authentication', async () => {
@@ -207,6 +215,50 @@ describe('PATCH /api/scheduled-sessions/[id]', () => {
       duration_minutes: 90,
     });
     expect(update?.filters).toMatchObject({ id: MEETING_ID, host_user_id: mockUser.id });
+  });
+
+  it('sets the channel the meeting broadcasts on', async () => {
+    const mock = setupService({});
+
+    const response = await PATCH(patchRequest({ channelId: CHANNEL_ID }), { params });
+
+    expect(response.status).toBe(200);
+    expect(mockCanBroadcastOnChannel).toHaveBeenCalledWith(expect.anything(), CHANNEL_ID);
+    const update = mock.calls.find((c) => c.table === 'scheduled_sessions' && c.op === 'update');
+    expect(update?.payload).toMatchObject({ channel_id: CHANNEL_ID });
+  });
+
+  it('refuses a channel the host cannot broadcast on', async () => {
+    mockCanBroadcastOnChannel.mockResolvedValue(false);
+    const mock = setupService({});
+
+    const response = await PATCH(patchRequest({ channelId: CHANNEL_ID }), { params });
+
+    expect(response.status).toBe(403);
+    expect(mock.calls.some((c) => c.op === 'update')).toBe(false);
+  });
+
+  it('clears the channel without a permission check', async () => {
+    const mock = setupService({});
+
+    const response = await PATCH(patchRequest({ channelId: null }), { params });
+
+    expect(response.status).toBe(200);
+    expect(mockCanBroadcastOnChannel).not.toHaveBeenCalled();
+    const update = mock.calls.find((c) => c.table === 'scheduled_sessions' && c.op === 'update');
+    expect(update?.payload).toMatchObject({ channel_id: null });
+  });
+
+  it('keeps the channel it already has even after losing access to it', async () => {
+    mockCanBroadcastOnChannel.mockResolvedValue(false);
+    setupService({ meeting: { channel_id: CHANNEL_ID } });
+
+    const response = await PATCH(patchRequest({ title: 'Renamed', channelId: CHANNEL_ID }), {
+      params,
+    });
+
+    expect(response.status).toBe(200);
+    expect(mockCanBroadcastOnChannel).not.toHaveBeenCalled();
   });
 
   it('adds new invitees and emails only them', async () => {

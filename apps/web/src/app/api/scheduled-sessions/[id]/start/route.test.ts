@@ -91,6 +91,7 @@ const baseMeeting: {
   status: string;
   session_id: string | null;
   started_at: string | null;
+  channel_id: string | null;
 } = {
   id: MEETING_ID,
   host_user_id: mockUser.id,
@@ -101,12 +102,13 @@ const baseMeeting: {
   status: 'pending',
   session_id: null,
   started_at: null,
+  channel_id: null,
 };
 
 function setupService(options: {
   meeting?: Partial<typeof baseMeeting> | null;
   /** A row in `sessions` already holding the meeting's join code. */
-  holder?: { id: string; status: string } | null;
+  holder?: { id: string; status: string; channel_id?: string | null } | null;
   invitees?: { id: string; email: string; name: string | null; rsvp_status: string }[];
 }) {
   const meeting = options.meeting === null ? null : { ...baseMeeting, ...options.meeting };
@@ -206,6 +208,51 @@ describe('POST /api/scheduled-sessions/[id]/start', () => {
     expect(mockSendStartNotices).toHaveBeenCalledWith(
       expect.objectContaining({ invitees, hostName: 'Ada' })
     );
+  });
+
+  it('attaches the meeting channel to the room it opens', async () => {
+    setupService({ meeting: { channel_id: 'chan-1' } });
+
+    const res = await call();
+    const body = (await res.json()) as { data: { session: { channel_id?: string } } };
+
+    expect(res.status).toBe(200);
+    expect(mockRpc).toHaveBeenCalledWith('set_session_channel', {
+      p_session_id: 'session-1',
+      p_channel_id: 'chan-1',
+    });
+    expect(body.data.session.channel_id).toBe('chan-1');
+  });
+
+  it('leaves the channel alone when the meeting has none', async () => {
+    setupService({});
+
+    await call();
+    expect(mockRpc).not.toHaveBeenCalledWith('set_session_channel', expect.anything());
+  });
+
+  it('keeps a channel already chosen inside a running room', async () => {
+    setupService({
+      meeting: { channel_id: 'chan-1', session_id: 'session-1' },
+      holder: { id: 'session-1', status: 'active', channel_id: 'chan-2' },
+    });
+
+    await call();
+    expect(mockRpc).not.toHaveBeenCalledWith('set_session_channel', expect.anything());
+  });
+
+  it('still starts the meeting when the channel can no longer be used', async () => {
+    setupService({ meeting: { channel_id: 'chan-gone' } });
+    mockRpc.mockImplementation((fn: string) =>
+      Promise.resolve(
+        fn === 'set_session_channel'
+          ? { data: null, error: { message: 'Channel not found or not yours' } }
+          : { data: { id: 'session-1', join_code: JOIN_CODE }, error: null }
+      )
+    );
+
+    const res = await call();
+    expect(res.status).toBe(200);
   });
 
   it('adopts a room that is already open rather than creating a second one', async () => {

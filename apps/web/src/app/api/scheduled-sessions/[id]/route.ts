@@ -11,6 +11,7 @@ import {
 } from '@/app/actions/meetings';
 import { getUniqueJoinCode, liveSessionExistsForCode } from '@/lib/join-code';
 import { ruleFromRow, type RecurrenceRow } from '@/lib/recurrence';
+import { canBroadcastOnChannel } from '@/lib/meeting-channel';
 import { randomBytes } from 'crypto';
 
 // GET /api/scheduled-sessions/[id]
@@ -128,6 +129,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return errorResponse('Scheduled session not found', 404);
     if (existing.status === 'cancelled') {
       return errorResponse('This meeting has been cancelled', 400);
+    }
+
+    // Keeping the channel it already has is always allowed, so an edit does not
+    // fail just because the host has since left the team that owns it.
+    if (
+      fields.channel_id &&
+      fields.channel_id !== existing.channel_id &&
+      !(await canBroadcastOnChannel(supabase, fields.channel_id))
+    ) {
+      return errorResponse('Channel not found or not yours', 403);
     }
 
     let updated = existing;

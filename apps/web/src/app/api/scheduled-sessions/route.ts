@@ -7,6 +7,7 @@ import { sendMeetingInvites } from '@/app/actions/meetings';
 import { getUniqueJoinCode } from '@/lib/join-code';
 import { ruleFromRow, type RecurrenceRow } from '@/lib/recurrence';
 import { rollForwardHostSeries } from '@/lib/recurrence-rollforward';
+import { canBroadcastOnChannel } from '@/lib/meeting-channel';
 import { randomBytes } from 'crypto';
 import {
   earliestPossibleCurrentMeetingStart,
@@ -36,6 +37,10 @@ export async function POST(request: Request) {
     const { user, error: authError } = await getAuthenticatedUser(supabase);
     if (authError || !user) return errorResponse('Authentication required', 401);
 
+    if (input.channelId && !(await canBroadcastOnChannel(supabase, input.channelId))) {
+      return errorResponse('Channel not found or not yours', 403);
+    }
+
     const svc = serviceClient();
 
     // Get host display name for the invite email
@@ -59,6 +64,7 @@ export async function POST(request: Request) {
         scheduled_at: input.scheduledAt,
         duration_minutes: input.durationMinutes,
         join_code: joinCode,
+        channel_id: input.channelId ?? null,
         // A recurring meeting is one row: scheduled_at tracks the next occurrence
         // and the anchor keeps the day of the month stable for monthly series.
         recurrence_freq: input.recurrenceFreq ?? null,

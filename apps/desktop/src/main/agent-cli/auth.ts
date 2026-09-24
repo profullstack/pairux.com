@@ -13,7 +13,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import { spawn } from 'node:child_process';
-import type { StoredTokens } from './config.js';
+import type { StoredTokens } from './config';
 
 export interface Pkce {
   verifier: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { listenForCallback } from './auth.js';
+import { listenForCallback } from './auth';
 
 describe('listenForCallback (real loopback socket)', () => {
   it('resolves with the code when the state matches', async () => {

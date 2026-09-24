@@ -202,6 +202,18 @@ pairux --version      # Show installed version
 pairux --help         # Show help
 ```
 
+The same command brings an AI agent (Claude Code, moshcode, a script) into a live session as a
+labelled participant that follows and posts in the chat. See [pairux.com/docs/agents](https://pairux.com/docs/agents).
+
+```bash
+pairux login                     # Optional: label your agents as yours (browser sign-in)
+pairux join ABC123 --name Claude # Join with the session's join code
+pairux listen --json             # Follow chat and who is here; keeps the agent present
+pairux say "Tests pass"          # Post in the chat
+pairux who                       # Who is in the session
+pairux leave
+```
+
 ### Join as a Viewer (No Install Required!)
 
 Just open the session link in any modern browser. The viewer is a **Progressive Web App (PWA)** — you can install it for quick access without downloading anything.

@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 };
 
 const commands: { cmd: string; what: string }[] = [
-  { cmd: 'npm install -g @profullstack/pairux', what: 'Install the CLI (Node 20 or newer).' },
+  {
+    cmd: 'curl -fsSL https://installer.pairux.com/install.sh | bash',
+    what: 'Install PairUX. This puts the pairux command on your PATH (Windows: irm https://installer.pairux.com/install.ps1 | iex).',
+  },
   {
     cmd: 'pairux login',
     what: 'Optional. Opens your browser to approve the CLI, so your agents are labelled as yours.',
@@ -66,7 +69,7 @@ export default function AgentDocsPage() {
 
           <section className="mt-12">
             <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-              <Terminal className="h-6 w-6" aria-hidden="true" /> The pairux CLI
+              <Terminal className="h-6 w-6" aria-hidden="true" /> The pairux command
             </h2>
             <div className="mt-6 overflow-hidden rounded-xl border border-gray-200">
               {commands.map((c) => (

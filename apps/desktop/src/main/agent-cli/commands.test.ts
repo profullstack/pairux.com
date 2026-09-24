@@ -3,8 +3,8 @@ import { mkdtemp, readFile, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { run, type Deps } from './cli.js';
-import { buildAuthorizeUrl, createPkce, needsRefresh } from './auth.js';
+import { run, type Deps } from './commands';
+import { buildAuthorizeUrl, createPkce, needsRefresh } from './auth';
 
 interface Call {
   method: string;
@@ -25,7 +25,7 @@ function fakeFetch(handler: Handler, calls: Call[]): typeof fetch {
       method: init?.method ?? 'GET',
       path: url.pathname + url.search,
       body: typeof init?.body === 'string' ? init.body : null,
-      auth: headers.Authorization ?? null,
+      auth: 'Authorization' in headers ? headers.Authorization : null,
     };
     calls.push(call);
     const { status, body } = handler(call);
@@ -64,7 +64,7 @@ const joined = {
 };
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'pairux-cli-'));
+  dir = await mkdtemp(join(tmpdir(), 'pairux-agent-'));
   out = [];
   err = [];
   calls = [];
@@ -113,7 +113,7 @@ describe('pairux join / say / leave', () => {
     );
     expect(code).toBe(0);
     expect(calls[0]).toMatchObject({ method: 'POST', path: '/api/v1/agents/join', auth: null });
-    expect(JSON.parse(calls[0]!.body!)).toEqual({
+    expect(JSON.parse(calls[0].body!)).toEqual({
       joinCode: 'ABC123',
       name: 'Claude Code',
       client: 'claude-code',
@@ -131,7 +131,7 @@ describe('pairux join / say / leave', () => {
         : { status: 404, body: { error: 'nope' } }
     );
     await (
-      await import('./config.js')
+      await import('./config')
     ).saveConfig(
       {
         tokens: {
@@ -143,7 +143,7 @@ describe('pairux join / say / leave', () => {
       d.configPath
     );
     expect(await run(['join', 'ABC123', '--name', 'Reviewer'], d)).toBe(0);
-    expect(calls[0]!.auth).toBe('Bearer pux_at_x');
+    expect(calls[0].auth).toBe('Bearer pux_at_x');
     expect(out[0]).toContain('(your agent)');
   });
 
@@ -176,7 +176,7 @@ describe('pairux join / say / leave', () => {
       method: 'POST',
       path: `/api/v1/agents/${joined.participantId}/messages`,
     });
-    expect(JSON.parse(calls[1]!.body!)).toEqual({ content: 'hello room' });
+    expect(JSON.parse(calls[1].body!)).toEqual({ content: 'hello room' });
     expect(await run(['say', 'x'.repeat(501)], d)).toBe(2);
     expect(calls).toHaveLength(2);
   });
@@ -281,7 +281,7 @@ describe('pairux listen', () => {
     expect(out[0]).toMatch(/Anthony: can you check the test\?$/);
     expect(out[1]).toBe('* Sam joined');
     // Second poll asks only for messages after the one already shown.
-    expect(calls[2]!.path).toContain(encodeURIComponent('2026-09-24T12:00:01.000Z'));
+    expect(calls[2].path).toContain(encodeURIComponent('2026-09-24T12:00:01.000Z'));
     expect((await readConfig()).agent).toMatchObject({ cursor: '2026-09-24T12:00:01.000Z' });
   });
 
@@ -305,7 +305,7 @@ describe('pairux listen', () => {
     await run(['join', 'ABC123'], d);
     out = [];
     await run(['listen', '--json', '--once'], d);
-    expect(JSON.parse(out[0]!)).toMatchObject({ type: 'message', content: 'hi' });
+    expect(JSON.parse(out[0])).toMatchObject({ type: 'message', content: 'hi' });
   });
 
   it('stops cleanly and forgets the agent when removed (410)', async () => {
@@ -390,7 +390,7 @@ describe('pairux login', () => {
       };
     });
     await (
-      await import('./config.js')
+      await import('./config')
     ).saveConfig(
       {
         tokens: {
@@ -408,7 +408,7 @@ describe('pairux login', () => {
   it('logout revokes the refresh token and drops it', async () => {
     const d = deps(() => ({ status: 200, body: {} }));
     await (
-      await import('./config.js')
+      await import('./config')
     ).saveConfig(
       {
         tokens: {
@@ -420,8 +420,8 @@ describe('pairux login', () => {
       d.configPath
     );
     expect(await run(['logout'], d)).toBe(0);
-    expect(calls[0]!.path).toBe('/api/v1/cli/revoke');
-    expect(calls[0]!.body).toBe('token=pux_rt_x');
+    expect(calls[0].path).toBe('/api/v1/cli/revoke');
+    expect(calls[0].body).toBe('token=pux_rt_x');
     expect((await readConfig()).tokens).toBeUndefined();
   });
 });

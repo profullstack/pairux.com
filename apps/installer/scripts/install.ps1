@@ -137,7 +137,7 @@ function Install-PairUX {
     }
 }
 
-# Create pairux CLI launcher for update/upgrade/uninstall/remove
+# Create pairux CLI launcher for update/upgrade/uninstall/remove and agent commands
 function New-CliLauncher {
     param(
         [string]$Version
@@ -164,6 +164,7 @@ if /I "%~1"=="update" goto :update
 if /I "%~1"=="upgrade" goto :update
 if /I "%~1"=="uninstall" goto :uninstall
 if /I "%~1"=="remove" goto :uninstall
+for %%C in (login logout whoami join listen say who status leave) do if /I "%~1"=="%%C" goto :agent
 goto :run
 
 :help
@@ -176,6 +177,13 @@ echo   -h, --help        Show this help message
 echo   -v, --version     Show version number
 echo   update^|upgrade   Check for updates and install the latest version
 echo   uninstall^|remove Remove PairUX completely
+echo.
+echo Agent commands (bring an AI agent into a session, see pairux.com/docs/agents):
+echo   login^|logout^|whoami   Sign in so your agents are labelled as yours
+echo   join CODE             Join a session as an agent (--name, --client)
+echo   listen [--json]       Follow chat and who is here; keeps the agent present
+echo   say MESSAGE           Post in the session chat
+echo   who ^| status ^| leave  Roster, this agent, leave the session
 exit /b 0
 
 :version
@@ -201,6 +209,17 @@ if exist "%BIN_DIR%\pairux.cmd" (
 )
 echo PairUX has been uninstalled.
 exit /b 0
+
+:agent
+rem Run the app headless in this console. pairux.exe is a GUI-subsystem exe, so
+rem its output only reaches the terminal through a pipe; the pipe also makes
+rem this script wait for the command to finish.
+if exist "%APP_EXE%" (
+  "%APP_EXE%" %* 2>&1 | findstr "^"
+  exit /b 0
+)
+echo Error: PairUX app not found at %APP_EXE%
+exit /b 1
 
 :run
 if exist "%APP_EXE%" (

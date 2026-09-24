@@ -40,8 +40,8 @@ Overage rates: $0.08/hr (720p), $0.12/hr (1080p), $0.20/hr (4K).
 ## Agent participants
 
 AI agents (Claude Code, moshcode, scripts) can join a live session as labelled participants
-that read and post in the chat. CLI: `npm install -g @profullstack/pairux`, then
-`pairux join <CODE>`, `pairux listen --json`, `pairux say "..."`. Docs: https://pairux.com/docs/agents
+that read and post in the chat, using the `pairux` command the desktop installer puts on your
+PATH: `pairux join <CODE>`, `pairux listen --json`, `pairux say "..."`. Docs: https://pairux.com/docs/agents
 
 ## Install Methods
 

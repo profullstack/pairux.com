@@ -18,7 +18,7 @@ interface AnalysisDetail {
   duration_seconds: number | null;
   created_at: string;
   error: string | null;
-  report: CallReport | null;
+  report: (CallReport & { generatedBy?: string }) | null;
   metrics: CallMetrics | null;
   transcript: TranscriptSegment[] | null;
   recordingUrl: string | null;
@@ -340,8 +340,8 @@ export default function AnalysisReportPage({ params }: { params: Promise<{ id: s
 
             <p className="flex items-center gap-2 text-xs text-gray-500">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              Written by AI from the call recording. Speaker labels come from automatic speaker
-              detection and can be wrong.
+              Written by AI{report.generatedBy ? ` (${report.generatedBy})` : ''} from the call
+              recording. Speaker labels come from automatic speaker detection and can be wrong.
             </p>
           </article>
         )}

@@ -24,10 +24,18 @@ import {
 import { concatSegments, extractAudioSegments, probe } from './media';
 import { transcribeAll } from './transcribe';
 import { computeMetrics } from './metrics';
-import { pickEvenly, writeReport, ReportRefusedError, type CallReport } from './report';
+import {
+  pickEvenly,
+  writeReport,
+  ReportQuotaError,
+  ReportRefusedError,
+  type CallReport,
+} from './report';
 
 const MAX_FRAMES_IN_REPORT = 12;
 const MAX_ATTEMPTS = 3;
+/** How long to wait before retrying when every report provider is out of budget. */
+export const QUOTA_RETRY_MS = 30 * 60 * 1000;
 
 /** A problem with the recording itself: retrying cannot help. */
 class NothingToAnalyseError extends Error {}
@@ -170,7 +178,7 @@ export async function processAnalysis(
       });
     }
 
-    const report = await (deps.report ?? writeReport)({
+    const written = await (deps.report ?? writeReport)({
       kind: row.kind,
       title: row.title,
       hostName: await hostName(db, row.host_user_id),
@@ -179,6 +187,10 @@ export async function processAnalysis(
       metrics,
       frames,
     });
+    const report: CallReport & { generatedBy: string } = {
+      ...written.report,
+      generatedBy: written.model,
+    };
 
     let recordingPath: string | null = null;
     if (row.keep_recording) {
@@ -213,6 +225,21 @@ export async function processAnalysis(
     return 'ready';
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof ReportQuotaError) {
+      // Out of AI budget is not the recording's fault: keep everything, give
+      // the attempt back, and try again later (claim skips it until then).
+      console.warn(`[call-analysis] ${row.id} waiting for report budget:`, message);
+      await db
+        .from('call_analyses')
+        .update({
+          status: 'queued',
+          attempts: Math.max(0, row.attempts - 1),
+          error: `Waiting: the AI providers are out of budget (${message})`,
+          queued_at: new Date(Date.now() + QUOTA_RETRY_MS).toISOString(),
+        } as never)
+        .eq('id', row.id);
+      return 'retry';
+    }
     const permanent =
       error instanceof NothingToAnalyseError ||
       error instanceof ReportRefusedError ||

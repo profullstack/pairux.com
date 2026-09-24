@@ -38,7 +38,10 @@ export function configPath(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 export function apiUrl(config: CliConfig, env: NodeJS.ProcessEnv = process.env): string {
-  return (env.PAIRUX_API_URL ?? config.apiUrl ?? DEFAULT_API_URL).replace(/\/+$/, '');
+  let url = env.PAIRUX_API_URL ?? config.apiUrl ?? DEFAULT_API_URL;
+  // Trim trailing slashes without a regex (a /\/+$/ backtracks on long runs).
+  while (url.endsWith('/')) url = url.slice(0, -1);
+  return url;
 }
 
 export async function loadConfig(path = configPath()): Promise<CliConfig> {

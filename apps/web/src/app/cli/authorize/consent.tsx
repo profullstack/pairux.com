@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Bot, Loader2, Terminal } from 'lucide-react';
+import { isLoopbackRedirect } from '@/lib/loopback';
 
 interface Props {
   email: string;
@@ -52,6 +53,12 @@ export function CliAuthorizeConsent({
   }
 
   function deny() {
+    // The page already refused non-loopback redirects; check again right where
+    // the browser navigates, so this can never become an open redirect.
+    if (!isLoopbackRedirect(redirectUri)) {
+      setDone('denied');
+      return;
+    }
     const url = new URL(redirectUri);
     url.searchParams.set('error', 'access_denied');
     url.searchParams.set('state', state);

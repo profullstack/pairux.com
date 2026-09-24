@@ -14,6 +14,7 @@
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { isLoopbackRedirect } from './loopback';
 
 export const ACCESS_TOKEN_PREFIX = 'pux_at_';
 export const REFRESH_TOKEN_PREFIX = 'pux_rt_';
@@ -66,28 +67,7 @@ export function isValidChallenge(challenge: string): boolean {
   return /^[A-Za-z0-9_-]{43}$/.test(challenge);
 }
 
-/**
- * Only loopback redirects are accepted (RFC 8252 §7.3): the code can land on
- * the machine that asked for it and nowhere else. Any port, fixed path.
- */
-export function isLoopbackRedirect(uri: string): boolean {
-  let url: URL;
-  try {
-    url = new URL(uri);
-  } catch {
-    return false;
-  }
-  return (
-    url.protocol === 'http:' &&
-    (url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '[::1]') &&
-    url.port !== '' &&
-    url.pathname === '/callback' &&
-    url.search === '' &&
-    url.hash === '' &&
-    url.username === '' &&
-    url.password === ''
-  );
-}
+export { isLoopbackRedirect };
 
 /** Issue a one-time authorization code for a user who approved the CLI. */
 export async function createAuthCode(

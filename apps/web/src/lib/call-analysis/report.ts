@@ -119,10 +119,33 @@ export interface ReportInput {
 
 export class ReportRefusedError extends Error {}
 
-export async function writeReport(
-  input: ReportInput,
-  client = new Anthropic()
-): Promise<CallReport> {
+/**
+ * Every provider tried was out of budget or rate limited. Not the recording's
+ * fault: the job waits and tries again later without using up an attempt.
+ */
+export class ReportQuotaError extends Error {}
+
+/** A provider-side failure worth trying the next provider for. */
+class ProviderUnavailableError extends Error {
+  constructor(
+    message: string,
+    readonly quota: boolean
+  ) {
+    super(message);
+  }
+}
+
+export type ReportProvider = 'anthropic' | 'openai';
+
+export const OPENAI_REPORT_MODEL = 'gpt-5.4';
+
+export interface WrittenReport {
+  report: CallReport;
+  /** Which model wrote it, e.g. "claude-opus-5" or "gpt-5.4". */
+  model: string;
+}
+
+function contextText(input: ReportInput): string {
   const context = [
     input.title ? `Call title: ${input.title}` : null,
     input.hostName ? `Host: ${input.hostName}` : null,
@@ -132,7 +155,19 @@ export async function writeReport(
   ]
     .filter(Boolean)
     .join('\n');
+  return `${context}\n\n<metrics>\n${metricsText(input.metrics)}\n</metrics>\n\n<transcript>\n${transcriptText(input.segments)}\n</transcript>\n\nWrite the feedback report.`;
+}
 
+function finish(parsed: CallReport): CallReport {
+  return { ...parsed, overallScore: Math.min(10, Math.max(1, Math.round(parsed.overallScore))) };
+}
+
+const QUOTA_TEXT = /usage limit|credit balance|insufficient_quota|quota|billing/i;
+
+export async function writeReportWithAnthropic(
+  input: ReportInput,
+  client = new Anthropic()
+): Promise<WrittenReport> {
   const content: Anthropic.Beta.BetaContentBlockParam[] = [];
   for (const frame of input.frames) {
     content.push({ type: 'text', text: `Screen at ${formatClock(frame.atMs)}:` });
@@ -141,28 +176,188 @@ export async function writeReport(
       source: { type: 'base64', media_type: 'image/jpeg', data: frame.jpeg.toString('base64') },
     });
   }
-  content.push({
-    type: 'text',
-    text: `${context}\n\n<metrics>\n${metricsText(input.metrics)}\n</metrics>\n\n<transcript>\n${transcriptText(input.segments)}\n</transcript>\n\nWrite the feedback report.`,
-  });
+  content.push({ type: 'text', text: contextText(input) });
 
-  const response = await client.beta.messages.parse({
-    model: REPORT_MODEL,
-    max_tokens: 16000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    thinking: { type: 'adaptive' },
-    system: systemPrompt(input.kind),
-    messages: [{ role: 'user', content }],
-    output_config: { format: betaZodOutputFormat(reportSchema) },
-  });
+  let response;
+  try {
+    response = await client.beta.messages.parse({
+      model: REPORT_MODEL,
+      max_tokens: 16000,
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      thinking: { type: 'adaptive' },
+      system: systemPrompt(input.kind),
+      messages: [{ role: 'user', content }],
+      output_config: { format: betaZodOutputFormat(reportSchema) },
+    });
+  } catch (error) {
+    if (error instanceof Anthropic.RateLimitError) {
+      throw new ProviderUnavailableError(`Anthropic: ${error.message}`, true);
+    }
+    if (
+      error instanceof Anthropic.AuthenticationError ||
+      error instanceof Anthropic.PermissionDeniedError
+    ) {
+      throw new ProviderUnavailableError(`Anthropic: ${error.message}`, false);
+    }
+    if (error instanceof Anthropic.BadRequestError && QUOTA_TEXT.test(error.message)) {
+      throw new ProviderUnavailableError(`Anthropic: ${error.message}`, true);
+    }
+    if (
+      error instanceof Anthropic.InternalServerError ||
+      error instanceof Anthropic.APIConnectionError
+    ) {
+      throw new ProviderUnavailableError(`Anthropic: ${error.message}`, false);
+    }
+    throw error;
+  }
 
   if (response.stop_reason === 'refusal') {
     throw new ReportRefusedError('The model declined to write this report');
   }
   const parsed = response.parsed_output;
   if (!parsed) throw new Error(`Report was not valid JSON (stop: ${String(response.stop_reason)})`);
-  return { ...parsed, overallScore: Math.min(10, Math.max(1, Math.round(parsed.overallScore))) };
+  return { report: finish(parsed), model: response.model };
+}
+
+/**
+ * JSON Schema for OpenAI strict structured outputs: every property required
+ * and no extra keys, which is what `strict: true` demands.
+ */
+export function strictJsonSchema(): Record<string, unknown> {
+  const walk = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(walk);
+    if (!node || typeof node !== 'object') return node;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(node)) {
+      if (key === '$schema') continue;
+      out[key] = walk(value);
+    }
+    if (out.type === 'object' && out.properties && typeof out.properties === 'object') {
+      out.required = Object.keys(out.properties);
+      out.additionalProperties = false;
+    }
+    return out;
+  };
+  return walk(z.toJSONSchema(reportSchema)) as Record<string, unknown>;
+}
+
+export async function writeReportWithOpenAI(
+  input: ReportInput,
+  opts: { apiKey?: string; model?: string; fetchImpl?: typeof fetch } = {}
+): Promise<WrittenReport> {
+  const apiKey = opts.apiKey ?? process.env.OPENAI_API_KEY;
+  if (!apiKey)
+    throw new ProviderUnavailableError('OpenAI: OPENAI_API_KEY is not configured', false);
+  const model = opts.model ?? process.env.OPENAI_REPORT_MODEL ?? OPENAI_REPORT_MODEL;
+
+  const content: Record<string, unknown>[] = [];
+  for (const frame of input.frames) {
+    content.push({ type: 'text', text: `Screen at ${formatClock(frame.atMs)}:` });
+    content.push({
+      type: 'image_url',
+      image_url: { url: `data:image/jpeg;base64,${frame.jpeg.toString('base64')}` },
+    });
+  }
+  content.push({ type: 'text', text: contextText(input) });
+
+  let res: Response;
+  try {
+    res = await (opts.fetchImpl ?? fetch)('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        max_completion_tokens: 16000,
+        messages: [
+          { role: 'system', content: systemPrompt(input.kind) },
+          { role: 'user', content },
+        ],
+        response_format: {
+          type: 'json_schema',
+          json_schema: { name: 'call_report', strict: true, schema: strictJsonSchema() },
+        },
+      }),
+    });
+  } catch (error) {
+    throw new ProviderUnavailableError(`OpenAI: ${String(error)}`, false);
+  }
+
+  const body = (await res.json().catch(() => ({}))) as {
+    error?: { message?: string; code?: string; type?: string };
+    model?: string;
+    choices?: {
+      message?: { content?: string | null; refusal?: string | null };
+      finish_reason?: string;
+    }[];
+  };
+  if (!res.ok) {
+    const message = `OpenAI ${String(res.status)}: ${body.error?.message ?? 'request failed'}`;
+    const quota =
+      res.status === 429 ||
+      QUOTA_TEXT.test(`${body.error?.code ?? ''} ${body.error?.message ?? ''}`);
+    if (quota || res.status === 401 || res.status === 403 || res.status >= 500) {
+      throw new ProviderUnavailableError(message, quota);
+    }
+    throw new Error(message);
+  }
+  const choice = body.choices?.[0];
+  if (choice?.message?.refusal)
+    throw new ReportRefusedError('The model declined to write this report');
+  const text = choice?.message?.content;
+  if (!text)
+    throw new Error(`OpenAI returned no report (finish: ${String(choice?.finish_reason)})`);
+  const parsed = reportSchema.parse(JSON.parse(text));
+  return { report: finish(parsed), model: body.model ?? model };
+}
+
+/** Provider order from REPORT_PROVIDERS ("anthropic,openai" by default). */
+export function reportProviders(
+  env: Record<string, string | undefined> = process.env
+): ReportProvider[] {
+  const listed = (env.REPORT_PROVIDERS ?? 'anthropic,openai')
+    .split(',')
+    .map((p) => p.trim().toLowerCase())
+    .filter((p): p is ReportProvider => p === 'anthropic' || p === 'openai');
+  return listed.length > 0 ? [...new Set(listed)] : ['anthropic', 'openai'];
+}
+
+/**
+ * Write the report with the first provider that can: Claude, then OpenAI by
+ * default. A provider that is out of budget, rate limited, unauthorised or
+ * down hands over to the next; any other failure (bad output, refusal) stops
+ * here. If a provider was out of budget and none could write it, ReportQuotaError tells the job
+ * to wait rather than burn an attempt.
+ */
+export async function writeReport(
+  input: ReportInput,
+  deps: {
+    providers?: ReportProvider[];
+    anthropic?: (input: ReportInput) => Promise<WrittenReport>;
+    openai?: (input: ReportInput) => Promise<WrittenReport>;
+  } = {}
+): Promise<WrittenReport> {
+  const run: Record<ReportProvider, (input: ReportInput) => Promise<WrittenReport>> = {
+    anthropic: deps.anthropic ?? ((i) => writeReportWithAnthropic(i)),
+    openai: deps.openai ?? ((i) => writeReportWithOpenAI(i)),
+  };
+  const failures: ProviderUnavailableError[] = [];
+  for (const provider of deps.providers ?? reportProviders()) {
+    try {
+      return await run[provider](input);
+    } catch (error) {
+      if (!(error instanceof ProviderUnavailableError)) throw error;
+      console.warn(
+        `[call-analysis] ${provider} unavailable, trying the next provider:`,
+        error.message
+      );
+      failures.push(error);
+    }
+  }
+  const summary = failures.map((f) => f.message).join(' | ');
+  // Out of budget somewhere and nothing else worked: wait it out rather than fail.
+  if (failures.some((f) => f.quota)) throw new ReportQuotaError(summary);
+  throw new Error(`No report provider could write the report: ${summary}`);
 }
 
 /** Evenly spaced pick of at most `max` items, always keeping the first and last. */

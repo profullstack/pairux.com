@@ -11,6 +11,7 @@ import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-ty
 import { SubscribeButton } from './SubscribeButton';
 import { ShareButtons } from './ShareButtons';
 import { MessageButton } from '@/app/u/[username]/MessageButton';
+import { ChannelWebsiteLink } from '@/components/channel/ChannelWebsiteLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -185,7 +186,10 @@ export default async function ChannelPage({ params }: PageProps) {
                     </span>
                   )}
                 </div>
-                <p className="text-primary-600 text-sm font-medium">@{channel.handle}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <p className="text-primary-600 text-sm font-medium">@{channel.handle}</p>
+                  <ChannelWebsiteLink url={channel.website_url} />
+                </div>
                 {channel.description && (
                   <div
                     className="[&_a]:text-primary-600 mt-1 max-w-xl text-sm text-gray-600"

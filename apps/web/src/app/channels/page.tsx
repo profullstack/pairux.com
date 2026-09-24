@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Radio, Circle, User as UserIcon } from 'lucide-react';
+import { Radio, Circle, Globe, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
+import { websiteLabel } from '@/lib/channel-website';
 
 export const metadata: Metadata = {
   title: 'Channels',
@@ -23,6 +24,7 @@ interface ChannelDir {
   is_live: boolean;
   live_count: number;
   recording_count: number;
+  website_url: string | null;
 }
 
 async function getChannels(): Promise<ChannelDir[]> {
@@ -131,6 +133,14 @@ export default async function ChannelsPage() {
                           {' · '}
                           {c.recording_count} {c.recording_count === 1 ? 'recording' : 'recordings'}
                         </p>
+                        {/* The whole card is a link to /@handle, so the website is a
+                            label here (no nested <a>); the channel page links it. */}
+                        {websiteLabel(c.website_url) && (
+                          <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+                            <Globe className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="line-clamp-1">{websiteLabel(c.website_url)}</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                   </Link>

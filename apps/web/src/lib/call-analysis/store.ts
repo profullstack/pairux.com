@@ -84,6 +84,8 @@ interface HostSession {
   status: string;
   subject: string | null;
   settings: SessionSettings | null;
+  org_id?: string | null;
+  team_id?: string | null;
 }
 
 /**
@@ -97,7 +99,9 @@ export async function hostedAnalysisSession(
 ): Promise<(HostSession & { analysis: CallAnalysisSettings }) | null> {
   const { data } = (await db
     .from('sessions')
-    .select('id, status, subject, settings, host_user_id, creator_id, current_host_id')
+    .select(
+      'id, status, subject, settings, host_user_id, creator_id, current_host_id, org_id, team_id'
+    )
     .eq('id', sessionId)
     .maybeSingle()) as {
     data:

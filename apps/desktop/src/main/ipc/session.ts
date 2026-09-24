@@ -30,6 +30,20 @@ async function getAuthHeaders(): Promise<Record<string, string> | null> {
 export function registerSessionHandlers(): void {
   console.log('[Session] Registering session IPC handlers');
 
+  // Organizations and teams the user belongs to, for the workspace picker.
+  ipcMain.handle('orgs:list', async () => {
+    try {
+      const headers = await getAuthHeaders();
+      if (!headers) return [];
+      const response = await apiFetch(`${API_BASE_URL}/api/orgs`, { headers });
+      if (!response.ok) return [];
+      const data = (await response.json()) as { data?: unknown[] };
+      return data.data ?? [];
+    } catch {
+      return [];
+    }
+  });
+
   // Create session
   ipcMain.handle(
     'session:create',
@@ -51,6 +65,8 @@ export function registerSessionHandlers(): void {
             maxParticipants: settings?.maxParticipants ?? 5,
             mode: settings?.mode ?? 'p2p',
             ...(settings?.analysis?.enabled ? { analysis: settings.analysis } : {}),
+            ...(settings?.orgId ? { orgId: settings.orgId } : {}),
+            ...(settings?.teamId ? { teamId: settings.teamId } : {}),
           }),
         });
 

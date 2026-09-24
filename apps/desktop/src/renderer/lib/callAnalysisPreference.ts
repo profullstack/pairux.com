@@ -40,6 +40,33 @@ export function writeAnalysisPreference(next: CallAnalysisSettings): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
+const WORKSPACE_KEY = 'pairux-call-workspace';
+
+export interface CallWorkspace {
+  orgId?: string;
+  teamId?: string;
+}
+
+export function readWorkspace(): CallWorkspace {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(WORKSPACE_KEY) ?? '{}') as CallWorkspace;
+    return {
+      ...(parsed.orgId ? { orgId: parsed.orgId } : {}),
+      ...(parsed.teamId ? { teamId: parsed.teamId } : {}),
+    };
+  } catch {
+    return {};
+  }
+}
+
+export function writeWorkspace(next: CallWorkspace): void {
+  try {
+    localStorage.setItem(WORKSPACE_KEY, JSON.stringify(next));
+  } catch {
+    // storage unavailable
+  }
+}
+
 /** What to send when creating a session: the choice when it is on, else nothing. */
 export function analysisForNewCall(): CallAnalysisSettings | undefined {
   const pref = readAnalysisPreference();

@@ -75,6 +75,17 @@ export interface CreateSessionSettings {
   mode?: SessionMode;
   /** AI call analysis, chosen before the call starts. */
   analysis?: CallAnalysisSettings;
+  /** Workspace: the organization (and team) the call belongs to. */
+  orgId?: string;
+  teamId?: string;
+}
+
+/** An organization the user belongs to, with its teams (GET /api/orgs). */
+export interface MyOrgSummary {
+  id: string;
+  name: string;
+  role: 'owner' | 'admin' | 'member';
+  teams: { id: string; name: string; myRole: 'lead' | 'member' | null }[];
 }
 
 // Request/response channels (invoke pattern)
@@ -171,6 +182,10 @@ export interface IPCChannels {
   };
 
   // Session channels
+  'orgs:list': {
+    args: undefined;
+    return: MyOrgSummary[];
+  };
   'session:create': {
     args: CreateSessionSettings | undefined;
     return: { success: true; session: Session } | { success: false; error: string };

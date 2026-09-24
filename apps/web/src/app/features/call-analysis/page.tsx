@@ -153,7 +153,8 @@ export default function CallAnalysisFeaturePage() {
                 apps.
               </li>
               <li>
-                Reports and recordings are private to the host and can be deleted at any time.
+                Reports and recordings are private to the host, or to the team or organization the
+                call was held in, and can be deleted at any time.
               </li>
               <li>
                 Keep the recording off and the audio is deleted as soon as the report is written.

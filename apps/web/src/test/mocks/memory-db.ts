@@ -8,7 +8,9 @@ type Filter = (row: Row) => boolean;
 
 class Query implements PromiseLike<{ data: unknown; error: unknown }> {
   private filters: Filter[] = [];
-  private op: 'select' | 'insert' | 'update' = 'select';
+  private op: 'select' | 'insert' | 'update' | 'delete' | 'upsert' = 'select';
+  private conflict: string[] = [];
+  private ignoreDuplicates = false;
   private patch: Row = {};
   private returning = false;
   private mode: 'many' | 'single' | 'maybeSingle' = 'many';
@@ -33,6 +35,25 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
   update(patch: Row) {
     this.op = 'update';
     this.patch = patch;
+    return this;
+  }
+  delete() {
+    this.op = 'delete';
+    return this;
+  }
+  upsert(row: Row, opts: { onConflict?: string; ignoreDuplicates?: boolean } = {}) {
+    this.op = 'upsert';
+    this.patch = row;
+    this.conflict = (opts.onConflict ?? 'id').split(',').map((c) => c.trim());
+    this.ignoreDuplicates = opts.ignoreDuplicates === true;
+    return this;
+  }
+  ilike(column: string, value: string) {
+    this.filters.push((r) => String(r[column]).toLowerCase() === value.toLowerCase());
+    return this;
+  }
+  in(column: string, values: unknown[]) {
+    this.filters.push((r) => values.includes(r[column]));
     return this;
   }
   eq(column: string, value: unknown) {
@@ -73,9 +94,23 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
     if (this.op === 'insert') {
       const row = { id: `id-${String(this.rows.length + 1)}`, ...this.patch };
       this.rows.push(row);
-      return { data: this.returning ? [row] : null, error: null };
+      if (!this.returning) return { data: null, error: null };
+      return { data: this.mode === 'many' ? [row] : row, error: null };
+    }
+    if (this.op === 'upsert') {
+      const existing = this.rows.find((r) => this.conflict.every((c) => r[c] === this.patch[c]));
+      if (existing) {
+        if (!this.ignoreDuplicates) Object.assign(existing, this.patch);
+      } else {
+        this.rows.push({ ...this.patch });
+      }
+      return { data: null, error: null };
     }
     let matched = this.rows.filter((r) => this.filters.every((f) => f(r)));
+    if (this.op === 'delete') {
+      for (const r of matched) this.rows.splice(this.rows.indexOf(r), 1);
+      return { data: null, error: null };
+    }
     if (this.op === 'update') {
       for (const r of matched) Object.assign(r, this.patch);
       return { data: this.returning ? matched : null, error: null };
@@ -115,6 +150,14 @@ export function createMemoryDb(tables: Record<string, Row[]> = {}) {
     from(name: string) {
       tables[name] ??= [];
       return new Query(tables[name], failing.has(name));
+    },
+    auth: {
+      admin: {
+        getUserById(id: string) {
+          const user = (tables.__users ?? []).find((u) => u.id === id) ?? null;
+          return Promise.resolve({ data: { user }, error: null });
+        },
+      },
     },
     rpc(name: string, args: Row) {
       const handler = rpcHandlers[name];

@@ -72,6 +72,9 @@ export async function POST(request: Request, { params }: RouteParams) {
           chunk_format: body.chunkFormat,
           mime_type: body.mimeType,
           title: session.subject,
+          // Reports of an org or team call are readable by that org or team.
+          org_id: session.org_id ?? null,
+          team_id: session.team_id ?? null,
         } as never)
         .select('*')
         .single()) as { data: AnalysisRow | null; error: unknown };

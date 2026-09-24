@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Session, SessionParticipant, SessionMode } from '@pairux/shared-types';
 import { getElectronAPI } from '@/lib/ipc';
-import { analysisForNewCall } from '@/lib/callAnalysisPreference';
+import { analysisForNewCall, readWorkspace } from '@/lib/callAnalysisPreference';
 
 interface SessionState {
   session: Session | null;
@@ -46,6 +46,7 @@ export function useSession(): UseSessionReturn {
         const result = await api.invoke('session:create', {
           ...settings,
           ...(analysis ? { analysis } : {}),
+          ...readWorkspace(),
         });
 
         if (!result.success) {

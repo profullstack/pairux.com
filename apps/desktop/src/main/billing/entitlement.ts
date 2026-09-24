@@ -27,7 +27,7 @@ interface CachedPlan {
 let cache: CachedPlan | null = null;
 
 interface SessionResponse {
-  data?: { profile?: Profile | null };
+  data?: { profile?: Profile | null; effectivePlan?: Plan };
   profile?: Profile | null;
 }
 
@@ -49,6 +49,9 @@ async function fetchPlanFromServer(): Promise<Plan> {
     }
 
     const body = (await response.json()) as SessionResponse;
+    // The server's effective plan counts organizations the user belongs to.
+    const orgAware = body.data?.effectivePlan;
+    if (orgAware) return orgAware;
     const profile = body.data?.profile ?? body.profile ?? null;
     if (!profile) return 'free';
     // A paid plan only counts while its CoinPay-paid period is still active.

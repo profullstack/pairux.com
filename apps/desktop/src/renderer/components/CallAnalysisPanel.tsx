@@ -1,6 +1,13 @@
 import { Sparkles } from 'lucide-react';
 import type { CallAnalysisKind } from '@pairux/shared-types';
-import { useAnalysisPreference } from '@/lib/callAnalysisPreference';
+import { useEffect, useState } from 'react';
+import {
+  readWorkspace,
+  useAnalysisPreference,
+  writeWorkspace,
+  type CallWorkspace,
+} from '@/lib/callAnalysisPreference';
+import type { MyOrgSummary } from '../../preload/api';
 import { getElectronAPI } from '@/lib/ipc';
 
 const KIND_LABELS: Record<CallAnalysisKind, string> = {
@@ -17,6 +24,34 @@ const KIND_LABELS: Record<CallAnalysisKind, string> = {
  */
 export function CallAnalysisPanel({ disabled = false }: { disabled?: boolean }) {
   const [value, setValue] = useAnalysisPreference();
+  const [orgs, setOrgs] = useState<MyOrgSummary[]>([]);
+  const [workspace, setWorkspace] = useState<CallWorkspace>(readWorkspace);
+  useEffect(() => {
+    void getElectronAPI()
+      .invoke('orgs:list', undefined)
+      .then((list) => {
+        setOrgs(list);
+        // Forget a workspace the user is no longer part of.
+        const current = readWorkspace();
+        const known =
+          !current.orgId ||
+          list.some(
+            (o) =>
+              o.id === current.orgId &&
+              (!current.teamId || o.teams.some((t) => t.id === current.teamId))
+          );
+        if (!known) {
+          writeWorkspace({});
+          setWorkspace({});
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+  const workspaceValue = workspace.teamId
+    ? `team:${workspace.teamId}`
+    : workspace.orgId
+      ? `org:${workspace.orgId}`
+      : 'personal';
 
   return (
     <div
@@ -68,6 +103,46 @@ export function CallAnalysisPanel({ disabled = false }: { disabled?: boolean }) 
           />
         </button>
       </div>
+      {orgs.length > 0 && (
+        <label className="mt-3 flex items-center gap-2 text-sm">
+          Workspace
+          <select
+            value={workspaceValue}
+            disabled={disabled}
+            onChange={(e) => {
+              const v = e.target.value;
+              let next: CallWorkspace = {};
+              if (v.startsWith('org:')) next = { orgId: v.slice(4) };
+              if (v.startsWith('team:')) {
+                const teamId = v.slice(5);
+                const org = orgs.find((o) => o.teams.some((t) => t.id === teamId));
+                if (org) next = { orgId: org.id, teamId };
+              }
+              writeWorkspace(next);
+              setWorkspace(next);
+            }}
+            className="rounded-md border border-border bg-background px-2 py-1"
+            data-testid="desktop-workspace-picker"
+          >
+            <option value="personal">Personal</option>
+            {orgs.map((org) => (
+              <optgroup key={org.id} label={org.name}>
+                <option value={`org:${org.id}`}>{org.name} (whole organization)</option>
+                {org.teams
+                  .filter((t) => org.role !== 'member' || t.myRole !== null)
+                  .map((t) => (
+                    <option key={t.id} value={`team:${t.id}`}>
+                      {org.name} › {t.name}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </select>
+          <span className="text-xs text-muted-foreground">
+            A team call’s report is shared with the team.
+          </span>
+        </label>
+      )}
       {value.enabled && (
         <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-2">

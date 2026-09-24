@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { MyChannel } from '@pairux/shared-types';
+import { WorkspacePicker, useMyOrgs, type Workspace } from '@/components/orgs/WorkspacePicker';
 import { RestreamManager } from './RestreamManager';
 import { ChannelWebsiteEditor } from './ChannelWebsiteEditor';
 
@@ -77,6 +78,8 @@ export function ChannelsManager() {
   const [handle, setHandle] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const orgs = useMyOrgs();
+  const [owner, setOwner] = useState<Workspace>({});
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
@@ -201,6 +204,8 @@ export function ChannelsManager() {
           handle: handle.trim(),
           name: name.trim() || undefined,
           description: description.trim() || undefined,
+          ...(owner.orgId ? { orgId: owner.orgId } : {}),
+          ...(owner.teamId ? { teamId: owner.teamId } : {}),
         }),
       });
       const body = (await res.json()) as { error?: string };
@@ -362,6 +367,15 @@ export function ChannelsManager() {
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">{ch.name}</h3>
                       <p className="text-primary-600 text-sm">@{ch.handle}</p>
+                      {ch.org_id && (
+                        <p
+                          className="mt-0.5 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-800"
+                          data-testid="channel-shared-badge"
+                        >
+                          {ch.team_name ? `${ch.org_name ?? ''} › ${ch.team_name}` : ch.org_name}
+                          {ch.can_manage === false ? ' · you can go live here' : ''}
+                        </p>
+                      )}
                       <p className="mt-0.5 text-xs text-gray-500">
                         {ch.subscriber_count}{' '}
                         {ch.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
@@ -474,6 +488,14 @@ export function ChannelsManager() {
             />
           </div>
         </div>
+        <WorkspacePicker
+          orgs={orgs}
+          value={owner}
+          onChange={setOwner}
+          requireManage
+          label="Belongs to (team members can go live on a team channel)"
+          className="mt-3 text-xs font-medium"
+        />
         <label className="mt-3 mb-1 block text-xs font-medium text-gray-700">
           Description (optional, markdown)
         </label>

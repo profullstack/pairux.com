@@ -85,6 +85,10 @@ export const createSessionSchema = z.object({
     .length(6, 'Join code must be 6 characters')
     .regex(/^[A-Za-z0-9]+$/, 'Join code must be letters and numbers only')
     .optional(),
+  // Workspace: an organization (and optionally one of its teams) the call
+  // belongs to. Omitted = a personal call.
+  orgId: z.string().uuid().optional(),
+  teamId: z.string().uuid().optional(),
   // AI call analysis, decided before the call starts. Turning it on keeps the
   // recording by default.
   analysis: z

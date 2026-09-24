@@ -1,4 +1,6 @@
-import { canUseCallAnalysis, effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
+import { serviceClient } from '@/lib/supabase/service';
+import { canUseWorkspace, resolveUserPlan } from '@/lib/orgs';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createSessionSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -24,12 +26,13 @@ export async function POST(request: Request) {
     // to free via effectivePlan(). We use the full plan cap rather than the
     // client-requested value (clients hardcode a low default), so every room
     // holds up to the owner's plan capacity.
-    const { data: profile } = (await supabase
-      .from('profiles')
-      .select('plan, plan_expires_at')
-      .eq('id', user.id)
-      .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
-    const plan = effectivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
+    // The owner's own plan or the plan of any organization they belong to.
+    const svc = serviceClient();
+    const plan = await resolveUserPlan(svc, user.id);
+
+    // Workspace: a personal call, or one that belongs to an org or a team.
+    const workspace = await canUseWorkspace(svc, user.id, settings.orgId, settings.teamId);
+    if (!workspace) return errorResponse('You are not a member of that organization or team', 403);
     const cap = maxListeners(plan);
     const maxParticipants = cap;
 
@@ -59,6 +62,15 @@ export async function POST(request: Request) {
       console.error('Create session error:', error);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       return errorResponse(error.message, 400);
+    }
+
+    if (workspace.orgId && data && typeof data === 'object' && 'id' in data) {
+      const sessionId = (data as { id: string }).id;
+      await svc
+        .from('sessions')
+        .update({ org_id: workspace.orgId, team_id: workspace.teamId } as never)
+        .eq('id', sessionId);
+      Object.assign(data, { org_id: workspace.orgId, team_id: workspace.teamId });
     }
 
     return successResponse(data, 201);

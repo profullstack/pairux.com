@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { canUseCallAnalysis, effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
 import { createSessionSchema } from '@/lib/validations';
+import { resolveUserPlan } from '@/lib/orgs';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -90,13 +91,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
       }
 
-      const { data: profile } = (await (svc as any)
-        .from('profiles')
-        .select('plan, plan_expires_at')
-        .eq('id', user.id)
-        .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
-
-      const plan = effectivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
+      // The host's own plan or the plan of any organization they belong to.
+      const plan = await resolveUserPlan(svc, user.id);
       if (analysis && !canUseCallAnalysis(plan)) {
         return errorResponse('AI call analysis is available on Pro and Team plans', 403);
       }

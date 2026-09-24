@@ -7,6 +7,11 @@ const mockAddGrant = vi.fn();
 const mockToJwt = vi.fn().mockResolvedValue('mock-jwt-token');
 const mockAccessTokenCtor = vi.fn();
 
+vi.mock('@/lib/orgs', () => ({
+  // Org-aware plan lookup: these tests exercise personal (free) accounts.
+  resolveUserPlan: () => Promise.resolve('free'),
+  canUseWorkspace: () => Promise.resolve({ orgId: null, teamId: null }),
+}));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),

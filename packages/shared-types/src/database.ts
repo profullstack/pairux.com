@@ -331,6 +331,13 @@ export interface MyChannel {
   created_at: string;
   /** Optional http(s) website shown on the channel page; null when unset. */
   website_url: string | null;
+  /** Owning organization and team, when the channel is shared. */
+  org_id?: string | null;
+  org_name?: string | null;
+  team_id?: string | null;
+  team_name?: string | null;
+  /** Owner, org admin or team lead: may change the channel's settings. */
+  can_manage?: boolean;
 }
 
 // An external RTMP restream destination on a channel (from

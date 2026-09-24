@@ -9,6 +9,7 @@ const mockUnsubscribe = vi.fn().mockResolvedValue(true);
 vi.mock('@/hooks/usePushNotifications', () => ({
   usePushNotifications: vi.fn(() => ({
     isSupported: true,
+    unsupportedReason: null,
     permission: 'default' as NotificationPermission,
     isSubscribed: false,
     isLoading: false,
@@ -31,6 +32,7 @@ describe('NotificationPreferences', () => {
   it('should show unsupported message when push is not available', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: false,
+      unsupportedReason: null,
       permission: 'default',
       isSubscribed: false,
       isLoading: false,
@@ -43,9 +45,27 @@ describe('NotificationPreferences', () => {
     expect(screen.getByText(/not supported/i)).toBeInTheDocument();
   });
 
+  it('shows the specific reason push is unavailable', () => {
+    vi.mocked(usePushNotifications).mockReturnValue({
+      isSupported: false,
+      unsupportedReason: 'On iPhone and iPad, add this site to your Home Screen.',
+      permission: 'default',
+      isSubscribed: false,
+      isLoading: false,
+      subscribe: mockSubscribe,
+      unsubscribe: mockUnsubscribe,
+    });
+
+    render(<NotificationPreferences />);
+
+    expect(screen.getByText(/add this site to your Home Screen/i)).toBeInTheDocument();
+    expect(screen.queryByText(/not supported/i)).not.toBeInTheDocument();
+  });
+
   it('should show enable button when not subscribed', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'default',
       isSubscribed: false,
       isLoading: false,
@@ -62,6 +82,7 @@ describe('NotificationPreferences', () => {
   it('should show disable button when subscribed', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'granted',
       isSubscribed: true,
       isLoading: false,
@@ -78,6 +99,7 @@ describe('NotificationPreferences', () => {
   it('should call subscribe when enable button is clicked', async () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'default',
       isSubscribed: false,
       isLoading: false,
@@ -97,6 +119,7 @@ describe('NotificationPreferences', () => {
   it('should call unsubscribe when disable button is clicked', async () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'granted',
       isSubscribed: true,
       isLoading: false,
@@ -116,6 +139,7 @@ describe('NotificationPreferences', () => {
   it('should show notification blocked message when permission is denied', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'denied',
       isSubscribed: false,
       isLoading: false,
@@ -132,6 +156,7 @@ describe('NotificationPreferences', () => {
   it('should disable button while loading', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'default',
       isSubscribed: false,
       isLoading: true,
@@ -151,6 +176,7 @@ describe('NotificationPreferences', () => {
   it('should show event toggles when subscribed', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'granted',
       isSubscribed: true,
       isLoading: false,
@@ -170,6 +196,7 @@ describe('NotificationPreferences', () => {
   it('should not show event toggles when not subscribed', () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'default',
       isSubscribed: false,
       isLoading: false,
@@ -186,6 +213,7 @@ describe('NotificationPreferences', () => {
   it('should load preferences from server on mount', async () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'granted',
       isSubscribed: true,
       isLoading: false,
@@ -219,6 +247,7 @@ describe('NotificationPreferences', () => {
   it('should save preference when toggle is clicked', async () => {
     vi.mocked(usePushNotifications).mockReturnValue({
       isSupported: true,
+      unsupportedReason: null,
       permission: 'granted',
       isSubscribed: true,
       isLoading: false,

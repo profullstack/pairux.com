@@ -1,14 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  PushError,
+  getSubscription,
+  pushSupport,
+  subscribe as subscribePush,
+  unsubscribe as unsubscribePush,
+} from '@profullstack/notifications/client';
 
 interface UsePushNotificationsOptions {
   participantId?: string;
 }
 
 interface UsePushNotificationsReturn {
-  /** Whether push notifications are supported in this browser */
+  /** Whether push notifications can work in this browser right now */
   isSupported: boolean;
+  /** Why not, in a sentence to show the user (null when supported) */
+  unsupportedReason: string | null;
   /** Current notification permission state */
   permission: NotificationPermission;
   /** Whether the user is currently subscribed */
@@ -21,51 +30,29 @@ interface UsePushNotificationsReturn {
   unsubscribe: () => Promise<boolean>;
 }
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
-
-function urlBase64ToUint8Array(base64String: string): BufferSource {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray.buffer;
-}
-
 export function usePushNotifications(
   options: UsePushNotificationsOptions = {}
 ): UsePushNotificationsReturn {
   const { participantId } = options;
 
   const [isSupported, setIsSupported] = useState(false);
+  const [unsupportedReason, setUnsupportedReason] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const subscriptionRef = useRef<PushSubscription | null>(null);
 
-  // Check support and current subscription state on mount
+  // Check support and current subscription state on mount. The VAPID key is
+  // fetched from the server when subscribing, so a build without it no longer
+  // makes every browser look unsupported.
   useEffect(() => {
-    const supported =
-      typeof window !== 'undefined' &&
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window &&
-      !!VAPID_PUBLIC_KEY;
+    const support = pushSupport();
+    setIsSupported(support.supported);
+    setUnsupportedReason(support.message);
+    if (support.permission !== 'unsupported') setPermission(support.permission);
+    if (!support.supported) return;
 
-    setIsSupported(supported);
-
-    if (!supported) return;
-
-    setPermission(Notification.permission);
-
-    void navigator.serviceWorker.ready.then(async (registration) => {
-      const existing = await registration.pushManager.getSubscription();
-      if (existing) {
-        subscriptionRef.current = existing;
-        setIsSubscribed(true);
-      }
+    void getSubscription().then((existing) => {
+      setIsSubscribed(existing !== null);
     });
   }, []);
 
@@ -74,46 +61,30 @@ export function usePushNotifications(
 
     setIsLoading(true);
     try {
-      const perm = await Notification.requestPermission();
-      setPermission(perm);
-
-      if (perm !== 'granted') {
-        return false;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      await subscribePush({
+        vapidKeyUrl: '/api/push/vapid-public-key',
+        serviceWorkerUrl: '/sw.js',
+        save: async (json) => {
+          const response = await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              endpoint: json.endpoint,
+              keys: json.keys,
+              ...(participantId ? { participantId } : {}),
+            }),
+          });
+          if (!response.ok) throw new Error('Failed to save subscription on server');
+        },
       });
-
-      subscriptionRef.current = subscription;
-
-      const json = subscription.toJSON();
-      const keys = json.keys as { p256dh: string; auth: string } | undefined;
-
-      if (!keys?.p256dh || !keys.auth) {
-        throw new Error('Missing subscription keys');
-      }
-
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint: subscription.endpoint,
-          keys: { p256dh: keys.p256dh, auth: keys.auth },
-          ...(participantId ? { participantId } : {}),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save subscription on server');
-      }
-
+      setPermission('granted');
       setIsSubscribed(true);
       return true;
     } catch (err) {
+      if (err instanceof PushError) {
+        if (err.reason === 'denied') setPermission('denied');
+        setUnsupportedReason(err.message);
+      }
       console.error('[Push] Subscribe error:', err);
       return false;
     } finally {
@@ -124,18 +95,15 @@ export function usePushNotifications(
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const subscription = subscriptionRef.current;
-      if (!subscription) return true;
-
-      await subscription.unsubscribe();
-
-      await fetch('/api/push/unsubscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: subscription.endpoint }),
-      });
-
-      subscriptionRef.current = null;
+      const existing = await getSubscription();
+      await unsubscribePush();
+      if (existing) {
+        await fetch('/api/push/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: existing.endpoint }),
+        });
+      }
       setIsSubscribed(false);
       return true;
     } catch (err) {
@@ -148,6 +116,7 @@ export function usePushNotifications(
 
   return {
     isSupported,
+    unsupportedReason,
     permission,
     isSubscribed,
     isLoading,

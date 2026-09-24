@@ -1,16 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted so the mock fn is available in the vi.mock factory
-const { mockSendNotification, mockFrom } = vi.hoisted(() => ({
-  mockSendNotification: vi.fn(),
+const { mockSendPush, mockFrom } = vi.hoisted(() => ({
+  mockSendPush: vi.fn(),
   mockFrom: vi.fn(),
 }));
 
-vi.mock('web-push', () => ({
-  default: {
-    setVapidDetails: vi.fn(),
-    sendNotification: mockSendNotification,
-  },
+vi.mock('@profullstack/notifications/server', () => ({
+  vapidKeysFromEnv: () => ({ publicKey: 'test-public-key', privateKey: 'test-private-key' }),
+  sendPush: mockSendPush,
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -46,7 +44,7 @@ function mockChain(resolvedValue: unknown) {
 describe('push utility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendNotification.mockResolvedValue({});
+    mockSendPush.mockResolvedValue({ sent: true, gone: false, status: 201 });
   });
 
   describe('sendPushToUser', () => {
@@ -63,7 +61,7 @@ describe('push utility', () => {
       });
 
       expect(result).toEqual({ sent: 0, failed: 0 });
-      expect(mockSendNotification).not.toHaveBeenCalled();
+      expect(mockSendPush).not.toHaveBeenCalled();
     });
 
     it('should skip if the specific event type is disabled', async () => {
@@ -79,7 +77,7 @@ describe('push utility', () => {
       });
 
       expect(result).toEqual({ sent: 0, failed: 0 });
-      expect(mockSendNotification).not.toHaveBeenCalled();
+      expect(mockSendPush).not.toHaveBeenCalled();
     });
 
     it('should send notification to all user subscriptions', async () => {
@@ -106,7 +104,7 @@ describe('push utility', () => {
       });
 
       expect(result).toEqual({ sent: 2, failed: 0 });
-      expect(mockSendNotification).toHaveBeenCalledTimes(2);
+      expect(mockSendPush).toHaveBeenCalledTimes(2);
     });
 
     it('should return 0/0 when user has no subscriptions', async () => {
@@ -150,7 +148,7 @@ describe('push utility', () => {
         return mockChain({ data: null, error: null });
       });
 
-      mockSendNotification.mockRejectedValue({ statusCode: 410 });
+      mockSendPush.mockResolvedValue({ sent: false, gone: true, status: 410 });
 
       const result = await sendPushToUser('user-1', 'chatMessage', {
         title: 'Test',
@@ -178,7 +176,7 @@ describe('push utility', () => {
         return mockChain({ data: subscriptions, error: null });
       });
 
-      mockSendNotification.mockRejectedValue({ statusCode: 500 });
+      mockSendPush.mockResolvedValue({ sent: false, gone: false, status: 500 });
 
       const result = await sendPushToUser('user-1', 'chatMessage', {
         title: 'Test',
@@ -203,7 +201,7 @@ describe('push utility', () => {
       });
 
       expect(result).toEqual({ sent: 1, failed: 0 });
-      expect(mockSendNotification).toHaveBeenCalledTimes(1);
+      expect(mockSendPush).toHaveBeenCalledTimes(1);
     });
 
     it('should return 0/0 when participant has no subscriptions', async () => {

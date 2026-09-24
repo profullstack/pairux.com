@@ -95,8 +95,15 @@ function Toggle({
 }
 
 export function NotificationPreferences() {
-  const { isSupported, permission, isSubscribed, isLoading, subscribe, unsubscribe } =
-    usePushNotifications();
+  const {
+    isSupported,
+    unsupportedReason,
+    permission,
+    isSubscribed,
+    isLoading,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications();
 
   const [preferences, setPreferences] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [saving, setSaving] = useState(false);
@@ -157,7 +164,7 @@ export function NotificationPreferences() {
     return (
       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <p className="text-sm text-yellow-800">
-          Push notifications are not supported in this browser.
+          {unsupportedReason ?? 'Push notifications are not supported in this browser.'}
         </p>
       </div>
     );

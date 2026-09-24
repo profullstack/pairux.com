@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Mic, MicOff } from 'lucide-react';
+import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Mic, MicOff, Bot } from 'lucide-react';
 import type { SessionParticipant, ConnectionStatus, ControlState } from '@pairux/shared-types';
 import type { ViewerConnection } from '@/hooks/useWebRTCHost';
 
@@ -16,6 +16,8 @@ interface HostParticipantListProps {
   onTransferHost?: ((viewerId: string) => void) | undefined;
   onMuteParticipant?: ((viewerId: string, muted: boolean) => void) | undefined;
   mutedParticipants?: Set<string> | undefined;
+  /** Remove an agent participant by its participant id (agents have no WebRTC viewer). */
+  onRemoveAgent?: ((participantId: string) => void) | undefined;
 }
 
 interface EnhancedParticipant extends SessionParticipant {
@@ -63,6 +65,7 @@ const HostParticipantItem = memo(function HostParticipantItem({
   onMuteParticipant,
   isMuted,
   canModerateActions,
+  onRemoveAgent,
 }: {
   participant: EnhancedParticipant;
   isCurrentUser: boolean;
@@ -73,8 +76,10 @@ const HostParticipantItem = memo(function HostParticipantItem({
   onTransferHost?: (viewerId: string) => void;
   onMuteParticipant?: (viewerId: string, muted: boolean) => void;
   isMuted: boolean;
+  onRemoveAgent?: (participantId: string) => void;
 }) {
   const isHost = participant.role === 'host';
+  const isAgent = participant.kind === 'agent';
   const canControl = participant.viewerId && participant.dataChannelReady;
 
   return (
@@ -82,8 +87,14 @@ const HostParticipantItem = memo(function HostParticipantItem({
       <div className="flex items-center gap-2">
         {/* Avatar with connection status */}
         <div className="relative">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-sm font-medium text-white">
-            {participant.display_name.charAt(0).toUpperCase()}
+          <div
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white ${isAgent ? 'bg-violet-600' : 'bg-gray-700'}`}
+          >
+            {isAgent ? (
+              <Bot className="h-4 w-4" aria-label="Agent" />
+            ) : (
+              participant.display_name.charAt(0).toUpperCase()
+            )}
           </div>
           <Circle
             className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 ${getConnectionColor(participant.effectiveConnectionStatus)} rounded-full border-2 border-gray-800`}
@@ -105,7 +116,16 @@ const HostParticipantItem = memo(function HostParticipantItem({
 
       <div className="flex items-center gap-2">
         {/* Role/Control badge */}
-        {isHost ? (
+        {isAgent ? (
+          <span
+            className="flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-300"
+            data-testid="agent-badge"
+            title={participant.agent_client ? `Agent (${participant.agent_client})` : 'Agent'}
+          >
+            <Bot className="h-3 w-3" />
+            Agent
+          </span>
+        ) : isHost ? (
           <span className="flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             <Crown className="h-3 w-3" />
             Host
@@ -127,8 +147,22 @@ const HostParticipantItem = memo(function HostParticipantItem({
           </span>
         )}
 
+        {/* Agents watch and chat only: the one action is removing them */}
+        {canModerateActions && isAgent && onRemoveAgent && (
+          <button
+            onClick={() => {
+              onRemoveAgent(participant.id);
+            }}
+            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
+            title="Remove agent"
+            aria-label="Remove agent"
+          >
+            <UserX className="h-4 w-4" />
+          </button>
+        )}
+
         {/* Action buttons (only for non-host participants) */}
-        {canModerateActions && !isHost && !isCurrentUser && (
+        {canModerateActions && !isAgent && !isHost && !isCurrentUser && (
           <div className="flex gap-1">
             {/* Mute button */}
             <button
@@ -214,6 +248,7 @@ export const HostParticipantList = memo(function HostParticipantList({
   onTransferHost,
   onMuteParticipant,
   mutedParticipants,
+  onRemoveAgent,
 }: HostParticipantListProps) {
   // Merge database participants with WebRTC viewer state
   const enhancedParticipants = useMemo((): EnhancedParticipant[] => {
@@ -298,6 +333,7 @@ export const HostParticipantList = memo(function HostParticipantList({
             {...(onTransferHost ? { onTransferHost } : {})}
             {...(onMuteParticipant ? { onMuteParticipant } : {})}
             isMuted={Boolean(participant.viewerId && mutedParticipants?.has(participant.viewerId))}
+            {...(onRemoveAgent ? { onRemoveAgent } : {})}
           />
         ))}
       </div>

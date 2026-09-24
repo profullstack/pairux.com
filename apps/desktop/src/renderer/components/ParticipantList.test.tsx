@@ -561,3 +561,40 @@ describe('ParticipantList', () => {
     });
   });
 });
+
+describe('ParticipantList agent participants', () => {
+  const agent = createMockParticipant({
+    id: 'agent-1',
+    user_id: null,
+    display_name: 'Claude Code',
+    kind: 'agent',
+    agent_client: 'claude-code',
+  });
+
+  it('badges an agent instead of calling it a viewer', () => {
+    render(<ParticipantList participants={[agent]} />);
+    expect(screen.getByTestId('agent-badge')).toHaveTextContent('Agent');
+    expect(screen.getByTitle('Agent (claude-code)')).toBeInTheDocument();
+    expect(screen.queryByText('Viewer')).not.toBeInTheDocument();
+  });
+
+  it('offers the host only removal for an agent: no mute, control or make-host', () => {
+    const onKickParticipant = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ParticipantList
+        participants={[agent]}
+        isHost
+        onGrantControl={vi.fn()}
+        onRevokeControl={vi.fn()}
+        onKickParticipant={onKickParticipant}
+        onTransferHost={vi.fn()}
+        onMuteParticipant={vi.fn()}
+      />
+    );
+    expect(screen.queryByTitle('Grant control')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Mute participant')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Make host')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('Remove agent'));
+    expect(onKickParticipant).toHaveBeenCalledWith('agent-1');
+  });
+});

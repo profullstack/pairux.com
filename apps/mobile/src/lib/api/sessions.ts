@@ -68,6 +68,14 @@ export const sessionApi = {
     });
   },
 
+  /** Host removes a participant (used for agents, which have no WebRTC link to kick). */
+  async removeParticipant(sessionId: string, participantId: string) {
+    return apiRequest<{ success: boolean; participantId: string }>(
+      `/api/sessions/${sessionId}/participants/${participantId}`,
+      { method: 'DELETE' }
+    );
+  },
+
   async lookup(joinCode: string) {
     return apiRequest<JoinLookupResult>(`/api/sessions/join/${joinCode}`);
   },

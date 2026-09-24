@@ -14,11 +14,13 @@ import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import { useWebRTCViewer } from '@/hooks/useWebRTCViewer';
 import { useScreenShare } from '@/hooks/useScreenShare';
 import { useChat } from '@/hooks/useChat';
+import { useSessionAgents } from '@/hooks/useSessionAgents';
 import { sessionApi } from '@/lib/api/sessions';
 import { endHostSession } from '@/lib/host-session';
 import { VideoViewer } from '@/components/VideoViewer';
 import { ChatPanel } from '@/components/ChatPanel';
 import { SessionInfo } from '@/components/SessionInfo';
+import { AgentStrip } from '@/components/AgentStrip';
 import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { MicrophoneNotice } from '@/components/MicrophoneNotice';
 
@@ -115,6 +117,7 @@ function HostSession({
   });
   const stopScreenShare = screenShare.stop;
   const endingSessionRef = useRef(false);
+  const sessionAgents = useSessionAgents({ sessionId, enabled: !loadingSession });
 
   // Auto-start hosting when session loads
   useEffect(() => {
@@ -169,6 +172,16 @@ function HostSession({
         joinCode={joinCode}
         viewerCount={webrtc.viewerCount}
         isHosting={webrtc.isHosting}
+      />
+
+      <AgentStrip
+        agents={sessionAgents.agents}
+        canRemove
+        onRemove={(participantId) => {
+          void sessionAgents.removeAgent(participantId).then((result) => {
+            if (result.error) Alert.alert('Could not remove agent', result.error);
+          });
+        }}
       />
 
       {/* Error */}
@@ -294,9 +307,10 @@ function ViewerSession({
   chat,
   currentUserId,
   router,
-  loadingSession: _loadingSession,
+  loadingSession,
 }: ViewerSessionProps) {
   const leavingSessionRef = useRef(false);
+  const sessionAgents = useSessionAgents({ sessionId, enabled: !loadingSession });
   const webrtc = useWebRTCViewer({
     sessionId,
     participantId,
@@ -351,6 +365,8 @@ function ViewerSession({
           </View>
         )}
       </View>
+
+      <AgentStrip agents={sessionAgents.agents} canRemove={false} />
 
       {/* Controls */}
       <MicrophoneNotice failure={webrtc.micFailure} unmuteRequested={webrtc.unmuteRequested} />

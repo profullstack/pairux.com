@@ -312,6 +312,8 @@ export interface Channel {
   owner_username: string | null;
   /** URL-safe address to DM the owner: username, else the owner's id. */
   owner_addr: string | null;
+  /** Optional http(s) website the owner links from the channel page (rel="me"). */
+  website_url: string | null;
 }
 
 // A channel the caller owns (from list_my_channels RPC) — includes stream_key.
@@ -327,6 +329,8 @@ export interface MyChannel {
   /** Master switch: auto-restream this channel's lives to external RTMP. */
   restream_enabled: boolean;
   created_at: string;
+  /** Optional http(s) website shown on the channel page; null when unset. */
+  website_url: string | null;
 }
 
 // An external RTMP restream destination on a channel (from

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { MyChannel } from '@pairux/shared-types';
 import { RestreamManager } from './RestreamManager';
+import { ChannelWebsiteEditor } from './ChannelWebsiteEditor';
 
 // Where OBS / any RTMP client points. The stream key selects the channel.
 const RTMP_INGEST_URL = 'rtmp://rtmp.pairux.com/live';
@@ -374,6 +375,8 @@ export function ChannelsManager() {
                     View <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>
+
+                <ChannelWebsiteEditor channelId={ch.id} initialUrl={ch.website_url} />
 
                 <div className="mt-4 rounded-lg bg-gray-50 p-3">
                   <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-gray-700">

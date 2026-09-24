@@ -318,12 +318,32 @@ function HostContent({
     [revokeControl, resolveViewerTargetId]
   );
 
+  // Agents have no WebRTC viewer to kick; removing one ends its participant
+  // row, and its next poll of /api/v1/agents gets a 410 and exits.
+  const removeAgent = useCallback(
+    (participantId: string) => {
+      void fetch(`/api/sessions/${sessionId}/participants/${participantId}`, {
+        method: 'DELETE',
+      }).then(async (res) => {
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          console.error('Failed to remove agent:', data.error ?? res.statusText);
+        }
+      });
+    },
+    [sessionId]
+  );
+
   const handleKickParticipant = useCallback(
     (participant: SessionParticipant) => {
+      if (participant.kind === 'agent') {
+        removeAgent(participant.id);
+        return;
+      }
       const viewerId = resolveViewerTargetId(participant);
       if (viewerId) kickViewer(viewerId);
     },
-    [kickViewer, resolveViewerTargetId]
+    [kickViewer, removeAgent, resolveViewerTargetId]
   );
 
   const handleTransferHostParticipant = useCallback(
@@ -889,6 +909,7 @@ function HostContent({
                 }
                 onMuteParticipant={muteViewer}
                 mutedParticipants={mutedParticipantTargets}
+                onRemoveAgent={canModerateSession ? removeAgent : undefined}
               />
             </div>
 

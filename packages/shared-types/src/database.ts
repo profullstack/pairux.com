@@ -17,6 +17,9 @@ export type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
 // Participant roles
 export type ParticipantRole = 'host' | 'viewer';
 
+// Who a participant is: a person, or an AI agent that joined through the CLI/API
+export type ParticipantKind = 'human' | 'agent';
+
 // Control states
 export type ControlState = 'view-only' | 'requested' | 'granted';
 
@@ -25,6 +28,8 @@ export interface SessionSettings {
   quality?: 'low' | 'medium' | 'high';
   allowControl?: boolean;
   maxParticipants?: number;
+  /** Agents may join by join code unless the host sets this to false. */
+  allowAgents?: boolean;
 }
 
 // Billing plan. Free = P2P + 20 listeners, YouTube-only streaming.
@@ -355,6 +360,17 @@ export interface SessionParticipant {
   last_seen_at: string | null;
   joined_at: string;
   left_at: string | null;
+  /** Absent on rows read before the agent-participants migration: treat as 'human'. */
+  kind?: ParticipantKind;
+  /** The signed-in user who ran the agent, when the CLI was logged in. */
+  agent_owner_id?: string | null;
+  /** What the agent is, e.g. "claude-code". */
+  agent_client?: string | null;
+}
+
+/** True when a participant row is an AI agent rather than a person. */
+export function isAgentParticipant(p: Pick<SessionParticipant, 'kind'>): boolean {
+  return p.kind === 'agent';
 }
 
 export interface SessionParticipantInsert {

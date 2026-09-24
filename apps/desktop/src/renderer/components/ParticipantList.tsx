@@ -9,6 +9,7 @@ import {
   Loader2,
   Mic,
   MicOff,
+  Bot,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import type { SessionParticipant } from '@pairux/shared-types';
@@ -40,6 +41,19 @@ function getConnectionColor(status: SessionParticipant['connection_status']): st
 }
 
 function getRoleBadge(participant: SessionParticipant) {
+  if (participant.kind === 'agent') {
+    return (
+      <span
+        className="flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-400"
+        data-testid="agent-badge"
+        title={participant.agent_client ? `Agent (${participant.agent_client})` : 'Agent'}
+      >
+        <Bot className="h-3 w-3" />
+        Agent
+      </span>
+    );
+  }
+
   if (participant.role === 'host') {
     return (
       <span className="flex items-center gap-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
@@ -165,6 +179,8 @@ export function ParticipantList({
         {activeParticipants.map((participant) => {
           const isCurrentUser = participant.user_id === currentUserId;
           const isParticipantHost = participant.role === 'host';
+          // Agents watch and chat only: no media to mute, no control to grant.
+          const isAgent = participant.kind === 'agent';
           const hasAnyActions =
             Boolean(onGrantControl) ||
             Boolean(onRevokeControl) ||
@@ -180,8 +196,14 @@ export function ParticipantList({
             >
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
-                    {participant.display_name.charAt(0).toUpperCase()}
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${isAgent ? 'bg-violet-600 text-white' : 'bg-muted text-foreground'}`}
+                  >
+                    {isAgent ? (
+                      <Bot className="h-4 w-4" aria-label="Agent" />
+                    ) : (
+                      participant.display_name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <Circle
                     className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 ${getConnectionColor(participant.connection_status)} rounded-full border-2 border-background`}
@@ -209,6 +231,7 @@ export function ParticipantList({
                   <div className="flex gap-1">
                     {/* Mute/Unmute button */}
                     {onMuteParticipant &&
+                      !isAgent &&
                       (() => {
                         const targetId = participant.user_id ?? participant.id;
                         const isMutedNow = mutedParticipants?.has(targetId) ?? false;
@@ -236,7 +259,10 @@ export function ParticipantList({
                       })()}
 
                     {/* Grant/Revoke control button */}
-                    {(participant.control_state === 'granted' ? onRevokeControl : onGrantControl) &&
+                    {!isAgent &&
+                      (participant.control_state === 'granted'
+                        ? onRevokeControl
+                        : onGrantControl) &&
                       (participant.control_state === 'granted' ? (
                         <button
                           onClick={() => void handleRevokeControl(participant.id)}
@@ -273,8 +299,8 @@ export function ParticipantList({
                         onClick={() => void handleKick(participant.id)}
                         disabled={loadingAction !== null}
                         className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive disabled:opacity-50"
-                        title="Remove participant"
-                        aria-label="Remove participant"
+                        title={isAgent ? 'Remove agent' : 'Remove participant'}
+                        aria-label={isAgent ? 'Remove agent' : 'Remove participant'}
                       >
                         {loadingAction === `kick-${participant.id}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -284,7 +310,7 @@ export function ParticipantList({
                       </button>
                     )}
 
-                    {onTransferHost && (
+                    {onTransferHost && !isAgent && (
                       <button
                         onClick={() => void handleTransferHost(participant.id)}
                         disabled={loadingAction !== null}

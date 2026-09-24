@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import { User, Crown, MessageCircle } from 'lucide-react';
+import { User, Crown, MessageCircle, Bot } from 'lucide-react';
 import type { SessionParticipant } from '@pairux/shared-types';
 
 interface ParticipantItemProps {
@@ -44,7 +44,8 @@ export const ParticipantItem = memo(function ParticipantItem({
   onMuteParticipant,
 }: ParticipantItemProps) {
   const isParticipantHost = participant.role === 'host';
-  const avatarColor = stringToColor(participant.display_name);
+  const isAgent = participant.kind === 'agent';
+  const avatarColor = isAgent ? 'bg-violet-600' : stringToColor(participant.display_name);
   const canModerate = isHostContext && !isCurrentUser && !isParticipantHost;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -83,7 +84,11 @@ export const ParticipantItem = memo(function ParticipantItem({
         <div
           className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${avatarColor}`}
         >
-          <User className="h-3.5 w-3.5 text-white" />
+          {isAgent ? (
+            <Bot className="h-3.5 w-3.5 text-white" aria-label="Agent" />
+          ) : (
+            <User className="h-3.5 w-3.5 text-white" />
+          )}
           {isParticipantHost && (
             <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400">
               <Crown className="h-2.5 w-2.5 text-yellow-800" />
@@ -97,9 +102,14 @@ export const ParticipantItem = memo(function ParticipantItem({
             {isCurrentUser && <span className="text-xs text-muted-foreground">(you)</span>}
           </div>
           {isParticipantHost && <span className="text-xs text-muted-foreground">Host</span>}
+          {isAgent && (
+            <span className="text-xs text-violet-400" data-testid="agent-badge">
+              Agent{participant.agent_client ? ` · ${participant.agent_client}` : ''}
+            </span>
+          )}
         </div>
 
-        {!isCurrentUser && onStartDM && (
+        {!isCurrentUser && !isAgent && onStartDM && (
           <button
             onClick={() => {
               onStartDM(participant);
@@ -118,7 +128,7 @@ export const ParticipantItem = memo(function ParticipantItem({
           className="fixed z-50 min-w-44 rounded-md border border-border bg-background p-1 shadow-xl"
           style={{ left: menuPos.x, top: menuPos.y }}
         >
-          {participant.control_state === 'granted' ? (
+          {isAgent ? null : participant.control_state === 'granted' ? (
             <button
               type="button"
               className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted"
@@ -141,16 +151,18 @@ export const ParticipantItem = memo(function ParticipantItem({
               Grant control
             </button>
           )}
-          <button
-            type="button"
-            className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted"
-            onClick={() => {
-              onMuteParticipant?.(participant, !isMuted);
-              setMenuOpen(false);
-            }}
-          >
-            {isMuted ? 'Unmute participant' : 'Mute participant'}
-          </button>
+          {!isAgent && (
+            <button
+              type="button"
+              className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted"
+              onClick={() => {
+                onMuteParticipant?.(participant, !isMuted);
+                setMenuOpen(false);
+              }}
+            >
+              {isMuted ? 'Unmute participant' : 'Mute participant'}
+            </button>
+          )}
           <button
             type="button"
             className="block w-full rounded px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
@@ -159,7 +171,7 @@ export const ParticipantItem = memo(function ParticipantItem({
               setMenuOpen(false);
             }}
           >
-            Remove participant
+            {isAgent ? 'Remove agent' : 'Remove participant'}
           </button>
         </div>
       )}

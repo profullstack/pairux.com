@@ -66,9 +66,12 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       stopChannelRestream(sessionId)
     );
     // The call is over: hand any AI analysis capture to the report job.
-    void import('@/lib/call-analysis/store').then(({ queueSessionAnalyses }) =>
-      queueSessionAnalyses(sessionId)
-    );
+    // Best-effort: the report job also picks up captures whose uploads stopped.
+    void import('@/lib/call-analysis/store')
+      .then(({ queueSessionAnalyses }) => queueSessionAnalyses(sessionId))
+      .catch((error: unknown) => {
+        console.error('[call-analysis] could not queue analyses for session end:', error);
+      });
 
     return successResponse(data);
   } catch (error) {

@@ -1,5 +1,7 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, handleApiError } from '@/lib/api';
+import { serviceClient } from '@/lib/supabase/service';
+import { resolveUserPlan } from '@/lib/orgs';
 
 export async function GET() {
   try {
@@ -29,6 +31,8 @@ export async function GET() {
         email: user.email,
       },
       profile,
+      // The plan in effect, counting organizations the user belongs to.
+      effectivePlan: await resolveUserPlan(serviceClient(), user.id),
     });
   } catch (error) {
     return handleApiError(error);

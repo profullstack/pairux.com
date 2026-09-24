@@ -1,7 +1,8 @@
+import { resolveUserPlan } from '@/lib/orgs';
 import { z } from 'zod';
 import { AccessToken } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
-import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { maxListeners } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -131,15 +132,8 @@ export async function POST(request: Request) {
     // nor count toward it — the occupancy count excludes guests (user_id NULL).
     // The host always gets in. A lapsed paid plan falls back to the free cap.
     if (!isSessionOwner && !isGuest) {
-      const { data: ownerProfile } = (await svc
-        .from('profiles')
-        .select('plan, plan_expires_at')
-        .eq('id', session.host_user_id)
-        .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
-      const ownerPlan = effectivePlan(
-        ownerProfile?.plan ?? 'free',
-        ownerProfile?.plan_expires_at ?? null
-      );
+      // Includes the plan of any organization the owner belongs to.
+      const ownerPlan = await resolveUserPlan(svc as never, session.host_user_id);
       const cap = maxListeners(ownerPlan);
 
       const { count } = await svc

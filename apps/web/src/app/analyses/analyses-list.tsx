@@ -17,6 +17,9 @@ interface AnalysisListItem {
   headline: string | null;
   overallScore: number | null;
   error: string | null;
+  mine?: boolean;
+  team_id?: string | null;
+  org_id?: string | null;
 }
 
 const STATUS_TEXT: Record<CallAnalysisStatus, string> = {
@@ -82,6 +85,7 @@ export function AnalysesList({ header }: { header: ReactNode }) {
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
                     {item.status === 'failed' && item.error ? item.error : STATUS_TEXT[item.status]}
+                    {item.mine === false && ' · shared with your team'}
                   </p>
                 </div>
                 {item.overallScore != null && (

@@ -4,6 +4,14 @@ import { createMockSupabaseClient, mockUser, mockProfile } from '@/test/mocks/su
 
 const mockGetAuthenticatedUser = vi.fn();
 
+vi.mock('@/lib/orgs', () => ({
+  // Org-aware plan lookup: these tests exercise personal (free) accounts.
+  resolveUserPlan: () => Promise.resolve('free'),
+  canUseWorkspace: () => Promise.resolve({ orgId: null, teamId: null }),
+}));
+vi.mock('@/lib/supabase/service', () => ({
+  serviceClient: () => ({}),
+}));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),

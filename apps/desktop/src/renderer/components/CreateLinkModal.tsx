@@ -7,7 +7,7 @@ import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
 import { APP_URL } from '../../shared/config';
 import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
-import { analysisForNewCall } from '@/lib/callAnalysisPreference';
+import { analysisForNewCall, readWorkspace } from '@/lib/callAnalysisPreference';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -34,6 +34,7 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
         maxParticipants: mode === 'sfu' ? 10 : 5,
         mode,
         ...(analysis ? { analysis } : {}),
+        ...readWorkspace(),
       });
 
       if (!result.success) {

@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
 import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
 import { CallAnalysisOptions, DEFAULT_ANALYSIS } from '@/components/session/CallAnalysisOptions';
+import { WorkspacePicker, useMyOrgs, type Workspace } from '@/components/orgs/WorkspacePicker';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 
 interface SessionData {
@@ -30,6 +31,8 @@ export function StartHost({ header }: { header: ReactNode }) {
   const [error, setError] = useState('');
   const [maxParticipants, setMaxParticipants] = useState(5);
   const [analysis, setAnalysis] = useState<CallAnalysisSettings>(DEFAULT_ANALYSIS);
+  const orgs = useMyOrgs();
+  const [workspace, setWorkspace] = useState<Workspace>({});
   // allowGuestControl is always false for web hosting (disabled)
   const allowGuestControl = false;
   // Guest control is exactly what the desktop app adds, so try it first and
@@ -75,6 +78,8 @@ export function StartHost({ header }: { header: ReactNode }) {
           allowGuestControl,
           maxParticipants,
           ...(analysis.enabled ? { analysis } : {}),
+          ...(workspace.orgId ? { orgId: workspace.orgId } : {}),
+          ...(workspace.teamId ? { teamId: workspace.teamId } : {}),
         }),
       });
 
@@ -103,7 +108,7 @@ export function StartHost({ header }: { header: ReactNode }) {
     } finally {
       setIsCreating(false);
     }
-  }, [router, openSession, maxParticipants, allowGuestControl, analysis]);
+  }, [router, openSession, maxParticipants, allowGuestControl, analysis, workspace]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -191,6 +196,15 @@ export function StartHost({ header }: { header: ReactNode }) {
                 .
               </p>
             </div>
+
+            {/* Workspace: a team call shares its analysis report with the team */}
+            <WorkspacePicker
+              orgs={orgs}
+              value={workspace}
+              onChange={setWorkspace}
+              label="Workspace (a team call's report is shared with the team)"
+              className="mt-6 font-medium"
+            />
 
             {/* AI call analysis: decided before the call starts */}
             <div className="mt-6">

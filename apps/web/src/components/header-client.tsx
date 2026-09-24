@@ -3,7 +3,16 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
+import {
+  Menu,
+  X,
+  LogOut,
+  Settings,
+  LayoutDashboard,
+  ChevronDown,
+  Building2,
+  Sparkles,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
 import { MessagesNavLink } from './MessagesNavLink';
@@ -144,6 +153,26 @@ export function HeaderClient({ user }: HeaderClientProps) {
                     Dashboard
                   </Link>
                   <Link
+                    href="/orgs"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Organizations
+                  </Link>
+                  <Link
+                    href="/analyses"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Call analyses
+                  </Link>
+                  <Link
                     href="/settings"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => {
@@ -258,6 +287,26 @@ export function HeaderClient({ user }: HeaderClientProps) {
                     setMobileMenuOpen(false);
                   }}
                 />
+                <Link
+                  href="/orgs"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Building2 className="h-5 w-5" />
+                  Organizations
+                </Link>
+                <Link
+                  href="/analyses"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Call analyses
+                </Link>
                 <Link
                   href="/settings"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"

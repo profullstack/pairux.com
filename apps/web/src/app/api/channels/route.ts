@@ -26,12 +26,15 @@ const CreateBody = z.object({
     .regex(/^[A-Za-z0-9_]{3,30}$/, 'Handle must be 3-30 letters, numbers, or underscores'),
   name: z.string().trim().max(80).optional(),
   description: z.string().trim().max(500).optional(),
+  // Owned by an organization, or by one of its teams: its members can go live on it.
+  orgId: z.string().uuid().optional(),
+  teamId: z.string().uuid().optional(),
 });
 
 // POST /api/channels — create a channel
 export async function POST(request: Request) {
   try {
-    const { handle, name, description } = CreateBody.parse(await request.json());
+    const { handle, name, description, orgId, teamId } = CreateBody.parse(await request.json());
     const supabase = await createClient();
     const { user, error: authError } = await getAuthenticatedUser(supabase);
     if (authError || !user) return errorResponse('Sign in to create a channel', 401);
@@ -40,6 +43,8 @@ export async function POST(request: Request) {
       p_handle: handle,
       p_name: name ?? handle,
       p_description: description ?? null,
+      p_org_id: orgId ?? null,
+      p_team_id: teamId ?? null,
     });
     if (error) return errorResponse(error.message, 400);
     return successResponse({ id, handle }, 201);

@@ -158,6 +158,7 @@ export interface Session {
   is_public: boolean; // Listed in the public /live directory
   subject: string | null; // Public title shown in /live
   description: string | null; // Public description shown in /live
+  channel_id?: string | null; // Channel a public live goes out on (set from a scheduled meeting or on publish)
   banner_url: string | null; // 16:9 banner image shown on /live
   published_at: string | null; // When first made public
   host_last_seen_at: string | null; // Last heartbeat from current host

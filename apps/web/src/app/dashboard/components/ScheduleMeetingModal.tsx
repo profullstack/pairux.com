@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, type FormEvent } from 'react';
-import { X, Calendar, Clock, Users, Plus, Trash2, Loader2, Repeat } from 'lucide-react';
+import { useEffect, useState, useRef, type FormEvent } from 'react';
+import { X, Calendar, Clock, Users, Plus, Trash2, Loader2, Repeat, Radio } from 'lucide-react';
+import type { MyChannel } from '@pairux/shared-types';
 import {
   describeRecurrence,
   MAX_RECURRENCE_COUNT,
@@ -21,6 +22,25 @@ export interface EditableMeeting {
   recurrence_freq?: string | null;
   recurrence_interval?: number | null;
   recurrence_count?: number | null;
+  channel_id?: string | null;
+}
+
+type ChannelOption = Pick<MyChannel, 'id' | 'handle' | 'name' | 'org_name' | 'team_name'>;
+
+/** Who a channel belongs to, for grouping the picker: yours, a team's, or an org's. */
+function channelGroup(c: ChannelOption): string {
+  if (c.team_name) return c.org_name ? `${c.org_name} · ${c.team_name}` : c.team_name;
+  if (c.org_name) return c.org_name;
+  return 'Your channels';
+}
+
+function groupChannels(channels: ChannelOption[]): [string, ChannelOption[]][] {
+  const groups = new Map<string, ChannelOption[]>();
+  for (const c of channels) {
+    const key = channelGroup(c);
+    groups.set(key, [...(groups.get(key) ?? []), c]);
+  }
+  return [...groups.entries()];
 }
 
 interface Props {
@@ -97,6 +117,33 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
     const existing = meeting?.invitees?.map((i) => i.email) ?? [];
     return existing.length > 0 ? existing : [''];
   });
+  const [channelId, setChannelId] = useState(meeting?.channel_id ?? '');
+  // Every channel the host can go live on: their own plus team and org ones.
+  // undefined while loading.
+  const [channels, setChannels] = useState<ChannelOption[] | undefined>(undefined);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/channels', { signal: controller.signal })
+      .then(async (res) => {
+        const body = (await res.json().catch(() => ({}))) as {
+          data?: { channels?: ChannelOption[] };
+        };
+        setChannels(res.ok ? (body.data?.channels ?? []) : []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setChannels([]);
+      });
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  // A channel the host has since lost access to still shows as chosen, rather
+  // than the picker quietly reading "No channel" while the meeting keeps it.
+  const channelUnavailable =
+    channelId !== '' && channels !== undefined && !channels.some((c) => c.id === channelId);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -167,6 +214,8 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             // On edit, send the frequency even when it is null so switching a
             // meeting back to a one-off actually clears the series.
             ...(repeatFreq || isEditing ? { recurrenceFreq: repeatFreq || null } : {}),
+            // Same reason: on edit, null is how the channel gets taken off.
+            ...(channelId || isEditing ? { channelId: channelId || null } : {}),
             ...(repeatFreq
               ? {
                   recurrenceInterval: clamp(repeatInterval, 1, MAX_RECURRENCE_INTERVAL),
@@ -367,6 +416,47 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                 </p>
               </>
             )}
+          </div>
+
+          {/* Channel */}
+          <div>
+            <label
+              htmlFor="meeting-channel"
+              className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
+            >
+              <Radio className="h-4 w-4 text-gray-400" />
+              Broadcast channel <span className="text-gray-400">(optional)</span>
+            </label>
+            <select
+              id="meeting-channel"
+              value={channelId}
+              onChange={(e) => {
+                setChannelId(e.target.value);
+              }}
+              disabled={channels === undefined}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none disabled:opacity-50"
+            >
+              <option value="">
+                {channels === undefined ? 'Loading your channels…' : 'No channel (private meeting)'}
+              </option>
+              {channelUnavailable && (
+                <option value={channelId}>Current channel (you no longer have access)</option>
+              )}
+              {groupChannels(channels ?? []).map(([group, list]) => (
+                <optgroup key={group} label={group}>
+                  {list.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} (@{c.handle})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <p className="mt-1.5 text-xs text-gray-400">
+              {channels?.length === 0
+                ? 'You have no channels yet. Create one under Channels on your dashboard, or join a team that has one.'
+                : 'Going live from this meeting broadcasts on this channel. Team channels are listed under their team.'}
+            </p>
           </div>
 
           {/* Description */}

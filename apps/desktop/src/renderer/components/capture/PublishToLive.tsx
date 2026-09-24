@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface PublishToLiveProps {
-  session: Pick<Session, 'id' | 'is_public' | 'subject' | 'description' | 'banner_url'>;
+  session: Pick<
+    Session,
+    'id' | 'is_public' | 'subject' | 'description' | 'banner_url' | 'channel_id'
+  >;
 }
 
 // Locally-cached "last used" live settings, so a host doesn't re-enter their
@@ -149,7 +152,9 @@ export function PublishToLive({ session }: PublishToLiveProps) {
         if (!controller.signal.aborted) {
           const list = res.ok ? (body.data?.channels ?? []) : [];
           setChannels(list);
-          setChannelId((prev) => prev || list[0]?.id || '');
+          // A room opened from a scheduled meeting already carries its channel.
+          const preset = list.find((c) => c.id === session.channel_id)?.id;
+          setChannelId((prev) => prev || (preset ?? list[0]?.id) || '');
         }
       } catch {
         if (!controller.signal.aborted) setChannels([]);
@@ -159,7 +164,7 @@ export function PublishToLive({ session }: PublishToLiveProps) {
     return () => {
       controller.abort();
     };
-  }, [open]);
+  }, [open, session.channel_id]);
 
   const openLiveDirectory = () => {
     void getElectronAPI().invoke('auth:openExternal', '/live');

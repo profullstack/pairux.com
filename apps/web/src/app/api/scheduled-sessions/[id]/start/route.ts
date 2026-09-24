@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { data: meeting } = await (svc as any)
       .from('scheduled_sessions')
       .select(
-        'id, title, scheduled_at, duration_minutes, join_code, status, session_id, started_at, scheduled_session_invitees(id, email, name, rsvp_status)'
+        'id, title, scheduled_at, duration_minutes, join_code, status, session_id, started_at, channel_id, scheduled_session_invitees(id, email, name, rsvp_status)'
       )
       .eq('id', id)
       .eq('host_user_id', user.id)
@@ -124,6 +124,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const sessionId = session.id as string | undefined;
     if (!sessionId) return errorResponse('Failed to start the meeting', 400);
+
+    // The meeting's channel rides along with its room, so going live from it
+    // (web or desktop) broadcasts there. A room that already has a channel keeps
+    // it: that was chosen inside the call, later than the schedule was.
+    const channelId = meeting.channel_id as string | null;
+    if (channelId && !session.channel_id) {
+      const { error: channelError } = await (supabase.rpc as any)('set_session_channel', {
+        p_session_id: sessionId,
+        p_channel_id: channelId,
+      });
+      if (channelError) {
+        // The host lost access to the channel since scheduling (left the team,
+        // channel deleted). The meeting still starts; they pick one on publish.
+        console.error('Start meeting: could not attach channel:', channelError);
+      } else {
+        session = { ...session, channel_id: channelId };
+      }
+    }
 
     // Stamped before the emails go out: the link they carry is only true once
     // the meeting and its room are tied together.

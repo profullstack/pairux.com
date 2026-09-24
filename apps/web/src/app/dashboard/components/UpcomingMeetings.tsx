@@ -47,6 +47,7 @@ interface ScheduledSession {
   recurrence_interval?: number | null;
   recurrence_count?: number | null;
   occurrences_elapsed?: number | null;
+  channel_id?: string | null;
 }
 
 interface ListResponse {

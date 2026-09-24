@@ -148,6 +148,11 @@ const recurrenceFields = {
   recurrenceCount: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).optional(),
 };
 
+// The channel a meeting broadcasts on when it goes live; null = no channel.
+const meetingChannelField = {
+  channelId: z.string().uuid('Invalid channel').nullable().optional(),
+};
+
 // Schedule a meeting
 export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
@@ -159,6 +164,7 @@ export const scheduleMeetingSchema = z.object({
     .max(50, 'Maximum 50 invitees')
     .optional(),
   ...recurrenceFields,
+  ...meetingChannelField,
 });
 
 // Edit a scheduled meeting. Accepts either the column names (scheduled_at) or the
@@ -188,6 +194,7 @@ export const updateScheduledMeetingSchema = z
       .max(50, 'Maximum 50 invitees')
       .optional(),
     ...recurrenceFields,
+    ...meetingChannelField,
   })
   .transform((input) => {
     const scheduledAt = input.scheduled_at ?? input.scheduledAt;
@@ -220,6 +227,7 @@ export const updateScheduledMeetingSchema = z
       ...(scheduledAt !== undefined && { scheduled_at: scheduledAt }),
       ...(durationMinutes !== undefined && { duration_minutes: durationMinutes }),
       ...(inviteeEmails !== undefined && { inviteeEmails }),
+      ...(input.channelId !== undefined && { channel_id: input.channelId }),
       ...recurrence,
     };
   });

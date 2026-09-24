@@ -50,6 +50,7 @@ export function registerSessionHandlers(): void {
             allowGuestControl: settings?.allowGuestControl ?? false,
             maxParticipants: settings?.maxParticipants ?? 5,
             mode: settings?.mode ?? 'p2p',
+            ...(settings?.analysis?.enabled ? { analysis: settings.analysis } : {}),
           }),
         });
 

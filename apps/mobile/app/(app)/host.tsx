@@ -5,19 +5,25 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { sessionApi } from '@/lib/api/sessions';
+import { CallAnalysisOptions, DEFAULT_ANALYSIS } from '@/components/CallAnalysisOptions';
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 
 export default function HostScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [allowGuestControl, setAllowGuestControl] = useState(false);
+  const [analysis, setAnalysis] = useState<CallAnalysisSettings>(DEFAULT_ANALYSIS);
 
   async function handleCreateSession() {
     setError('');
     setLoading(true);
 
     try {
-      const result = await sessionApi.create({ allowGuestControl });
+      const result = await sessionApi.create({
+        allowGuestControl,
+        ...(analysis.enabled ? { analysis } : {}),
+      });
 
       if (result.error) {
         setError(result.error);
@@ -69,6 +75,8 @@ export default function HostScreen() {
             thumbColor={allowGuestControl ? '#2563eb' : '#f3f4f6'}
           />
         </View>
+
+        <CallAnalysisOptions value={analysis} onChange={setAnalysis} />
       </View>
 
       {/* Start button */}

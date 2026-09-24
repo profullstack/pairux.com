@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Monitor, Users, Calendar } from 'lucide-react';
+import { Monitor, Users, Calendar, Sparkles } from 'lucide-react';
 import { RecentSessions } from './RecentSessions';
 import { UpcomingMeetings } from './UpcomingMeetings';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
@@ -56,6 +56,13 @@ export function DashboardClient() {
             <Calendar className="h-4 w-4" />
             Schedule Meeting
           </button>
+          <Link
+            href="/analyses"
+            className="flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-6 py-2 font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+          >
+            <Sparkles className="h-4 w-4" />
+            Call Analyses
+          </Link>
         </div>
       </div>
 

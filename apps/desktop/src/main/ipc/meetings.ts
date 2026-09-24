@@ -1,3 +1,4 @@
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 import { ipcMain } from 'electron';
 import { apiFetch } from '../lib/apiFetch';
 import { getValidAuth } from '../auth/secure-storage';
@@ -73,7 +74,7 @@ export function registerMeetingHandlers(): void {
     'meetings:start',
     async (
       _event,
-      args: { scheduledSessionId: string }
+      args: { scheduledSessionId: string; analysis?: CallAnalysisSettings }
     ): Promise<StartMeetingResult | { success: false; error: string }> => {
       try {
         const headers = await getAuthHeaders();
@@ -81,7 +82,11 @@ export function registerMeetingHandlers(): void {
 
         const response = await apiFetch(
           `${API_BASE_URL}/api/scheduled-sessions/${args.scheduledSessionId}/start`,
-          { method: 'POST', headers }
+          {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(args.analysis?.enabled ? { analysis: args.analysis } : {}),
+          }
         );
 
         const data = (await response.json()) as ApiResponse<{

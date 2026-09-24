@@ -1,4 +1,4 @@
-import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { canUseCallAnalysis, effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createSessionSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -33,6 +33,13 @@ export async function POST(request: Request) {
     const cap = maxListeners(plan);
     const maxParticipants = cap;
 
+    // AI call analysis is chosen here, before the call exists, and is fixed for
+    // the session's life. It is a Pro/Team feature.
+    const analysis = settings.analysis?.enabled ? settings.analysis : undefined;
+    if (analysis && !canUseCallAnalysis(plan)) {
+      return errorResponse('AI call analysis is available on Pro and Team plans', 403);
+    }
+
     // Create session using RPC function
 
     const rpcParams: Record<string, unknown> = {
@@ -40,6 +47,7 @@ export async function POST(request: Request) {
         quality: 'medium',
         allowControl: settings.allowGuestControl,
         maxParticipants,
+        ...(analysis ? { analysis } : {}),
       },
       p_mode: settings.mode,
     };

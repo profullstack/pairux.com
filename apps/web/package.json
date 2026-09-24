@@ -16,6 +16,7 @@
     "clean": "rm -rf .next out node_modules"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "@profullstack/autoblog": "github:profullstack/autoblog#75e54af",
     "@profullstack/emailer": "^1.0.3",
     "@profullstack/stack": "^0.1.3",

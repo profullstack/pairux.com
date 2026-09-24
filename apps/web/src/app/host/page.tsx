@@ -7,6 +7,8 @@ import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users, Settings } fr
 import { HeaderClient } from '@/components/header-client';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
 import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
+import { CallAnalysisOptions, DEFAULT_ANALYSIS } from '@/components/session/CallAnalysisOptions';
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 
 interface SessionData {
   id: string;
@@ -27,6 +29,7 @@ export default function StartHostPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [maxParticipants, setMaxParticipants] = useState(5);
+  const [analysis, setAnalysis] = useState<CallAnalysisSettings>(DEFAULT_ANALYSIS);
   // allowGuestControl is always false for web hosting (disabled)
   const allowGuestControl = false;
   // Guest control is exactly what the desktop app adds, so try it first and
@@ -71,6 +74,7 @@ export default function StartHostPage() {
         body: JSON.stringify({
           allowGuestControl,
           maxParticipants,
+          ...(analysis.enabled ? { analysis } : {}),
         }),
       });
 
@@ -82,7 +86,11 @@ export default function StartHostPage() {
           router.push('/login?redirect=/host');
           return;
         }
-        setError(data.error ?? 'Failed to create session');
+        setError(
+          res.status === 403 && analysis.enabled
+            ? 'AI call analysis is on the Pro and Team plans. Turn it off, or upgrade on the pricing page.'
+            : (data.error ?? 'Failed to create session')
+        );
         return;
       }
 
@@ -95,7 +103,7 @@ export default function StartHostPage() {
     } finally {
       setIsCreating(false);
     }
-  }, [router, openSession, maxParticipants, allowGuestControl]);
+  }, [router, openSession, maxParticipants, allowGuestControl, analysis]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -182,6 +190,11 @@ export default function StartHostPage() {
                 </Link>
                 .
               </p>
+            </div>
+
+            {/* AI call analysis: decided before the call starts */}
+            <div className="mt-6">
+              <CallAnalysisOptions value={analysis} onChange={setAnalysis} />
             </div>
 
             {/* Start button */}

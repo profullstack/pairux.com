@@ -62,6 +62,10 @@ RUN pnpm --filter @pairux/web build
 FROM node:24-alpine AS runner
 WORKDIR /app
 
+# ffmpeg/ffprobe: AI call analysis joins the uploaded call audio, measures it
+# and cuts it into pieces for transcription (src/lib/call-analysis/media.ts).
+RUN apk add --no-cache ffmpeg
+
 # Security: Run as non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

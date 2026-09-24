@@ -30,6 +30,41 @@ export interface SessionSettings {
   maxParticipants?: number;
   /** Agents may join by join code unless the host sets this to false. */
   allowAgents?: boolean;
+  /**
+   * AI call analysis, chosen before the call starts and fixed for the session.
+   * When enabled, the host's app uploads the call audio (and screen stills) and
+   * a report is produced after the call. `keepRecording` defaults to true.
+   */
+  analysis?: CallAnalysisSettings;
+}
+
+/** What the analysis report focuses on. */
+export type CallAnalysisKind = 'general' | 'interview' | 'team-sync' | 'presentation';
+
+export const CALL_ANALYSIS_KINDS: readonly CallAnalysisKind[] = [
+  'general',
+  'interview',
+  'team-sync',
+  'presentation',
+];
+
+export interface CallAnalysisSettings {
+  enabled: boolean;
+  kind: CallAnalysisKind;
+  /** Keep the call recording after the report is made (default true). */
+  keepRecording: boolean;
+}
+
+export type CallAnalysisStatus = 'recording' | 'queued' | 'processing' | 'ready' | 'failed';
+
+/** True when the session was created with AI call analysis on. */
+export function isAnalysisEnabled(settings: SessionSettings | null | undefined): boolean {
+  return settings?.analysis?.enabled === true;
+}
+
+/** Who may turn analysis on: paid Pro and Team plans. */
+export function canUseCallAnalysis(plan: Plan): boolean {
+  return plan === 'pro' || plan === 'team';
 }
 
 // Billing plan. Free = P2P + 20 listeners, YouTube-only streaming.

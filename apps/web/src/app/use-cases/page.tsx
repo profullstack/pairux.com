@@ -17,7 +17,7 @@ import { useCases } from '@/lib/use-cases';
 
 const title = 'Use Cases for Working with AI Agents';
 const description =
-  'Pair program, review AI-generated code, debug, onboard teammates, and teach live with PairUX. Explore practical workflows and planned premium AI notes.';
+  'Pair program, review AI-generated code, debug, onboard teammates, and teach live with PairUX. Get AI feedback on interviews, team syncs and presentations.';
 
 export const metadata: Metadata = {
   title,
@@ -117,7 +117,7 @@ export default function UseCasesPage() {
           <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
             <div className="max-w-3xl">
               <p className="text-primary-700 inline-flex items-center gap-2 text-sm font-semibold">
-                <NotebookPen className="h-5 w-5" aria-hidden="true" /> Planned for premium plans
+                <NotebookPen className="h-5 w-5" aria-hidden="true" /> Pro and Team plans
               </p>
               <h2 className="mt-4 text-3xl font-bold text-gray-900">AI note taker</h2>
               <p className="mt-4 text-lg leading-relaxed text-gray-600">
@@ -125,15 +125,15 @@ export default function UseCasesPage() {
                 teammate catch up or carry the context into your next agent task.
               </p>
               <p className="mt-3 text-sm text-gray-600">
-                Not available yet. Contact us about premium access and delivery before purchasing
-                for this feature.
+                Part of AI call analysis: switch it on before the call and the report arrives by
+                email when it ends.
               </p>
             </div>
             <Link
               href="/use-cases/ai-note-taker"
               className="bg-primary-600 hover:bg-primary-700 inline-flex w-fit items-center gap-2 rounded-lg px-6 py-3 font-semibold text-white"
             >
-              Explore planned AI notes <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              Explore AI call notes <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </Link>
           </div>
         </section>

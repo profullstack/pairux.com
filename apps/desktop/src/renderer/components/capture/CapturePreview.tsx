@@ -34,6 +34,7 @@ import {
   clampAudioGain,
 } from '@pairux/shared-types';
 import { APP_URL, API_BASE_URL } from '../../../shared/config';
+import { CallAnalysisCapture, type CaptureStatus } from '@/lib/callAnalysisCapture';
 import { getElectronAPI } from '@/lib/ipc';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
@@ -1240,6 +1241,52 @@ export function CapturePreview({
     presentationVideoTrack,
   ]);
 
+  // AI call analysis, chosen on the home screen before this call started:
+  // upload the call's mixed audio (host + every viewer) and screen stills for
+  // the report. isHosting flaps during reconnects, so the capture only ends
+  // when this screen goes away; the server also closes it when the session
+  // ends or its uploads stop.
+  const analysisSettings = session?.settings.analysis;
+  const analysisCaptureRef = useRef<CallAnalysisCapture | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<CaptureStatus | 'off'>('off');
+  useEffect(() => {
+    if (!analysisSettings?.enabled || !session || !isHosting || analysisCaptureRef.current) return;
+    const audio = mixedStream ?? hostMicStream;
+    if (!audio) return;
+    const capture = new CallAnalysisCapture({
+      apiBase: API_BASE_URL,
+      sessionId: session.id,
+      source: 'desktop',
+      headers: (): Record<string, string> => {
+        const auth = getAuthHeaders().Authorization;
+        return auth ? { Authorization: auth } : {};
+      },
+      onStatus: setAnalysisStatus,
+    });
+    analysisCaptureRef.current = capture;
+    void capture.start(audio);
+  }, [analysisSettings?.enabled, session, isHosting, mixedStream, hostMicStream, getAuthHeaders]);
+  useEffect(() => {
+    analysisCaptureRef.current?.setVideo(stream);
+  }, [stream, analysisStatus]);
+  useEffect(() => {
+    return () => {
+      void analysisCaptureRef.current?.finish();
+    };
+  }, []);
+
+  // "Record the call" is on by default with analysis: start the full local
+  // recording when sharing starts. Once per shared stream, so stopping it by
+  // hand sticks.
+  const autoRecordedStreamRef = useRef<MediaStream | null>(null);
+  useEffect(() => {
+    if (!analysisSettings?.enabled || !analysisSettings.keepRecording) return;
+    if (!stream || !source || isRecording) return;
+    if (autoRecordedStreamRef.current === stream) return;
+    autoRecordedStreamRef.current = stream;
+    void handleStartRecording();
+  }, [analysisSettings, stream, source, isRecording, handleStartRecording]);
+
   const handleStopRecording = useCallback(async () => {
     await stopRecording();
     setSpaceWarning(null);
@@ -1830,6 +1877,20 @@ export function CapturePreview({
               <ControlActiveIndicator participant={participantWithControl} />
             )}
           </div>
+
+          {/* AI call analysis indicator */}
+          {analysisStatus !== 'off' && (
+            <div
+              className="absolute left-4 top-4 rounded-full bg-violet-600/90 px-3 py-1 text-xs font-medium text-white"
+              data-testid="analysis-badge"
+            >
+              {analysisStatus === 'error'
+                ? 'AI analysis: not recording'
+                : analysisStatus === 'capturing'
+                  ? 'AI analysis: recording'
+                  : 'AI analysis on'}
+            </div>
+          )}
 
           {/* Recording indicator */}
           {isRecording && (

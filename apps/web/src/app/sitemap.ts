@@ -16,6 +16,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/download`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/docs`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     {
+      url: `${BASE}/features/call-analysis`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${BASE}/docs/agents`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

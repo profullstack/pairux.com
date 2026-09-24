@@ -18,6 +18,7 @@ import {
   Shield,
   Check,
   MessageSquare,
+  Sparkles,
   CircleDot,
 } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -46,6 +47,18 @@ interface Feature {
 }
 
 const mainFeatures: Feature[] = [
+  {
+    icon: Sparkles,
+    title: 'AI Call Analysis',
+    description:
+      'Switch it on before an interview, team sync or presentation and get a private feedback report after the call: a score, what worked, what to fix, and the moments worth replaying.',
+    details: [
+      'Talk time, pace and filler words per speaker',
+      'Interview, team sync and presentation modes',
+      'Screen stills reviewed for slides and demos',
+      'Everyone in the call is told it is recorded',
+    ],
+  },
   {
     icon: Monitor,
     title: 'Real-time Screen Sharing',

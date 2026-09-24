@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
+import { RecordingNotice } from '@/components/session/RecordingNotice';
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 import Link from 'next/link';
 import {
   Users,
@@ -52,6 +54,7 @@ interface SessionData {
     quality?: string;
     allowControl?: boolean;
     maxParticipants?: number;
+    analysis?: CallAnalysisSettings;
   };
   created_at: string;
   session_participants: Participant[];
@@ -262,6 +265,7 @@ function SessionViewerContent({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
+      <RecordingNotice settings={session.settings} />
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

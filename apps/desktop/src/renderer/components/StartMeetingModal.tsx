@@ -14,6 +14,7 @@ import {
 } from '@/lib/meetingTiming';
 import type { ScheduledMeeting } from '../../preload/api';
 import type { Session } from '@pairux/shared-types';
+import { analysisForNewCall } from '@/lib/callAnalysisPreference';
 
 interface Props {
   isOpen: boolean;
@@ -75,8 +76,10 @@ export function StartMeetingModal({ isOpen, onClose, onStarted }: Props) {
       setStartingId(meeting.id);
       setError(null);
       try {
+        const analysis = analysisForNewCall();
         const result = await getElectronAPI().invoke('meetings:start', {
           scheduledSessionId: meeting.id,
+          ...(analysis ? { analysis } : {}),
         });
         if (!result.success) {
           setError(result.error);

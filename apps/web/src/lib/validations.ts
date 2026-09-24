@@ -85,6 +85,15 @@ export const createSessionSchema = z.object({
     .length(6, 'Join code must be 6 characters')
     .regex(/^[A-Za-z0-9]+$/, 'Join code must be letters and numbers only')
     .optional(),
+  // AI call analysis, decided before the call starts. Turning it on keeps the
+  // recording by default.
+  analysis: z
+    .object({
+      enabled: z.boolean(),
+      kind: z.enum(['general', 'interview', 'team-sync', 'presentation']).default('general'),
+      keepRecording: z.boolean().default(true),
+    })
+    .optional(),
 });
 
 // Chat message schema

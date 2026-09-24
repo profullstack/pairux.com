@@ -8,7 +8,7 @@
  * matching the desktop session:lookup handler in
  * apps/desktop/src/main/ipc/session.ts — there is no `{ session }` wrapper.
  */
-import type { Session, SessionParticipant } from '@pairux/shared-types';
+import type { CallAnalysisSettings, Session, SessionParticipant } from '@pairux/shared-types';
 import { apiRequest } from '../api';
 
 export interface JoinLookupSession {
@@ -38,7 +38,12 @@ export function isScheduledLookup(result: JoinLookupResult): result is JoinLooku
 }
 
 export const sessionApi = {
-  async create(settings?: { allowGuestControl?: boolean; maxParticipants?: number }) {
+  async create(settings?: {
+    allowGuestControl?: boolean;
+    maxParticipants?: number;
+    /** AI call analysis, chosen before the call starts. */
+    analysis?: CallAnalysisSettings;
+  }) {
     return apiRequest<Session>('/api/sessions', {
       method: 'POST',
       body: JSON.stringify(settings ?? {}),

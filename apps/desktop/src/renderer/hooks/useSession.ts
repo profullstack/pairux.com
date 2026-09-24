@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Session, SessionParticipant, SessionMode } from '@pairux/shared-types';
 import { getElectronAPI } from '@/lib/ipc';
+import { analysisForNewCall } from '@/lib/callAnalysisPreference';
 
 interface SessionState {
   session: Session | null;
@@ -40,7 +41,12 @@ export function useSession(): UseSessionReturn {
 
       try {
         const api = getElectronAPI();
-        const result = await api.invoke('session:create', settings);
+        // The home-screen AI analysis choice rides along with every new session.
+        const analysis = analysisForNewCall();
+        const result = await api.invoke('session:create', {
+          ...settings,
+          ...(analysis ? { analysis } : {}),
+        });
 
         if (!result.success) {
           throw new Error(result.error);

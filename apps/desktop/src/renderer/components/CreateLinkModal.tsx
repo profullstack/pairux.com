@@ -7,6 +7,7 @@ import { getElectronAPI } from '@/lib/ipc';
 import type { Session, SessionMode } from '@pairux/shared-types';
 import { APP_URL } from '../../shared/config';
 import { getDefaultAllowGuestControl, getDefaultSessionMode } from '@/lib/sessionDefaults';
+import { analysisForNewCall } from '@/lib/callAnalysisPreference';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -27,10 +28,12 @@ export function CreateLinkModal({ isOpen, onClose, onStartSharing }: CreateLinkM
 
     try {
       const api = getElectronAPI();
+      const analysis = analysisForNewCall();
       const result = await api.invoke('session:create', {
         allowGuestControl: getDefaultAllowGuestControl(),
         maxParticipants: mode === 'sfu' ? 10 : 5,
         mode,
+        ...(analysis ? { analysis } : {}),
       });
 
       if (!result.success) {

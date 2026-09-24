@@ -13,6 +13,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { ChatPanel } from '@/components/chat';
+import { RecordingNotice } from '@/components/RecordingNotice';
 import { VideoViewer } from '@/components/video/VideoViewer';
 import { ControlRequestButton } from '@/components/control/ControlRequestButton';
 import { InputCapture } from '@/components/control/InputCapture';
@@ -343,6 +344,7 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
     <div className="flex flex-1">
       {/* Main content */}
       <div className="flex flex-1 flex-col gap-4 p-6">
+        <RecordingNotice settings={session.settings} />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

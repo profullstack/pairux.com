@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useCallback } from 'react';
+import { useState, useEffect, use, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -31,6 +31,8 @@ import { ChatPanel } from '@/components/chat/ChatPanel';
 import { useParticipants } from '@/components/chat/useParticipants';
 import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
+import { useCallAnalysisCapture } from '@/hooks/useCallAnalysisCapture';
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 import { useWebRTCHost, type ViewerConnection } from '@/hooks/useWebRTCHost';
 import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
@@ -52,6 +54,7 @@ interface SessionData {
     quality?: string;
     allowControl?: boolean;
     maxParticipants?: number;
+    analysis?: CallAnalysisSettings;
   };
   created_at: string;
   session_participants?: SessionParticipant[];
@@ -513,6 +516,29 @@ function HostContent({
     startRecording(combinedStream, { quality: recordingQuality });
   }, [stream, micStream, mixedStream, recordingQuality, startRecording]);
 
+  // AI call analysis (chosen before the call started): capture the call audio
+  // and screen stills for the report, for as long as this host is hosting.
+  const analysis = currentSession.settings.analysis;
+  const analysisStatus = useCallAnalysisCapture({
+    sessionId,
+    settings: currentSession.settings,
+    audio: mixedStream ?? micStream,
+    video: stream,
+    active: isHosting && !isLeaving,
+  });
+
+  // "Record the call" is on by default with analysis: start the full video
+  // recording whenever a screen share starts. Once per share, so a host who
+  // stops it by hand is not overruled.
+  const autoRecordedStreamRef = useRef<MediaStream | null>(null);
+  useEffect(() => {
+    if (!analysis?.enabled || !analysis.keepRecording) return;
+    if (!stream || captureState !== 'active' || isRecording) return;
+    if (autoRecordedStreamRef.current === stream) return;
+    autoRecordedStreamRef.current = stream;
+    handleStartRecording();
+  }, [analysis, stream, captureState, isRecording, handleStartRecording]);
+
   // Handle stop recording
   const handleStopRecording = useCallback(() => {
     stopRecording();
@@ -618,6 +644,19 @@ function HostContent({
                 >
                   {captureState === 'active' ? 'Screen Sharing' : 'Voice Only'}
                 </span>
+                {analysisStatus !== 'off' && (
+                  <span
+                    className="rounded-full bg-violet-900/50 px-2 py-0.5 text-xs font-medium text-violet-300"
+                    title="Everyone in the call is told it is being recorded for AI analysis. Your report arrives by email after the call."
+                    data-testid="analysis-badge"
+                  >
+                    {analysisStatus === 'error'
+                      ? 'AI analysis: not recording'
+                      : analysisStatus === 'capturing'
+                        ? 'AI analysis: recording'
+                        : 'AI analysis on'}
+                  </span>
+                )}
               </div>
             </div>
 

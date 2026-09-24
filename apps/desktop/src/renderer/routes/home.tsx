@@ -18,6 +18,7 @@ import type { CaptureSource, Session } from '@pairux/shared-types';
 import { VOICE_AUDIO_CONSTRAINTS } from '@pairux/shared-types';
 import type { DisplayServer } from '../../preload/api';
 import { qualityResolution, readQualitySetting } from '@/lib/captureQuality';
+import { CallAnalysisPanel } from '@/components/CallAnalysisPanel';
 
 /**
  * Frames per second to ask a screen capture for.
@@ -471,6 +472,8 @@ export function HomePage() {
               </div>
             </div>
           )}
+
+          <CallAnalysisPanel disabled={isCapturing || loadingExistingSession} />
 
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Select a screen or window to share</h1>

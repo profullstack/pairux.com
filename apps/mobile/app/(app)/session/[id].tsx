@@ -14,6 +14,9 @@ import { useWebRTCHost } from '@/hooks/useWebRTCHost';
 import { useWebRTCViewer } from '@/hooks/useWebRTCViewer';
 import { useScreenShare } from '@/hooks/useScreenShare';
 import { useChat } from '@/hooks/useChat';
+import { useCallAnalysisCapture } from '@/hooks/useCallAnalysisCapture';
+import { RecordingNotice } from '@/components/RecordingNotice';
+import type { SessionSettings } from '@pairux/shared-types';
 import { useSessionAgents } from '@/hooks/useSessionAgents';
 import { sessionApi } from '@/lib/api/sessions';
 import { endHostSession } from '@/lib/host-session';
@@ -38,6 +41,7 @@ export default function SessionScreen() {
   const participantId = (params.participantId as string | undefined) ?? user?.id ?? '';
 
   const [joinCode, setJoinCode] = useState('');
+  const [settings, setSettings] = useState<SessionSettings | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
 
   // Fetch session details
@@ -46,6 +50,7 @@ export default function SessionScreen() {
       const result = await sessionApi.get(sessionId);
       if (result.data) {
         setJoinCode((result.data.join_code as string | undefined) ?? '');
+        setSettings((result.data.settings as SessionSettings | undefined) ?? null);
       }
       setLoadingSession(false);
     }
@@ -69,6 +74,7 @@ export default function SessionScreen() {
         currentUserId={user?.id}
         router={router}
         loadingSession={loadingSession}
+        settings={settings}
       />
     );
   }
@@ -82,6 +88,7 @@ export default function SessionScreen() {
       currentUserId={user?.id}
       router={router}
       loadingSession={loadingSession}
+      settings={settings}
     />
   );
 }
@@ -96,6 +103,7 @@ interface HostSessionProps {
   currentUserId?: string;
   router: ReturnType<typeof useRouter>;
   loadingSession: boolean;
+  settings: SessionSettings | null;
 }
 
 function HostSession({
@@ -106,6 +114,7 @@ function HostSession({
   currentUserId,
   router,
   loadingSession,
+  settings,
 }: HostSessionProps) {
   const webrtc = useWebRTCHost({
     sessionId,
@@ -118,6 +127,12 @@ function HostSession({
   const stopScreenShare = screenShare.stop;
   const endingSessionRef = useRef(false);
   const sessionAgents = useSessionAgents({ sessionId, enabled: !loadingSession });
+  const [ending, setEnding] = useState(false);
+  const analysisStatus = useCallAnalysisCapture({
+    sessionId,
+    settings,
+    active: webrtc.isHosting && !ending,
+  });
 
   // Auto-start hosting when session loads
   useEffect(() => {
@@ -144,6 +159,7 @@ function HostSession({
         onPress: () => {
           if (endingSessionRef.current) return;
           endingSessionRef.current = true;
+          setEnding(true);
           void (async () => {
             try {
               await endHostSession({
@@ -173,6 +189,18 @@ function HostSession({
         viewerCount={webrtc.viewerCount}
         isHosting={webrtc.isHosting}
       />
+
+      {analysisStatus !== 'off' && (
+        <View className="bg-violet-900/60 px-4 py-1.5" testID="analysis-badge">
+          <Text className="text-center text-xs font-medium text-violet-100">
+            {analysisStatus === 'error'
+              ? 'AI analysis: this phone could not record. Start from pairux.com or the desktop app to analyze the call.'
+              : analysisStatus === 'capturing'
+                ? 'AI analysis: recording your microphone. Report arrives by email after the call.'
+                : 'AI analysis on'}
+          </Text>
+        </View>
+      )}
 
       <AgentStrip
         agents={sessionAgents.agents}
@@ -298,6 +326,7 @@ interface ViewerSessionProps {
   currentUserId?: string;
   router: ReturnType<typeof useRouter>;
   loadingSession: boolean;
+  settings: SessionSettings | null;
 }
 
 function ViewerSession({
@@ -308,6 +337,7 @@ function ViewerSession({
   currentUserId,
   router,
   loadingSession,
+  settings,
 }: ViewerSessionProps) {
   const leavingSessionRef = useRef(false);
   const sessionAgents = useSessionAgents({ sessionId, enabled: !loadingSession });
@@ -344,6 +374,7 @@ function ViewerSession({
 
   return (
     <View className="flex-1 bg-black">
+      <RecordingNotice settings={settings} />
       {/* Video */}
       <View className="flex-1">
         <VideoViewer stream={webrtc.remoteStream} />

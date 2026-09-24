@@ -184,25 +184,24 @@ export const useCases: UseCase[] = [
   {
     slug: 'ai-note-taker',
     title: 'AI note taker',
-    audience: 'Premium plans · Planned',
+    audience: 'Pro and Team plans',
     description:
-      'Planned for premium plans: turn a working session into draft notes, decisions, and action items so the next person can pick up with context.',
+      'Turn on AI call analysis before a team sync and leave with the decisions, open questions and action items, plus feedback on how the meeting ran.',
     scenario:
       'Your team wants to stay focused on the shared work and leave with useful notes for the next session.',
     outcome: 'A reviewed recap of the work, the decisions, and the next steps.',
-    planned: true,
     steps: [
       {
-        title: 'Choose a session for notes',
-        body: 'The planned workflow starts with the host enabling note taking and letting participants know that the session will be used to prepare notes.',
+        title: 'Turn on AI call analysis before the call',
+        body: 'On the start screen, switch on AI call analysis and choose "Team sync". Everyone who joins sees that the call is being recorded for analysis.',
       },
       {
-        title: 'Review a draft recap',
-        body: 'The proposed note taker would organize the discussion into a summary, decisions, and action items for a person to check and edit.',
+        title: 'Read the report',
+        body: 'After the call you get a summary, the decisions reached, the questions left open, and every action item with its owner, next to feedback on how the meeting ran.',
       },
       {
         title: 'Carry context into the next task',
-        body: 'Use the reviewed notes to brief a teammate or prepare the next request for your agent. Specific delivery and plan details will be agreed with interested customers.',
+        body: 'Share the action items with the team, or use the summary to brief a teammate or prepare the next request for your agent.',
       },
     ],
   },

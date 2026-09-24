@@ -12,6 +12,9 @@ export type {
   ConnectionStatus,
   ParticipantRole,
   ParticipantKind,
+  CallAnalysisKind,
+  CallAnalysisSettings,
+  CallAnalysisStatus,
   ControlState,
   SessionSettings,
   Plan,
@@ -57,7 +60,15 @@ export type {
 } from './database.js';
 
 // Database value exports (functions/helpers)
-export { effectivePlan, maxListeners, LISTENER_CAP, isAgentParticipant } from './database.js';
+export {
+  effectivePlan,
+  maxListeners,
+  LISTENER_CAP,
+  isAgentParticipant,
+  isAnalysisEnabled,
+  canUseCallAnalysis,
+  CALL_ANALYSIS_KINDS,
+} from './database.js';
 
 // Signaling types
 export type {

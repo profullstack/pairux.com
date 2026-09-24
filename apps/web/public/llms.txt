@@ -37,6 +37,13 @@ Overage rates: $0.08/hr (720p), $0.12/hr (1080p), $0.20/hr (4K).
 - PWA viewer — no install required for viewers, any modern browser works
 - Cross-platform desktop apps — macOS, Windows, Linux
 
+## AI call analysis (Pro and Team)
+
+Switch on AI call analysis before a PairUX call (web, desktop or mobile start screen) and get a
+private feedback report afterwards: a score, per-speaker talk time, pace and filler words, what
+worked, what to practice, and moments to replay. Modes for interviews, team syncs and
+presentations. Participants see a recording notice. https://pairux.com/features/call-analysis
+
 ## Agent participants
 
 AI agents (Claude Code, moshcode, scripts) can join a live session as labelled participants

@@ -79,7 +79,8 @@ const features = [
   {
     icon: Lock,
     title: 'Secure by Design',
-    description: 'End-to-end encrypted via WebRTC DTLS-SRTP. Media never touches our servers.',
+    description:
+      'Encrypted via WebRTC DTLS-SRTP. Media never touches our servers unless you turn on AI call analysis.',
   },
   {
     icon: Globe,
@@ -280,6 +281,45 @@ export default async function HomePage() {
                 Share your experience on GitHub
               </Link>
             </p>
+          </div>
+        </section>
+
+        {/* AI call analysis */}
+        <section className="bg-gradient-to-br from-violet-800 to-indigo-900 py-20 text-white sm:py-24">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+            <div>
+              <p className="text-sm font-semibold tracking-wide text-violet-200 uppercase">
+                New · AI call analysis
+              </p>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                Get feedback on every interview, sync and presentation.
+              </h2>
+              <p className="mt-5 text-lg text-violet-100">
+                Switch it on before the call. Afterwards you get a private report: a score, what
+                worked, what to fix, your talk time, pace and filler words, and the moments worth
+                replaying.
+              </p>
+              <Link
+                href="/features/call-analysis"
+                className="mt-6 inline-flex items-center gap-2 font-semibold text-white hover:text-violet-200"
+              >
+                See how call analysis works <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-violet-500/40 bg-white/10 p-8">
+              <p className="text-sm text-violet-200">Sample report · Interview</p>
+              <p className="mt-2 text-2xl font-semibold">
+                Clear answers, but you rushed the ending
+              </p>
+              <p className="mt-1 text-5xl font-bold">
+                7<span className="text-lg text-violet-200">/10</span>
+              </p>
+              <ul className="mt-5 space-y-2 text-violet-50">
+                <li>You spoke 64% of the time at 172 wpm</li>
+                <li>4.1 filler words per 100 (&quot;like&quot;, &quot;you know&quot;)</li>
+                <li>Practice: close each answer with the result, in one sentence</li>
+              </ul>
+            </div>
           </div>
         </section>
 

@@ -1,3 +1,4 @@
+import type { CallAnalysisSettings } from '@pairux/shared-types';
 import type {
   CaptureSource,
   Plan,
@@ -72,6 +73,8 @@ export interface CreateSessionSettings {
   allowGuestControl?: boolean;
   maxParticipants?: number;
   mode?: SessionMode;
+  /** AI call analysis, chosen before the call starts. */
+  analysis?: CallAnalysisSettings;
 }
 
 // Request/response channels (invoke pattern)
@@ -233,7 +236,7 @@ export interface IPCChannels {
   };
 
   'meetings:start': {
-    args: { scheduledSessionId: string };
+    args: { scheduledSessionId: string; analysis?: CallAnalysisSettings };
     return: StartMeetingResult | { success: false; error: string };
   };
 

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { canUseCallAnalysis, effectivePlan, maxListeners, type Plan } from '@pairux/shared-types';
+import { createSessionSchema } from '@/lib/validations';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
@@ -19,9 +20,14 @@ import { sendMeetingStartNotices } from '@/lib/meeting-start';
  * meeting: it takes a meeting id rather than a session id, so the caller does
  * not have to know the room exists before asking for it.
  */
-export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    // Optional AI call analysis for the room this start creates, chosen before
+    // the call begins. A resumed room keeps whatever it was created with.
+    const body: unknown = await request.json().catch(() => ({}));
+    const requested = createSessionSchema.pick({ analysis: true }).parse(body ?? {}).analysis;
+    const analysis = requested?.enabled ? requested : undefined;
 
     const supabase = await createClient();
     const { user, error: authError } = await getAuthenticatedUser(supabase);
@@ -91,6 +97,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         .single()) as { data: { plan: Plan; plan_expires_at: string | null } | null };
 
       const plan = effectivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
+      if (analysis && !canUseCallAnalysis(plan)) {
+        return errorResponse('AI call analysis is available on Pro and Team plans', 403);
+      }
 
       // Created through the caller's own client rather than the service one:
       // `create_session` reads `auth.uid()` for the host and for the host's
@@ -100,6 +109,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
           quality: 'medium',
           allowControl: false,
           maxParticipants: maxListeners(plan),
+          ...(analysis ? { analysis } : {}),
         },
         p_mode: 'p2p',
         p_join_code: joinCode,

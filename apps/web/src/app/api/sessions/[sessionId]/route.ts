@@ -65,6 +65,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     void import('@/lib/channel-restream').then(({ stopChannelRestream }) =>
       stopChannelRestream(sessionId)
     );
+    // The call is over: hand any AI analysis capture to the report job.
+    void import('@/lib/call-analysis/store').then(({ queueSessionAnalyses }) =>
+      queueSessionAnalyses(sessionId)
+    );
 
     return successResponse(data);
   } catch (error) {

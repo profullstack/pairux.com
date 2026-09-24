@@ -67,7 +67,7 @@ export class PairuxClient {
   private async request<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      'User-Agent': this.opts.userAgent ?? 'pairux-cli',
+      'User-Agent': this.opts.userAgent ?? 'pairux',
       ...(init.body ? { 'Content-Type': 'application/json' } : {}),
     };
     if (auth && this.opts.getAccessToken) {

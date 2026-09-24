@@ -769,6 +769,13 @@ case "\${1-}" in
         echo "  update|upgrade   Check for updates and install the latest version"
         echo "                   Use --force to reinstall when already up to date"
         echo "  uninstall|remove Remove PairUX completely"
+        echo ""
+        echo "Agent commands (bring an AI agent into a session, see pairux.com/docs/agents):"
+        echo "  login|logout|whoami   Sign in so your agents are labelled as yours"
+        echo "  join <CODE>           Join a session as an agent (--name, --client)"
+        echo "  listen [--json]       Follow chat and who is here; keeps the agent present"
+        echo "  say <message>         Post in the session chat"
+        echo "  who | status | leave  Roster, this agent, leave the session"
         exit 0
         ;;
     -v|--version)
@@ -973,6 +980,13 @@ case "\${1-}" in
         echo "  update|upgrade   Check for updates and install the latest version"
         echo "                   Use --force to reinstall when already up to date"
         echo "  uninstall|remove Remove PairUX completely"
+        echo ""
+        echo "Agent commands (bring an AI agent into a session, see pairux.com/docs/agents):"
+        echo "  login|logout|whoami   Sign in so your agents are labelled as yours"
+        echo "  join <CODE>           Join a session as an agent (--name, --client)"
+        echo "  listen [--json]       Follow chat and who is here; keeps the agent present"
+        echo "  say <message>         Post in the session chat"
+        echo "  who | status | leave  Roster, this agent, leave the session"
         exit 0
         ;;
     -v|--version)

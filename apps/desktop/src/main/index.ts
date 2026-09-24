@@ -18,6 +18,7 @@ import {
   registerProtocolClient,
   setDeepLinkWindow,
 } from './deepLink';
+import { parseAgentArgv, runAgentCommand } from './agent-cli';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
@@ -80,14 +81,35 @@ if (!app.isPackaged) {
 // `pairux uninstall`), so the bare word is the form that matches it.
 const isDaemonMode = process.argv.includes('daemon') || process.argv.includes('--daemon');
 
+// `pairux join ABC123`, `pairux listen`, `pairux say ...`: agent commands run
+// headless in this process and exit. No window, no tray, and no single-instance
+// lock, so a running PairUX window neither swallows the command nor is touched
+// by it. See ./agent-cli.
+const agentArgs = parseAgentArgv(process.argv, app.isPackaged);
+if (agentArgs) {
+  if (process.platform === 'darwin') app.dock?.hide();
+  void runAgentCommand(agentArgs, app.getVersion()).then(
+    (code) => {
+      app.exit(code);
+    },
+    (error: unknown) => {
+      console.error(error instanceof Error ? error.message : String(error));
+      app.exit(1);
+    }
+  );
+}
+
 // Detect display server (X11 vs Wayland)
 const isWayland =
   process.platform === 'linux' &&
   (process.env.XDG_SESSION_TYPE === 'wayland' || process.env.WAYLAND_DISPLAY !== undefined);
 
-console.log(
-  `[Main] Display server: ${isWayland ? 'Wayland' : process.platform === 'linux' ? 'X11' : 'N/A'}`
-);
+// Agent commands print to the user's terminal: keep diagnostics out of it.
+if (!agentArgs) {
+  console.log(
+    `[Main] Display server: ${isWayland ? 'Wayland' : process.platform === 'linux' ? 'X11' : 'N/A'}`
+  );
+}
 
 // Keep the renderer running at full speed while it is in the background.
 //
@@ -154,7 +176,7 @@ if (process.platform === 'win32') {
 
 // Claim pairux:// so the web app can hand a session to this app instead of
 // hosting it in a browser tab, which cannot inject input.
-registerProtocolClient();
+if (!agentArgs) registerProtocolClient();
 
 // macOS delivers deep links as an event, on a cold start before `whenReady`.
 app.on('open-url', (event, url) => {
@@ -163,11 +185,11 @@ app.on('open-url', (event, url) => {
 });
 
 // Prevent multiple instances
-const gotTheLock = app.requestSingleInstanceLock();
+const gotTheLock = agentArgs !== null || app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   app.quit();
-} else {
+} else if (!agentArgs) {
   app.on('second-instance', (_event, argv) => {
     // Someone tried to run a second instance, focus our window
     const windows = BrowserWindow.getAllWindows();
@@ -241,6 +263,8 @@ async function createWindow(): Promise<void> {
 
 // App lifecycle
 void app.whenReady().then(async () => {
+  // An agent command is running headless and will exit on its own.
+  if (agentArgs) return;
   console.log('[Main] App starting...');
 
   // Resolve names over HTTPS where possible.

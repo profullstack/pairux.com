@@ -1,6 +1,8 @@
-#!/usr/bin/env node
 /**
- * pairux — bring an AI agent into a live PairUX session as a participant.
+ * Agent commands of the `pairux` launcher: bring an AI agent into a live
+ * PairUX session as a participant. The installed launcher hands these argv to
+ * the desktop app, whose main process runs them headless and exits (see
+ * ./index.ts), so they ship and version with the app and need no system Node.
  *
  *   pairux login                 sign in (browser, OAuth 2.1 + PKCE)
  *   pairux join ABC123 --name "Claude"
@@ -13,15 +15,7 @@
  * against a fake server without touching the network, the terminal or ~/.
  */
 import { parseArgs } from 'node:util';
-import { realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import {
-  apiUrl as resolveApiUrl,
-  configPath as defaultConfigPath,
-  loadConfig,
-  saveConfig,
-  type CliConfig,
-} from './config.js';
+import { apiUrl as resolveApiUrl, loadConfig, saveConfig, type CliConfig } from './config';
 import {
   AuthError,
   buildAuthorizeUrl,
@@ -29,14 +23,12 @@ import {
   exchangeCode,
   listenForCallback,
   needsRefresh,
-  openBrowser as defaultOpenBrowser,
   randomState,
   refresh,
   revoke,
-} from './auth.js';
-import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api.js';
+} from './auth';
+import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api';
 
-export const VERSION = '0.1.0';
 const MAX_MESSAGE = 500;
 
 export interface Deps {
@@ -51,9 +43,11 @@ export interface Deps {
   /** Tests stop `listen` after N polls; production runs until 410 or Ctrl-C. */
   maxPolls?: number;
   login?: typeof listenForCallback;
+  /** The app version, for the User-Agent and `pairux version`. */
+  version?: string;
 }
 
-const HELP = `pairux ${VERSION}: bring AI agents into PairUX sessions
+export const AGENT_HELP = `Agent commands: bring AI agents into PairUX sessions
 
 Usage:
   pairux login [--no-browser]        Sign in so your agents are labelled as yours
@@ -138,7 +132,7 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
     apiUrl: api,
     getAccessToken,
     fetchImpl: deps.fetchImpl,
-    userAgent: `pairux-cli/${VERSION}`,
+    userAgent: `pairux/${deps.version ?? 'unknown'}`,
   });
 
   const requireAgent = () => {
@@ -148,17 +142,16 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
 
   try {
     switch (command) {
-      case undefined:
       case 'help':
       case '--help':
       case '-h':
-        deps.out(HELP);
+        deps.out(AGENT_HELP);
         return 0;
 
       case 'version':
       case '--version':
       case '-v':
-        deps.out(VERSION);
+        deps.out(deps.version ?? 'unknown');
         return 0;
 
       case 'login': {
@@ -351,7 +344,7 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
           }
 
           for (const m of result.messages) emitMessage(m);
-          const last = result.messages[result.messages.length - 1];
+          const last = result.messages.at(-1);
           if (last) cursor = last.created_at;
           else cursor ??= result.serverTime;
 
@@ -405,36 +398,9 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
   }
 }
 
-async function readAllStdin(): Promise<string | null> {
+export async function readAllStdin(): Promise<string | null> {
   if (process.stdin.isTTY) return null;
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
   return Buffer.concat(chunks).toString('utf8');
-}
-
-function isMain(): boolean {
-  if (!process.argv[1]) return false;
-  try {
-    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
-  } catch {
-    return false;
-  }
-}
-
-if (isMain()) {
-  const code = await run(process.argv.slice(2), {
-    env: process.env,
-    configPath: defaultConfigPath(),
-    fetchImpl: fetch,
-    out: (line) => {
-      process.stdout.write(line + '\n');
-    },
-    err: (line) => {
-      process.stderr.write(line + '\n');
-    },
-    openBrowser: defaultOpenBrowser,
-    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    readStdin: readAllStdin,
-  });
-  process.exitCode = code;
 }

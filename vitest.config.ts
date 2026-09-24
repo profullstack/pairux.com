@@ -37,7 +37,6 @@ export default defineConfig({
       'packages/shared-types',
       'packages/ai-core',
       'packages/remote-input',
-      'packages/cli',
       // Not a workspace, and the reason this list is written out rather than
       // globbed: `scripts/` holds three test files that only the old
       // repository-wide glob was picking up, and a projects list of `apps/*`

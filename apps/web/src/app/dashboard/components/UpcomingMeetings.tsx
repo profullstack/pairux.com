@@ -13,6 +13,7 @@ import {
   CalendarPlus,
   CheckCircle,
   Repeat,
+  Radio,
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
@@ -48,6 +49,8 @@ interface ScheduledSession {
   recurrence_count?: number | null;
   occurrences_elapsed?: number | null;
   channel_id?: string | null;
+  /** The channel this meeting broadcasts on when it goes live. */
+  channel?: { handle: string; name: string } | null;
 }
 
 interface ListResponse {
@@ -280,6 +283,14 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                         >
                           <Repeat className="h-3 w-3" />
                           {repeatLabel(session)}
+                        </span>
+                      )}
+                      {session.channel && (
+                        <span
+                          className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 font-medium text-red-600"
+                          title={`Goes live on ${session.channel.name}`}
+                        >
+                          <Radio className="h-3 w-3" />@{session.channel.handle}
                         </span>
                       )}
                       {session.invitee_count > 0 && (

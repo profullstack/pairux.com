@@ -152,7 +152,10 @@ export async function GET(request: Request) {
 
     let query = (svc as any)
       .from('scheduled_sessions')
-      .select('*, scheduled_session_invitees(id, email, name, rsvp_status)')
+      // The channel is embedded so the list can say where each meeting goes live.
+      .select(
+        '*, scheduled_session_invitees(id, email, name, rsvp_status), channel:channels(handle, name)'
+      )
       .eq('host_user_id', user.id)
       .neq('status', 'cancelled')
       .order('scheduled_at', { ascending: true });

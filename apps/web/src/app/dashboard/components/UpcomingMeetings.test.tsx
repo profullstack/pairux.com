@@ -104,6 +104,28 @@ describe('UpcomingMeetings', () => {
     expect(screen.getByRole('button', { name: 'Start Now' })).toBeInTheDocument();
   });
 
+  it('shows the channel a meeting goes live on', async () => {
+    vi.setSystemTime('2026-08-14T16:00:00.000Z');
+    vi.mocked(fetch).mockResolvedValue(
+      response({
+        data: [{ ...meeting, channel: { handle: 'moshcoding', name: 'Mosh Coding' } }],
+      })
+    );
+
+    await renderMeetings();
+
+    expect(screen.getByTitle('Goes live on Mosh Coding')).toHaveTextContent('@moshcoding');
+  });
+
+  it('shows no channel for a private meeting', async () => {
+    vi.setSystemTime('2026-08-14T16:00:00.000Z');
+    vi.mocked(fetch).mockResolvedValue(response({ data: [{ ...meeting, channel: null }] }));
+
+    await renderMeetings();
+
+    expect(screen.queryByTitle(/goes live on/i)).not.toBeInTheDocument();
+  });
+
   it('keeps a meeting startable hours after it should have ended', async () => {
     // Three hours past a one-hour meeting: a host running late, which is the
     // normal case rather than a meeting that no longer exists.

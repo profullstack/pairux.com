@@ -12,8 +12,10 @@ import { sessionApi } from '@/lib/api/sessions';
 
 export const AGENT_POLL_MS = 10_000;
 
-export function liveAgents(participants: SessionParticipant[]): SessionParticipant[] {
-  return participants.filter((p) => p.kind === 'agent' && !p.left_at);
+export function liveAgents(
+  participants: SessionParticipant[] | null | undefined
+): SessionParticipant[] {
+  return (participants ?? []).filter((p) => p.kind === 'agent' && !p.left_at);
 }
 
 export function useSessionAgents({ sessionId, enabled }: { sessionId: string; enabled: boolean }) {
@@ -21,8 +23,9 @@ export function useSessionAgents({ sessionId, enabled }: { sessionId: string; en
 
   const refresh = useCallback(async () => {
     if (!sessionId) return;
-    const result = await sessionApi.get(sessionId);
-    if (result.data) setAgents(liveAgents(result.data.session_participants));
+    // The roster is a nicety on top of the session: never let it throw.
+    const result = await sessionApi.get(sessionId).catch(() => null);
+    if (result?.data) setAgents(liveAgents(result.data.session_participants));
   }, [sessionId]);
 
   useEffect(() => {

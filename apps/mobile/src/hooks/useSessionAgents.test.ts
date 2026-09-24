@@ -27,4 +27,9 @@ describe('liveAgents', () => {
     ];
     expect(liveAgents(rows).map((p) => p.id)).toEqual(['agent']);
   });
+
+  it('treats a session payload without a roster as no agents', () => {
+    expect(liveAgents(undefined)).toEqual([]);
+    expect(liveAgents(null)).toEqual([]);
+  });
 });

@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { MicrophoneController } from '@pairux/shared-types';
 import {
   Room,
   RoomEvent,
@@ -58,6 +59,7 @@ interface UseWebRTCViewerSFUAPIReturn {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
   /**
@@ -116,6 +118,10 @@ export function useWebRTCViewerSFUAPI({
   const [dataChannelReady, setDataChannelReady] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [unmuteRequested, setUnmuteRequested] = useState(false);
+  const micIntentRef = useRef(true);
+  const micControllerRef = useRef<MicrophoneController | null>(null);
+  const lifecycleRef = useRef(0);
 
   const roomRef = useRef<Room | null>(null);
   const inputSequenceRef = useRef(0);
@@ -322,14 +328,25 @@ export function useWebRTCViewerSFUAPI({
               onKickedRef.current?.(message.reason);
               break;
             case 'mute': {
-              const room = roomRef.current;
-              if (room) {
-                const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
-                if (micPub?.track) {
-                  void room.localParticipant.setMicrophoneEnabled(!message.muted);
-                  setMicEnabled(!message.muted);
-                }
+              if (typeof message.muted !== 'boolean' || message.participantId !== participantId)
+                break;
+              if (!message.muted) {
+                // Limit requests to a current screen publisher; never grant capture remotely.
+                const publisher =
+                  sender && roomRef.current?.remoteParticipants.get(sender.identity);
+                if (
+                  !publisher ||
+                  !Array.from(publisher.videoTrackPublications.values()).some(
+                    (publication) => publication.source === Track.Source.ScreenShare
+                  )
+                )
+                  break;
+                if (!micIntentRef.current) setUnmuteRequested(true);
+                break;
               }
+              micIntentRef.current = false;
+              setUnmuteRequested(false);
+              void micControllerRef.current?.setEnabled(false);
               break;
             }
           }
@@ -459,6 +476,10 @@ export function useWebRTCViewerSFUAPI({
 
   // Disconnect
   const disconnect = useCallback(() => {
+    lifecycleRef.current++;
+    micControllerRef.current?.dispose();
+    micControllerRef.current = null;
+    setUnmuteRequested(false);
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
@@ -487,22 +508,23 @@ export function useWebRTCViewerSFUAPI({
 
   // Toggle mic
   const toggleMic = useCallback(() => {
-    const room = roomRef.current;
-    if (!room) return;
-
-    const newEnabled = !micEnabled;
-    void room.localParticipant.setMicrophoneEnabled(newEnabled);
-    setMicEnabled(newEnabled);
-  }, [micEnabled]);
+    if (!micControllerRef.current) return;
+    micIntentRef.current = !micIntentRef.current;
+    setUnmuteRequested(false);
+    void micControllerRef.current.setEnabled(micIntentRef.current);
+  }, []);
 
   // Initialize: fetch token and connect
   const initialize = useCallback(async () => {
+    const generation = ++lifecycleRef.current;
+    const current = () => lifecycleRef.current === generation;
     try {
       setConnectionState('connecting');
 
       // Get auth token from Electron
       const api = getElectronAPI();
       const { token: authToken } = await api.invoke('auth:getToken', undefined);
+      if (!current()) return;
       if (!authToken) {
         setError('Authentication required');
         setConnectionState('failed');
@@ -532,6 +554,7 @@ export function useWebRTCViewerSFUAPI({
       const { data } = (await tokenRes.json()) as {
         data: { token: string; url: string; roomName: string; iceServers?: RTCIceServer[] };
       };
+      if (!current()) return;
 
       // Create and connect room.
       // adaptiveStream pauses video tracks that livekit doesn't see attached to
@@ -552,6 +575,7 @@ export function useWebRTCViewerSFUAPI({
       room.on(
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
+          if (!current() || roomRef.current !== room) return;
           const mediaTrack = track.mediaStreamTrack;
 
           // Audio plays through its own element, one per participant, so that
@@ -583,6 +607,7 @@ export function useWebRTCViewerSFUAPI({
 
       // Track unsubscribed
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        if (!current() || roomRef.current !== room) return;
         const mediaTrack = track.mediaStreamTrack;
 
         if (track.kind === Track.Kind.Audio) {
@@ -614,8 +639,10 @@ export function useWebRTCViewerSFUAPI({
 
       // Connection state changes
       room.on(RoomEvent.ConnectionStateChanged, (state: LKConnectionState) => {
+        if (!current() || roomRef.current !== room) return;
         setConnectionState(mapConnectionState(state));
         if (state === LKConnectionState.Connected) {
+          void micControllerRef.current?.setEnabled(micIntentRef.current);
           setError(null);
           setDataChannelReady(true);
         } else if (state === LKConnectionState.Disconnected) {
@@ -624,10 +651,13 @@ export function useWebRTCViewerSFUAPI({
       });
 
       // Data messages
-      room.on(RoomEvent.DataReceived, handleDataReceived);
+      room.on(RoomEvent.DataReceived, (payload, participant) => {
+        if (current() && roomRef.current === room) handleDataReceived(payload, participant);
+      });
 
       // Detect host disconnect/reconnect
       room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+        if (!current() || roomRef.current !== room) return;
         onPresenceChangeRef.current?.();
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
@@ -640,6 +670,7 @@ export function useWebRTCViewerSFUAPI({
       });
 
       room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+        if (!current() || roomRef.current !== room) return;
         onPresenceChangeRef.current?.();
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
@@ -652,6 +683,7 @@ export function useWebRTCViewerSFUAPI({
       });
 
       room.on(RoomEvent.Disconnected, () => {
+        if (!current() || roomRef.current !== room) return;
         setConnectionState('disconnected');
         setDataChannelReady(false);
       });
@@ -664,15 +696,30 @@ export function useWebRTCViewerSFUAPI({
         rtcConfig: buildSfuRtcConfig(data.iceServers),
       });
 
-      // Enable mic after connecting
-      try {
-        await room.localParticipant.setMicrophoneEnabled(true);
-        setHasMic(true);
-        setMicEnabled(true);
-      } catch {
-        setHasMic(false);
-        setMicEnabled(false);
+      if (!current()) {
+        void room.disconnect();
+        return;
       }
+      const mic = () => room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track;
+      const controller = new MicrophoneController({
+        setEnabled: (enabled) => room.localParticipant.setMicrophoneEnabled(enabled),
+        silence: () => {
+          const track = mic();
+          if (track) track.mediaStreamTrack.enabled = false;
+        },
+        stop: () => {
+          mic()?.stop();
+        },
+        changed: (enabled, available) => {
+          if (!current()) return;
+          if (!available) micIntentRef.current = false;
+          setHasMic(available);
+          setMicEnabled(enabled);
+        },
+      });
+      micControllerRef.current = controller;
+      await controller.setEnabled(micIntentRef.current);
+      if (!current()) return;
 
       // Open the tailnet handshake now the room can carry data. Fire and
       // forget: the host draws the conclusion, and nothing here depends on it.
@@ -683,6 +730,7 @@ export function useWebRTCViewerSFUAPI({
       // Start stats collection
       statsIntervalRef.current = setInterval(() => void collectStats(), 2000);
     } catch (err) {
+      if (!current()) return;
       console.error('[WebRTCViewerSFU] Connection failed:', err);
       setConnectionState('failed');
       setError(err instanceof Error ? err.message : 'Failed to connect');
@@ -725,6 +773,7 @@ export function useWebRTCViewerSFUAPI({
     releaseControl,
     sendInput,
     micEnabled,
+    unmuteRequested,
     hasMic,
     toggleMic,
     setSpeakerMuted,

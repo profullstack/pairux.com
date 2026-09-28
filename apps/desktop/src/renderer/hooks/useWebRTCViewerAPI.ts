@@ -87,6 +87,7 @@ interface UseWebRTCViewerAPIReturn {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
 }
@@ -109,6 +110,8 @@ export function useWebRTCViewerAPI({
   const [dataChannelReady, setDataChannelReady] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [unmuteRequested, setUnmuteRequested] = useState(false);
+  const micIntentRef = useRef(true);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
@@ -232,13 +235,24 @@ export function useWebRTCViewerAPI({
             onKickedRef.current?.(message.reason);
             break;
           case 'mute': {
+            if (
+              typeof message.muted !== 'boolean' ||
+              (message.participantId && message.participantId !== signalSenderIdRef.current)
+            )
+              break;
+            if (!message.muted) {
+              if (!micIntentRef.current) setUnmuteRequested(true);
+              break;
+            }
+            micIntentRef.current = false;
+            setUnmuteRequested(false);
             const micStream = micStreamRef.current;
             if (micStream) {
               micStream.getAudioTracks().forEach((track) => {
-                track.enabled = !message.muted;
+                track.enabled = false;
               });
-              setMicEnabled(!message.muted);
             }
+            setMicEnabled(false);
             break;
           }
         }
@@ -825,6 +839,7 @@ export function useWebRTCViewerAPI({
 
   // Disconnect and clean up
   const disconnect = useCallback(() => {
+    setUnmuteRequested(false);
     lifecycleRef.current++;
     hostPeerIdRef.current = null;
     pendingCandidatesRef.current = [];
@@ -885,15 +900,17 @@ export function useWebRTCViewerAPI({
     const micStream = micStreamRef.current;
     if (!micStream) return;
 
-    const tracks = micStream.getAudioTracks();
+    const tracks = micStream.getAudioTracks().filter((track) => track.readyState !== 'ended');
     if (tracks.length === 0) return;
 
-    const newEnabled = !micEnabled;
+    const newEnabled = !micIntentRef.current;
+    micIntentRef.current = newEnabled;
+    setUnmuteRequested(false);
     tracks.forEach((track) => {
       track.enabled = newEnabled;
     });
     setMicEnabled(newEnabled);
-  }, [micEnabled]);
+  }, []);
 
   // Initialize connection
   const initialize = useCallback(async () => {
@@ -931,13 +948,17 @@ export function useWebRTCViewerAPI({
         return;
       }
       markTrackAsSpeech(micStream.getAudioTracks()[0]);
+      micStream.getAudioTracks().forEach((track) => {
+        track.enabled = micIntentRef.current;
+      });
       micStreamRef.current = micStream;
       setHasMic(true);
-      setMicEnabled(true);
+      setMicEnabled(micIntentRef.current);
       console.log('[WebRTCViewer] Microphone captured');
     } catch (err: unknown) {
       if (!current()) return;
       console.warn('[WebRTCViewer] Could not access microphone:', err);
+      micIntentRef.current = false;
       micStreamRef.current = null;
       setHasMic(false);
       setMicEnabled(false);
@@ -1128,6 +1149,7 @@ export function useWebRTCViewerAPI({
     releaseControl,
     sendInput,
     micEnabled,
+    unmuteRequested,
     hasMic,
     toggleMic,
   };

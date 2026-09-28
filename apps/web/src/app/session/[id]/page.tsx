@@ -212,6 +212,7 @@ interface SessionViewerContentProps {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
 }
@@ -232,6 +233,7 @@ function SessionViewerContent({
   releaseControl,
   sendInput,
   micEnabled,
+  unmuteRequested,
   hasMic,
   toggleMic,
 }: SessionViewerContentProps) {
@@ -334,6 +336,11 @@ function SessionViewerContent({
           </div>
 
           {/* Control bar */}
+          {unmuteRequested && !micEnabled && hasMic && (
+            <div role="status" className="bg-gray-900 px-4 py-2 text-center text-sm text-amber-300">
+              Microphone requested. You are still muted.
+            </div>
+          )}
           <div className="flex items-center justify-center gap-4 border-t border-gray-800 bg-gray-900 px-4 py-3">
             {allowControl && (
               <ControlRequestButton

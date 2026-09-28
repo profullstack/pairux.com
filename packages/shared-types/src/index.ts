@@ -137,3 +137,5 @@ export {
   tuneOpusForVoice,
   prioritizeAudioSender,
 } from './audio.js';
+
+export { MicrophoneController } from './microphone.js';

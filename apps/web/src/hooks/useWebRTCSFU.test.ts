@@ -118,6 +118,190 @@ describe('useWebRTCSFU', () => {
     });
   });
 
+  async function micViewer() {
+    mockRemoteParticipants.set('presenter', {
+      identity: 'presenter',
+      videoTrackPublications: new Map([['screen', { source: 'screen_share' }]]),
+    });
+    const view = renderHook(() =>
+      useWebRTCSFU({ sessionId: 'session-1', participantId: 'viewer-1' })
+    );
+    await act(async () => {
+      for (let i = 0; i < 12; i++) await Promise.resolve();
+    });
+    return view;
+  }
+  function muteMessage(muted: unknown, target = 'viewer-1', room = mockRoomInstance) {
+    room.emit(
+      'dataReceived',
+      new TextEncoder().encode(JSON.stringify({ type: 'mute', muted, participantId: target })),
+      { identity: 'presenter' }
+    );
+  }
+
+  it('requires local consent, ignores invalid/foreign mute, and keeps mute on reconnect', async () => {
+    const { result } = await micViewer();
+    expect(result.current.micEnabled).toBe(true);
+    await act(async () => {
+      muteMessage(true, 'someone-else');
+      muteMessage(undefined);
+      muteMessage('false');
+    });
+    expect(result.current.micEnabled).toBe(true);
+    await act(async () => {
+      muteMessage(true);
+    });
+    expect(result.current.micEnabled).toBe(false);
+    mockSetMicrophoneEnabled.mockClear();
+    await act(async () => {
+      muteMessage(false);
+      muteMessage(false);
+    });
+    expect(mockSetMicrophoneEnabled).not.toHaveBeenCalled();
+    expect(result.current.unmuteRequested).toBe(true);
+    const oldRoom = mockRoomInstance;
+    await act(async () => {
+      result.current.reconnect();
+    });
+    expect(mockSetMicrophoneEnabled).not.toHaveBeenCalledWith(true);
+    expect(result.current.micEnabled).toBe(false);
+    act(() => muteMessage(false, 'viewer-1', oldRoom));
+    expect(result.current.unmuteRequested).toBe(false);
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    expect(mockSetMicrophoneEnabled).toHaveBeenCalledWith(true);
+    expect(result.current.micEnabled).toBe(true);
+  });
+
+  it('does not override a mute received while connecting', async () => {
+    let resolve!: () => void;
+    mockConnect.mockImplementationOnce(
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        })
+    );
+    const { result } = await micViewer();
+    act(() => muteMessage(true));
+    await act(async () => {
+      resolve();
+    });
+    expect(mockSetMicrophoneEnabled).not.toHaveBeenCalledWith(true);
+    expect(result.current.micEnabled).toBe(false);
+  });
+
+  it('does not acquire a microphone after unmount during connect', async () => {
+    let resolve!: () => void;
+    mockConnect.mockImplementationOnce(
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        })
+    );
+    const { unmount } = await micViewer();
+    unmount();
+    await act(async () => {
+      resolve();
+    });
+    expect(mockSetMicrophoneEnabled).not.toHaveBeenCalled();
+    expect(mockDisconnect).toHaveBeenCalled();
+  });
+
+  it('contains failed local enable without reporting the microphone as active', async () => {
+    const { result } = await micViewer();
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    mockSetMicrophoneEnabled.mockRejectedValueOnce(new Error('permission denied'));
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    expect(result.current.micEnabled).toBe(false);
+    expect(result.current.hasMic).toBe(false);
+    await act(async () => {
+      muteMessage(true);
+    });
+    expect(result.current.hasMic).toBe(false);
+  });
+
+  it('only shows unmute requests from a current screen publisher', async () => {
+    const { result } = await micViewer();
+    await act(async () => {
+      muteMessage(true);
+    });
+    const payload = new TextEncoder().encode(
+      JSON.stringify({ type: 'mute', muted: false, participantId: 'viewer-1' })
+    );
+    mockRemoteParticipants.set('guest', {
+      identity: 'guest',
+      metadata: '{"role":"host"}',
+      videoTrackPublications: new Map(),
+    });
+    act(() => {
+      mockRoomInstance.emit('dataReceived', payload);
+      mockRoomInstance.emit('dataReceived', payload, { identity: 'guest' });
+    });
+    expect(result.current.unmuteRequested).toBe(false);
+    act(() => {
+      muteMessage(false);
+    });
+    expect(result.current.unmuteRequested).toBe(true);
+    expect(result.current.micEnabled).toBe(false);
+  });
+
+  it('does not report active audio when host mute races local permission', async () => {
+    const { result } = await micViewer();
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    let resolve!: () => void;
+    mockSetMicrophoneEnabled.mockImplementationOnce(
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        })
+    );
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    await act(async () => {
+      muteMessage(true);
+    });
+    await act(async () => {
+      resolve();
+    });
+    expect(result.current.micEnabled).toBe(false);
+    expect(mockSetMicrophoneEnabled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('reasserts mute on SDK reconnect and ignores old-room state events', async () => {
+    const { result } = await micViewer();
+    await act(async () => {
+      result.current.toggleMic();
+    });
+    mockSetMicrophoneEnabled.mockClear();
+    await act(async () => {
+      mockRoomInstance.emit('connectionStateChanged', 'reconnecting');
+      mockRoomInstance.emit('connectionStateChanged', 'connected');
+    });
+    expect(mockSetMicrophoneEnabled).toHaveBeenLastCalledWith(false);
+    expect(result.current.micEnabled).toBe(false);
+    const oldRoom = mockRoomInstance;
+    await act(async () => {
+      result.current.reconnect();
+    });
+    act(() => {
+      mockRoomInstance.emit('connectionStateChanged', 'connected');
+    });
+    await act(async () => {
+      oldRoom.emit('connectionStateChanged', 'disconnected');
+      oldRoom.emit('disconnected');
+    });
+    expect(result.current.connectionState).toBe('connected');
+    expect(mockSetMicrophoneEnabled).not.toHaveBeenCalledWith(true);
+  });
+
   it('merges subscribed audio and video tracks into one remote stream and preserves video on audio unsubscribe', async () => {
     let hookResult: { current: ReturnType<typeof useWebRTCSFU> };
 

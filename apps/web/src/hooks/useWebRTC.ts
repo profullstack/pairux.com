@@ -65,6 +65,7 @@ interface UseWebRTCReturn {
   sendInput: (event: InputEvent) => void;
   // Microphone
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
 }
@@ -87,6 +88,13 @@ export function useWebRTC({
   const [dataChannelReady, setDataChannelReady] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [unmuteRequested, setUnmuteRequested] = useState(false);
+  const micIntentRef = useRef(true);
+  const lifecycleRef = useRef(0);
+  const onStreamReadyRef = useRef(onStreamReady);
+  const onStreamEndedRef = useRef(onStreamEnded);
+  onStreamReadyRef.current = onStreamReady;
+  onStreamEndedRef.current = onStreamEnded;
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
@@ -159,43 +167,56 @@ export function useWebRTC({
   }, []);
 
   // Handle incoming data channel messages
-  const handleDataChannelMessage = useCallback((event: MessageEvent<string>) => {
-    try {
-      const message = JSON.parse(event.data) as ControlMessage | KickMessage | MuteMessage;
+  const handleDataChannelMessage = useCallback(
+    (event: MessageEvent<string>) => {
+      try {
+        const message = JSON.parse(event.data) as ControlMessage | KickMessage | MuteMessage;
 
-      if ('type' in message) {
-        switch (message.type) {
-          case 'control-grant':
-            setControlState('granted');
-            onControlStateChangeRef.current?.('granted');
-            break;
-          case 'control-revoke':
-            setControlState('view-only');
-            onControlStateChangeRef.current?.('view-only');
-            break;
-          case 'kick':
-            // Host kicked this viewer
-            setError('You were removed from the session');
-            disconnectRef.current?.();
-            onKickedRef.current?.(message.reason);
-            break;
-          case 'mute': {
-            // Host force-muted/unmuted this viewer's mic
-            const micStream = micStreamRef.current;
-            if (micStream) {
-              micStream.getAudioTracks().forEach((track) => {
-                track.enabled = !message.muted;
-              });
-              setMicEnabled(!message.muted);
+        if ('type' in message) {
+          switch (message.type) {
+            case 'control-grant':
+              setControlState('granted');
+              onControlStateChangeRef.current?.('granted');
+              break;
+            case 'control-revoke':
+              setControlState('view-only');
+              onControlStateChangeRef.current?.('view-only');
+              break;
+            case 'kick':
+              // Host kicked this viewer
+              setError('You were removed from the session');
+              disconnectRef.current?.();
+              onKickedRef.current?.(message.reason);
+              break;
+            case 'mute': {
+              if (
+                typeof message.muted !== 'boolean' ||
+                (message.participantId && message.participantId !== participantId)
+              )
+                break;
+              if (!message.muted) {
+                if (!micIntentRef.current) setUnmuteRequested(true);
+                break;
+              }
+              micIntentRef.current = false;
+              setUnmuteRequested(false);
+              const micStream = micStreamRef.current;
+              if (micStream) {
+                micStream.getAudioTracks().forEach((track) => {
+                  track.enabled = false;
+                });
+              }
+              setMicEnabled(false);
+              break;
             }
-            break;
           }
         }
+      } catch {
+        // Invalid message format - ignore
       }
-    } catch {
-      // Invalid message format - ignore
-    }
-  }, []);
+    },
+    [participantId]
+  );
 
   // Setup data channel
   const setupDataChannel = useCallback(
@@ -474,34 +495,31 @@ export function useWebRTC({
   // Keep ref updated
   handleConnectionFailureRef.current = handleConnectionFailure;
 
-  const removeRemoteTrack = useCallback(
-    (trackId: string) => {
-      const cleanup = remoteTrackCleanupRef.current.get(trackId);
-      remoteTrackCleanupRef.current.delete(trackId);
-      cleanup?.();
+  const removeRemoteTrack = useCallback((trackId: string) => {
+    const cleanup = remoteTrackCleanupRef.current.get(trackId);
+    remoteTrackCleanupRef.current.delete(trackId);
+    cleanup?.();
 
-      const activeStream = remoteStreamRef.current;
-      if (!activeStream) return;
+    const activeStream = remoteStreamRef.current;
+    if (!activeStream) return;
 
-      const remainingTracks = activeStream
-        .getTracks()
-        .filter((track) => track.id !== trackId && track.readyState !== 'ended');
-      if (remainingTracks.length === activeStream.getTracks().length) return;
+    const remainingTracks = activeStream
+      .getTracks()
+      .filter((track) => track.id !== trackId && track.readyState !== 'ended');
+    if (remainingTracks.length === activeStream.getTracks().length) return;
 
-      if (remainingTracks.length === 0) {
-        remoteStreamRef.current = null;
-        setRemoteStream(null);
-        onStreamEnded?.();
-        return;
-      }
+    if (remainingTracks.length === 0) {
+      remoteStreamRef.current = null;
+      setRemoteStream(null);
+      onStreamEndedRef.current?.();
+      return;
+    }
 
-      const updatedStream = new MediaStream(remainingTracks);
-      remoteStreamRef.current = updatedStream;
-      setRemoteStream(updatedStream);
-      onStreamReady?.(updatedStream);
-    },
-    [onStreamEnded, onStreamReady]
-  );
+    const updatedStream = new MediaStream(remainingTracks);
+    remoteStreamRef.current = updatedStream;
+    setRemoteStream(updatedStream);
+    onStreamReadyRef.current?.(updatedStream);
+  }, []);
 
   // Create and configure peer connection
   const createPeerConnection = useCallback(() => {
@@ -574,7 +592,7 @@ export function useWebRTC({
       const mergedStream = new MediaStream(composite.getTracks());
       remoteStreamRef.current = mergedStream;
       setRemoteStream(mergedStream);
-      onStreamReady?.(mergedStream);
+      onStreamReadyRef.current?.(mergedStream);
     };
 
     // Handle ICE candidates
@@ -633,7 +651,7 @@ export function useWebRTC({
           });
           remoteTrackCleanupRef.current.clear();
           setRemoteStream(null);
-          onStreamEnded?.();
+          onStreamEndedRef.current?.();
           break;
       }
     };
@@ -654,17 +672,12 @@ export function useWebRTC({
     };
 
     return pc;
-  }, [
-    participantId,
-    onStreamReady,
-    onStreamEnded,
-    removeRemoteTrack,
-    setupDataChannel,
-    sendSignal,
-  ]);
+  }, [participantId, removeRemoteTrack, setupDataChannel, sendSignal]);
 
   // Disconnect
   const disconnect = useCallback(() => {
+    lifecycleRef.current++;
+    setUnmuteRequested(false);
     // Stop stats collection
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
@@ -721,18 +734,22 @@ export function useWebRTC({
     const micStream = micStreamRef.current;
     if (!micStream) return;
 
-    const tracks = micStream.getAudioTracks();
+    const tracks = micStream.getAudioTracks().filter((track) => track.readyState !== 'ended');
     if (tracks.length === 0) return;
 
-    const newEnabled = !micEnabled;
+    const newEnabled = !micIntentRef.current;
+    micIntentRef.current = newEnabled;
+    setUnmuteRequested(false);
     tracks.forEach((track) => {
       track.enabled = newEnabled;
     });
     setMicEnabled(newEnabled);
-  }, [micEnabled]);
+  }, []);
 
   // Initialize connection
   const initialize = useCallback(async () => {
+    const generation = ++lifecycleRef.current;
+    const current = () => lifecycleRef.current === generation;
     const supabase = createClient();
 
     // Capture microphone BEFORE setting up the peer connection
@@ -742,13 +759,24 @@ export function useWebRTC({
         audio: VOICE_AUDIO_CONSTRAINTS,
         video: false,
       });
+      if (!current()) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        return;
+      }
+      micStream.getAudioTracks().forEach((track) => {
+        track.enabled = micIntentRef.current;
+      });
       markTrackAsSpeech(micStream.getAudioTracks()[0]);
       micStreamRef.current = micStream;
       setHasMic(true);
-      setMicEnabled(true);
+      setMicEnabled(micIntentRef.current);
       console.log('[WebRTC] Microphone captured for viewer audio');
     } catch (err: unknown) {
+      if (!current()) return;
       console.warn('[WebRTC] Could not access microphone, joining without audio:', err);
+      micIntentRef.current = false;
       micStreamRef.current = null;
       setHasMic(false);
       setMicEnabled(false);
@@ -767,6 +795,7 @@ export function useWebRTC({
     // Subscribe to signaling events
     channel
       .on('broadcast', { event: 'signal' }, ({ payload }) => {
+        if (!current() || channelRef.current !== channel) return;
         const message = payload as SignalMessage;
         // Only process messages not from self
         if (message.senderId !== participantId) {
@@ -774,6 +803,7 @@ export function useWebRTC({
         }
       })
       .subscribe((status: string) => {
+        if (!current() || channelRef.current !== channel) return;
         if (status === 'SUBSCRIBED') {
           setConnectionState('connecting');
 
@@ -834,6 +864,7 @@ export function useWebRTC({
     sendInput,
     // Microphone
     micEnabled,
+    unmuteRequested,
     hasMic,
     toggleMic,
   };

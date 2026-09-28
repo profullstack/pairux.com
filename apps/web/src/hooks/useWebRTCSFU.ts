@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { MicrophoneController } from '@pairux/shared-types';
 import {
   Room,
   RoomEvent,
@@ -47,6 +48,7 @@ interface UseWebRTCSFUReturn {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
 }
@@ -83,6 +85,10 @@ export function useWebRTCSFU({
   const [dataChannelReady, setDataChannelReady] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasMic, setHasMic] = useState(false);
+  const [unmuteRequested, setUnmuteRequested] = useState(false);
+  const micIntentRef = useRef(true);
+  const micControllerRef = useRef<MicrophoneController | null>(null);
+  const lifecycleRef = useRef(0);
 
   const roomRef = useRef<Room | null>(null);
   const inputSequenceRef = useRef(0);
@@ -102,7 +108,7 @@ export function useWebRTCSFU({
 
   // Handle incoming data messages from LiveKit
   const handleDataReceived = useCallback(
-    (payload: Uint8Array, _participant?: RemoteParticipant) => {
+    (payload: Uint8Array, sender?: RemoteParticipant) => {
       try {
         const text = decoder.decode(payload);
         const message = JSON.parse(text) as ControlMessage | KickMessage | MuteMessage;
@@ -123,14 +129,25 @@ export function useWebRTCSFU({
               onKickedRef.current?.(message.reason);
               break;
             case 'mute': {
-              const room = roomRef.current;
-              if (room) {
-                const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
-                if (micPub?.track) {
-                  void room.localParticipant.setMicrophoneEnabled(!message.muted);
-                  setMicEnabled(!message.muted);
-                }
+              if (typeof message.muted !== 'boolean' || message.participantId !== participantId)
+                break;
+              if (!message.muted) {
+                // Limit requests to a current screen publisher; never grant capture remotely.
+                const publisher =
+                  sender && roomRef.current?.remoteParticipants.get(sender.identity);
+                if (
+                  !publisher ||
+                  !Array.from(publisher.videoTrackPublications.values()).some(
+                    (publication) => publication.source === Track.Source.ScreenShare
+                  )
+                )
+                  break;
+                if (!micIntentRef.current) setUnmuteRequested(true);
+                break;
               }
+              micIntentRef.current = false;
+              setUnmuteRequested(false);
+              void micControllerRef.current?.setEnabled(false);
               break;
             }
           }
@@ -270,6 +287,10 @@ export function useWebRTCSFU({
 
   // Disconnect from room
   const disconnect = useCallback(() => {
+    lifecycleRef.current++;
+    micControllerRef.current?.dispose();
+    micControllerRef.current = null;
+    setUnmuteRequested(false);
     if (statsIntervalRef.current) {
       clearInterval(statsIntervalRef.current);
       statsIntervalRef.current = null;
@@ -294,16 +315,16 @@ export function useWebRTCSFU({
 
   // Toggle microphone
   const toggleMic = useCallback(() => {
-    const room = roomRef.current;
-    if (!room) return;
-
-    const newEnabled = !micEnabled;
-    void room.localParticipant.setMicrophoneEnabled(newEnabled);
-    setMicEnabled(newEnabled);
-  }, [micEnabled]);
+    if (!micControllerRef.current) return;
+    micIntentRef.current = !micIntentRef.current;
+    setUnmuteRequested(false);
+    void micControllerRef.current.setEnabled(micIntentRef.current);
+  }, []);
 
   // Initialize: fetch token and connect to LiveKit room
   const initialize = useCallback(async () => {
+    const generation = ++lifecycleRef.current;
+    const current = () => lifecycleRef.current === generation;
     try {
       setConnectionState('connecting');
 
@@ -327,6 +348,7 @@ export function useWebRTCSFU({
       const { data } = (await tokenRes.json()) as {
         data: { token: string; url: string; roomName: string };
       };
+      if (!current()) return;
 
       // Create and connect room.
       // adaptiveStream pauses video tracks that livekit doesn't see attached to
@@ -346,6 +368,7 @@ export function useWebRTCSFU({
       room.on(
         RoomEvent.TrackSubscribed,
         (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
+          if (!current() || roomRef.current !== room) return;
           if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
             const mediaTrack = track.mediaStreamTrack;
             const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
@@ -370,6 +393,7 @@ export function useWebRTCSFU({
 
       // Track unsubscribed - host disconnected or stopped sharing.
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        if (!current() || roomRef.current !== room) return;
         if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
           const prev = remoteMediaStreamRef.current;
           if (!prev) return;
@@ -395,8 +419,10 @@ export function useWebRTCSFU({
 
       // Connection state changes
       room.on(RoomEvent.ConnectionStateChanged, (state: LKConnectionState) => {
+        if (!current() || roomRef.current !== room) return;
         setConnectionState(mapConnectionState(state));
         if (state === LKConnectionState.Connected) {
+          void micControllerRef.current?.setEnabled(micIntentRef.current);
           setError(null);
           setDataChannelReady(true);
         } else if (state === LKConnectionState.Disconnected) {
@@ -405,10 +431,13 @@ export function useWebRTCSFU({
       });
 
       // Data messages
-      room.on(RoomEvent.DataReceived, handleDataReceived);
+      room.on(RoomEvent.DataReceived, (payload, participant) => {
+        if (current() && roomRef.current === room) handleDataReceived(payload, participant);
+      });
 
       // Participant disconnected (detect host leaving)
       room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+        if (!current() || roomRef.current !== room) return;
         // Check if it was the host by metadata
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
@@ -424,6 +453,7 @@ export function useWebRTCSFU({
 
       // Host reconnected
       room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+        if (!current() || roomRef.current !== room) return;
         try {
           const meta = JSON.parse(participant.metadata ?? '{}') as { role?: string };
           if (meta.role === 'host') {
@@ -436,26 +466,42 @@ export function useWebRTCSFU({
 
       // Connection error
       room.on(RoomEvent.Disconnected, () => {
+        if (!current() || roomRef.current !== room) return;
         setConnectionState('disconnected');
         setDataChannelReady(false);
       });
 
       // Connect to LiveKit
       await room.connect(data.url || LIVEKIT_URL, data.token);
-
-      // Capture mic after connecting
-      try {
-        await room.localParticipant.setMicrophoneEnabled(true);
-        setHasMic(true);
-        setMicEnabled(true);
-      } catch {
-        setHasMic(false);
-        setMicEnabled(false);
+      if (!current()) {
+        void room.disconnect();
+        return;
       }
+      const mic = () => room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track;
+      const controller = new MicrophoneController({
+        setEnabled: (enabled) => room.localParticipant.setMicrophoneEnabled(enabled),
+        silence: () => {
+          const track = mic();
+          if (track) track.mediaStreamTrack.enabled = false;
+        },
+        stop: () => {
+          mic()?.stop();
+        },
+        changed: (enabled, available) => {
+          if (!current()) return;
+          if (!available) micIntentRef.current = false;
+          setHasMic(available);
+          setMicEnabled(enabled);
+        },
+      });
+      micControllerRef.current = controller;
+      await controller.setEnabled(micIntentRef.current);
+      if (!current()) return;
 
       // Start stats collection
       statsIntervalRef.current = setInterval(() => void collectStats(), 2000);
     } catch (err) {
+      if (!current()) return;
       console.error('[WebRTC SFU] Connection failed:', err);
       setConnectionState('failed');
       setError(err instanceof Error ? err.message : 'Failed to connect');
@@ -490,6 +536,7 @@ export function useWebRTCSFU({
     releaseControl,
     sendInput,
     micEnabled,
+    unmuteRequested,
     hasMic,
     toggleMic,
   };

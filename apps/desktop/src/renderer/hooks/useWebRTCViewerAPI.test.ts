@@ -159,7 +159,8 @@ describe('useWebRTCViewerAPI', () => {
    * Returns { hookResult, es, pc }.
    */
   async function initWithConnected(
-    options: Parameters<typeof useWebRTCViewerAPI>[0] = defaultOptions
+    options: Parameters<typeof useWebRTCViewerAPI>[0] = defaultOptions,
+    connected = connectedEventData
   ) {
     let hookResult: { current: ReturnType<typeof useWebRTCViewerAPI> };
 
@@ -175,7 +176,7 @@ describe('useWebRTCViewerAPI', () => {
 
     // Emit the connected event to trigger PC creation
     act(() => {
-      es.emit('connected', connectedEventData);
+      es.emit('connected', connected);
     });
 
     const pc = MockRTCPeerConnection.instances[0];
@@ -684,40 +685,73 @@ describe('useWebRTCViewerAPI', () => {
     expect(onKicked).toHaveBeenCalled();
   });
 
-  it('should handle mute message from data channel', async () => {
-    const { hookResult, pc } = await initWithConnected();
+  it.each(['viewer-1', 'server-viewer'])(
+    'handles mute using server subscriber identity %s',
+    async (subscriberId) => {
+      const { hookResult, pc } = await initWithConnected(
+        defaultOptions,
+        JSON.stringify({ subscriberId })
+      );
 
-    expect(hookResult.current.micEnabled).toBe(true);
+      expect(hookResult.current.micEnabled).toBe(true);
 
-    const mockChannel = {
-      readyState: 'open',
-      onopen: null as (() => void) | null,
-      onclose: null as (() => void) | null,
-      onerror: null as ((err: unknown) => void) | null,
-      onmessage: null as ((event: MessageEvent) => void) | null,
-      close: vi.fn(),
-      send: vi.fn(),
-    };
+      const mockChannel = {
+        readyState: 'open',
+        onopen: null as (() => void) | null,
+        onclose: null as (() => void) | null,
+        onerror: null as ((err: unknown) => void) | null,
+        onmessage: null as ((event: MessageEvent) => void) | null,
+        close: vi.fn(),
+        send: vi.fn(),
+      };
 
-    act(() => {
-      pc.ondatachannel?.({ channel: mockChannel });
-      mockChannel.onopen?.();
-    });
+      act(() => {
+        pc.ondatachannel?.({ channel: mockChannel });
+        mockChannel.onopen?.();
+      });
 
-    // Simulate mute message
-    act(() => {
-      mockChannel.onmessage?.({
-        data: JSON.stringify({
-          type: 'mute',
-          muted: true,
-          participantId: 'viewer-1',
-          timestamp: Date.now(),
-        }),
-      } as MessageEvent);
-    });
+      act(() =>
+        mockChannel.onmessage?.({
+          data: JSON.stringify({
+            type: 'mute',
+            muted: true,
+            participantId: 'unrelated-viewer',
+          }),
+        } as MessageEvent)
+      );
+      expect(hookResult.current.micEnabled).toBe(true);
 
-    expect(hookResult.current.micEnabled).toBe(false);
-  });
+      // Simulate mute message
+      act(() => {
+        mockChannel.onmessage?.({
+          data: JSON.stringify({
+            type: 'mute',
+            muted: true,
+            participantId: subscriberId,
+            timestamp: Date.now(),
+          }),
+        } as MessageEvent);
+      });
+
+      expect(hookResult.current.micEnabled).toBe(false);
+      for (const muted of [false, undefined, 'false']) {
+        act(() =>
+          mockChannel.onmessage?.({
+            data: JSON.stringify({ type: 'mute', muted, participantId: subscriberId }),
+          } as MessageEvent)
+        );
+        expect(mockAudioTrack.enabled).toBe(false);
+      }
+      expect(hookResult.current.unmuteRequested).toBe(true);
+      await act(async () => {
+        hookResult.current.reconnect();
+      });
+      expect(mockAudioTrack.enabled).toBe(false);
+      expect(hookResult.current.unmuteRequested).toBe(false);
+      act(() => hookResult.current.toggleMic());
+      expect(mockAudioTrack.enabled).toBe(true);
+    }
+  );
 
   it('should send control request via data channel', async () => {
     const { hookResult, pc } = await initWithConnected();

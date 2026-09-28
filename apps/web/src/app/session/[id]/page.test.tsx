@@ -21,6 +21,7 @@ const mockUseWebRTC = {
   sendInput: vi.fn(),
   // Microphone
   micEnabled: false,
+  unmuteRequested: false,
   hasMic: true,
   toggleMic: mockToggleMic,
 };
@@ -81,6 +82,7 @@ describe('SessionViewerPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(global.fetch).mockReset();
+    mockUseWebRTC.unmuteRequested = false;
   });
 
   describe('Loading state', () => {
@@ -162,6 +164,21 @@ describe('SessionViewerPage', () => {
       await waitFor(() => {
         expect(screen.getByText('ABC123')).toBeInTheDocument();
       });
+    });
+
+    it('shows a passive unmute request and leaves enabling to the local button', async () => {
+      mockUseWebRTC.unmuteRequested = true;
+      const params = createResolvedParams('session-123');
+      await act(async () => {
+        renderWithSuspense(<SessionViewerPage params={params} />);
+      });
+      expect(await screen.findByText('Microphone requested. You are still muted.')).toHaveAttribute(
+        'role',
+        'status'
+      );
+      expect(mockToggleMic).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: /Mic Off/ }));
+      expect(mockToggleMic).toHaveBeenCalledOnce();
     });
 
     it('shows connection status badge', async () => {

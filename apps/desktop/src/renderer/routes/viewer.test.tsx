@@ -42,6 +42,7 @@ const mockP2PHookResult: {
   requestControl: ReturnType<typeof vi.fn>;
   releaseControl: ReturnType<typeof vi.fn>;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: ReturnType<typeof vi.fn>;
   qualityMetrics: null;
@@ -58,6 +59,7 @@ const mockP2PHookResult: {
   requestControl: vi.fn(),
   releaseControl: vi.fn(),
   micEnabled: true,
+  unmuteRequested: false,
   hasMic: true,
   toggleMic: vi.fn(),
   qualityMetrics: null,
@@ -177,6 +179,9 @@ describe('ViewerPage', () => {
     mockP2PHookResult.remoteStream = null;
     mockP2PHookResult.error = null;
     mockP2PHookResult.micEnabled = true;
+    mockP2PHookResult.unmuteRequested = false;
+    mockSFUHookResult.unmuteRequested = false;
+    mockSFUHookResult.micEnabled = true;
     mockP2PHookResult.hasMic = true;
     // Reset disconnect and toggleMic mocks
     mockP2PHookResult.disconnect = vi.fn();
@@ -237,6 +242,28 @@ describe('ViewerPage', () => {
     expect(screen.getByText('P2P')).toBeInTheDocument();
     expect(screen.getByTestId('video-viewer')).toBeInTheDocument();
   });
+
+  it.each(['p2p', 'sfu'] as const)(
+    'shows a passive microphone request in %s mode',
+    async (mode) => {
+      mockInvoke.mockResolvedValue({
+        success: true,
+        session: makeSession({ mode }),
+        participants: makeParticipants(),
+      });
+      const hook = mode === 'p2p' ? mockP2PHookResult : mockSFUHookResult;
+      hook.micEnabled = false;
+      hook.unmuteRequested = true;
+      renderWithRouter();
+      expect(await screen.findByText('Microphone requested. You are still muted.')).toHaveAttribute(
+        'role',
+        'status'
+      );
+      expect(hook.toggleMic).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: /Mic Off/ }));
+      expect(hook.toggleMic).toHaveBeenCalledOnce();
+    }
+  );
 
   it('should render SFU viewer for sfu session', async () => {
     mockInvoke.mockResolvedValue({

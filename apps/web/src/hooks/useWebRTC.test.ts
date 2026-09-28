@@ -109,6 +109,71 @@ describe('useWebRTC', () => {
     vi.restoreAllMocks();
   });
 
+  it('keeps remote unmute inert until local consent and preserves mute on reconnect', async () => {
+    const stream = createMockMicStream();
+    mockGetUserMedia.mockResolvedValue(stream);
+    mockChannel.subscribe.mockImplementation((callback) => {
+      callback('SUBSCRIBED');
+      return mockChannel;
+    });
+    const { result } = renderHook(() => useWebRTC({ sessionId: 's', participantId: 'v' }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const dc = { onmessage: null as ((e: MessageEvent) => void) | null, close: vi.fn() };
+    act(() => {
+      MockRTCPeerConnection.instances[0]!.ondatachannel?.({ channel: dc });
+      result.current.toggleMic();
+    });
+    for (const muted of [false, undefined, 'false']) {
+      act(() => dc.onmessage?.({ data: JSON.stringify({ type: 'mute', muted }) } as MessageEvent));
+      expect(stream._audioTrack.enabled).toBe(false);
+      expect(result.current.micEnabled).toBe(false);
+    }
+    await act(async () => {
+      result.current.reconnect();
+    });
+    expect(stream._audioTrack.enabled).toBe(false);
+    act(() => result.current.toggleMic());
+    expect(stream._audioTrack.enabled).toBe(true);
+  });
+
+  it('stops permission-granted audio arriving after unmount', async () => {
+    let resolve!: (stream: MediaStream) => void;
+    mockGetUserMedia.mockReturnValue(
+      new Promise<MediaStream>((r) => {
+        resolve = r;
+      })
+    );
+    const { unmount } = renderHook(() => useWebRTC({ sessionId: 's', participantId: 'v' }));
+    unmount();
+    const stream = createMockMicStream();
+    await act(async () => {
+      resolve(stream);
+    });
+    expect(stream._audioTrack.stop).toHaveBeenCalledOnce();
+    expect(mockChannel.subscribe).not.toHaveBeenCalled();
+  });
+  it('does not recapture audio when consumer callback identities change', async () => {
+    mockGetUserMedia.mockResolvedValue(createMockMicStream());
+    const { rerender } = renderHook(() =>
+      useWebRTC({
+        sessionId: 's',
+        participantId: 'v',
+        onStreamReady: () => {},
+        onStreamEnded: () => {},
+      })
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    rerender();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockGetUserMedia).toHaveBeenCalledOnce();
+  });
+
   const defaultOptions = {
     sessionId: 'session-1',
     participantId: 'viewer-1',

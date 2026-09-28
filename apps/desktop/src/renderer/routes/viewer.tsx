@@ -43,6 +43,7 @@ interface ViewerHookResult {
   releaseControl: () => void;
   sendInput: (event: InputEvent) => void;
   micEnabled: boolean;
+  unmuteRequested: boolean;
   hasMic: boolean;
   toggleMic: () => void;
   /**
@@ -315,6 +316,7 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
     releaseControl,
     sendInput,
     micEnabled,
+    unmuteRequested,
     hasMic,
     toggleMic,
     setSpeakerMuted: setTransportSpeakerMuted,
@@ -438,6 +440,11 @@ function ViewerContent({ session, participants, userId, hookResult }: ViewerCont
           </div>
         </div>
 
+        {unmuteRequested && !micEnabled && hasMic && (
+          <div role="status" className="px-4 py-2 text-sm text-amber-500">
+            Microphone requested. You are still muted.
+          </div>
+        )}
         {/* WebRTC error message */}
         {webrtcError && connectionState !== 'failed' && connectionState !== 'disconnected' && (
           <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">

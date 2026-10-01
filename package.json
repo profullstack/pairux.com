@@ -57,7 +57,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
     "@eslint/js": "^9.17.0",
-    "@next/eslint-plugin-next": "^15.1.0",
+    "@next/eslint-plugin-next": "16.3.8",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

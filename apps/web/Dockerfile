@@ -4,8 +4,8 @@
 # Runs on Bun. pnpm stays this monorepo's package manager: the desktop
 # (Electron) and mobile (Expo) toolchains, the patched @expo/cli
 # (pnpm.patchedDependencies) and the release scripts all depend on it, and
-# none of that runs here. So Node + pnpm only install dependencies in the
-# first stages; Next builds under Bun (`bun --bun next build`) and the
+# none of that runs here. So Node + pnpm install dependencies and build in the
+# first stages (see the build step for why Next builds on Node), and the
 # standalone server runs under Bun on Alpine.
 #
 # Alpine 3.24 at run time, as under node:24-alpine: call analysis shells out
@@ -66,9 +66,12 @@ ENV NODE_ENV=production
 # Build shared-types first (dependency of web)
 RUN pnpm --filter @pairux/shared-types build
 
-# Build the web application with Next running on Bun.
-COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
-RUN cd apps/web && bun --bun ./node_modules/next/dist/bin/next build
+# Build the web application. The build stays on Node: Next 16.3's Turbopack
+# runs PostCSS (Tailwind) in a separate `node` worker and hands it the parent
+# process's flags, so under `bun --bun` with a real Node on PATH the worker
+# dies with "node: --bun is not allowed in NODE_OPTIONS". What runs in
+# production is the standalone server below, and that runs on Bun.
+RUN pnpm --filter @pairux/web build
 
 # Stage 3: Runner
 FROM alpine:3.24 AS runner

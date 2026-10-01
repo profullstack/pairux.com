@@ -1,9 +1,20 @@
 # ===========================================
-# PairUX Web App - Railway Dockerfile
+# PairUX Web App (pairux.com, installer.pairux.com on dev2)
 # ===========================================
-# Multi-stage build for optimized production image
-# Uses Node.js 24 Alpine for minimal footprint
+# Runs on Bun. pnpm stays this monorepo's package manager: the desktop
+# (Electron) and mobile (Expo) toolchains, the patched @expo/cli
+# (pnpm.patchedDependencies) and the release scripts all depend on it, and
+# none of that runs here. So Node + pnpm only install dependencies in the
+# first stages; Next builds under Bun (`bun --bun next build`) and the
+# standalone server runs under Bun on Alpine.
+#
+# Alpine 3.24 at run time, as under node:24-alpine: call analysis shells out
+# to ffmpeg/ffprobe (src/lib/call-analysis/media.ts), and oven/bun:*-alpine is
+# Alpine 3.22 (older ffmpeg). So the runtime is alpine:3.24 with Bun's musl
+# binary copied in, the same pattern icemap.app runs in production.
 # ===========================================
+
+FROM oven/bun:1.4.0-alpine AS bun
 
 # Stage 1: Dependencies
 FROM node:24-alpine AS deps
@@ -55,18 +66,21 @@ ENV NODE_ENV=production
 # Build shared-types first (dependency of web)
 RUN pnpm --filter @pairux/shared-types build
 
-# Build the web application
-RUN pnpm --filter @pairux/web build
+# Build the web application with Next running on Bun.
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
+RUN cd apps/web && bun --bun ./node_modules/next/dist/bin/next build
 
 # Stage 3: Runner
-FROM node:24-alpine AS runner
+FROM alpine:3.24 AS runner
 WORKDIR /app
 
-# ffmpeg/ffprobe: AI call analysis joins the uploaded call audio, measures it
-# and cuts it into pieces for transcription (src/lib/call-analysis/media.ts).
-RUN apk add --no-cache ffmpeg
+# libstdc++/libgcc for Bun's musl binary. ffmpeg/ffprobe: AI call analysis
+# joins the uploaded call audio, measures it and cuts it into pieces for
+# transcription (src/lib/call-analysis/media.ts).
+RUN apk add --no-cache libstdc++ libgcc ffmpeg
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
-# Security: Run as non-root user
+# Security: Run as non-root user (same uid/gid as the Node image)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -88,9 +102,9 @@ USER nextjs
 # Expose port
 EXPOSE 8080
 
-# Health check
+# Health check (Bun's fetch; 127.0.0.1, since Next binds IPv4 only)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+  CMD bun -e "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-# Start the application
-CMD ["node", "apps/web/server.js"]
+# Start the standalone server under Bun
+CMD ["bun", "apps/web/server.js"]

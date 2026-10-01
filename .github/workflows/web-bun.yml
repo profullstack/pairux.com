@@ -1,0 +1,56 @@
+# The web app (pairux.com and installer.pairux.com on dev2) builds and runs on
+# Bun. pnpm stays the monorepo's package manager; this checks what the image
+# does: install with pnpm, `bun --bun next build`, standalone server under Bun.
+name: web on Bun
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-bun.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Placeholders: the build only needs the public values to exist.
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:8080
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v6
+      # pnpm/action-setup reads pnpm@9.15.0 from packageManager.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      # The same Bun the image pins (apps/web/Dockerfile).
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: pnpm install --frozen-lockfile --filter @pairux/web...
+      - run: pnpm --filter @pairux/shared-types build
+      - name: Build the web app under Bun
+        run: cd apps/web && bun --bun ./node_modules/next/dist/bin/next build
+      - name: Standalone server answers under Bun
+        run: |
+          cd apps/web
+          cp -r public .next/standalone/apps/web/
+          cp -r .next/static .next/standalone/apps/web/.next/
+          (cd .next/standalone && PORT=8080 HOSTNAME=127.0.0.1 bun apps/web/server.js > /tmp/server.log 2>&1 &)
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/health || true)
+            [ "$code" = 200 ] && { echo "/api/health -> $code"; exit 0; }
+            sleep 1
+          done
+          cat /tmp/server.log; exit 1

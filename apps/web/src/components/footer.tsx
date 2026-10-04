@@ -207,6 +207,28 @@ export function Footer() {
             </a>{' '}
             Open source under MIT License.
           </p>
+          <nav
+            className="webring mt-3 flex justify-center gap-3 text-sm text-gray-500"
+            aria-label="Profullstack webring"
+          >
+            <a
+              href="https://rssamplifier.com/ring/profullstack/previous?from=https%3A%2F%2Fpairux.com%2F"
+              rel="prev"
+              className="hover:text-gray-700"
+            >
+              {'<<'}
+            </a>
+            <a href="https://rssamplifier.com/ring/profullstack" className="hover:text-gray-700">
+              Profullstack
+            </a>
+            <a
+              href="https://rssamplifier.com/ring/profullstack/next?from=https%3A%2F%2Fpairux.com%2F"
+              rel="next"
+              className="hover:text-gray-700"
+            >
+              {'>>'}
+            </a>
+          </nav>
         </div>
       </div>
     </footer>

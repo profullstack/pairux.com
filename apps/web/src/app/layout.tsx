@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
-import { FeedbackWidget } from '@profullstack/stack/feedback';
 import { PWAInstallButton } from '@/components/pwa';
 import './globals.css';
 
@@ -121,7 +120,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
   // /embed/* renders inside a third party's page (flag set in middleware). Site
-  // chrome — org schema, install prompt, analytics, feedback widget — would be
+  // chrome — org schema, install prompt, analytics — would be
   // wrong there, so the embed gets the bare player and nothing else.
   const isEmbed = requestHeaders.get('x-embed') === '1';
 
@@ -158,8 +157,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           src="https://crawlproof.com/stats.js"
           strategy="afterInteractive"
         />
-        {/* exactOptionalPropertyTypes: pass nonce only when middleware set one */}
-        <FeedbackWidget property="pairux.com" {...(nonce ? { nonce } : {})} />
       </body>
     </html>
   );

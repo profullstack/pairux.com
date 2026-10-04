@@ -27,7 +27,7 @@ function mediaOrigin(): string {
 function buildCsp(nonce: string, embeddable: boolean): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://feedback.profullstack.com`,
+    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     `media-src 'self' blob: ${mediaOrigin()}`,
@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('content-security-policy', csp);
-  // Lets the root layout drop chrome (analytics, feedback widget, PWA prompt)
+  // Lets the root layout drop chrome (analytics, PWA prompt)
   // that has no business rendering inside someone else's page.
   if (isEmbed) requestHeaders.set('x-embed', '1');
 

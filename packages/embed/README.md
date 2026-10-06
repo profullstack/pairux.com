@@ -15,7 +15,10 @@ Partner apps get a key (`pux_pk_…`) from PairUX. Keep it on your server and mi
 ```js
 const res = await fetch('https://pairux.com/api/v1/partner/token', {
   method: 'POST',
-  headers: { Authorization: `Bearer ${process.env.PAIRUX_PARTNER_KEY}`, 'Content-Type': 'application/json' },
+  headers: {
+    Authorization: `Bearer ${process.env.PAIRUX_PARTNER_KEY}`,
+    'Content-Type': 'application/json',
+  },
   body: JSON.stringify({ room: conversationId, identity: userId, name: displayName }),
 });
 const { data } = await res.json(); // { token, url, roomName, iceServers, e2ee: true }

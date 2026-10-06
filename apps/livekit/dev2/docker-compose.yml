@@ -1,0 +1,35 @@
+# PairUX LiveKit SFU on dev2 (moved off DO droplet sfu.pairux.com 2026-10-06).
+# Host networking: LiveKit needs real UDP. Public ports: 7881/tcp, 7882/udp,
+# 61100-61300/udp (rtc range), 3480/udp (LiveKit's own TURN). 7880 (signalling)
+# is local only, fronted by nginx wss://sfu.pairux.com. Redis is a private bus on 127.0.0.1:6390.
+name: pairux-sfu
+services:
+  redis:
+    image: redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    container_name: pairux-sfu-redis
+    restart: unless-stopped
+    network_mode: host
+    command: redis-server --bind 127.0.0.1 --port 6390 --save "" --appendonly no
+
+  livekit:
+    image: livekit/livekit-server@sha256:6fd3b7088874c4d119160dd688798dfec852bc014786d392caad15f6f63912a3
+    container_name: pairux-livekit
+    restart: unless-stopped
+    network_mode: host
+    depends_on: [redis]
+    volumes:
+      - ./conf/livekit.yaml:/etc/livekit.yaml:ro
+    command: --config /etc/livekit.yaml --bind 127.0.0.1
+
+  # Server-side restreamer / recorder (room composite -> RTMP / file).
+  egress:
+    image: livekit/egress@sha256:bf2b648b947349c3e9ff7aa8c718f00378d5c06af7624652a3653318e00333ce
+    container_name: pairux-egress
+    restart: unless-stopped
+    network_mode: host
+    depends_on: [redis, livekit]
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+    volumes:
+      - ./conf/egress.yaml:/etc/egress.yaml:ro
+    cap_add: [SYS_ADMIN]

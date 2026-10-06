@@ -1,3 +1,6 @@
+# Deploy the PairUX TURN server (turn.pairux.com, coturn), which runs on dev2
+# since it left its DigitalOcean droplet on 2026-10-06. The compose file is in
+# apps/turn/dev2/; turnserver.conf (with the credential) lives only on the box.
 name: Deploy TURN Server
 
 on:
@@ -5,8 +8,8 @@ on:
     branches:
       - master
     paths:
-      - 'apps/turn/**'
-      - '!apps/turn/package.json'
+      - 'apps/turn/dev2/**'
+      - '.github/workflows/deploy-turn.yml'
   workflow_dispatch:
 
 concurrency:
@@ -16,42 +19,45 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy to TURN Droplet
+    name: Deploy to dev2
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.DROPLET_PORT || 22 }} ${{ secrets.DROPLET_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy setup script
+      # ${{ }} values go through env, never straight into a run: body.
+      - name: Set up ssh
         env:
-          SSH_HOST: ${{ secrets.DROPLET_HOST }}
-          SSH_PORT: ${{ secrets.DROPLET_PORT || 22 }}
-          SSH_USER: ${{ secrets.DROPLET_USER }}
-          TURN_PASSWORD: ${{ secrets.TURN_SERVER_CREDENTIAL }}
-          TURN_REALM: turn.pairux.com
+          SSH_KEY: ${{ secrets.DEV2_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEV2_KNOWN_HOSTS }}
         run: |
-          # Copy setup script to droplet
-          scp -P $SSH_PORT apps/turn/setup-turn-server.sh $SSH_USER@$SSH_HOST:/tmp/
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
-          # Run setup script
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo bash /tmp/setup-turn-server.sh '$TURN_PASSWORD' '' '$TURN_REALM'"
-
-      - name: Verify TURN server
+      - name: Deploy
         env:
-          SSH_HOST: ${{ secrets.DROPLET_HOST }}
-          SSH_PORT: ${{ secrets.DROPLET_PORT || 22 }}
-          SSH_USER: ${{ secrets.DROPLET_USER }}
+          DEV2_USER: ${{ secrets.DEV2_USER }}
+          DEV2_HOST: ${{ secrets.DEV2_HOST }}
         run: |
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo systemctl status coturn --no-pager"
+          dir=/home/anthony/www/turn.pairux.com
+          scp -o BatchMode=yes apps/turn/dev2/docker-compose.yml "$DEV2_USER@$DEV2_HOST:$dir/docker-compose.yml.new"
+          scp -o BatchMode=yes apps/turn/dev2/deploy.sh "$DEV2_USER@$DEV2_HOST:$dir/deploy.sh"
+          ssh -o BatchMode=yes "$DEV2_USER@$DEV2_HOST" "chmod 755 $dir/deploy.sh && $dir/deploy.sh"
+
+      - name: Verify turn.pairux.com TLS answers
+        run: |
+          for i in $(seq 1 10); do
+            if echo | timeout 10 openssl s_client -connect turn.pairux.com:5349 -servername turn.pairux.com 2>/dev/null | grep -q 'Verify return code: 0'; then
+              echo "turn.pairux.com:5349 TLS ok"; exit 0
+            fi
+            echo "attempt $i"; sleep 6
+          done
+          echo "turn.pairux.com:5349 never answered"; exit 1
 
       - name: Cleanup
         if: always()
-        run: |
-          rm -f ~/.ssh/id_rsa
+        run: rm -f ~/.ssh/id_ed25519

@@ -1,0 +1,15 @@
+# PairUX coturn on dev2 (moved off DO droplet turn.pairux.com 2026-10-06).
+# Runs as uid 3478 (pairux-turn) so ufw before.rules can confine relays to
+# dev2's own IP to LiveKit's ports. Public: 3478 tcp/udp, 5349 tcp/udp, relay 61400-61500.
+name: pairux-turn
+services:
+  coturn:
+    image: coturn/coturn@sha256:6a1d1a281b8f64ca1a343429bb0232fa70c5f0eae3c8424ba0859b696e880974
+    container_name: pairux-coturn
+    network_mode: host
+    restart: unless-stopped
+    user: "3478:3478"
+    volumes:
+      - ./conf/turnserver.conf:/etc/coturn/turnserver.conf:ro
+      - ./certs:/certs:ro
+    command: ["-c", "/etc/coturn/turnserver.conf"]

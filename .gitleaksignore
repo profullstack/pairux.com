@@ -9,3 +9,7 @@
 # gitignored so local settings are never committed again.
 a301ecc80cdc48ccb7a9e3050235089db787701b:.claude/settings.local.json:generic-api-key:91
 f70a3ef1f2770499c3aea1b3e1cf98641eb44e87:.claude/settings.local.json:generic-api-key:91
+
+# A fake partner key in a test (pux_pk_qrypt_test_key_…), never a real one; the
+# test now builds its keys at runtime. Commit 3cdbdbe, PR #133.
+3cdbdbefeb57ea51f068a9552fb5369a5c2dcac9:apps/web/src/app/api/v1/partner/token/route.test.ts:generic-api-key:16

@@ -1,0 +1,55 @@
+{
+  "name": "@profullstack/pairux-embed",
+  "version": "0.1.0",
+  "description": "End-to-end encrypted voice, video and screen sharing for any web app, on PairUX's SFU. The host app supplies the media key; the server only forwards ciphertext.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "webrtc",
+    "e2ee",
+    "end-to-end-encryption",
+    "video-call",
+    "voice-chat",
+    "screen-sharing",
+    "livekit",
+    "embed",
+    "pairux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/profullstack/pairux.com.git",
+    "directory": "packages/embed"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "livekit-client": "^2.17.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0",
+    "jsdom": "^25.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

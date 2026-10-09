@@ -8,7 +8,8 @@ export const maxDuration = 60;
 /**
  * POST /api/live/generate-banner
  *
- * Generates a banner with OpenAI gpt-image-1 (a real image model, quality=high),
+ * Generates a banner with an OpenAI image model (gpt-image-2.5-sunburst by default,
+ * OPENAI_IMAGE_MODEL overrides; quality=high),
  * using the current banner as design input. Returns a PNG data URL; the client
  * cover-crops it to the target size (16:9 live thumbnail / 6:1 channel header).
  *
@@ -87,6 +88,13 @@ async function fetchImageBytes(ref: string): Promise<{ bytes: Uint8Array; mime: 
   return null;
 }
 
+// gpt-image-1 shuts down 2026-10-23; sunburst is OpenAI's listed replacement.
+const DEFAULT_IMAGE_MODEL = 'gpt-image-2.5-sunburst';
+
+function imageModel(): string {
+  return process.env.OPENAI_IMAGE_MODEL ?? DEFAULT_IMAGE_MODEL;
+}
+
 async function generateWithOpenAI(
   apiKey: string,
   prompt: string,
@@ -96,7 +104,7 @@ async function generateWithOpenAI(
   if (input) {
     // Image edit — uses the current banner as the basis.
     const form = new FormData();
-    form.append('model', 'gpt-image-1');
+    form.append('model', imageModel());
     form.append('prompt', prompt);
     form.append('size', '1536x1024');
     form.append('quality', 'high');
@@ -117,7 +125,7 @@ async function generateWithOpenAI(
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: imageModel(),
         prompt,
         size: '1536x1024',
         quality: 'high',

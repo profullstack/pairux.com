@@ -153,7 +153,7 @@
     },
     "overrides": {
       "app-builder-bin": "4.0.0",
-      "shell-quote@1": "^1.8.4",
+      "shell-quote@1": "^1.11.0",
       "undici@6": "^6.24.0",
       "node-forge@1": "^1.4.0",
       "@xmldom/xmldom@0.8": "^0.8.13",

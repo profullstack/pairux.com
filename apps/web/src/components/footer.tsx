@@ -228,6 +228,14 @@ export function Footer() {
             >
               {'>>'}
             </a>
+            <a
+              href="https://rssamplifier.com/ring/profullstack/random?from=https%3A%2F%2Fpairux.com%2F"
+              title="Random site"
+              aria-label="Random site"
+              className="hover:text-gray-700"
+            >
+              {'⚄'}
+            </a>
           </nav>
         </div>
       </div>

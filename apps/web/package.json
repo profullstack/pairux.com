@@ -19,6 +19,7 @@
     "@anthropic-ai/sdk": "^0.128.0",
     "@profullstack/autoblog": "github:profullstack/autoblog#75e54af",
     "@profullstack/emailer": "^1.0.3",
+    "@profullstack/footer": "latest",
     "@profullstack/notifications": "0.1.0",
     "@profullstack/stack": "^0.1.3",
     "@profullstack/x402-gateway": "^0.7.0",

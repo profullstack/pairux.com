@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import type { UserData } from '@/components/header';
+import { Footer } from '@/components/footer';
 import { SettingsContent } from './settings-content';
 
 export const metadata: Metadata = {
@@ -33,5 +34,5 @@ export default async function SettingsPage() {
     // Supabase not configured — user stays null
   }
 
-  return <SettingsContent user={user} />;
+  return <SettingsContent user={user} footer={<Footer />} />;
 }

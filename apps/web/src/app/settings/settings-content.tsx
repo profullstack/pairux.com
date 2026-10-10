@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, Video, Users, Palette, Info, ArrowLeft, Check, Bell } from 'lucide-react';
 import { HeaderClient } from '@/components/header-client';
-import { Footer } from '@/components/footer';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import { YouTubeConnect } from './youtube-connect';
 import type { UserData } from '@/components/header';
@@ -49,7 +48,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 // Local storage key for settings
 const SETTINGS_KEY = 'pairux-web-settings';
 
-export function SettingsContent({ user }: { user: UserData | null }) {
+export function SettingsContent({
+  user,
+  footer,
+}: {
+  user: UserData | null;
+  footer?: React.ReactNode;
+}) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
 
@@ -457,7 +462,7 @@ export function SettingsContent({ user }: { user: UserData | null }) {
         </div>
       </main>
 
-      <Footer />
+      {footer}
     </div>
   );
 }

@@ -14,11 +14,6 @@ vi.mock('@/components/header-client', () => ({
   HeaderClient: () => <header data-testid="header">Header</header>,
 }));
 
-// Mock Footer
-vi.mock('@/components/footer', () => ({
-  Footer: () => <footer data-testid="footer">Footer</footer>,
-}));
-
 // Mock NotificationPreferences (uses fetch and service worker APIs)
 vi.mock('@/components/notifications/NotificationPreferences', () => ({
   NotificationPreferences: () => (
@@ -52,7 +47,7 @@ describe('SettingsPage', () => {
     });
 
     it('should render header and footer', () => {
-      render(<SettingsContent user={null} />);
+      render(<SettingsContent user={null} footer={<footer data-testid="footer">Footer</footer>} />);
 
       expect(screen.getByTestId('header')).toBeInTheDocument();
       expect(screen.getByTestId('footer')).toBeInTheDocument();

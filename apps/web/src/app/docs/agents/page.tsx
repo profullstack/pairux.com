@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const commands: { cmd: string; what: string }[] = [
   {
-    cmd: 'curl -fsSL https://installer.pairux.com/install.sh | bash',
+    cmd: 'curl -fsSL https://pairux.com/install.sh | sh',
     what: 'Install PairUX. This puts the pairux command on your PATH (Windows: irm https://installer.pairux.com/install.ps1 | iex).',
   },
   {

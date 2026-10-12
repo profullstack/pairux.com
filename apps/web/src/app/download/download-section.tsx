@@ -136,7 +136,7 @@ export function DownloadSection() {
     void fetchRelease();
   }, []);
 
-  const shellInstallCommand = 'curl -fsSL https://installer.pairux.com/install.sh | bash';
+  const shellInstallCommand = 'curl -fsSL https://pairux.com/install.sh | sh';
   const psInstallCommand = 'irm https://installer.pairux.com/install.ps1 | iex';
 
   if (loading) {

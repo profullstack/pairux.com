@@ -70,6 +70,15 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // `curl -fsSL https://pairux.com/install.sh | sh`: serve the installer
+        // as a shell script so browsers show it instead of guessing.
+        source: '/install.sh',
+        headers: [
+          { key: 'Content-Type', value: 'text/x-sh; charset=utf-8' },
+          { key: 'Cache-Control', value: 'public, max-age=300' },
+        ],
+      },
     ];
   },
 

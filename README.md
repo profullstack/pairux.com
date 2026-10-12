@@ -30,6 +30,12 @@
 
 ### Install the Desktop App (Host)
 
+**One line (macOS / Linux)** — installs the app and the `pairux` command under `~/.pairux` and `~/.local`:
+
+```bash
+curl -fsSL https://pairux.com/install.sh | sh
+```
+
 <details>
 <summary><strong>macOS</strong></summary>
 

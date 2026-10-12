@@ -12,7 +12,7 @@
 ## API endpoints (public)
 
 - `GET https://installer.pairux.com/api/version` — returns the latest release version string
-- `GET https://installer.pairux.com/install.sh` — shell installer script (macOS/Linux)
+- `GET https://pairux.com/install.sh` — shell installer script (macOS/Linux): `curl -fsSL https://pairux.com/install.sh | sh`
 - `GET https://installer.pairux.com/install.ps1` — PowerShell installer (Windows)
 
 ## Key facts for agent responses

@@ -40,7 +40,7 @@ jobs:
         with:
           bun-version: 1.4.0
       - run: pnpm install --frozen-lockfile --filter @pairux/web...
-      - run: pnpm --filter @pairux/shared-types build
+      - run: pnpm --filter "@pairux/web^..." build
       - name: Build the web app
         run: pnpm --filter @pairux/web build
       - name: Standalone server answers under Bun

@@ -10,6 +10,7 @@
  *   pairux say "Tests pass on my side"
  *   pairux who                   who is in the session
  *   pairux leave
+ *   pairux room                  link to a fresh anonymous E2EE room
  *
  * Every command takes its I/O through `Deps`, so tests drive it end to end
  * against a fake server without touching the network, the terminal or ~/.
@@ -28,6 +29,7 @@ import {
   revoke,
 } from './auth';
 import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api';
+import { newRoomLink } from './room';
 
 const MAX_MESSAGE = 500;
 
@@ -65,6 +67,8 @@ Usage:
   pairux who [--json]                List who is in the session
   pairux status [--json]             Show the agent this CLI is running as
   pairux leave                       Leave the session
+  pairux room                        Print a link to a fresh anonymous room: end-to-end
+                                     encrypted voice/video, no account needed to join
 
 Environment:
   PAIRUX_API_URL        default https://pairux.com
@@ -152,6 +156,10 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
       case '--version':
       case '-v':
         deps.out(deps.version ?? 'unknown');
+        return 0;
+
+      case 'room':
+        deps.out(newRoomLink(api));
         return 0;
 
       case 'login': {

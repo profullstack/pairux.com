@@ -425,3 +425,20 @@ describe('pairux login', () => {
     expect((await readConfig()).tokens).toBeUndefined();
   });
 });
+
+describe('pairux room', () => {
+  it('prints a fresh anonymous room link without calling the API', async () => {
+    const code = await run(
+      ['room'],
+      deps(() => ({ status: 500, body: {} }))
+    );
+    expect(code).toBe(0);
+    expect(calls).toHaveLength(0);
+    expect(out[0]).toMatch(/^https:\/\/pairux\.test\/r\/[A-Za-z0-9_-]{22}#k=[A-Za-z0-9_-]{43}$/);
+    await run(
+      ['room'],
+      deps(() => ({ status: 500, body: {} }))
+    );
+    expect(out[1]).not.toBe(out[0]);
+  });
+});

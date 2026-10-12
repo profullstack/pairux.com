@@ -63,8 +63,8 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Build shared-types first (dependency of web)
-RUN pnpm --filter @pairux/shared-types build
+# Build the workspace packages web depends on (shared-types, pairux-embed)
+RUN pnpm --filter "@pairux/web^..." build
 
 # Build the web application. The build stays on Node: Next 16.3's Turbopack
 # runs PostCSS (Tailwind) in a separate `node` worker and hands it the parent

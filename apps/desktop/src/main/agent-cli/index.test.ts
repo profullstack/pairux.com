@@ -22,6 +22,10 @@ describe('parseAgentArgv', () => {
     ]);
   });
 
+  it('runs `pairux room` headless', () => {
+    expect(parseAgentArgv(['/opt/PairUX/pairux', 'room'], true)).toEqual(['room']);
+  });
+
   it('leaves normal launches, the daemon and deep links alone', () => {
     expect(parseAgentArgv(['/opt/PairUX/pairux'], true)).toBeNull();
     expect(parseAgentArgv(['/opt/PairUX/pairux', 'daemon'], true)).toBeNull();

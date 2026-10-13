@@ -110,7 +110,7 @@ Fix:
 
 ```bash
 # Re-run the installer
-curl -fsSL https://installer.pairux.com/install.sh | bash
+curl -fsSL https://pairux.com/install.sh | sh
 
 # Or fix permissions on an existing install
 xattr -cr /Applications/PairUX.app

@@ -2,7 +2,8 @@
 # ===========================================
 # PairUX Desktop App Installer
 # ===========================================
-# Usage: curl -fsSL https://installer.pairux.com/install.sh | bash
+# Usage: curl -fsSL https://pairux.com/install.sh | sh
+# (pairux.com/install.sh is a POSIX sh wrapper that runs this file with bash.)
 # ===========================================
 
 set -e
@@ -16,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 GITHUB_REPO="profullstack/pairux.com"
-INSTALLER_URL="${PAIRUX_INSTALLER_URL:-https://installer.pairux.com}"
+INSTALLER_URL="${PAIRUX_INSTALLER_URL:-https://pairux.com}"
 INSTALL_DIR="${PAIRUX_INSTALL_DIR:-$HOME/.pairux}"
 BIN_DIR="${PAIRUX_BIN_DIR:-$HOME/.local/bin}"
 APPLICATIONS_DIR="/Applications"
@@ -539,8 +540,9 @@ get_latest_version() {
     version=$(download "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" - 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
     if [ -z "$version" ]; then
-        # Fallback to installer service
-        version=$(download "${INSTALLER_URL}/api/version" - 2>/dev/null || echo "")
+        # The API allows 60 unauthenticated calls an hour per IP. The
+        # releases/latest redirect names the same tag without that limit.
+        version=$(curl -fsSI "https://github.com/${GITHUB_REPO}/releases/latest" 2>/dev/null | tr -d '\r' | sed -n 's#^[Ll]ocation: .*/releases/tag/v##p')
     fi
 
     if [ -z "$version" ]; then
@@ -794,7 +796,7 @@ case "\${1-}" in
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
         if [ -z "\$LATEST" ]; then
-            LATEST=\$(curl -fsSL "https://installer.pairux.com/api/version" 2>/dev/null || echo "")
+            LATEST=\$(curl -fsSI "https://github.com/profullstack/pairux.com/releases/latest" 2>/dev/null | tr -d '\\r' | sed -n 's#^[Ll]ocation: .*/releases/tag/v##p')
         fi
 
         if [ -z "\$LATEST" ]; then
@@ -898,7 +900,7 @@ if [ -x "\$APP_BIN" ]; then
     exec "\$APP_BIN" "\$@"
 else
     echo "Error: PairUX app not found at \$APP_PATH"
-    echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"
+    echo "Please reinstall: curl -fsSL https://pairux.com/install.sh | sh"
     exit 1
 fi
 WRAPPER
@@ -1051,7 +1053,7 @@ case "\${1-}" in
         LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
         if [ -z "\$LATEST" ]; then
-            LATEST=\$(curl -fsSL "https://installer.pairux.com/api/version" 2>/dev/null || echo "")
+            LATEST=\$(curl -fsSI "https://github.com/profullstack/pairux.com/releases/latest" 2>/dev/null | tr -d '\\r' | sed -n 's#^[Ll]ocation: .*/releases/tag/v##p')
         fi
 
         if [ -z "\$LATEST" ]; then
@@ -1139,7 +1141,7 @@ if [ -x "\$APPIMAGE" ]; then
     fi
 else
     echo "Error: PairUX AppImage not found at \$APPIMAGE"
-    echo "Please reinstall: curl -fsSL https://installer.pairux.com/install.sh | bash"
+    echo "Please reinstall: curl -fsSL https://pairux.com/install.sh | sh"
     exit 1
 fi
 WRAPPER

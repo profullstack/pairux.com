@@ -53,7 +53,7 @@ PATH: `pairux join <CODE>`, `pairux listen --json`, `pairux say "..."`. Docs: ht
 ## Install Methods
 
 Homebrew, WinGet, Scoop, Chocolatey, AUR, APT, RPM, Gentoo, Nix, and direct download.
-Shell: `curl -fsSL https://installer.pairux.com/install.sh | bash`
+Shell: `curl -fsSL https://pairux.com/install.sh | sh`
 
 ## Company
 

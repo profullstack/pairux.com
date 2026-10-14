@@ -45,9 +45,18 @@ interface UseWebRTCViewerSFUAPIOptions {
   onPresenceChange?: () => void;
 }
 
+/** One remote participant's audio, kept apart for live translation. */
+export interface RemoteParticipantAudio {
+  identity: string;
+  name: string;
+  track: MediaStreamTrack;
+}
+
 interface UseWebRTCViewerSFUAPIReturn {
   connectionState: ConnectionState;
   remoteStream: MediaStream | null;
+  /** Each remote participant's audio track, with who it belongs to. */
+  remoteAudio: RemoteParticipantAudio[];
   qualityMetrics: QualityMetrics | null;
   networkQuality: NetworkQuality;
   error: string | null;
@@ -111,6 +120,7 @@ export function useWebRTCViewerSFUAPI({
 }: UseWebRTCViewerSFUAPIOptions): UseWebRTCViewerSFUAPIReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [remoteAudio, setRemoteAudio] = useState<RemoteParticipantAudio[]>([]);
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics | null>(null);
   const [networkQuality, setNetworkQuality] = useState<NetworkQuality>('good');
   const [error, setError] = useState<string | null>(null);
@@ -496,6 +506,7 @@ export function useWebRTCViewerSFUAPI({
 
     remoteMediaStreamRef.current = null;
     setRemoteStream(null);
+    setRemoteAudio([]);
     setConnectionState('disconnected');
     setQualityMetrics(null);
     setDataChannelReady(false);
@@ -574,7 +585,7 @@ export function useWebRTCViewerSFUAPI({
       // Track subscribed — host's screen share arrives
       room.on(
         RoomEvent.TrackSubscribed,
-        (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
+        (track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           if (!current() || roomRef.current !== room) return;
           const mediaTrack = track.mediaStreamTrack;
 
@@ -583,6 +594,14 @@ export function useWebRTCViewerSFUAPI({
           // attachRemoteAudio.
           if (track.kind === Track.Kind.Audio) {
             attachRemoteAudio(mediaTrack);
+            setRemoteAudio((prev) => [
+              ...prev.filter((one) => one.track.id !== mediaTrack.id),
+              {
+                identity: participant.identity,
+                name: participant.name?.trim() ? participant.name : participant.identity,
+                track: mediaTrack,
+              },
+            ]);
             return;
           }
 
@@ -612,6 +631,7 @@ export function useWebRTCViewerSFUAPI({
 
         if (track.kind === Track.Kind.Audio) {
           detachRemoteAudio(mediaTrack.id);
+          setRemoteAudio((prev) => prev.filter((one) => one.track.id !== mediaTrack.id));
           return;
         }
 
@@ -630,6 +650,7 @@ export function useWebRTCViewerSFUAPI({
         if (remaining.length === 0) {
           remoteMediaStreamRef.current = null;
           setRemoteStream(null);
+          setRemoteAudio([]);
         } else {
           const nextStream = new MediaStream(remaining);
           remoteMediaStreamRef.current = nextStream;
@@ -762,6 +783,7 @@ export function useWebRTCViewerSFUAPI({
   return {
     connectionState,
     remoteStream,
+    remoteAudio,
     qualityMetrics,
     networkQuality,
     error,

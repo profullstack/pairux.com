@@ -41,6 +41,7 @@ import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
 import { StreamControls, StreamIndicator } from '@/components/streaming';
 import { useSession } from '@/hooks/useSession';
+import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useCamera } from '@/hooks/useCamera';
 import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScreenCameraCompositor';
@@ -550,6 +551,17 @@ export function CapturePreview({
     hostMicStream,
     setSpeakerGain: hostSetSpeakerGain,
   } = isSFU ? sfuHost : p2pHost;
+
+  // Each viewer's own track, for live translation (SFU meetings only).
+  const translationParticipants = useMemo(
+    () =>
+      [...hostedViewers.values()].flatMap((viewer) =>
+        viewer.audioTrack
+          ? [{ identity: viewer.id, name: viewer.name ?? 'Participant', track: viewer.audioTrack }]
+          : []
+      ),
+    [hostedViewers]
+  );
 
   // Answer the handshake over whichever transport is actually carrying it.
   hostTailnetHelloRef.current = isSFU ? sfuHost.sendTailnetHello : p2pHost.sendTailnetHello;
@@ -1321,6 +1333,13 @@ export function CapturePreview({
 
   return (
     <div className="flex flex-1">
+      {isSFU && isHosting && session.id && (
+        <MeetingTranslation
+          sessionId={session.id}
+          selfId={currentUserId ?? session.id}
+          participants={translationParticipants}
+        />
+      )}
       {/* Main content */}
       <div className="flex flex-1 flex-col gap-4">
         {/* Header */}

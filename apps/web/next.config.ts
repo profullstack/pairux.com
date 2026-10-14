@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   // Transpile shared packages
-  transpilePackages: ['@pairux/shared-types'],
+  transpilePackages: ['@pairux/shared-types', '@pairux/meeting-translation'],
 
   // Image optimization
   images: {

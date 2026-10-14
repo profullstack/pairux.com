@@ -31,7 +31,14 @@ function createAudioContextMock() {
       currentTime: 0,
       resume: vi.fn(() => Promise.resolve()),
       createMediaStreamSource: vi.fn(() => node('source')),
-      createGain: vi.fn(() => ({ ...node('gain'), gain: gainParam })),
+      // The first gain is the master stage; later ones are per-track duck nodes.
+      createGain: vi
+        .fn()
+        .mockImplementationOnce(() => ({ ...node('gain'), gain: gainParam }))
+        .mockImplementation(() => ({
+          ...node('duck'),
+          gain: { value: 0, setTargetAtTime: vi.fn() },
+        })),
       createDynamicsCompressor: vi.fn(() => ({
         ...node('limiter'),
         threshold: { value: 0 },
@@ -146,9 +153,12 @@ describe('amplifyRemoteAudio', () => {
     const amplified = amplifyRemoteAudio(tracks);
     expect(mock.ctx.createMediaStreamSource).toHaveBeenCalledTimes(3);
     expect(mock.connections).toEqual([
-      'source->gain',
-      'source->gain',
-      'source->gain',
+      'source->duck',
+      'duck->gain',
+      'source->duck',
+      'duck->gain',
+      'source->duck',
+      'duck->gain',
       'gain->limiter',
       'limiter->destination',
     ]);
@@ -178,7 +188,12 @@ describe('amplifyRemoteAudio', () => {
   it('wires source through gain and a limiter to the destination', async () => {
     const { amplifyRemoteAudio } = await loadModule();
     amplifyRemoteAudio(track);
-    expect(mock.connections).toEqual(['source->gain', 'gain->limiter', 'limiter->destination']);
+    expect(mock.connections).toEqual([
+      'source->duck',
+      'duck->gain',
+      'gain->limiter',
+      'limiter->destination',
+    ]);
   });
 
   it('boosts above unity by default, which an element cannot do alone', async () => {
@@ -276,5 +291,20 @@ describe('amplifyRemoteAudio', () => {
       FakeAudioElement.playResult = undefined;
       expect(() => amplifyRemoteAudio(track)).not.toThrow();
     });
+  });
+
+  it('ducks only the named track, and stops listening once disposed', async () => {
+    const { amplifyRemoteAudio, setRemoteTrackDuck } = await loadModule();
+    const second = { id: 'second', kind: 'audio' } as MediaStreamTrack;
+    const amplified = amplifyRemoteAudio([track, second]);
+    const ducks = mock.ctx.createGain.mock.results
+      .slice(1)
+      .map((result) => result.value as { gain: { setTargetAtTime: ReturnType<typeof vi.fn> } });
+    setRemoteTrackDuck('second', 0.2);
+    expect(ducks[0]?.gain.setTargetAtTime).not.toHaveBeenCalled();
+    expect(ducks[1]?.gain.setTargetAtTime).toHaveBeenCalledWith(0.2, 0, expect.any(Number));
+    amplified.dispose();
+    setRemoteTrackDuck('second', 1);
+    expect(ducks[1]?.gain.setTargetAtTime).toHaveBeenCalledTimes(1);
   });
 });

@@ -18,6 +18,8 @@ export default tseslint.config(
       '**/build/**',
       'eslint.config.js',
       'apps/mobile/*.js',
+      // AudioWorklet sources run in the audio render thread, outside any tsconfig.
+      '**/*.worklet.js',
     ],
   },
 

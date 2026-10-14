@@ -3,6 +3,7 @@ import { authorizeMeetingCaller, MeetingAccessError } from '@/lib/translation/ac
 import { translationRuntime } from '@/lib/translation/server';
 import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
 import { errorResponse, handleApiError } from '@/lib/api';
+import { CORS_HEADERS } from '@/lib/cors';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -94,6 +95,8 @@ export async function POST(request: Request, { params }: RouteParams) {
         'Cache-Control': 'no-store, no-transform',
         Connection: 'keep-alive',
         'X-Accel-Buffering': 'no',
+        // The desktop app streams this from a file:// page.
+        ...CORS_HEADERS,
       },
     });
   } catch (error) {

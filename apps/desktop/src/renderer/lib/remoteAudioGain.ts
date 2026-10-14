@@ -71,6 +71,23 @@ function keepRemoteTrackFlowing(track: MediaStreamTrack): HTMLAudioElement {
  * deliberate: silently playing un-amplified audio would look like the volume
  * control simply not working, which is far harder to diagnose than a failure.
  */
+/**
+ * Per-track ducking, independent of the volume slider: live translation turns
+ * a participant's original voice down while their translated voice plays.
+ * Same contract as the web app's remoteAudioGain.
+ */
+const duckFactors = new Map<string, number>();
+const duckListeners = new Set<(trackId: string, factor: number) => void>();
+export function setRemoteTrackDuck(trackId: string, factor: number): void {
+  const value = Math.max(0, Math.min(1, factor));
+  if (value >= 1) duckFactors.delete(trackId);
+  else duckFactors.set(trackId, value);
+  duckListeners.forEach((listener) => {
+    listener(trackId, value);
+  });
+}
+export const remoteTrackDuck = (trackId: string): number => duckFactors.get(trackId) ?? 1;
+
 export function amplifyRemoteAudio(
   trackOrTracks: MediaStreamTrack | MediaStreamTrack[],
   initialGain: number = DEFAULT_REMOTE_AUDIO_GAIN
@@ -83,9 +100,11 @@ export function amplifyRemoteAudio(
   const nodes: AudioNode[] = [];
   let destination: MediaStreamAudioDestinationNode | undefined;
   let disposed = false;
+  let onDuck: ((trackId: string, factor: number) => void) | undefined;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
+    if (onDuck) duckListeners.delete(onDuck);
     nodes.forEach((node) => {
       node.disconnect();
     });
@@ -126,9 +145,20 @@ export function amplifyRemoteAudio(
     destination = ctx.createMediaStreamDestination();
     nodes.push(destination);
 
-    sources.forEach((source) => {
-      source.connect(gain);
+    const ducks = tracks.map((track, index) => {
+      const duck = ctx.createGain();
+      nodes.push(duck);
+      duck.gain.value = remoteTrackDuck(track.id);
+      sources[index]?.connect(duck);
+      duck.connect(gain);
+      return duck;
     });
+    onDuck = (trackId, factor) => {
+      const index = tracks.findIndex((track) => track.id === trackId);
+      // A slower ramp than the volume slider: speech ducking should glide.
+      if (index >= 0) ducks[index]?.gain.setTargetAtTime(factor, ctx.currentTime, 0.12);
+    };
+    duckListeners.add(onDuck);
     gain.connect(limiter);
     limiter.connect(destination);
 

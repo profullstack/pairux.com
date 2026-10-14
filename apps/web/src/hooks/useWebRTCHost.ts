@@ -75,6 +75,8 @@ if (
 
 export interface ViewerConnection {
   id: string;
+  /** The name the viewer joined with (set by the SFU host hook). */
+  name?: string;
   peerConnection: RTCPeerConnection;
   dataChannel: RTCDataChannel | null;
   connectionState: ConnectionState;

@@ -124,9 +124,20 @@ export function amplifyRemoteAudioTracks(
 
   const destination = ctx.createMediaStreamDestination();
 
-  sources.forEach((source) => {
-    source.connect(gain);
+  const ducks = remoteTracks.map((track, index) => {
+    const duck = ctx.createGain();
+    duck.gain.value = remoteTrackDuck(track.id);
+    sources[index]?.connect(duck);
+    duck.connect(gain);
+    return duck;
   });
+  const onDuck = (trackId: string, factor: number) => {
+    const index = remoteTracks.findIndex((track) => track.id === trackId);
+    const duck = index >= 0 ? ducks[index] : undefined;
+    // A slower ramp than the volume slider: speech ducking should glide.
+    duck?.gain.setTargetAtTime(factor, ctx.currentTime, 0.12);
+  };
+  duckListeners.add(onDuck);
   gain.connect(limiter);
   limiter.connect(destination);
 
@@ -154,8 +165,12 @@ export function amplifyRemoteAudioTracks(
     dispose: () => {
       if (disposed) return;
       disposed = true;
+      duckListeners.delete(onDuck);
       sources.forEach((source) => {
         source.disconnect();
+      });
+      ducks.forEach((duck) => {
+        duck.disconnect();
       });
       gain.disconnect();
       limiter.disconnect();
@@ -170,6 +185,25 @@ export function amplifyRemoteAudioTracks(
     },
   };
 }
+
+/**
+ * Per-track ducking, independent of the volume slider: live translation turns
+ * a participant's original voice down while their translated voice plays (and
+ * keeps it low while translation into another language is on). Factors live
+ * here, not in a component, because the same track can be playing in the
+ * viewer's mixed stream or the host's per-viewer element.
+ */
+const duckFactors = new Map<string, number>();
+const duckListeners = new Set<(trackId: string, factor: number) => void>();
+export function setRemoteTrackDuck(trackId: string, factor: number): void {
+  const value = Math.max(0, Math.min(1, factor));
+  if (value >= 1) duckFactors.delete(trackId);
+  else duckFactors.set(trackId, value);
+  duckListeners.forEach((listener) => {
+    listener(trackId, value);
+  });
+}
+export const remoteTrackDuck = (trackId: string): number => duckFactors.get(trackId) ?? 1;
 
 /** Backwards-compatible single-track form used by host playback. */
 export function amplifyRemoteAudio(

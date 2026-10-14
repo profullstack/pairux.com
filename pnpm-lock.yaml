@@ -365,6 +365,9 @@ importers:
       '@profullstack/footer':
         specifier: latest
         version: 0.2.4(react@19.2.3)
+      '@profullstack/live-translate':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@profullstack/notifications':
         specifier: 0.1.0
         version: 0.1.0
@@ -1970,7 +1973,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -2792,19 +2795,16 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.5':
     resolution: {integrity: sha512-LbqtPtMPTJUcg4XoPP2jsU1wc8flBcGyKTerKsIfK9cD7nBHROnO0QksbrsbSWEpLym8T8fRtuU7XEY83l6Z2Q==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.5':
     resolution: {integrity: sha512-uxaXEcRKnFObAljsoR6tLOBUU1dJ2sctloG6gFgCBGN7+k6Jdv6jZfOuNjd/fpdq2C5WPMm0rtn9EE7h5J3Jcg==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.5':
     resolution: {integrity: sha512-yqC87zvmFcDPwFrRU40DYhN0xmEVM3aSkOuyF0IX+y1x+HWSu/i0PNklATpPBhGid3QVb/TOHuVoaraMrUFCNw==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.6':
@@ -2818,7 +2818,6 @@ packages:
   '@nut-tree-fork/nut-js@4.2.6':
     resolution: {integrity: sha512-aI/WCX7gE1HFGPH3EZP/UWqpNMM1NMoM/EkXqp7pKMgXFCi8e5+o5p+jd/QOYpmALv9bQg7+s69nI7FONbMqDg==}
     engines: {node: '>=16'}
-    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.6':
@@ -2934,6 +2933,10 @@ packages:
   '@profullstack/keys@0.1.0':
     resolution: {integrity: sha512-Vys47LvS5ivhdZu4SYOxh9Le3DEmWhjP0+CtrU45RhXAbY0ZFG/2Dk9V1bIIUGDp8UWMJqctvUD21JrNjfh04w==}
     engines: {node: '>=20.11'}
+
+  '@profullstack/live-translate@0.1.0':
+    resolution: {integrity: sha512-YtVpidlulBUKnTprLDeW6A0a0fLzgw6ADnDEPpfjje+twGVs6eqJj9TcVS9zbf08MufmA4k7cwMevAL7Zvck3A==}
+    engines: {node: '>=22.18'}
 
   '@profullstack/notifications@0.1.0':
     resolution: {integrity: sha512-17jiBCRiZVDcIyWnWKYr5E2eVog/1iHgXaruGbmlw7j7Ob4zd6oOqGjh8BP8wm13iFwikczYObQwSrGadBdnGw==}
@@ -12090,6 +12093,8 @@ snapshots:
       react: 19.2.3
 
   '@profullstack/keys@0.1.0': {}
+
+  '@profullstack/live-translate@0.1.0': {}
 
   '@profullstack/notifications@0.1.0': {}
 

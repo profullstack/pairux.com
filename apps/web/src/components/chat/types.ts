@@ -26,6 +26,8 @@ export interface ChatPanelProps {
 export interface ChatMessageProps {
   message: ChatMessage;
   isOwnMessage: boolean;
+  /** The reader's translation of message.content, when chat translation is on. */
+  translation?: string | undefined;
   currentUserDisplayName?: string;
 }
 
@@ -36,6 +38,8 @@ export interface ChatMessageListProps {
   isLoading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
+  /** message id → the reader's translation */
+  translations?: Map<string, string> | undefined;
 }
 
 export interface ChatMessageInputProps {

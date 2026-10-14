@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useCallback, useRef } from 'react';
+import { useState, useEffect, use, useCallback, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -39,6 +39,7 @@ import { useAudioMixer } from '@/hooks/useAudioMixer';
 import type { SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
 import { PublishRoomModal } from '@/components/session/PublishRoomModal';
+import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
 
 interface SessionData {
   id: string;
@@ -275,6 +276,16 @@ function HostContent({
 
   // Live participant list with realtime updates
   const { participants: liveParticipants } = useParticipants({ sessionId });
+  // Each viewer's own track, for live translation (SFU meetings only).
+  const translationParticipants = useMemo(
+    () =>
+      [...hostedViewers.values()].flatMap((viewer) =>
+        viewer.audioTrack
+          ? [{ identity: viewer.id, name: viewer.name ?? 'Participant', track: viewer.audioTrack }]
+          : []
+      ),
+    [hostedViewers]
+  );
   const [mutedParticipantTargets, setMutedParticipantTargets] = useState<Set<string>>(new Set());
 
   const resolveViewerTargetId = useCallback(
@@ -625,6 +636,13 @@ function HostContent({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-900">
+      {currentSession.mode === 'sfu' && (
+        <MeetingTranslation
+          sessionId={sessionId}
+          selfId={publisherId}
+          participants={translationParticipants}
+        />
+      )}
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

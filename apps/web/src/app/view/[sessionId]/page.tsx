@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useRef } from 'react';
 import { RecordingNotice } from '@/components/session/RecordingNotice';
+import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -193,12 +194,17 @@ function P2PGuestViewer({ sessionId, session, participant, participantId }: Gues
 }
 
 function SFUGuestViewer({ sessionId, session, participant, participantId }: GuestViewerProps) {
-  const hookResult = useWebRTCSFU({
+  const { remoteAudio, ...hookResult } = useWebRTCSFU({
     sessionId,
     participantId,
   });
 
-  return <GuestViewerContent session={session} participant={participant} {...hookResult} />;
+  return (
+    <>
+      <GuestViewerContent session={session} participant={participant} {...hookResult} />
+      <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+    </>
+  );
 }
 
 // --- Shared viewer content (all JSX lives here) ---

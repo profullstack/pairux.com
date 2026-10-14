@@ -20,6 +20,7 @@
     "@profullstack/autoblog": "github:profullstack/autoblog#75e54af",
     "@profullstack/emailer": "^1.0.3",
     "@profullstack/footer": "latest",
+    "@profullstack/live-translate": "^0.1.0",
     "@profullstack/notifications": "0.1.0",
     "@profullstack/pairux-embed": "workspace:*",
     "@profullstack/stack": "^0.1.3",

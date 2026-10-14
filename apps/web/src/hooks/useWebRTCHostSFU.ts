@@ -38,6 +38,8 @@ const decoder = new TextDecoder();
 
 export interface ViewerConnection {
   id: string;
+  /** The name the viewer joined with (SFU only). */
+  name?: string;
   peerConnection: RTCPeerConnection;
   dataChannel: RTCDataChannel | null;
   connectionState: ConnectionState;
@@ -206,6 +208,7 @@ export function useWebRTCHostSFU({
       // Create a stub ViewerConnection - no direct peer connection in SFU mode
       const viewer: ViewerConnection = {
         id: participant.identity,
+        name: participant.name?.trim() ? participant.name : participant.identity,
         peerConnection: null as unknown as RTCPeerConnection, // Not used in SFU mode
         dataChannel: null,
         connectionState: 'connected',

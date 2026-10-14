@@ -34,9 +34,18 @@ interface UseWebRTCSFUOptions {
   onKicked?: (reason?: string) => void;
 }
 
+/** One remote participant's audio, kept apart for live translation. */
+export interface RemoteParticipantAudio {
+  identity: string;
+  name: string;
+  track: MediaStreamTrack;
+}
+
 interface UseWebRTCSFUReturn {
   connectionState: ConnectionState;
   remoteStream: MediaStream | null;
+  /** Each remote participant's audio track (the mixed stream loses who spoke). */
+  remoteAudio: RemoteParticipantAudio[];
   qualityMetrics: QualityMetrics | null;
   networkQuality: NetworkQuality;
   error: string | null;
@@ -78,6 +87,7 @@ export function useWebRTCSFU({
 }: UseWebRTCSFUOptions): UseWebRTCSFUReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [remoteAudio, setRemoteAudio] = useState<RemoteParticipantAudio[]>([]);
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics | null>(null);
   const [networkQuality, setNetworkQuality] = useState<NetworkQuality>('good');
   const [error, setError] = useState<string | null>(null);
@@ -303,6 +313,7 @@ export function useWebRTCSFU({
 
     remoteMediaStreamRef.current = null;
     setRemoteStream(null);
+    setRemoteAudio([]);
     setConnectionState('disconnected');
     setQualityMetrics(null);
     setDataChannelReady(false);
@@ -367,8 +378,19 @@ export function useWebRTCSFU({
       // Track subscribed - host's screen share arrives.
       room.on(
         RoomEvent.TrackSubscribed,
-        (track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
+        (track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           if (!current() || roomRef.current !== room) return;
+          if (track.kind === Track.Kind.Audio) {
+            const audioTrack = track.mediaStreamTrack;
+            setRemoteAudio((prev) => [
+              ...prev.filter((one) => one.track.id !== audioTrack.id),
+              {
+                identity: participant.identity,
+                name: participant.name?.trim() ? participant.name : participant.identity,
+                track: audioTrack,
+              },
+            ]);
+          }
           if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
             const mediaTrack = track.mediaStreamTrack;
             const existingTracks = remoteMediaStreamRef.current?.getTracks() ?? [];
@@ -394,6 +416,10 @@ export function useWebRTCSFU({
       // Track unsubscribed - host disconnected or stopped sharing.
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
         if (!current() || roomRef.current !== room) return;
+        if (track.kind === Track.Kind.Audio) {
+          const gone = track.mediaStreamTrack.id;
+          setRemoteAudio((prev) => prev.filter((one) => one.track.id !== gone));
+        }
         if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
           const prev = remoteMediaStreamRef.current;
           if (!prev) return;
@@ -525,6 +551,7 @@ export function useWebRTCSFU({
   return {
     connectionState,
     remoteStream,
+    remoteAudio,
     qualityMetrics,
     networkQuality,
     error,

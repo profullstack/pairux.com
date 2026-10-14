@@ -8,6 +8,7 @@ const mockToggleMic = vi.fn();
 const mockUseWebRTC = {
   connectionState: 'idle' as const,
   remoteStream: null,
+  remoteAudio: [],
   qualityMetrics: null,
   networkQuality: 'good' as const,
   error: null,

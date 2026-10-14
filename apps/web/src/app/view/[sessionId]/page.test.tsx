@@ -29,6 +29,7 @@ const mockSendInput = vi.fn();
 const mockWebRTCResult = {
   connectionState: 'connected' as const,
   remoteStream: null,
+  remoteAudio: [],
   qualityMetrics: null,
   networkQuality: 'good' as const,
   error: null,

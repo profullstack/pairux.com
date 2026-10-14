@@ -18,6 +18,8 @@ import { ChatMessageInput } from './ChatMessageInput';
 import { ParticipantList } from './ParticipantList';
 import { TypingIndicator } from './TypingIndicator';
 import { useChat } from './useChat';
+import { useChatTranslateTo, useChatTranslation } from './useChatTranslation';
+import { TRANSLATION_LANGUAGES } from '@/lib/translation/languages';
 import { useParticipants } from './useParticipants';
 import { useTypingIndicator } from './useTypingIndicator';
 import type { ChatPanelProps } from './types';
@@ -44,6 +46,20 @@ export function ChatPanel({
       sessionId,
       participantId,
     });
+
+  const [translateTo, setTranslateTo] = useChatTranslateTo();
+  const isOwnChatMessage = useCallback(
+    (message: { user_id: string | null }) =>
+      Boolean(currentUserId) && message.user_id === currentUserId,
+    [currentUserId]
+  );
+  const { translated, error: translateError } = useChatTranslation({
+    sessionId,
+    participantId,
+    messages,
+    to: translateTo,
+    isOwn: isOwnChatMessage,
+  });
 
   const { participants, isLoading: participantsLoading } = useParticipants({
     sessionId,
@@ -190,6 +206,31 @@ export function ChatPanel({
         />
       )}
 
+      {/* Chat in the reader's language */}
+      <div className="flex items-center gap-2 border-b border-gray-700 px-4 py-1.5 text-xs text-gray-400">
+        <label htmlFor="chat-translate-to">Translate chat</label>
+        <select
+          id="chat-translate-to"
+          value={translateTo}
+          onChange={(event) => {
+            setTranslateTo(event.target.value);
+          }}
+          className="rounded bg-gray-800 px-1.5 py-0.5 text-gray-200"
+        >
+          <option value="">Off</option>
+          {TRANSLATION_LANGUAGES.map(([code, name]) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+        {translateError && (
+          <span role="status" className="truncate text-red-400">
+            {translateError}
+          </span>
+        )}
+      </div>
+
       {/* Message list */}
       <ChatMessageList
         messages={messages}
@@ -200,6 +241,7 @@ export function ChatPanel({
         onLoadMore={() => {
           void loadMore();
         }}
+        translations={translated}
       />
 
       {/* Typing indicator */}

@@ -2246,5 +2246,37 @@
       "send": "Send",
       "sendFailed": "Failed to send message"
     }
+  },
+  "meetingTranslation": {
+    "title": "Live translation",
+    "inUseBy": "in use by {count}",
+    "on": "On",
+    "off": "Off",
+    "paidGuest": "Live translation is a paid feature. Ask the host to get a translation pass.",
+    "paidHost": "Live translation is a paid feature. Buy a pass below so everyone in your meetings can hear and read each other in their own language.",
+    "hearEveryoneIn": "Hear everyone in",
+    "nobodyElse": "Nobody else is speaking in this meeting yet.",
+    "speaks": "{name} speaks",
+    "hearIn": "Hear {name} in",
+    "detect": "Detect",
+    "original": "Original",
+    "voice": "Voice",
+    "text": "Text",
+    "originalVolume": "Original voice under translation",
+    "transcript": "Translated transcript",
+    "youPay": "You pay for translation in your meetings.",
+    "freeToday": "Free today: {left} of {limit} meetings.",
+    "credit": "Credit {amount} until {date}.",
+    "passDay": "Day pass",
+    "passMonth": "Month pass",
+    "checkoutUnavailable": "Checkout is unavailable.",
+    "privacy": "Speech you choose to translate is sent to ElevenLabs (recognition and voices) and Anthropic (translation). Nothing is recorded or stored.",
+    "participant": "Participant"
+  },
+  "chatTranslation": {
+    "label": "Translate chat",
+    "off": "Off",
+    "showOriginal": "Show original",
+    "unavailable": "Chat translation is unavailable."
   }
 }

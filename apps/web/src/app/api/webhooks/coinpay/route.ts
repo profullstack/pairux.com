@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyCoinPayWebhook } from '@profullstack/stack/coinpay';
 import { TERM_DAYS } from '@/lib/plans';
+import { translationPass } from '@/lib/translation/meter';
 import { serviceClient } from '@/lib/supabase/service';
 
 export const runtime = 'nodejs';
@@ -90,6 +91,19 @@ export async function POST(request: NextRequest) {
 
     if (lookupError) {
       console.error('[coinpay webhook] payment lookup failed:', lookupError);
+    } else if (payment && String(payment.plan).startsWith('translation_')) {
+      // Prepaid translation credit: marked credited and added in one statement,
+      // so the confirmed + forwarded pair can never credit twice.
+      const pass = translationPass(String(payment.plan));
+      const { error: creditError } = await supabase.rpc('translation_credit_payment', {
+        p_payment_id: paymentId,
+        p_days: pass?.days ?? 1,
+        p_status: nextStatus,
+      });
+      if (creditError) {
+        console.error('[coinpay webhook] translation_credit_payment failed:', creditError);
+        return NextResponse.json({ error: 'Credit failed' }, { status: 500 });
+      }
     } else if (payment && !payment.credited_at) {
       const { error: grantError } = await supabase.rpc('grant_plan', {
         p_user_id: payment.user_id,

@@ -2246,5 +2246,37 @@
       "send": "Gönder",
       "sendFailed": "Mesaj gönderilemedi"
     }
+  },
+  "meetingTranslation": {
+    "title": "Canlı çeviri",
+    "inUseBy": "{count} kişi kullanıyor",
+    "on": "Açık",
+    "off": "Kapalı",
+    "paidGuest": "Canlı çeviri ücretli bir özelliktir. Toplantı sahibinden bir çeviri paketi almasını isteyin.",
+    "paidHost": "Canlı çeviri ücretli bir özelliktir. Toplantılarınızdaki herkes birbirini kendi dilinde duyup okuyabilsin diye aşağıdan bir paket satın alın.",
+    "hearEveryoneIn": "Herkesi şu dilde dinle",
+    "nobodyElse": "Bu toplantıda henüz başka konuşan yok.",
+    "speaks": "{name} şu dili konuşuyor",
+    "hearIn": "{name} kişisini şu dilde dinle",
+    "detect": "Algıla",
+    "original": "Orijinal",
+    "voice": "Ses",
+    "text": "Metin",
+    "originalVolume": "Çevirinin altındaki orijinal ses",
+    "transcript": "Çevrilmiş döküm",
+    "youPay": "Toplantılarınızdaki çeviriyi siz ödersiniz.",
+    "freeToday": "Bugün ücretsiz: {limit} toplantıdan {left} kaldı.",
+    "credit": "{date} tarihine kadar {amount} bakiye.",
+    "passDay": "Günlük paket",
+    "passMonth": "Aylık paket",
+    "checkoutUnavailable": "Ödeme şu anda kullanılamıyor.",
+    "privacy": "Çevirmeyi seçtiğiniz konuşmalar ElevenLabs'e (tanıma ve sesler) ve Anthropic'e (çeviri) gönderilir. Hiçbir şey kaydedilmez veya saklanmaz.",
+    "participant": "Katılımcı"
+  },
+  "chatTranslation": {
+    "label": "Sohbeti çevir",
+    "off": "Kapalı",
+    "showOriginal": "Orijinali göster",
+    "unavailable": "Sohbet çevirisi kullanılamıyor."
   }
 }

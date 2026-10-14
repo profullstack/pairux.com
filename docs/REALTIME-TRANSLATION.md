@@ -1,5 +1,15 @@
 # PRD: Real-Time Multilingual Subtitles & Spoken Audio Translation
 
+> **Status (2026-10-14): built, superseding this draft's host-only scope.** Every participant can
+> hear every other participant in a language of their own choosing (per person: from/to, voice and/or
+> text), and meeting chat translates per reader. Engine: `@profullstack/live-translate` (extracted from
+> nixamp): ElevenLabs Scribe hears each speaker's own LiveKit track once, Claude translates each
+> phrase directly between the two languages, ElevenLabs Flash voices it once per target language, and
+> the result fans out over SSE. Paid feature: the meeting host buys a Day ($1) or Month ($5) pass
+> (`translation_*` rows in `plan_payments`, credit in `translation_wallets`); admins (`admin_users`)
+> are never charged. Code: `apps/web/src/lib/translation/`, `hooks/useMeetingTranslation.ts`,
+> `components/translation/`, `/api/sessions/:id/translation/{listen,feed}`, `/api/chat/translate`.
+
 **Version:** 2.0
 **Date:** January 2025
 **Status:** Draft

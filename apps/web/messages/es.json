@@ -2246,5 +2246,37 @@
       "send": "Enviar",
       "sendFailed": "No se pudo enviar el mensaje"
     }
+  },
+  "meetingTranslation": {
+    "title": "Traducción en directo",
+    "inUseBy": "en uso por {count}",
+    "on": "Activada",
+    "off": "Desactivada",
+    "paidGuest": "La traducción en directo es una función de pago. Pide al anfitrión que consiga un pase de traducción.",
+    "paidHost": "La traducción en directo es una función de pago. Compra un pase abajo para que todos en tus reuniones puedan escucharse y leerse en su propio idioma.",
+    "hearEveryoneIn": "Escuchar a todos en",
+    "nobodyElse": "Nadie más está hablando en esta reunión todavía.",
+    "speaks": "{name} habla",
+    "hearIn": "Escuchar a {name} en",
+    "detect": "Detectar",
+    "original": "Original",
+    "voice": "Voz",
+    "text": "Texto",
+    "originalVolume": "Voz original bajo la traducción",
+    "transcript": "Transcripción traducida",
+    "youPay": "Tú pagas la traducción en tus reuniones.",
+    "freeToday": "Gratis hoy: {left} de {limit} reuniones.",
+    "credit": "Saldo de {amount} hasta el {date}.",
+    "passDay": "Pase de un día",
+    "passMonth": "Pase de un mes",
+    "checkoutUnavailable": "El pago no está disponible.",
+    "privacy": "La voz que eliges traducir se envía a ElevenLabs (reconocimiento y voces) y a Anthropic (traducción). No se graba ni se guarda nada.",
+    "participant": "Participante"
+  },
+  "chatTranslation": {
+    "label": "Traducir chat",
+    "off": "Desactivado",
+    "showOriginal": "Ver original",
+    "unavailable": "La traducción del chat no está disponible."
   }
 }

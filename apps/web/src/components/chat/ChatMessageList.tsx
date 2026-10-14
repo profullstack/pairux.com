@@ -12,6 +12,7 @@ export function ChatMessageList({
   isLoading = false,
   hasMore = false,
   onLoadMore,
+  translations,
 }: ChatMessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -116,7 +117,12 @@ export function ChatMessageList({
 
       {/* Message list */}
       {messages.map((message) => (
-        <ChatMessage key={message.id} message={message} isOwnMessage={isOwnMessage(message)} />
+        <ChatMessage
+          key={message.id}
+          message={message}
+          isOwnMessage={isOwnMessage(message)}
+          translation={translations?.get(message.id)}
+        />
       ))}
 
       {/* Scroll anchor */}

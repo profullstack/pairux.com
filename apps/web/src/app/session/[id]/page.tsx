@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
 import { RecordingNotice } from '@/components/session/RecordingNotice';
+import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 import Link from 'next/link';
 import {
@@ -179,18 +180,21 @@ function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
   const [participantId] = useState(() => crypto.randomUUID());
 
-  const hookResult = useWebRTCSFU({
+  const { remoteAudio, ...hookResult } = useWebRTCSFU({
     sessionId,
     participantId,
   });
 
   return (
-    <SessionViewerContent
-      sessionId={sessionId}
-      session={session}
-      participantId={participantId}
-      {...hookResult}
-    />
+    <>
+      <SessionViewerContent
+        sessionId={sessionId}
+        session={session}
+        participantId={participantId}
+        {...hookResult}
+      />
+      <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+    </>
   );
 }
 

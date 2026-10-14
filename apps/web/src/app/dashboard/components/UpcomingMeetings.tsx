@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Calendar,
   Users,
@@ -19,12 +20,8 @@ import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/cale
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
 import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
-import {
-  describeRecurrence,
-  occurrencesRemaining,
-  ruleFromRow,
-  shortRecurrenceLabel,
-} from '@/lib/recurrence';
+import { occurrencesRemaining, ruleFromRow } from '@/lib/recurrence';
+import { describeRecurrenceText, shortRecurrenceText } from './recurrenceText';
 import { isScheduledMeetingCurrent } from '@/lib/scheduled-meeting-timing';
 
 interface Invitee {
@@ -63,24 +60,27 @@ interface StartResponse {
   error?: string;
 }
 
-function formatDate(isoString: string, nowMs: number): string {
+type Translate = ReturnType<typeof useTranslations<'dashboard.upcoming'>>;
+type MeetingsTranslate = ReturnType<typeof useTranslations<'meetings'>>;
+
+function formatDate(t: Translate, locale: string, isoString: string, nowMs: number): string {
   const date = new Date(isoString);
   const now = new Date(nowMs);
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const timeStr = date.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
 
-  if (date.toDateString() === now.toDateString()) return `Today at ${timeStr}`;
-  if (date.toDateString() === tomorrow.toDateString()) return `Tomorrow at ${timeStr}`;
+  if (date.toDateString() === now.toDateString()) return t('todayAt', { time: timeStr });
+  if (date.toDateString() === tomorrow.toDateString()) return t('tomorrowAt', { time: timeStr });
   if (date.getTime() - nowMs < 7 * 24 * 60 * 60 * 1000) {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale, {
       weekday: 'long',
       hour: 'numeric',
       minute: '2-digit',
     });
   }
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -89,15 +89,15 @@ function formatDate(isoString: string, nowMs: number): string {
 }
 
 /** "Weekly", or "Weekly · 3 left" once a series has a finite number of dates left. */
-function repeatLabel(session: ScheduledSession): string | null {
-  const short = shortRecurrenceLabel(ruleFromRow(session));
+function repeatLabel(tm: MeetingsTranslate, session: ScheduledSession): string | null {
+  const short = shortRecurrenceText(tm, ruleFromRow(session));
   if (!short) return null;
 
   const left = occurrencesRemaining(
     session.recurrence_count ?? 0,
     session.occurrences_elapsed ?? 0
   );
-  return left === null ? short : `${short} · ${String(left)} left`;
+  return left === null ? short : tm('recurrence.shortWithLeft', { label: short, left });
 }
 
 interface Props {
@@ -105,6 +105,9 @@ interface Props {
 }
 
 export function UpcomingMeetings({ onSchedule }: Props) {
+  const t = useTranslations('dashboard.upcoming');
+  const tm = useTranslations('meetings');
+  const locale = useLocale();
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [isLoading, setIsLoading] = useState(true);
@@ -122,14 +125,14 @@ export function UpcomingMeetings({ onSchedule }: Props) {
     try {
       const res = await fetch('/api/scheduled-sessions?filter=upcoming');
       const json = (await res.json()) as ListResponse;
-      if (!res.ok) throw new Error(json.error ?? 'Failed to load');
+      if (!res.ok) throw new Error(json.error ?? t('loadFailed'));
       setSessions(json.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load upcoming meetings');
+      setError(err instanceof Error ? err.message : t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchSessions();
@@ -161,9 +164,9 @@ export function UpcomingMeetings({ onSchedule }: Props) {
         handoff.openSession(json.data.session.id);
         return;
       }
-      throw new Error(json.error ?? 'Failed to start the meeting');
+      throw new Error(json.error ?? t('startFailed'));
     } catch (err) {
-      setStartError(err instanceof Error ? err.message : 'Failed to start the meeting');
+      setStartError(err instanceof Error ? err.message : t('startFailed'));
     } finally {
       setStartingId(null);
     }
@@ -172,7 +175,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   const currentSessions = sessions.filter((session) => isScheduledMeetingCurrent(session, nowMs));
 
   async function handleCancel(id: string) {
-    if (!confirm('Cancel this scheduled meeting? Invitees will be notified.')) return;
+    if (!confirm(t('cancelConfirm'))) return;
     setCancellingId(id);
     try {
       await fetch(`/api/scheduled-sessions/${id}`, { method: 'DELETE' });
@@ -185,7 +188,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   if (isLoading) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900">Upcoming Meetings</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
         <div className="mt-4 flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
@@ -196,7 +199,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
   if (error) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900">Upcoming Meetings</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
         <p className="mt-3 text-sm text-red-500">{error}</p>
       </div>
     );
@@ -223,13 +226,13 @@ export function UpcomingMeetings({ onSchedule }: Props) {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Upcoming Meetings</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
         <button
           onClick={onSchedule}
           className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
         >
           <CalendarPlus className="h-3.5 w-3.5" />
-          Schedule
+          {t('schedule')}
         </button>
       </div>
 
@@ -242,13 +245,13 @@ export function UpcomingMeetings({ onSchedule }: Props) {
       {currentSessions.length === 0 ? (
         <div className="mt-4 flex flex-col items-center justify-center py-10 text-center">
           <Calendar className="h-10 w-10 text-gray-300" />
-          <p className="mt-3 text-sm text-gray-500">No upcoming meetings scheduled</p>
+          <p className="mt-3 text-sm text-gray-500">{t('empty')}</p>
           <button
             onClick={onSchedule}
             className="mt-3 flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
           >
             <CalendarPlus className="h-4 w-4" />
-            Schedule your first meeting
+            {t('scheduleFirst')}
           </button>
         </div>
       ) : (
@@ -265,30 +268,32 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(session.scheduled_at, nowMs)}
+                        {formatDate(t, locale, session.scheduled_at, nowMs)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {session.duration_minutes < 60
-                          ? `${String(session.duration_minutes)}m`
-                          : `${String(session.duration_minutes / 60)}h`}
+                          ? t('durationMinutes', { minutes: session.duration_minutes })
+                          : t('durationHours', { hours: session.duration_minutes / 60 })}
                       </span>
-                      {repeatLabel(session) && (
+                      {repeatLabel(tm, session) && (
                         <span
                           className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-600"
-                          title={describeRecurrence(
+                          title={describeRecurrenceText(
+                            tm,
+                            locale,
                             ruleFromRow(session),
                             new Date(session.scheduled_at)
                           )}
                         >
                           <Repeat className="h-3 w-3" />
-                          {repeatLabel(session)}
+                          {repeatLabel(tm, session)}
                         </span>
                       )}
                       {session.channel && (
                         <span
                           className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 font-medium text-red-600"
-                          title={`Goes live on ${session.channel.name}`}
+                          title={t('goesLiveOn', { channel: session.channel.name })}
                         >
                           <Radio className="h-3 w-3" />@{session.channel.handle}
                         </span>
@@ -296,11 +301,11 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                       {session.invitee_count > 0 && (
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {session.invitee_count} invited
+                          {t('invited', { count: session.invitee_count })}
                           {accepted > 0 && (
                             <span className="flex items-center gap-0.5 text-green-600">
                               <CheckCircle className="h-3 w-3" />
-                              {accepted} accepted
+                              {t('accepted', { count: accepted })}
                             </span>
                           )}
                         </span>
@@ -320,7 +325,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                     <button
                       onClick={() => void handleStart(session)}
                       disabled={startingId === session.id}
-                      title={early ? 'Opens the room now and emails everyone invited' : undefined}
+                      title={early ? t('startEarlyHint') : undefined}
                       className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
                     >
                       {startingId === session.id ? (
@@ -328,7 +333,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                       ) : (
                         <Play className="h-3.5 w-3.5" />
                       )}
-                      {early ? 'Start Early' : 'Start Now'}
+                      {early ? t('startEarly') : t('startNow')}
                     </button>
                     <div className="relative">
                       <button
@@ -336,7 +341,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                           setCalendarOpenId(calendarOpenId === session.id ? null : session.id);
                         }}
                         className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-500"
-                        title="Add to calendar"
+                        title={t('addToCalendar')}
                       >
                         <Calendar className="h-4 w-4" />
                       </button>
@@ -396,7 +401,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                             className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                           >
                             <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                            Apple / iCal
+                            {t('appleIcal')}
                           </button>
                         </div>
                       )}
@@ -406,7 +411,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                         setEditing(session);
                       }}
                       className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-500"
-                      title="Edit meeting"
+                      title={t('editMeeting')}
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -414,7 +419,7 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                       onClick={() => void handleCancel(session.id)}
                       disabled={cancellingId === session.id}
                       className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
-                      title="Cancel meeting"
+                      title={t('cancelMeeting')}
                     >
                       {cancellingId === session.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

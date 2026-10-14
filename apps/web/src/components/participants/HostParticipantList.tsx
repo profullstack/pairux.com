@@ -2,6 +2,7 @@
 
 import { memo, useMemo } from 'react';
 import { Users, Crown, Eye, Monitor, Circle, Shield, UserX, Mic, MicOff, Bot } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { SessionParticipant, ConnectionStatus, ControlState } from '@pairux/shared-types';
 import type { ViewerConnection } from '@/hooks/useWebRTCHost';
 
@@ -78,6 +79,7 @@ const HostParticipantItem = memo(function HostParticipantItem({
   isMuted: boolean;
   onRemoveAgent?: (participantId: string) => void;
 }) {
+  const t = useTranslations('participants');
   const isHost = participant.role === 'host';
   const isAgent = participant.kind === 'agent';
   const canControl = participant.viewerId && participant.dataChannelReady;
@@ -91,7 +93,7 @@ const HostParticipantItem = memo(function HostParticipantItem({
             className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white ${isAgent ? 'bg-violet-600' : 'bg-gray-700'}`}
           >
             {isAgent ? (
-              <Bot className="h-4 w-4" aria-label="Agent" />
+              <Bot className="h-4 w-4" aria-label={t('agent')} />
             ) : (
               participant.display_name.charAt(0).toUpperCase()
             )}
@@ -106,10 +108,10 @@ const HostParticipantItem = memo(function HostParticipantItem({
         <div className="flex flex-col">
           <span className="text-sm font-medium text-white">
             {participant.display_name}
-            {isCurrentUser && <span className="ml-1 text-xs text-gray-400">(you)</span>}
+            {isCurrentUser && <span className="ml-1 text-xs text-gray-400">{t('you')}</span>}
           </span>
           <span className="text-xs text-gray-400 capitalize">
-            {participant.effectiveConnectionStatus}
+            {t(`connection.${participant.effectiveConnectionStatus}`)}
           </span>
         </div>
       </div>
@@ -120,30 +122,34 @@ const HostParticipantItem = memo(function HostParticipantItem({
           <span
             className="flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-300"
             data-testid="agent-badge"
-            title={participant.agent_client ? `Agent (${participant.agent_client})` : 'Agent'}
+            title={
+              participant.agent_client
+                ? t('agentWithClient', { client: participant.agent_client })
+                : t('agent')
+            }
           >
             <Bot className="h-3 w-3" />
-            Agent
+            {t('agent')}
           </span>
         ) : isHost ? (
           <span className="flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             <Crown className="h-3 w-3" />
-            Host
+            {t('host')}
           </span>
         ) : participant.effectiveControlState === 'granted' ? (
           <span className="flex items-center gap-1 rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">
             <Monitor className="h-3 w-3" />
-            In Control
+            {t('inControl')}
           </span>
         ) : participant.effectiveControlState === 'requested' ? (
           <span className="flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
             <Eye className="h-3 w-3" />
-            Requesting
+            {t('requesting')}
           </span>
         ) : (
           <span className="flex items-center gap-1 rounded-full bg-gray-600/50 px-2 py-0.5 text-xs font-medium text-gray-400">
             <Eye className="h-3 w-3" />
-            Viewer
+            {t('viewer')}
           </span>
         )}
 
@@ -154,8 +160,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
               onRemoveAgent(participant.id);
             }}
             className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
-            title="Remove agent"
-            aria-label="Remove agent"
+            title={t('removeAgent')}
+            aria-label={t('removeAgent')}
           >
             <UserX className="h-4 w-4" />
           </button>
@@ -171,8 +177,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
               }}
               disabled={!participant.viewerId}
               className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-              title={isMuted ? 'Unmute participant' : 'Mute participant'}
-              aria-label={isMuted ? 'Unmute participant' : 'Mute participant'}
+              title={isMuted ? t('unmute') : t('mute')}
+              aria-label={isMuted ? t('unmute') : t('mute')}
             >
               {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </button>
@@ -185,8 +191,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
                 }}
                 disabled={!canControl}
                 className="rounded p-1.5 text-red-400 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Revoke control"
-                aria-label="Revoke control"
+                title={t('revokeControl')}
+                aria-label={t('revokeControl')}
               >
                 <Shield className="h-4 w-4" />
               </button>
@@ -197,8 +203,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
                 }}
                 disabled={!canControl}
                 className="rounded p-1.5 text-green-400 transition-colors hover:bg-green-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Grant control"
-                aria-label="Grant control"
+                title={t('grantControl')}
+                aria-label={t('grantControl')}
               >
                 <Shield className="h-4 w-4" />
               </button>
@@ -211,8 +217,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
               }}
               disabled={!participant.viewerId}
               className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-500/20 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
-              title="Remove participant"
-              aria-label="Remove participant"
+              title={t('removeParticipant')}
+              aria-label={t('removeParticipant')}
             >
               <UserX className="h-4 w-4" />
             </button>
@@ -224,8 +230,8 @@ const HostParticipantItem = memo(function HostParticipantItem({
                 }}
                 disabled={!participant.viewerId}
                 className="rounded p-1.5 text-yellow-400 transition-colors hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Make host"
-                aria-label="Make host"
+                title={t('makeHost')}
+                aria-label={t('makeHost')}
               >
                 <Crown className="h-4 w-4" />
               </button>
@@ -250,6 +256,7 @@ export const HostParticipantList = memo(function HostParticipantList({
   mutedParticipants,
   onRemoveAgent,
 }: HostParticipantListProps) {
+  const t = useTranslations('participants');
   // Merge database participants with WebRTC viewer state
   const enhancedParticipants = useMemo((): EnhancedParticipant[] => {
     const activeParticipants = participants.filter((p) => !p.left_at);
@@ -304,8 +311,8 @@ export const HostParticipantList = memo(function HostParticipantList({
     return (
       <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4 text-center">
         <Users className="mx-auto h-8 w-8 text-gray-500" />
-        <p className="mt-2 text-sm text-gray-400">No participants yet</p>
-        <p className="text-xs text-gray-500">Share your link to invite others</p>
+        <p className="mt-2 text-sm text-gray-400">{t('emptyTitle')}</p>
+        <p className="text-xs text-gray-500">{t('emptyHint')}</p>
       </div>
     );
   }
@@ -315,9 +322,11 @@ export const HostParticipantList = memo(function HostParticipantList({
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-sm font-medium text-white">
           <Users className="h-4 w-4" />
-          Participants
+          {t('title')}
         </h3>
-        <span className="text-xs text-gray-400">{sortedParticipants.length} active</span>
+        <span className="text-xs text-gray-400">
+          {t('activeCount', { count: sortedParticipants.length })}
+        </span>
       </div>
 
       <div className="space-y-1">

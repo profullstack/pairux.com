@@ -1,22 +1,31 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { loadAllPosts } from '@/lib/blog/posts';
+import { formatPostDate } from '@/lib/blog/date';
 
-export const metadata: Metadata = {
-  title: 'Blog - PairUX',
-  description: 'News, updates, and tutorials from the PairUX team.',
-  alternates: {
-    canonical: 'https://pairux.com/blog',
-    types: { 'application/rss+xml': 'https://pairux.com/blog/rss.xml' },
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('blog.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: {
+      canonical: 'https://pairux.com/blog',
+      types: { 'application/rss+xml': 'https://pairux.com/blog/rss.xml' },
+    },
+  };
+}
 
 export const revalidate = 60;
 
 export default async function BlogPage() {
-  const posts = await loadAllPosts();
+  const [posts, locale, t] = await Promise.all([
+    loadAllPosts(),
+    getLocale(),
+    getTranslations('blog'),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -26,10 +35,10 @@ export default async function BlogPage() {
         <section className="gradient-bg py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Blog</h1>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                News, updates, and tutorials from the PairUX team
-              </p>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+                {t('title')}
+              </h1>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">{t('subtitle')}</p>
             </div>
           </div>
         </section>
@@ -38,11 +47,8 @@ export default async function BlogPage() {
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             {posts.length === 0 ? (
               <div className="rounded-2xl border border-gray-200 bg-gray-50 p-12 text-center">
-                <h2 className="text-xl font-semibold text-gray-900">Coming Soon</h2>
-                <p className="mt-2 text-gray-600">
-                  We&apos;re working on our first blog posts. Check back soon for tutorials, product
-                  updates, and behind-the-scenes looks at building PairUX.
-                </p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('comingSoonTitle')}</h2>
+                <p className="mt-2 text-gray-600">{t('comingSoonBody')}</p>
               </div>
             ) : (
               <ul className="space-y-6">
@@ -77,7 +83,9 @@ export default async function BlogPage() {
                         <h2 className="text-lg leading-snug font-semibold text-gray-900 sm:text-xl">
                           {p.title}
                         </h2>
-                        <p className="mt-1 text-xs text-gray-500">{p.date}</p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          <time dateTime={p.date}>{formatPostDate(p.date, locale)}</time>
+                        </p>
                         {p.excerpt && (
                           <p className="mt-2 line-clamp-2 text-sm text-gray-600">{p.excerpt}</p>
                         )}

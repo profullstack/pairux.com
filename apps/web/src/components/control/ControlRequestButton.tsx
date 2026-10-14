@@ -1,6 +1,7 @@
 'use client';
 
 import { MousePointer2, Hand, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ControlStateUI } from '@pairux/shared-types';
 
 interface ControlRequestButtonProps {
@@ -18,6 +19,7 @@ export function ControlRequestButton({
   onReleaseControl,
   className = '',
 }: ControlRequestButtonProps) {
+  const t = useTranslations('control.request');
   const isDisabled = !dataChannelReady;
 
   if (controlState === 'granted') {
@@ -27,10 +29,10 @@ export function ControlRequestButton({
         onClick={onReleaseControl}
         disabled={isDisabled}
         className={`flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-        title="Release control"
+        title={t('releaseTitle')}
       >
         <MousePointer2 className="h-4 w-4" />
-        <span>In Control</span>
+        <span>{t('inControl')}</span>
       </button>
     );
   }
@@ -41,10 +43,10 @@ export function ControlRequestButton({
         type="button"
         disabled
         className={`flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white ${className}`}
-        title="Waiting for host approval"
+        title={t('waitingApproval')}
       >
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Requesting...</span>
+        <span>{t('requesting')}</span>
       </button>
     );
   }
@@ -56,10 +58,10 @@ export function ControlRequestButton({
       onClick={onRequestControl}
       disabled={isDisabled}
       className={`flex items-center gap-2 rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-      title={isDisabled ? 'Waiting for connection' : 'Request control of the host'}
+      title={isDisabled ? t('waitingConnection') : t('requestTitle')}
     >
       <Hand className="h-4 w-4" />
-      <span>Request Control</span>
+      <span>{t('requestControl')}</span>
     </button>
   );
 }

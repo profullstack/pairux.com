@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { X, Calendar, Clock, Users, Plus, Trash2, Loader2, Repeat, Radio } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import type { MyChannel } from '@pairux/shared-types';
 import {
-  describeRecurrence,
   MAX_RECURRENCE_COUNT,
   MAX_RECURRENCE_INTERVAL,
   ruleFromRow,
   type RecurrenceFreq,
 } from '@/lib/recurrence';
+import { describeRecurrenceText } from './recurrenceText';
 
 /** The subset of a scheduled session the modal needs in order to edit it. */
 export interface EditableMeeting {
@@ -28,16 +29,19 @@ export interface EditableMeeting {
 type ChannelOption = Pick<MyChannel, 'id' | 'handle' | 'name' | 'org_name' | 'team_name'>;
 
 /** Who a channel belongs to, for grouping the picker: yours, a team's, or an org's. */
-function channelGroup(c: ChannelOption): string {
-  if (c.team_name) return c.org_name ? `${c.org_name} · ${c.team_name}` : c.team_name;
+type Translate = ReturnType<typeof useTranslations<'dashboard.schedule'>>;
+
+function channelGroup(t: Translate, c: ChannelOption): string {
+  if (c.team_name)
+    return c.org_name ? t('teamGroup', { org: c.org_name, team: c.team_name }) : c.team_name;
   if (c.org_name) return c.org_name;
-  return 'Your channels';
+  return t('yourChannels');
 }
 
-function groupChannels(channels: ChannelOption[]): [string, ChannelOption[]][] {
+function groupChannels(t: Translate, channels: ChannelOption[]): [string, ChannelOption[]][] {
   const groups = new Map<string, ChannelOption[]>();
   for (const c of channels) {
-    const key = channelGroup(c);
+    const key = channelGroup(t, c);
     groups.set(key, [...(groups.get(key) ?? []), c]);
   }
   return [...groups.entries()];
@@ -55,32 +59,19 @@ interface SaveResponse {
   error?: string;
 }
 
-const DURATION_OPTIONS = [
-  { label: '15 minutes', value: 15 },
-  { label: '30 minutes', value: 30 },
-  { label: '45 minutes', value: 45 },
-  { label: '1 hour', value: 60 },
-  { label: '1.5 hours', value: 90 },
-  { label: '2 hours', value: 120 },
-];
+const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120];
 
 function localDatetimeValue(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${String(date.getFullYear())}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-const REPEAT_OPTIONS: { label: string; value: RecurrenceFreq | '' }[] = [
-  { label: "Doesn't repeat", value: '' },
-  { label: 'Daily', value: 'daily' },
-  { label: 'Weekly', value: 'weekly' },
-  { label: 'Monthly', value: 'monthly' },
-];
-
-const REPEAT_UNIT: Record<RecurrenceFreq, string> = {
-  daily: 'days',
-  weekly: 'weeks',
-  monthly: 'months',
-};
+const REPEAT_OPTIONS = [
+  { key: 'repeatNone', value: '' },
+  { key: 'repeatDaily', value: 'daily' },
+  { key: 'repeatWeekly', value: 'weekly' },
+  { key: 'repeatMonthly', value: 'monthly' },
+] as const;
 
 /** Number inputs hand back NaN when cleared — keep the payload in range regardless. */
 function clamp(value: number, min: number, max: number): number {
@@ -88,13 +79,15 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.trunc(value)));
 }
 
-function durationLabel(minutes: number): string {
-  return minutes < 60
-    ? `${String(minutes)} minutes`
-    : `${String(minutes / 60)} hour${minutes > 60 ? 's' : ''}`;
+function durationLabel(t: Translate, minutes: number): string {
+  if (minutes < 60 || DURATION_OPTIONS.includes(minutes)) return t('duration', { minutes });
+  return t('durationCustomHours', { hours: minutes / 60 });
 }
 
 export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
+  const t = useTranslations('dashboard.schedule');
+  const tm = useTranslations('meetings');
+  const locale = useLocale();
   const isEditing = meeting !== undefined;
 
   const defaultTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
@@ -149,11 +142,11 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
   const emailInputRef = useRef<HTMLInputElement>(null);
 
   // A meeting booked with a custom duration must still show its own value.
-  const durationOptions = DURATION_OPTIONS.some((o) => o.value === durationMinutes)
-    ? DURATION_OPTIONS
-    : [...DURATION_OPTIONS, { label: durationLabel(durationMinutes), value: durationMinutes }].sort(
-        (a, b) => a.value - b.value
-      );
+  const durationOptions = (
+    DURATION_OPTIONS.includes(durationMinutes)
+      ? DURATION_OPTIONS
+      : [...DURATION_OPTIONS, durationMinutes].sort((a, b) => a - b)
+  ).map((value) => ({ value, label: durationLabel(t, value) }));
 
   const originalEmails = new Set(meeting?.invitees?.map((i) => i.email.toLowerCase()) ?? []);
   const currentEmails = new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean));
@@ -194,7 +187,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
     // Convert local datetime to ISO
     const localDate = new Date(scheduledAt);
     if (isNaN(localDate.getTime())) {
-      setError('Invalid date/time');
+      setError(t('invalidDate'));
       return;
     }
 
@@ -234,15 +227,13 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
       const json = (await res.json()) as SaveResponse;
 
       if (!res.ok) {
-        setError(
-          json.error ?? (isEditing ? 'Failed to save changes' : 'Failed to schedule meeting')
-        );
+        setError(json.error ?? (isEditing ? t('saveFailed') : t('scheduleFailed')));
         return;
       }
 
       onSaved();
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('networkError'));
     } finally {
       setIsLoading(false);
     }
@@ -256,11 +247,12 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-indigo-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {isEditing ? 'Edit Meeting' : 'Schedule Meeting'}
+              {isEditing ? t('editTitle') : t('scheduleTitle')}
             </h2>
           </div>
           <button
             onClick={onClose}
+            aria-label={t('close')}
             className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <X className="h-5 w-5" />
@@ -277,7 +269,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
           {/* Title */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Meeting Title <span className="text-red-500">*</span>
+              {t('meetingTitle')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -285,7 +277,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               onChange={(e) => {
                 setTitle(e.target.value);
               }}
-              placeholder="e.g. Weekly Team Sync"
+              placeholder={t('titlePlaceholder')}
               required
               maxLength={120}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
@@ -297,7 +289,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             <div>
               <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
                 <Calendar className="h-4 w-4 text-gray-400" />
-                Date &amp; Time <span className="text-red-500">*</span>
+                {t('dateTime')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -316,7 +308,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                 className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
               >
                 <Clock className="h-4 w-4 text-gray-400" />
-                Duration
+                {t('durationLabel')}
               </label>
               <select
                 id="duration-minutes"
@@ -342,7 +334,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
             >
               <Repeat className="h-4 w-4 text-gray-400" />
-              Repeat
+              {t('repeat')}
             </label>
             <select
               id="repeat-freq"
@@ -354,7 +346,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             >
               {REPEAT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.key)}
                 </option>
               ))}
             </select>
@@ -367,7 +359,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                       htmlFor="repeat-interval"
                       className="mb-1.5 block text-xs font-medium text-gray-600"
                     >
-                      Every
+                      {t('every')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -381,7 +373,9 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                         }}
                         className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                       />
-                      <span className="text-sm text-gray-500">{REPEAT_UNIT[repeatFreq]}</span>
+                      <span className="text-sm text-gray-500">
+                        {t('repeatUnit', { freq: repeatFreq })}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -389,7 +383,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                       htmlFor="repeat-count"
                       className="mb-1.5 block text-xs font-medium text-gray-600"
                     >
-                      Number of times
+                      {t('numberOfTimes')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -403,16 +397,19 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                         }}
                         className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                       />
-                      <span className="text-sm text-gray-500">0 = forever</span>
+                      <span className="text-sm text-gray-500">{t('zeroForever')}</span>
                     </div>
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-indigo-600">
-                  {describeRecurrence(
-                    { freq: repeatFreq, interval: repeatInterval, count: repeatCount },
-                    new Date(scheduledAt)
-                  )}
-                  . Everyone keeps the same join code and link.
+                  {t('recurrenceSummary', {
+                    description: describeRecurrenceText(
+                      tm,
+                      locale,
+                      { freq: repeatFreq, interval: repeatInterval, count: repeatCount },
+                      new Date(scheduledAt)
+                    ),
+                  })}
                 </p>
               </>
             )}
@@ -425,7 +422,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700"
             >
               <Radio className="h-4 w-4 text-gray-400" />
-              Broadcast channel <span className="text-gray-400">(optional)</span>
+              {t('broadcastChannel')} <span className="text-gray-400">{t('optional')}</span>
             </label>
             <select
               id="meeting-channel"
@@ -437,39 +434,35 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none disabled:opacity-50"
             >
               <option value="">
-                {channels === undefined ? 'Loading your channels…' : 'No channel (private meeting)'}
+                {channels === undefined ? t('loadingChannels') : t('noChannel')}
               </option>
-              {channelUnavailable && (
-                <option value={channelId}>Current channel (you no longer have access)</option>
-              )}
-              {groupChannels(channels ?? []).map(([group, list]) => (
+              {channelUnavailable && <option value={channelId}>{t('channelUnavailable')}</option>}
+              {groupChannels(t, channels ?? []).map(([group, list]) => (
                 <optgroup key={group} label={group}>
                   {list.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} (@{c.handle})
+                      {t('channelOption', { name: c.name, handle: c.handle })}
                     </option>
                   ))}
                 </optgroup>
               ))}
             </select>
             <p className="mt-1.5 text-xs text-gray-400">
-              {channels?.length === 0
-                ? 'You have no channels yet. Create one under Channels on your dashboard, or join a team that has one.'
-                : 'Going live from this meeting broadcasts on this channel. Team channels are listed under their team.'}
+              {channels?.length === 0 ? t('noChannelsHint') : t('channelHint')}
             </p>
           </div>
 
           {/* Description */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Description <span className="text-gray-400">(optional)</span>
+              {t('description')} <span className="text-gray-400">{t('optional')}</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => {
                 setDescription(e.target.value);
               }}
-              placeholder="Agenda, meeting notes, or context..."
+              placeholder={t('descriptionPlaceholder')}
               rows={2}
               maxLength={500}
               className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
@@ -480,8 +473,8 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
           <div>
             <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
               <Users className="h-4 w-4 text-gray-400" />
-              {isEditing ? 'Invitees' : 'Invite by Email'}{' '}
-              <span className="text-gray-400">(optional)</span>
+              {isEditing ? t('invitees') : t('inviteByEmail')}{' '}
+              <span className="text-gray-400">{t('optional')}</span>
             </label>
             <div className="space-y-2">
               {emails.map((email, idx) => (
@@ -509,6 +502,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                       onClick={() => {
                         removeEmail(idx);
                       }}
+                      aria-label={t('removeInvitee')}
                       className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -523,20 +517,18 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                   className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Add another
+                  {t('addAnother')}
                 </button>
               )}
             </div>
             <p className="mt-1.5 text-xs text-gray-400">
-              {isEditing
-                ? 'New invitees are emailed an invite; removed ones are told they’re off the list. Paste multiple addresses separated by commas.'
-                : 'Invites sent immediately. Paste multiple addresses separated by commas.'}
+              {isEditing ? t('editInviteHint') : t('newInviteHint')}
             </p>
             {isEditing && (addedCount > 0 || removedCount > 0) && (
               <p className="mt-1 text-xs font-medium text-indigo-600">
-                {addedCount > 0 && `${String(addedCount)} to invite`}
+                {addedCount > 0 && t('toInvite', { count: addedCount })}
                 {addedCount > 0 && removedCount > 0 && ' · '}
-                {removedCount > 0 && `${String(removedCount)} to remove`}
+                {removedCount > 0 && t('toRemove', { count: removedCount })}
               </p>
             )}
           </div>
@@ -548,7 +540,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               onClick={onClose}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
@@ -558,11 +550,11 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
               {isEditing
                 ? isLoading
-                  ? 'Saving...'
-                  : 'Save Changes'
+                  ? t('saving')
+                  : t('saveChanges')
                 : isLoading
-                  ? 'Scheduling...'
-                  : 'Schedule Meeting'}
+                  ? t('scheduling')
+                  : t('submitSchedule')}
             </button>
           </div>
         </form>

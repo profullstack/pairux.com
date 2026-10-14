@@ -1,34 +1,30 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { TypeAnimation } from 'react-type-animation';
 
-const sequence = [
+const WORDS = [
   'programming',
-  2000,
   'pitching',
-  2000,
   'presenting',
-  2000,
   'demoing',
-  2000,
   'designing',
-  2000,
   'debugging',
-  2000,
   'teaching',
-  2000,
   'training',
-  2000,
   'reviewing',
-  2000,
   'brainstorming',
-  2000,
-];
+] as const;
 
 export function RotatingText() {
+  const t = useTranslations('home.rotating');
+  const locale = useLocale();
+  const sequence = WORDS.flatMap((word) => [t(word), 2000]);
   return (
     <span className="inline-flex items-baseline">
       <TypeAnimation
+        // TypeAnimation reads its sequence once on mount; remount on locale change.
+        key={locale}
         sequence={sequence}
         wrapper="span"
         speed={50}

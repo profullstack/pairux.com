@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { Circle, Play } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { SITE_URL, liveUrl } from '@/lib/embed';
@@ -28,9 +29,9 @@ async function getSession(joinCode: string): Promise<PublicSessionDetail | null>
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { joinCode } = await params;
-  const session = await getSession(joinCode);
+  const [session, t] = await Promise.all([getSession(joinCode), getTranslations('embed')]);
   return {
-    title: session?.subject ?? 'PairUX player',
+    title: session?.subject ?? t('defaultTitle'),
     // The permalink at /l/<joinCode> is the canonical, indexable page. The
     // player is a bare duplicate of it, so keep it out of search results.
     robots: { index: false, follow: false },
@@ -41,9 +42,10 @@ export default async function EmbedPlayerPage({ params }: PageProps) {
   const { joinCode } = await params;
   const session = await getSession(joinCode);
   if (!session) notFound();
+  const t = await getTranslations('embed');
 
   const permalink = liveUrl(session.join_code);
-  const title = session.subject ?? 'Untitled live';
+  const title = session.subject ?? t('untitled');
   const byline = session.channel_name ?? session.host_display_name ?? session.host_username ?? null;
   // Absolute, because these links open out of the iframe into a new tab.
   const channelUrl = session.channel_handle
@@ -88,7 +90,7 @@ export default async function EmbedPlayerPage({ params }: PageProps) {
                 <Play className="ml-1 h-7 w-7 fill-gray-900 text-gray-900" />
               </span>
               <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
-                {session.is_live ? 'Watch live on PairUX' : 'Watch on PairUX'}
+                {session.is_live ? t('watchLive') : t('watch')}
               </span>
             </span>
           </a>
@@ -99,7 +101,7 @@ export default async function EmbedPlayerPage({ params }: PageProps) {
         {session.is_live && (
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-medium text-red-400">
             <Circle className="h-2 w-2 animate-pulse fill-current" />
-            Live
+            {t('live')}
           </span>
         )}
         <div className="min-w-0 flex-1">

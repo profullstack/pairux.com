@@ -12,6 +12,7 @@ import {
   Loader2,
   User as UserIcon,
 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { groupSlotsByDay, localDate, type Slot } from '@/lib/booking-slots';
@@ -71,25 +72,25 @@ function ymdShift(ymd: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-function dayLabel(ymd: string): { weekday: string; date: string } {
+function dayLabel(ymd: string, locale: string): { weekday: string; date: string } {
   const [y, m, d] = ymd.split('-').map(Number);
   const date = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1, 12));
   return {
-    weekday: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
-    date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+    weekday: date.toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' }),
+    date: date.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' }),
   };
 }
 
-function timeLabel(iso: string, zone: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', {
+function timeLabel(iso: string, zone: string, locale: string): string {
+  return new Date(iso).toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: zone,
   });
 }
 
-function whenLabel(iso: string, zone: string): string {
-  return new Date(iso).toLocaleString('en-US', {
+function whenLabel(iso: string, zone: string, locale: string): string {
+  return new Date(iso).toLocaleString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -109,6 +110,8 @@ function whenLabel(iso: string, zone: string): string {
  * without another request.
  */
 export function BookingClient({ host, page }: Props) {
+  const t = useTranslations('book.booking');
+  const locale = useLocale();
   const [zone, setZone] = useState<string>('UTC');
   const [weekStart, setWeekStart] = useState<string>('');
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -147,16 +150,16 @@ export function BookingClient({ host, page }: Props) {
           `/api/book/${encodeURIComponent(host.username)}/${encodeURIComponent(page.slug)}?from=${from}&days=9`
         );
         const json = (await res.json()) as { data?: { slots: Slot[] }; error?: string };
-        if (!res.ok || !json.data) throw new Error(json.error ?? 'Could not load times');
+        if (!res.ok || !json.data) throw new Error(json.error ?? t('loadFailed'));
         setSlots(json.data.slots);
       } catch (error) {
-        setLoadError(error instanceof Error ? error.message : 'Could not load times');
+        setLoadError(error instanceof Error ? error.message : t('loadFailed'));
         setSlots([]);
       } finally {
         setLoading(false);
       }
     },
-    [host.username, page.slug]
+    [host.username, page.slug, t]
   );
 
   useEffect(() => {
@@ -202,11 +205,11 @@ export function BookingClient({ host, page }: Props) {
           setSelected(null);
           void loadWeek(weekStart);
         }
-        throw new Error(json.error ?? 'Could not book that time');
+        throw new Error(json.error ?? t('bookFailed'));
       }
       setConfirmation(json.data);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Could not book that time');
+      setSubmitError(error instanceof Error ? error.message : t('bookFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -215,7 +218,10 @@ export function BookingClient({ host, page }: Props) {
   if (confirmation) {
     const calendarEvent = {
       title: confirmation.title,
-      description: `Join at ${confirmation.joinUrl} with code ${confirmation.joinCode}`,
+      description: t('calendarDescription', {
+        url: confirmation.joinUrl,
+        code: confirmation.joinCode,
+      }),
       startIso: confirmation.scheduledAt,
       durationMinutes: confirmation.durationMinutes,
       joinUrl: confirmation.joinUrl,
@@ -223,36 +229,35 @@ export function BookingClient({ host, page }: Props) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-gray-200 bg-white p-8 text-center">
         <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-600" />
-        <h1 className="text-2xl font-bold text-gray-900">You&apos;re booked</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('booked')}</h1>
         <p className="mt-2 text-gray-600">
-          {whenLabel(confirmation.scheduledAt, zone)} with {confirmation.hostName}
+          {t('whenWith', {
+            when: whenLabel(confirmation.scheduledAt, zone, locale),
+            name: confirmation.hostName,
+          })}
         </p>
-        <p className="mt-1 text-sm text-gray-500">
-          A confirmation with everything below is on its way to {email}.
-        </p>
+        <p className="mt-1 text-sm text-gray-500">{t('confirmationSent', { email })}</p>
 
         <div className="my-6 rounded-lg bg-indigo-50 p-5">
           <p className="text-xs font-semibold tracking-wide text-indigo-700 uppercase">
-            Your join code
+            {t('yourJoinCode')}
           </p>
           <p className="mt-1 font-mono text-3xl font-extrabold tracking-[0.3em] text-indigo-700">
             {confirmation.joinCode}
           </p>
-          <p className="mt-2 text-xs text-indigo-600">
-            The call happens in PairUX. When it&apos;s time, open the link below or enter the code.
-          </p>
+          <p className="mt-2 text-xs text-indigo-600">{t('callHappensHint')}</p>
         </div>
 
         <a
           href={confirmation.joinUrl}
           className="inline-block rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700"
         >
-          Open the call page
+          {t('openCallPage')}
         </a>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
           <span className="inline-flex items-center gap-1 text-gray-500">
-            <CalendarPlus className="h-4 w-4" /> Add to calendar:
+            <CalendarPlus className="h-4 w-4" /> {t('addToCalendar')}
           </span>
           <a
             href={buildGoogleCalendarUrl(calendarEvent)}
@@ -282,11 +287,14 @@ export function BookingClient({ host, page }: Props) {
         </div>
 
         <p className="mt-6 text-xs text-gray-400">
-          Can&apos;t make it after all?{' '}
-          <a href={confirmation.rsvpUrl} className="text-indigo-600 hover:underline">
-            Let {confirmation.hostName} know
-          </a>
-          .
+          {t.rich('cantMakeIt', {
+            name: confirmation.hostName,
+            link: (chunks) => (
+              <a href={confirmation.rsvpUrl} className="text-indigo-600 hover:underline">
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
       </div>
     );
@@ -309,11 +317,12 @@ export function BookingClient({ host, page }: Props) {
         <h1 className="mt-4 text-xl font-bold text-gray-900">{page.title}</h1>
         {page.description && <p className="mt-2 text-sm text-gray-600">{page.description}</p>}
         <p className="mt-4 inline-flex items-center gap-2 text-sm text-gray-600">
-          <Clock className="h-4 w-4 text-gray-400" /> {page.durationMinutes} minutes
+          <Clock className="h-4 w-4 text-gray-400" />{' '}
+          {t('durationMinutes', { minutes: page.durationMinutes })}
         </p>
         <label className="mt-4 block text-sm text-gray-600">
           <span className="inline-flex items-center gap-2">
-            <Globe className="h-4 w-4 text-gray-400" /> Times shown in
+            <Globe className="h-4 w-4 text-gray-400" /> {t('timesShownIn')}
           </span>
           <select
             value={zone}
@@ -329,10 +338,7 @@ export function BookingClient({ host, page }: Props) {
             ))}
           </select>
         </label>
-        <p className="mt-6 text-xs text-gray-400">
-          The call itself happens in PairUX: voice, screen share and remote control, no download
-          needed to join from a browser.
-        </p>
+        <p className="mt-6 text-xs text-gray-400">{t('aboutCall')}</p>
       </aside>
 
       <section className="rounded-xl border border-gray-200 bg-white p-6">
@@ -346,17 +352,17 @@ export function BookingClient({ host, page }: Props) {
               }}
               className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"
             >
-              <ChevronLeft className="h-4 w-4" /> Pick a different time
+              <ChevronLeft className="h-4 w-4" /> {t('pickDifferentTime')}
             </button>
             <h2 className="text-lg font-semibold text-gray-900">
-              {whenLabel(selected.start, zone)}
+              {whenLabel(selected.start, zone, locale)}
             </h2>
             <p className="text-sm text-gray-500">
-              {page.durationMinutes} minutes with {host.displayName}
+              {t('minutesWith', { minutes: page.durationMinutes, name: host.displayName })}
             </p>
 
             <label className="mt-6 block text-sm font-medium text-gray-700">
-              Your name
+              {t('yourName')}
               <input
                 required
                 maxLength={80}
@@ -368,7 +374,7 @@ export function BookingClient({ host, page }: Props) {
               />
             </label>
             <label className="mt-4 block text-sm font-medium text-gray-700">
-              Email
+              {t('email')}
               <input
                 required
                 type="email"
@@ -380,8 +386,8 @@ export function BookingClient({ host, page }: Props) {
               />
             </label>
             <label className="mt-4 block text-sm font-medium text-gray-700">
-              Anything {host.displayName} should know?{' '}
-              <span className="font-normal text-gray-400">(optional)</span>
+              {t('notesLabel', { name: host.displayName })}{' '}
+              <span className="font-normal text-gray-400">{t('optional')}</span>
               <textarea
                 maxLength={1000}
                 rows={3}
@@ -403,7 +409,7 @@ export function BookingClient({ host, page }: Props) {
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Confirm booking
+              {t('confirm')}
             </button>
           </form>
         ) : (
@@ -416,13 +422,13 @@ export function BookingClient({ host, page }: Props) {
                   setWeekStart(ymdShift(weekStart, -7));
                 }}
                 className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-30"
-                aria-label="Previous week"
+                aria-label={t('previousWeek')}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <h2 className="text-sm font-semibold text-gray-700">
                 {weekStart &&
-                  `${dayLabel(weekStart).date} – ${dayLabel(ymdShift(weekStart, 6)).date}`}
+                  `${dayLabel(weekStart, locale).date} – ${dayLabel(ymdShift(weekStart, 6), locale).date}`}
               </h2>
               <button
                 type="button"
@@ -431,7 +437,7 @@ export function BookingClient({ host, page }: Props) {
                   setWeekStart(ymdShift(weekStart, 7));
                 }}
                 className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-30"
-                aria-label="Next week"
+                aria-label={t('nextWeek')}
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -447,12 +453,12 @@ export function BookingClient({ host, page }: Props) {
               </div>
             ) : days.every((day) => day.slots.length === 0) ? (
               <p className="py-16 text-center text-sm text-gray-500">
-                Nothing free this week.{canGoForward ? ' Try the next one.' : ''}
+                {canGoForward ? t('nothingFreeTryNext') : t('nothingFree')}
               </p>
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
                 {days.map((day) => {
-                  const label = dayLabel(day.date);
+                  const label = dayLabel(day.date, locale);
                   return (
                     <div key={day.date}>
                       <div className="mb-2 text-center">
@@ -474,7 +480,7 @@ export function BookingClient({ host, page }: Props) {
                               }}
                               className="w-full rounded-md border border-indigo-200 px-2 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
                             >
-                              {timeLabel(slot.start, zone)}
+                              {timeLabel(slot.start, zone, locale)}
                             </button>
                           ))
                         )}

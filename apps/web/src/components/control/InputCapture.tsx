@@ -5,6 +5,7 @@ import type { InputEvent, ControlStateUI } from '@pairux/shared-types';
 import { useRemoteControl } from '@/hooks/useRemoteControl';
 import { usePointerLock } from '@/hooks/usePointerLock';
 import { Fullscreen } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface InputCaptureProps {
   children: ReactNode;
@@ -34,6 +35,7 @@ export function InputCapture({
   className = '',
   allowFullscreen = false,
 }: InputCaptureProps) {
+  const t = useTranslations('control.capture');
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -234,7 +236,7 @@ export function InputCapture({
       {controlState === 'granted' && !isLocked && !lockDenied && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <div className="rounded-lg bg-black/70 px-4 py-2 text-sm font-medium text-white backdrop-blur">
-            Click to control · Esc to release
+            {t('clickToControl')}
           </div>
         </div>
       )}
@@ -254,7 +256,7 @@ export function InputCapture({
           }}
         >
           <span className="rounded-lg bg-black/70 px-4 py-2 text-sm font-medium text-white backdrop-blur">
-            Pointer capture was unavailable · Click to try again
+            {t('pointerUnavailable')}
           </span>
         </button>
       )}
@@ -266,10 +268,10 @@ export function InputCapture({
           className="absolute top-2 right-2 z-10 rounded-lg bg-black/40 p-2 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/60 hover:text-white"
           title={
             !isFullscreen
-              ? 'Fullscreen + pointer lock'
+              ? t('fullscreenLock')
               : isLocked
-                ? 'Exit fullscreen'
-                : 'Capture pointer again'
+                ? t('exitFullscreen')
+                : t('capturePointerAgain')
           }
         >
           <Fullscreen className="h-4 w-4" />

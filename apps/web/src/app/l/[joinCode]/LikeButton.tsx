@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface LikeButtonProps {
   sessionId: string;
@@ -16,6 +17,7 @@ interface LikeResponse {
 }
 
 export function LikeButton({ sessionId, joinCode, initialLiked, initialCount }: LikeButtonProps) {
+  const t = useTranslations('replay');
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -48,6 +50,8 @@ export function LikeButton({ sessionId, joinCode, initialLiked, initialCount }: 
       type="button"
       onClick={() => void toggle()}
       disabled={busy}
+      aria-pressed={liked}
+      aria-label={liked ? t('unlike', { count }) : t('like', { count })}
       className={
         liked
           ? 'inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-60'

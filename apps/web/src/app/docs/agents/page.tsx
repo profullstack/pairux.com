@@ -1,15 +1,21 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Bot, Terminal, ShieldCheck, MessageSquare } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
-export const metadata: Metadata = {
-  title: 'Agent participants | PairUX Docs',
-  description:
-    'Bring an AI agent such as Claude Code into a live PairUX session. It joins with the join code, follows the chat, answers in it, and shows up labelled as an agent on web, desktop and mobile.',
-  alternates: { canonical: 'https://pairux.com/docs/agents' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('docs.agents.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/docs/agents' },
+  };
+}
+
+// The body of this page (commands, API reference, notes) is English only.
 
 const commands: { cmd: string; what: string }[] = [
   {
@@ -47,19 +53,26 @@ const api: { route: string; what: string }[] = [
 ];
 
 export default function AgentDocsPage() {
+  const t = useTranslations('docs');
+  const locale = useLocale();
   return (
     <>
       <Header />
       <main className="py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Link href="/docs" className="text-primary-600 text-sm hover:underline">
-            ← Documentation
+            {t('agents.backLink')}
           </Link>
           <h1 className="mt-6 flex items-center gap-3 text-4xl font-bold tracking-tight text-gray-900">
             <Bot className="text-primary-600 h-9 w-9" aria-hidden="true" />
-            Agent participants
+            {t('agents.title')}
           </h1>
-          <p className="mt-6 text-lg leading-relaxed text-gray-600">
+          {locale !== 'en' && (
+            <p className="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+              {t('englishOnly')}
+            </p>
+          )}
+          <p lang="en" className="mt-6 text-lg leading-relaxed text-gray-600">
             An AI agent can join a PairUX session next to the people in it. It uses the same join
             code as everyone else, reads the chat, answers in it, and appears in the participant
             list with an <strong>Agent</strong> badge in the browser, the installed web app, the
@@ -67,7 +80,7 @@ export default function AgentDocsPage() {
             follow a pairing session and report back while you work.
           </p>
 
-          <section className="mt-12">
+          <section lang="en" className="mt-12">
             <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
               <Terminal className="h-6 w-6" aria-hidden="true" /> The pairux command
             </h2>
@@ -90,7 +103,7 @@ export default function AgentDocsPage() {
             </p>
           </section>
 
-          <section className="mt-12">
+          <section lang="en" className="mt-12">
             <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
               <ShieldCheck className="h-6 w-6" aria-hidden="true" /> What an agent can and cannot do
             </h2>
@@ -116,7 +129,7 @@ export default function AgentDocsPage() {
             </ul>
           </section>
 
-          <section className="mt-12">
+          <section lang="en" className="mt-12">
             <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
               <MessageSquare className="h-6 w-6" aria-hidden="true" /> HTTP API
             </h2>

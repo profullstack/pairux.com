@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -18,13 +19,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const svc = serviceClient();
   const host = await findHostByUsername(svc, username);
   const page = host ? await findActivePage(svc, host.id, slug) : null;
-  if (!host || !page) return { title: 'Book a call · PairUX' };
+  const t = await getTranslations('book.meta');
+  if (!host || !page) return { title: t('bookCall') };
   const name = host.display_name ?? host.username;
   return {
-    title: `${page.title} with ${name} · PairUX`,
-    description:
-      page.description ??
-      `Book ${String(page.duration_minutes)} minutes with ${name}. The call happens in PairUX.`,
+    title: t('pageWith', { title: page.title, name }),
+    description: page.description ?? t('pageDescription', { minutes: page.duration_minutes, name }),
   };
 }
 

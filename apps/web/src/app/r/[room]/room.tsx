@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Copy, Lock, Phone, Video } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { PairuxCall } from '@profullstack/pairux-embed';
 import { ROOM_ID_RE, keyFromHash } from '@/lib/anon-rooms';
 
@@ -19,6 +20,7 @@ interface TokenResponse {
  * every frame is encrypted with it before it leaves this tab.
  */
 export function AnonRoom({ room }: { room: string }) {
+  const t = useTranslations('room');
   const [key, setKey] = useState<Uint8Array | null | undefined>(undefined);
   const [name, setName] = useState('');
   const [joined, setJoined] = useState<{ video: boolean } | null>(null);
@@ -47,10 +49,10 @@ export function AnonRoom({ room }: { room: string }) {
         const res = await fetch('/api/v1/rooms/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room, name: name.trim() || 'Guest' }),
+          body: JSON.stringify({ room, name: name.trim() || t('guest') }),
         });
         const body = (await res.json().catch(() => ({}))) as TokenResponse;
-        if (!res.ok || !body.data) throw new Error(body.error ?? 'Could not join the room');
+        if (!res.ok || !body.data) throw new Error(body.error ?? t('joinFailed'));
         const { PairuxCall: Call, mountCall } = await import('@profullstack/pairux-embed');
         if (state.cancelled) return;
         call = new Call({
@@ -66,7 +68,7 @@ export function AnonRoom({ room }: { room: string }) {
         });
         await call.join({ audio: true, video: joined.video });
       } catch (err) {
-        if (!state.cancelled) setError(err instanceof Error ? err.message : 'The call failed');
+        if (!state.cancelled) setError(err instanceof Error ? err.message : t('callFailed'));
       }
     })();
     return () => {
@@ -74,7 +76,7 @@ export function AnonRoom({ room }: { room: string }) {
       ui?.destroy();
       void call?.leave().catch(() => undefined);
     };
-  }, [joined, key, room, name]);
+  }, [joined, key, room, name, t]);
 
   const join = (video: boolean) => {
     try {
@@ -102,21 +104,23 @@ export function AnonRoom({ room }: { room: string }) {
           PairUX
         </Link>
         <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-          <Lock className="h-3.5 w-3.5" /> End-to-end encrypted
+          <Lock className="h-3.5 w-3.5" /> {t('e2ee')}
         </span>
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center gap-4 px-4 pb-6">
         {key === undefined ? null : !valid || !key ? (
           <div className="max-w-md text-center">
-            <h1 className="text-xl font-bold">This link is incomplete</h1>
+            <h1 className="text-xl font-bold">{t('incomplete.title')}</h1>
             <p className="mt-2 text-sm text-gray-400">
-              A room link ends in <code>#k=…</code>, the key that encrypts the call. Ask for the
-              full link, or{' '}
-              <Link href="/r" className="text-primary-400 underline">
-                start a new room
-              </Link>
-              .
+              {t.rich('incomplete.body', {
+                code: (chunks) => <code>{chunks}</code>,
+                link: (chunks) => (
+                  <Link href="/r" className="text-primary-400 underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         ) : joined ? (
@@ -129,20 +133,16 @@ export function AnonRoom({ room }: { room: string }) {
           </>
         ) : (
           <div className="w-full max-w-sm rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h1 className="text-xl font-bold">Join the room</h1>
-            <p className="mt-1 text-sm text-gray-400">
-              No account needed. Audio and video are encrypted on your device with a key that only
-              people holding this link have. PairUX cannot hear or see the call, and nothing is
-              recorded.
-            </p>
+            <h1 className="text-xl font-bold">{t('join.title')}</h1>
+            <p className="mt-1 text-sm text-gray-400">{t('join.body')}</p>
             <label htmlFor="anon-name" className="mt-4 block text-sm font-medium">
-              Your name
+              {t('join.nameLabel')}
             </label>
             <input
               id="anon-name"
               value={name}
               maxLength={50}
-              placeholder="Guest"
+              placeholder={t('guest')}
               onChange={(e) => {
                 setName(e.target.value);
               }}
@@ -157,7 +157,7 @@ export function AnonRoom({ room }: { room: string }) {
                 }}
                 className="bg-primary-600 hover:bg-primary-700 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-white"
               >
-                <Phone className="h-4 w-4" /> Voice
+                <Phone className="h-4 w-4" /> {t('join.voice')}
               </button>
               <button
                 type="button"
@@ -166,7 +166,7 @@ export function AnonRoom({ room }: { room: string }) {
                 }}
                 className="flex items-center justify-center gap-2 rounded-lg border border-gray-700 px-3 py-2.5 text-sm font-semibold hover:bg-gray-800"
               >
-                <Video className="h-4 w-4" /> Video
+                <Video className="h-4 w-4" /> {t('join.video')}
               </button>
             </div>
             <button
@@ -176,7 +176,7 @@ export function AnonRoom({ room }: { room: string }) {
               }}
               className="mt-3 flex w-full items-center justify-center gap-2 text-xs text-gray-400 hover:text-gray-200"
             >
-              <Copy className="h-3.5 w-3.5" /> {copied ? 'Copied' : 'Copy invite link'}
+              <Copy className="h-3.5 w-3.5" /> {copied ? t('copied') : t('copyInvite')}
             </button>
           </div>
         )}

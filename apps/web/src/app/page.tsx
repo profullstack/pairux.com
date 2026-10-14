@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import {
@@ -57,64 +58,27 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
+// Copy for each entry lives under home.features.<key> / home.steps.<key>.
 const features = [
-  {
-    icon: Monitor,
-    title: 'Real-time Screen Sharing',
-    description:
-      'Low-latency WebRTC streaming delivers crystal-clear screen sharing with adaptive quality.',
-  },
-  {
-    icon: MousePointer2,
-    title: 'Remote Control',
-    description:
-      'Mouse and keyboard control with explicit host approval. Both can control simultaneously.',
-  },
-  {
-    icon: Users,
-    title: 'Simultaneous Input',
-    description:
-      'Host and viewer can control at the same time. Host always has priority for safety.',
-  },
-  {
-    icon: Lock,
-    title: 'Secure by Design',
-    description:
-      'Encrypted via WebRTC DTLS-SRTP. Media never touches our servers unless you turn on AI call analysis.',
-  },
-  {
-    icon: Globe,
-    title: 'PWA Viewer',
-    description: 'Join sessions from any browser. No downloads required for viewers.',
-  },
-  {
-    icon: Cpu,
-    title: 'Cross-platform',
-    description:
-      'Desktop apps for macOS, Windows, and Linux. Install via Homebrew, WinGet, or APT.',
-  },
-];
+  { icon: Monitor, key: 'screenSharing' },
+  { icon: MousePointer2, key: 'remoteControl' },
+  { icon: Users, key: 'simultaneousInput' },
+  { icon: Lock, key: 'secure' },
+  { icon: Globe, key: 'pwaViewer' },
+  { icon: Cpu, key: 'crossPlatform' },
+] as const;
 
 const steps = [
-  {
-    number: '1',
-    title: 'Install the Desktop App',
-    description: 'Download PairUX on your computer via your package manager or direct download.',
-  },
-  {
-    number: '2',
-    title: 'Start a Session',
-    description: 'Click "Start Session" and choose which screen or window to share.',
-  },
-  {
-    number: '3',
-    title: 'Share the Link',
-    description: 'Send the join link to your collaborator. They can join from any browser.',
-  },
-];
+  { number: '1', key: 'install' },
+  { number: '2', key: 'start' },
+  { number: '3', key: 'share' },
+] as const;
+
+const testimonials = ['engineer', 'techLead', 'contributor'] as const;
 
 export default async function HomePage() {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const t = await getTranslations('home');
   return (
     <div className="flex min-h-screen flex-col">
       <script
@@ -130,18 +94,20 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-                Pair <RotatingText />, <span className="gradient-text">reimagined</span>
+                {t.rich('hero.title', {
+                  rotating: () => <RotatingText />,
+                  highlight: (chunks) => <span className="gradient-text">{chunks}</span>,
+                })}
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl">
-                Collaborative screen sharing with simultaneous remote mouse and keyboard control.
-                Like Screenhero, but open source.
+                {t('hero.subtitle')}
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/download"
                   className="bg-primary-600 hover:bg-primary-700 flex items-center gap-2 rounded-lg px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl"
                 >
-                  Download for Free
+                  {t('hero.download')}
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
@@ -151,12 +117,10 @@ export default async function HomePage() {
                   className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-900 shadow transition-all hover:border-gray-400 hover:shadow-md"
                 >
                   <GitHubIcon className="h-5 w-5" />
-                  View on GitHub
+                  {t('hero.github')}
                 </Link>
               </div>
-              <p className="mt-6 text-sm text-gray-500">
-                Free and open source. No account required for viewers.
-              </p>
+              <p className="mt-6 text-sm text-gray-500">{t('hero.note')}</p>
             </div>
           </div>
 
@@ -170,24 +134,26 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Everything you need for remote collaboration
+                {t('featuresSection.title')}
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Built for developers, designers, and anyone who needs to work together in real-time.
+                {t('featuresSection.subtitle')}
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature) => (
                 <div
-                  key={feature.title}
+                  key={feature.key}
                   className="group hover:border-primary-200 relative rounded-2xl border border-gray-200 bg-white p-8 transition-all hover:shadow-lg"
                 >
                   <div className="bg-primary-100 text-primary-600 group-hover:bg-primary-600 flex h-12 w-12 items-center justify-center rounded-xl transition-colors group-hover:text-white">
                     <feature.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="mt-6 text-lg font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="mt-2 text-gray-600">{feature.description}</p>
+                  <h3 className="mt-6 text-lg font-semibold text-gray-900">
+                    {t(`features.${feature.key}.title`)}
+                  </h3>
+                  <p className="mt-2 text-gray-600">{t(`features.${feature.key}.description`)}</p>
                 </div>
               ))}
             </div>
@@ -199,11 +165,9 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Get started in minutes
+                {t('steps.title')}
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                No complicated setup. Just install, share, and collaborate.
-              </p>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">{t('steps.subtitle')}</p>
             </div>
 
             <div className="mt-16 grid gap-8 lg:grid-cols-3">
@@ -217,8 +181,12 @@ export default async function HomePage() {
                     <div className="bg-primary-600 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white shadow-lg">
                       {step.number}
                     </div>
-                    <h3 className="mt-6 text-xl font-semibold text-gray-900">{step.title}</h3>
-                    <p className="mt-2 max-w-xs text-gray-600">{step.description}</p>
+                    <h3 className="mt-6 text-xl font-semibold text-gray-900">
+                      {t(`steps.${step.key}.title`)}
+                    </h3>
+                    <p className="mt-2 max-w-xs text-gray-600">
+                      {t(`steps.${step.key}.description`)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -231,55 +199,45 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Built for real-world collaboration
+                {t('community.title')}
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                PairUX is already being used for pair programming, design reviews, and remote
-                support. We&apos;re collecting early feedback — try it and share yours.
+                {t('community.subtitle')}
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {[
-                {
-                  quote:
-                    'Finally, a Screenhero replacement that actually works. The simultaneous control feature is game-changing for pair programming.',
-                  role: 'Software Engineer',
-                },
-                {
-                  quote:
-                    'The fact that viewers can join from any browser without installing anything makes this perfect for quick collaboration sessions.',
-                  role: 'Tech Lead',
-                },
-                {
-                  quote:
-                    'Open source, end-to-end encrypted, and it just works. This is exactly what the developer community needed.',
-                  role: 'Open Source Contributor',
-                },
-              ].map((testimonial, index) => (
+              {testimonials.map((testimonial) => (
                 <div
-                  key={index}
+                  key={testimonial}
                   className="relative rounded-2xl border border-gray-200 bg-gray-50 p-8"
                 >
                   <Quote className="text-primary-200 absolute top-6 right-6 h-8 w-8" />
-                  <p className="text-gray-700 italic">&ldquo;{testimonial.quote}&rdquo;</p>
+                  <p className="text-gray-700 italic">
+                    &ldquo;{t(`community.testimonials.${testimonial}.quote`)}&rdquo;
+                  </p>
                   <div className="mt-6">
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    <p className="text-sm text-gray-500">
+                      {t(`community.testimonials.${testimonial}.role`)}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
 
             <p className="mt-8 text-center text-sm text-gray-500">
-              Using PairUX?{' '}
-              <Link
-                href="https://github.com/profullstack/pairux.com/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:underline"
-              >
-                Share your experience on GitHub
-              </Link>
+              {t.rich('community.feedback', {
+                link: (chunks) => (
+                  <Link
+                    href="https://github.com/profullstack/pairux.com/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </section>
@@ -289,35 +247,32 @@ export default async function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
             <div>
               <p className="text-sm font-semibold tracking-wide text-violet-200 uppercase">
-                New · AI call analysis
+                {t('callAnalysis.eyebrow')}
               </p>
               <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                Get feedback on every interview, sync and presentation.
+                {t('callAnalysis.title')}
               </h2>
-              <p className="mt-5 text-lg text-violet-100">
-                Switch it on before the call. Afterwards you get a private report: a score, what
-                worked, what to fix, your talk time, pace and filler words, and the moments worth
-                replaying.
-              </p>
+              <p className="mt-5 text-lg text-violet-100">{t('callAnalysis.description')}</p>
               <Link
                 href="/features/call-analysis"
                 className="mt-6 inline-flex items-center gap-2 font-semibold text-white hover:text-violet-200"
               >
-                See how call analysis works <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                {t('callAnalysis.cta')} <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
             </div>
             <div className="rounded-2xl border border-violet-500/40 bg-white/10 p-8">
-              <p className="text-sm text-violet-200">Sample report · Interview</p>
-              <p className="mt-2 text-2xl font-semibold">
-                Clear answers, but you rushed the ending
-              </p>
+              <p className="text-sm text-violet-200">{t('callAnalysis.sample.label')}</p>
+              <p className="mt-2 text-2xl font-semibold">{t('callAnalysis.sample.headline')}</p>
               <p className="mt-1 text-5xl font-bold">
-                7<span className="text-lg text-violet-200">/10</span>
+                {t.rich('callAnalysis.sample.score', {
+                  score: 7,
+                  outOf: (chunks) => <span className="text-lg text-violet-200">{chunks}</span>,
+                })}
               </p>
               <ul className="mt-5 space-y-2 text-violet-50">
-                <li>You spoke 64% of the time at 172 wpm</li>
-                <li>4.1 filler words per 100 (&quot;like&quot;, &quot;you know&quot;)</li>
-                <li>Practice: close each answer with the result, in one sentence</li>
+                <li>{t('callAnalysis.sample.talkTime', { percent: 64, wpm: 172 })}</li>
+                <li>{t('callAnalysis.sample.fillers', { rate: 4.1 })}</li>
+                <li>{t('callAnalysis.sample.practice')}</li>
               </ul>
             </div>
           </div>
@@ -328,41 +283,35 @@ export default async function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
             <div>
               <p className="text-primary-300 text-sm font-semibold tracking-wide uppercase">
-                Agentic pair programming
+                {t('agentic.eyebrow')}
               </p>
               <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                Two people. One agent session.
+                {t('agentic.title')}
               </h2>
-              <p className="mt-5 text-lg text-gray-300">
-                Bring a teammate into the work while your coding agent runs. Follow the same
-                terminal, review the app together, and decide what to ask the agent next.
-              </p>
+              <p className="mt-5 text-lg text-gray-300">{t('agentic.description')}</p>
               <Link
                 href="/use-cases/agentic-pair-programming"
                 className="text-primary-300 mt-6 inline-flex items-center gap-2 font-semibold hover:text-white"
               >
-                Pair with moshcode and PairUX <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                {t('agentic.cta')} <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
               <p className="mt-4">
                 <Link
                   href="/use-cases"
                   className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
                 >
-                  Browse all use cases
+                  {t('agentic.browse')}
                 </Link>
               </p>
             </div>
             <div className="rounded-2xl border border-gray-700 bg-gray-800 p-8">
-              <h3 className="text-xl font-semibold">Watch, discuss, then work together</h3>
+              <h3 className="text-xl font-semibold">{t('agentic.cardTitle')}</h3>
               <ol className="mt-5 space-y-4 text-gray-300">
-                <li>1. Start a live moshcode session and share it with your team.</li>
-                <li>2. Use PairUX to show the terminal and the app you are building.</li>
-                <li>3. Review the agent’s changes together and let your teammate participate.</li>
+                <li>{t('agentic.step1')}</li>
+                <li>{t('agentic.step2')}</li>
+                <li>{t('agentic.step3')}</li>
               </ol>
-              <p className="mt-6 text-sm text-gray-400">
-                Useful for onboarding contractors, debugging together, and reviewing work before it
-                ships.
-              </p>
+              <p className="mt-6 text-sm text-gray-400">{t('agentic.note')}</p>
             </div>
           </div>
         </section>
@@ -373,42 +322,47 @@ export default async function HomePage() {
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Security you can trust
+                  {t('security.title')}
                 </h2>
-                <p className="mt-4 text-lg text-gray-600">
-                  PairUX is built with security at its core. Your screen data never touches our
-                  servers.
-                </p>
+                <p className="mt-4 text-lg text-gray-600">{t('security.subtitle')}</p>
 
                 <ul className="mt-8 space-y-4">
                   <li className="flex items-start gap-3">
                     <Shield className="text-accent-600 mt-0.5 h-6 w-6 flex-shrink-0" />
                     <div>
-                      <strong className="font-semibold text-gray-900">End-to-End Encryption</strong>
-                      <p className="text-gray-600">All media encrypted via WebRTC DTLS-SRTP</p>
+                      <strong className="font-semibold text-gray-900">
+                        {t('security.encryption.title')}
+                      </strong>
+                      <p className="text-gray-600">{t('security.encryption.description')}</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <Lock className="text-accent-600 mt-0.5 h-6 w-6 flex-shrink-0" />
                     <div>
-                      <strong className="font-semibold text-gray-900">Explicit Consent</strong>
-                      <p className="text-gray-600">Host must approve all control requests</p>
+                      <strong className="font-semibold text-gray-900">
+                        {t('security.consent.title')}
+                      </strong>
+                      <p className="text-gray-600">{t('security.consent.description')}</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <Zap className="text-accent-600 mt-0.5 h-6 w-6 flex-shrink-0" />
                     <div>
-                      <strong className="font-semibold text-gray-900">Emergency Revoke</strong>
+                      <strong className="font-semibold text-gray-900">
+                        {t('security.revoke.title')}
+                      </strong>
                       <p className="text-gray-600">
-                        Ctrl+Shift+Escape instantly revokes all control
+                        {t('security.revoke.description', { shortcut: 'Ctrl+Shift+Escape' })}
                       </p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <RefreshCw className="text-accent-600 mt-0.5 h-6 w-6 flex-shrink-0" />
                     <div>
-                      <strong className="font-semibold text-gray-900">Open Source</strong>
-                      <p className="text-gray-600">Fully auditable code under MIT license</p>
+                      <strong className="font-semibold text-gray-900">
+                        {t('security.openSource.title')}
+                      </strong>
+                      <p className="text-gray-600">{t('security.openSource.description')}</p>
                     </div>
                   </li>
                 </ul>
@@ -420,9 +374,9 @@ export default async function HomePage() {
                   <div className="border-primary-300 flex h-full flex-col items-center justify-center rounded-xl border-2 border-dashed bg-white/50">
                     <Lock className="text-primary-600 h-16 w-16" />
                     <p className="mt-4 text-center text-sm text-gray-600">
-                      Direct peer-to-peer connection
+                      {t('security.diagram.p2p')}
                       <br />
-                      No server-side media storage
+                      {t('security.diagram.noStorage')}
                     </p>
                   </div>
                 </div>
@@ -436,25 +390,22 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to collaborate?
+                {t('cta.title')}
               </h2>
-              <p className="text-primary-100 mx-auto mt-4 max-w-2xl text-lg">
-                Download PairUX and start sharing your screen in seconds. Free, open source, and
-                privacy-focused.
-              </p>
+              <p className="text-primary-100 mx-auto mt-4 max-w-2xl text-lg">{t('cta.subtitle')}</p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/download"
                   className="text-primary-600 hover:bg-primary-50 flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-base font-semibold shadow-lg transition-all hover:shadow-xl"
                 >
-                  Download Now
+                  {t('cta.download')}
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   href="/features"
                   className="border-primary-400 hover:bg-primary-500 flex items-center gap-2 rounded-lg border px-6 py-3 text-base font-semibold text-white transition-all"
                 >
-                  Learn More
+                  {t('cta.learnMore')}
                 </Link>
               </div>
             </div>

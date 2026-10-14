@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface MyOrg {
   id: string;
@@ -56,7 +57,7 @@ export function WorkspacePicker({
   orgs,
   value,
   onChange,
-  label = 'Workspace',
+  label,
   requireManage = false,
   className = '',
 }: {
@@ -68,11 +69,12 @@ export function WorkspacePicker({
   requireManage?: boolean;
   className?: string;
 }) {
+  const tw = useTranslations('workspace');
   if (!orgs || orgs.length === 0) return null;
   const isAdmin = (o: MyOrg) => o.role === 'owner' || o.role === 'admin';
   return (
     <label className={`block text-sm text-gray-700 ${className}`}>
-      {label}
+      {label ?? tw('label')}
       <select
         value={encode(value)}
         onChange={(e) => {
@@ -81,11 +83,11 @@ export function WorkspacePicker({
         className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900"
         data-testid="workspace-picker"
       >
-        <option value="personal">Personal</option>
+        <option value="personal">{tw('personal')}</option>
         {orgs.map((org) => (
           <optgroup key={org.id} label={org.name}>
             {(!requireManage || isAdmin(org)) && (
-              <option value={`org:${org.id}`}>{org.name} (whole organization)</option>
+              <option value={`org:${org.id}`}>{tw('wholeOrg', { org: org.name })}</option>
             )}
             {org.teams
               .filter((t) =>
@@ -95,7 +97,7 @@ export function WorkspacePicker({
               )
               .map((t) => (
                 <option key={t.id} value={`team:${t.id}`}>
-                  {org.name} › {t.name}
+                  {tw('teamOption', { org: org.name, team: t.name })}
                 </option>
               ))}
           </optgroup>

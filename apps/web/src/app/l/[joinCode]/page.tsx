@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Circle, Eye, MessageSquare, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -50,11 +51,10 @@ async function getComments(sessionId: string): Promise<SessionComment[]> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { joinCode } = await params;
-  const s = await getSession(joinCode);
-  if (!s) return { title: 'Live not found' };
-  const title = s.subject ?? 'Live on PairUX';
-  const description =
-    s.description ?? `A public live by ${s.host_display_name ?? 'a PairUX creator'}.`;
+  const [s, t] = await Promise.all([getSession(joinCode), replayTranslations()]);
+  if (!s) return { title: t('notFoundTitle') };
+  const title = s.subject ?? t('defaultTitle');
+  const description = s.description ?? defaultDescription(s, t);
   return {
     title,
     description,
@@ -80,14 +80,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+/** The translator returned by getTranslations('replay'). */
+type ReplayT = Awaited<ReturnType<typeof replayTranslations>>;
+
+function replayTranslations() {
+  return getTranslations('replay');
+}
+
+function defaultDescription(s: PublicSessionDetail, t: ReplayT): string {
+  return s.host_display_name
+    ? t('defaultDescription', { name: s.host_display_name })
+    : t('defaultDescriptionAnonymous');
+}
+
 /** schema.org VideoObject so a finished live can surface as a video result. */
-function videoSchema(s: PublicSessionDetail): Record<string, unknown> {
-  const title = s.subject ?? 'Live on PairUX';
+function videoSchema(s: PublicSessionDetail, t: ReplayT): Record<string, unknown> {
+  const title = s.subject ?? t('defaultTitle');
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
     name: title,
-    description: s.description ?? `A public live by ${s.host_display_name ?? 'a PairUX creator'}.`,
+    description: s.description ?? defaultDescription(s, t),
     uploadDate: s.published_at ?? s.created_at,
     url: liveUrl(s.join_code),
     embedUrl: embedUrl(s.join_code),
@@ -104,8 +117,8 @@ function videoSchema(s: PublicSessionDetail): Record<string, unknown> {
   return schema;
 }
 
-function hostName(s: PublicSessionDetail): string {
-  return s.host_display_name ?? (s.host_username ? `@${s.host_username}` : 'Anonymous');
+function hostName(s: PublicSessionDetail, t: ReplayT): string {
+  return s.host_display_name ?? (s.host_username ? `@${s.host_username}` : t('anonymous'));
 }
 
 export default async function LiveDetailPage({ params }: PageProps) {
@@ -113,7 +126,11 @@ export default async function LiveDetailPage({ params }: PageProps) {
   const session = await getSession(joinCode);
   if (!session) notFound();
 
-  const comments = await getComments(session.id);
+  const [comments, t, locale] = await Promise.all([
+    getComments(session.id),
+    replayTranslations(),
+    getLocale(),
+  ]);
   const when = session.published_at ?? session.created_at;
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const snippet = iframeSnippet(session.join_code, { title: session.subject });
@@ -126,7 +143,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema(session)) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema(session, t)) }}
       />
       <Header />
 
@@ -156,11 +173,11 @@ export default async function LiveDetailPage({ params }: PageProps) {
             {session.is_live ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
                 <Circle className="h-2 w-2 animate-pulse fill-current" />
-                Live now
+                {t('liveNow')}
               </span>
             ) : (
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                {new Date(when).toLocaleDateString(undefined, {
+                {new Date(when).toLocaleDateString(locale, {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
@@ -176,7 +193,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            {session.subject ?? 'Untitled live'}
+            {session.subject ?? t('untitled')}
           </h1>
 
           <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
@@ -200,10 +217,10 @@ export default async function LiveDetailPage({ params }: PageProps) {
                 href={`/u/${session.host_username}`}
                 className="text-primary-600 hover:underline"
               >
-                {hostName(session)}
+                {hostName(session, t)}
               </Link>
             ) : (
-              <span>{hostName(session)}</span>
+              <span>{hostName(session, t)}</span>
             )}
           </div>
 
@@ -226,7 +243,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
                 href={`/join/${session.join_code}`}
                 className="bg-primary-600 hover:bg-primary-700 inline-flex items-center justify-center rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors"
               >
-                Watch for free
+                {t('watchFree')}
               </Link>
             )}
           </div>
@@ -238,7 +255,7 @@ export default async function LiveDetailPage({ params }: PageProps) {
           <section className="mt-10 border-t border-gray-200 pt-8">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
               <MessageSquare className="h-5 w-5 text-gray-400" />
-              Comments ({session.comment_count})
+              {t('commentsHeading', { count: session.comment_count })}
             </h2>
             <Comments
               sessionId={session.id}

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Calendar, Clock, User, ExternalLink, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
 interface InviteData {
@@ -24,9 +25,9 @@ interface InviteData {
   };
 }
 
-function formatDateTime(isoString: string): string {
+function formatDateTime(isoString: string, locale: string): string {
   const date = new Date(isoString);
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -37,15 +38,9 @@ function formatDateTime(isoString: string): string {
   });
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes >= 60) {
-    const h = minutes / 60;
-    return `${String(h)} hour${h > 1 ? 's' : ''}`;
-  }
-  return `${String(minutes)} minutes`;
-}
-
 export default function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+  const t = useTranslations('invite');
+  const locale = useLocale();
   const [token, setToken] = useState<string>('');
   const [data, setData] = useState<InviteData | null>(null);
   const [rsvpStatus, setRsvpStatus] = useState<string | null>(null);
@@ -83,7 +78,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
       try {
         const res = await fetch(`/api/invite/${token}`);
         const json = (await res.json()) as { data?: InviteData; error?: string };
-        if (!res.ok) throw new Error(json.error ?? 'Invite not found');
+        if (!res.ok) throw new Error(json.error ?? t('notFound'));
         if (json.data) {
           setData(json.data);
           setRsvpStatus(json.data.invitee.rsvpStatus);
@@ -93,14 +88,14 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           setRsvpStatus(autoRsvp);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load invite');
+        setError(err instanceof Error ? err.message : t('loadFailed'));
       } finally {
         setLoading(false);
       }
     }
 
     void load();
-  }, [token, submitRsvp]);
+  }, [token, submitRsvp, t]);
 
   if (loading) {
     return (
@@ -115,12 +110,10 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
           <XCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h1 className="text-xl font-semibold text-gray-900">Invite not found</h1>
-          <p className="mt-2 text-gray-500">
-            {error ?? 'This invite link may be invalid or expired.'}
-          </p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('notFound')}</h1>
+          <p className="mt-2 text-gray-500">{error ?? t('invalidOrExpired')}</p>
           <Link href="/" className="mt-4 inline-block text-indigo-600 hover:underline">
-            Go to PairUX
+            {t('goToPairux')}
           </Link>
         </div>
       </div>
@@ -137,15 +130,17 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
         {/* Header */}
         <div className="mb-6 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-center text-white shadow-lg">
           <p className="text-xs font-semibold tracking-widest text-indigo-200 uppercase">
-            Meeting Invitation
+            {t('heading')}
           </p>
           <h1 className="mt-2 text-2xl font-bold">{meeting.title}</h1>
-          <p className="mt-1 text-sm text-indigo-100">from {meeting.hostName}</p>
+          <p className="mt-1 text-sm text-indigo-100">
+            {t('fromHost', { name: meeting.hostName })}
+          </p>
         </div>
 
         {isCancelled && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-center text-red-700">
-            This meeting has been cancelled.
+            {t('cancelled')}
           </div>
         )}
 
@@ -155,31 +150,33 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
             <div className="flex items-start gap-3">
               <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500" />
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">Date &amp; Time</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase">{t('dateTime')}</p>
                 <p className="mt-0.5 text-sm font-medium text-gray-900">
-                  {formatDateTime(meeting.scheduledAt)}
+                  {formatDateTime(meeting.scheduledAt, locale)}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500" />
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">Duration</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase">{t('duration')}</p>
                 <p className="mt-0.5 text-sm font-medium text-gray-900">
-                  {formatDuration(meeting.durationMinutes)}
+                  {meeting.durationMinutes >= 60
+                    ? t('durationHours', { hours: meeting.durationMinutes / 60 })
+                    : t('durationMinutes', { minutes: meeting.durationMinutes })}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <User className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500" />
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">Host</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase">{t('host')}</p>
                 <p className="mt-0.5 text-sm font-medium text-gray-900">{meeting.hostName}</p>
               </div>
             </div>
             {meeting.description && (
               <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Notes</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase">{t('notes')}</p>
                 <p className="mt-1 text-sm text-gray-700">{meeting.description}</p>
               </div>
             )}
@@ -190,17 +187,17 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
         {!isCancelled && (
           <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-6 text-center">
             <p className="text-xs font-semibold tracking-wide text-indigo-600 uppercase">
-              Your Join Code
+              {t('yourJoinCode')}
             </p>
             <p className="mt-2 font-mono text-4xl font-extrabold tracking-[8px] text-indigo-700">
               {meeting.joinCode}
             </p>
-            <p className="mt-2 text-xs text-indigo-400">Use this code when the meeting starts</p>
+            <p className="mt-2 text-xs text-indigo-400">{t('useCodeHint')}</p>
             <Link
               href={joinUrl}
               className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
             >
-              Join Meeting
+              {t('joinMeeting')}
               <ExternalLink className="h-4 w-4" />
             </Link>
           </div>
@@ -209,7 +206,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
         {/* Add to Calendar */}
         {!isCancelled && (
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="mb-3 text-sm font-medium text-gray-700">Add to Calendar</p>
+            <p className="mb-3 text-sm font-medium text-gray-700">{t('addToCalendar')}</p>
             <div className="flex gap-2">
               <a
                 href={buildGoogleCalendarUrl({
@@ -255,7 +252,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                Apple / iCal
+                {t('appleCalendar')}
               </button>
             </div>
           </div>
@@ -267,34 +264,32 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
             {rsvpStatus === 'accepted' ? (
               <div>
                 <CheckCircle className="mx-auto mb-2 h-10 w-10 text-green-500" />
-                <p className="font-semibold text-gray-900">You accepted!</p>
-                <p className="mt-1 text-sm text-gray-500">We&apos;ll see you at the meeting.</p>
+                <p className="font-semibold text-gray-900">{t('accepted')}</p>
+                <p className="mt-1 text-sm text-gray-500">{t('acceptedNote')}</p>
                 <button
                   onClick={() => void submitRsvp(token, 'declined')}
                   disabled={rsvpLoading}
                   className="mt-3 text-xs text-gray-400 underline hover:text-gray-600"
                 >
-                  Can&apos;t make it after all?
+                  {t('cantMakeItAfterAll')}
                 </button>
               </div>
             ) : rsvpStatus === 'declined' ? (
               <div>
                 <XCircle className="mx-auto mb-2 h-10 w-10 text-gray-400" />
-                <p className="font-semibold text-gray-900">You declined</p>
-                <p className="mt-1 text-sm text-gray-500">
-                  You&apos;ve indicated you can&apos;t attend.
-                </p>
+                <p className="font-semibold text-gray-900">{t('declined')}</p>
+                <p className="mt-1 text-sm text-gray-500">{t('declinedNote')}</p>
                 <button
                   onClick={() => void submitRsvp(token, 'accepted')}
                   disabled={rsvpLoading}
                   className="mt-3 text-xs text-indigo-500 underline hover:text-indigo-700"
                 >
-                  Changed your mind?
+                  {t('changedMind')}
                 </button>
               </div>
             ) : (
               <div>
-                <p className="mb-4 font-medium text-gray-900">Will you attend?</p>
+                <p className="mb-4 font-medium text-gray-900">{t('willYouAttend')}</p>
                 <div className="flex justify-center gap-3">
                   <button
                     onClick={() => void submitRsvp(token, 'accepted')}
@@ -302,7 +297,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
                     className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    Yes, I&apos;ll be there
+                    {t('yes')}
                   </button>
                   <button
                     onClick={() => void submitRsvp(token, 'declined')}
@@ -310,7 +305,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
                     className="flex items-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
                   >
                     <XCircle className="h-4 w-4" />
-                    Can&apos;t make it
+                    {t('no')}
                   </button>
                 </div>
               </div>
@@ -319,7 +314,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
         )}
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          Invited as {invitee.email} ·{' '}
+          {t('invitedAs', { email: invitee.email })} ·{' '}
           <Link href="https://pairux.com" className="hover:text-indigo-500">
             pairux.com
           </Link>

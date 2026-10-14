@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { sendBulkEmail } from '@/app/actions/email';
 
 interface SendResult {
@@ -10,6 +11,7 @@ interface SendResult {
 }
 
 export function EmailComposer() {
+  const t = useTranslations('admin.email');
   const [pending, start] = useTransition();
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -38,7 +40,7 @@ export function EmailComposer() {
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase">
-          Subject
+          {t('subject')}
         </label>
         <input
           type="text"
@@ -47,14 +49,14 @@ export function EmailComposer() {
           onChange={(e) => {
             setSubject(e.target.value);
           }}
-          placeholder="Announcement: ..."
+          placeholder={t('subjectPlaceholder')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <div>
         <label className="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase">
-          Body (Markdown)
+          {t('body')}
         </label>
         <textarea
           required
@@ -80,9 +82,7 @@ export function EmailComposer() {
               : 'border-green-200 bg-green-50 text-green-800'
           }`}
         >
-          <p className="font-medium">
-            Sent {result.sent} · Failed {result.failed}
-          </p>
+          <p className="font-medium">{t('result', { sent: result.sent, failed: result.failed })}</p>
           {result.errors.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs">
               {result.errors.map((e) => (
@@ -100,7 +100,7 @@ export function EmailComposer() {
         disabled={pending}
         className="bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50"
       >
-        {pending ? 'Sending…' : 'Send to all users'}
+        {pending ? t('sending') : t('send')}
       </button>
     </form>
   );

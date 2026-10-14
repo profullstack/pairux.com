@@ -1,15 +1,23 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
-export const metadata: Metadata = {
-  title: 'About',
-  description: 'Learn about PairUX - the open source collaborative screen sharing tool.',
-  alternates: { canonical: 'https://pairux.com/about' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('about.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/about' },
+  };
+}
+
+const BUILDING_POINTS = ['b0', 'b1', 'b2', 'b3', 'b4'] as const;
 
 export default function AboutPage() {
+  const t = useTranslations('about');
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -19,11 +27,9 @@ export default function AboutPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                About PairUX
+                {t('title')}
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Building the collaborative tools we wish existed
-              </p>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">{t('subtitle')}</p>
             </div>
           </div>
         </section>
@@ -31,51 +37,44 @@ export default function AboutPage() {
         <section className="py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="prose prose-lg max-w-none">
-              <h2>Our Mission</h2>
-              <p>
-                PairUX was born from frustration. After Slack acquired Screenhero and shut it down,
-                remote pair programming became unnecessarily difficult. Existing tools either lack
-                remote control, require expensive licenses, or force you into vendor lock-in.
-              </p>
-              <p>
-                We believe collaborative screen sharing should be accessible to everyone.
-                That&apos;s why PairUX is open source, with transparent pricing and no artificial
-                limitations.
-              </p>
+              <h2>{t('missionTitle')}</h2>
+              <p>{t('missionP1')}</p>
+              <p>{t('missionP2')}</p>
 
-              <h2>What We&apos;re Building</h2>
-              <p>
-                PairUX is a desktop application for collaborative screen sharing with simultaneous
-                remote control. Think Screenhero, but modern, open source, and cross-platform.
-              </p>
+              <h2>{t('buildingTitle')}</h2>
+              <p>{t('buildingBody')}</p>
               <ul>
-                <li>Real-time screen sharing with low latency</li>
-                <li>Multiple participants can control the shared screen simultaneously</li>
-                <li>End-to-end encryption for security</li>
-                <li>Works across macOS, Windows, and Linux</li>
-                <li>Viewers can join from any browser</li>
+                {BUILDING_POINTS.map((point) => (
+                  <li key={point}>{t(`buildingList.${point}`)}</li>
+                ))}
               </ul>
 
-              <h2>Open Source</h2>
+              <h2>{t('openSourceTitle')}</h2>
               <p>
-                PairUX is released under the MIT license. You can view, modify, and contribute to
-                the code on{' '}
-                <Link
-                  href="https://github.com/profullstack/pairux.com"
-                  className="text-primary-600 hover:underline"
-                >
-                  GitHub
-                </Link>
-                . We welcome contributions from the community.
+                {t.rich('openSourceBody', {
+                  link: (chunks) => (
+                    <Link
+                      href="https://github.com/profullstack/pairux.com"
+                      className="text-primary-600 hover:underline"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
 
-              <h2>Contact</h2>
+              <h2>{t('contactTitle')}</h2>
               <p>
-                Have questions or feedback? Reach out to us at{' '}
-                <Link href="mailto:hello@pairux.com" className="text-primary-600 hover:underline">
-                  hello@pairux.com
-                </Link>
-                .
+                {t.rich('contactBody', {
+                  link: (chunks) => (
+                    <Link
+                      href="mailto:hello@pairux.com"
+                      className="text-primary-600 hover:underline"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </div>
           </div>

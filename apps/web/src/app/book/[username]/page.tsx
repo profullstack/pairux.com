@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Clock, CalendarDays, User as UserIcon } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -16,12 +17,15 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const host = await findHostByUsername(serviceClient(), username);
-  if (!host) return { title: 'Book a call · PairUX' };
+  const [host, t] = await Promise.all([
+    findHostByUsername(serviceClient(), username),
+    getTranslations('book.meta'),
+  ]);
+  if (!host) return { title: t('bookCall') };
   const name = host.display_name ?? host.username;
   return {
-    title: `Book a call with ${name} · PairUX`,
-    description: `Pick a time that works for you. The call happens in PairUX.`,
+    title: t('bookCallWith', { name }),
+    description: t('hostDescription'),
   };
 }
 
@@ -35,6 +39,7 @@ export default async function BookHostPage({ params }: PageProps) {
   const hostRow = await findHostByUsername(svc, username);
   if (!hostRow) notFound();
 
+  const t = await getTranslations('book.host');
   const host = publicHost(hostRow);
   const pages = (await listActivePages(svc, hostRow.id)).map(publicPage);
 
@@ -53,13 +58,13 @@ export default async function BookHostPage({ params }: PageProps) {
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{host.displayName}</h1>
-            <p className="text-sm text-gray-500">Book a call. It happens right here in PairUX.</p>
+            <p className="text-sm text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
         {pages.length === 0 ? (
           <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">
-            {host.displayName} is not taking bookings right now.
+            {t('notTakingBookings', { name: host.displayName })}
           </div>
         ) : (
           <ul className="space-y-3">
@@ -78,11 +83,11 @@ export default async function BookHostPage({ params }: PageProps) {
                     </div>
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
                       <Clock className="h-3.5 w-3.5" />
-                      {page.durationMinutes} min
+                      {t('minutes', { minutes: page.durationMinutes })}
                     </span>
                   </div>
                   <p className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
-                    <CalendarDays className="h-4 w-4" /> Pick a time
+                    <CalendarDays className="h-4 w-4" /> {t('pickTime')}
                   </p>
                 </Link>
               </li>

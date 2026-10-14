@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { CalendarCheck, Copy, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 import {
   DAY_KEYS,
@@ -25,15 +26,12 @@ interface BookingPage {
   active: boolean;
 }
 
-const DAY_LABELS: Record<DayKey, string> = {
-  sun: 'Sun',
-  mon: 'Mon',
-  tue: 'Tue',
-  wed: 'Wed',
-  thu: 'Thu',
-  fri: 'Fri',
-  sat: 'Sat',
-};
+/** Short weekday name in the active locale (DAY_KEYS starts on Sunday). */
+function dayLabel(day: DayKey, locale: string): string {
+  // 2023-01-01 was a Sunday.
+  const date = new Date(Date.UTC(2023, 0, 1 + DAY_KEYS.indexOf(day)));
+  return date.toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' });
+}
 
 const DURATIONS = [15, 20, 30, 45, 60, 90];
 
@@ -123,6 +121,8 @@ function formFrom(page: BookingPage): FormState {
  * meeting, so nothing here lists them.
  */
 export function BookingPagesManager() {
+  const t = useTranslations('dashboard.booking');
+  const locale = useLocale();
   const [pages, setPages] = useState<BookingPage[]>([]);
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,16 +140,16 @@ export function BookingPagesManager() {
         data?: { username: string | null; pages: BookingPage[] };
         error?: string;
       };
-      if (!res.ok || !json.data) throw new Error(json.error ?? 'Could not load booking pages');
+      if (!res.ok || !json.data) throw new Error(json.error ?? t('loadFailed'));
       setPages(json.data.pages);
       setUsername(json.data.username);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load booking pages');
+      setError(err instanceof Error ? err.message : t('loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -199,11 +199,11 @@ export function BookingPagesManager() {
               body: JSON.stringify(body),
             });
       const json = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(json.error ?? 'Could not save');
+      if (!res.ok) throw new Error(json.error ?? t('saveFailed'));
       setEditing(null);
       await load();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Could not save');
+      setFormError(err instanceof Error ? err.message : t('saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -219,7 +219,7 @@ export function BookingPagesManager() {
   };
 
   const remove = async (page: BookingPage) => {
-    if (!window.confirm(`Delete "${page.title}"? Meetings already booked on it are kept.`)) return;
+    if (!window.confirm(t('deleteConfirm', { title: page.title }))) return;
     await fetch(`/api/booking-pages/${page.id}`, { method: 'DELETE' });
     await load();
   };
@@ -244,10 +244,8 @@ export function BookingPagesManager() {
             <CalendarCheck className="h-5 w-5 text-indigo-600" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900">Booking links</h2>
-            <p className="text-sm text-gray-500">
-              Let anyone book a call with you. It happens in PairUX.
-            </p>
+            <h2 className="font-semibold text-gray-900">{t('title')}</h2>
+            <p className="text-sm text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
         <button
@@ -255,7 +253,7 @@ export function BookingPagesManager() {
           onClick={openNew}
           className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          <Plus className="h-4 w-4" /> New link
+          <Plus className="h-4 w-4" /> {t('newLink')}
         </button>
       </div>
 
@@ -268,11 +266,11 @@ export function BookingPagesManager() {
           <p className="text-sm text-red-600">{error}</p>
         ) : !username ? (
           <p className="text-sm text-gray-500">
-            Set a username in Settings first. Your links will be pairux.com/book/&lt;username&gt;/…
+            {t('needUsername', { url: `pairux.com/book/<${t('usernameToken')}>/…` })}
           </p>
         ) : pages.length === 0 ? (
           <p className="text-sm text-gray-500">
-            No booking links yet. Make one and share pairux.com/book/{username}/&lt;slug&gt;.
+            {t('empty', { url: `pairux.com/book/${username}/<${t('slugToken')}>` })}
           </p>
         ) : (
           <ul className="divide-y divide-gray-100">
@@ -282,11 +280,14 @@ export function BookingPagesManager() {
                   <p className="font-medium text-gray-900">
                     {page.title}{' '}
                     <span className="text-xs font-normal text-gray-400">
-                      · {page.duration_minutes} min · {page.timezone.replace(/_/g, ' ')}
+                      {t('meta', {
+                        minutes: page.duration_minutes,
+                        timezone: page.timezone.replace(/_/g, ' '),
+                      })}
                     </span>
                     {!page.active && (
                       <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                        off
+                        {t('off')}
                       </span>
                     )}
                   </p>
@@ -304,10 +305,10 @@ export function BookingPagesManager() {
                     type="button"
                     onClick={() => void copy(page)}
                     className="rounded-md p-2 text-gray-500 hover:bg-gray-100"
-                    title="Copy link"
+                    title={t('copyLink')}
                   >
                     {copied === page.id ? (
-                      <span className="text-xs text-green-600">Copied</span>
+                      <span className="text-xs text-green-600">{t('copied')}</span>
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -317,7 +318,7 @@ export function BookingPagesManager() {
                     onClick={() => void toggle(page)}
                     className="rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
                   >
-                    {page.active ? 'Turn off' : 'Turn on'}
+                    {page.active ? t('turnOff') : t('turnOn')}
                   </button>
                   <button
                     type="button"
@@ -325,7 +326,7 @@ export function BookingPagesManager() {
                       openEdit(page);
                     }}
                     className="rounded-md p-2 text-gray-500 hover:bg-gray-100"
-                    title="Edit"
+                    title={t('edit')}
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
@@ -333,7 +334,7 @@ export function BookingPagesManager() {
                     type="button"
                     onClick={() => void remove(page)}
                     className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"
-                    title="Delete"
+                    title={t('delete')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -352,7 +353,7 @@ export function BookingPagesManager() {
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
-                {editing === 'new' ? 'New booking link' : 'Edit booking link'}
+                {editing === 'new' ? t('newTitle') : t('editTitle')}
               </h3>
               <button
                 type="button"
@@ -360,14 +361,14 @@ export function BookingPagesManager() {
                   setEditing(null);
                 }}
                 className="rounded-md p-1 text-gray-400 hover:bg-gray-100"
-                aria-label="Close"
+                aria-label={t('close')}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <label className="block text-sm font-medium text-gray-700">
-              Title
+              {t('fieldTitle')}
               <input
                 required
                 maxLength={100}
@@ -380,13 +381,13 @@ export function BookingPagesManager() {
                     slug: prev.slugTouched ? prev.slug : slugify(title),
                   }));
                 }}
-                placeholder="Intro call"
+                placeholder={t('titlePlaceholder')}
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
               />
             </label>
 
             <label className="mt-3 block text-sm font-medium text-gray-700">
-              Link
+              {t('fieldLink')}
               <div className="mt-1 flex items-center rounded-md border border-gray-300">
                 <span className="truncate px-3 text-sm text-gray-400">
                   /book/{username ?? '…'}/
@@ -408,7 +409,8 @@ export function BookingPagesManager() {
             </label>
 
             <label className="mt-3 block text-sm font-medium text-gray-700">
-              Description <span className="font-normal text-gray-400">(optional)</span>
+              {t('fieldDescription')}{' '}
+              <span className="font-normal text-gray-400">{t('optional')}</span>
               <textarea
                 rows={2}
                 maxLength={1000}
@@ -422,7 +424,7 @@ export function BookingPagesManager() {
 
             <div className="mt-3 grid grid-cols-2 gap-3">
               <label className="block text-sm font-medium text-gray-700">
-                Duration
+                {t('fieldDuration')}
                 <select
                   value={form.durationMinutes}
                   onChange={(event) => {
@@ -435,13 +437,13 @@ export function BookingPagesManager() {
                     : [...DURATIONS, form.durationMinutes]
                   ).map((minutes) => (
                     <option key={minutes} value={minutes}>
-                      {minutes} minutes
+                      {t('durationOption', { minutes })}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block text-sm font-medium text-gray-700">
-                Timezone
+                {t('fieldTimezone')}
                 <input
                   required
                   value={form.timezone}
@@ -471,7 +473,7 @@ export function BookingPagesManager() {
             </div>
 
             <fieldset className="mt-4">
-              <legend className="text-sm font-medium text-gray-700">Available hours</legend>
+              <legend className="text-sm font-medium text-gray-700">{t('availableHours')}</legend>
               <div className="mt-2 space-y-1.5">
                 {DAY_KEYS.map((day) => {
                   const row = form.rows[day];
@@ -489,7 +491,7 @@ export function BookingPagesManager() {
                             }));
                           }}
                         />
-                        {DAY_LABELS[day]}
+                        {dayLabel(day, locale)}
                       </label>
                       <input
                         type="time"
@@ -504,7 +506,7 @@ export function BookingPagesManager() {
                         }}
                         className="rounded-md border border-gray-300 px-2 py-1 disabled:opacity-40"
                       />
-                      <span className="text-gray-400">to</span>
+                      <span className="text-gray-400">{t('to')}</span>
                       <input
                         type="time"
                         disabled={!row.on}
@@ -526,7 +528,7 @@ export function BookingPagesManager() {
 
             <div className="mt-4 grid grid-cols-3 gap-3">
               <label className="block text-xs font-medium text-gray-600">
-                Buffer (min)
+                {t('buffer')}
                 <input
                   type="number"
                   min={0}
@@ -539,7 +541,7 @@ export function BookingPagesManager() {
                 />
               </label>
               <label className="block text-xs font-medium text-gray-600">
-                Min notice (min)
+                {t('minNotice')}
                 <input
                   type="number"
                   min={0}
@@ -552,7 +554,7 @@ export function BookingPagesManager() {
                 />
               </label>
               <label className="block text-xs font-medium text-gray-600">
-                Days ahead
+                {t('daysAhead')}
                 <input
                   type="number"
                   min={1}
@@ -578,7 +580,7 @@ export function BookingPagesManager() {
                 }}
                 className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 type="submit"
@@ -586,7 +588,7 @@ export function BookingPagesManager() {
                 className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                {editing === 'new' ? 'Create link' : 'Save'}
+                {editing === 'new' ? t('create') : t('save')}
               </button>
             </div>
           </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { Building2, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface InvitePreview {
   orgName: string;
@@ -12,6 +13,7 @@ interface InvitePreview {
 }
 
 export function AcceptInvite({ token, header }: { token: string; header: ReactNode }) {
+  const t = useTranslations('orgInvite');
   const [invite, setInvite] = useState<InvitePreview | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -19,10 +21,10 @@ export function AcceptInvite({ token, header }: { token: string; header: ReactNo
   useEffect(() => {
     void fetch(`/api/org-invitations/${encodeURIComponent(token)}`).then(async (res) => {
       const body = (await res.json()) as { data?: InvitePreview; error?: string };
-      if (!res.ok || !body.data) setError(body.error ?? 'This invitation is no longer valid');
+      if (!res.ok || !body.data) setError(body.error ?? t('errors.invalid'));
       else setInvite(body.data);
     });
-  }, [token]);
+  }, [token, t]);
 
   async function accept() {
     setBusy(true);
@@ -37,7 +39,7 @@ export function AcceptInvite({ token, header }: { token: string; header: ReactNo
       return;
     }
     if (!res.ok || !body.data) {
-      setError(body.error ?? 'Could not accept the invitation');
+      setError(body.error ?? t('errors.acceptFailed'));
       return;
     }
     window.location.href = `/orgs/${body.data.orgId}`;
@@ -54,16 +56,19 @@ export function AcceptInvite({ token, header }: { token: string; header: ReactNo
           )}
           {invite && (
             <>
-              <h1 className="mt-4 text-2xl font-bold text-gray-900">Join {invite.orgName}</h1>
+              <h1 className="mt-4 text-2xl font-bold text-gray-900">
+                {t('title', { orgName: invite.orgName })}
+              </h1>
               <p className="mt-2 text-gray-600">
-                You are invited as {invite.role === 'admin' ? 'an admin' : 'a member'}
-                {invite.teamName ? ` of the ${invite.teamName} team` : ''}. Sign in as{' '}
-                <strong>{invite.email}</strong> to accept.
+                {t.rich(invite.teamName ? 'invitedToTeam' : 'invited', {
+                  role: invite.role === 'admin' ? 'admin' : 'member',
+                  teamName: invite.teamName ?? '',
+                  email: invite.email,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </p>
               {invite.expired ? (
-                <p className="mt-6 text-sm text-red-600">
-                  This invitation has expired. Ask for a new one.
-                </p>
+                <p className="mt-6 text-sm text-red-600">{t('expired')}</p>
               ) : (
                 <button
                   type="button"
@@ -72,7 +77,7 @@ export function AcceptInvite({ token, header }: { token: string; header: ReactNo
                   className="bg-primary-600 hover:bg-primary-700 mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold text-white disabled:opacity-60"
                 >
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Accept invitation
+                  {t('accept')}
                 </button>
               )}
             </>

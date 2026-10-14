@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { CallAnalysisKind, CallAnalysisSettings } from '@pairux/shared-types';
 
+/** English labels; UI should prefer the translated `session.analysis.kinds.*` messages. */
 export const ANALYSIS_KIND_LABELS: Record<CallAnalysisKind, string> = {
   general: 'General call',
   interview: 'Interview',
@@ -29,6 +31,7 @@ export function CallAnalysisOptions({
   value: CallAnalysisSettings;
   onChange: (next: CallAnalysisSettings) => void;
 }) {
+  const t = useTranslations('session.analysis');
   return (
     <div
       className="rounded-lg border border-violet-200 bg-violet-50/60 p-4"
@@ -41,15 +44,12 @@ export function CallAnalysisOptions({
             className="flex items-center gap-2 text-sm font-semibold text-gray-900"
           >
             <Sparkles className="h-4 w-4 text-violet-600" aria-hidden="true" />
-            AI call analysis
+            {t('title')}
             <span className="rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
               Pro
             </span>
           </label>
-          <p className="mt-1 text-xs text-gray-600">
-            Get feedback after the call: talk time, pace, filler words, what landed and what to
-            practice. Decide now; it cannot be switched on once the call starts.
-          </p>
+          <p className="mt-1 text-xs text-gray-600">{t('description')}</p>
         </div>
         <button
           id="analysis-enabled"
@@ -67,7 +67,7 @@ export function CallAnalysisOptions({
             value.enabled ? 'bg-violet-600' : 'bg-gray-300'
           }`}
         >
-          <span className="sr-only">Analyze this call</span>
+          <span className="sr-only">{t('toggle')}</span>
           <span
             className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
               value.enabled ? 'translate-x-5' : 'translate-x-0'
@@ -79,7 +79,7 @@ export function CallAnalysisOptions({
       {value.enabled && (
         <div className="mt-4 space-y-3">
           <label className="block text-sm text-gray-700">
-            What kind of call is it?
+            {t('kindLabel')}
             <select
               value={value.kind}
               onChange={(e) => {
@@ -89,7 +89,7 @@ export function CallAnalysisOptions({
             >
               {(Object.keys(ANALYSIS_KIND_LABELS) as CallAnalysisKind[]).map((kind) => (
                 <option key={kind} value={kind}>
-                  {ANALYSIS_KIND_LABELS[kind]}
+                  {t(`kinds.${kind}`)}
                 </option>
               ))}
             </select>
@@ -103,14 +103,16 @@ export function CallAnalysisOptions({
               }}
               className="h-4 w-4 rounded border-gray-300"
             />
-            Record the call and keep the recording
+            {t('keepRecording')}
           </label>
           <p className="text-xs text-gray-500">
-            Everyone who joins is told the call is recorded for AI analysis. Reports are private to
-            you.{' '}
-            <Link href="/features/call-analysis" className="text-violet-700 hover:underline">
-              How it works
-            </Link>
+            {t.rich('disclosure', {
+              link: (chunks) => (
+                <Link href="/features/call-analysis" className="text-violet-700 hover:underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
       )}

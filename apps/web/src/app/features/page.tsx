@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
@@ -24,205 +26,100 @@ import {
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
-export const metadata: Metadata = {
-  title: 'Features',
-  description:
-    'Explore all the features of PairUX: real-time screen sharing, remote control, multi-cursor collaboration, cross-platform support, and more.',
-  alternates: { canonical: 'https://pairux.com/features' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('features.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/features' },
+  };
+}
 
 /**
  * A screenshot is only attached where the shipped product actually shows the
  * feature. Remote control lives in the desktop app, so those entries keep the
  * illustrated placeholder rather than borrowing an unrelated screen.
  */
+type FeatureKey =
+  | 'callAnalysis'
+  | 'screenSharing'
+  | 'remoteControl'
+  | 'simultaneousInput'
+  | 'consent'
+  | 'pwaViewer'
+  | 'crossPlatform'
+  | 'recording'
+  | 'textChat';
+type ImageKey = 'screenSharing' | 'consent' | 'pwaViewer' | 'crossPlatform' | 'recording';
+
+/** Bullet keys under features.main.<key>.details. */
+const DETAIL_KEYS = ['d0', 'd1', 'd2', 'd3'] as const;
+
 interface Feature {
+  /** Message key under features.main.* (title, description, details). */
+  key: FeatureKey;
   icon: LucideIcon;
-  title: string;
-  description: string;
-  details: string[];
   comingSoon?: boolean;
-  image?: string;
-  imageAlt?: string;
+  /** Screenshot; its alt text is features.imageAlts.<alt>. */
+  image?: { src: string; alt: ImageKey };
 }
 
 const mainFeatures: Feature[] = [
+  { key: 'callAnalysis', icon: Sparkles },
   {
-    icon: Sparkles,
-    title: 'AI Call Analysis',
-    description:
-      'Switch it on before an interview, team sync or presentation and get a private feedback report after the call: a score, what worked, what to fix, and the moments worth replaying.',
-    details: [
-      'Talk time, pace and filler words per speaker',
-      'Interview, team sync and presentation modes',
-      'Screen stills reviewed for slides and demos',
-      'Everyone in the call is told it is recorded',
-    ],
-  },
-  {
+    key: 'screenSharing',
     icon: Monitor,
-    title: 'Real-time Screen Sharing',
-    description:
-      'Share your entire screen or individual windows with crystal-clear quality. WebRTC-powered streaming delivers low-latency video with adaptive bitrate.',
-    details: [
-      'Full screen or window sharing',
-      '1080p @ 30fps standard quality',
-      'Adaptive bitrate for any connection',
-      'Cursor included in stream',
-    ],
-    image: '/screenshots/screen-sharing.png',
-    imageAlt:
-      'The PairUX host console during a session, showing the quality selector, join code, participant list and session info panel.',
+    image: { src: '/screenshots/screen-sharing.png', alt: 'screenSharing' },
   },
+  { key: 'remoteControl', icon: MousePointer2 },
+  { key: 'simultaneousInput', icon: Users },
+  { key: 'consent', icon: Lock, image: { src: '/screenshots/consent-model.png', alt: 'consent' } },
   {
-    icon: MousePointer2,
-    title: 'Remote Mouse & Keyboard',
-    description:
-      'Let your collaborator take control with full mouse and keyboard input. All control requires explicit host approval.',
-    details: [
-      'Full mouse control (click, scroll, drag)',
-      'Complete keyboard input',
-      'Special keys and shortcuts',
-      'Cross-platform compatible',
-    ],
-  },
-  {
-    icon: Users,
-    title: 'Simultaneous Input',
-    description:
-      'Both host and viewer can control at the same time. Host input always takes priority for safety and comfort.',
-    details: [
-      'Both users can control together',
-      'Host always has priority',
-      'No input blocking or queuing',
-      'Visual indicator shows active controller',
-    ],
-  },
-  {
-    icon: Lock,
-    title: 'Explicit Consent Model',
-    description:
-      'Security is built in from the ground up. Viewers must request control, and hosts must explicitly approve.',
-    details: [
-      'Control requests require approval',
-      'Emergency revoke hotkey (Ctrl+Shift+Esc)',
-      'Visual indicator when control is active',
-      'Can revoke control at any time',
-    ],
-    image: '/screenshots/consent-model.png',
-    imageAlt:
-      'The PairUX viewer console, where a guest must press Request Control before the host grants input.',
-  },
-  {
+    key: 'pwaViewer',
     icon: Globe,
-    title: 'PWA Viewer',
-    description:
-      'Viewers join from any modern browser - no download required. Install as a Progressive Web App for quick access.',
-    details: [
-      'Works in any modern browser',
-      'No account required to join',
-      'Installable as PWA',
-      'Mobile-friendly for viewing',
-    ],
-    image: '/screenshots/pwa-viewer.png',
-    imageAlt:
-      'The PairUX join screen in a browser, showing the session code, live status and a Watch for free button that needs no account.',
+    image: { src: '/screenshots/pwa-viewer.png', alt: 'pwaViewer' },
   },
   {
+    key: 'crossPlatform',
     icon: Cpu,
-    title: 'Cross-Platform Desktop',
-    description:
-      'Native desktop apps for macOS, Windows, and Linux. Install via your favorite package manager.',
-    details: [
-      'macOS: Homebrew cask',
-      'Windows: WinGet',
-      'Linux: APT, DNF, AUR',
-      'Direct download available',
-    ],
-    image: '/screenshots/cross-platform.png',
-    imageAlt:
-      'The PairUX download page listing one-line installers plus DMG, EXE, AppImage, DEB and RPM builds for macOS, Windows and Linux.',
+    image: { src: '/screenshots/cross-platform.png', alt: 'crossPlatform' },
   },
   {
+    key: 'recording',
     icon: CircleDot,
-    title: 'Screen Recording',
-    description:
-      'Record your sessions locally for later review. Perfect for tutorials, documentation, and keeping a record of pair programming sessions.',
-    details: [
-      'Record to WebM/MP4 locally',
-      'System audio + microphone capture',
-      'Quality presets (720p/1080p/4K)',
-      'Pause/resume recording',
-    ],
     comingSoon: true,
-    image: '/screenshots/screen-recording.png',
-    imageAlt:
-      'PairUX recording settings, with default recording and capture quality presets and a system audio toggle.',
+    image: { src: '/screenshots/screen-recording.png', alt: 'recording' },
   },
-  {
-    icon: MessageSquare,
-    title: 'Text Chat',
-    description:
-      'Built-in text chat for when you need to share links, code snippets, or communicate without voice.',
-    details: [
-      'Real-time messaging',
-      'System notifications (join/leave)',
-      'Works alongside screen sharing',
-      'Message history per session',
-    ],
-    comingSoon: true,
-  },
+  { key: 'textChat', icon: MessageSquare, comingSoon: true },
 ];
 
 const technicalFeatures = [
-  {
-    icon: Video,
-    title: 'WebRTC P2P',
-    description: 'Direct peer-to-peer connection for minimal latency.',
-  },
-  {
-    icon: Shield,
-    title: 'E2E Encrypted',
-    description: 'DTLS-SRTP encryption for all media streams.',
-  },
-  {
-    icon: Wifi,
-    title: 'NAT Traversal',
-    description: 'STUN/TURN servers for reliable connectivity.',
-  },
-  {
-    icon: Eye,
-    title: 'Adaptive Quality',
-    description: 'Automatic quality adjustment based on bandwidth.',
-  },
-  {
-    icon: Pointer,
-    title: 'Shared control',
-    description: 'Host and guest take turns using the host system pointer.',
-  },
-  {
-    icon: Keyboard,
-    title: 'Full Keyboard',
-    description: 'All keys including modifiers and special keys.',
-  },
-];
+  { key: 'p2p', icon: Video },
+  { key: 'e2e', icon: Shield },
+  { key: 'nat', icon: Wifi },
+  { key: 'adaptive', icon: Eye },
+  { key: 'sharedControl', icon: Pointer },
+  { key: 'keyboard', icon: Keyboard },
+] as const;
 
+// Cells that are strings are keys under features.compare.values.*
 const comparisonFeatures = [
-  { feature: 'Screen sharing', pairux: true, others: true },
-  { feature: 'Remote control', pairux: true, others: true },
-  { feature: 'Simultaneous control', pairux: true, others: false },
-  { feature: 'Screen recording (local)', pairux: 'soon', others: 'partial' },
-  { feature: 'Text chat', pairux: 'soon', others: true },
-  { feature: 'No account for viewers', pairux: true, others: false },
-  { feature: 'Open source', pairux: true, others: false },
-  { feature: 'Self-hostable', pairux: true, others: false },
-  { feature: 'E2E encrypted', pairux: true, others: 'partial' },
-  { feature: 'Native apps', pairux: true, others: true },
-  { feature: 'Browser viewer', pairux: true, others: false },
-  { feature: 'Free tier', pairux: 'unlimited', others: 'limited' },
-];
+  { key: 'screenSharing', pairux: true, others: true },
+  { key: 'remoteControl', pairux: true, others: true },
+  { key: 'simultaneousControl', pairux: true, others: false },
+  { key: 'localRecording', pairux: 'soon', others: 'partial' },
+  { key: 'textChat', pairux: 'soon', others: true },
+  { key: 'noAccount', pairux: true, others: false },
+  { key: 'openSource', pairux: true, others: false },
+  { key: 'selfHostable', pairux: true, others: false },
+  { key: 'e2e', pairux: true, others: 'partial' },
+  { key: 'nativeApps', pairux: true, others: true },
+  { key: 'browserViewer', pairux: true, others: false },
+  { key: 'freeTier', pairux: 'unlimited', others: 'limited' },
+] as const;
 
 export default function FeaturesPage() {
+  const t = useTranslations('features');
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -233,18 +130,15 @@ export default function FeaturesPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Features
+                {t('hero.title')}
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Everything you need for real-time collaboration, built with privacy and security in
-                mind.
-              </p>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">{t('hero.subtitle')}</p>
             </div>
 
             <div className="mx-auto mt-12 max-w-5xl overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
               <Image
                 src="/screenshots/dashboard.png"
-                alt="The PairUX dashboard, showing session stats, channels, quick actions to start or join a session, and the current plan."
+                alt={t('hero.imageAlt')}
                 width={2880}
                 height={1620}
                 priority
@@ -261,7 +155,7 @@ export default function FeaturesPage() {
             <div className="space-y-20">
               {mainFeatures.map((feature, index) => (
                 <div
-                  key={feature.title}
+                  key={feature.key}
                   className={`grid items-center gap-12 lg:grid-cols-2 ${
                     index % 2 === 1 ? 'lg:flex-row-reverse' : ''
                   }`}
@@ -273,17 +167,23 @@ export default function FeaturesPage() {
                       </div>
                       {feature.comingSoon && (
                         <span className="bg-accent-100 text-accent-700 rounded-full px-3 py-1 text-xs font-medium">
-                          Coming Soon
+                          {t('comingSoon')}
                         </span>
                       )}
                     </div>
-                    <h2 className="mt-6 text-3xl font-bold text-gray-900">{feature.title}</h2>
-                    <p className="mt-4 text-lg text-gray-600">{feature.description}</p>
+                    <h2 className="mt-6 text-3xl font-bold text-gray-900">
+                      {t(`main.${feature.key}.title`)}
+                    </h2>
+                    <p className="mt-4 text-lg text-gray-600">
+                      {t(`main.${feature.key}.description`)}
+                    </p>
                     <ul className="mt-6 space-y-3">
-                      {feature.details.map((detail) => (
+                      {DETAIL_KEYS.map((detail) => (
                         <li key={detail} className="flex items-center gap-3">
                           <Check className="text-accent-600 h-5 w-5" />
-                          <span className="text-gray-700">{detail}</span>
+                          <span className="text-gray-700">
+                            {t(`main.${feature.key}.details.${detail}`)}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -295,8 +195,8 @@ export default function FeaturesPage() {
                       }`}
                     >
                       <Image
-                        src={feature.image}
-                        alt={feature.imageAlt ?? `${feature.title} in PairUX`}
+                        src={feature.image.src}
+                        alt={t(`imageAlts.${feature.image.alt}`)}
                         width={2880}
                         height={1620}
                         sizes="(min-width: 1024px) 50vw, 100vw"
@@ -324,18 +224,20 @@ export default function FeaturesPage() {
         <section className="bg-gray-50 py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900">Built on Modern Technology</h2>
-              <p className="mx-auto mt-4 max-w-2xl text-gray-600">
-                PairUX uses industry-standard WebRTC for reliable, low-latency streaming.
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900">{t('tech.title')}</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-gray-600">{t('tech.subtitle')}</p>
             </div>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {technicalFeatures.map((feature) => (
-                <div key={feature.title} className="rounded-xl border border-gray-200 bg-white p-6">
+                <div key={feature.key} className="rounded-xl border border-gray-200 bg-white p-6">
                   <feature.icon className="text-primary-600 h-8 w-8" />
-                  <h3 className="mt-4 font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{feature.description}</p>
+                  <h3 className="mt-4 font-semibold text-gray-900">
+                    {t(`technical.${feature.key}.title`)}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {t(`technical.${feature.key}.description`)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -346,30 +248,34 @@ export default function FeaturesPage() {
         <section className="bg-white py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900">How PairUX Compares</h2>
-              <p className="mx-auto mt-4 max-w-2xl text-gray-600">
-                See how PairUX stacks up against other screen sharing solutions.
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900">{t('compare.title')}</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-gray-600">{t('compare.subtitle')}</p>
             </div>
 
             <div className="mt-12 overflow-x-auto">
               <table className="w-full min-w-[500px] border-collapse">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="py-4 pr-4 text-left font-semibold text-gray-900">Feature</th>
+                    <th className="py-4 pr-4 text-left font-semibold text-gray-900">
+                      {t('compare.feature')}
+                    </th>
                     <th className="text-primary-600 px-4 py-4 text-center font-semibold">PairUX</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500">Others</th>
+                    <th className="px-4 py-4 text-center font-semibold text-gray-500">
+                      {t('compare.others')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisonFeatures.map((row) => (
-                    <tr key={row.feature} className="border-b border-gray-100">
-                      <td className="py-4 pr-4 text-gray-700">{row.feature}</td>
+                    <tr key={row.key} className="border-b border-gray-100">
+                      <td className="py-4 pr-4 text-gray-700">{t(`compare.rows.${row.key}`)}</td>
                       <td className="px-4 py-4 text-center">
                         {row.pairux === true ? (
                           <Check className="text-accent-600 mx-auto h-5 w-5" />
                         ) : (
-                          <span className="text-accent-600 text-sm font-medium">{row.pairux}</span>
+                          <span className="text-accent-600 text-sm font-medium">
+                            {t(`compare.values.${row.pairux}`)}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-center">
@@ -378,7 +284,9 @@ export default function FeaturesPage() {
                         ) : row.others === false ? (
                           <span className="text-gray-300">-</span>
                         ) : (
-                          <span className="text-sm text-gray-500">{row.others}</span>
+                          <span className="text-sm text-gray-500">
+                            {t(`compare.values.${row.others}`)}
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -394,16 +302,14 @@ export default function FeaturesPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
               <div className="text-center sm:text-left">
-                <h2 className="text-2xl font-bold text-white">Ready to get started?</h2>
-                <p className="text-primary-100 mt-1">
-                  Download PairUX and start collaborating in seconds.
-                </p>
+                <h2 className="text-2xl font-bold text-white">{t('cta.title')}</h2>
+                <p className="text-primary-100 mt-1">{t('cta.subtitle')}</p>
               </div>
               <Link
                 href="/download"
                 className="text-primary-600 hover:bg-primary-50 flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold transition-colors"
               >
-                Download Now
+                {t('cta.button')}
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>

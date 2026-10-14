@@ -2,6 +2,7 @@ import { vi, beforeEach, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import * as React from 'react';
+import type * as NextIntl from 'next-intl';
 
 // Make React available globally for JSX
 globalThis.React = React;
@@ -85,7 +86,7 @@ vi.mock('next/navigation', () => ({
 // without each test (including ones for pages owned by other work) having to
 // add a wrapper.
 vi.mock('next-intl', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next-intl')>();
+  const actual = await importOriginal<typeof NextIntl>();
   const { default: en } = await import('../../messages/en.json');
   const translatorCache = new Map<string, ReturnType<typeof actual.createTranslator>>();
   const fallbackTranslator = (namespace?: string) => {

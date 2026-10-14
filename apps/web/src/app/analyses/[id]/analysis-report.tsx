@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, Sparkles, ThumbsUp, Target, Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { ANALYSIS_KIND_LABELS } from '@/components/session/CallAnalysisOptions';
 import type { CallAnalysisKind, CallAnalysisStatus } from '@pairux/shared-types';
 import type { CallReport } from '@/lib/call-analysis/report';
 import { formatClock, type CallMetrics, type TranscriptSegment } from '@/lib/call-analysis/metrics';
@@ -41,6 +41,8 @@ function At({ ms, onSeek }: { ms: number | null; onSeek: (ms: number) => void })
 }
 
 export function AnalysisReport({ id, header }: { id: string; header: ReactNode }) {
+  const t = useTranslations('analyses');
+  const locale = useLocale();
   const [data, setData] = useState<AnalysisDetail | null>(null);
   const [error, setError] = useState('');
   const [showTranscript, setShowTranscript] = useState(false);
@@ -56,7 +58,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
       }
       const body = (await res.json()) as { data?: AnalysisDetail; error?: string };
       if (!res.ok || !body.data) {
-        setError(body.error ?? 'Could not load this analysis');
+        setError(body.error ?? t('report.loadError'));
         return;
       }
       setData(body.data);
@@ -69,7 +71,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [id]);
+  }, [id, t]);
 
   const seek = (ms: number) => {
     if (mediaRef.current) {
@@ -86,7 +88,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
       {header}
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-12">
         <Link href="/analyses" className="text-sm text-violet-700 hover:underline">
-          ← All call analyses
+          {t('report.back')}
         </Link>
         {error && <p className="mt-8 text-red-600">{error}</p>}
         {!data && !error && <Loader2 className="mt-12 h-6 w-6 animate-spin text-gray-400" />}
@@ -94,14 +96,14 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
         {data && !report && (
           <div className="mt-8 rounded-xl border border-gray-200 bg-white p-8 text-center">
             {data.status === 'failed' ? (
-              <p className="text-red-600">This analysis could not be finished: {data.error}</p>
+              <p className="text-red-600">{t('report.failed', { error: data.error ?? '' })}</p>
             ) : (
               <>
                 <Loader2 className="mx-auto h-8 w-8 animate-spin text-violet-500" />
                 <p className="mt-4 text-gray-700">
                   {data.status === 'recording'
-                    ? 'The call is still being recorded.'
-                    : 'Your report is being written. This page updates on its own, and you will get an email when it is ready.'}
+                    ? t('report.stillRecording')
+                    : t('report.beingWritten')}
                 </p>
               </>
             )}
@@ -112,15 +114,15 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
           <article className="mt-6 space-y-8">
             <header className="rounded-2xl bg-gradient-to-br from-violet-700 to-indigo-700 p-8 text-white">
               <p className="text-sm font-medium text-violet-200 uppercase">
-                {ANALYSIS_KIND_LABELS[data.kind]}
+                {t(`kinds.${data.kind}`)}
                 {data.title ? ` · ${data.title}` : ''} ·{' '}
-                {new Date(data.created_at).toLocaleString()}
+                {new Date(data.created_at).toLocaleString(locale)}
               </p>
               <div className="mt-3 flex items-start justify-between gap-6">
                 <h1 className="text-3xl font-bold">{report.headline}</h1>
                 <div className="flex-shrink-0 text-center">
                   <div className="text-5xl font-bold">{report.overallScore}</div>
-                  <div className="text-xs text-violet-200">out of 10</div>
+                  <div className="text-xs text-violet-200">{t('report.outOf10')}</div>
                 </div>
               </div>
               <p className="mt-4 text-violet-50">{report.summary}</p>
@@ -139,17 +141,17 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
 
             {metrics && (
               <section>
-                <h2 className="text-xl font-semibold text-gray-900">By the numbers</h2>
+                <h2 className="text-xl font-semibold text-gray-900">{t('report.byTheNumbers')}</h2>
                 <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 text-gray-600">
                       <tr>
-                        <th className="px-4 py-2">Speaker</th>
-                        <th className="px-4 py-2">Talk time</th>
-                        <th className="px-4 py-2">Pace</th>
-                        <th className="px-4 py-2">Fillers</th>
-                        <th className="px-4 py-2">Questions</th>
-                        <th className="px-4 py-2">Longest turn</th>
+                        <th className="px-4 py-2">{t('report.table.speaker')}</th>
+                        <th className="px-4 py-2">{t('report.table.talkTime')}</th>
+                        <th className="px-4 py-2">{t('report.table.pace')}</th>
+                        <th className="px-4 py-2">{t('report.table.fillers')}</th>
+                        <th className="px-4 py-2">{t('report.table.questions')}</th>
+                        <th className="px-4 py-2">{t('report.table.longestTurn')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -162,8 +164,12 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                             </span>
                           </td>
                           <td className="px-4 py-2">{s.talkShare}%</td>
-                          <td className="px-4 py-2">{s.wordsPerMinute} wpm</td>
-                          <td className="px-4 py-2">{s.fillerRate} / 100 words</td>
+                          <td className="px-4 py-2">
+                            {t('report.table.wpm', { value: s.wordsPerMinute })}
+                          </td>
+                          <td className="px-4 py-2">
+                            {t('report.table.fillerRate', { value: s.fillerRate })}
+                          </td>
                           <td className="px-4 py-2">{s.questions}</td>
                           <td className="px-4 py-2">{formatClock(s.longestTurnMs)}</td>
                         </tr>
@@ -172,9 +178,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                   </table>
                 </div>
                 {data.source === 'mobile' && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    Captured on a phone: only your microphone was recorded.
-                  </p>
+                  <p className="mt-2 text-xs text-gray-500">{t('report.mobileNote')}</p>
                 )}
               </section>
             )}
@@ -182,7 +186,8 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
             <section className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl border border-green-200 bg-white p-6">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <ThumbsUp className="h-5 w-5 text-green-600" aria-hidden="true" /> What worked
+                  <ThumbsUp className="h-5 w-5 text-green-600" aria-hidden="true" />{' '}
+                  {t('report.whatWorked')}
                 </h2>
                 <ul className="mt-4 space-y-4">
                   {report.strengths.map((p) => (
@@ -198,7 +203,8 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
               </div>
               <div className="rounded-xl border border-amber-200 bg-white p-6">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <Target className="h-5 w-5 text-amber-600" aria-hidden="true" /> To improve
+                  <Target className="h-5 w-5 text-amber-600" aria-hidden="true" />{' '}
+                  {t('report.toImprove')}
                 </h2>
                 <ul className="mt-4 space-y-4">
                   {report.improvements.map((p) => (
@@ -208,7 +214,9 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                         <At ms={p.atMs} onSeek={seek} />
                       </p>
                       <p className="mt-1 text-sm text-gray-600">{p.detail}</p>
-                      <p className="mt-1 text-sm text-amber-800">Try: {p.suggestion}</p>
+                      <p className="mt-1 text-sm text-amber-800">
+                        {t('report.try', { suggestion: p.suggestion })}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -232,26 +240,28 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
 
             <section className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <h2 className="text-lg font-semibold text-gray-900">Delivery</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {t('report.delivery.title')}
+                </h2>
                 <dl className="mt-4 space-y-3 text-sm">
                   {(
                     [
-                      ['Pace', report.delivery.pace],
-                      ['Clarity', report.delivery.clarity],
-                      ['Confidence', report.delivery.confidence],
-                      ['Filler words', report.delivery.fillerWords],
-                      ['Listening', report.delivery.listening],
+                      ['pace', report.delivery.pace],
+                      ['clarity', report.delivery.clarity],
+                      ['confidence', report.delivery.confidence],
+                      ['fillerWords', report.delivery.fillerWords],
+                      ['listening', report.delivery.listening],
                     ] as const
                   ).map(([label, text]) => (
                     <div key={label}>
-                      <dt className="font-medium text-gray-900">{label}</dt>
+                      <dt className="font-medium text-gray-900">{t(`report.delivery.${label}`)}</dt>
                       <dd className="text-gray-600">{text}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
               <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <h2 className="text-lg font-semibold text-gray-900">Practice before next time</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('report.practiceNext')}</h2>
                 <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-gray-700">
                   {report.practiceNext.map((p) => (
                     <li key={p}>{p}</li>
@@ -259,7 +269,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                 </ol>
                 {report.visuals && (
                   <>
-                    <h3 className="mt-6 font-semibold text-gray-900">What was on screen</h3>
+                    <h3 className="mt-6 font-semibold text-gray-900">{t('report.onScreen')}</h3>
                     <p className="mt-1 text-sm text-gray-600">{report.visuals.summary}</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600">
                       {report.visuals.suggestions.map((s) => (
@@ -275,7 +285,9 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
               <section className="grid gap-6 md:grid-cols-2">
                 {report.actionItems.length > 0 && (
                   <div className="rounded-xl border border-gray-200 bg-white p-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Action items</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {t('report.actionItems')}
+                    </h2>
                     <ul className="mt-4 space-y-2 text-sm text-gray-700">
                       {report.actionItems.map((a) => (
                         <li key={a.task}>
@@ -288,7 +300,9 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                 )}
                 {report.keyMoments.length > 0 && (
                   <div className="rounded-xl border border-gray-200 bg-white p-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Moments to replay</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {t('report.keyMoments')}
+                    </h2>
                     <ul className="mt-4 space-y-2 text-sm text-gray-700">
                       {report.keyMoments.map((m) => (
                         <li key={`${String(m.atMs)}-${m.label}`}>
@@ -311,7 +325,7 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
                   }}
                   className="text-sm font-medium text-violet-700 hover:underline"
                 >
-                  {showTranscript ? 'Hide transcript' : 'Show transcript'}
+                  {showTranscript ? t('report.hideTranscript') : t('report.showTranscript')}
                 </button>
                 {showTranscript && (
                   <div className="mt-4 max-h-[32rem] space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-6 text-sm">
@@ -339,8 +353,9 @@ export function AnalysisReport({ id, header }: { id: string; header: ReactNode }
 
             <p className="flex items-center gap-2 text-xs text-gray-500">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              Written by AI{report.generatedBy ? ` (${report.generatedBy})` : ''} from the call
-              recording. Speaker labels come from automatic speaker detection and can be wrong.
+              {report.generatedBy
+                ? t('report.disclaimerWithModel', { model: report.generatedBy })
+                : t('report.disclaimer')}
             </p>
           </article>
         )}

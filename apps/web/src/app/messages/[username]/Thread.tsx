@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, Loader2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import type { DmMessage } from '@pairux/shared-types';
 
 interface ThreadProps {
@@ -12,9 +13,9 @@ interface ThreadProps {
   initialMessages: DmMessage[];
 }
 
-function timeLabel(iso: string): string {
+function timeLabel(iso: string, locale: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString(locale, {
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
@@ -31,6 +32,8 @@ function timeLabel(iso: string): string {
  * wired for DMs yet).
  */
 export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
+  const t = useTranslations('messages.thread');
+  const locale = useLocale();
   const router = useRouter();
   const [messages, setMessages] = useState<DmMessage[]>(initialMessages);
   const [body, setBody] = useState('');
@@ -83,13 +86,13 @@ export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
       }
       const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? 'Failed to send message');
+        setError(json.error ?? t('sendFailed'));
         return;
       }
       setBody('');
       await refresh();
     } catch {
-      setError('Failed to send message');
+      setError(t('sendFailed'));
     } finally {
       setBusy(false);
     }
@@ -100,7 +103,7 @@ export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
       <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: '60vh' }}>
         {messages.length === 0 ? (
           <p className="py-10 text-center text-sm text-gray-400">
-            No messages yet. Say hello to {displayName}.
+            {t('empty', { name: displayName })}
           </p>
         ) : (
           messages.map((m) => (
@@ -118,7 +121,7 @@ export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
                 <p
                   className={`mt-1 text-xs text-gray-400 ${m.is_mine ? 'text-right' : 'text-left'}`}
                 >
-                  {timeLabel(m.created_at)}
+                  {timeLabel(m.created_at, locale)}
                 </p>
               </div>
             </div>
@@ -143,13 +146,15 @@ export function Thread({ addr, displayName, initialMessages }: ThreadProps) {
             }}
             rows={1}
             maxLength={4000}
-            placeholder={`Message ${displayName}…`}
+            placeholder={t('placeholder', { name: displayName })}
+            aria-label={t('placeholder', { name: displayName })}
             className="focus:border-primary-500 focus:ring-primary-500 max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:ring-1 focus:outline-none"
           />
           <button
             type="button"
             onClick={() => void send()}
             disabled={busy || !body.trim()}
+            aria-label={t('send')}
             className="bg-primary-600 hover:bg-primary-700 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white transition-colors disabled:opacity-60"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

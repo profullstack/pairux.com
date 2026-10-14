@@ -1,13 +1,17 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import type { UserData } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { SettingsContent } from './settings-content';
 
-export const metadata: Metadata = {
-  title: 'Settings - PairUX',
-  description: 'Manage your PairUX settings.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('settings.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
 
 export const dynamic = 'force-dynamic';
 

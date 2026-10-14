@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   createIntegration,
   revokeIntegration,
@@ -25,6 +26,8 @@ const KIND_META: Record<IntegrationKind, { label: string }> = {
 };
 
 export function IntegrationsManager({ initial }: { initial: Integration[] }) {
+  const t = useTranslations('admin.integrations');
+  const locale = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [items, setItems] = useState<Integration[]>(initial);
@@ -55,7 +58,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
   };
 
   const onRevoke = (it: Integration) => {
-    if (!confirm(`Revoke "${it.name}"? The source will stop being able to publish.`)) return;
+    if (!confirm(t('confirmRevoke', { name: it.name }))) return;
     start(async () => {
       const res = await revokeIntegration({ id: it.id });
       if (!res.ok) {
@@ -79,7 +82,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
     <div className="space-y-6">
       <div>
         <p className="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
-          Webhook endpoint
+          {t('webhookEndpoint')}
         </p>
         <div className="flex gap-2">
           <code className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs break-all">
@@ -92,14 +95,14 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
             }}
             className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
           >
-            {copied === 'url' ? 'Copied' : 'Copy'}
+            {copied === 'url' ? t('copied') : t('copy')}
           </button>
         </div>
       </div>
 
       <form onSubmit={onCreate}>
         <p className="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
-          Generate token
+          {t('generateToken')}
         </p>
         <div className="flex flex-wrap gap-2">
           <select
@@ -120,7 +123,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
             onChange={(e) => {
               setName(e.target.value);
             }}
-            placeholder="Integration name"
+            placeholder={t('namePlaceholder')}
             maxLength={100}
             required
             className="min-w-[160px] flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -130,15 +133,13 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
             disabled={pending}
             className="bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50"
           >
-            {pending ? '…' : 'Generate'}
+            {pending ? '…' : t('generate')}
           </button>
         </div>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         {justCreatedToken && (
           <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
-            <p className="mb-2 text-xs font-semibold text-green-700">
-              Token created — copy now and paste into CrawlProof autoblog webhook settings.
-            </p>
+            <p className="mb-2 text-xs font-semibold text-green-700">{t('tokenCreated')}</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 text-xs break-all">{justCreatedToken}</code>
               <button
@@ -148,7 +149,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
                 }}
                 className="rounded border border-green-300 px-2 py-1 text-xs hover:bg-green-100"
               >
-                {copied === 'new' ? 'Copied' : 'Copy'}
+                {copied === 'new' ? t('copied') : t('copy')}
               </button>
             </div>
           </div>
@@ -157,10 +158,10 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
 
       <div>
         <p className="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
-          Access tokens ({items.length})
+          {t('accessTokens', { count: items.length })}
         </p>
         {items.length === 0 ? (
-          <p className="text-sm text-gray-500">None yet — generate one above.</p>
+          <p className="text-sm text-gray-500">{t('empty')}</p>
         ) : (
           <ul className="space-y-2">
             {items.map((it) => {
@@ -176,9 +177,9 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
                           {KIND_META[it.kind]?.label ?? it.kind}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {it.request_count} requests
+                          {t('requests', { count: it.request_count })}
                           {it.last_used_at &&
-                            ` · last ${new Date(it.last_used_at).toLocaleString()}`}
+                            ` · ${t('lastUsed', { date: new Date(it.last_used_at).toLocaleString(locale) })}`}
                         </span>
                       </div>
                       <div className="mt-2 flex items-center gap-2">
@@ -192,7 +193,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
                           }}
                           className="text-xs text-gray-500 hover:text-gray-900"
                         >
-                          {show ? 'Hide' : 'Reveal'}
+                          {show ? t('hide') : t('reveal')}
                         </button>
                         <button
                           type="button"
@@ -201,7 +202,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
                           }}
                           className="text-xs text-gray-500 hover:text-gray-900"
                         >
-                          {copied === it.id ? 'Copied' : 'Copy'}
+                          {copied === it.id ? t('copied') : t('copy')}
                         </button>
                       </div>
                     </div>
@@ -213,7 +214,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
                       disabled={pending}
                       className="text-xs text-red-600 hover:underline disabled:opacity-50"
                     >
-                      Revoke
+                      {t('revoke')}
                     </button>
                   </div>
                 </li>

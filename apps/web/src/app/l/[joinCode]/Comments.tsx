@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, Send, Trash2, User as UserIcon } from 'lucide-react';
 import type { SessionComment } from '@pairux/shared-types';
 
@@ -11,11 +12,13 @@ interface CommentsProps {
   initialComments: SessionComment[];
 }
 
-function authorName(c: SessionComment): string {
-  return c.author_display_name ?? (c.author_username ? `@${c.author_username}` : 'Someone');
+function authorName(c: SessionComment, someone: string): string {
+  return c.author_display_name ?? (c.author_username ? `@${c.author_username}` : someone);
 }
 
 export function Comments({ sessionId, joinCode, initialComments }: CommentsProps) {
+  const t = useTranslations('replay.comments');
+  const locale = useLocale();
   const router = useRouter();
   const [comments, setComments] = useState<SessionComment[]>(initialComments);
   const [text, setText] = useState('');
@@ -49,13 +52,13 @@ export function Comments({ sessionId, joinCode, initialComments }: CommentsProps
       }
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? 'Could not post your comment.');
+        setError(data.error ?? t('postFailed'));
         return;
       }
       setText('');
       await refresh();
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('networkError'));
     } finally {
       setBusy(false);
     }
@@ -80,7 +83,7 @@ export function Comments({ sessionId, joinCode, initialComments }: CommentsProps
           }}
           maxLength={1000}
           rows={2}
-          placeholder="Add a comment…"
+          placeholder={t('placeholder')}
           disabled={busy}
           className="focus:ring-primary-500 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none disabled:opacity-60"
         />
@@ -91,15 +94,13 @@ export function Comments({ sessionId, joinCode, initialComments }: CommentsProps
           className="bg-primary-600 hover:bg-primary-700 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-50"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          Post
+          {t('post')}
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <ul className="mt-6 space-y-4">
-        {comments.length === 0 && (
-          <li className="text-sm text-gray-500">No comments yet — be the first.</li>
-        )}
+        {comments.length === 0 && <li className="text-sm text-gray-500">{t('empty')}</li>}
         {comments.map((c) => (
           <li key={c.id} className="flex items-start gap-3">
             {c.author_avatar_url ? (
@@ -117,13 +118,15 @@ export function Comments({ sessionId, joinCode, initialComments }: CommentsProps
                     href={`/u/${c.author_username}`}
                     className="text-sm font-semibold text-gray-900 hover:underline"
                   >
-                    {authorName(c)}
+                    {authorName(c, t('someone'))}
                   </a>
                 ) : (
-                  <span className="text-sm font-semibold text-gray-900">{authorName(c)}</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {authorName(c, t('someone'))}
+                  </span>
                 )}
                 <span className="text-xs text-gray-400">
-                  {new Date(c.created_at).toLocaleDateString(undefined, {
+                  {new Date(c.created_at).toLocaleDateString(locale, {
                     month: 'short',
                     day: 'numeric',
                   })}
@@ -133,7 +136,8 @@ export function Comments({ sessionId, joinCode, initialComments }: CommentsProps
                     type="button"
                     onClick={() => void remove(c.id)}
                     className="ml-auto text-gray-400 hover:text-red-600"
-                    title="Delete"
+                    title={t('delete')}
+                    aria-label={t('delete')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

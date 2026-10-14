@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface SubscribeButtonProps {
   handle: string;
@@ -15,6 +16,7 @@ interface SubResponse {
 }
 
 export function SubscribeButton({ handle, initialSubscribed, initialCount }: SubscribeButtonProps) {
+  const t = useTranslations('channel.subscribe');
   const router = useRouter();
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [count, setCount] = useState(initialCount);
@@ -61,11 +63,9 @@ export function SubscribeButton({ handle, initialSubscribed, initialCount }: Sub
         ) : (
           <Bell className="h-4 w-4" />
         )}
-        {subscribed ? 'Subscribed' : 'Subscribe'}
+        {subscribed ? t('subscribed') : t('subscribe')}
       </button>
-      <span className="text-sm text-gray-500">
-        {count} {count === 1 ? 'subscriber' : 'subscribers'}
-      </span>
+      <span className="text-sm text-gray-500">{t('count', { count })}</span>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface UpgradeButtonProps {
   plan: 'plus' | 'pro' | 'team';
@@ -20,6 +21,7 @@ interface CheckoutResponse {
  * CoinPay webhook grants the plan once payment confirms.
  */
 export function UpgradeButton({ plan, label, className }: UpgradeButtonProps) {
+  const t = useTranslations('pricing.upgrade');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,13 +45,13 @@ export function UpgradeButton({ plan, label, className }: UpgradeButtonProps) {
 
       const body = (await res.json()) as CheckoutResponse;
       if (!res.ok || !body.data?.checkout_url) {
-        setError(body.error ?? 'Could not start checkout. Please try again.');
+        setError(body.error ?? t('checkoutFailed'));
         return;
       }
 
       window.location.href = body.data.checkout_url;
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('networkError'));
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export function UpgradeButton({ plan, label, className }: UpgradeButtonProps) {
         disabled={loading}
         className={`${className} disabled:cursor-not-allowed disabled:opacity-60`}
       >
-        {loading ? 'Starting checkout…' : label}
+        {loading ? t('starting') : label}
       </button>
       {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
     </>

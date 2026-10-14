@@ -6,7 +6,9 @@ import { DEFAULT_LOCALE, LOCALES } from './locales';
 
 const MESSAGES_DIR = path.resolve(__dirname, '../../messages');
 
-type Tree = { [key: string]: string | Tree };
+interface Tree {
+  [key: string]: string | Tree;
+}
 
 function load(locale: string): Tree {
   return JSON.parse(readFileSync(path.join(MESSAGES_DIR, `${locale}.json`), 'utf8')) as Tree;
@@ -29,7 +31,9 @@ type Ast = ReturnType<IntlMessageFormat['getAst']>;
 /** Every argument name a message uses, including inside plural/select branches. */
 function argNames(ast: Ast, out = new Set<string>()): Set<string> {
   for (const node of ast) {
-    if ('value' in node && typeof node.value === 'string' && node.type !== 0 && node.type !== 7) {
+    // 1-6: argument, number, date, time, select, plural (0 literal, 7 #, 8 tag)
+    const type = node.type as number;
+    if (type >= 1 && type <= 6 && 'value' in node && typeof node.value === 'string') {
       out.add(node.value);
     }
     if ('options' in node) {
@@ -70,7 +74,7 @@ describe('message catalogs', () => {
       const expected = argNames(new IntlMessageFormat(en.get(id) ?? '', 'en').getAst());
       const actual = argNames(parsed.getAst());
       for (const name of expected) {
-        expect(actual.has(name), `${locale}:${id} is missing {${String(name)}}`).toBe(true);
+        expect(actual.has(name), `${locale}:${id} is missing {${name}}`).toBe(true);
       }
     }
   });

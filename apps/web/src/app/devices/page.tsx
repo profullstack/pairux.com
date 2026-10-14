@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   Monitor,
   Plus,
@@ -35,6 +36,7 @@ interface DeviceCardState {
 const IDLE: DeviceCardState = { status: null, busy: false, error: null, joinUrl: null };
 
 export default function DevicesPage() {
+  const t = useTranslations('devices');
   const [devices, setDevices] = useState<Device[]>([]);
   const [cards, setCards] = useState<Record<string, DeviceCardState>>({});
   const [input, setInput] = useState('');
@@ -73,12 +75,12 @@ export default function DevicesPage() {
     event.preventDefault();
     const url = normalizeDeviceUrl(input);
     if (!url) {
-      setAddError('That does not look like a device address.');
+      setAddError(t('errors.invalidAddress'));
       return;
     }
 
     if (devices.some((d) => d.url === url)) {
-      setAddError('That device is already here.');
+      setAddError(t('errors.duplicate'));
       return;
     }
 
@@ -132,10 +134,9 @@ export default function DevicesPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">My devices</h1>
+      <h1 className="text-2xl font-semibold">{t('title')}</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Start a screen share on a computer running <code>pairux daemon</code>, from here. Useful for
-        presenting from a laptop while holding your phone.
+        {t.rich('intro', { code: (chunks) => <code>{chunks}</code> })}
       </p>
 
       <form onSubmit={addDevice} className="mt-6 flex gap-2">
@@ -150,14 +151,14 @@ export default function DevicesPage() {
           autoCorrect="off"
           spellCheck={false}
           className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base"
-          aria-label="Device address"
+          aria-label={t('addressLabel')}
         />
         <button
           type="submit"
           className="flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
         >
           <Plus className="h-4 w-4" />
-          Add
+          {t('add')}
         </button>
       </form>
 
@@ -167,14 +168,13 @@ export default function DevicesPage() {
         <div className="mt-8 rounded-lg border border-dashed border-gray-300 p-6 text-center">
           <Monitor className="mx-auto h-8 w-8 text-gray-400" />
           <p className="mt-3 text-sm text-gray-600">
-            No devices yet. On the computer you want to share, run <code>pairux daemon</code> — it
-            prints the address to paste here.
+            {t.rich('empty', { code: (chunks) => <code>{chunks}</code> })}
           </p>
           <Link
             href="/docs#remote-start"
             className="mt-3 inline-block text-sm text-blue-700 underline"
           >
-            How to set this up
+            {t('howToSetUp')}
           </Link>
         </div>
       )}
@@ -203,7 +203,7 @@ export default function DevicesPage() {
                     removeDevice(device.id);
                   }}
                   className="shrink-0 rounded p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                  aria-label={`Remove ${device.name}`}
+                  aria-label={t('remove', { name: device.name })}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -222,7 +222,7 @@ export default function DevicesPage() {
                   className="mt-3 flex items-center gap-2 rounded-md bg-green-50 p-3 text-sm font-medium text-green-800"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
-                  Join the session on {device.name}
+                  {t('joinSession', { name: device.name })}
                 </a>
               )}
 
@@ -238,7 +238,7 @@ export default function DevicesPage() {
                     ) : (
                       <Square className="h-4 w-4" />
                     )}
-                    Stop sharing
+                    {t('stopSharing')}
                   </button>
                 ) : (
                   <button
@@ -251,7 +251,7 @@ export default function DevicesPage() {
                     ) : (
                       <Play className="h-4 w-4" />
                     )}
-                    Start sharing
+                    {t('startSharing')}
                   </button>
                 )}
 
@@ -260,7 +260,7 @@ export default function DevicesPage() {
                   disabled={card.busy}
                   className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium disabled:opacity-50"
                 >
-                  Check
+                  {t('check')}
                 </button>
               </div>
             </li>

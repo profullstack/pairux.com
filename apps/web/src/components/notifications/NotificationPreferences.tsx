@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface NotificationPrefs {
@@ -34,15 +35,16 @@ const DEFAULT_PREFS: NotificationPrefs = {
   meetingReminder1Min: true,
 };
 
-const PREF_LABELS: Record<Exclude<keyof NotificationPrefs, 'pushEnabled' | ReminderKey>, string> = {
-  controlRequest: 'Control requests',
-  chatMessage: 'Chat messages',
-  participantJoined: 'Participant joined',
-  participantLeft: 'Participant left',
-  hostDisconnected: 'Host disconnected',
-  creatorLive: 'A creator you follow goes live',
-  directMessage: 'Someone sends you a direct message',
-};
+// Labels live under notifications.events.<key>.
+const PREF_KEYS: readonly Exclude<keyof NotificationPrefs, 'pushEnabled' | ReminderKey>[] = [
+  'controlRequest',
+  'chatMessage',
+  'participantJoined',
+  'participantLeft',
+  'hostDisconnected',
+  'creatorLive',
+  'directMessage',
+];
 
 type ReminderKey =
   | 'meetingReminder1Day'
@@ -60,12 +62,13 @@ type ReminderKey =
  * iPhone that has not installed the app, a locked-down browser), receiving
  * emails they have no way to turn off.
  */
-const REMINDER_LABELS: Record<ReminderKey, string> = {
-  meetingReminder1Day: '1 day before',
-  meetingReminder1Hour: '1 hour before',
-  meetingReminder15Min: '15 minutes before',
-  meetingReminder1Min: '1 minute before',
-};
+// Labels live under notifications.reminders.<key>.
+const REMINDER_KEYS: readonly ReminderKey[] = [
+  'meetingReminder1Day',
+  'meetingReminder1Hour',
+  'meetingReminder15Min',
+  'meetingReminder1Min',
+];
 
 function Toggle({
   enabled,
@@ -95,6 +98,7 @@ function Toggle({
 }
 
 export function NotificationPreferences() {
+  const t = useTranslations('notifications');
   const {
     isSupported,
     unsupportedReason,
@@ -163,9 +167,7 @@ export function NotificationPreferences() {
   if (!isSupported) {
     return (
       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-        <p className="text-sm text-yellow-800">
-          {unsupportedReason ?? 'Push notifications are not supported in this browser.'}
-        </p>
+        <p className="text-sm text-yellow-800">{unsupportedReason ?? t('unsupported')}</p>
       </div>
     );
   }
@@ -181,13 +183,13 @@ export function NotificationPreferences() {
             <BellOff className="h-5 w-5 text-gray-400" />
           )}
           <div>
-            <p className="text-sm font-medium text-gray-700">Push Notifications</p>
+            <p className="text-sm font-medium text-gray-700">{t('push.title')}</p>
             <p className="text-xs text-gray-500">
               {isSubscribed
-                ? 'Notifications are enabled for this device'
+                ? t('push.enabled')
                 : permission === 'denied'
-                  ? 'Notifications are blocked in browser settings'
-                  : 'Enable to receive notifications when the app is in the background'}
+                  ? t('push.blocked')
+                  : t('push.prompt')}
             </p>
           </div>
         </div>
@@ -206,9 +208,9 @@ export function NotificationPreferences() {
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : isSubscribed ? (
-            'Disable'
+            t('push.disable')
           ) : (
-            'Enable'
+            t('push.enable')
           )}
         </button>
       </div>
@@ -217,22 +219,20 @@ export function NotificationPreferences() {
       {isSubscribed && (
         <div className="space-y-3 border-t border-gray-100 pt-4">
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Notify me about
+            {t('notifyMeAbout')}
           </p>
-          {(Object.entries(PREF_LABELS) as [keyof typeof PREF_LABELS, string][]).map(
-            ([key, label]) => (
-              <div key={key} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">{label}</span>
-                <Toggle
-                  enabled={preferences[key]}
-                  onChange={() => {
-                    void savePreference(key, !preferences[key]);
-                  }}
-                  disabled={saving}
-                />
-              </div>
-            )
-          )}
+          {PREF_KEYS.map((key) => (
+            <div key={key} className="flex items-center justify-between">
+              <span className="text-sm text-gray-700">{t(`events.${key}`)}</span>
+              <Toggle
+                enabled={preferences[key]}
+                onChange={() => {
+                  void savePreference(key, !preferences[key]);
+                }}
+                disabled={saving}
+              />
+            </div>
+          ))}
         </div>
       )}
 
@@ -244,15 +244,13 @@ export function NotificationPreferences() {
       <div className="space-y-3 border-t border-gray-100 pt-4">
         <div>
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Meeting reminders
+            {t('reminders.title')}
           </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Sent by email, and as a notification when push is on.
-          </p>
+          <p className="mt-1 text-xs text-gray-500">{t('reminders.description')}</p>
         </div>
-        {(Object.entries(REMINDER_LABELS) as [ReminderKey, string][]).map(([key, label]) => (
+        {REMINDER_KEYS.map((key) => (
           <div key={key} className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">{label}</span>
+            <span className="text-sm text-gray-700">{t(`reminders.${key}`)}</span>
             <Toggle
               enabled={preferences[key]}
               onChange={() => {

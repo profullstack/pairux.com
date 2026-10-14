@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Plus, Trash2, Radio } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ChannelRestreamDestination } from '@pairux/shared-types';
 
 interface RestreamManagerProps {
@@ -9,7 +10,8 @@ interface RestreamManagerProps {
   initialEnabled: boolean;
 }
 
-const PLATFORMS: { value: string; label: string; url: string; editable: boolean }[] = [
+// Platform names are brands; only "Custom RTMP" (label null) is translated.
+const PLATFORMS: { value: string; label: string | null; url: string; editable: boolean }[] = [
   { value: 'youtube', label: 'YouTube', url: 'rtmp://a.rtmp.youtube.com/live2', editable: false },
   { value: 'twitch', label: 'Twitch', url: 'rtmp://live.twitch.tv/app', editable: false },
   {
@@ -18,10 +20,11 @@ const PLATFORMS: { value: string; label: string; url: string; editable: boolean 
     url: 'rtmps://live-api-s.facebook.com:443/rtmp',
     editable: false,
   },
-  { value: 'custom', label: 'Custom RTMP', url: '', editable: true },
+  { value: 'custom', label: null, url: '', editable: true },
 ];
 
 export function RestreamManager({ channelId, initialEnabled }: RestreamManagerProps) {
+  const t = useTranslations('dashboard.restream');
   const [enabled, setEnabled] = useState(initialEnabled);
   const [dests, setDests] = useState<ChannelRestreamDestination[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -65,11 +68,11 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
   const addDestination = async () => {
     setError(null);
     if (!/^rtmps?:\/\/.+/.test(rtmpUrl.trim())) {
-      setError('RTMP URL must start with rtmp:// or rtmps://');
+      setError(t('urlInvalid'));
       return;
     }
     if (!streamKey.trim()) {
-      setError('Stream key is required.');
+      setError(t('keyRequired'));
       return;
     }
     setBusy(true);
@@ -81,7 +84,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
       });
       const body = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(body.error ?? 'Could not save the destination.');
+        setError(body.error ?? t('saveFailed'));
         return;
       }
       setStreamKey('');
@@ -89,7 +92,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
       onPlatform('youtube');
       await load();
     } catch {
-      setError('Could not save the destination.');
+      setError(t('saveFailed'));
     } finally {
       setBusy(false);
     }
@@ -119,7 +122,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Radio className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-900">External restreaming</span>
+          <span className="text-sm font-semibold text-gray-900">{t('title')}</span>
         </div>
         <button
           type="button"
@@ -127,25 +130,22 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
           role="switch"
           aria-checked={enabled}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-primary-600' : 'bg-gray-300'}`}
-          title="Auto-restream this channel's lives to the destinations below"
+          title={t('toggleHint')}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`}
           />
         </button>
       </div>
-      <p className="mt-1 text-xs text-gray-500">
-        When on, going live on this channel also streams to YouTube/Twitch/etc. Off for private
-        screenshares.
-      </p>
+      <p className="mt-1 text-xs text-gray-500">{t('description')}</p>
 
       <div className="mt-3 space-y-2">
         {dests === null ? (
           <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('loading')}
           </div>
         ) : dests.length === 0 ? (
-          <p className="text-xs text-gray-400">No destinations yet.</p>
+          <p className="text-xs text-gray-400">{t('empty')}</p>
         ) : (
           dests.map((d) => (
             <div
@@ -159,13 +159,13 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
                 onClick={() => void toggleDest(d)}
                 className={`rounded px-2 py-0.5 font-medium ${d.enabled ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}
               >
-                {d.enabled ? 'On' : 'Off'}
+                {d.enabled ? t('on') : t('off')}
               </button>
               <button
                 type="button"
                 onClick={() => void removeDest(d.id)}
                 className="text-gray-400 hover:text-red-600"
-                title="Remove"
+                title={t('remove')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -185,7 +185,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
           >
             {PLATFORMS.map((p) => (
               <option key={p.value} value={p.value}>
-                {p.label}
+                {p.label ?? t('customRtmp')}
               </option>
             ))}
           </select>
@@ -194,7 +194,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
             onChange={(e) => {
               setRtmpUrl(e.target.value);
             }}
-            placeholder="rtmp://…"
+            placeholder={t('rtmpPlaceholder')}
             disabled={!PLATFORMS.find((p) => p.value === platform)?.editable}
             className="h-8 w-full rounded border border-gray-300 px-2 text-xs disabled:bg-gray-100"
           />
@@ -204,7 +204,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
               setStreamKey(e.target.value);
             }}
             type="password"
-            placeholder="Stream key"
+            placeholder={t('streamKeyPlaceholder')}
             className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
           />
           {error && <p className="text-xs text-red-600">{error}</p>}
@@ -216,7 +216,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
               className="bg-primary-600 hover:bg-primary-700 inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
             >
               {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Save
+              {t('save')}
             </button>
             <button
               type="button"
@@ -226,7 +226,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
               }}
               className="rounded px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -238,7 +238,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
           }}
           className="text-primary-600 mt-3 inline-flex items-center gap-1 text-xs font-medium hover:underline"
         >
-          <Plus className="h-3.5 w-3.5" /> Add destination
+          <Plus className="h-3.5 w-3.5" /> {t('add')}
         </button>
       )}
     </div>

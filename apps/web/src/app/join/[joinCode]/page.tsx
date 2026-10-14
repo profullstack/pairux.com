@@ -13,6 +13,7 @@ import {
   Calendar,
   Clock,
 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 
@@ -55,9 +56,9 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-function formatScheduledTime(iso: string): string {
+function formatScheduledTime(iso: string, locale: string): string {
   const date = new Date(iso);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -67,23 +68,31 @@ function formatScheduledTime(iso: string): string {
   });
 }
 
-function formatCountdown(iso: string): string {
+interface Countdown {
+  key: 'startingNow' | 'startsInDays' | 'startsInHours' | 'startsInMinutes';
+  values: { days: number; hours: number; mins: number };
+}
+
+function computeCountdown(iso: string): Countdown {
   const diff = new Date(iso).getTime() - Date.now();
-  if (diff <= 0) return 'Starting now';
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
-  if (days > 0) return `Starts in ${String(days)}d ${String(hours)}h`;
-  if (hours > 0) return `Starts in ${String(hours)}h ${String(mins)}m`;
-  return `Starts in ${String(mins)}m`;
+  const values = { days, hours, mins };
+  if (diff <= 0) return { key: 'startingNow', values };
+  if (days > 0) return { key: 'startsInDays', values };
+  if (hours > 0) return { key: 'startsInHours', values };
+  return { key: 'startsInMinutes', values };
 }
 
 export default function JoinPage({ params }: { params: Promise<{ joinCode: string }> }) {
   const { joinCode } = use(params);
+  const t = useTranslations('join.session');
+  const locale = useLocale();
   const router = useRouter();
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [scheduled, setScheduled] = useState<ScheduledSessionInfo | null>(null);
-  const [countdown, setCountdown] = useState('');
+  const [countdown, setCountdown] = useState<Countdown | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -121,7 +130,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
         const data = (await res.json()) as ApiResponse<SessionInfo | ScheduledSessionInfo>;
 
         if (!res.ok) {
-          setError(data.error ?? 'Session not found');
+          setError(data.error ?? t('notFound'));
           setLoading(false);
           return;
         }
@@ -132,21 +141,21 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
           setSession(data.data);
         }
       } catch {
-        setError('Failed to lookup session');
+        setError(t('lookupFailed'));
       } finally {
         setLoading(false);
       }
     }
 
     void lookupSession();
-  }, [joinCode]);
+  }, [joinCode, t]);
 
   // Countdown ticker + polling for live session when scheduled
   useEffect(() => {
     if (!scheduled) return;
-    setCountdown(formatCountdown(scheduled.scheduled_at));
+    setCountdown(computeCountdown(scheduled.scheduled_at));
     const tick = setInterval(() => {
-      setCountdown(formatCountdown(scheduled.scheduled_at));
+      setCountdown(computeCountdown(scheduled.scheduled_at));
     }, 30000);
     // Poll every 30s to detect when the host starts the session
     const poll = setInterval(() => {
@@ -185,7 +194,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
       const data = (await res.json()) as ApiResponse<{ id: string; session_id: string }>;
 
       if (!res.ok) {
-        setError(data.error ?? 'Failed to join session');
+        setError(data.error ?? t('joinFailed'));
         return;
       }
 
@@ -200,7 +209,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
         }
       }
     } catch {
-      setError('Failed to join session');
+      setError(t('joinFailed'));
     } finally {
       setJoining(false);
     }
@@ -211,7 +220,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="text-primary-600 mx-auto h-8 w-8 animate-spin" />
-          <p className="mt-4 text-sm text-gray-600">Looking up session...</p>
+          <p className="mt-4 text-sm text-gray-600">{t('lookingUp')}</p>
         </div>
       </div>
     );
@@ -238,20 +247,22 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                   <Calendar className="h-6 w-6 text-indigo-600" />
                 </div>
                 <h1 className="mt-4 text-2xl font-bold text-gray-900">{scheduled.title}</h1>
-                <p className="mt-1 text-sm font-medium text-indigo-600">{countdown}</p>
+                <p className="mt-1 text-sm font-medium text-indigo-600">
+                  {countdown ? t(`countdown.${countdown.key}`, countdown.values) : ''}
+                </p>
               </div>
 
               <div className="space-y-3 rounded-lg bg-gray-50 p-4 text-sm">
                 <div className="flex items-start gap-2 text-gray-700">
                   <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
-                  <span>{formatScheduledTime(scheduled.scheduled_at)}</span>
+                  <span>{formatScheduledTime(scheduled.scheduled_at, locale)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <Clock className="h-4 w-4 shrink-0 text-gray-400" />
                   <span>
                     {scheduled.duration_minutes < 60
-                      ? `${String(scheduled.duration_minutes)} minutes`
-                      : `${String(scheduled.duration_minutes / 60)} hour${scheduled.duration_minutes > 60 ? 's' : ''}`}
+                      ? t('durationMinutes', { minutes: scheduled.duration_minutes })
+                      : t('durationHours', { hours: scheduled.duration_minutes / 60 })}
                   </span>
                 </div>
                 {scheduled.invitees.length > 0 && (
@@ -259,10 +270,10 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                     <Users className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
                     <div>
                       <span>
-                        {String(scheduled.invitees.length)} invited
+                        {t('invitedCount', { count: scheduled.invitees.length })}
                         {accepted.length > 0 && (
                           <span className="ml-1 text-green-600">
-                            · {String(accepted.length)} accepted
+                            · {t('acceptedCount', { count: accepted.length })}
                           </span>
                         )}
                       </span>
@@ -281,12 +292,10 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                 )}
               </div>
 
-              <p className="mt-6 text-center text-xs text-gray-400">
-                This page will automatically update when the host starts the session.
-              </p>
+              <p className="mt-6 text-center text-xs text-gray-400">{t('autoUpdate')}</p>
 
               <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3 text-center">
-                <p className="text-xs text-gray-500">Join code</p>
+                <p className="text-xs text-gray-500">{t('joinCode')}</p>
                 <p className="mt-0.5 font-mono text-lg font-bold tracking-widest text-gray-900">
                   {scheduled.join_code}
                 </p>
@@ -294,7 +303,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
 
               <div className="mt-4">
                 <p className="mb-2 text-center text-xs font-medium text-gray-500">
-                  Add to Calendar
+                  {t('addToCalendar')}
                 </p>
                 <div className="flex gap-2">
                   <a
@@ -341,7 +350,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
                   >
                     <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                    Apple / iCal
+                    {t('appleCalendar')}
                   </button>
                 </div>
               </div>
@@ -373,13 +382,13 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <h1 className="mt-4 text-xl font-semibold text-gray-900">Session Not Found</h1>
+            <h1 className="mt-4 text-xl font-semibold text-gray-900">{t('notFoundTitle')}</h1>
             <p className="mt-2 text-sm text-gray-600">{error}</p>
             <Link
               href="/"
               className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
             >
-              Go to Homepage
+              {t('goHome')}
             </Link>
           </div>
         </main>
@@ -404,20 +413,18 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
               <div className="bg-primary-100 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                 <Monitor className="text-primary-600 h-6 w-6" />
               </div>
-              <h1 className="mt-4 text-2xl font-bold text-gray-900">Join Session</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                You&apos;re about to join a screen sharing session
-              </p>
+              <h1 className="mt-4 text-2xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="mt-2 text-sm text-gray-600">{t('subtitle')}</p>
             </div>
 
             {session && (
               <div className="mb-6 rounded-lg bg-gray-50 p-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Session Code</span>
+                  <span className="text-gray-600">{t('sessionCode')}</span>
                   <span className="font-mono font-semibold text-gray-900">{session.join_code}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
+                  <span className="text-gray-600">{t('status')}</span>
                   <span
                     className={`flex items-center gap-1 font-medium ${
                       session.status === 'active' ? 'text-green-600' : 'text-orange-600'
@@ -429,14 +436,14 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                       }`}
                     />
                     {session.status === 'active'
-                      ? 'Host is sharing'
+                      ? t('statusActive')
                       : session.status === 'paused'
-                        ? 'Host not currently present'
-                        : 'Waiting for host'}
+                        ? t('statusPaused')
+                        : t('statusWaiting')}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Participants</span>
+                  <span className="text-gray-600">{t('participants')}</span>
                   <span className="flex items-center gap-1 text-gray-900">
                     <Users className="h-4 w-4" />
                     {session.participant_count} / {session.settings.maxParticipants ?? 5}
@@ -458,7 +465,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="text-sm font-medium text-green-800">
-                      Signed in as {profile?.display_name ?? user.email}
+                      {t('signedInAs', { name: profile?.display_name ?? user.email })}
                     </span>
                   </div>
                   <div className="mt-2">
@@ -466,7 +473,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                       htmlFor="displayName"
                       className="block text-xs font-medium text-green-700"
                     >
-                      Display name (optional)
+                      {t('displayNameOptional')}
                     </label>
                     <input
                       id="displayName"
@@ -477,14 +484,14 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                       }}
                       maxLength={50}
                       className="mt-1 block w-full rounded border border-green-300 bg-white px-3 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
-                      placeholder={profile?.display_name ?? 'Use account name'}
+                      placeholder={profile?.display_name ?? t('useAccountName')}
                     />
                   </div>
                 </div>
               ) : (
                 <div>
                   <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
-                    Your Name
+                    {t('yourName')}
                   </label>
                   <div className="relative mt-1">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -501,12 +508,10 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                       minLength={2}
                       maxLength={50}
                       className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-                      placeholder="Enter your name"
+                      placeholder={t('namePlaceholder')}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    This is how others will see you in the session
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">{t('nameHint')}</p>
                 </div>
               )}
 
@@ -516,24 +521,24 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
                 className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {joining && <Loader2 className="h-4 w-4 animate-spin" />}
-                {joining ? 'Joining...' : user ? 'Join Session' : 'Watch for free'}
+                {joining ? t('joining') : user ? t('joinButton') : t('watchFree')}
               </button>
             </form>
 
             {!user && (
               <>
-                <p className="mt-3 text-center text-xs text-gray-500">
-                  No account needed — watch live as a guest.
-                </p>
+                <p className="mt-3 text-center text-xs text-gray-500">{t('guestNote')}</p>
                 <p className="mt-4 text-center text-xs text-gray-500">
-                  Have an account?{' '}
-                  <Link
-                    href={`/login?redirect=/join/${joinCode}`}
-                    className="text-primary-600 hover:text-primary-500 font-medium"
-                  >
-                    Sign in
-                  </Link>{' '}
-                  to present or take control
+                  {t.rich('signInPrompt', {
+                    link: (chunks) => (
+                      <Link
+                        href={`/login?redirect=/join/${joinCode}`}
+                        className="text-primary-600 hover:text-primary-500 font-medium"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </>
             )}

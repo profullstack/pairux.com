@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { useState } from 'react';
 import {
   type LucideIcon,
@@ -12,6 +10,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 
 interface QualityIndicatorProps {
@@ -19,26 +18,22 @@ interface QualityIndicatorProps {
   networkQuality: NetworkQuality;
 }
 
-const qualityConfig: Record<NetworkQuality, { icon: LucideIcon; color: string; label: string }> = {
+const qualityConfig: Record<NetworkQuality, { icon: LucideIcon; color: string }> = {
   excellent: {
     icon: SignalHigh,
     color: 'text-green-400',
-    label: 'Excellent',
   },
   good: {
     icon: SignalMedium,
     color: 'text-green-400',
-    label: 'Good',
   },
   poor: {
     icon: SignalLow,
     color: 'text-yellow-400',
-    label: 'Poor',
   },
   bad: {
     icon: SignalZero,
     color: 'text-red-400',
-    label: 'Bad',
   },
 };
 
@@ -53,8 +48,10 @@ function formatBitrate(bitrate: number): string {
 }
 
 export function QualityIndicator({ metrics, networkQuality }: QualityIndicatorProps) {
+  const t = useTranslations('video.quality');
   const [isExpanded, setIsExpanded] = useState(false);
   const config = qualityConfig[networkQuality];
+  const label = t(`levels.${networkQuality}`);
   const Icon = config.icon;
 
   return (
@@ -66,10 +63,10 @@ export function QualityIndicator({ metrics, networkQuality }: QualityIndicatorPr
           setIsExpanded(!isExpanded);
         }}
         className={`flex items-center gap-1.5 rounded-lg bg-white/10 px-2 py-1.5 text-sm transition-colors hover:bg-white/20 ${config.color}`}
-        title={`Connection: ${config.label}`}
+        title={t('title', { quality: label })}
       >
         <Icon className="h-4 w-4" />
-        <span className="text-white/80">{config.label}</span>
+        <span className="text-white/80">{label}</span>
         {isExpanded ? (
           <ChevronDown className="h-3 w-3 text-white/60" />
         ) : (
@@ -81,14 +78,14 @@ export function QualityIndicator({ metrics, networkQuality }: QualityIndicatorPr
       {isExpanded && metrics && (
         <div className="absolute bottom-full left-0 mb-2 min-w-48 rounded-lg bg-gray-900/95 p-3 text-sm shadow-lg">
           <div className="mb-2 border-b border-gray-700 pb-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
-            Connection Details
+            {t('details')}
           </div>
           <div className="space-y-1.5">
-            <MetricRow label="Quality" value={config.label} valueColor={config.color} />
-            <MetricRow label="Bitrate" value={formatBitrate(metrics.bitrate)} />
-            <MetricRow label="Frame Rate" value={`${metrics.frameRate.toFixed(0)} fps`} />
+            <MetricRow label={t('quality')} value={label} valueColor={config.color} />
+            <MetricRow label={t('bitrate')} value={formatBitrate(metrics.bitrate)} />
+            <MetricRow label={t('frameRate')} value={`${metrics.frameRate.toFixed(0)} fps`} />
             <MetricRow
-              label="Latency"
+              label={t('latency')}
               value={`${metrics.roundTripTime.toFixed(0)} ms`}
               valueColor={
                 metrics.roundTripTime < 50
@@ -99,7 +96,7 @@ export function QualityIndicator({ metrics, networkQuality }: QualityIndicatorPr
               }
             />
             <MetricRow
-              label="Packet Loss"
+              label={t('packetLoss')}
               value={`${metrics.packetLoss.toFixed(1)}%`}
               valueColor={
                 metrics.packetLoss < 1

@@ -55,6 +55,8 @@ const MAX_CONTROL_MESSAGE_BYTES = 16 * 1024;
 
 export interface ViewerConnection {
   id: string;
+  /** The name the viewer joined with. */
+  name?: string;
   peerConnection: RTCPeerConnection;
   dataChannel: RTCDataChannel | null;
   connectionState: ConnectionState;
@@ -293,6 +295,7 @@ export function useWebRTCHostSFUAPI({
 
       const viewer: ViewerConnection = {
         id: participant.identity,
+        name: participant.name?.trim() ? participant.name : participant.identity,
         peerConnection: null as unknown as RTCPeerConnection,
         dataChannel: null,
         connectionState: 'connected',

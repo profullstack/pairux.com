@@ -69,6 +69,7 @@ const mockP2PHookResult: {
 
 const mockSFUHookResult = {
   ...mockP2PHookResult,
+  remoteAudio: [],
 };
 
 vi.mock('@/hooks/useWebRTCViewerAPI', () => ({

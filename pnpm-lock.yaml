@@ -102,6 +102,9 @@ importers:
       '@nut-tree-fork/nut-js':
         specifier: ^4.2.6
         version: 4.2.6(encoding@0.1.13)
+      '@pairux/meeting-translation':
+        specifier: workspace:*
+        version: link:../../packages/meeting-translation
       '@profullstack/remote-input':
         specifier: workspace:*
         version: link:../../packages/remote-input
@@ -356,6 +359,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.128.0
         version: 0.128.0(zod@3.25.76)
+      '@pairux/meeting-translation':
+        specifier: workspace:*
+        version: link:../../packages/meeting-translation
       '@profullstack/autoblog':
         specifier: github:profullstack/autoblog#75e54af
         version: https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af
@@ -366,8 +372,8 @@ importers:
         specifier: latest
         version: 0.2.4(react@19.2.3)
       '@profullstack/live-translate':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.2.1
+        version: 0.2.1
       '@profullstack/notifications':
         specifier: 0.1.0
         version: 0.1.0
@@ -512,6 +518,25 @@ importers:
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@24.10.9)(jsdom@25.0.1)(lightningcss@1.30.2)(terser@5.46.0)
+
+  packages/meeting-translation:
+    dependencies:
+      '@profullstack/live-translate':
+        specifier: ^0.2.1
+        version: 0.2.1
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.9
+      react:
+        specifier: ^19.0.0
+        version: 19.2.3
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -1973,7 +1998,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -2795,16 +2820,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.5':
     resolution: {integrity: sha512-LbqtPtMPTJUcg4XoPP2jsU1wc8flBcGyKTerKsIfK9cD7nBHROnO0QksbrsbSWEpLym8T8fRtuU7XEY83l6Z2Q==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.5':
     resolution: {integrity: sha512-uxaXEcRKnFObAljsoR6tLOBUU1dJ2sctloG6gFgCBGN7+k6Jdv6jZfOuNjd/fpdq2C5WPMm0rtn9EE7h5J3Jcg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.5':
     resolution: {integrity: sha512-yqC87zvmFcDPwFrRU40DYhN0xmEVM3aSkOuyF0IX+y1x+HWSu/i0PNklATpPBhGid3QVb/TOHuVoaraMrUFCNw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.6':
@@ -2818,6 +2846,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.6':
     resolution: {integrity: sha512-aI/WCX7gE1HFGPH3EZP/UWqpNMM1NMoM/EkXqp7pKMgXFCi8e5+o5p+jd/QOYpmALv9bQg7+s69nI7FONbMqDg==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.6':
@@ -2934,8 +2963,8 @@ packages:
     resolution: {integrity: sha512-Vys47LvS5ivhdZu4SYOxh9Le3DEmWhjP0+CtrU45RhXAbY0ZFG/2Dk9V1bIIUGDp8UWMJqctvUD21JrNjfh04w==}
     engines: {node: '>=20.11'}
 
-  '@profullstack/live-translate@0.2.0':
-    resolution: {integrity: sha512-AztOJmBYIDJPJhR/dpeGrT/UAFiM5aEEY02ZcXCIZZlmQ54E2yQaXHZ3GlsRu/n3aFArizLBOQAI0etz33JAOw==}
+  '@profullstack/live-translate@0.2.1':
+    resolution: {integrity: sha512-Xg7IApfX6cfmg9gqZiTEF+ObEh2NL7Fc2Bx4FRoNEUuMmv5Ht3M2T4LGfCN5SqMQRY56eqQBPOISHlqwiVkJOA==}
     engines: {node: '>=22.18'}
 
   '@profullstack/notifications@0.1.0':
@@ -12094,7 +12123,7 @@ snapshots:
 
   '@profullstack/keys@0.1.0': {}
 
-  '@profullstack/live-translate@0.2.0': {}
+  '@profullstack/live-translate@0.2.1': {}
 
   '@profullstack/notifications@0.1.0': {}
 

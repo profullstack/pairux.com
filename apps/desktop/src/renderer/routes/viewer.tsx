@@ -21,6 +21,7 @@ import { useAuthStore } from '@/stores/auth';
 import { getElectronAPI } from '@/lib/ipc';
 import { useWebRTCViewerAPI } from '@/hooks/useWebRTCViewerAPI';
 import { useWebRTCViewerSFUAPI } from '@/hooks/useWebRTCViewerSFUAPI';
+import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
 import type {
   Session,
   SessionParticipant,
@@ -270,7 +271,7 @@ function SFUViewer({
 }: ViewerWrapperProps) {
   const navigate = useNavigate();
 
-  const hookResult = useWebRTCViewerSFUAPI({
+  const { remoteAudio, ...hookResult } = useWebRTCViewerSFUAPI({
     sessionId,
     participantId,
     onKicked: () => {
@@ -280,12 +281,15 @@ function SFUViewer({
   });
 
   return (
-    <ViewerContent
-      session={session}
-      participants={participants}
-      userId={userId}
-      hookResult={hookResult}
-    />
+    <>
+      <ViewerContent
+        session={session}
+        participants={participants}
+        userId={userId}
+        hookResult={hookResult}
+      />
+      <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+    </>
   );
 }
 

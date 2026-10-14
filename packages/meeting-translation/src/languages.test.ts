@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultListenLanguage, isTranslationLanguage, languageName } from './languages';
+import { defaultListenLanguage, isTranslationLanguage, languageName } from './languages.js';
 
 describe('translation languages', () => {
   it('defaults to the browser language, else English', () => {

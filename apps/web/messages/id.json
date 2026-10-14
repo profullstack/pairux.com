@@ -2246,5 +2246,37 @@
       "send": "Kirim",
       "sendFailed": "Gagal mengirim pesan"
     }
+  },
+  "meetingTranslation": {
+    "title": "Terjemahan langsung",
+    "inUseBy": "dipakai {count} orang",
+    "on": "Aktif",
+    "off": "Nonaktif",
+    "paidGuest": "Terjemahan langsung adalah fitur berbayar. Minta host membeli pass terjemahan.",
+    "paidHost": "Terjemahan langsung adalah fitur berbayar. Beli pass di bawah agar semua orang di rapat Anda bisa saling mendengar dan membaca dalam bahasa mereka sendiri.",
+    "hearEveryoneIn": "Dengarkan semua orang dalam",
+    "nobodyElse": "Belum ada orang lain yang berbicara di rapat ini.",
+    "speaks": "{name} berbicara dalam",
+    "hearIn": "Dengarkan {name} dalam",
+    "detect": "Deteksi",
+    "original": "Asli",
+    "voice": "Suara",
+    "text": "Teks",
+    "originalVolume": "Suara asli di bawah terjemahan",
+    "transcript": "Transkrip terjemahan",
+    "youPay": "Anda membayar terjemahan di rapat Anda.",
+    "freeToday": "Gratis hari ini: {left} dari {limit} rapat.",
+    "credit": "Saldo {amount} hingga {date}.",
+    "passDay": "Pass harian",
+    "passMonth": "Pass bulanan",
+    "checkoutUnavailable": "Pembayaran tidak tersedia.",
+    "privacy": "Ucapan yang Anda pilih untuk diterjemahkan dikirim ke ElevenLabs (pengenalan dan suara) dan Anthropic (terjemahan). Tidak ada yang direkam atau disimpan.",
+    "participant": "Peserta"
+  },
+  "chatTranslation": {
+    "label": "Terjemahkan chat",
+    "off": "Nonaktif",
+    "showOriginal": "Lihat asli",
+    "unavailable": "Terjemahan chat tidak tersedia."
   }
 }

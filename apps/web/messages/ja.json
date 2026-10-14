@@ -2246,5 +2246,37 @@
       "send": "送信",
       "sendFailed": "メッセージを送信できませんでした"
     }
+  },
+  "meetingTranslation": {
+    "title": "ライブ翻訳",
+    "inUseBy": "{count} 人が使用中",
+    "on": "オン",
+    "off": "オフ",
+    "paidGuest": "ライブ翻訳は有料機能です。ホストに翻訳パスの購入を依頼してください。",
+    "paidHost": "ライブ翻訳は有料機能です。下からパスを購入すると、会議の全員がそれぞれの言語で互いの声を聞き、読めるようになります。",
+    "hearEveryoneIn": "全員を次の言語で聞く",
+    "nobodyElse": "この会議ではまだ他に誰も話していません。",
+    "speaks": "{name} の話す言語",
+    "hearIn": "{name} を次の言語で聞く",
+    "detect": "自動検出",
+    "original": "原文",
+    "voice": "音声",
+    "text": "テキスト",
+    "originalVolume": "翻訳の下の元の声",
+    "transcript": "翻訳された文字起こし",
+    "youPay": "会議の翻訳料金はあなたが支払います。",
+    "freeToday": "本日の無料枠：{limit} 回中 {left} 回",
+    "credit": "{date} まで {amount} のクレジット",
+    "passDay": "1日パス",
+    "passMonth": "1か月パス",
+    "checkoutUnavailable": "決済は現在ご利用いただけません。",
+    "privacy": "翻訳を選んだ発言は ElevenLabs（認識と音声）と Anthropic（翻訳）に送信されます。録音や保存は一切行いません。",
+    "participant": "参加者"
+  },
+  "chatTranslation": {
+    "label": "チャットを翻訳",
+    "off": "オフ",
+    "showOriginal": "原文を表示",
+    "unavailable": "チャット翻訳は利用できません。"
   }
 }

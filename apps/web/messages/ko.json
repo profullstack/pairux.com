@@ -2246,5 +2246,37 @@
       "send": "보내기",
       "sendFailed": "메시지를 보내지 못했어요"
     }
+  },
+  "meetingTranslation": {
+    "title": "실시간 번역",
+    "inUseBy": "{count}명이 사용 중",
+    "on": "켜짐",
+    "off": "꺼짐",
+    "paidGuest": "실시간 번역은 유료 기능입니다. 호스트에게 번역 패스 구매를 요청하세요.",
+    "paidHost": "실시간 번역은 유료 기능입니다. 아래에서 패스를 구매하면 회의 참가자 모두가 각자의 언어로 서로의 말을 듣고 읽을 수 있습니다.",
+    "hearEveryoneIn": "모두를 다음 언어로 듣기",
+    "nobodyElse": "아직 이 회의에서 말하는 다른 사람이 없습니다.",
+    "speaks": "{name}의 언어",
+    "hearIn": "{name}을(를) 다음 언어로 듣기",
+    "detect": "자동 감지",
+    "original": "원문",
+    "voice": "음성",
+    "text": "텍스트",
+    "originalVolume": "번역 아래 원래 목소리",
+    "transcript": "번역된 대화록",
+    "youPay": "회의의 번역 비용은 내가 지불합니다.",
+    "freeToday": "오늘 무료: {limit}회 중 {left}회 남음",
+    "credit": "{date}까지 크레딧 {amount}",
+    "passDay": "1일 패스",
+    "passMonth": "1개월 패스",
+    "checkoutUnavailable": "결제를 사용할 수 없습니다.",
+    "privacy": "번역하도록 선택한 음성은 ElevenLabs(인식 및 음성)와 Anthropic(번역)으로 전송됩니다. 아무것도 녹음되거나 저장되지 않습니다.",
+    "participant": "참가자"
+  },
+  "chatTranslation": {
+    "label": "채팅 번역",
+    "off": "꺼짐",
+    "showOriginal": "원문 보기",
+    "unavailable": "채팅 번역을 사용할 수 없습니다."
   }
 }

@@ -2246,5 +2246,37 @@
       "send": "Senden",
       "sendFailed": "Nachricht konnte nicht gesendet werden"
     }
+  },
+  "meetingTranslation": {
+    "title": "Live-Übersetzung",
+    "inUseBy": "von {count} genutzt",
+    "on": "An",
+    "off": "Aus",
+    "paidGuest": "Die Live-Übersetzung ist eine kostenpflichtige Funktion. Bitte den Gastgeber, einen Übersetzungspass zu kaufen.",
+    "paidHost": "Die Live-Übersetzung ist eine kostenpflichtige Funktion. Kaufe unten einen Pass, damit sich alle in deinen Meetings in ihrer eigenen Sprache hören und lesen können.",
+    "hearEveryoneIn": "Alle hören auf",
+    "nobodyElse": "In diesem Meeting spricht noch niemand sonst.",
+    "speaks": "{name} spricht",
+    "hearIn": "{name} hören auf",
+    "detect": "Erkennen",
+    "original": "Original",
+    "voice": "Stimme",
+    "text": "Text",
+    "originalVolume": "Originalstimme unter der Übersetzung",
+    "transcript": "Übersetztes Transkript",
+    "youPay": "Du bezahlst die Übersetzung in deinen Meetings.",
+    "freeToday": "Heute kostenlos: {left} von {limit} Meetings.",
+    "credit": "Guthaben {amount} bis {date}.",
+    "passDay": "Tagespass",
+    "passMonth": "Monatspass",
+    "checkoutUnavailable": "Der Bezahlvorgang ist nicht verfügbar.",
+    "privacy": "Sprache, die du übersetzen lässt, wird an ElevenLabs (Erkennung und Stimmen) und Anthropic (Übersetzung) gesendet. Nichts wird aufgezeichnet oder gespeichert.",
+    "participant": "Teilnehmer"
+  },
+  "chatTranslation": {
+    "label": "Chat übersetzen",
+    "off": "Aus",
+    "showOriginal": "Original anzeigen",
+    "unavailable": "Die Chat-Übersetzung ist nicht verfügbar."
   }
 }

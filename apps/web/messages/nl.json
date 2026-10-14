@@ -2246,5 +2246,37 @@
       "send": "Versturen",
       "sendFailed": "Bericht versturen mislukt"
     }
+  },
+  "meetingTranslation": {
+    "title": "Live vertaling",
+    "inUseBy": "in gebruik door {count}",
+    "on": "Aan",
+    "off": "Uit",
+    "paidGuest": "Live vertaling is een betaalde functie. Vraag de host om een vertaalpas.",
+    "paidHost": "Live vertaling is een betaalde functie. Koop hieronder een pas zodat iedereen in je meetings elkaar in de eigen taal kan horen en lezen.",
+    "hearEveryoneIn": "Iedereen horen in",
+    "nobodyElse": "Er spreekt nog niemand anders in deze meeting.",
+    "speaks": "{name} spreekt",
+    "hearIn": "{name} horen in",
+    "detect": "Herkennen",
+    "original": "Origineel",
+    "voice": "Stem",
+    "text": "Tekst",
+    "originalVolume": "Originele stem onder de vertaling",
+    "transcript": "Vertaald transcript",
+    "youPay": "Jij betaalt voor vertaling in je meetings.",
+    "freeToday": "Vandaag gratis: {left} van {limit} meetings.",
+    "credit": "Tegoed {amount} tot {date}.",
+    "passDay": "Dagpas",
+    "passMonth": "Maandpas",
+    "checkoutUnavailable": "Afrekenen is niet beschikbaar.",
+    "privacy": "Spraak die je laat vertalen wordt naar ElevenLabs (herkenning en stemmen) en Anthropic (vertaling) gestuurd. Er wordt niets opgenomen of bewaard.",
+    "participant": "Deelnemer"
+  },
+  "chatTranslation": {
+    "label": "Chat vertalen",
+    "off": "Uit",
+    "showOriginal": "Origineel tonen",
+    "unavailable": "Chatvertaling is niet beschikbaar."
   }
 }

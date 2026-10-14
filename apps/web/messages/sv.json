@@ -2246,5 +2246,37 @@
       "send": "Skicka",
       "sendFailed": "Det gick inte att skicka meddelandet"
     }
+  },
+  "meetingTranslation": {
+    "title": "Livetolkning",
+    "inUseBy": "används av {count}",
+    "on": "På",
+    "off": "Av",
+    "paidGuest": "Livetolkning är en betalfunktion. Be värden att köpa ett tolkpass.",
+    "paidHost": "Livetolkning är en betalfunktion. Köp ett pass nedan så att alla i dina möten kan höra och läsa varandra på sitt eget språk.",
+    "hearEveryoneIn": "Hör alla på",
+    "nobodyElse": "Ingen annan pratar i mötet ännu.",
+    "speaks": "{name} talar",
+    "hearIn": "Hör {name} på",
+    "detect": "Identifiera",
+    "original": "Original",
+    "voice": "Röst",
+    "text": "Text",
+    "originalVolume": "Originalröst under översättningen",
+    "transcript": "Översatt transkription",
+    "youPay": "Du betalar för översättning i dina möten.",
+    "freeToday": "Gratis i dag: {left} av {limit} möten.",
+    "credit": "Saldo {amount} till {date}.",
+    "passDay": "Dagspass",
+    "passMonth": "Månadspass",
+    "checkoutUnavailable": "Betalningen är inte tillgänglig.",
+    "privacy": "Tal som du väljer att översätta skickas till ElevenLabs (igenkänning och röster) och Anthropic (översättning). Inget spelas in eller sparas.",
+    "participant": "Deltagare"
+  },
+  "chatTranslation": {
+    "label": "Översätt chatten",
+    "off": "Av",
+    "showOriginal": "Visa original",
+    "unavailable": "Chattöversättning är inte tillgänglig."
   }
 }

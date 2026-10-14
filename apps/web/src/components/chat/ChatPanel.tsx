@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   MessageSquare,
   ChevronRight,
@@ -47,6 +48,7 @@ export function ChatPanel({
       participantId,
     });
 
+  const tChat = useTranslations('chatTranslation');
   const [translateTo, setTranslateTo] = useChatTranslateTo();
   const isOwnChatMessage = useCallback(
     (message: { user_id: string | null }) =>
@@ -208,7 +210,7 @@ export function ChatPanel({
 
       {/* Chat in the reader's language */}
       <div className="flex items-center gap-2 border-b border-gray-700 px-4 py-1.5 text-xs text-gray-400">
-        <label htmlFor="chat-translate-to">Translate chat</label>
+        <label htmlFor="chat-translate-to">{tChat('label')}</label>
         <select
           id="chat-translate-to"
           value={translateTo}
@@ -217,7 +219,7 @@ export function ChatPanel({
           }}
           className="rounded bg-gray-800 px-1.5 py-0.5 text-gray-200"
         >
-          <option value="">Off</option>
+          <option value="">{tChat('off')}</option>
           {TRANSLATION_LANGUAGES.map(([code, name]) => (
             <option key={code} value={code}>
               {name}

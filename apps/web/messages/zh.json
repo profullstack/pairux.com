@@ -2246,5 +2246,37 @@
       "send": "发送",
       "sendFailed": "发送消息失败"
     }
+  },
+  "meetingTranslation": {
+    "title": "实时翻译",
+    "inUseBy": "{count} 人正在使用",
+    "on": "开",
+    "off": "关",
+    "paidGuest": "实时翻译是付费功能。请让主持人购买翻译通行证。",
+    "paidHost": "实时翻译是付费功能。在下方购买通行证后，会议中的每个人都能用自己的语言听到和读到彼此的发言。",
+    "hearEveryoneIn": "用以下语言收听所有人",
+    "nobodyElse": "这个会议里还没有其他人发言。",
+    "speaks": "{name} 说的语言",
+    "hearIn": "用以下语言收听 {name}",
+    "detect": "自动检测",
+    "original": "原文",
+    "voice": "语音",
+    "text": "文字",
+    "originalVolume": "翻译下的原声",
+    "transcript": "翻译后的文字记录",
+    "youPay": "你为自己会议中的翻译付费。",
+    "freeToday": "今日免费：{limit} 场中剩余 {left} 场。",
+    "credit": "余额 {amount}，有效期至 {date}。",
+    "passDay": "一日通行证",
+    "passMonth": "一月通行证",
+    "checkoutUnavailable": "暂时无法付款。",
+    "privacy": "你选择翻译的语音会发送给 ElevenLabs（识别和语音）和 Anthropic（翻译）。不会录制或保存任何内容。",
+    "participant": "参与者"
+  },
+  "chatTranslation": {
+    "label": "翻译聊天",
+    "off": "关",
+    "showOriginal": "显示原文",
+    "unavailable": "聊天翻译不可用。"
   }
 }

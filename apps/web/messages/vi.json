@@ -2246,5 +2246,37 @@
       "send": "Gửi",
       "sendFailed": "Không thể gửi tin nhắn"
     }
+  },
+  "meetingTranslation": {
+    "title": "Dịch trực tiếp",
+    "inUseBy": "{count} người đang dùng",
+    "on": "Bật",
+    "off": "Tắt",
+    "paidGuest": "Dịch trực tiếp là tính năng trả phí. Hãy nhờ người chủ trì mua gói dịch.",
+    "paidHost": "Dịch trực tiếp là tính năng trả phí. Hãy mua gói bên dưới để mọi người trong cuộc họp của bạn có thể nghe và đọc lời nhau bằng ngôn ngữ của mình.",
+    "hearEveryoneIn": "Nghe mọi người bằng",
+    "nobodyElse": "Chưa có ai khác nói trong cuộc họp này.",
+    "speaks": "{name} nói tiếng",
+    "hearIn": "Nghe {name} bằng",
+    "detect": "Tự nhận diện",
+    "original": "Bản gốc",
+    "voice": "Giọng nói",
+    "text": "Văn bản",
+    "originalVolume": "Giọng gốc bên dưới bản dịch",
+    "transcript": "Bản ghi đã dịch",
+    "youPay": "Bạn trả phí dịch cho các cuộc họp của mình.",
+    "freeToday": "Miễn phí hôm nay: còn {left} trên {limit} cuộc họp.",
+    "credit": "Số dư {amount} đến {date}.",
+    "passDay": "Gói một ngày",
+    "passMonth": "Gói một tháng",
+    "checkoutUnavailable": "Thanh toán hiện không khả dụng.",
+    "privacy": "Lời nói bạn chọn dịch được gửi đến ElevenLabs (nhận dạng và giọng nói) và Anthropic (dịch thuật). Không có gì được ghi âm hay lưu lại.",
+    "participant": "Người tham gia"
+  },
+  "chatTranslation": {
+    "label": "Dịch tin nhắn",
+    "off": "Tắt",
+    "showOriginal": "Xem bản gốc",
+    "unavailable": "Không thể dịch tin nhắn lúc này."
   }
 }

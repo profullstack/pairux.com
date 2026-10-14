@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { User, Info } from 'lucide-react';
 import Linkify from 'linkify-react';
 import type { ChatMessageProps } from './types';
@@ -110,6 +111,7 @@ export const ChatMessage = memo(function ChatMessage({
   currentUserDisplayName,
   translation,
 }: ChatMessageProps) {
+  const t = useTranslations('chatTranslation');
   const isSystem = message.message_type === 'system';
 
   // Check if current user is mentioned
@@ -173,7 +175,7 @@ export const ChatMessage = memo(function ChatMessage({
           </p>
           {translation !== undefined && (
             <details className="mt-1 text-xs text-gray-400">
-              <summary className="cursor-pointer select-none">Show original</summary>
+              <summary className="cursor-pointer select-none">{t('showOriginal')}</summary>
               <p className="mt-1 break-words whitespace-pre-wrap">{message.content}</p>
             </details>
           )}

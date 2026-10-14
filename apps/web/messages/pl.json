@@ -2246,5 +2246,37 @@
       "send": "Wyślij",
       "sendFailed": "Nie udało się wysłać wiadomości"
     }
+  },
+  "meetingTranslation": {
+    "title": "Tłumaczenie na żywo",
+    "inUseBy": "używane przez {count}",
+    "on": "Wł.",
+    "off": "Wył.",
+    "paidGuest": "Tłumaczenie na żywo to płatna funkcja. Poproś gospodarza o karnet tłumaczenia.",
+    "paidHost": "Tłumaczenie na żywo to płatna funkcja. Kup karnet poniżej, aby wszyscy na Twoich spotkaniach mogli słyszeć i czytać się nawzajem we własnym języku.",
+    "hearEveryoneIn": "Słuchaj wszystkich po",
+    "nobodyElse": "Nikt inny jeszcze nie mówi na tym spotkaniu.",
+    "speaks": "{name} mówi po",
+    "hearIn": "Słuchaj {name} po",
+    "detect": "Wykryj",
+    "original": "Oryginał",
+    "voice": "Głos",
+    "text": "Tekst",
+    "originalVolume": "Oryginalny głos pod tłumaczeniem",
+    "transcript": "Przetłumaczona transkrypcja",
+    "youPay": "Płacisz za tłumaczenie na swoich spotkaniach.",
+    "freeToday": "Dziś za darmo: {left} z {limit} spotkań.",
+    "credit": "Środki {amount} do {date}.",
+    "passDay": "Karnet dzienny",
+    "passMonth": "Karnet miesięczny",
+    "checkoutUnavailable": "Płatność jest niedostępna.",
+    "privacy": "Mowa, którą tłumaczysz, trafia do ElevenLabs (rozpoznawanie i głosy) i Anthropic (tłumaczenie). Nic nie jest nagrywane ani przechowywane.",
+    "participant": "Uczestnik"
+  },
+  "chatTranslation": {
+    "label": "Tłumacz czat",
+    "off": "Wył.",
+    "showOriginal": "Pokaż oryginał",
+    "unavailable": "Tłumaczenie czatu jest niedostępne."
   }
 }

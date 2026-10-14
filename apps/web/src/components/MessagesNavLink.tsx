@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface MessagesNavLinkProps {
   /** Mobile menu variant: full-width row with a label instead of an icon button. */
@@ -20,6 +21,7 @@ export function MessagesNavLink({
     /* no-op */
   },
 }: MessagesNavLinkProps) {
+  const t = useTranslations('nav');
   const [unread, setUnread] = useState(0);
 
   const poll = useCallback(async () => {
@@ -51,7 +53,7 @@ export function MessagesNavLink({
         className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
       >
         <MessageCircle className="h-5 w-5" />
-        <span>Messages</span>
+        <span>{t('messages')}</span>
         {badge && (
           <span className="bg-primary-600 ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold text-white">
             {badge}
@@ -65,7 +67,7 @@ export function MessagesNavLink({
     <Link
       href="/messages"
       onClick={onNavigate}
-      aria-label="Messages"
+      aria-label={t('messages')}
       className="relative flex items-center text-gray-600 transition-colors hover:text-gray-900"
     >
       <MessageCircle className="h-5 w-5" />

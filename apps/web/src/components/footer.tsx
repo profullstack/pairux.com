@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Footer as PfsFooter } from '@profullstack/footer/react';
+import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 // Custom GitHub icon SVG component (brand icons deprecated in lucide)
 function GitHubIcon({ className }: { className?: string }) {
@@ -28,13 +30,15 @@ function TwitterIcon({ className }: { className?: string }) {
   );
 }
 
+// Internal links carry a message key (footer.links.*); package-manager names
+// under `install` are proper nouns and stay as written.
 const footerLinks = {
   product: [
-    { name: 'Features', href: '/features' },
-    { name: 'Use cases', href: '/use-cases' },
-    { name: 'Download', href: '/download' },
-    { name: 'Pricing', href: '/pricing' },
-    { name: 'Changelog', href: '/changelog' },
+    { key: 'features', href: '/features' },
+    { key: 'useCases', href: '/use-cases' },
+    { key: 'download', href: '/download' },
+    { key: 'pricing', href: '/pricing' },
+    { key: 'changelog', href: '/changelog' },
   ],
   install: [
     {
@@ -64,16 +68,16 @@ const footerLinks = {
     { name: 'Nix', href: 'https://github.com/profullstack/pairux-nix', external: true },
   ],
   resources: [
-    { name: 'Documentation', href: '/docs' },
-    { name: 'FAQ', href: '/docs#faq' },
-    { name: 'System Requirements', href: '/docs#requirements' },
-    { name: 'Troubleshooting', href: '/docs#troubleshooting' },
+    { key: 'documentation', href: '/docs' },
+    { key: 'faq', href: '/docs#faq' },
+    { key: 'systemRequirements', href: '/docs#requirements' },
+    { key: 'troubleshooting', href: '/docs#troubleshooting' },
   ],
   company: [
-    { name: 'About', href: '/about' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
+    { key: 'about', href: '/about' },
+    { key: 'blog', href: '/blog' },
+    { key: 'privacy', href: '/privacy' },
+    { key: 'terms', href: '/terms' },
   ],
 };
 
@@ -96,6 +100,7 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const t = useTranslations('footer');
   return (
     <footer className="border-t border-gray-200 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
@@ -103,10 +108,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1">
             <Logo size="lg" />
-            <p className="mt-4 text-sm text-gray-600">
-              Collaborative screen sharing with simultaneous remote control. Like Screenhero, but
-              open source.
-            </p>
+            <p className="mt-4 text-sm text-gray-600">{t('tagline')}</p>
             <div className="mt-6 flex gap-4">
               {socialLinks.map((item) => (
                 <Link
@@ -125,15 +127,15 @@ export function Footer() {
 
           {/* Product links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Product</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('sections.product')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.product.map((item) => (
-                <li key={item.name}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className="text-sm text-gray-600 transition-colors hover:text-gray-900"
                   >
-                    {item.name}
+                    {t(`links.${item.key}`)}
                   </Link>
                 </li>
               ))}
@@ -142,7 +144,7 @@ export function Footer() {
 
           {/* Install links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Install</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('sections.install')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.install.map((item) => (
                 <li key={item.name}>
@@ -161,15 +163,15 @@ export function Footer() {
 
           {/* Resources links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Resources</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('sections.resources')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.resources.map((item) => (
-                <li key={item.name}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className="text-sm text-gray-600 transition-colors hover:text-gray-900"
                   >
-                    {item.name}
+                    {t(`links.${item.key}`)}
                   </Link>
                 </li>
               ))}
@@ -178,15 +180,15 @@ export function Footer() {
 
           {/* Company links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Company</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('sections.company')}</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.company.map((item) => (
-                <li key={item.name}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className="text-sm text-gray-600 transition-colors hover:text-gray-900"
                   >
-                    {item.name}
+                    {t(`links.${item.key}`)}
                   </Link>
                 </li>
               ))}
@@ -194,9 +196,13 @@ export function Footer() {
           </div>
         </div>
 
+        <div className="mt-10 flex justify-end">
+          <LanguageSwitcher id="language-switcher-footer" showLabel />
+        </div>
+
         {/* Bottom bar: copyright + Profullstack ring, from @profullstack/footer */}
-        <div className="mt-12">
-          <PfsFooter site="https://pairux.com/" tagline="Open source under MIT License." />
+        <div className="mt-8">
+          <PfsFooter site="https://pairux.com/" tagline={t('license')} />
         </div>
       </div>
     </footer>

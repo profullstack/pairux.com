@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "title": "PairUX - Collaborative Screen Sharing with Remote Control",
+    "description": "Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source. Available for macOS, Windows, and Linux.",
+    "shortDescription": "Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.",
+    "imageAlt": "PairUX - Collaborative Screen Sharing"
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "continue": "Continue",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "retry": "Try again",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "optional": "Optional",
+    "learnMore": "Learn more",
+    "somethingWentWrong": "Something went wrong. Please try again."
+  },
+  "nav": {
+    "live": "Live",
+    "channels": "Channels",
+    "features": "Features",
+    "useCases": "Use cases",
+    "download": "Download",
+    "docs": "Docs",
+    "blog": "Blog",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "organizations": "Organizations",
+    "callAnalyses": "Call analyses",
+    "settings": "Settings",
+    "messages": "Messages",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "userFallback": "User"
+  },
+  "footer": {
+    "tagline": "Collaborative screen sharing with simultaneous remote control. Like Screenhero, but open source.",
+    "license": "Open source under MIT License.",
+    "sections": {
+      "product": "Product",
+      "install": "Install",
+      "resources": "Resources",
+      "company": "Company"
+    },
+    "links": {
+      "features": "Features",
+      "useCases": "Use cases",
+      "download": "Download",
+      "pricing": "Pricing",
+      "changelog": "Changelog",
+      "documentation": "Documentation",
+      "faq": "FAQ",
+      "systemRequirements": "System Requirements",
+      "troubleshooting": "Troubleshooting",
+      "about": "About",
+      "blog": "Blog",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  }
+}

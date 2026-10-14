@@ -1,93 +1,96 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { localeDirection, ogLocale } from '@/i18n/locales';
 import { PWAInstallButton } from '@/components/pwa';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'PairUX - Collaborative Screen Sharing with Remote Control',
-    template: '%s | PairUX',
-  },
-  description:
-    'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source. Available for macOS, Windows, and Linux.',
-  keywords: [
-    'screen sharing',
-    'remote control',
-    'pair programming',
-    'collaboration',
-    'webrtc',
-    'electron',
-    'open source',
-  ],
-  authors: [{ name: 'PairUX Team' }],
-  creator: 'PairUX',
-  publisher: 'PairUX',
-  formatDetection: {
-    email: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'),
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://pairux.com',
-    siteName: 'PairUX',
-    title: 'PairUX - Collaborative Screen Sharing with Remote Control',
-    description:
-      'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
-    images: [
-      {
-        url: '/banner.png',
-        width: 1200,
-        height: 630,
-        alt: 'PairUX - Collaborative Screen Sharing',
-      },
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([getLocale(), getTranslations('metadata')]);
+  return {
+    title: {
+      default: t('title'),
+      template: '%s | PairUX',
+    },
+    description: t('description'),
+    keywords: [
+      'screen sharing',
+      'remote control',
+      'pair programming',
+      'collaboration',
+      'webrtc',
+      'electron',
+      'open source',
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'PairUX - Collaborative Screen Sharing with Remote Control',
-    description:
-      'Real-time screen sharing with simultaneous remote mouse and keyboard control. Like Screenhero, but open source.',
-    images: ['/banner.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    authors: [{ name: 'PairUX Team' }],
+    creator: 'PairUX',
+    publisher: 'PairUX',
+    formatDetection: {
+      email: false,
+      telephone: false,
+    },
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://pairux.com'),
+    openGraph: {
+      type: 'website',
+      locale: ogLocale(locale),
+      url: 'https://pairux.com',
+      siteName: 'PairUX',
+      title: t('title'),
+      description: t('shortDescription'),
+      images: [
+        {
+          url: '/banner.png',
+          width: 1200,
+          height: 630,
+          alt: t('imageAlt'),
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('shortDescription'),
+      images: ['/banner.png'],
+    },
+    robots: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
-  },
-  icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/icons/apple-touch-icon-180x180.png', sizes: '180x180' },
-      { url: '/icons/apple-touch-icon-152x152.png', sizes: '152x152' },
-      { url: '/icons/apple-touch-icon-144x144.png', sizes: '144x144' },
-      { url: '/icons/apple-touch-icon-120x120.png', sizes: '120x120' },
-    ],
-    other: [{ rel: 'msapplication-TileImage', url: '/icons/apple-touch-icon-144x144.png' }],
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'PairUX',
-  },
-  other: {
-    'msapplication-TileColor': '#0f172a',
-    'msapplication-config': '/icons/browserconfig.xml',
-  },
-  manifest: '/manifest.json',
-};
+    icons: {
+      icon: [
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
+        { url: '/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      ],
+      apple: [
+        { url: '/icons/apple-touch-icon-180x180.png', sizes: '180x180' },
+        { url: '/icons/apple-touch-icon-152x152.png', sizes: '152x152' },
+        { url: '/icons/apple-touch-icon-144x144.png', sizes: '144x144' },
+        { url: '/icons/apple-touch-icon-120x120.png', sizes: '120x120' },
+      ],
+      other: [{ rel: 'msapplication-TileImage', url: '/icons/apple-touch-icon-144x144.png' }],
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: 'PairUX',
+    },
+    other: {
+      'msapplication-TileColor': '#0f172a',
+      'msapplication-config': '/icons/browserconfig.xml',
+    },
+    manifest: '/manifest.json',
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -123,25 +126,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // chrome — org schema, install prompt, analytics — would be
   // wrong there, so the embed gets the bare player and nothing else.
   const isEmbed = requestHeaders.get('x-embed') === '1';
+  const locale = await getLocale();
+  const dir = localeDirection(locale);
 
   if (isEmbed) {
     return (
-      <html lang="en" suppressHydrationWarning>
-        <body className="font-sans">{children}</body>
+      <html lang={locale} dir={dir} suppressHydrationWarning>
+        <body className="font-sans">
+          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        </body>
       </html>
     );
   }
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning>
       <body className="min-h-screen font-sans">
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        {children}
-        <PWAInstallButton />
+        <NextIntlClientProvider>
+          <script
+            type="application/ld+json"
+            nonce={nonce}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          />
+          {children}
+          <PWAInstallButton />
+        </NextIntlClientProvider>
         {/* Datafast Analytics */}
         <Script
           defer

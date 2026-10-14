@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - リモート操作つきの共同画面共有",
+    "description": "リアルタイムの画面共有と、複数人で同時に使えるマウス・キーボードのリモート操作。Screenhero のような体験を、オープンソースで。macOS、Windows、Linux に対応しています。",
+    "shortDescription": "リアルタイムの画面共有と、複数人で同時に使えるマウス・キーボードのリモート操作。Screenhero のような体験を、オープンソースで。",
+    "imageAlt": "PairUX - 共同画面共有"
+  },
+  "common": {
+    "language": "言語",
+    "loading": "読み込み中…",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "保存しました",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る",
+    "continue": "続行",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "retry": "再試行",
+    "yes": "はい",
+    "no": "いいえ",
+    "or": "または",
+    "optional": "任意",
+    "learnMore": "詳細を見る",
+    "somethingWentWrong": "問題が発生しました。もう一度お試しください。"
+  },
+  "nav": {
+    "live": "ライブ",
+    "channels": "チャンネル",
+    "features": "機能",
+    "useCases": "活用例",
+    "download": "ダウンロード",
+    "docs": "ドキュメント",
+    "blog": "ブログ",
+    "pricing": "料金",
+    "dashboard": "ダッシュボード",
+    "organizations": "組織",
+    "callAnalyses": "通話分析",
+    "settings": "設定",
+    "messages": "メッセージ",
+    "signIn": "ログイン",
+    "signUp": "新規登録",
+    "signOut": "ログアウト",
+    "openMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる",
+    "userFallback": "ユーザー"
+  },
+  "footer": {
+    "tagline": "複数人で同時にリモート操作できる共同画面共有。Screenhero のような体験を、オープンソースで。",
+    "license": "MIT ライセンスのオープンソースです。",
+    "sections": {
+      "product": "製品",
+      "install": "インストール",
+      "resources": "リソース",
+      "company": "会社情報"
+    },
+    "links": {
+      "features": "機能",
+      "useCases": "活用例",
+      "download": "ダウンロード",
+      "pricing": "料金",
+      "changelog": "変更履歴",
+      "documentation": "ドキュメント",
+      "faq": "よくある質問",
+      "systemRequirements": "動作環境",
+      "troubleshooting": "トラブルシューティング",
+      "about": "PairUX について",
+      "blog": "ブログ",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約"
+    }
+  },
+  "auth": {
+    "or": "または",
+    "comingSoon": "近日公開",
+    "checkEmail": "メールを確認してください",
+    "backToSignIn": "ログインに戻る",
+    "errors": {
+      "unexpected": "予期しないエラーが発生しました"
+    },
+    "fields": {
+      "email": "メールアドレス",
+      "emailPlaceholder": "you@example.com",
+      "password": "パスワード",
+      "passwordPlaceholder": "8文字以上、大文字1つ、数字1つ",
+      "passwordHint": "8文字以上で、大文字と数字をそれぞれ1つ以上含めてください",
+      "showPassword": "パスワードを表示",
+      "hidePassword": "パスワードを隠す"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "パスワードが一致しません",
+      "passwordTooShort": "パスワードは8文字以上にしてください",
+      "passwordNeedsUppercase": "パスワードには大文字を1つ以上含めてください",
+      "passwordNeedsNumber": "パスワードには数字を1つ以上含めてください"
+    },
+    "login": {
+      "meta": {
+        "title": "ログイン - PairUX",
+        "description": "PairUX アカウントにログインします"
+      },
+      "title": "おかえりなさい",
+      "subtitle": "続行するにはアカウントにログインしてください",
+      "failed": "ログインできませんでした",
+      "forgotPassword": "パスワードをお忘れですか？",
+      "passwordPlaceholder": "パスワードを入力",
+      "rememberMe": "ログイン状態を保持",
+      "submit": "ログイン",
+      "submitting": "ログイン中...",
+      "passkey": "パスキーでログイン",
+      "noAccount": "アカウントをお持ちでないですか？ <link>新規登録</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "新規登録 - PairUX",
+        "description": "PairUX アカウントを作成して画面共有を始めましょう"
+      },
+      "failed": "アカウントを作成できませんでした",
+      "confirmationSent": "<strong>{email}</strong> に確認リンクを送信しました。リンクをクリックしてアカウントを確認してください。",
+      "firstName": "名",
+      "firstNamePlaceholder": "名",
+      "lastName": "姓",
+      "lastNamePlaceholder": "姓",
+      "confirmPassword": "パスワード（確認）",
+      "confirmPasswordPlaceholder": "パスワードをもう一度入力",
+      "submit": "アカウントを作成",
+      "submitting": "アカウントを作成中...",
+      "haveAccount": "すでにアカウントをお持ちですか？ <link>ログイン</link>",
+      "page": {
+        "earlyAdopterTitle": "アーリーアダプター特典",
+        "earlyAdopterBody": "今すぐ登録すると、入金額に関係なく<bold>クレジットが20%増量</bold>されます！",
+        "waitlistTitle": "ウェイトリストに参加",
+        "recommended": "おすすめ",
+        "waitlistBody": "$100 のクレジットを入金して枠を確保すると、優先アクセスと限定特典を受けられます。",
+        "perkCredits": "$100 の入金で <semibold>$120 分のクレジット</semibold>（20% ボーナス）",
+        "perkPriority": "リリース時の優先アクセス",
+        "perkPricing": "アーリーアダプター価格をずっと固定",
+        "perkCommunity": "限定 Discord/Slack チャンネルへのアクセス",
+        "paymentMethods": "お支払い方法",
+        "payCard": "カードで支払う",
+        "payCardDetail": "Stripe 経由で Visa、Mastercard、Amex",
+        "payCrypto": "暗号資産で支払う",
+        "payCryptoDetail": "CoinPayPortal 経由で BTC、ETH、USDC",
+        "comingSoon": "近日対応",
+        "refundable": "リリース前であれば、気が変わった場合に入金を全額返金できます。",
+        "orFree": "または無料で登録",
+        "freeTitle": "無料アカウントを作成",
+        "freeBody": "参加者2人＋視聴者5人までずっと無料で使えます",
+        "creditsTitle": "クレジットの仕組み",
+        "creditsBody": "PairUX はクレジット制です。視聴者が5人を超える場合に使う SFU リレーサーバーでクレジットを消費します。<medium>720p で視聴者1人1時間あたり $0.08</medium>。無料プランの P2P 接続は期限なく使えます。"
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "パスワードをお忘れの方 - PairUX",
+        "description": "PairUX アカウントのパスワードをリセットします"
+      },
+      "title": "パスワードをお忘れですか？",
+      "subtitle": "メールアドレスを入力すると、リセット用のリンクをお送りします",
+      "failed": "リセット用のメールを送信できませんでした",
+      "sent": "<strong>{email}</strong> のアカウントが存在する場合、パスワードリセット用のリンクが届きます。",
+      "submit": "リセットリンクを送信",
+      "submitting": "送信中..."
+    },
+    "reset": {
+      "title": "パスワードをリセット",
+      "subtitle": "新しいパスワードを入力してください",
+      "failed": "パスワードをリセットできませんでした",
+      "successTitle": "パスワードを更新しました",
+      "successBody": "パスワードをリセットしました。ログイン画面に移動しています...",
+      "signInNow": "今すぐログイン",
+      "invalidTitle": "リンクが無効か期限切れです",
+      "invalidBody": "このパスワードリセットリンクは無効か、有効期限が切れています。新しいリンクをリクエストしてください。",
+      "requestNewLink": "新しいリンクをリクエスト",
+      "newPassword": "新しいパスワード",
+      "confirmNewPassword": "新しいパスワード（確認）",
+      "confirmNewPasswordPlaceholder": "新しいパスワードをもう一度入力",
+      "submit": "パスワードをリセット",
+      "submitting": "リセット中..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "PairUX CLI を承認 - PairUX",
+    "invalidTitle": "このログインリンクは無効です",
+    "invalidBody": "<code>{command}</code> をもう一度実行して、新しいリンクを取得してください。",
+    "allowedTitle": "ターミナルに戻ってください",
+    "deniedTitle": "ログインをキャンセルしました",
+    "closeTab": "このタブは閉じてかまいません。",
+    "title": "{clientName} を承認しますか？",
+    "intro": "このコンピューターの PairUX コマンドラインツールが、<strong>{email}</strong> として操作する許可を求めています。",
+    "agentsNote": "これで起動したエージェントは、あなたのエージェントであることを示すラベル付きでセッションに参加するため、ホストは誰のエージェントかを確認できます。",
+    "limitsNote": "あなたの画面を見たり、リモート操作したり、アカウントを変更したりすることはできません。",
+    "revokeNote": "<code>{command}</code> でログアウトすると、承認が取り消されます。",
+    "allow": "許可",
+    "deny": "拒否",
+    "errors": {
+      "authorizeFailed": "CLI を承認できませんでした",
+      "network": "PairUX に接続できませんでした。接続を確認して、もう一度お試しください。"
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "組織に参加 - PairUX",
+    "title": "{orgName} に参加",
+    "invited": "{role, select, admin {管理者} other {メンバー}}として招待されています。承諾するには <strong>{email}</strong> でログインしてください。",
+    "invitedToTeam": "{teamName} チームの{role, select, admin {管理者} other {メンバー}}として招待されています。承諾するには <strong>{email}</strong> でログインしてください。",
+    "expired": "この招待は期限切れです。新しい招待を依頼してください。",
+    "accept": "招待を承諾",
+    "errors": {
+      "invalid": "この招待は無効になっています",
+      "acceptFailed": "招待を承諾できませんでした"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "機能",
+      "description": "PairUX のすべての機能をご紹介します。リアルタイムの画面共有、リモート操作、マルチカーソルでの共同作業、クロスプラットフォーム対応など。"
+    },
+    "hero": {
+      "title": "機能",
+      "subtitle": "リアルタイムの共同作業に必要なものをすべて。プライバシーとセキュリティを重視して設計しています。",
+      "imageAlt": "PairUX のダッシュボード。セッションの統計、チャンネル、セッションの開始・参加のクイック操作、現在のプランが表示されています。"
+    },
+    "comingSoon": "近日公開",
+    "main": {
+      "callAnalysis": {
+        "title": "AI 通話分析",
+        "description": "面接、チームの定例、プレゼンの前にオンにすると、通話後に非公開のフィードバックレポートが届きます。スコア、良かった点、改善点、見返す価値のある場面がわかります。",
+        "details": {
+          "d0": "話者ごとの発話時間、話すスピード、フィラー",
+          "d1": "面接・チーム定例・プレゼンの各モード",
+          "d2": "スライドやデモの画面キャプチャもレビュー",
+          "d3": "録画中であることを参加者全員に通知"
+        }
+      },
+      "screenSharing": {
+        "title": "リアルタイム画面共有",
+        "description": "画面全体または個別のウィンドウを、鮮明な画質で共有できます。WebRTC によるストリーミングで、アダプティブビットレートの低遅延映像を届けます。",
+        "details": {
+          "d0": "全画面またはウィンドウ単位の共有",
+          "d1": "標準画質は 1080p @ 30fps",
+          "d2": "どんな回線にも合わせるアダプティブビットレート",
+          "d3": "カーソルも映像に表示"
+        }
+      },
+      "remoteControl": {
+        "title": "マウスとキーボードのリモート操作",
+        "description": "共同作業者がマウスとキーボードで直接操作できます。操作にはすべてホストの明示的な承認が必要です。",
+        "details": {
+          "d0": "マウスを完全に操作（クリック、スクロール、ドラッグ）",
+          "d1": "キーボード入力にフル対応",
+          "d2": "特殊キーとショートカット",
+          "d3": "クロスプラットフォーム対応"
+        }
+      },
+      "simultaneousInput": {
+        "title": "同時入力",
+        "description": "ホストと視聴者が同時に操作できます。安全で快適に使えるよう、ホストの入力が常に優先されます。",
+        "details": {
+          "d0": "2人で同時に操作可能",
+          "d1": "ホストが常に優先",
+          "d2": "入力のブロックや待ち行列なし",
+          "d3": "操作中のユーザーを表示"
+        }
+      },
+      "consent": {
+        "title": "明示的な同意モデル",
+        "description": "セキュリティを設計の土台に組み込んでいます。視聴者が操作をリクエストし、ホストが明示的に承認する仕組みです。",
+        "details": {
+          "d0": "操作リクエストには承認が必要",
+          "d1": "緊急解除のホットキー（Ctrl+Shift+Esc）",
+          "d2": "操作中は画面に表示",
+          "d3": "いつでも操作権を取り消し可能"
+        }
+      },
+      "pwaViewer": {
+        "title": "PWA ビューアー",
+        "description": "視聴者はモダンブラウザから参加でき、ダウンロードは不要です。PWA としてインストールすればすぐに開けます。",
+        "details": {
+          "d0": "モダンブラウザならどれでも動作",
+          "d1": "参加にアカウント不要",
+          "d2": "PWA としてインストール可能",
+          "d3": "モバイルでの視聴にも対応"
+        }
+      },
+      "crossPlatform": {
+        "title": "クロスプラットフォームのデスクトップアプリ",
+        "description": "macOS、Windows、Linux 向けのネイティブデスクトップアプリ。お好みのパッケージマネージャーでインストールできます。",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "直接ダウンロードも可能"
+        }
+      },
+      "recording": {
+        "title": "画面録画",
+        "description": "セッションをローカルに録画して、あとから見返せます。チュートリアルやドキュメント作成、ペアプログラミングの記録に最適です。",
+        "details": {
+          "d0": "WebM/MP4 でローカルに録画",
+          "d1": "システム音声＋マイクを収録",
+          "d2": "画質プリセット（720p/1080p/4K）",
+          "d3": "録画の一時停止・再開"
+        }
+      },
+      "textChat": {
+        "title": "テキストチャット",
+        "description": "リンクやコードを共有したいときや、音声なしでやり取りしたいときに使えるテキストチャットを内蔵しています。",
+        "details": {
+          "d0": "リアルタイムのメッセージ",
+          "d1": "システム通知（参加・退出）",
+          "d2": "画面共有と並行して使える",
+          "d3": "セッションごとのメッセージ履歴"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "セッション中の PairUX ホストコンソール。画質の選択、参加コード、参加者リスト、セッション情報パネルが表示されています。",
+      "consent": "PairUX の視聴者コンソール。ホストが入力を許可する前に、ゲストは「操作をリクエスト」を押す必要があります。",
+      "pwaViewer": "ブラウザで表示した PairUX の参加画面。セッションコード、ライブ状態、アカウント不要の「無料で視聴」ボタンが表示されています。",
+      "crossPlatform": "PairUX のダウンロードページ。1行インストーラーと、macOS・Windows・Linux 向けの DMG、EXE、AppImage、DEB、RPM ビルドが並んでいます。",
+      "recording": "PairUX の録画設定。デフォルトの録画・キャプチャ画質のプリセットと、システム音声の切り替えがあります。"
+    },
+    "tech": {
+      "title": "最新の技術で構築",
+      "subtitle": "PairUX は業界標準の WebRTC を使い、安定した低遅延のストリーミングを実現しています。"
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "ピアツーピアの直接接続で遅延を最小限に。"
+      },
+      "e2e": {
+        "title": "エンドツーエンド暗号化",
+        "description": "すべてのメディアストリームを DTLS-SRTP で暗号化。"
+      },
+      "nat": {
+        "title": "NAT トラバーサル",
+        "description": "STUN/TURN サーバーで確実に接続。"
+      },
+      "adaptive": {
+        "title": "アダプティブ画質",
+        "description": "帯域幅に応じて画質を自動調整。"
+      },
+      "sharedControl": {
+        "title": "操作の共有",
+        "description": "ホストとゲストがホストのシステムポインターを交代で使います。"
+      },
+      "keyboard": {
+        "title": "キーボードにフル対応",
+        "description": "修飾キーや特殊キーを含むすべてのキーに対応。"
+      }
+    },
+    "compare": {
+      "title": "PairUX と他サービスの比較",
+      "subtitle": "ほかの画面共有ソリューションと PairUX を比べてみましょう。",
+      "feature": "機能",
+      "others": "他サービス",
+      "rows": {
+        "screenSharing": "画面共有",
+        "remoteControl": "リモート操作",
+        "simultaneousControl": "同時操作",
+        "localRecording": "画面録画（ローカル）",
+        "textChat": "テキストチャット",
+        "noAccount": "視聴者はアカウント不要",
+        "openSource": "オープンソース",
+        "selfHostable": "セルフホスト可能",
+        "e2e": "エンドツーエンド暗号化",
+        "nativeApps": "ネイティブアプリ",
+        "browserViewer": "ブラウザで視聴",
+        "freeTier": "無料プラン"
+      },
+      "values": {
+        "soon": "近日対応",
+        "partial": "一部対応",
+        "unlimited": "無制限",
+        "limited": "制限あり"
+      }
+    },
+    "cta": {
+      "title": "さっそく始めましょう",
+      "subtitle": "PairUX をダウンロードすれば、数秒で共同作業を始められます。",
+      "button": "今すぐダウンロード"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "AI 通話分析：面接、チーム定例、プレゼンへのフィードバック | PairUX",
+        "description": "PairUX の通話前に AI 通話分析をオンにすると、通話後にフィードバックレポートが届きます。発話時間、話すスピード、フィラー、伝わった点、練習すべき点、見返すべき場面がわかります。"
+      },
+      "eyebrow": "AI 通話分析 · Pro・Team プラン",
+      "title": "通話の本当の手応えを確かめましょう。",
+      "intro": "面接、チーム定例、プレゼンの前に AI 通話分析をオンにしてください。通話が終わると、スコア、良かった点、改善点、その根拠となる数値、見返す価値のある場面をまとめた非公開レポートが届きます。",
+      "startCta": "分析つきの通話を始める",
+      "seePlans": "プランを見る",
+      "kindsTitle": "通話の種類に合わせたフィードバック",
+      "kinds": {
+        "interviews": {
+          "title": "面接",
+          "body": "質問ごとに、回答がどう受け取られたか、長すぎたりあいまいだったりした箇所、より良い言い方を示します。面接官側の場合は、質問の内容と傾聴の質をレビューします。"
+        },
+        "teamSyncs": {
+          "title": "チーム定例",
+          "body": "決まったこと、未解決の質問、話がそれた箇所、担当者つきのすべての約束事をまとめ、次の定例までに何も抜け落ちないようにします。"
+        },
+        "presentations": {
+          "title": "プレゼンとデモ",
+          "body": "冒頭、話の筋、締めくくり、聞き手が離れたと思われる箇所、そして画面の内容（スライドの情報量、読みやすさ、話と画面が合っていたか）を確認します。"
+        }
+      },
+      "measuredTitle": "推測ではなく計測",
+      "measuredBody": "数値は話者を区別した文字起こしから集計され、フィードバックの文章もそれを根拠にしています。レポートに「面接の70%をあなたが話していた」とあれば、それは確認できる事実です。",
+      "measured": {
+        "m0": "話者ごとの発話時間の割合",
+        "m1": "1分あたりの語数による話すスピード",
+        "m2": "100語あたりのフィラーの数とその種類",
+        "m3": "質問の数、最長の独演、割り込み"
+      },
+      "howTitle": "使い方",
+      "how": {
+        "s0": "通話の前に、開始画面（pairux.com、デスクトップアプリ、モバイルアプリ）で<strong>AI 通話分析</strong>をオンにし、通話の種類を選びます。同時に通話の録画もオンになりますが、録画はオフにできます。",
+        "s1": "通話中は、アプリが通話音声と、共有画面の静止画を20秒ごとにアップロードします。参加者全員に、分析のために録画中であることが表示されます。",
+        "s2": "通話後、音声は話者を区別して文字起こしされ、AI コーチがレポートを作成します。レポートはメールで届き、ダッシュボードの「通話分析」にも保存されます。"
+      },
+      "privacyTitle": "同意とプライバシー",
+      "privacy": {
+        "p0": "分析の有無は通話開始前に決めるもので、途中からオンにすることはできません。",
+        "p1": "Web、デスクトップ、モバイルのどのアプリでも、参加者全員に通話中ずっと通知が表示されます。",
+        "p2": "レポートと録画はホスト、または通話が行われたチームや組織だけが見られ、いつでも削除できます。",
+        "p3": "録画をオフにしておけば、レポート作成後すぐに音声は削除されます。",
+        "p4": "スマートフォンでは自分のマイクだけが録音されます。全員の音声を記録するには、pairux.com かデスクトップアプリから開始してください。"
+      },
+      "tryCta": "次の通話で試してみる"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "AI エージェントと働くための活用例",
+        "description": "PairUX でペアプログラミング、AI が生成したコードのレビュー、デバッグ、メンバーのオンボーディング、ライブ講義を。面接、チーム定例、プレゼンへの AI フィードバックも受けられます。"
+      },
+      "eyebrow": "PairUX の活用例",
+      "title": "エージェントとの仕事を、チームでもっと良く。",
+      "intro": "コードはエージェントが書けます。それでも、その結果をチームが理解する必要があります。PairUX で画面を共有し、アプリを試し、次の判断を一緒に考えましょう。",
+      "findWorkflow": "ワークフローを探す",
+      "featuredLabel": "注目 · エージェントとのペアプログラミング",
+      "featuredTitle": "2人で、1つのエージェントセッションを。",
+      "featuredBody": "moshcode のライブターミナルをチームメイトと共有し、PairUX でエディターやアプリを一緒にレビューしましょう。まず見るだけでも、同じセッションに参加してもかまいません。",
+      "featuredCta": "エージェントとのペアプログラミングを見る",
+      "workflowsTitle": "もう1人を作業に呼び込む",
+      "workflowsIntro": "まずは画面共有から。ホストがリモート操作を承認すれば、共同作業者もマウスとキーボードを使えます。",
+      "notesPlans": "Pro・Team プラン",
+      "notesTitle": "AI 議事録",
+      "notesBody": "作業セッションを、メモ・決定事項・アクションアイテムの下書きに。チームメイトの状況把握を助けたり、次のエージェントタスクに文脈を引き継いだりできます。",
+      "notesFootnote": "AI 通話分析の機能の一部です。通話前にオンにすると、通話終了後にメールでレポートが届きます。",
+      "notesCta": "AI 議事録を見る",
+      "ctaTitle": "まずは1つの共有セッションから",
+      "ctaBody": "PairUX を入手して画面を共有し、チームメイトを招待して実際のタスクに一緒に取り組みましょう。",
+      "getPairux": "PairUX を入手",
+      "comparePlans": "プランを比較"
+    },
+    "exploreWorkflow": "ワークフローを見る",
+    "allUseCases": "すべての活用例",
+    "detail": {
+      "plannedTitle": "{title} · プレミアムプランで提供予定",
+      "notAvailable": "まだご利用いただけません。この機能を目的にご購入される前に、プレミアムアクセスと提供時期についてお問い合わせください。",
+      "whenHelps": "役立つ場面",
+      "tryWorkflow": "このワークフローを試す",
+      "plannedWorkflow": "予定しているワークフロー",
+      "leaveWith": "得られるもの",
+      "goal": "目標",
+      "discussPremium": "プレミアム AI 議事録について相談",
+      "startWithPairux": "PairUX で始める",
+      "seeCurrentPlans": "現在のプランを見る",
+      "comparePlans": "プランを比較",
+      "moreWays": "ほかの共同作業の方法"
+    },
+    "agentic": {
+      "meta": {
+        "title": "moshcode で行うエージェントとのペアプログラミング | PairUX",
+        "description": "同じコーディングエージェントのライブセッションでチームメイトと作業しましょう。moshcode でターミナルを共有し、PairUX で画面とアプリを一緒にレビューできます。"
+      },
+      "backLink": "← すべての活用例",
+      "eyebrow": "エージェントとのペアプログラミング",
+      "title": "2人で、1つのエージェントセッションを。",
+      "intro": "AI エージェントがコードを書くときも、ペアプログラミングには共有された文脈が欠かせません。moshcode のライブセッションにチームメイトを招き、PairUX でエージェントが作ったものをレビューして、次の一手を一緒に決めましょう。",
+      "openMoshcode": "moshcode を開く",
+      "getPairux": "PairUX を入手",
+      "stepsTitle": "見るだけから、一緒に作業するまで",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "1つのライブセッションから始める",
+          "body": "開発マシンで moshcode を実行し、app.moshcode.sh でそのセッションを開きます。あなたとチームメイトは同じエージェントの出力を追い、同じターミナルで作業します。"
+        },
+        "s1": {
+          "title": "チームをセッションに招く",
+          "body": "moshcode で組織とチームを作成し、チームメイトをアカウントのメールアドレスで追加して、そのチームにセッションを共有します。閲覧権限なら見るだけ、書き込み権限なら実行中のセッションに入力を送れます。"
+        },
+        "s2": {
+          "title": "PairUX で結果を一緒にレビュー",
+          "body": "ターミナル、エディター、アプリのプレビューを PairUX で共有します。チームメイトはブラウザから参加して、作業を文脈ごと確認できます。マウスとキーボードも使ってほしいときは、リモート操作を承認してください。"
+        }
+      },
+      "permissionsNote": "ターミナルセッションへのアクセスは moshcode のチーム権限で管理されます。PairUX のリモート操作はそれとは別に、画面共有のホストが承認するものです。共同作業のスタイルに合わせて、どちらか一方でも両方でも使えます。",
+      "contractorTitle": "業務委託メンバーをオンボーディングする実践的な方法",
+      "contractorP1": "業務委託メンバーをチームに追加し、最初のセッションは閲覧権限で見てもらいましょう。タスク、エージェントの出力、動いているアプリを順に説明します。参加できる段階になったら書き込み権限を付与し、同じセッションで一緒に作業します。",
+      "contractorP2": "このワークフローは、失敗するテストの調査、エージェントの実装と意図した動作の比較、マージ前の変更のレビューにも使えます。全員がリアルタイムで作業を確認できます。",
+      "startPairing": "PairUX でペアプログラミングを始める"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "エージェントとのペアプログラミング",
+        "audience": "開発者とチームメイト",
+        "description": "1つのコーディングエージェントのライブセッションでチームメイトと作業します。moshcode でターミナルを共有し、PairUX で画面を一緒にレビューします。",
+        "scenario": "開発環境でエージェントが作業する間、チームメイトにもエージェントの舵取りを手伝ってほしい。",
+        "outcome": "エージェントが何を変更し、次に何をすべきかについての共通理解。",
+        "steps": {
+          "s0": {
+            "title": "共有ターミナルを開始",
+            "body": "moshcode のライブセッションを開き、チームに共有します。"
+          },
+          "s1": {
+            "title": "アプリを画面に映す",
+            "body": "エディターやアプリのプレビューを PairUX で共有します。"
+          },
+          "s2": {
+            "title": "次のステップを一緒に進める",
+            "body": "結果を一緒にレビューし、次にエージェントへ何を頼むか決めます。"
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "AI が生成したコードのレビュー",
+        "audience": "開発者とレビュアー",
+        "description": "エージェントの変更がプルリクエストとしてマージされる前に、差分、テスト、動いているアプリを一緒に確認します。",
+        "scenario": "エージェントが大きな変更を作成した。レビュアーはパッチの要約を読むだけでなく、その動作を理解する必要がある。",
+        "outcome": "明確な修正点、追加のテスト、合意したマージ判断を伴うレビュー済みの変更。",
+        "steps": {
+          "s0": {
+            "title": "根拠を開く",
+            "body": "差分、タスクの要件、テスト出力が見える状態でエディターを共有します。エージェントに何を変更するよう頼んだのかを説明します。"
+          },
+          "s1": {
+            "title": "動作を一緒に試す",
+            "body": "アプリを起動し、重要な操作を試します。レビュアーがエッジケースを直接試したい場合は、リモート操作を承認します。"
+          },
+          "s2": {
+            "title": "気づきを次の修正につなげる",
+            "body": "修正内容を合意し、コーディングエージェントに対応を依頼します。マージ前に新しい差分をレビューし、関連するチェックを再実行します。"
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "行き詰まったエージェントを前に進める",
+        "audience": "開発者とデバッグのパートナー",
+        "description": "失敗するテストや、うまくいかない修正の繰り返しに、もう1人を呼び込みます。根拠を確認し、次の検証を一緒に選びます。",
+        "scenario": "コーディングエージェントがコードを変え続けているのに、失敗が直らない。チームメイトなら、見落とした前提や環境の問題に気づけるかもしれない。",
+        "outcome": "再現できる失敗と、エージェントに渡す焦点の定まった次の一手。",
+        "steps": {
+          "s0": {
+            "title": "失敗をその場で見せる",
+            "body": "ターミナルを共有して問題を再現します。エラー、最近の変更、すでに試したことをチームメイトに説明します。"
+          },
+          "s1": {
+            "title": "仮説を1つ検証する",
+            "body": "ログ、設定、動いているアプリを一緒に調べます。チームメイトが同じ環境を調べる必要があれば、リモート操作を許可します。"
+          },
+          "s2": {
+            "title": "エージェントにより良い指示を出す",
+            "body": "再現手順と、選んだ修正の根拠を書き留めます。エージェントに焦点を絞った変更を依頼し、元の失敗をもう一度確認します。"
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "業務委託メンバーを実務の中でオンボーディング",
+        "audience": "チームリーダーと新メンバー",
+        "description": "新しいメンバーに実際のタスクを見てもらい、コードベースとエージェントのワークフローを学んでもらってから、準備ができたら参加してもらいます。",
+        "scenario": "プロジェクトに業務委託メンバーが加わる。エージェントの使い方、変更のレビュー方法、出荷の判断基準を理解してもらう必要がある。",
+        "outcome": "ワークフローを理解し、文脈を踏まえて次のタスクを担えるメンバー。",
+        "steps": {
+          "s0": {
+            "title": "実際のタスクから始める",
+            "body": "開発画面を共有し、プロジェクト、タスク、コーディングエージェントへの指示の出し方を説明します。最初の作業は見てもらうだけにします。"
+          },
+          "s1": {
+            "title": "判断の理由を説明する",
+            "body": "エージェントの出力、テスト、動いているアプリを順に確認します。どこで提案を受け入れ、どこで別のアプローチを求めるかを見せます。"
+          },
+          "s2": {
+            "title": "交代して任せてみる",
+            "body": "ガイド付きの編集のために PairUX のリモート操作を承認します。moshcode も使っている場合は、ターミナルに入力できる段階になったら、共有チームセッションの書き込み権限を付与します。"
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "プロダクト・デザインチームとアプリをレビュー",
+        "audience": "開発者、デザイナー、プロダクトチーム",
+        "description": "エージェントが作っているアプリを、その結果を評価する人たちに見せます。一緒にフローを試し、フィードバックを具体的な変更につなげます。",
+        "scenario": "動くプロトタイプはできたが、操作感、文言、レイアウトについて、コードの外にいる人からのフィードバックが必要。",
+        "outcome": "具体的な受け入れ基準と、動くアプリへの変更点の合意済みリスト。",
+        "steps": {
+          "s0": {
+            "title": "動く体験を共有する",
+            "body": "アプリのプレビューを開き、そのウィンドウを PairUX で共有します。実際のユーザーが完了できるべきタスクを順にたどります。"
+          },
+          "s1": {
+            "title": "レビュアーに自由に試してもらう",
+            "body": "操作しながらフィードバックを求めるか、リモート操作を承認してレビュアーにあなたのマシンでフローを試してもらいます。"
+          },
+          "s2": {
+            "title": "フィードバックのループを閉じる",
+            "body": "気づきをコーディングエージェントへの具体的な依頼に変えます。同じセッションで更新されたアプリを見せ、何が完成したかを合意します。"
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "AI ワークフローのつまずきを解消",
+        "audience": "サポートチームとテックリード",
+        "description": "同じ画面を見ながら、チームメイトのツール設定、エラーの理解、壊れたローカルワークフローの復旧を手伝います。",
+        "scenario": "エージェントや開発ツールが、あるマシンでは動くのに別のマシンでは失敗する。スクリーンショットやコピーしたエラーメッセージだけでは文脈が足りない。",
+        "outcome": "動く環境と、問題がどう解決したかを理解した本人。",
+        "steps": {
+          "s0": {
+            "title": "問題を見せてもらう",
+            "body": "問題を抱えている人が PairUX セッションをホストし、該当するツールのウィンドウを共有します。あなたはブラウザから参加して、失敗を再現するのを見ます。"
+          },
+          "s1": {
+            "title": "相手の環境で修正を導く",
+            "body": "次に確認することを説明し、本人に操作してもらいます。直接手伝ったほうがよい場合はリモート操作をリクエストします。承認するかどうかはホストが決めます。"
+          },
+          "s2": {
+            "title": "ワークフロー全体を確認する",
+            "body": "元のタスクをもう一度実行してもらいます。次回同じ問題に気づけるよう、解決した手順を残しておきます。"
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "AI コーディングのライブワークショップを開く",
+        "audience": "講師、コミュニティ、チーム",
+        "description": "実際に何かを作りながら、エージェントへの指示の出し方、成果物の確認方法、ミスへの対処を参加者に見せます。",
+        "scenario": "洗練されたデモでは省かれがちな判断や修正の過程を見て、チームでエージェントのワークフローを学びたい。",
+        "outcome": "タスクの指示から結果の確認までの全工程を見届けた参加者。",
+        "steps": {
+          "s0": {
+            "title": "焦点を絞ったデモを準備する",
+            "body": "小さなタスクを選び、使うターミナル、エディター、アプリを共有します。参加人数に合った PairUX のプランを選んでください。"
+          },
+          "s1": {
+            "title": "プロンプトの意図を見せる",
+            "body": "エージェントに与える文脈とその理由を説明します。重要な場面で手を止め、差分を確認し、テストを実行し、予想外の結果について話し合います。"
+          },
+          "s2": {
+            "title": "結果のレビューを練習する",
+            "body": "参加者にエッジケースや追加の変更を提案してもらいます。そのチェックを画面上で実行し、作業が完成かどうかをどう判断するかを見せます。"
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "AI 議事録",
+        "audience": "Pro・Team プラン",
+        "description": "チーム定例の前に AI 通話分析をオンにすれば、決定事項、未解決の質問、アクションアイテムに加えて、会議の進め方へのフィードバックも得られます。",
+        "scenario": "チームは共同作業に集中しつつ、次のセッションに役立つメモを残したい。",
+        "outcome": "作業内容、決定事項、次のステップをまとめた確認済みの振り返り。",
+        "steps": {
+          "s0": {
+            "title": "通話前に AI 通話分析をオンにする",
+            "body": "開始画面で AI 通話分析をオンにし、「チーム定例」を選びます。参加者全員に、分析のために録画中であることが表示されます。"
+          },
+          "s1": {
+            "title": "レポートを読む",
+            "body": "通話後に、要約、決定事項、未解決の質問、担当者つきのすべてのアクションアイテムが、会議の進め方へのフィードバックとともに届きます。"
+          },
+          "s2": {
+            "title": "次のタスクに文脈を引き継ぐ",
+            "body": "アクションアイテムをチームに共有したり、要約を使ってチームメイトに状況を伝えたり、エージェントへの次の依頼を準備したりできます。"
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "PairUX について",
+      "description": "オープンソースの共同画面共有ツール、PairUX についてご紹介します。"
+    },
+    "title": "PairUX について",
+    "subtitle": "あったらいいのにと思っていた共同作業ツールを作っています",
+    "missionTitle": "私たちのミッション",
+    "missionP1": "PairUX は不満から生まれました。Slack が Screenhero を買収してサービスを終了して以来、リモートでのペアプログラミングは必要以上に難しくなりました。既存のツールはリモート操作に対応していないか、高額なライセンスが必要か、特定ベンダーへの囲い込みを強いるものばかりです。",
+    "missionP2": "共同での画面共有は、誰もが使えるものであるべきだと考えています。だからこそ PairUX はオープンソースで、料金は明快、人為的な制限もありません。",
+    "buildingTitle": "私たちが作っているもの",
+    "buildingBody": "PairUX は、複数人で同時にリモート操作できる共同画面共有のデスクトップアプリです。Screenhero を、モダンに、オープンソースで、クロスプラットフォームにしたものと考えてください。",
+    "buildingList": {
+      "b0": "低遅延のリアルタイム画面共有",
+      "b1": "複数の参加者が共有画面を同時に操作可能",
+      "b2": "エンドツーエンド暗号化による安全性",
+      "b3": "macOS、Windows、Linux で動作",
+      "b4": "視聴者はどのブラウザからでも参加可能"
+    },
+    "openSourceTitle": "オープンソース",
+    "openSourceBody": "PairUX は MIT ライセンスで公開されています。<link>GitHub</link> でコードを閲覧、改変、貢献できます。コミュニティからの貢献を歓迎します。",
+    "contactTitle": "お問い合わせ",
+    "contactBody": "ご質問やご意見は <link>hello@pairux.com</link> までお寄せください。"
+  },
+  "blog": {
+    "meta": {
+      "title": "ブログ - PairUX",
+      "description": "PairUX チームからのニュース、アップデート、チュートリアル。"
+    },
+    "title": "ブログ",
+    "subtitle": "PairUX チームからのニュース、アップデート、チュートリアル",
+    "comingSoonTitle": "近日公開",
+    "comingSoonBody": "最初のブログ記事を準備中です。チュートリアル、製品アップデート、PairUX 開発の舞台裏などを近日公開予定です。",
+    "postNotFound": "記事が見つかりません",
+    "postTitle": "{title} - PairUX ブログ",
+    "backToBlog": "← ブログに戻る"
+  },
+  "changelog": {
+    "meta": {
+      "title": "変更履歴",
+      "description": "PairUX の新機能をチェック。リリースノートとバージョン履歴です。"
+    },
+    "title": "変更履歴",
+    "subtitle": "PairUX の新機能をチェック",
+    "version": "v{version}",
+    "englishOnly": "リリースノートは英語で公開しています。"
+  },
+  "legal": {
+    "privacy": {
+      "title": "プライバシーポリシー",
+      "description": "PairUX のプライバシーポリシー。お客様のデータの取り扱いについて。"
+    },
+    "terms": {
+      "title": "利用規約",
+      "description": "PairUX の利用規約と利用ポリシー。"
+    },
+    "lastUpdated": "最終更新日：{date}",
+    "englishOnly": "本書は英語で提供されており、英語版が正式な版となります。"
+  },
+  "docs": {
+    "meta": {
+      "title": "ドキュメント",
+      "description": "PairUX の使い方：インストールガイド、動作環境、セキュリティ情報、よくある質問。"
+    },
+    "title": "ドキュメント",
+    "subtitle": "PairUX で共同画面共有を行うために知っておきたいことをすべてまとめています。",
+    "onThisPage": "このページの内容",
+    "toc": {
+      "gettingStarted": "はじめに",
+      "requirements": "動作環境",
+      "hosting": "セッションをホストする",
+      "viewing": "セッションを視聴する",
+      "control": "リモート操作",
+      "remoteStart": "リモート起動（Tailscale）",
+      "security": "セキュリティ",
+      "troubleshooting": "トラブルシューティング",
+      "uninstalling": "アンインストール",
+      "faq": "よくある質問"
+    },
+    "englishOnly": "ドキュメントは英語のみで提供しています。",
+    "agents": {
+      "meta": {
+        "title": "エージェント参加者 | PairUX ドキュメント",
+        "description": "Claude Code などの AI エージェントを PairUX のライブセッションに招きましょう。参加コードで参加し、チャットを追って返信し、Web・デスクトップ・モバイルでエージェントとしてラベル表示されます。"
+      },
+      "backLink": "← ドキュメント",
+      "title": "エージェント参加者"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "ダッシュボード - PairUX",
+      "description": "PairUX ダッシュボード - セッション、お支払い、設定を管理します。"
+    },
+    "stats": {
+      "sessionsThisMonth": "今月のセッション",
+      "totalParticipants": "参加者の合計",
+      "hoursUsed": "利用時間",
+      "hoursValue": "{hours}時間"
+    },
+    "channelsHeading": "チャンネル",
+    "usageAnalytics": "利用状況の分析",
+    "analyticsPlaceholder": "分析データはここに表示されます",
+    "yourPlan": "ご利用中のプラン",
+    "freePlan": "無料プラン",
+    "current": "現在のプラン",
+    "freePlanSummary": "参加者2人、P2P のみ",
+    "upgradePlan": "プランをアップグレード",
+    "comingSoon": "近日公開",
+    "comingSoonButton": "近日公開",
+    "perMonth": "/月",
+    "plans": {
+      "pro": {
+        "description": "プロフェッショナルと成長中のチーム向け",
+        "features": {
+          "participants": "参加者10人＋視聴者50人",
+          "hours": "視聴時間 100 時間分を含む"
+        }
+      },
+      "team": {
+        "description": "チームと組織向け",
+        "features": {
+          "participants": "参加者数無制限",
+          "hours": "視聴時間 500 時間分を含む"
+        }
+      }
+    },
+    "billing": "お支払い",
+    "noPaymentMethod": "お支払い方法が登録されていません",
+    "addPaymentMethod": "お支払い方法を追加",
+    "settings": "設定",
+    "accountSettings": "アカウント設定",
+    "notifications": "通知",
+    "welcome": {
+      "title": "PairUX へようこそ",
+      "subtitle": "画面を共有して、リアルタイムで共同作業し、リモートでサポートを受けましょう。",
+      "startSharing": "共有を開始",
+      "joinSession": "セッションに参加",
+      "scheduleMeeting": "ミーティングを予約",
+      "callAnalyses": "通話分析"
+    },
+    "quickActions": {
+      "title": "クイック操作",
+      "startSession": "セッションを開始",
+      "startSessionHint": "画面を共有します",
+      "joinSession": "セッションに参加",
+      "joinSessionHint": "参加コードを入力します",
+      "scheduleMeeting": "ミーティングを予約",
+      "scheduleMeetingHint": "チームを招待します"
+    },
+    "recentSessions": {
+      "title": "最近のセッション",
+      "fetchFailed": "セッションを取得できませんでした",
+      "loadFailed": "セッションを読み込めませんでした",
+      "tryAgain": "再試行",
+      "empty": "セッションはまだありません",
+      "emptyHint": "最初のセッションを開始すると、ここに表示されます",
+      "startSession": "セッションを開始",
+      "viewAll": "すべて表示",
+      "join": "参加",
+      "resume": "再開",
+      "status": {
+        "created": "作成済み",
+        "active": "進行中",
+        "paused": "一時停止中",
+        "ended": "終了"
+      },
+      "duration": {
+        "underMinute": "1分未満",
+        "minutes": "{minutes}分",
+        "hours": "{hours}時間",
+        "hoursMinutes": "{hours}時間{minutes}分"
+      },
+      "date": {
+        "today": "今日",
+        "yesterday": "昨日",
+        "daysAgo": "{days, plural, other {#日前}}"
+      }
+    },
+    "upcoming": {
+      "title": "今後のミーティング",
+      "loadFailed": "今後のミーティングを読み込めませんでした",
+      "startFailed": "ミーティングを開始できませんでした",
+      "cancelConfirm": "この予定のミーティングをキャンセルしますか？招待者に通知されます。",
+      "schedule": "予約",
+      "empty": "予定されているミーティングはありません",
+      "scheduleFirst": "最初のミーティングを予約する",
+      "todayAt": "今日 {time}",
+      "tomorrowAt": "明日 {time}",
+      "durationMinutes": "{minutes}分",
+      "durationHours": "{hours}時間",
+      "goesLiveOn": "{channel} でライブ配信",
+      "invited": "{count}人を招待",
+      "accepted": "{count}人が承諾",
+      "startEarlyHint": "今すぐルームを開き、招待者全員にメールを送ります",
+      "startEarly": "早めに開始",
+      "startNow": "今すぐ開始",
+      "addToCalendar": "カレンダーに追加",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "ミーティングを編集",
+      "cancelMeeting": "ミーティングをキャンセル"
+    },
+    "schedule": {
+      "yourChannels": "あなたのチャンネル",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1時間} =90 {1.5時間} =120 {2時間} other {#分}}",
+      "durationCustomHours": "{hours, plural, other {#時間}}",
+      "repeatNone": "繰り返さない",
+      "repeatDaily": "毎日",
+      "repeatWeekly": "毎週",
+      "repeatMonthly": "毎月",
+      "repeatUnit": "{freq, select, daily {日} weekly {週} other {か月}}",
+      "invalidDate": "日時が正しくありません",
+      "saveFailed": "変更を保存できませんでした",
+      "scheduleFailed": "ミーティングを予約できませんでした",
+      "networkError": "ネットワークエラーです。もう一度お試しください。",
+      "editTitle": "ミーティングを編集",
+      "scheduleTitle": "ミーティングを予約",
+      "close": "閉じる",
+      "meetingTitle": "ミーティング名",
+      "titlePlaceholder": "例：週次チーム定例",
+      "dateTime": "日時",
+      "durationLabel": "時間",
+      "repeat": "繰り返し",
+      "every": "間隔",
+      "numberOfTimes": "回数",
+      "zeroForever": "0 = 無期限",
+      "recurrenceSummary": "{description}。全員が同じ参加コードとリンクを使い続けます。",
+      "broadcastChannel": "配信チャンネル",
+      "optional": "（任意）",
+      "loadingChannels": "チャンネルを読み込み中…",
+      "noChannel": "チャンネルなし（非公開ミーティング）",
+      "channelUnavailable": "現在のチャンネル（アクセス権がなくなりました）",
+      "channelOption": "{name}（@{handle}）",
+      "noChannelsHint": "チャンネルはまだありません。ダッシュボードの「チャンネル」から作成するか、チャンネルを持つチームに参加してください。",
+      "channelHint": "このミーティングからライブ配信すると、このチャンネルで配信されます。チームのチャンネルはチームごとに表示されます。",
+      "description": "説明",
+      "descriptionPlaceholder": "議題、メモ、背景など...",
+      "invitees": "招待者",
+      "inviteByEmail": "メールで招待",
+      "removeInvitee": "招待者を削除",
+      "addAnother": "さらに追加",
+      "editInviteHint": "新しい招待者には招待メールが送られ、削除された人にはリストから外れたことが通知されます。複数のアドレスはカンマ区切りで貼り付けられます。",
+      "newInviteHint": "招待はすぐに送信されます。複数のアドレスはカンマ区切りで貼り付けられます。",
+      "toInvite": "{count}人を招待",
+      "toRemove": "{count}人を削除",
+      "cancel": "キャンセル",
+      "saving": "保存中...",
+      "saveChanges": "変更を保存",
+      "scheduling": "予約中...",
+      "submitSchedule": "ミーティングを予約"
+    },
+    "booking": {
+      "loadFailed": "予約ページを読み込めませんでした",
+      "saveFailed": "保存できませんでした",
+      "deleteConfirm": "「{title}」を削除しますか？すでに予約されたミーティングは残ります。",
+      "title": "予約リンク",
+      "subtitle": "誰でもあなたとの通話を予約できます。通話は PairUX で行われます。",
+      "newLink": "新しいリンク",
+      "needUsername": "まず設定でユーザー名を設定してください。リンクは {url} になります",
+      "empty": "予約リンクはまだありません。作成して {url} を共有しましょう。",
+      "meta": "· {minutes}分 · {timezone}",
+      "off": "オフ",
+      "copyLink": "リンクをコピー",
+      "copied": "コピーしました",
+      "turnOff": "オフにする",
+      "turnOn": "オンにする",
+      "edit": "編集",
+      "delete": "削除",
+      "newTitle": "新しい予約リンク",
+      "editTitle": "予約リンクを編集",
+      "close": "閉じる",
+      "fieldTitle": "タイトル",
+      "titlePlaceholder": "初回打ち合わせ",
+      "fieldLink": "リンク",
+      "fieldDescription": "説明",
+      "optional": "（任意）",
+      "fieldDuration": "時間",
+      "durationOption": "{minutes}分",
+      "fieldTimezone": "タイムゾーン",
+      "availableHours": "対応可能な時間帯",
+      "to": "〜",
+      "buffer": "前後の余裕（分）",
+      "minNotice": "最短受付（分前）",
+      "daysAhead": "受付期間（日先まで）",
+      "cancel": "キャンセル",
+      "create": "リンクを作成",
+      "save": "保存",
+      "usernameToken": "ユーザー名",
+      "slugToken": "スラッグ"
+    },
+    "channels": {
+      "bannerGenerateFailed": "バナーを生成できませんでした。もう一度お試しください。",
+      "bannerSaveFailed": "バナーは生成されましたが、保存できませんでした。",
+      "bannerFailed": "バナーの生成に失敗しました。もう一度お試しください。",
+      "uploadFailed": "画像をアップロードできませんでした。",
+      "processFailed": "その画像を処理できませんでした。",
+      "handleInvalid": "ハンドルは3〜30文字の英字、数字、アンダースコアで入力してください。",
+      "createFailed": "チャンネルを作成できませんでした。",
+      "networkError": "ネットワークエラーです。もう一度お試しください。",
+      "loading": "チャンネルを読み込み中…",
+      "signInPrompt": "チャンネルを管理するにはログインしてください。",
+      "signIn": "ログイン",
+      "empty": "チャンネルはまだありません。下から作成しましょう。公開ライブ配信の拠点になります。",
+      "uploadBanner": "チャンネルバナーをアップロード（6:1）",
+      "changeBanner": "バナーを変更",
+      "bannerPromptPlaceholder": "任意：希望するバナーの説明を入力…",
+      "generateHint": "現在のバナーをもとに、AI で 6:1 の適切なサイズのバナーを生成します",
+      "generating": "生成中…",
+      "generate": "AI で生成",
+      "uploadAvatar": "アバターをアップロード（正方形）",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · ここでライブ配信できます",
+      "subscribers": "{count, plural, other {登録者 #人}}",
+      "view": "表示",
+      "streamHeading": "このチャンネルに配信（OBS / 任意の RTMP クライアント）",
+      "rtmpUrl": "RTMP URL",
+      "streamKey": "ストリームキー",
+      "copy": "コピー",
+      "hide": "隠す",
+      "show": "表示",
+      "newChannel": "新しいチャンネル",
+      "handle": "ハンドル",
+      "handlePlaceholder": "mychannel",
+      "name": "名前",
+      "namePlaceholder": "マイチャンネル",
+      "belongsTo": "所属先（チームのメンバーはチームのチャンネルでライブ配信できます）",
+      "descriptionLabel": "説明（任意、Markdown）",
+      "create": "チャンネルを作成"
+    },
+    "website": {
+      "saveFailed": "Web サイトを保存できませんでした。",
+      "networkError": "ネットワークエラーです。もう一度お試しください。",
+      "label": "Web サイト（任意）",
+      "placeholder": "example.com",
+      "saved": "保存しました",
+      "save": "保存",
+      "hint": "本人確認用のリンクとしてチャンネルページに表示されます。削除するには空欄にしてください。"
+    },
+    "restream": {
+      "customRtmp": "カスタム RTMP",
+      "urlInvalid": "RTMP URL は rtmp:// または rtmps:// で始まる必要があります",
+      "keyRequired": "ストリームキーは必須です。",
+      "saveFailed": "配信先を保存できませんでした。",
+      "title": "外部への再配信",
+      "toggleHint": "このチャンネルのライブ配信を、以下の配信先に自動で再配信します",
+      "description": "オンにすると、このチャンネルでのライブ配信が YouTube や Twitch などにも配信されます。非公開の画面共有ではオフにしてください。",
+      "loading": "読み込み中…",
+      "empty": "配信先はまだありません。",
+      "on": "オン",
+      "off": "オフ",
+      "remove": "削除",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "ストリームキー",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "add": "配信先を追加"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "繰り返さない",
+      "describe": "繰り返し：{freq, select, daily {{interval, plural, =1 {毎日} other {#日ごと}}} weekly {{interval, plural, =1 {毎週} other {#週間ごと}}} other {{interval, plural, =1 {毎月} other {#か月ごと}}}}{when, select, weekday { {weekday}} monthDay { {day}日} other {}}{count, plural, =0 {・無期限} other {・#回}}",
+      "short": "{freq, select, daily {{interval, plural, =1 {毎日} other {#日ごと}}} weekly {{interval, plural, =1 {毎週} other {#週間ごと}}} other {{interval, plural, =1 {毎月} other {#か月ごと}}}}",
+      "shortWithLeft": "{label} · 残り {left}"
+    }
+  },
+  "workspace": {
+    "label": "ワークスペース",
+    "personal": "個人",
+    "wholeOrg": "{org}（組織全体）",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "セッションに参加",
+      "subtitle": "参加コードを入力するか、リンクを貼り付けてください",
+      "invalidCode": "6文字の有効な参加コードを入力してください",
+      "label": "参加コードまたはリンク",
+      "placeholder": "ABC123 またはリンクを貼り付け",
+      "hint": "6文字のコードを入力するか、参加リンクを貼り付けてください",
+      "continue": "続行",
+      "backHome": "ホームに戻る"
+    },
+    "session": {
+      "notFound": "セッションが見つかりません",
+      "lookupFailed": "セッションを検索できませんでした",
+      "joinFailed": "セッションに参加できませんでした",
+      "lookingUp": "セッションを検索中...",
+      "countdown": {
+        "startingNow": "まもなく開始",
+        "startsInDays": "{days}日{hours}時間後に開始",
+        "startsInHours": "{hours}時間{mins}分後に開始",
+        "startsInMinutes": "{mins}分後に開始"
+      },
+      "durationMinutes": "{minutes, plural, other {#分}}",
+      "durationHours": "{hours, plural, other {#時間}}",
+      "invitedCount": "{count}人を招待",
+      "acceptedCount": "{count}人が承諾",
+      "autoUpdate": "ホストがセッションを開始すると、このページは自動で更新されます。",
+      "joinCode": "参加コード",
+      "addToCalendar": "カレンダーに追加",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "セッションが見つかりません",
+      "goHome": "ホームページへ",
+      "title": "セッションに参加",
+      "subtitle": "画面共有セッションに参加しようとしています",
+      "sessionCode": "セッションコード",
+      "status": "状態",
+      "statusActive": "ホストが共有中",
+      "statusPaused": "ホストは現在不在です",
+      "statusWaiting": "ホストを待っています",
+      "participants": "参加者",
+      "signedInAs": "{name} としてログイン中",
+      "displayNameOptional": "表示名（任意）",
+      "useAccountName": "アカウント名を使う",
+      "yourName": "お名前",
+      "namePlaceholder": "名前を入力",
+      "nameHint": "セッション内でほかの参加者に表示される名前です",
+      "joining": "参加中...",
+      "joinButton": "セッションに参加",
+      "watchFree": "無料で視聴",
+      "guestNote": "アカウント不要。ゲストとしてライブ視聴できます。",
+      "signInPrompt": "アカウントをお持ちですか？発表やリモート操作をするには<link>ログイン</link>してください"
+    }
+  },
+  "invite": {
+    "notFound": "招待が見つかりません",
+    "loadFailed": "招待を読み込めませんでした",
+    "invalidOrExpired": "この招待リンクは無効か、期限切れの可能性があります。",
+    "goToPairux": "PairUX へ移動",
+    "heading": "ミーティングへの招待",
+    "fromHost": "{name} から",
+    "cancelled": "このミーティングはキャンセルされました。",
+    "dateTime": "日時",
+    "duration": "時間",
+    "durationMinutes": "{minutes, plural, other {#分}}",
+    "durationHours": "{hours, plural, other {#時間}}",
+    "host": "ホスト",
+    "notes": "メモ",
+    "yourJoinCode": "あなたの参加コード",
+    "useCodeHint": "ミーティング開始時にこのコードを使ってください",
+    "joinMeeting": "ミーティングに参加",
+    "addToCalendar": "カレンダーに追加",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "承諾しました",
+    "acceptedNote": "ミーティングでお会いしましょう。",
+    "cantMakeItAfterAll": "やはり参加できなくなりましたか？",
+    "declined": "辞退しました",
+    "declinedNote": "参加できないと回答済みです。",
+    "changedMind": "気が変わりましたか？",
+    "willYouAttend": "参加しますか？",
+    "yes": "はい、参加します",
+    "no": "参加できません",
+    "invitedAs": "{email} として招待されています"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "通話を予約 · PairUX",
+      "bookCallWith": "{name} との通話を予約 · PairUX",
+      "hostDescription": "都合のよい時間を選んでください。通話は PairUX で行われます。",
+      "pageWith": "{name} との{title} · PairUX",
+      "pageDescription": "{name} との{minutes}分の通話を予約します。通話は PairUX で行われます。"
+    },
+    "host": {
+      "subtitle": "通話を予約しましょう。通話はここ PairUX で行われます。",
+      "notTakingBookings": "{name} は現在予約を受け付けていません。",
+      "minutes": "{minutes}分",
+      "pickTime": "時間を選択"
+    },
+    "booking": {
+      "loadFailed": "空き時間を読み込めませんでした",
+      "bookFailed": "その時間は予約できませんでした",
+      "calendarDescription": "{url} からコード {code} で参加してください",
+      "booked": "予約が完了しました",
+      "whenWith": "{when}、{name} と",
+      "confirmationSent": "以下の内容をまとめた確認メールを {email} に送信しています。",
+      "yourJoinCode": "あなたの参加コード",
+      "callHappensHint": "通話は PairUX で行われます。時間になったら、下のリンクを開くかコードを入力してください。",
+      "openCallPage": "通話ページを開く",
+      "addToCalendar": "カレンダーに追加：",
+      "cantMakeIt": "やはり参加できなくなりましたか？ <link>{name} に知らせる</link>。",
+      "durationMinutes": "{minutes, plural, other {#分}}",
+      "timesShownIn": "表示中のタイムゾーン",
+      "aboutCall": "通話自体は PairUX で行われます。音声、画面共有、リモート操作に対応し、ブラウザから参加するならダウンロードは不要です。",
+      "pickDifferentTime": "別の時間を選ぶ",
+      "minutesWith": "{name} と{minutes, plural, other {#分}}",
+      "yourName": "お名前",
+      "email": "メールアドレス",
+      "notesLabel": "{name} に伝えておきたいことはありますか？",
+      "optional": "（任意）",
+      "confirm": "予約を確定",
+      "previousWeek": "前の週",
+      "nextWeek": "次の週",
+      "nothingFree": "今週は空きがありません。",
+      "nothingFreeTryNext": "今週は空きがありません。次の週をお試しください。"
+    }
+  },
+  "createLink": {
+    "signInRequired": "参加リンクを作成するにはログインしてください",
+    "createFailed": "セッションを作成できませんでした",
+    "title": "参加リンクを作成",
+    "subtitle": "参加者に共有するリンクを生成します",
+    "signIn": "ログイン",
+    "creating": "作成中...",
+    "createButton": "参加リンクを作成",
+    "backHome": "ホームに戻る",
+    "joinCode": "参加コード",
+    "joinUrl": "参加 URL",
+    "copyLink": "リンクをコピー",
+    "copied": "コピーしました",
+    "shareHint": "このリンクをほかの人に共有してください。参加した人は、あなたがデスクトップアプリで画面共有を始めるまで待機できます。",
+    "createAnother": "もう1つ作成",
+    "downloadApp": "アプリをダウンロード"
+  },
+  "hostStart": {
+    "metaTitle": "画面を共有 - PairUX",
+    "analysisRequiresPlan": "AI 通話分析は Pro・Team プランでご利用いただけます。オフにするか、料金ページでアップグレードしてください。",
+    "createFailed": "セッションを作成できませんでした",
+    "createFailedRetry": "セッションを作成できませんでした。もう一度お試しください。",
+    "title": "画面を共有",
+    "subtitle": "ブラウザから閲覧専用の画面共有セッションを開始します",
+    "sessionSettings": "セッション設定",
+    "defaults": "デフォルト",
+    "maxViewers": "最大視聴者数",
+    "viewers": "{count, plural, other {視聴者 #人}}",
+    "remoteControl": "リモート操作",
+    "enableGuestControl": "ゲストの操作を有効にする",
+    "notAvailableWeb": "Web での共有では利用できません",
+    "remoteControlRequires": "リモート操作には<link>デスクトップアプリ</link>が必要です。",
+    "workspaceLabel": "ワークスペース（チームでの通話のレポートはチームと共有されます）",
+    "creating": "セッションを作成中...",
+    "startSharing": "共有を開始",
+    "viewOnlyNote": "<strong>Web での共有は閲覧専用です。</strong>視聴者はあなたの画面を見られますが、操作はできません。リモート操作機能を使うにはデスクトップアプリをご利用ください。",
+    "joinInstead": "セッションに参加したい場合は <link>参加コードを入力</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "ペア<rotating></rotating>を、<highlight>もう一度新しく</highlight>",
+      "subtitle": "複数人で同時にマウスとキーボードをリモート操作できる共同画面共有。Screenhero のような体験を、オープンソースで。",
+      "download": "無料でダウンロード",
+      "github": "GitHub で見る",
+      "note": "無料のオープンソース。視聴者はアカウント不要です。"
+    },
+    "rotating": {
+      "programming": "プログラミング",
+      "pitching": "ピッチ",
+      "presenting": "プレゼン",
+      "demoing": "デモ",
+      "designing": "デザイン",
+      "debugging": "デバッグ",
+      "teaching": "ティーチング",
+      "training": "トレーニング",
+      "reviewing": "レビュー",
+      "brainstorming": "ブレスト"
+    },
+    "featuresSection": {
+      "title": "リモートでの共同作業に必要なものをすべて",
+      "subtitle": "開発者、デザイナー、そしてリアルタイムで一緒に働くすべての人のために。"
+    },
+    "features": {
+      "screenSharing": {
+        "title": "リアルタイム画面共有",
+        "description": "低遅延の WebRTC ストリーミングで、画質を自動調整しながら鮮明な画面共有を実現します。"
+      },
+      "remoteControl": {
+        "title": "リモート操作",
+        "description": "ホストの明示的な承認のもとでマウスとキーボードを操作。2人同時に操作できます。"
+      },
+      "simultaneousInput": {
+        "title": "同時入力",
+        "description": "ホストと視聴者が同時に操作できます。安全のため、常にホストが優先されます。"
+      },
+      "secure": {
+        "title": "設計からセキュア",
+        "description": "WebRTC DTLS-SRTP で暗号化。AI 通話分析をオンにしない限り、メディアが当社のサーバーを経由することはありません。"
+      },
+      "pwaViewer": {
+        "title": "PWA ビューアー",
+        "description": "どのブラウザからでもセッションに参加できます。視聴者はダウンロード不要です。"
+      },
+      "crossPlatform": {
+        "title": "クロスプラットフォーム",
+        "description": "macOS、Windows、Linux 向けのデスクトップアプリ。Homebrew、WinGet、APT でインストールできます。"
+      }
+    },
+    "steps": {
+      "title": "数分で始められます",
+      "subtitle": "面倒な設定は不要。インストールして、共有して、共同作業するだけ。",
+      "install": {
+        "title": "デスクトップアプリをインストール",
+        "description": "パッケージマネージャーまたは直接ダウンロードで、PairUX をコンピューターに入れます。"
+      },
+      "start": {
+        "title": "セッションを開始",
+        "description": "「セッションを開始」をクリックし、共有する画面またはウィンドウを選びます。"
+      },
+      "share": {
+        "title": "リンクを共有",
+        "description": "参加リンクを共同作業者に送ります。相手はどのブラウザからでも参加できます。"
+      }
+    },
+    "community": {
+      "title": "実際の共同作業のために",
+      "subtitle": "PairUX はすでにペアプログラミング、デザインレビュー、リモートサポートで使われています。早期のフィードバックを募集中です。ぜひ試して感想をお聞かせください。",
+      "testimonials": {
+        "engineer": {
+          "quote": "ようやく、ちゃんと使える Screenhero の代わりが見つかりました。同時操作機能はペアプログラミングを一変させます。",
+          "role": "ソフトウェアエンジニア"
+        },
+        "techLead": {
+          "quote": "視聴者が何もインストールせずにブラウザから参加できるので、ちょっとした共同作業にぴったりです。",
+          "role": "テックリード"
+        },
+        "contributor": {
+          "quote": "オープンソースで、エンドツーエンド暗号化され、しかもちゃんと動く。まさに開発者コミュニティが求めていたものです。",
+          "role": "オープンソースコントリビューター"
+        }
+      },
+      "feedback": "PairUX をお使いですか？ <link>GitHub で体験を共有する</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "新機能 · AI 通話分析",
+      "title": "面接、定例、プレゼンのたびにフィードバックを。",
+      "description": "通話前にオンにするだけ。通話後に非公開のレポートが届きます。スコア、良かった点、改善点、発話時間、話すスピード、フィラー、見返す価値のある場面がわかります。",
+      "cta": "通話分析の仕組みを見る",
+      "sample": {
+        "label": "サンプルレポート · 面接",
+        "headline": "回答は明快でしたが、締めくくりが急ぎ足でした",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "発話時間は全体の {percent}%、スピードは毎分 {wpm} 語",
+        "fillers": "100語あたりのフィラーは {rate} 個（「えーと」「なんか」）",
+        "practice": "練習ポイント：各回答を、結果を伝える一文で締めくくる"
+      }
+    },
+    "agentic": {
+      "eyebrow": "エージェントとのペアプログラミング",
+      "title": "2人で、1つのエージェントセッションを。",
+      "description": "コーディングエージェントが動いている間に、チームメイトを作業に招きましょう。同じターミナルを追い、アプリを一緒にレビューし、エージェントに次に何を頼むか決められます。",
+      "cta": "moshcode と PairUX でペアプログラミング",
+      "browse": "すべての活用例を見る",
+      "cardTitle": "見て、話して、一緒に作業する",
+      "step1": "1. moshcode のライブセッションを開始し、チームに共有します。",
+      "step2": "2. PairUX でターミナルと開発中のアプリを見せます。",
+      "step3": "3. エージェントの変更を一緒にレビューし、チームメイトにも参加してもらいます。",
+      "note": "業務委託メンバーのオンボーディング、共同デバッグ、出荷前の作業レビューに役立ちます。"
+    },
+    "security": {
+      "title": "信頼できるセキュリティ",
+      "subtitle": "PairUX はセキュリティを中核に据えて作られています。画面のデータが当社のサーバーを経由することはありません。",
+      "encryption": {
+        "title": "エンドツーエンド暗号化",
+        "description": "すべてのメディアを WebRTC DTLS-SRTP で暗号化"
+      },
+      "consent": {
+        "title": "明示的な同意",
+        "description": "すべての操作リクエストにホストの承認が必要"
+      },
+      "revoke": {
+        "title": "緊急解除",
+        "description": "{shortcut} ですべての操作権を即座に取り消し"
+      },
+      "openSource": {
+        "title": "オープンソース",
+        "description": "MIT ライセンスで、コードを完全に監査可能"
+      },
+      "diagram": {
+        "p2p": "ピアツーピアの直接接続",
+        "noStorage": "サーバー側でメディアを保存しません"
+      }
+    },
+    "cta": {
+      "title": "共同作業を始めましょう",
+      "subtitle": "PairUX をダウンロードすれば、数秒で画面共有を始められます。無料、オープンソース、プライバシー重視です。",
+      "download": "今すぐダウンロード",
+      "learnMore": "詳細を見る"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "料金",
+      "description": "シンプルな定額料金。ユーザー単位の課金はありません。Plus は月額 $1（リスナー100人まで）、Pro は月額 $12、Team は月額 $49。Zoom や Teams などのエンタープライズ向けソリューションより 40〜70% 安くなります。"
+    },
+    "hero": {
+      "title": "大手より 40〜70% 安く",
+      "subtitle": "シンプルな定額料金。ユーザー単位の課金も、年間契約も、法人営業の電話もありません。"
+    },
+    "mostPopular": "一番人気",
+    "period": {
+      "forever": "/無期限",
+      "month": "/月"
+    },
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "description": "個人利用や小規模チームに最適",
+        "cta": "始める",
+        "features": {
+          "participants": "参加者2人＋リスナー最大{count}人",
+          "publicViewers": "公開ライブは無料で視聴者数無制限",
+          "p2p": "P2P 接続",
+          "screenSharing": "画面共有",
+          "remoteControl": "リモート操作",
+          "e2e": "エンドツーエンド暗号化",
+          "support": "コミュニティサポート"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "講義、朝会、一緒に観る会など、聴衆のいる配信に",
+        "cta": "Plus にアップグレード",
+        "features": {
+          "listeners": "1ルームあたりリスナー最大{count}人",
+          "sfu": "SFU リレーサーバー",
+          "liveDirectory": "/live ディレクトリに公開ルームを掲載",
+          "screenVoice": "画面共有＋音声",
+          "remoteControl": "リモート操作",
+          "cancel": "いつでも解約可能"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "プロフェッショナルと成長中のチーム向け",
+        "cta": "Pro にアップグレード",
+        "features": {
+          "listeners": "1ルームあたりリスナー最大{count}人",
+          "sfu": "SFU リレーサーバー",
+          "streaming": "すべての配信プラットフォーム（YouTube、Twitch など）",
+          "hd": "HD 画面共有（1080p）",
+          "liveDirectory": "/live ディレクトリに公開ルームを掲載",
+          "callAnalysis": "AI 通話分析",
+          "support": "優先サポート"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "チームと組織向け",
+        "cta": "Team にアップグレード",
+        "features": {
+          "listeners": "1ルームあたりリスナー最大{count}人",
+          "sfu": "専用 SFU サーバー",
+          "streaming": "すべての配信プラットフォーム",
+          "uhd": "4K 画面共有",
+          "callAnalysis": "AI 通話分析",
+          "admin": "管理者機能",
+          "support": "優先サポート"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "決済を開始しています…",
+      "checkoutFailed": "決済を開始できませんでした。もう一度お試しください。",
+      "networkError": "ネットワークエラーです。もう一度お試しください。"
+    },
+    "callAnalysis": {
+      "eyebrow": "Pro・Team プランに付属",
+      "title": "AI 通話分析",
+      "description": "通話前にオンにすると、通話後にフィードバックレポートが届きます。スコア、発話時間、話すスピード、フィラー、良かった点、練習すべき点、さらにチーム定例では決定事項とアクションアイテムもわかります。",
+      "cta": "通話分析の仕組みを見る →"
+    },
+    "cost": {
+      "title": "実際のコスト比較",
+      "subtitle": "一般的な Zoom Webinars や Microsoft Teams の費用と比べてみましょう",
+      "plan": "プラン",
+      "rows": {
+        "free": "無料",
+        "pro": "Pro / 小規模チーム",
+        "team": "Team / ビジネス",
+        "tenPerson": "10人のチーム"
+      },
+      "cells": {
+        "freeLimit": "{price}（{minutes}分の制限）",
+        "perMonth": "{price}/月",
+        "perHost": "{price}/月/ホスト",
+        "perUser": "{price}/月/ユーザー",
+        "perMonthTotal": "合計 {price}/月"
+      },
+      "footnote": "* PairUX はユーザー単位ではなくチーム単位で課金します。シート単位のライセンスはありません。"
+    },
+    "comparison": {
+      "title": "機能比較",
+      "subtitle": "Zoom、Teams、Webex、Google Meet、Jitsi と PairUX を比べてみましょう",
+      "feature": "機能",
+      "rows": {
+        "transparent": "明快な料金体系",
+        "noSeatFees": "シート単位の料金なし",
+        "noContracts": "年間契約なし",
+        "flatRate": "シンプルな定額プラン",
+        "openSource": "オープンソース",
+        "selfHost": "セルフホスト可能",
+        "remoteControl": "リモート操作",
+        "multiCursor": "マルチカーソル対応",
+        "noAccount": "アカウント不要（視聴者）"
+      }
+    },
+    "advantages": {
+      "title": "PairUX が違う理由",
+      "subtitle": "エンタープライズ向けツールが料金モデルを崩さずに真似できない点",
+      "items": {
+        "noSeatFees": {
+          "title": "シート単位の料金なし",
+          "description": "チーム全体で1つの料金。ユーザーを増やしてもコストは増えません。"
+        },
+        "noLockIn": {
+          "title": "囲い込みなし",
+          "description": "年間契約や縛りはありません。いつでも解約できます。"
+        },
+        "openSource": {
+          "title": "オープンソース",
+          "description": "コードの監査、セルフホスト、カスタマイズが可能。あなたのデータは、あなたのルールで。"
+        },
+        "developer": {
+          "title": "開発者フレンドリー",
+          "description": "CLI でのインストール、API アクセス、自動化に初日から対応。"
+        }
+      }
+    },
+    "faq": {
+      "title": "よくある質問",
+      "capacity": {
+        "question": "ルームは何人まで視聴できますか？",
+        "answer": "1ルームあたりの同時リスナー数はプランによって異なります：Free {free}人、Plus {plus}人、Pro {pro}人、Team {team}人。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。",
+        "answerLong": "1ルームあたりの同時リスナー数はプランによって異なります：Free {free}人、Plus {plus}人、Pro {pro}人、Team {team}人。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。"
+      },
+      "free": {
+        "question": "無料プランは本当に無料ですか？",
+        "answer": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。時間制限もクレジットカードの登録も不要です。",
+        "answerLong": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。時間制限もクレジットカードの登録も不要です。ペアプログラミングや小規模なデモに最適です。"
+      },
+      "selfHost": {
+        "question": "セルフホストで費用を抑えられますか？",
+        "answer": "もちろんです。PairUX は MIT ライセンスのオープンソースです。ご希望なら独自の SFU インフラを運用できます。",
+        "answerLong": "もちろんです。PairUX は MIT ライセンスのオープンソースです。ご希望なら独自の SFU インフラを運用できます。特定のセキュリティ要件がある企業に最適です。"
+      },
+      "cheaper": {
+        "question": "なぜ Zoom や Teams より安いのですか？",
+        "answer": "シート単位ではなくチーム単位で課金しているからです。10人のチームの場合、PairUX なら合計で月額 {teamPrice}、Zoom や Teams なら月額 {competitorPrice} です。",
+        "answerLong": "シート単位ではなくチーム単位で課金しているからです。10人のチームの場合、PairUX なら合計で月額 {teamPrice}、Zoom や Teams なら月額 {competitorPrice} です。法人営業チームを持たないため、その分のコストがお客様にかかりません。"
+      }
+    },
+    "cta": {
+      "title": "映像インフラのコストを削減しませんか？",
+      "subtitle": "P2P セッションで無料で始めるか、月額わずか {price} で Pro にアップグレード。シート単位の料金は一切ありません。",
+      "download": "無料でダウンロード",
+      "signup": "アカウントを作成"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "ダウンロード",
+      "description": "macOS、Windows、Linux 向けの PairUX をダウンロード。Homebrew、WinGet、APT、直接ダウンロードで入手できます。"
+    },
+    "hero": {
+      "title": "PairUX をダウンロード",
+      "subtitle": "セッションをホストするにはデスクトップアプリを入手してください。視聴者はどのブラウザからでも参加できます。"
+    },
+    "copyToClipboard": "クリップボードにコピー",
+    "loading": "リリース情報を読み込み中...",
+    "loadFailed": "リリース情報を読み込めませんでした",
+    "viewReleases": "GitHub でリリースを見る",
+    "latest": "最新版：v{version}",
+    "quickInstall": {
+      "title": "クイックインストール",
+      "subtitle": "最も早く始められる方法です。macOS、Linux、Windows で使えます。",
+      "windows": "Windows（PowerShell）",
+      "auto": "お使いのプラットフォーム向けの最新版を自動でダウンロードします",
+      "afterInstall": "インストール後、アップグレードには <update></update>、削除には <uninstall></uninstall> を使います。"
+    },
+    "detected": "お使いのブラウザから判定しました",
+    "downloadDmg": "DMG をダウンロード",
+    "downloadInstaller": "インストーラーをダウンロード",
+    "downloadAppImage": "AppImage をダウンロード",
+    "allPlatforms": {
+      "title": "すべてのプラットフォーム",
+      "subtitle": "OS と希望の形式を選んでください"
+    },
+    "requirements": {
+      "macos": "macOS 12（Monterey）以降が必要です",
+      "windows": "Windows 10（1809）以降が必要です",
+      "linux": "Ubuntu 20.04 以降、Fedora 35 以降、Arch Linux"
+    },
+    "shellScript": "シェルスクリプト",
+    "installerX64": "インストーラー（x64）",
+    "viewAllReleases": "GitHub ですべてのリリースを見る",
+    "checksums": {
+      "toggle": "ダウンロードを検証（SHA256 チェックサム）",
+      "description": "SHA256 チェックサムを比較して、ダウンロードしたファイルを検証してください。",
+      "file": "ファイル"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "PairUX アプリをインストール",
+    "installApp": "アプリをインストール",
+    "title": "PairUX をインストール",
+    "mobileDescription": "ホーム画面に追加して、すぐに開けるようにしましょう",
+    "desktopDescription": "より快適に使うにはデスクトップアプリをインストールしてください",
+    "dismiss": "インストールの案内を閉じる",
+    "installing": "インストール中...",
+    "install": "インストール"
+  },
+  "offline": {
+    "title": "オフラインです",
+    "description": "PairUX でのリアルタイムの画面共有と共同作業には、インターネット接続が必要です。接続を確認して、もう一度お試しください。",
+    "retry": "再試行"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "操作権を返す",
+      "inControl": "操作中",
+      "waitingApproval": "ホストの承認を待っています",
+      "requesting": "リクエスト中...",
+      "waitingConnection": "接続を待っています",
+      "requestTitle": "ホストに操作権をリクエスト",
+      "requestControl": "操作をリクエスト"
+    },
+    "status": {
+      "title": "操作状態：{state}",
+      "viewOnly": "閲覧のみ",
+      "pending": "承認待ち",
+      "controlling": "操作中"
+    },
+    "capture": {
+      "clickToControl": "クリックで操作 · Esc で解除",
+      "pointerUnavailable": "ポインターをキャプチャできませんでした · クリックして再試行",
+      "fullscreenLock": "全画面＋ポインターロック",
+      "exitFullscreen": "全画面を終了",
+      "capturePointerAgain": "ポインターを再キャプチャ"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "AI 通話分析",
+      "description": "通話後にフィードバックを受け取れます。発話時間、話すスピード、フィラー、伝わった点、練習すべき点がわかります。通話開始後はオンにできないため、今決めてください。",
+      "toggle": "この通話を分析する",
+      "kindLabel": "通話の種類は？",
+      "kinds": {
+        "general": "一般的な通話",
+        "interview": "面接",
+        "team-sync": "チーム定例",
+        "presentation": "プレゼン"
+      },
+      "keepRecording": "通話を録画し、録画を保存する",
+      "disclosure": "参加者全員に、AI 分析のために通話が録画されていることが通知されます。レポートはあなただけが見られます。<link>仕組みを見る</link>"
+    },
+    "handoff": {
+      "openedTitle": "デスクトップアプリで開きました",
+      "openingTitle": "PairUX デスクトップアプリを開いています…",
+      "openedBody": "ミーティングはデスクトップアプリで進行中です。デスクトップアプリではゲストに操作権を渡せます。",
+      "openingBody": "デスクトップアプリでは画面の操作権を共有できます。ブラウザでは表示のみです。",
+      "continueInBrowser": "このブラウザで続ける",
+      "download": "アプリをお持ちでない場合はダウンロード"
+    },
+    "hostPresence": {
+      "notJoined": "ホストはまだ参加していません",
+      "left": "ホストが退出しました",
+      "chatAvailable": "チャットは引き続き使えます。ホストが戻ると通知されます。"
+    },
+    "recordingNotice": {
+      "recorded": "この通話は、ホストによって AI 分析のために録画されています。参加を希望しない場合は通話から退出してください。",
+      "recordedKept": "この通話は、ホストによって AI 分析のために録画されており、録画はホストが保存します。参加を希望しない場合は通話から退出してください。"
+    },
+    "settingsPanel": {
+      "title": "セッション設定",
+      "sessionInfo": "セッション情報",
+      "sessionCode": "セッションコード",
+      "status": "状態",
+      "participants": "参加者",
+      "created": "作成日時",
+      "connectionQuality": "接続品質",
+      "network": "ネットワーク",
+      "frameRate": "フレームレート",
+      "fps": "{value} fps",
+      "packetLoss": "パケットロス",
+      "latency": "遅延",
+      "ms": "{value} ms",
+      "appearance": "外観",
+      "theme": {
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム"
+      },
+      "sessionStatus": {
+        "created": "作成済み",
+        "active": "進行中",
+        "paused": "一時停止中",
+        "ended": "終了"
+      },
+      "connectionState": {
+        "idle": "待機中",
+        "connecting": "接続中",
+        "connected": "接続済み",
+        "reconnecting": "再接続中",
+        "failed": "失敗",
+        "disconnected": "切断"
+      },
+      "networkQuality": {
+        "excellent": "非常に良好",
+        "good": "良好",
+        "poor": "不安定",
+        "bad": "不良"
+      }
+    },
+    "publish": {
+      "titlePublic": "ルームは公開中です",
+      "titlePublish": "/live に公開",
+      "intro": "ルームを <strong>pairux.com/live</strong> に掲載すると、誰でも見つけて参加できます。招待リンクは不要です。",
+      "subject": "テーマ",
+      "subjectPlaceholder": "例：Next.js アプリをライブで開発",
+      "description": "説明",
+      "optional": "（任意）",
+      "descriptionPlaceholder": "このルームでは何をしていますか？",
+      "publish": "公開",
+      "liveNotice": "ルームは公開ディレクトリに掲載中です。",
+      "viewLive": "/live を見る",
+      "profileLink": "プロフィールリンク",
+      "copied": "コピーしました",
+      "claimPrompt": "ユーザー名を取得すると、<code>{path}</code> に共有できるプロフィールページが作られます。",
+      "usernamePlaceholder": "ユーザー名",
+      "claim": "取得",
+      "makePrivate": "非公開にする",
+      "done": "完了",
+      "errors": {
+        "publishFailed": "ルームを公開できませんでした",
+        "unpublishFailed": "ルームを非公開にできませんでした",
+        "usernameFailed": "ユーザー名を保存できませんでした",
+        "network": "ネットワークエラーです。もう一度お試しください。"
+      }
+    }
+  },
+  "participants": {
+    "title": "参加者",
+    "activeCount": "{count, plural, other {#人がアクティブ}}",
+    "emptyTitle": "参加者はまだいません",
+    "emptyHint": "リンクを共有してほかの人を招待しましょう",
+    "you": "（あなた）",
+    "agent": "エージェント",
+    "agentWithClient": "エージェント（{client}）",
+    "host": "ホスト",
+    "inControl": "操作中",
+    "requesting": "リクエスト中",
+    "viewer": "視聴者",
+    "removeAgent": "エージェントを削除",
+    "mute": "参加者をミュート",
+    "unmute": "参加者のミュートを解除",
+    "grantControl": "操作権を付与",
+    "revokeControl": "操作権を取り消す",
+    "removeParticipant": "参加者を削除",
+    "makeHost": "ホストにする",
+    "connection": {
+      "connected": "接続済み",
+      "reconnecting": "再接続中",
+      "disconnected": "切断"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "画面共有を待っています",
+      "idleBody": "ホストはまだ画面共有を開始していません。開始されると、ここにホストの画面が表示されます。",
+      "connectingTitle": "接続中...",
+      "connectingBody": "ホストとの安全な接続を確立しています。通常は数秒で完了します。",
+      "reconnectingTitle": "再接続中...",
+      "reconnectingBody": "接続が中断されました。再接続しています...",
+      "failedTitle": "接続に失敗しました",
+      "failedBody": "接続を確立できませんでした。ネットワークを確認して、もう一度お試しください。",
+      "tryAgain": "再試行",
+      "disconnectedTitle": "ホストが切断されました",
+      "disconnectedBody": "ホストが共有を停止したか、切断されました。再接続を待っています...",
+      "reconnect": "再接続"
+    },
+    "quality": {
+      "title": "接続：{quality}",
+      "details": "接続の詳細",
+      "quality": "品質",
+      "bitrate": "ビットレート",
+      "frameRate": "フレームレート",
+      "latency": "遅延",
+      "packetLoss": "パケットロス",
+      "levels": {
+        "excellent": "非常に良好",
+        "good": "良好",
+        "poor": "不安定",
+        "bad": "不良"
+      }
+    },
+    "player": {
+      "unsupported": "お使いのブラウザは動画の再生に対応していません。"
+    },
+    "preview": {
+      "idleHint": "下のボタンをクリックして画面共有を開始してください",
+      "start": "画面共有を開始",
+      "requesting": "画面へのアクセスをリクエスト中...",
+      "selectSource": "共有する画面またはウィンドウを選んでください",
+      "tryAgain": "再試行",
+      "stop": "共有を停止"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "管理 - PairUX"
+    },
+    "title": "管理",
+    "loggedInAs": "{email} としてログイン中",
+    "integrations": {
+      "title": "自動ブログ連携",
+      "description": "ベアラートークンを生成し、Webhook シークレットとして <link>CrawlProof</link> に貼り付けてください。このトークンは、リクエスト検証用の HMAC 署名シークレットも兼ねています。",
+      "confirmRevoke": "「{name}」を取り消しますか？このソースからは公開できなくなります。",
+      "webhookEndpoint": "Webhook エンドポイント",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "generateToken": "トークンを生成",
+      "namePlaceholder": "連携名",
+      "generate": "生成",
+      "tokenCreated": "トークンを作成しました。今すぐコピーして、CrawlProof の自動ブログ Webhook 設定に貼り付けてください。",
+      "accessTokens": "アクセストークン（{count}）",
+      "empty": "まだありません。上から生成してください。",
+      "requests": "{count, plural, other {#件のリクエスト}}",
+      "lastUsed": "最終使用 {date}",
+      "hide": "隠す",
+      "reveal": "表示",
+      "revoke": "取り消す"
+    },
+    "email": {
+      "title": "ユーザーへのメール",
+      "description": "HTML メールを作成し、Resend 経由で登録ユーザー全員に送信します。",
+      "subject": "件名",
+      "subjectPlaceholder": "お知らせ：...",
+      "body": "本文（Markdown）",
+      "result": "送信 {sent} · 失敗 {failed}",
+      "sending": "送信中…",
+      "send": "全ユーザーに送信"
+    },
+    "posts": {
+      "title": "最近のブログ記事",
+      "empty": "取り込まれた記事はまだありません。",
+      "columnTitle": "タイトル",
+      "columnSource": "ソース",
+      "columnPublished": "公開日"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "通話分析 - PairUX",
+      "detailTitle": "通話分析 - PairUX"
+    },
+    "kinds": {
+      "general": "一般的な通話",
+      "interview": "面接",
+      "team-sync": "チーム定例",
+      "presentation": "プレゼン"
+    },
+    "status": {
+      "recording": "録画中",
+      "queued": "分析待ち",
+      "processing": "レポートを作成中",
+      "ready": "完了",
+      "failed": "失敗"
+    },
+    "list": {
+      "title": "通話分析",
+      "intro": "AI 分析をオンにして行った通話へのフィードバックです。Web、デスクトップ、モバイルアプリの開始画面で、通話前にオンにしてください。",
+      "loadError": "分析を読み込めませんでした",
+      "empty": "分析済みの通話はまだありません。<link>AI 分析つきで通話を始める</link>",
+      "untitled": "無題の通話",
+      "sharedWithTeam": "チームと共有中"
+    },
+    "report": {
+      "back": "← すべての通話分析",
+      "loadError": "この分析を読み込めませんでした",
+      "failed": "この分析を完了できませんでした：{error}",
+      "stillRecording": "通話はまだ録画中です。",
+      "beingWritten": "レポートを作成中です。このページは自動で更新され、完成したらメールでお知らせします。",
+      "outOf10": "/ 10",
+      "byTheNumbers": "数値で見る",
+      "table": {
+        "speaker": "話者",
+        "talkTime": "発話時間",
+        "pace": "スピード",
+        "fillers": "フィラー",
+        "questions": "質問",
+        "longestTurn": "最長の発言",
+        "wpm": "毎分 {value} 語",
+        "fillerRate": "{value} / 100語"
+      },
+      "mobileNote": "スマートフォンで記録：あなたのマイクのみ録音されました。",
+      "whatWorked": "良かった点",
+      "toImprove": "改善点",
+      "try": "試してみましょう：{suggestion}",
+      "delivery": {
+        "title": "話し方",
+        "pace": "スピード",
+        "clarity": "明瞭さ",
+        "confidence": "自信",
+        "fillerWords": "フィラー",
+        "listening": "傾聴"
+      },
+      "practiceNext": "次回までに練習すること",
+      "onScreen": "画面に映っていたもの",
+      "actionItems": "アクションアイテム",
+      "keyMoments": "見返したい場面",
+      "hideTranscript": "文字起こしを隠す",
+      "showTranscript": "文字起こしを表示",
+      "disclaimer": "通話の録画をもとに AI が作成しました。話者ラベルは自動の話者検出によるもので、誤っている場合があります。",
+      "disclaimerWithModel": "通話の録画をもとに AI（{model}）が作成しました。話者ラベルは自動の話者検出によるもので、誤っている場合があります。"
+    }
+  },
+  "devices": {
+    "title": "マイデバイス",
+    "intro": "<code>pairux daemon</code> を実行しているコンピューターで、ここから画面共有を開始できます。スマートフォンを手にノートパソコンからプレゼンするときに便利です。",
+    "addressLabel": "デバイスのアドレス",
+    "add": "追加",
+    "errors": {
+      "invalidAddress": "デバイスのアドレスではないようです。",
+      "duplicate": "そのデバイスはすでに追加されています。"
+    },
+    "empty": "デバイスはまだありません。共有したいコンピューターで <code>pairux daemon</code> を実行すると、ここに貼り付けるアドレスが表示されます。",
+    "howToSetUp": "設定方法",
+    "remove": "{name} を削除",
+    "joinSession": "{name} のセッションに参加",
+    "stopSharing": "共有を停止",
+    "startSharing": "共有を開始",
+    "check": "確認"
+  },
+  "notifications": {
+    "unsupported": "このブラウザはプッシュ通知に対応していません。",
+    "push": {
+      "title": "プッシュ通知",
+      "enabled": "このデバイスで通知が有効になっています",
+      "blocked": "ブラウザの設定で通知がブロックされています",
+      "prompt": "有効にすると、アプリがバックグラウンドにあるときも通知を受け取れます",
+      "enable": "有効にする",
+      "disable": "無効にする"
+    },
+    "notifyMeAbout": "通知する項目",
+    "events": {
+      "controlRequest": "操作リクエスト",
+      "chatMessage": "チャットメッセージ",
+      "participantJoined": "参加者の参加",
+      "participantLeft": "参加者の退出",
+      "hostDisconnected": "ホストの切断",
+      "creatorLive": "フォロー中のクリエイターがライブ配信を開始",
+      "directMessage": "ダイレクトメッセージの受信"
+    },
+    "reminders": {
+      "title": "ミーティングのリマインダー",
+      "description": "メールで送信されます。プッシュ通知がオンなら通知でも届きます。",
+      "meetingReminder1Day": "1日前",
+      "meetingReminder1Hour": "1時間前",
+      "meetingReminder15Min": "15分前",
+      "meetingReminder1Min": "1分前"
+    },
+    "controlRequest": {
+      "title": "操作リクエスト",
+      "message": "<strong>{name}</strong> があなたの画面の操作を求めています",
+      "approve": "承認",
+      "deny": "拒否"
+    },
+    "toasts": {
+      "region": "通知",
+      "joined": "<strong>{name}</strong> が参加しました",
+      "left": "<strong>{name}</strong> が退出しました",
+      "dismiss": "閉じる"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "組織 - PairUX",
+      "detailTitle": "組織 - PairUX"
+    },
+    "roles": {
+      "owner": "オーナー",
+      "admin": "管理者",
+      "member": "メンバー"
+    },
+    "list": {
+      "title": "組織",
+      "intro": "組織では、ライブ配信用のチャンネル、通話分析レポート、オーナーのプランをメンバーと共有します。組織内でメンバーをチームに分けられます。",
+      "teamCount": "{count, plural, other {#チーム}}",
+      "createHeading": "組織を作成",
+      "namePlaceholder": "会社名またはグループ名",
+      "create": "作成",
+      "createError": "組織を作成できませんでした"
+    },
+    "detail": {
+      "back": "← 組織",
+      "notFound": "組織が見つかりません",
+      "genericError": "問題が発生しました",
+      "summary": "{role, select, owner {あなたはオーナーです} admin {あなたは管理者です} other {あなたはメンバーです}}。メンバーには <strong>{plan}</strong> プランが適用されます。",
+      "confirmDelete": "{name} を削除しますか？チャンネルとレポートは作成した人に戻ります。",
+      "deleteOrg": "組織を削除",
+      "confirmLeave": "{name} から退出しますか？",
+      "leaveOrg": "組織から退出",
+      "members": "メンバー",
+      "teamLead": "{team}（リーダー）",
+      "removeMember": "{name} を削除",
+      "confirmRemoveMember": "{name} を {org} から削除しますか？",
+      "inviteByEmail": "メールで招待",
+      "noTeam": "チームなし",
+      "invite": "招待",
+      "pendingInvitations": "保留中の招待",
+      "revoke": "取り消す",
+      "teams": "チーム",
+      "teamsIntro": "チームのメンバーは、チームのチャンネルでライブ配信したり、チームの通話レポートを読んだりできます。リーダーはチームのメンバーを管理します。",
+      "confirmDeleteTeam": "{name} チームを削除しますか？チャンネルとレポートは組織に残ります。",
+      "deleteTeam": "チームを削除",
+      "lead": "リーダー",
+      "makeMember": "メンバーにする",
+      "makeLead": "リーダーにする",
+      "removeFromTeam": "{name} を {team} から削除",
+      "noMembers": "メンバーはまだいません",
+      "addMember": "メンバーを追加…",
+      "noTeams": "チームはまだありません。",
+      "newTeamPlaceholder": "新しいチーム（例：エンジニアリング）",
+      "createTeam": "チームを作成"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "設定 - PairUX",
+      "description": "PairUX の設定を管理します。"
+    },
+    "back": "戻る",
+    "title": "設定",
+    "saved": "保存しました",
+    "quality": {
+      "720p": "720p（HD）",
+      "1080p": "1080p（フル HD）",
+      "4k": "4K（対応環境のみ）"
+    },
+    "account": {
+      "title": "アカウント",
+      "description": "アカウント情報",
+      "email": "メールアドレス：",
+      "name": "名前：",
+      "signInPrompt": "ログインすると、デバイス間で設定を同期し、より多くの機能を使えます。",
+      "signIn": "ログイン",
+      "createAccount": "アカウントを作成"
+    },
+    "recording": {
+      "title": "録画",
+      "description": "録画のデフォルト設定",
+      "defaultRecordingQuality": "デフォルトの録画画質",
+      "recordingQualityHint": "画質が高いほど録画ファイルのサイズが大きくなります",
+      "defaultCaptureQuality": "デフォルトのキャプチャ画質",
+      "captureQualityHint": "画質が高いほど配信に使う帯域幅が増えます",
+      "includeSystemAudio": "システム音声を含める",
+      "includeSystemAudioHint": "画面とあわせてシステム音声もキャプチャします",
+      "webRecordingNote": "<strong>Web での録画：</strong>録画はブラウザのダウンロードフォルダに保存されます。ファイルを自動で整理するには<link>デスクトップアプリ</link>をご利用ください。"
+    },
+    "session": {
+      "title": "セッションのデフォルト",
+      "description": "新しいセッションのデフォルト設定",
+      "maxParticipants": "最大参加者数",
+      "viewers": "{count, plural, other {視聴者 #人}}",
+      "openInDesktopApp": "セッションをデスクトップアプリで開く",
+      "openInDesktopAppHint": "セッションを開始するとデスクトップアプリが開き、ゲストに操作権を渡せます。アプリがインストールされていない場合は、このブラウザで開きます。",
+      "openInDesktopAppAria": "セッションをデスクトップアプリで開く",
+      "remoteControlNote": "<strong>注意：</strong>リモート操作は<link>デスクトップアプリ</link>でのみ利用できます。Web のセッションは閲覧専用です。"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "プッシュ通知の設定"
+    },
+    "language": {
+      "title": "言語",
+      "description": "PairUX の表示言語を選択します",
+      "hint": "このブラウザに保存されます。デフォルトはブラウザの言語です。"
+    },
+    "appearance": {
+      "title": "外観",
+      "description": "使い心地をカスタマイズします",
+      "theme": "テーマ",
+      "themes": {
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム"
+      },
+      "systemHint": "システムテーマはデバイスの設定に従います"
+    },
+    "about": {
+      "title": "このアプリについて",
+      "description": "アプリケーション情報",
+      "application": "アプリケーション",
+      "platform": "プラットフォーム",
+      "platformValue": "ブラウザ / PWA",
+      "features": "機能",
+      "featuresValue": "画面共有、録画、チャット",
+      "downloadNote": "リモート操作を含むすべての機能を使うには、<link>デスクトップアプリ</link>をダウンロードしてください。"
+    },
+    "youtube": {
+      "title": "YouTube の自動ライブ開始",
+      "description": "配信を始めると、YouTube のブロードキャストが自動でライブになります。「ストリームを準備しています」で待たされることはもうありません。",
+      "notConfigured": "まだ利用できません。サーバーに Google OAuth の設定がありません。",
+      "connected": "接続済み",
+      "connectedTo": "接続済み — {channel}",
+      "disconnect": "接続を解除",
+      "connect": "YouTube に接続"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "ライブが見つかりません",
+    "defaultTitle": "PairUX でライブ配信中",
+    "defaultDescription": "{name} による公開ライブ配信です。",
+    "defaultDescriptionAnonymous": "PairUX クリエイターによる公開ライブ配信です。",
+    "anonymous": "匿名",
+    "liveNow": "ライブ配信中",
+    "untitled": "無題のライブ",
+    "watchFree": "無料で視聴",
+    "commentsHeading": "コメント（{count}）",
+    "like": "いいね（{count, plural, other {#件}}）",
+    "unlike": "いいねを取り消す（{count, plural, other {#件}}）",
+    "comments": {
+      "someone": "誰か",
+      "postFailed": "コメントを投稿できませんでした。",
+      "networkError": "ネットワークエラーです。もう一度お試しください。",
+      "placeholder": "コメントを追加…",
+      "post": "投稿",
+      "empty": "コメントはまだありません。最初のコメントを投稿しましょう。",
+      "delete": "削除"
+    },
+    "embed": {
+      "title": "このライブを埋め込む",
+      "button": "埋め込み",
+      "label": "HTML を使える場所ならどこにでも貼り付けられます",
+      "copied": "コピーしました",
+      "copy": "コードをコピー"
+    }
+  },
+  "embed": {
+    "defaultTitle": "PairUX プレーヤー",
+    "untitled": "無題のライブ",
+    "watchLive": "PairUX でライブを視聴",
+    "watch": "PairUX で視聴",
+    "live": "ライブ"
+  },
+  "room": {
+    "metadata": {
+      "title": "暗号化されたルーム",
+      "description": "エンドツーエンドで暗号化された PairUX の音声・ビデオルーム。アカウントは不要です。"
+    },
+    "creating": "暗号化されたルームを作成中…",
+    "guest": "ゲスト",
+    "joinFailed": "ルームに参加できませんでした",
+    "callFailed": "通話に失敗しました",
+    "e2ee": "エンドツーエンド暗号化",
+    "incomplete": {
+      "title": "このリンクは不完全です",
+      "body": "ルームのリンクは、通話を暗号化する鍵である <code>#k=…</code> で終わります。完全なリンクを送ってもらうか、<link>新しいルームを開始</link>してください。"
+    },
+    "join": {
+      "title": "ルームに参加",
+      "body": "アカウントは不要です。音声と映像は、このリンクを持つ人だけが持つ鍵であなたのデバイス上で暗号化されます。PairUX が通話を聞いたり見たりすることはできず、何も録画されません。",
+      "nameLabel": "お名前",
+      "voice": "音声",
+      "video": "ビデオ"
+    },
+    "copied": "コピーしました",
+    "copyInvite": "招待リンクをコピー"
+  },
+  "live": {
+    "metadata": {
+      "title": "ライブルーム",
+      "description": "PairUX で今行われている公開の画面共有ルームを見てみましょう。"
+    },
+    "title": "ライブルーム",
+    "intro": "ホストが今まさに開いている公開の画面共有ルームです。招待なしで参加できます。<link>すべてのチャンネル</link>（過去と現在）も見られます。",
+    "empty": {
+      "title": "公開ルームはまだありません",
+      "body": "セッションをホストし、<strong>/live に公開</strong>を使うとここに掲載されます。",
+      "cta": "ホストを始める"
+    },
+    "badgeLive": "ライブ",
+    "badgeIdle": "待機中",
+    "viewers": "{count, plural, other {視聴者 #人}}",
+    "untitledRoom": "無題のルーム",
+    "anonymous": "匿名",
+    "joinRoom": "ルームに参加",
+    "creators": "クリエイター",
+    "followers": "{count, plural, other {フォロワー #人}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "チャンネル",
+      "description": "PairUX のクリエイターチャンネルを見てみましょう。"
+    },
+    "title": "チャンネル",
+    "intro": "PairUX のクリエイターチャンネルです。登録すると、ライブ配信の開始時に通知が届きます。<link>今ライブ配信中</link>のチャンネルも見られます。",
+    "empty": {
+      "title": "チャンネルはまだありません",
+      "body": "<link>ダッシュボード</link>から作成してください。"
+    },
+    "liveNow": "ライブ配信中",
+    "subscribers": "{count, plural, other {登録者 #人}}",
+    "liveCount": "{count}件ライブ中",
+    "recordings": "{count, plural, other {録画 #件}}"
+  },
+  "channel": {
+    "notFoundTitle": "チャンネルが見つかりません",
+    "defaultDescription": "PairUX の {name} のチャンネルです。",
+    "liveNow": "ライブ配信中",
+    "live": "ライブ",
+    "watching": "{count}人が視聴中",
+    "manage": "チャンネルを管理",
+    "streams": "配信",
+    "noStreams": "配信はまだありません。",
+    "untitledStream": "無題の配信",
+    "recordings": "録画",
+    "rssTitle": "ポッドキャストアプリやフィードリーダーで登録",
+    "recording": "録画",
+    "subscribe": {
+      "subscribe": "登録",
+      "subscribed": "登録済み",
+      "count": "{count, plural, other {登録者 #人}}"
+    },
+    "share": {
+      "text": "PairUX で {name} をチェック",
+      "share": "共有",
+      "shareOn": "{network} で共有",
+      "copyLink": "リンクをコピー",
+      "copy": "コピー",
+      "copied": "コピーしました"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "プロフィールが見つかりません",
+    "defaultDescription": "PairUX の {name} の公開ルームです。",
+    "channels": "チャンネル",
+    "live": "ライブ",
+    "subscribers": "{count, plural, other {登録者 #人}}",
+    "lives": "ライブ",
+    "noLives": "{handle} はまだライブ配信をしていません。",
+    "liveNow": "ライブ配信中",
+    "untitledRoom": "無題のルーム",
+    "joinRoom": "ルームに参加",
+    "follow": {
+      "follow": "フォロー",
+      "following": "フォロー中",
+      "count": "{count, plural, other {フォロワー #人}}"
+    },
+    "message": {
+      "button": "メッセージ",
+      "title": "{name} にメッセージ",
+      "close": "閉じる",
+      "sent": "メッセージを送信しました",
+      "sentNote": "{name} にメールとプッシュ通知でお知らせします。",
+      "viewConversation": "会話を見る",
+      "placeholder": "{name} への非公開メッセージを入力…",
+      "cancel": "キャンセル",
+      "send": "送信",
+      "sendFailed": "メッセージを送信できませんでした"
+    }
+  },
+  "messages": {
+    "title": "メッセージ",
+    "conversationTitle": "会話",
+    "allMessages": "すべてのメッセージ",
+    "empty": {
+      "title": "メッセージはまだありません",
+      "body": "クリエイターのプロフィールを開き、<strong>メッセージ</strong>を押して会話を始めましょう。",
+      "cta": "クリエイターを見る →"
+    },
+    "youPrefix": "あなた：",
+    "thread": {
+      "empty": "メッセージはまだありません。{name} にあいさつしましょう。",
+      "placeholder": "{name} にメッセージ…",
+      "send": "送信",
+      "sendFailed": "メッセージを送信できませんでした"
+    }
+  }
+}

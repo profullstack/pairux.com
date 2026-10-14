@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - Uzaktan Kontrollü Ortak Ekran Paylaşımı",
+    "description": "Eşzamanlı uzaktan fare ve klavye kontrolüyle gerçek zamanlı ekran paylaşımı. Screenhero gibi, ama açık kaynak. macOS, Windows ve Linux için kullanılabilir.",
+    "shortDescription": "Eşzamanlı uzaktan fare ve klavye kontrolüyle gerçek zamanlı ekran paylaşımı. Screenhero gibi, ama açık kaynak.",
+    "imageAlt": "PairUX - Ortak Ekran Paylaşımı"
+  },
+  "common": {
+    "language": "Dil",
+    "loading": "Yükleniyor…",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "Kaydedildi",
+    "cancel": "İptal",
+    "close": "Kapat",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "back": "Geri",
+    "continue": "Devam",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı!",
+    "retry": "Tekrar dene",
+    "yes": "Evet",
+    "no": "Hayır",
+    "or": "veya",
+    "optional": "İsteğe bağlı",
+    "learnMore": "Daha fazla bilgi",
+    "somethingWentWrong": "Bir şeyler ters gitti. Lütfen tekrar deneyin."
+  },
+  "nav": {
+    "live": "Canlı",
+    "channels": "Kanallar",
+    "features": "Özellikler",
+    "useCases": "Kullanım alanları",
+    "download": "İndir",
+    "docs": "Belgeler",
+    "blog": "Blog",
+    "pricing": "Fiyatlandırma",
+    "dashboard": "Panel",
+    "organizations": "Kuruluşlar",
+    "callAnalyses": "Görüşme analizleri",
+    "settings": "Ayarlar",
+    "messages": "Mesajlar",
+    "signIn": "Giriş yap",
+    "signUp": "Kaydol",
+    "signOut": "Çıkış yap",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "userFallback": "Kullanıcı"
+  },
+  "footer": {
+    "tagline": "Eşzamanlı uzaktan kontrollü ortak ekran paylaşımı. Screenhero gibi, ama açık kaynak.",
+    "license": "MIT Lisansı altında açık kaynak.",
+    "sections": {
+      "product": "Ürün",
+      "install": "Kurulum",
+      "resources": "Kaynaklar",
+      "company": "Şirket"
+    },
+    "links": {
+      "features": "Özellikler",
+      "useCases": "Kullanım alanları",
+      "download": "İndir",
+      "pricing": "Fiyatlandırma",
+      "changelog": "Sürüm notları",
+      "documentation": "Belgeler",
+      "faq": "SSS",
+      "systemRequirements": "Sistem Gereksinimleri",
+      "troubleshooting": "Sorun Giderme",
+      "about": "Hakkımızda",
+      "blog": "Blog",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Hizmet Koşulları"
+    }
+  },
+  "auth": {
+    "or": "veya",
+    "comingSoon": "Çok yakında",
+    "checkEmail": "E-postanızı kontrol edin",
+    "backToSignIn": "Girişe dön",
+    "errors": {
+      "unexpected": "Beklenmeyen bir hata oluştu"
+    },
+    "fields": {
+      "email": "E-posta adresi",
+      "emailPlaceholder": "siz@ornek.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "En az 8 karakter, 1 büyük harf, 1 rakam",
+      "passwordHint": "En az 8 karakter; bir büyük harf ve bir rakam içermeli",
+      "showPassword": "Şifreyi göster",
+      "hidePassword": "Şifreyi gizle"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Şifreler eşleşmiyor",
+      "passwordTooShort": "Şifre en az 8 karakter olmalıdır",
+      "passwordNeedsUppercase": "Şifre en az bir büyük harf içermelidir",
+      "passwordNeedsNumber": "Şifre en az bir rakam içermelidir"
+    },
+    "login": {
+      "meta": {
+        "title": "Giriş Yap - PairUX",
+        "description": "PairUX hesabınıza giriş yapın"
+      },
+      "title": "Tekrar hoş geldiniz",
+      "subtitle": "Devam etmek için hesabınıza giriş yapın",
+      "failed": "Giriş yapılamadı",
+      "forgotPassword": "Şifrenizi mi unuttunuz?",
+      "passwordPlaceholder": "Şifrenizi girin",
+      "rememberMe": "Beni hatırla",
+      "submit": "Giriş yap",
+      "submitting": "Giriş yapılıyor...",
+      "passkey": "Geçiş anahtarıyla giriş yap",
+      "noAccount": "Hesabınız yok mu? <link>Kaydolun</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Kaydol - PairUX",
+        "description": "Ekranınızı paylaşmaya başlamak için bir PairUX hesabı oluşturun"
+      },
+      "failed": "Hesap oluşturulamadı",
+      "confirmationSent": "<strong>{email}</strong> adresine bir onay bağlantısı gönderdik. Hesabınızı doğrulamak için bağlantıya tıklayın.",
+      "firstName": "Ad",
+      "firstNamePlaceholder": "Ad",
+      "lastName": "Soyad",
+      "lastNamePlaceholder": "Soyad",
+      "confirmPassword": "Şifreyi onayla",
+      "confirmPasswordPlaceholder": "Şifrenizi tekrar girin",
+      "submit": "Hesap oluştur",
+      "submitting": "Hesap oluşturuluyor...",
+      "haveAccount": "Zaten hesabınız var mı? <link>Giriş yapın</link>",
+      "page": {
+        "earlyAdopterTitle": "Erken Kullanıcı Bonusu",
+        "earlyAdopterBody": "Şimdi kaydolun, her yüklemede <bold>%20 ekstra kredi</bold> kazanın!",
+        "waitlistTitle": "Bekleme Listesine Katılın",
+        "recommended": "Önerilen",
+        "waitlistBody": "100 $ kredi yatırarak yerinizi ayırtın; öncelikli erişim ve özel ayrıcalıklar kazanın.",
+        "perkCredits": "100 $ yatırım = <semibold>120 $ kredi</semibold> (%20 bonus)",
+        "perkPriority": "Lansmanda öncelikli erişim",
+        "perkPricing": "Ömür boyu sabit erken kullanıcı fiyatı",
+        "perkCommunity": "Özel Discord/Slack kanalına erişim",
+        "paymentMethods": "Ödeme Yöntemleri",
+        "payCard": "Kartla öde",
+        "payCardDetail": "Stripe üzerinden Visa, Mastercard, Amex",
+        "payCrypto": "Kriptoyla öde",
+        "payCryptoDetail": "CoinPayPortal üzerinden BTC, ETH, USDC",
+        "comingSoon": "Çok Yakında",
+        "refundable": "Fikrinizi değiştirirseniz, yatırdığınız tutar lansmandan önce tamamen iade edilir.",
+        "orFree": "veya ücretsiz kaydolun",
+        "freeTitle": "Ücretsiz hesap oluşturun",
+        "freeBody": "Ömür boyu ücretsiz 2 katılımcı + 5 izleyiciyle başlayın",
+        "creditsTitle": "Krediler Nasıl Çalışır",
+        "creditsBody": "PairUX kredi tabanlı bir sistem kullanır. Krediler, 5’ten fazla izleyiciye ihtiyaç duyduğunuzda SFU aktarma sunucuları için harcanır. <medium>720p’de izleyici-saat başına 0,08 $</medium>. Ücretsiz katmandaki P2P bağlantılarının süresi hiç dolmaz."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Şifremi Unuttum - PairUX",
+        "description": "PairUX hesap şifrenizi sıfırlayın"
+      },
+      "title": "Şifrenizi mi unuttunuz?",
+      "subtitle": "E-postanızı girin, size bir sıfırlama bağlantısı gönderelim",
+      "failed": "Sıfırlama e-postası gönderilemedi",
+      "sent": "<strong>{email}</strong> ile kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı alacaksınız.",
+      "submit": "Sıfırlama bağlantısı gönder",
+      "submitting": "Gönderiliyor..."
+    },
+    "reset": {
+      "title": "Şifrenizi sıfırlayın",
+      "subtitle": "Yeni şifrenizi aşağıya girin",
+      "failed": "Şifre sıfırlanamadı",
+      "successTitle": "Şifre güncellendi",
+      "successBody": "Şifreniz başarıyla sıfırlandı. Giriş sayfasına yönlendiriliyorsunuz...",
+      "signInNow": "Şimdi giriş yap",
+      "invalidTitle": "Geçersiz veya süresi dolmuş bağlantı",
+      "invalidBody": "Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
+      "requestNewLink": "Yeni bağlantı iste",
+      "newPassword": "Yeni şifre",
+      "confirmNewPassword": "Yeni şifreyi onayla",
+      "confirmNewPasswordPlaceholder": "Yeni şifrenizi tekrar girin",
+      "submit": "Şifreyi sıfırla",
+      "submitting": "Sıfırlanıyor..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "PairUX CLI’ını yetkilendir - PairUX",
+    "invalidTitle": "Bu giriş bağlantısı geçerli değil",
+    "invalidBody": "Yenisini almak için <code>{command}</code> komutunu tekrar çalıştırın.",
+    "allowedTitle": "Terminalinize dönebilirsiniz",
+    "deniedTitle": "Giriş iptal edildi",
+    "closeTab": "Bu sekmeyi kapatabilirsiniz.",
+    "title": "{clientName} yetkilendirilsin mi?",
+    "intro": "Bu bilgisayardaki PairUX komut satırı aracı, <strong>{email}</strong> adına işlem yapmak için izin istiyor.",
+    "agentsNote": "Bu araçla başlattığınız ajanlar oturumlara sizin ajanınız olarak etiketlenerek katılır; böylece oturum sahipleri kime ait olduklarını bilir.",
+    "limitsNote": "Ekranınızı göremez, uzaktan kontrol alamaz veya hesabınızı değiştiremez.",
+    "revokeNote": "<code>{command}</code> ile çıkış yapmak bu yetkiyi iptal eder.",
+    "allow": "İzin ver",
+    "deny": "Reddet",
+    "errors": {
+      "authorizeFailed": "CLI yetkilendirilemedi",
+      "network": "PairUX’e ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Bir kuruluşa katılın - PairUX",
+    "title": "{orgName} kuruluşuna katılın",
+    "invited": "{role, select, admin {Yönetici} other {Üye}} olarak davet edildiniz. Kabul etmek için <strong>{email}</strong> olarak giriş yapın.",
+    "invitedToTeam": "{teamName} ekibine {role, select, admin {yönetici} other {üye}} olarak davet edildiniz. Kabul etmek için <strong>{email}</strong> olarak giriş yapın.",
+    "expired": "Bu davetin süresi doldu. Yeni bir davet isteyin.",
+    "accept": "Daveti kabul et",
+    "errors": {
+      "invalid": "Bu davet artık geçerli değil",
+      "acceptFailed": "Davet kabul edilemedi"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Özellikler",
+      "description": "PairUX’in tüm özelliklerini keşfedin: gerçek zamanlı ekran paylaşımı, uzaktan kontrol, çoklu imleçle iş birliği, platformlar arası destek ve daha fazlası."
+    },
+    "hero": {
+      "title": "Özellikler",
+      "subtitle": "Gerçek zamanlı iş birliği için ihtiyacınız olan her şey; gizlilik ve güvenlik gözetilerek geliştirildi.",
+      "imageAlt": "Oturum istatistiklerini, kanalları, oturum başlatma veya oturuma katılma kısayollarını ve mevcut planı gösteren PairUX paneli."
+    },
+    "comingSoon": "Çok Yakında",
+    "main": {
+      "callAnalysis": {
+        "title": "Yapay Zekâ ile Görüşme Analizi",
+        "description": "Mülakat, ekip toplantısı veya sunumdan önce açın; görüşmeden sonra size özel bir geri bildirim raporu alın: puan, neyin işe yaradığı, neyin düzeltilmesi gerektiği ve yeniden izlemeye değer anlar.",
+        "details": {
+          "d0": "Konuşmacı başına konuşma süresi, hız ve dolgu kelimeleri",
+          "d1": "Mülakat, ekip toplantısı ve sunum modları",
+          "d2": "Slaytlar ve demolar için ekran görüntüleri incelenir",
+          "d3": "Görüşmedeki herkese kayıt yapıldığı bildirilir"
+        }
+      },
+      "screenSharing": {
+        "title": "Gerçek Zamanlı Ekran Paylaşımı",
+        "description": "Tüm ekranınızı veya tek tek pencereleri kristal netliğinde paylaşın. WebRTC tabanlı yayın, uyarlanabilir bit hızıyla düşük gecikmeli video sunar.",
+        "details": {
+          "d0": "Tam ekran veya pencere paylaşımı",
+          "d1": "Standart kalite: 1080p @ 30fps",
+          "d2": "Her bağlantı için uyarlanabilir bit hızı",
+          "d3": "İmleç yayına dahil"
+        }
+      },
+      "remoteControl": {
+        "title": "Uzaktan Fare ve Klavye",
+        "description": "Çalışma arkadaşınız tam fare ve klavye girişiyle kontrolü alabilsin. Her kontrol, oturum sahibinin açık onayını gerektirir.",
+        "details": {
+          "d0": "Tam fare kontrolü (tıklama, kaydırma, sürükleme)",
+          "d1": "Eksiksiz klavye girişi",
+          "d2": "Özel tuşlar ve kısayollar",
+          "d3": "Platformlar arası uyumlu"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Eşzamanlı Giriş",
+        "description": "Oturum sahibi ve izleyici aynı anda kontrol edebilir. Güvenlik ve rahatlık için oturum sahibinin girişi her zaman önceliklidir.",
+        "details": {
+          "d0": "İki kullanıcı birlikte kontrol edebilir",
+          "d1": "Oturum sahibi her zaman önceliklidir",
+          "d2": "Giriş engelleme veya sıraya alma yok",
+          "d3": "Görsel gösterge, kontrolü kimin yaptığını belirtir"
+        }
+      },
+      "consent": {
+        "title": "Açık Onay Modeli",
+        "description": "Güvenlik en baştan tasarıma dahildir. İzleyiciler kontrol talep etmeli, oturum sahipleri de açıkça onaylamalıdır.",
+        "details": {
+          "d0": "Kontrol talepleri onay gerektirir",
+          "d1": "Acil iptal kısayolu (Ctrl+Shift+Esc)",
+          "d2": "Kontrol etkinken görsel gösterge",
+          "d3": "Kontrol her an geri alınabilir"
+        }
+      },
+      "pwaViewer": {
+        "title": "PWA İzleyici",
+        "description": "İzleyiciler herhangi bir modern tarayıcıdan katılır, indirme gerekmez. Hızlı erişim için Progressive Web App olarak yükleyin.",
+        "details": {
+          "d0": "Her modern tarayıcıda çalışır",
+          "d1": "Katılmak için hesap gerekmez",
+          "d2": "PWA olarak yüklenebilir",
+          "d3": "İzlemek için mobil uyumlu"
+        }
+      },
+      "crossPlatform": {
+        "title": "Platformlar Arası Masaüstü",
+        "description": "macOS, Windows ve Linux için yerel masaüstü uygulamaları. Sevdiğiniz paket yöneticisiyle kurun.",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "Doğrudan indirme mevcut"
+        }
+      },
+      "recording": {
+        "title": "Ekran Kaydı",
+        "description": "Oturumlarınızı daha sonra incelemek için yerel olarak kaydedin. Eğitimler, dokümantasyon ve eşli programlama oturumlarının kaydını tutmak için ideal.",
+        "details": {
+          "d0": "Yerel olarak WebM/MP4 kaydı",
+          "d1": "Sistem sesi + mikrofon kaydı",
+          "d2": "Kalite ön ayarları (720p/1080p/4K)",
+          "d3": "Kaydı duraklatma/sürdürme"
+        }
+      },
+      "textChat": {
+        "title": "Yazılı Sohbet",
+        "description": "Bağlantı, kod parçası paylaşmanız veya sesli konuşmadan iletişim kurmanız gerektiğinde yerleşik yazılı sohbet.",
+        "details": {
+          "d0": "Gerçek zamanlı mesajlaşma",
+          "d1": "Sistem bildirimleri (katılma/ayrılma)",
+          "d2": "Ekran paylaşımıyla birlikte çalışır",
+          "d3": "Oturum başına mesaj geçmişi"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "Oturum sırasında kalite seçiciyi, katılım kodunu, katılımcı listesini ve oturum bilgisi panelini gösteren PairUX oturum sahibi konsolu.",
+      "consent": "Misafirin, oturum sahibi giriş izni vermeden önce Kontrol İste düğmesine basması gereken PairUX izleyici konsolu.",
+      "pwaViewer": "Tarayıcıdaki PairUX katılım ekranı; oturum kodunu, canlı durumu ve hesap gerektirmeyen Ücretsiz izle düğmesini gösteriyor.",
+      "crossPlatform": "macOS, Windows ve Linux için tek satırlık yükleyicileri ve DMG, EXE, AppImage, DEB ve RPM derlemelerini listeleyen PairUX indirme sayfası.",
+      "recording": "Varsayılan kayıt ve yakalama kalitesi ön ayarları ile sistem sesi anahtarını içeren PairUX kayıt ayarları."
+    },
+    "tech": {
+      "title": "Modern Teknoloji Üzerine Kurulu",
+      "subtitle": "PairUX, güvenilir ve düşük gecikmeli yayın için endüstri standardı WebRTC kullanır."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Minimum gecikme için doğrudan eşler arası bağlantı."
+      },
+      "e2e": {
+        "title": "Uçtan Uca Şifreli",
+        "description": "Tüm medya akışları için DTLS-SRTP şifreleme."
+      },
+      "nat": {
+        "title": "NAT Geçişi",
+        "description": "Güvenilir bağlantı için STUN/TURN sunucuları."
+      },
+      "adaptive": {
+        "title": "Uyarlanabilir Kalite",
+        "description": "Bant genişliğine göre otomatik kalite ayarı."
+      },
+      "sharedControl": {
+        "title": "Paylaşımlı kontrol",
+        "description": "Oturum sahibi ve misafir, oturum sahibinin sistem imlecini sırayla kullanır."
+      },
+      "keyboard": {
+        "title": "Tam Klavye",
+        "description": "Değiştirici ve özel tuşlar dahil tüm tuşlar."
+      }
+    },
+    "compare": {
+      "title": "PairUX Karşılaştırması",
+      "subtitle": "PairUX’in diğer ekran paylaşımı çözümleriyle nasıl kıyaslandığını görün.",
+      "feature": "Özellik",
+      "others": "Diğerleri",
+      "rows": {
+        "screenSharing": "Ekran paylaşımı",
+        "remoteControl": "Uzaktan kontrol",
+        "simultaneousControl": "Eşzamanlı kontrol",
+        "localRecording": "Ekran kaydı (yerel)",
+        "textChat": "Yazılı sohbet",
+        "noAccount": "İzleyiciler için hesap gerekmez",
+        "openSource": "Açık kaynak",
+        "selfHostable": "Kendi sunucunuzda barındırılabilir",
+        "e2e": "Uçtan uca şifreli",
+        "nativeApps": "Yerel uygulamalar",
+        "browserViewer": "Tarayıcıda izleme",
+        "freeTier": "Ücretsiz katman"
+      },
+      "values": {
+        "soon": "yakında",
+        "partial": "kısmi",
+        "unlimited": "sınırsız",
+        "limited": "sınırlı"
+      }
+    },
+    "cta": {
+      "title": "Başlamaya hazır mısınız?",
+      "subtitle": "PairUX’i indirin ve saniyeler içinde birlikte çalışmaya başlayın.",
+      "button": "Hemen İndir"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "Yapay Zekâ ile Görüşme Analizi: mülakatlar, ekip toplantıları ve sunumlar için geri bildirim | PairUX",
+        "description": "Bir PairUX görüşmesinden önce yapay zekâ görüşme analizini açın, sonrasında geri bildirim raporu alın: konuşma süresi, konuşma hızı, dolgu kelimeleri, neyin etkili olduğu, neyi çalışmanız gerektiği ve yeniden izlenecek anlar."
+      },
+      "eyebrow": "Yapay zekâ görüşme analizi · Pro ve Team",
+      "title": "Görüşmenin gerçekte nasıl geçtiğini öğrenin.",
+      "intro": "Mülakatınızdan, ekip toplantınızdan veya sunumunuzdan önce yapay zekâ görüşme analizini açın. Görüşme bittiğinde size özel bir rapor alırsınız: puan, neyin işe yaradığı, neyin düzeltilmesi gerektiği, arkasındaki rakamlar ve yeniden izlemeye değer anlar.",
+      "startCta": "Analizli görüşme başlat",
+      "seePlans": "Planları gör",
+      "kindsTitle": "Görüşmeye göre şekillenen geri bildirim",
+      "kinds": {
+        "interviews": {
+          "title": "Mülakatlar",
+          "body": "Soru soru: her cevabın nasıl karşılandığı, nerede uzayıp nerede belirsiz kaldığı ve daha güçlü bir ifade biçimi. Mülakatı siz mi yapıyorsunuz? Sorularınızı ve ne kadar iyi dinlediğinizi değerlendirir."
+        },
+        "teamSyncs": {
+          "title": "Ekip toplantıları",
+          "body": "Alınan kararlar, cevapsız kalan sorular, toplantının konudan saptığı yerler ve sorumlusuyla birlikte her taahhüt; böylece toplantılar arasında hiçbir şey kaybolmaz."
+        },
+        "presentations": {
+          "title": "Sunumlar ve demolar",
+          "body": "Açılışınız, ana fikriniz ve kapanışınız, dinleyicileri muhtemelen nerede kaybettiğiniz ve ekranda ne olduğu: slayt yoğunluğu, okunabilirlik ve ekranın söylediklerinizle örtüşüp örtüşmediği."
+        }
+      },
+      "measuredTitle": "Tahmin değil, ölçüm",
+      "measuredBody": "Rakamlar, her konuşmacı ayrı ayrı belirlenerek transkriptten sayılır ve yazılı geri bildirim bunlara dayanır. Rapor bir mülakatta zamanın %70’inde sizin konuştuğunuzu söylüyorsa, bu doğrulayabileceğiniz bir gerçektir.",
+      "measured": {
+        "m0": "Her konuşmacının konuşma süresindeki payı",
+        "m1": "Dakikadaki kelime sayısıyla konuşma hızı",
+        "m2": "100 kelimede dolgu kelimesi sayısı ve hangileri olduğu",
+        "m3": "Sorulan sorular, en uzun monolog, sözü kesmeler"
+      },
+      "howTitle": "Nasıl çalışır",
+      "how": {
+        "s0": "Görüşmeden önce başlangıç ekranında (pairux.com, masaüstü uygulaması veya mobil uygulama) <strong>Yapay zekâ görüşme analizi</strong>ni açın ve görüşme türünü seçin. Görüşme kaydı da onunla birlikte açılır; isterseniz kapatabilirsiniz.",
+        "s1": "Görüşme sırasında uygulamanız, görüşme sesini ve her 20 saniyede bir paylaşılan ekranınızın bir görüntüsünü yükler. Katılan herkes görüşmenin analiz için kaydedildiğini görür.",
+        "s2": "Görüşmeden sonra ses, konuşmacılar ayrılarak yazıya dökülür ve bir yapay zekâ koçu raporunuzu yazar. Rapor e-postayla gelir ve panelinizde Görüşme analizleri altında saklanır."
+      },
+      "privacyTitle": "Onay ve gizlilik",
+      "privacy": {
+        "p0": "Seçim görüşme başlamadan yapılır ve görüşmenin ortasında açılamaz.",
+        "p1": "Her katılımcı, web, masaüstü ve mobil uygulamalarda görüşme boyunca bir uyarı görür.",
+        "p2": "Raporlar ve kayıtlar yalnızca oturum sahibine ya da görüşmenin yapıldığı ekip veya kuruluşa özeldir ve istediğiniz zaman silinebilir.",
+        "p3": "Kaydı kapalı tutarsanız ses, rapor yazılır yazılmaz silinir.",
+        "p4": "Telefonda yalnızca kendi mikrofonunuz kaydedilir; herkesi kaydetmek için pairux.com’dan veya masaüstü uygulamasından başlatın."
+      },
+      "tryCta": "Bir sonraki görüşmenizde deneyin"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Yapay Zekâ Ajanlarıyla Çalışma İçin Kullanım Alanları",
+        "description": "PairUX ile eşli programlama yapın, yapay zekânın ürettiği kodu inceleyin, hata ayıklayın, ekip arkadaşlarınızı işe alıştırın ve canlı eğitim verin. Mülakatlar, ekip toplantıları ve sunumlar için yapay zekâ geri bildirimi alın."
+      },
+      "eyebrow": "PairUX kullanım alanları",
+      "title": "Ajanlarla daha iyi çalışın. Birlikte.",
+      "intro": "Kodu bir ajan yazabilir. Ama ekibinizin yine de sonucu anlaması gerekir. PairUX ile ekranı paylaşın, uygulamayı deneyin ve bir sonraki kararı birlikte verin.",
+      "findWorkflow": "İş akışınızı bulun",
+      "featuredLabel": "Öne çıkan · Ajanlı eşli programlama",
+      "featuredTitle": "İki kişi. Tek ajan oturumu.",
+      "featuredBody": "Canlı bir moshcode terminalini ekip arkadaşınızla paylaşın, ardından PairUX ile editörü ve uygulamayı birlikte inceleyin. Önce izleyin ya da aynı oturuma katılın.",
+      "featuredCta": "Ajanlı eşli programlamayı keşfedin",
+      "workflowsTitle": "İşe bir kişi daha dahil edin",
+      "workflowsIntro": "Paylaşılan bir ekranla başlayın. Oturum sahibi uzaktan kontrolü onayladığında çalışma arkadaşlarınız fareyi ve klavyeyi kullanabilsin.",
+      "notesPlans": "Pro ve Team planları",
+      "notesTitle": "Yapay zekâ not alıcı",
+      "notesBody": "Bir çalışma oturumunu taslak notlara, kararlara ve eylem maddelerine dönüştürün. Bir ekip arkadaşınızın gelişmeleri yakalamasına yardım edin veya bağlamı bir sonraki ajan görevinize taşıyın.",
+      "notesFootnote": "Yapay zekâ görüşme analizinin bir parçası: görüşmeden önce açın, görüşme bitince rapor e-postayla gelsin.",
+      "notesCta": "Yapay zekâ görüşme notlarını keşfedin",
+      "ctaTitle": "Tek bir paylaşılan oturumla başlayın",
+      "ctaBody": "PairUX’i edinin, ekranınızı paylaşın ve gerçek bir görevi birlikte yürütmek için bir ekip arkadaşınızı davet edin.",
+      "getPairux": "PairUX’i edinin",
+      "comparePlans": "Planları karşılaştır"
+    },
+    "exploreWorkflow": "İş akışını keşfet",
+    "allUseCases": "Tüm kullanım alanları",
+    "detail": {
+      "plannedTitle": "{title} · Premium Planlar İçin Planlanıyor",
+      "notAvailable": "Henüz kullanılamıyor. Bu özellik için satın almadan önce premium erişim ve teslimat hakkında bizimle iletişime geçin.",
+      "whenHelps": "Ne zaman işe yarar",
+      "tryWorkflow": "Bu iş akışını deneyin",
+      "plannedWorkflow": "Planlanan iş akışı",
+      "leaveWith": "Elinizde kalanlar",
+      "goal": "Hedef",
+      "discussPremium": "Premium yapay zekâ notlarını konuşalım",
+      "startWithPairux": "PairUX ile başlayın",
+      "seeCurrentPlans": "Mevcut planları gör",
+      "comparePlans": "Planları karşılaştır",
+      "moreWays": "Birlikte çalışmanın diğer yolları"
+    },
+    "agentic": {
+      "meta": {
+        "title": "moshcode ile Ajanlı Eşli Programlama | PairUX",
+        "description": "Bir ekip arkadaşınızla aynı canlı kodlama ajanı oturumunda çalışın. Paylaşılan terminal için moshcode’u, ekranı ve uygulamayı birlikte incelemek için PairUX’i kullanın."
+      },
+      "backLink": "← Tüm kullanım alanları",
+      "eyebrow": "Ajanlı eşli programlama",
+      "title": "İki kişi. Tek ajan oturumu.",
+      "intro": "Kodu bir yapay zekâ ajanı yazsa da eşli programlama hâlâ ortak bağlam gerektirir. Bir ekip arkadaşınızı canlı moshcode oturumunuza dahil edin, ardından PairUX ile ajanın ne geliştirdiğini inceleyip bir sonraki adıma birlikte karar verin.",
+      "openMoshcode": "moshcode’u aç",
+      "getPairux": "PairUX’i edinin",
+      "stepsTitle": "İzlemekten birlikte çalışmaya",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Tek bir canlı oturumla başlayın",
+          "body": "Geliştirme makinenizde moshcode’u çalıştırın ve oturumunu app.moshcode.sh adresinde açın. Siz ve ekip arkadaşınız aynı ajan çıktısını takip eder ve aynı terminalde çalışırsınız."
+        },
+        "s1": {
+          "title": "Ekibinizi oturuma dahil edin",
+          "body": "moshcode’da bir kuruluş ve ekip oluşturun, ekip arkadaşınızı hesap e-postasıyla ekleyin, ardından oturumu o ekiple paylaşın. Okuma erişimi izlemelerini sağlar; yazma erişimi ise çalışan oturuma giriş göndermelerini sağlar."
+        },
+        "s2": {
+          "title": "Sonucu PairUX’te birlikte inceleyin",
+          "body": "Terminalinizi, editörünüzü veya uygulama önizlemenizi PairUX ile paylaşın. Ekip arkadaşınız işi bağlamıyla görmek için tarayıcıdan katılır. Fare ve klavyenizi de kullanmasını istediğinizde uzaktan kontrolü onaylayın."
+        }
+      },
+      "permissionsNote": "Terminal oturumuna erişimi moshcode ekip izinleri belirler. PairUX uzaktan kontrolü ise ekran paylaşımındaki oturum sahibinin onayladığı ayrı bir seçimdir. Nasıl iş birliği yapmak istediğinize göre birini ya da ikisini birden kullanın.",
+      "contractorTitle": "Bir yükleniciyi işe alıştırmanın pratik yolu",
+      "contractorP1": "Bir yükleniciyi ekibinize ekleyin ve ilk oturumunuzu okuma erişimiyle izlemesine izin verin. Görevi, ajanın çıktısını ve çalışan uygulamayı birlikte gözden geçirin. Katılmaya hazır olduğunda, aynı oturumda sizinle çalışabilmesi için yazma erişimi verin.",
+      "contractorP2": "Bu iş akışını başarısız bir testi araştırmak, bir ajanın uygulamasını amaçlanan davranışla karşılaştırmak veya bir değişikliği birleştirmeden önce incelemek için de kullanabilirsiniz. Herkes işi gerçekleştiği anda görür.",
+      "startPairing": "PairUX ile eşli çalışmaya başlayın"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Ajanlı eşli programlama",
+        "audience": "Geliştiriciler ve ekip arkadaşları",
+        "description": "Bir ekip arkadaşınızla tek bir canlı kodlama ajanı oturumunda çalışın. Terminali moshcode ile paylaşın, ekranı PairUX’te birlikte inceleyin.",
+        "scenario": "Ajan geliştirme ortamınızda çalışırken bir ekip arkadaşınızın ona yön vermenize yardım etmesini istiyorsunuz.",
+        "outcome": "Ajanın neyi değiştirdiği ve sırada ne yapılacağı konusunda ortak bir anlayış.",
+        "steps": {
+          "s0": {
+            "title": "Paylaşılan bir terminal başlatın",
+            "body": "Canlı moshcode oturumunuzu açın ve ekibinizle paylaşın."
+          },
+          "s1": {
+            "title": "Uygulamayı görünür kılın",
+            "body": "Editörünüzü veya uygulama önizlemenizi PairUX ile paylaşın."
+          },
+          "s2": {
+            "title": "Bir sonraki adımı birlikte atın",
+            "body": "Sonucu birlikte inceleyin ve ajandan sırada ne isteyeceğinize karar verin."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "Yapay zekânın ürettiği kodu inceleyin",
+        "audience": "Geliştiriciler ve inceleyiciler",
+        "description": "Bir ajanın değişiklikleri birleştirilmiş bir pull request’e dönüşmeden önce diff’i, testleri ve çalışan uygulamayı birlikte gözden geçirin.",
+        "scenario": "Bir ajan büyük bir değişiklik üretti. İnceleyicinin yalnızca yamanın özetini okuması değil, davranışını anlaması gerekiyor.",
+        "outcome": "Net düzeltmeleri, takip testleri ve ortak birleştirme kararı olan incelenmiş bir değişiklik.",
+        "steps": {
+          "s0": {
+            "title": "Kanıtları açın",
+            "body": "Diff, görev gereksinimleri ve test çıktısı görünür şekilde editörünüzü paylaşın. Ajandan neyi değiştirmesini istediğinizi açıklayın."
+          },
+          "s1": {
+            "title": "Davranışı birlikte deneyin",
+            "body": "Uygulamayı çalıştırın ve önemli akışları test edin. İnceleyici bir uç durumu doğrudan denemek isterse uzaktan kontrolü onaylayın."
+          },
+          "s2": {
+            "title": "Bulguları bir sonraki düzenlemeye dönüştürün",
+            "body": "Düzeltmeler üzerinde anlaşın ve kodlama ajanınızdan bunları yapmasını isteyin. Birleştirmeden önce yeni diff’i inceleyin ve ilgili kontrolleri yeniden çalıştırın."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Takılan bir ajanı yeniden harekete geçirin",
+        "audience": "Geliştiriciler ve hata ayıklama ortakları",
+        "description": "Başarısız bir teste veya sonuç vermeyen düzeltme döngüsüne ikinci bir kişiyi dahil edin. Kanıtları inceleyin ve bir sonraki denemeyi birlikte seçin.",
+        "scenario": "Kodlama ajanınız hatayı düzeltmeden kodu değiştirip duruyor. Bir ekip arkadaşınız eksik bir varsayımı veya ortam sorununu fark etmenize yardım edebilir.",
+        "outcome": "Yeniden üretilebilir bir hata ve ajan için odaklı bir sonraki adım.",
+        "steps": {
+          "s0": {
+            "title": "Hatayı gerçekleştiği anda gösterin",
+            "body": "Terminali paylaşın ve sorunu yeniden üretin. Ekip arkadaşınıza hatayı, son değişiklikleri ve şimdiye kadar denenenleri anlatın."
+          },
+          "s1": {
+            "title": "Tek bir açıklamayı test edin",
+            "body": "Günlükleri, yapılandırmayı ve çalışan uygulamayı birlikte inceleyin. Ekip arkadaşınızın aynı ortamı keşfetmesi gerektiğinde uzaktan kontrol verin."
+          },
+          "s2": {
+            "title": "Ajana daha iyi yön verin",
+            "body": "Yeniden üretme adımlarını ve seçtiğiniz düzeltmenin dayandığı kanıtları yazın. Ajandan odaklı bir değişiklik isteyin, ardından ilk hatayı tekrar kontrol edin."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Yüklenicileri bağlam içinde işe alıştırın",
+        "audience": "Ekip liderleri ve yeni ekip arkadaşları",
+        "description": "Yeni bir ekip arkadaşınızın gerçek bir görevi izlemesine, kod tabanınızı ve ajan iş akışınızı öğrenmesine, hazır olduğunda da katılmasına olanak tanıyın.",
+        "scenario": "Projenize bir yüklenici katılıyor ve ajanları nasıl kullandığınızı, değişiklikleri nasıl incelediğinizi ve bir işin ne zaman yayına hazır olduğuna nasıl karar verdiğinizi anlaması gerekiyor.",
+        "outcome": "İş akışınızı anlayan ve bir sonraki görevi bağlamıyla üstlenebilen bir ekip arkadaşı.",
+        "steps": {
+          "s0": {
+            "title": "Gerçek bir görevle başlayın",
+            "body": "Geliştirme ekranınızı paylaşın; projeyi, görevi ve kodlama ajanınızı nasıl yönlendirdiğinizi açıklayın. Yüklenicinin ilk turu izlemesine izin verin."
+          },
+          "s1": {
+            "title": "Kararları açıklayın",
+            "body": "Ajanın çıktısını, testleri ve çalışan uygulamayı birlikte gözden geçirin. Bir öneriyi nerede kabul ettiğinizi ve nerede başka bir yaklaşım istediğinizi gösterin."
+          },
+          "s2": {
+            "title": "Sırayı ona verin",
+            "body": "Rehberli bir düzenleme için PairUX uzaktan kontrolünü onaylayın. moshcode da kullanıyorsanız, terminale giriş göndermeye hazır olduğunda paylaşılan ekip oturumuna yazma erişimi verin."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "Uygulamayı ürün ve tasarım ekibiyle inceleyin",
+        "audience": "Geliştiriciler, tasarımcılar ve ürün ekipleri",
+        "description": "Bir ajanın geliştirdiği uygulamayı, sonucu değerlendirecek kişilere gösterin. Akışı birlikte deneyin ve geri bildirimi somut değişikliklere dönüştürün.",
+        "scenario": "Çalışan bir prototip hazır, ancak etkileşim, metinler veya düzen kodun dışından birinin geri bildirimine ihtiyaç duyuyor.",
+        "outcome": "Somut kabul kriterleri ve çalışan uygulama için üzerinde anlaşılmış bir değişiklik listesi.",
+        "steps": {
+          "s0": {
+            "title": "Çalışan deneyimi paylaşın",
+            "body": "Uygulama önizlemesini açın ve o pencereyi PairUX’te paylaşın. Gerçek bir kullanıcının tamamlayabilmesi gereken görevi adım adım gösterin."
+          },
+          "s1": {
+            "title": "İnceleyicinin keşfetmesine izin verin",
+            "body": "Gezinirken geri bildirim isteyin ya da inceleyicinin akışı sizin makinenizde deneyebilmesi için uzaktan kontrolü onaylayın."
+          },
+          "s2": {
+            "title": "Geri bildirim döngüsünü kapatın",
+            "body": "Gözlemleri kodlama ajanınız için somut isteklere dönüştürün. Güncellenmiş uygulamayı aynı oturumda gösterin ve neyin hazır olduğu konusunda anlaşın."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Birinin yapay zekâ iş akışının önünü açın",
+        "audience": "Destek ekipleri ve teknik liderler",
+        "description": "İkiniz de aynı ekranı görürken bir ekip arkadaşınızın bir aracı yapılandırmasına, bir hatayı anlamasına veya bozulan yerel iş akışını düzeltmesine yardım edin.",
+        "scenario": "Bir ajan veya geliştirme aracı bir makinede çalışıyor ama diğerinde başarısız oluyor. Ekran görüntüleri ve kopyalanan hata mesajları bağlamı aktarmıyor.",
+        "outcome": "Çalışan bir kurulum ve sorunun nasıl çözüldüğünü anlayan bir kişi.",
+        "steps": {
+          "s0": {
+            "title": "Sorunu size göstermesini isteyin",
+            "body": "Sorunu yaşayan kişi bir PairUX oturumu başlatır ve ilgili araç penceresini paylaşır. Tarayıcınızdan katılın ve hatayı yeniden üretmesini izleyin."
+          },
+          "s1": {
+            "title": "Düzeltmeyi onun ortamında yönlendirin",
+            "body": "Bir sonraki kontrolü açıklayın ve onun yapmasına izin verin. Doğrudan yardım faydalı olacaksa uzaktan kontrol isteyin; onaylayıp onaylamamaya oturum sahibi karar verir."
+          },
+          "s2": {
+            "title": "Tüm iş akışını doğrulayın",
+            "body": "İlk görevi tekrar çalıştırmasını isteyin. Bir dahaki sefere tanıyabilmesi için sorunu çözen adımları ona bırakın."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Canlı bir yapay zekâ kodlama atölyesi düzenleyin",
+        "audience": "Eğitmenler, topluluklar ve ekipler",
+        "description": "Gerçek bir şey geliştirirken bir ajanı nasıl yönlendirdiğinizi, çalışmasını nasıl incelediğinizi ve hataları nasıl ele aldığınızı izleyicilere gösterin.",
+        "scenario": "Ekibiniz, cilalı bir demonun genelde atladığı kararları ve düzeltmeleri izleyerek bir ajan iş akışını öğrenmek istiyor.",
+        "outcome": "Görev tanımından doğrulanmış sonuca kadar tüm yolu görmüş bir izleyici kitlesi.",
+        "steps": {
+          "s0": {
+            "title": "Odaklı bir gösterim hazırlayın",
+            "body": "Küçük bir görev seçin ve kullanacağınız terminali, editörü veya uygulamayı paylaşın. Odanızın dinleyici kapasitesine uygun bir PairUX planı seçin."
+          },
+          "s1": {
+            "title": "İstemlerin arkasındaki mantığı gösterin",
+            "body": "Ajana verdiğiniz bağlamı ve nedenini açıklayın. Önemli anlarda durup diff’i inceleyin, testleri çalıştırın ve beklenmedik bir sonucu tartışın."
+          },
+          "s2": {
+            "title": "Sonucu incelemeyi pratik edin",
+            "body": "Gruptan uç durumlar ve takip değişiklikleri önermesini isteyin. Katılımcılar işin hazır olup olmadığına nasıl karar verdiğinizi görsün diye bu kontrolleri göz önünde çalıştırın."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "Yapay zekâ not alıcı",
+        "audience": "Pro ve Team planları",
+        "description": "Bir ekip toplantısından önce yapay zekâ görüşme analizini açın; kararlar, açık sorular ve eylem maddelerinin yanı sıra toplantının nasıl geçtiğine dair geri bildirimle ayrılın.",
+        "scenario": "Ekibiniz ortak işe odaklanmak ve bir sonraki oturum için faydalı notlarla ayrılmak istiyor.",
+        "outcome": "İşin, kararların ve sonraki adımların gözden geçirilmiş bir özeti.",
+        "steps": {
+          "s0": {
+            "title": "Görüşmeden önce yapay zekâ görüşme analizini açın",
+            "body": "Başlangıç ekranında yapay zekâ görüşme analizini açın ve \"Ekip toplantısı\"nı seçin. Katılan herkes görüşmenin analiz için kaydedildiğini görür."
+          },
+          "s1": {
+            "title": "Raporu okuyun",
+            "body": "Görüşmeden sonra bir özet, varılan kararlar, açık kalan sorular ve sorumlusuyla birlikte her eylem maddesi ile toplantının nasıl geçtiğine dair geri bildirim alırsınız."
+          },
+          "s2": {
+            "title": "Bağlamı bir sonraki göreve taşıyın",
+            "body": "Eylem maddelerini ekiple paylaşın veya özeti bir ekip arkadaşınızı bilgilendirmek ya da ajanınıza bir sonraki isteği hazırlamak için kullanın."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Hakkımızda",
+      "description": "Açık kaynaklı ortak ekran paylaşımı aracı PairUX hakkında bilgi edinin."
+    },
+    "title": "PairUX Hakkında",
+    "subtitle": "Keşke olsaydı dediğimiz iş birliği araçlarını geliştiriyoruz",
+    "missionTitle": "Misyonumuz",
+    "missionP1": "PairUX bir hayal kırıklığından doğdu. Slack, Screenhero’yu satın alıp kapattıktan sonra uzaktan eşli programlama gereksiz yere zorlaştı. Mevcut araçlarda ya uzaktan kontrol yok, ya pahalı lisanslar gerekiyor ya da sizi tek bir sağlayıcıya bağımlı kılıyorlar.",
+    "missionP2": "Ortak ekran paylaşımının herkes için erişilebilir olması gerektiğine inanıyoruz. Bu yüzden PairUX açık kaynaklıdır; şeffaf fiyatlandırması vardır ve yapay sınırlamalar içermez.",
+    "buildingTitle": "Ne Geliştiriyoruz",
+    "buildingBody": "PairUX, eşzamanlı uzaktan kontrollü ortak ekran paylaşımı için bir masaüstü uygulamasıdır. Screenhero’yu düşünün, ama modern, açık kaynak ve platformlar arası.",
+    "buildingList": {
+      "b0": "Düşük gecikmeli gerçek zamanlı ekran paylaşımı",
+      "b1": "Birden çok katılımcı paylaşılan ekranı aynı anda kontrol edebilir",
+      "b2": "Güvenlik için uçtan uca şifreleme",
+      "b3": "macOS, Windows ve Linux’ta çalışır",
+      "b4": "İzleyiciler herhangi bir tarayıcıdan katılabilir"
+    },
+    "openSourceTitle": "Açık Kaynak",
+    "openSourceBody": "PairUX, MIT lisansı altında yayınlanmıştır. Kodu <link>GitHub</link> üzerinde görüntüleyebilir, değiştirebilir ve katkıda bulunabilirsiniz. Topluluk katkılarını memnuniyetle karşılıyoruz.",
+    "contactTitle": "İletişim",
+    "contactBody": "Sorularınız veya geri bildiriminiz mi var? Bize <link>hello@pairux.com</link> adresinden ulaşın."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blog - PairUX",
+      "description": "PairUX ekibinden haberler, güncellemeler ve eğitimler."
+    },
+    "title": "Blog",
+    "subtitle": "PairUX ekibinden haberler, güncellemeler ve eğitimler",
+    "comingSoonTitle": "Çok Yakında",
+    "comingSoonBody": "İlk blog yazılarımız üzerinde çalışıyoruz. Eğitimler, ürün güncellemeleri ve PairUX’in geliştirilmesinin perde arkası için yakında tekrar uğrayın.",
+    "postNotFound": "Yazı bulunamadı",
+    "postTitle": "{title} - PairUX Blog",
+    "backToBlog": "← Bloga dön"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Sürüm Notları",
+      "description": "PairUX’teki yenilikleri görün. Sürüm notları ve sürüm geçmişi."
+    },
+    "title": "Sürüm Notları",
+    "subtitle": "PairUX’teki yenilikleri görün",
+    "version": "v{version}",
+    "englishOnly": "Sürüm notları İngilizce olarak yayınlanır."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Gizlilik Politikası",
+      "description": "PairUX gizlilik politikası: verilerinizi nasıl işlediğimiz."
+    },
+    "terms": {
+      "title": "Hizmet Koşulları",
+      "description": "PairUX hizmet koşulları ve kabul edilebilir kullanım politikası."
+    },
+    "lastUpdated": "Son güncelleme: {date}",
+    "englishOnly": "Bu belge, geçerli sürüm olan İngilizce dilinde sunulmaktadır."
+  },
+  "docs": {
+    "meta": {
+      "title": "Belgeler",
+      "description": "PairUX’in nasıl kullanılacağını öğrenin: kurulum kılavuzları, sistem gereksinimleri, güvenlik bilgileri ve sık sorulan sorular."
+    },
+    "title": "Belgeler",
+    "subtitle": "Ortak ekran paylaşımı için PairUX’i kullanma hakkında bilmeniz gereken her şey.",
+    "onThisPage": "Bu sayfada",
+    "toc": {
+      "gettingStarted": "Başlarken",
+      "requirements": "Sistem Gereksinimleri",
+      "hosting": "Oturum Başlatma",
+      "viewing": "Oturum İzleme",
+      "control": "Uzaktan Kontrol",
+      "remoteStart": "Uzaktan Başlatma (Tailscale)",
+      "security": "Güvenlik",
+      "troubleshooting": "Sorun Giderme",
+      "uninstalling": "Kaldırma",
+      "faq": "SSS"
+    },
+    "englishOnly": "Belgeler yalnızca İngilizce olarak mevcuttur.",
+    "agents": {
+      "meta": {
+        "title": "Ajan katılımcılar | PairUX Belgeleri",
+        "description": "Claude Code gibi bir yapay zekâ ajanını canlı bir PairUX oturumuna dahil edin. Katılım koduyla katılır, sohbeti takip eder, sohbette yanıt verir ve web, masaüstü ve mobilde ajan olarak etiketlenmiş şekilde görünür."
+      },
+      "backLink": "← Belgeler",
+      "title": "Ajan katılımcılar"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Panel - PairUX",
+      "description": "PairUX Paneli - Oturumlarınızı, faturalandırmayı ve ayarlarınızı yönetin."
+    },
+    "stats": {
+      "sessionsThisMonth": "Bu Ayki Oturumlar",
+      "totalParticipants": "Toplam Katılımcı",
+      "hoursUsed": "Kullanılan Saat",
+      "hoursValue": "{hours} sa"
+    },
+    "channelsHeading": "Kanallar",
+    "usageAnalytics": "Kullanım Analitiği",
+    "analyticsPlaceholder": "Analitik burada görünecek",
+    "yourPlan": "Planınız",
+    "freePlan": "Ücretsiz Plan",
+    "current": "Mevcut",
+    "freePlanSummary": "2 katılımcı, yalnızca P2P",
+    "upgradePlan": "Planı Yükselt",
+    "comingSoon": "Çok yakında",
+    "comingSoonButton": "Çok Yakında",
+    "perMonth": "/ay",
+    "plans": {
+      "pro": {
+        "description": "Profesyoneller ve büyüyen ekipler için",
+        "features": {
+          "participants": "10 katılımcı + 50 izleyici",
+          "hours": "100 izleyici-saat dahil"
+        }
+      },
+      "team": {
+        "description": "Ekipler ve kuruluşlar için",
+        "features": {
+          "participants": "Sınırsız katılımcı",
+          "hours": "500 izleyici-saat dahil"
+        }
+      }
+    },
+    "billing": "Faturalandırma",
+    "noPaymentMethod": "Kayıtlı ödeme yöntemi yok",
+    "addPaymentMethod": "Ödeme Yöntemi Ekle",
+    "settings": "Ayarlar",
+    "accountSettings": "Hesap Ayarları",
+    "notifications": "Bildirimler",
+    "welcome": {
+      "title": "PairUX’e hoş geldiniz",
+      "subtitle": "Ekranınızı paylaşın, gerçek zamanlı iş birliği yapın ve uzaktan yardım alın.",
+      "startSharing": "Paylaşmaya Başla",
+      "joinSession": "Oturuma Katıl",
+      "scheduleMeeting": "Toplantı Planla",
+      "callAnalyses": "Görüşme Analizleri"
+    },
+    "quickActions": {
+      "title": "Hızlı İşlemler",
+      "startSession": "Oturum Başlat",
+      "startSessionHint": "Ekranınızı paylaşın",
+      "joinSession": "Oturuma Katıl",
+      "joinSessionHint": "Katılım kodu girin",
+      "scheduleMeeting": "Toplantı Planla",
+      "scheduleMeetingHint": "Ekibinizi davet edin"
+    },
+    "recentSessions": {
+      "title": "Son Oturumlar",
+      "fetchFailed": "Oturumlar alınamadı",
+      "loadFailed": "Oturumlar yüklenemedi",
+      "tryAgain": "Tekrar dene",
+      "empty": "Henüz oturum yok",
+      "emptyHint": "Burada görmek için ilk oturumunuzu başlatın",
+      "startSession": "Oturum Başlat",
+      "viewAll": "Tümünü gör",
+      "join": "Katıl",
+      "resume": "Sürdür",
+      "status": {
+        "created": "Oluşturuldu",
+        "active": "Etkin",
+        "paused": "Duraklatıldı",
+        "ended": "Sona erdi"
+      },
+      "duration": {
+        "underMinute": "< 1 dk",
+        "minutes": "{minutes} dk",
+        "hours": "{hours} sa",
+        "hoursMinutes": "{hours} sa {minutes} dk"
+      },
+      "date": {
+        "today": "Bugün",
+        "yesterday": "Dün",
+        "daysAgo": "{days, plural, one {# gün önce} other {# gün önce}}"
+      }
+    },
+    "upcoming": {
+      "title": "Yaklaşan Toplantılar",
+      "loadFailed": "Yaklaşan toplantılar yüklenemedi",
+      "startFailed": "Toplantı başlatılamadı",
+      "cancelConfirm": "Bu planlanmış toplantı iptal edilsin mi? Davetlilere bildirim gönderilecek.",
+      "schedule": "Planla",
+      "empty": "Planlanmış yaklaşan toplantı yok",
+      "scheduleFirst": "İlk toplantınızı planlayın",
+      "todayAt": "Bugün {time}",
+      "tomorrowAt": "Yarın {time}",
+      "durationMinutes": "{minutes} dk",
+      "durationHours": "{hours} sa",
+      "goesLiveOn": "{channel} kanalında canlı yayınlanır",
+      "invited": "{count} davetli",
+      "accepted": "{count} kabul etti",
+      "startEarlyHint": "Odayı şimdi açar ve tüm davetlilere e-posta gönderir",
+      "startEarly": "Erken Başlat",
+      "startNow": "Şimdi Başlat",
+      "addToCalendar": "Takvime ekle",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Toplantıyı düzenle",
+      "cancelMeeting": "Toplantıyı iptal et"
+    },
+    "schedule": {
+      "yourChannels": "Kanallarınız",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 saat} =90 {1,5 saat} =120 {2 saat} other {# dakika}}",
+      "durationCustomHours": "{hours, plural, one {# saat} other {# saat}}",
+      "repeatNone": "Tekrarlanmaz",
+      "repeatDaily": "Her gün",
+      "repeatWeekly": "Her hafta",
+      "repeatMonthly": "Her ay",
+      "repeatUnit": "{freq, select, daily {günde bir} weekly {haftada bir} other {ayda bir}}",
+      "invalidDate": "Geçersiz tarih/saat",
+      "saveFailed": "Değişiklikler kaydedilemedi",
+      "scheduleFailed": "Toplantı planlanamadı",
+      "networkError": "Ağ hatası. Lütfen tekrar deneyin.",
+      "editTitle": "Toplantıyı Düzenle",
+      "scheduleTitle": "Toplantı Planla",
+      "close": "Kapat",
+      "meetingTitle": "Toplantı Başlığı",
+      "titlePlaceholder": "ör. Haftalık Ekip Toplantısı",
+      "dateTime": "Tarih ve Saat",
+      "durationLabel": "Süre",
+      "repeat": "Tekrar",
+      "every": "Her",
+      "numberOfTimes": "Tekrar sayısı",
+      "zeroForever": "0 = süresiz",
+      "recurrenceSummary": "{description}. Herkes aynı katılım kodunu ve bağlantıyı kullanmaya devam eder.",
+      "broadcastChannel": "Yayın kanalı",
+      "optional": "(isteğe bağlı)",
+      "loadingChannels": "Kanallarınız yükleniyor…",
+      "noChannel": "Kanal yok (özel toplantı)",
+      "channelUnavailable": "Mevcut kanal (artık erişiminiz yok)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Henüz kanalınız yok. Panelinizdeki Kanallar bölümünden bir kanal oluşturun veya kanalı olan bir ekibe katılın.",
+      "channelHint": "Bu toplantıdan canlı yayına geçmek bu kanalda yayın yapar. Ekip kanalları kendi ekiplerinin altında listelenir.",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Gündem, toplantı notları veya bağlam...",
+      "invitees": "Davetliler",
+      "inviteByEmail": "E-postayla Davet Et",
+      "removeInvitee": "Davetliyi kaldır",
+      "addAnother": "Başka ekle",
+      "editInviteHint": "Yeni davetlilere e-postayla davet gönderilir; kaldırılanlara listeden çıkarıldıkları bildirilir. Birden çok adresi virgülle ayırarak yapıştırın.",
+      "newInviteHint": "Davetler hemen gönderilir. Birden çok adresi virgülle ayırarak yapıştırın.",
+      "toInvite": "{count} kişi davet edilecek",
+      "toRemove": "{count} kişi kaldırılacak",
+      "cancel": "İptal",
+      "saving": "Kaydediliyor...",
+      "saveChanges": "Değişiklikleri Kaydet",
+      "scheduling": "Planlanıyor...",
+      "submitSchedule": "Toplantı Planla"
+    },
+    "booking": {
+      "loadFailed": "Rezervasyon sayfaları yüklenemedi",
+      "saveFailed": "Kaydedilemedi",
+      "deleteConfirm": "\"{title}\" silinsin mi? Bu bağlantı üzerinden zaten rezerve edilmiş toplantılar korunur.",
+      "title": "Rezervasyon bağlantıları",
+      "subtitle": "Herkes sizinle görüşme ayarlayabilsin. Görüşme PairUX’te gerçekleşir.",
+      "newLink": "Yeni bağlantı",
+      "needUsername": "Önce Ayarlar’dan bir kullanıcı adı belirleyin. Bağlantılarınız şöyle olacak: {url}",
+      "empty": "Henüz rezervasyon bağlantısı yok. Bir tane oluşturun ve {url} adresini paylaşın.",
+      "meta": "· {minutes} dk · {timezone}",
+      "off": "kapalı",
+      "copyLink": "Bağlantıyı kopyala",
+      "copied": "Kopyalandı",
+      "turnOff": "Kapat",
+      "turnOn": "Aç",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "newTitle": "Yeni rezervasyon bağlantısı",
+      "editTitle": "Rezervasyon bağlantısını düzenle",
+      "close": "Kapat",
+      "fieldTitle": "Başlık",
+      "titlePlaceholder": "Tanışma görüşmesi",
+      "fieldLink": "Bağlantı",
+      "fieldDescription": "Açıklama",
+      "optional": "(isteğe bağlı)",
+      "fieldDuration": "Süre",
+      "durationOption": "{minutes} dakika",
+      "fieldTimezone": "Saat dilimi",
+      "availableHours": "Uygun saatler",
+      "to": "-",
+      "buffer": "Ara süre (dk)",
+      "minNotice": "En az ön bildirim (dk)",
+      "daysAhead": "İleriye dönük gün",
+      "cancel": "İptal",
+      "create": "Bağlantı oluştur",
+      "save": "Kaydet",
+      "usernameToken": "kullanici-adi",
+      "slugToken": "kisa-ad"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Banner oluşturulamadı. Tekrar deneyin.",
+      "bannerSaveFailed": "Banner oluşturuldu ancak kaydedilemedi.",
+      "bannerFailed": "Banner oluşturma başarısız oldu. Lütfen tekrar deneyin.",
+      "uploadFailed": "Görsel yüklenemedi.",
+      "processFailed": "Bu görsel işlenemedi.",
+      "handleInvalid": "Kullanıcı adı 3-30 harf, rakam veya alt çizgiden oluşmalıdır.",
+      "createFailed": "Kanal oluşturulamadı.",
+      "networkError": "Ağ hatası. Lütfen tekrar deneyin.",
+      "loading": "Kanallarınız yükleniyor…",
+      "signInPrompt": "Kanallarınızı yönetmek için giriş yapın.",
+      "signIn": "Giriş yap",
+      "empty": "Henüz bir kanalınız yok. Aşağıdan bir tane oluşturun; herkese açık canlı yayınlarınız orada yer alır.",
+      "uploadBanner": "Kanal banner’ı yükle (6:1)",
+      "changeBanner": "Banner’ı değiştir",
+      "bannerPromptPlaceholder": "İsteğe bağlı: istediğiniz banner’ı tarif edin…",
+      "generateHint": "Mevcut banner’dan yapay zekâyla doğru boyutta 6:1 bir banner oluşturun",
+      "generating": "Oluşturuluyor…",
+      "generate": "Yapay zekâyla oluştur",
+      "uploadAvatar": "Avatar yükle (kare)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · burada canlı yayın yapabilirsiniz",
+      "subscribers": "{count, plural, one {# abone} other {# abone}}",
+      "view": "Görüntüle",
+      "streamHeading": "Bu kanala yayın yapın (OBS / herhangi bir RTMP istemcisi)",
+      "rtmpUrl": "RTMP URL’si",
+      "streamKey": "Yayın anahtarı",
+      "copy": "Kopyala",
+      "hide": "Gizle",
+      "show": "Göster",
+      "newChannel": "Yeni kanal",
+      "handle": "Kullanıcı adı",
+      "handlePlaceholder": "kanalim",
+      "name": "Ad",
+      "namePlaceholder": "Kanalım",
+      "belongsTo": "Ait olduğu yer (ekip üyeleri ekip kanalında canlı yayın yapabilir)",
+      "descriptionLabel": "Açıklama (isteğe bağlı, markdown)",
+      "create": "Kanal oluştur"
+    },
+    "website": {
+      "saveFailed": "Web sitesi kaydedilemedi.",
+      "networkError": "Ağ hatası. Lütfen tekrar deneyin.",
+      "label": "Web sitesi (isteğe bağlı)",
+      "placeholder": "example.com",
+      "saved": "Kaydedildi",
+      "save": "Kaydet",
+      "hint": "Kanal sayfanızda kimlik bağlantısı olarak gösterilir. Kaldırmak için boş bırakın."
+    },
+    "restream": {
+      "customRtmp": "Özel RTMP",
+      "urlInvalid": "RTMP URL’si rtmp:// veya rtmps:// ile başlamalıdır",
+      "keyRequired": "Yayın anahtarı gereklidir.",
+      "saveFailed": "Hedef kaydedilemedi.",
+      "title": "Harici yeniden yayın",
+      "toggleHint": "Bu kanalın canlı yayınlarını aşağıdaki hedeflere otomatik olarak yeniden yayınla",
+      "description": "Açık olduğunda, bu kanalda canlı yayına geçmek YouTube/Twitch vb. platformlara da yayın yapar. Özel ekran paylaşımları için kapalı tutun.",
+      "loading": "Yükleniyor…",
+      "empty": "Henüz hedef yok.",
+      "on": "Açık",
+      "off": "Kapalı",
+      "remove": "Kaldır",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Yayın anahtarı",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "add": "Hedef ekle"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Tekrarlanmaz",
+      "describe": "{freq, select, daily {{interval, plural, one {Her gün} other {# günde bir}}} weekly {{interval, plural, one {Her hafta} other {# haftada bir}}} other {{interval, plural, one {Her ay} other {# ayda bir}}}}{when, select, weekday { {weekday} günü} monthDay { ayın {day}. günü} other {}} tekrarlanır{count, plural, =0 {, süresiz} one {, # kez} other {, # kez}}",
+      "short": "{freq, select, daily {{interval, plural, one {Her gün} other {# günde bir}}} weekly {{interval, plural, one {Her hafta} other {# haftada bir}}} other {{interval, plural, one {Her ay} other {# ayda bir}}}}",
+      "shortWithLeft": "{label} · {left} kaldı"
+    }
+  },
+  "workspace": {
+    "label": "Çalışma alanı",
+    "personal": "Kişisel",
+    "wholeOrg": "{org} (tüm kuruluş)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Bir Oturuma Katılın",
+      "subtitle": "Katılım kodu girin veya bağlantı yapıştırın",
+      "invalidCode": "Lütfen 6 karakterlik geçerli bir katılım kodu girin",
+      "label": "Katılım Kodu veya Bağlantı",
+      "placeholder": "ABC123 veya bağlantı yapıştırın",
+      "hint": "6 karakterlik kodu girin veya bir katılım bağlantısı yapıştırın",
+      "continue": "Devam",
+      "backHome": "Ana Sayfaya Dön"
+    },
+    "session": {
+      "notFound": "Oturum bulunamadı",
+      "lookupFailed": "Oturum aranamadı",
+      "joinFailed": "Oturuma katılınamadı",
+      "lookingUp": "Oturum aranıyor...",
+      "countdown": {
+        "startingNow": "Şimdi başlıyor",
+        "startsInDays": "{days} g {hours} sa sonra başlıyor",
+        "startsInHours": "{hours} sa {mins} dk sonra başlıyor",
+        "startsInMinutes": "{mins} dk sonra başlıyor"
+      },
+      "durationMinutes": "{minutes, plural, one {# dakika} other {# dakika}}",
+      "durationHours": "{hours, plural, one {# saat} other {# saat}}",
+      "invitedCount": "{count} davetli",
+      "acceptedCount": "{count} kabul etti",
+      "autoUpdate": "Oturum sahibi oturumu başlattığında bu sayfa otomatik olarak güncellenir.",
+      "joinCode": "Katılım kodu",
+      "addToCalendar": "Takvime Ekle",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Oturum Bulunamadı",
+      "goHome": "Ana Sayfaya Git",
+      "title": "Oturuma Katıl",
+      "subtitle": "Bir ekran paylaşımı oturumuna katılmak üzeresiniz",
+      "sessionCode": "Oturum Kodu",
+      "status": "Durum",
+      "statusActive": "Oturum sahibi paylaşıyor",
+      "statusPaused": "Oturum sahibi şu anda yok",
+      "statusWaiting": "Oturum sahibi bekleniyor",
+      "participants": "Katılımcılar",
+      "signedInAs": "{name} olarak giriş yapıldı",
+      "displayNameOptional": "Görünen ad (isteğe bağlı)",
+      "useAccountName": "Hesap adını kullan",
+      "yourName": "Adınız",
+      "namePlaceholder": "Adınızı girin",
+      "nameHint": "Oturumda diğerleri sizi bu adla görecek",
+      "joining": "Katılınıyor...",
+      "joinButton": "Oturuma Katıl",
+      "watchFree": "Ücretsiz izle",
+      "guestNote": "Hesap gerekmez; misafir olarak canlı izleyin.",
+      "signInPrompt": "Hesabınız var mı? Sunmak veya kontrolü almak için <link>giriş yapın</link>"
+    }
+  },
+  "invite": {
+    "notFound": "Davet bulunamadı",
+    "loadFailed": "Davet yüklenemedi",
+    "invalidOrExpired": "Bu davet bağlantısı geçersiz veya süresi dolmuş olabilir.",
+    "goToPairux": "PairUX’e git",
+    "heading": "Toplantı Daveti",
+    "fromHost": "gönderen: {name}",
+    "cancelled": "Bu toplantı iptal edildi.",
+    "dateTime": "Tarih ve Saat",
+    "duration": "Süre",
+    "durationMinutes": "{minutes, plural, one {# dakika} other {# dakika}}",
+    "durationHours": "{hours, plural, one {# saat} other {# saat}}",
+    "host": "Oturum sahibi",
+    "notes": "Notlar",
+    "yourJoinCode": "Katılım Kodunuz",
+    "useCodeHint": "Toplantı başladığında bu kodu kullanın",
+    "joinMeeting": "Toplantıya Katıl",
+    "addToCalendar": "Takvime Ekle",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Kabul ettiniz!",
+    "acceptedNote": "Toplantıda görüşmek üzere.",
+    "cantMakeItAfterAll": "Katılamayacak mısınız?",
+    "declined": "Reddettiniz",
+    "declinedNote": "Katılamayacağınızı belirttiniz.",
+    "changedMind": "Fikrinizi mi değiştirdiniz?",
+    "willYouAttend": "Katılacak mısınız?",
+    "yes": "Evet, katılacağım",
+    "no": "Katılamayacağım",
+    "invitedAs": "{email} olarak davet edildiniz"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Görüşme ayarlayın · PairUX",
+      "bookCallWith": "{name} ile görüşme ayarlayın · PairUX",
+      "hostDescription": "Size uygun bir zaman seçin. Görüşme PairUX’te gerçekleşir.",
+      "pageWith": "{name} ile {title} · PairUX",
+      "pageDescription": "{name} ile {minutes} dakikalık görüşme ayarlayın. Görüşme PairUX’te gerçekleşir."
+    },
+    "host": {
+      "subtitle": "Görüşme ayarlayın. Görüşme burada, PairUX’te gerçekleşir.",
+      "notTakingBookings": "{name} şu anda rezervasyon kabul etmiyor.",
+      "minutes": "{minutes} dk",
+      "pickTime": "Bir zaman seçin"
+    },
+    "booking": {
+      "loadFailed": "Saatler yüklenemedi",
+      "bookFailed": "Bu saat için rezervasyon yapılamadı",
+      "calendarDescription": "{url} adresinden {code} koduyla katılın",
+      "booked": "Rezervasyonunuz tamam",
+      "whenWith": "{when}, {name} ile",
+      "confirmationSent": "Aşağıdaki tüm bilgileri içeren bir onay {email} adresine gönderiliyor.",
+      "yourJoinCode": "Katılım kodunuz",
+      "callHappensHint": "Görüşme PairUX’te gerçekleşir. Zamanı geldiğinde aşağıdaki bağlantıyı açın veya kodu girin.",
+      "openCallPage": "Görüşme sayfasını aç",
+      "addToCalendar": "Takvime ekle:",
+      "cantMakeIt": "Katılamayacak mısınız? <link>{name} kişisine haber verin</link>.",
+      "durationMinutes": "{minutes, plural, one {# dakika} other {# dakika}}",
+      "timesShownIn": "Saatlerin gösterildiği dilim:",
+      "aboutCall": "Görüşmenin kendisi PairUX’te gerçekleşir: ses, ekran paylaşımı ve uzaktan kontrol; tarayıcıdan katılmak için indirme gerekmez.",
+      "pickDifferentTime": "Başka bir zaman seçin",
+      "minutesWith": "{name} ile {minutes, plural, one {# dakika} other {# dakika}}",
+      "yourName": "Adınız",
+      "email": "E-posta",
+      "notesLabel": "{name} kişisinin bilmesi gereken bir şey var mı?",
+      "optional": "(isteğe bağlı)",
+      "confirm": "Rezervasyonu onayla",
+      "previousWeek": "Önceki hafta",
+      "nextWeek": "Sonraki hafta",
+      "nothingFree": "Bu hafta uygun zaman yok.",
+      "nothingFreeTryNext": "Bu hafta uygun zaman yok. Sonraki haftayı deneyin."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Katılım bağlantısı oluşturmak için lütfen giriş yapın",
+    "createFailed": "Oturum oluşturulamadı",
+    "title": "Katılım Bağlantısı Oluştur",
+    "subtitle": "Katılımcılarla paylaşmak için bir bağlantı oluşturun",
+    "signIn": "Giriş yap",
+    "creating": "Oluşturuluyor...",
+    "createButton": "Katılım Bağlantısı Oluştur",
+    "backHome": "Ana Sayfaya Dön",
+    "joinCode": "Katılım Kodu",
+    "joinUrl": "Katılım URL’si",
+    "copyLink": "Bağlantıyı kopyala",
+    "copied": "Kopyalandı",
+    "shareHint": "Bu bağlantıyı başkalarıyla paylaşın. Katılıp masaüstü uygulamasından ekranınızı paylaşmaya başlamanızı bekleyebilirler.",
+    "createAnother": "Bir Tane Daha Oluştur",
+    "downloadApp": "Uygulamayı İndir"
+  },
+  "hostStart": {
+    "metaTitle": "Ekranınızı paylaşın - PairUX",
+    "analysisRequiresPlan": "Yapay zekâ görüşme analizi Pro ve Team planlarında mevcuttur. Kapatın veya fiyatlandırma sayfasından planınızı yükseltin.",
+    "createFailed": "Oturum oluşturulamadı",
+    "createFailedRetry": "Oturum oluşturulamadı. Lütfen tekrar deneyin.",
+    "title": "Ekranınızı Paylaşın",
+    "subtitle": "Tarayıcınızdan yalnızca izlemeye açık bir ekran paylaşımı oturumu başlatın",
+    "sessionSettings": "Oturum Ayarları",
+    "defaults": "Varsayılanlar",
+    "maxViewers": "Maksimum İzleyici",
+    "viewers": "{count, plural, one {# izleyici} other {# izleyici}}",
+    "remoteControl": "Uzaktan Kontrol",
+    "enableGuestControl": "Misafir kontrolünü etkinleştir",
+    "notAvailableWeb": "Web paylaşımında kullanılamaz",
+    "remoteControlRequires": "Uzaktan kontrol için <link>masaüstü uygulaması</link> gerekir.",
+    "workspaceLabel": "Çalışma alanı (ekip görüşmesinin raporu ekiple paylaşılır)",
+    "creating": "Oturum oluşturuluyor...",
+    "startSharing": "Paylaşmaya Başla",
+    "viewOnlyNote": "<strong>Web paylaşımı yalnızca izlemeye açıktır.</strong> İzleyiciler ekranınızı görebilir ancak kontrol edemez. Uzaktan kontrol özellikleri için masaüstü uygulamasını kullanın.",
+    "joinInstead": "Bunun yerine bir oturuma mı katılmak istiyorsunuz? <link>Katılım kodunu girin</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "Eşli <rotating></rotating>, <highlight>yeniden tasarlandı</highlight>",
+      "subtitle": "Eşzamanlı uzaktan fare ve klavye kontrolüyle ortak ekran paylaşımı. Screenhero gibi, ama açık kaynak.",
+      "download": "Ücretsiz İndir",
+      "github": "GitHub’da Görüntüle",
+      "note": "Ücretsiz ve açık kaynak. İzleyiciler için hesap gerekmez."
+    },
+    "rotating": {
+      "programming": "programlama",
+      "pitching": "satış sunumu",
+      "presenting": "sunum",
+      "demoing": "demo",
+      "designing": "tasarım",
+      "debugging": "hata ayıklama",
+      "teaching": "öğretim",
+      "training": "eğitim",
+      "reviewing": "inceleme",
+      "brainstorming": "beyin fırtınası"
+    },
+    "featuresSection": {
+      "title": "Uzaktan iş birliği için ihtiyacınız olan her şey",
+      "subtitle": "Geliştiriciler, tasarımcılar ve gerçek zamanlı birlikte çalışması gereken herkes için tasarlandı."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Gerçek Zamanlı Ekran Paylaşımı",
+        "description": "Düşük gecikmeli WebRTC yayını, uyarlanabilir kaliteyle kristal netliğinde ekran paylaşımı sunar."
+      },
+      "remoteControl": {
+        "title": "Uzaktan Kontrol",
+        "description": "Oturum sahibinin açık onayıyla fare ve klavye kontrolü. İki taraf aynı anda kontrol edebilir."
+      },
+      "simultaneousInput": {
+        "title": "Eşzamanlı Giriş",
+        "description": "Oturum sahibi ve izleyici aynı anda kontrol edebilir. Güvenlik için oturum sahibi her zaman önceliklidir."
+      },
+      "secure": {
+        "title": "Tasarımından Güvenli",
+        "description": "WebRTC DTLS-SRTP ile şifrelenir. Yapay zekâ görüşme analizini açmadığınız sürece medya sunucularımıza hiç uğramaz."
+      },
+      "pwaViewer": {
+        "title": "PWA İzleyici",
+        "description": "Oturumlara herhangi bir tarayıcıdan katılın. İzleyiciler için indirme gerekmez."
+      },
+      "crossPlatform": {
+        "title": "Platformlar Arası",
+        "description": "macOS, Windows ve Linux için masaüstü uygulamaları. Homebrew, WinGet veya APT ile kurun."
+      }
+    },
+    "steps": {
+      "title": "Dakikalar içinde başlayın",
+      "subtitle": "Karmaşık kurulum yok. Kurun, paylaşın ve birlikte çalışın.",
+      "install": {
+        "title": "Masaüstü Uygulamasını Kurun",
+        "description": "PairUX’i bilgisayarınıza paket yöneticinizle veya doğrudan indirerek kurun."
+      },
+      "start": {
+        "title": "Bir Oturum Başlatın",
+        "description": "\"Oturum Başlat\"a tıklayın ve hangi ekranı veya pencereyi paylaşacağınızı seçin."
+      },
+      "share": {
+        "title": "Bağlantıyı Paylaşın",
+        "description": "Katılım bağlantısını çalışma arkadaşınıza gönderin. Herhangi bir tarayıcıdan katılabilir."
+      }
+    },
+    "community": {
+      "title": "Gerçek dünyadaki iş birliği için tasarlandı",
+      "subtitle": "PairUX şimdiden eşli programlama, tasarım incelemeleri ve uzaktan destek için kullanılıyor. Erken geri bildirim topluyoruz; deneyin ve sizinkini paylaşın.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Sonunda gerçekten çalışan bir Screenhero alternatifi. Eşzamanlı kontrol özelliği eşli programlamada oyunun kurallarını değiştiriyor.",
+          "role": "Yazılım Mühendisi"
+        },
+        "techLead": {
+          "quote": "İzleyicilerin hiçbir şey kurmadan herhangi bir tarayıcıdan katılabilmesi, bunu hızlı iş birliği oturumları için mükemmel kılıyor.",
+          "role": "Teknik Lider"
+        },
+        "contributor": {
+          "quote": "Açık kaynak, uçtan uca şifreli ve sorunsuz çalışıyor. Geliştirici topluluğunun tam da ihtiyacı olan şey.",
+          "role": "Açık Kaynak Katkıcısı"
+        }
+      },
+      "feedback": "PairUX kullanıyor musunuz? <link>Deneyiminizi GitHub’da paylaşın</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Yeni · Yapay zekâ görüşme analizi",
+      "title": "Her mülakat, toplantı ve sunum için geri bildirim alın.",
+      "description": "Görüşmeden önce açın. Sonrasında size özel bir rapor alırsınız: puan, neyin işe yaradığı, neyin düzeltilmesi gerektiği, konuşma süreniz, hızınız, dolgu kelimeleriniz ve yeniden izlemeye değer anlar.",
+      "cta": "Görüşme analizinin nasıl çalıştığını görün",
+      "sample": {
+        "label": "Örnek rapor · Mülakat",
+        "headline": "Net cevaplar, ama kapanışı aceleye getirdiniz",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Zamanın %{percent}’inde dakikada {wpm} kelimeyle konuştunuz",
+        "fillers": "100 kelimede {rate} dolgu kelimesi (\"yani\", \"şey\")",
+        "practice": "Pratik: her cevabı tek cümlelik sonuçla bitirin"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Ajanlı eşli programlama",
+      "title": "İki kişi. Tek ajan oturumu.",
+      "description": "Kodlama ajanınız çalışırken bir ekip arkadaşınızı işe dahil edin. Aynı terminali takip edin, uygulamayı birlikte inceleyin ve ajandan sırada ne isteyeceğinize karar verin.",
+      "cta": "moshcode ve PairUX ile eşli çalışın",
+      "browse": "Tüm kullanım alanlarına göz atın",
+      "cardTitle": "İzleyin, tartışın, sonra birlikte çalışın",
+      "step1": "1. Canlı bir moshcode oturumu başlatın ve ekibinizle paylaşın.",
+      "step2": "2. Terminali ve geliştirdiğiniz uygulamayı göstermek için PairUX’i kullanın.",
+      "step3": "3. Ajanın değişikliklerini birlikte inceleyin ve ekip arkadaşınızın da katılmasına izin verin.",
+      "note": "Yüklenicileri işe alıştırmak, birlikte hata ayıklamak ve işi yayına almadan önce incelemek için kullanışlı."
+    },
+    "security": {
+      "title": "Güvenebileceğiniz güvenlik",
+      "subtitle": "PairUX, güvenlik temel alınarak geliştirildi. Ekran verileriniz sunucularımıza hiç uğramaz.",
+      "encryption": {
+        "title": "Uçtan Uca Şifreleme",
+        "description": "Tüm medya WebRTC DTLS-SRTP ile şifrelenir"
+      },
+      "consent": {
+        "title": "Açık Onay",
+        "description": "Tüm kontrol taleplerini oturum sahibi onaylamalıdır"
+      },
+      "revoke": {
+        "title": "Acil İptal",
+        "description": "{shortcut} tüm kontrolü anında geri alır"
+      },
+      "openSource": {
+        "title": "Açık Kaynak",
+        "description": "MIT lisansı altında tamamen denetlenebilir kod"
+      },
+      "diagram": {
+        "p2p": "Doğrudan eşler arası bağlantı",
+        "noStorage": "Sunucu tarafında medya depolama yok"
+      }
+    },
+    "cta": {
+      "title": "Birlikte çalışmaya hazır mısınız?",
+      "subtitle": "PairUX’i indirin ve saniyeler içinde ekranınızı paylaşmaya başlayın. Ücretsiz, açık kaynak ve gizlilik odaklı.",
+      "download": "Hemen İndir",
+      "learnMore": "Daha Fazla Bilgi"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Fiyatlandırma",
+      "description": "Basit, sabit ücretli fiyatlandırma. Kişi başı ücret yok. Plus için 1 $/ay (100 dinleyiciye kadar), Pro 12 $/ay, Team 49 $/ay. Zoom, Teams ve diğer kurumsal çözümlerden %40-70 daha ucuz."
+    },
+    "hero": {
+      "title": "Büyük Oyunculardan %40–70 Daha Ucuz",
+      "subtitle": "Basit, sabit ücretli fiyatlandırma. Kişi başı ücret yok, yıllık sözleşme yok, kurumsal satış görüşmesi yok."
+    },
+    "mostPopular": "En Popüler",
+    "period": {
+      "forever": "/süresiz",
+      "month": "/ay"
+    },
+    "tiers": {
+      "free": {
+        "name": "Ücretsiz",
+        "description": "Kişisel kullanım ve küçük ekipler için ideal",
+        "cta": "Başlayın",
+        "features": {
+          "participants": "2 katılımcı + {count} dinleyiciye kadar",
+          "publicViewers": "Herkese açık canlı yayınlarda sınırsız ücretsiz izleyici",
+          "p2p": "P2P bağlantılar",
+          "screenSharing": "Ekran paylaşımı",
+          "remoteControl": "Uzaktan kontrol",
+          "e2e": "Uçtan uca şifreleme",
+          "support": "Topluluk desteği"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Bir kitleye ev sahipliği yapın: dersler, günlük toplantılar, birlikte izleme",
+        "cta": "Plus’a Yükselt",
+        "features": {
+          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "sfu": "SFU aktarma sunucuları",
+          "liveDirectory": "/live dizininde herkese açık oda",
+          "screenVoice": "Ekran paylaşımı + ses",
+          "remoteControl": "Uzaktan kontrol",
+          "cancel": "İstediğiniz zaman iptal edin"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Profesyoneller ve büyüyen ekipler için",
+        "cta": "Pro’ya Yükselt",
+        "features": {
+          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "sfu": "SFU aktarma sunucuları",
+          "streaming": "Tüm yayın platformları (YouTube, Twitch, …)",
+          "hd": "HD ekran paylaşımı (1080p)",
+          "liveDirectory": "/live dizininde herkese açık oda",
+          "callAnalysis": "Yapay zekâ görüşme analizi",
+          "support": "Öncelikli destek"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "Ekipler ve kuruluşlar için",
+        "cta": "Team’e Yükselt",
+        "features": {
+          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "sfu": "Özel SFU sunucuları",
+          "streaming": "Tüm yayın platformları",
+          "uhd": "4K ekran paylaşımı",
+          "callAnalysis": "Yapay zekâ görüşme analizi",
+          "admin": "Yönetici kontrolleri",
+          "support": "Öncelikli destek"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Ödeme başlatılıyor…",
+      "checkoutFailed": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
+      "networkError": "Ağ hatası. Lütfen tekrar deneyin."
+    },
+    "callAnalysis": {
+      "eyebrow": "Pro ve Team’e dahil",
+      "title": "Yapay zekâ görüşme analizi",
+      "description": "Görüşmeden önce açın, sonrasında geri bildirim raporu alın: puan, konuşma süresi, hız, dolgu kelimeleri, neyin işe yaradığı, neyi çalışmanız gerektiği ve ekip toplantıları için kararlar ve eylem maddeleri.",
+      "cta": "Görüşme analizinin nasıl çalıştığını görün →"
+    },
+    "cost": {
+      "title": "Gerçek Maliyet Karşılaştırması",
+      "subtitle": "Fiyatlarımızı tipik Zoom Webinars ve Microsoft Teams maliyetleriyle karşılaştırın",
+      "plan": "Plan",
+      "rows": {
+        "free": "Ücretsiz",
+        "pro": "Pro / Küçük Ekip",
+        "team": "Team / İşletme",
+        "tenPerson": "10 kişilik ekip"
+      },
+      "cells": {
+        "freeLimit": "{price} ({minutes} dk sınırı)",
+        "perMonth": "{price}/ay",
+        "perHost": "{price}/ay/oturum sahibi",
+        "perUser": "{price}/ay/kullanıcı",
+        "perMonthTotal": "toplam {price}/ay"
+      },
+      "footnote": "* PairUX kullanıcı başına değil, ekip başına ücretlendirir. Kişi başı lisanslama yok."
+    },
+    "comparison": {
+      "title": "Özellik Karşılaştırması",
+      "subtitle": "PairUX’in Zoom, Teams, Webex, Google Meet ve Jitsi ile nasıl kıyaslandığını görün",
+      "feature": "Özellik",
+      "rows": {
+        "transparent": "Şeffaf fiyatlandırma",
+        "noSeatFees": "Kişi başı ücret yok",
+        "noContracts": "Yıllık sözleşme yok",
+        "flatRate": "Basit, sabit ücretli planlar",
+        "openSource": "Açık kaynak",
+        "selfHost": "Kendi sunucunuzda barındırılabilir",
+        "remoteControl": "Uzaktan kontrol",
+        "multiCursor": "Çoklu imleç desteği",
+        "noAccount": "Hesap gerekmez (izleyiciler)"
+      }
+    },
+    "advantages": {
+      "title": "PairUX’i Farklı Kılan Ne",
+      "subtitle": "Kurumsal araçlar, fiyatlandırma modellerini bozmadan bunu taklit edemez",
+      "items": {
+        "noSeatFees": {
+          "title": "Kişi Başı Ücret Yok",
+          "description": "Tüm ekibiniz için tek fiyat. Maliyet eklemeden kullanıcı ekleyin."
+        },
+        "noLockIn": {
+          "title": "Bağlılık Yok",
+          "description": "Yıllık sözleşme veya taahhüt yok. İstediğiniz zaman iptal edin."
+        },
+        "openSource": {
+          "title": "Açık Kaynak",
+          "description": "Kodu denetleyin, kendi sunucunuzda barındırın veya özelleştirin. Veriniz sizin, kurallar sizin."
+        },
+        "developer": {
+          "title": "Geliştirici Dostu",
+          "description": "İlk günden CLI kurulumu, API erişimi ve otomasyona hazır."
+        }
+      }
+    },
+    "faq": {
+      "title": "Sık Sorulan Sorular",
+      "capacity": {
+        "question": "Odamı kaç kişi izleyebilir?",
+        "answer": "Oda başına eşzamanlı dinleyici sayısı planınıza göre değişir: Ücretsiz {free}, Plus {plus}, Pro {pro}, Team {team}. Bunun da ötesinde, herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir.",
+        "answerLong": "Oda başına eşzamanlı dinleyici sayısı planınıza göre değişir: Ücretsiz {free}, Plus {plus}, Pro {pro}, Team {team}. Bunun da ötesinde, herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir."
+      },
+      "free": {
+        "question": "Ücretsiz katman gerçekten ücretsiz mi?",
+        "answer": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir; ayrıca herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir. Süre sınırı yok, kredi kartı gerekmez.",
+        "answerLong": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir; ayrıca herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir. Süre sınırı yok, kredi kartı gerekmez. Eşli programlama ve küçük demolar için ideal."
+      },
+      "selfHost": {
+        "question": "Maliyetten kaçınmak için kendi sunucumda barındırabilir miyim?",
+        "answer": "Kesinlikle. PairUX, MIT lisansı altında açık kaynaktır. Dilerseniz kendi SFU altyapınızı çalıştırabilirsiniz.",
+        "answerLong": "Kesinlikle. PairUX, MIT lisansı altında açık kaynaktır. Dilerseniz kendi SFU altyapınızı çalıştırabilirsiniz. Özel güvenlik gereksinimleri olan kurumlar için ideal."
+      },
+      "cheaper": {
+        "question": "Neden Zoom ve Teams’ten daha ucuzsunuz?",
+        "answer": "Kişi başı değil, ekip başı ücretlendiriyoruz. 10 kişilik bir ekip PairUX ile toplam {teamPrice}/ay öderken, Zoom veya Teams ile {competitorPrice}/ay öder.",
+        "answerLong": "Kişi başı değil, ekip başı ücretlendiriyoruz. 10 kişilik bir ekip PairUX ile toplam {teamPrice}/ay öderken, Zoom veya Teams ile {competitorPrice}/ay öder. Kurumsal satış ekibi olmaması, sizin için daha düşük maliyet demektir."
+      }
+    },
+    "cta": {
+      "title": "Video altyapısında tasarruf etmeye hazır mısınız?",
+      "subtitle": "P2P oturumlarla ücretsiz başlayın veya yalnızca {price}/ay karşılığında Pro’ya yükseltin. Kişi başı ücret asla yok.",
+      "download": "Ücretsiz İndir",
+      "signup": "Hesap Oluştur"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "İndir",
+      "description": "macOS, Windows veya Linux için PairUX’i indirin. Homebrew, WinGet, APT ve doğrudan indirme ile kullanılabilir."
+    },
+    "hero": {
+      "title": "PairUX’i İndirin",
+      "subtitle": "Oturum başlatmak için masaüstü uygulamasını edinin. İzleyiciler herhangi bir tarayıcıdan katılabilir."
+    },
+    "copyToClipboard": "Panoya kopyala",
+    "loading": "Sürüm bilgileri yükleniyor...",
+    "loadFailed": "Sürüm bilgileri yüklenemedi",
+    "viewReleases": "Sürümleri GitHub’da görüntüle",
+    "latest": "En son: v{version}",
+    "quickInstall": {
+      "title": "Hızlı Kurulum",
+      "subtitle": "Başlamanın en hızlı yolu. macOS, Linux ve Windows’ta çalışır.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Platformunuz için en son sürümü otomatik olarak indirir",
+      "afterInstall": "Kurulumdan sonra güncellemek için <update></update>, kaldırmak için <uninstall></uninstall> kullanın."
+    },
+    "detected": "Tarayıcınıza göre algılandı",
+    "downloadDmg": "DMG İndir",
+    "downloadInstaller": "Yükleyiciyi İndir",
+    "downloadAppImage": "AppImage İndir",
+    "allPlatforms": {
+      "title": "Tüm Platformlar",
+      "subtitle": "İşletim sisteminizi ve tercih ettiğiniz formatı seçin"
+    },
+    "requirements": {
+      "macos": "macOS 12 (Monterey) veya üstü gerekir",
+      "windows": "Windows 10 (1809) veya üstü gerekir",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Kabuk Betiği",
+    "installerX64": "Yükleyici (x64)",
+    "viewAllReleases": "Tüm sürümleri GitHub’da görüntüle",
+    "checksums": {
+      "toggle": "İndirmeleri doğrula (SHA256 sağlama toplamları)",
+      "description": "SHA256 sağlama toplamını karşılaştırarak indirdiğiniz dosyayı doğrulayın.",
+      "file": "Dosya"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "PairUX uygulamasını yükle",
+    "installApp": "Uygulamayı Yükle",
+    "title": "PairUX’i Yükleyin",
+    "mobileDescription": "Hızlı erişim için ana ekranınıza ekleyin",
+    "desktopDescription": "Daha iyi bir deneyim için masaüstü uygulamasını yükleyin",
+    "dismiss": "Yükleme önerisini kapat",
+    "installing": "Yükleniyor...",
+    "install": "Yükle"
+  },
+  "offline": {
+    "title": "Çevrimdışısınız",
+    "description": "PairUX, gerçek zamanlı ekran paylaşımı ve iş birliği için internet bağlantısı gerektirir. Lütfen bağlantınızı kontrol edip tekrar deneyin.",
+    "retry": "Tekrar Dene"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Kontrolü bırak",
+      "inControl": "Kontrol Sizde",
+      "waitingApproval": "Oturum sahibinin onayı bekleniyor",
+      "requesting": "İsteniyor...",
+      "waitingConnection": "Bağlantı bekleniyor",
+      "requestTitle": "Oturum sahibinden kontrol iste",
+      "requestControl": "Kontrol İste"
+    },
+    "status": {
+      "title": "Kontrol durumu: {state}",
+      "viewOnly": "Yalnızca İzleme",
+      "pending": "Beklemede",
+      "controlling": "Kontrol Ediliyor"
+    },
+    "capture": {
+      "clickToControl": "Kontrol için tıklayın · Bırakmak için Esc",
+      "pointerUnavailable": "İmleç yakalanamadı · Tekrar denemek için tıklayın",
+      "fullscreenLock": "Tam ekran + imleç kilidi",
+      "exitFullscreen": "Tam ekrandan çık",
+      "capturePointerAgain": "İmleci tekrar yakala"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "Yapay zekâ görüşme analizi",
+      "description": "Görüşmeden sonra geri bildirim alın: konuşma süresi, hız, dolgu kelimeleri, neyin etkili olduğu ve neyi çalışmanız gerektiği. Şimdi karar verin; görüşme başladıktan sonra açılamaz.",
+      "toggle": "Bu görüşmeyi analiz et",
+      "kindLabel": "Bu ne tür bir görüşme?",
+      "kinds": {
+        "general": "Genel görüşme",
+        "interview": "Mülakat",
+        "team-sync": "Ekip toplantısı",
+        "presentation": "Sunum"
+      },
+      "keepRecording": "Görüşmeyi kaydet ve kaydı sakla",
+      "disclosure": "Katılan herkese görüşmenin yapay zekâ analizi için kaydedildiği bildirilir. Raporlar yalnızca size özeldir. <link>Nasıl çalışır</link>"
+    },
+    "handoff": {
+      "openedTitle": "Masaüstü uygulamasında açıldı",
+      "openingTitle": "PairUX masaüstü uygulaması açılıyor…",
+      "openedBody": "Toplantınız, misafirlere kontrol verilebilen masaüstü uygulamasında devam ediyor.",
+      "openingBody": "Masaüstü uygulaması ekranınızın kontrolünü paylaşabilir. Tarayıcı ise yalnızca gösterebilir.",
+      "continueInBrowser": "Bu tarayıcıda devam et",
+      "download": "Uygulama sizde yok mu? İndirin"
+    },
+    "hostPresence": {
+      "notJoined": "Oturum sahibi henüz katılmadı",
+      "left": "Oturum sahibi ayrıldı",
+      "chatAvailable": "Sohbet hâlâ kullanılabilir. Oturum sahibi döndüğünde bilgilendirileceksiniz."
+    },
+    "recordingNotice": {
+      "recorded": "Bu görüşme, oturum sahibi tarafından yapay zekâ analizi için kaydediliyor. Katılmak istemiyorsanız görüşmeden ayrılın.",
+      "recordedKept": "Bu görüşme, kaydı saklayacak olan oturum sahibi tarafından yapay zekâ analizi için kaydediliyor. Katılmak istemiyorsanız görüşmeden ayrılın."
+    },
+    "settingsPanel": {
+      "title": "Oturum Ayarları",
+      "sessionInfo": "Oturum Bilgisi",
+      "sessionCode": "Oturum Kodu",
+      "status": "Durum",
+      "participants": "Katılımcılar",
+      "created": "Oluşturulma",
+      "connectionQuality": "Bağlantı Kalitesi",
+      "network": "Ağ",
+      "frameRate": "Kare Hızı",
+      "fps": "{value} fps",
+      "packetLoss": "Paket Kaybı",
+      "latency": "Gecikme",
+      "ms": "{value} ms",
+      "appearance": "Görünüm",
+      "theme": {
+        "light": "açık",
+        "dark": "koyu",
+        "system": "sistem"
+      },
+      "sessionStatus": {
+        "created": "oluşturuldu",
+        "active": "etkin",
+        "paused": "duraklatıldı",
+        "ended": "sona erdi"
+      },
+      "connectionState": {
+        "idle": "boşta",
+        "connecting": "bağlanıyor",
+        "connected": "bağlı",
+        "reconnecting": "yeniden bağlanıyor",
+        "failed": "başarısız",
+        "disconnected": "bağlantı kesildi"
+      },
+      "networkQuality": {
+        "excellent": "Mükemmel",
+        "good": "İyi",
+        "poor": "Zayıf",
+        "bad": "Kötü"
+      }
+    },
+    "publish": {
+      "titlePublic": "Oda herkese açık",
+      "titlePublish": "/live’da yayınla",
+      "intro": "Odanızı <strong>pairux.com/live</strong> üzerinde listelemek, herkesin onu keşfedip katılmasını sağlar; davet bağlantısı gerekmez.",
+      "subject": "Konu",
+      "subjectPlaceholder": "ör. Canlı olarak bir Next.js uygulaması geliştiriyoruz",
+      "description": "Açıklama",
+      "optional": "(isteğe bağlı)",
+      "descriptionPlaceholder": "Bu odada neler oluyor?",
+      "publish": "Yayınla",
+      "liveNotice": "Odanız herkese açık dizinde yayında.",
+      "viewLive": "/live’ı görüntüle",
+      "profileLink": "Profil bağlantınız",
+      "copied": "Kopyalandı",
+      "claimPrompt": "<code>{path}</code> adresinde paylaşılabilir bir profil sayfası almak için bir kullanıcı adı alın.",
+      "usernamePlaceholder": "kullanıcı adı",
+      "claim": "Al",
+      "makePrivate": "Gizli yap",
+      "done": "Bitti",
+      "errors": {
+        "publishFailed": "Oda yayınlanamadı",
+        "unpublishFailed": "Oda yayından kaldırılamadı",
+        "usernameFailed": "Kullanıcı adı kaydedilemedi",
+        "network": "Ağ hatası. Lütfen tekrar deneyin."
+      }
+    }
+  },
+  "participants": {
+    "title": "Katılımcılar",
+    "activeCount": "{count, plural, other {# etkin}}",
+    "emptyTitle": "Henüz katılımcı yok",
+    "emptyHint": "Başkalarını davet etmek için bağlantınızı paylaşın",
+    "you": "(siz)",
+    "agent": "Ajan",
+    "agentWithClient": "Ajan ({client})",
+    "host": "Oturum sahibi",
+    "inControl": "Kontrolde",
+    "requesting": "İstiyor",
+    "viewer": "İzleyici",
+    "removeAgent": "Ajanı kaldır",
+    "mute": "Katılımcının sesini kapat",
+    "unmute": "Katılımcının sesini aç",
+    "grantControl": "Kontrol ver",
+    "revokeControl": "Kontrolü geri al",
+    "removeParticipant": "Katılımcıyı çıkar",
+    "makeHost": "Oturum sahibi yap",
+    "connection": {
+      "connected": "bağlı",
+      "reconnecting": "yeniden bağlanıyor",
+      "disconnected": "bağlantı kesildi"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "Ekran paylaşımı bekleniyor",
+      "idleBody": "Oturum sahibi henüz ekranını paylaşmaya başlamadı. Başladığında ekranını burada göreceksiniz.",
+      "connectingTitle": "Bağlanıyor...",
+      "connectingBody": "Oturum sahibiyle güvenli bir bağlantı kuruluyor. Bu genellikle birkaç saniye sürer.",
+      "reconnectingTitle": "Yeniden bağlanıyor...",
+      "reconnectingBody": "Bağlantı kesildi. Yeniden bağlanmaya çalışılıyor...",
+      "failedTitle": "Bağlantı Başarısız",
+      "failedBody": "Bağlantı kurulamadı. Lütfen ağınızı kontrol edip tekrar deneyin.",
+      "tryAgain": "Tekrar Dene",
+      "disconnectedTitle": "Oturum Sahibinin Bağlantısı Kesildi",
+      "disconnectedBody": "Oturum sahibi paylaşımı durdurdu veya bağlantısı kesildi. Yeniden bağlanması bekleniyor...",
+      "reconnect": "Yeniden Bağlan"
+    },
+    "quality": {
+      "title": "Bağlantı: {quality}",
+      "details": "Bağlantı Ayrıntıları",
+      "quality": "Kalite",
+      "bitrate": "Bit Hızı",
+      "frameRate": "Kare Hızı",
+      "latency": "Gecikme",
+      "packetLoss": "Paket Kaybı",
+      "levels": {
+        "excellent": "Mükemmel",
+        "good": "İyi",
+        "poor": "Zayıf",
+        "bad": "Kötü"
+      }
+    },
+    "player": {
+      "unsupported": "Tarayıcınız video oynatmayı desteklemiyor."
+    },
+    "preview": {
+      "idleHint": "Ekranınızı paylaşmaya başlamak için aşağıya tıklayın",
+      "start": "Ekran Paylaşımını Başlat",
+      "requesting": "Ekran erişimi isteniyor...",
+      "selectSource": "Lütfen paylaşmak için bir ekran veya pencere seçin",
+      "tryAgain": "Tekrar Dene",
+      "stop": "Paylaşımı Durdur"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Yönetim - PairUX"
+    },
+    "title": "Yönetim",
+    "loggedInAs": "{email} olarak giriş yapıldı",
+    "integrations": {
+      "title": "Otomatik blog entegrasyonları",
+      "description": "Bir bearer token oluşturun, ardından bunu <link>CrawlProof</link>’a webhook secret olarak yapıştırın. Token, istek doğrulaması için HMAC imzalama anahtarı olarak da kullanılır.",
+      "confirmRevoke": "\"{name}\" iptal edilsin mi? Kaynak artık yayın yapamayacak.",
+      "webhookEndpoint": "Webhook uç noktası",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "generateToken": "Token oluştur",
+      "namePlaceholder": "Entegrasyon adı",
+      "generate": "Oluştur",
+      "tokenCreated": "Token oluşturuldu; şimdi kopyalayıp CrawlProof otomatik blog webhook ayarlarına yapıştırın.",
+      "accessTokens": "Erişim token’ları ({count})",
+      "empty": "Henüz yok; yukarıdan bir tane oluşturun.",
+      "requests": "{count, plural, one {# istek} other {# istek}}",
+      "lastUsed": "son: {date}",
+      "hide": "Gizle",
+      "reveal": "Göster",
+      "revoke": "İptal et"
+    },
+    "email": {
+      "title": "Kullanıcılara e-posta",
+      "description": "Bir HTML e-posta oluşturun ve Resend üzerinden tüm kayıtlı kullanıcılara gönderin.",
+      "subject": "Konu",
+      "subjectPlaceholder": "Duyuru: ...",
+      "body": "İçerik (Markdown)",
+      "result": "Gönderilen {sent} · Başarısız {failed}",
+      "sending": "Gönderiliyor…",
+      "send": "Tüm kullanıcılara gönder"
+    },
+    "posts": {
+      "title": "Son blog yazıları",
+      "empty": "Henüz alınmış yazı yok.",
+      "columnTitle": "Başlık",
+      "columnSource": "Kaynak",
+      "columnPublished": "Yayınlanma"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Görüşme analizleri - PairUX",
+      "detailTitle": "Görüşme analizi - PairUX"
+    },
+    "kinds": {
+      "general": "Genel görüşme",
+      "interview": "Mülakat",
+      "team-sync": "Ekip toplantısı",
+      "presentation": "Sunum"
+    },
+    "status": {
+      "recording": "Kaydediliyor",
+      "queued": "Analiz bekleniyor",
+      "processing": "Raporunuz yazılıyor",
+      "ready": "Hazır",
+      "failed": "Başarısız"
+    },
+    "list": {
+      "title": "Görüşme analizleri",
+      "intro": "Yapay zekâ analizi açıkken yaptığınız görüşmelere dair geri bildirim. Görüşmeden önce web, masaüstü veya mobil uygulamadaki başlangıç ekranından açın.",
+      "loadError": "Analizleriniz yüklenemedi",
+      "empty": "Henüz analiz edilmiş görüşme yok. <link>Yapay zekâ analiziyle bir görüşme başlatın</link>",
+      "untitled": "Başlıksız görüşme",
+      "sharedWithTeam": "ekibinizle paylaşıldı"
+    },
+    "report": {
+      "back": "← Tüm görüşme analizleri",
+      "loadError": "Bu analiz yüklenemedi",
+      "failed": "Bu analiz tamamlanamadı: {error}",
+      "stillRecording": "Görüşme hâlâ kaydediliyor.",
+      "beingWritten": "Raporunuz yazılıyor. Bu sayfa kendiliğinden güncellenir; rapor hazır olduğunda e-posta alacaksınız.",
+      "outOf10": "/ 10",
+      "byTheNumbers": "Rakamlarla",
+      "table": {
+        "speaker": "Konuşmacı",
+        "talkTime": "Konuşma süresi",
+        "pace": "Hız",
+        "fillers": "Dolgu kelimeleri",
+        "questions": "Sorular",
+        "longestTurn": "En uzun konuşma",
+        "wpm": "{value} kelime/dk",
+        "fillerRate": "{value} / 100 kelime"
+      },
+      "mobileNote": "Telefonla kaydedildi: yalnızca sizin mikrofonunuz kaydedildi.",
+      "whatWorked": "İşe yarayanlar",
+      "toImprove": "Geliştirilecekler",
+      "try": "Deneyin: {suggestion}",
+      "delivery": {
+        "title": "Anlatım",
+        "pace": "Hız",
+        "clarity": "Netlik",
+        "confidence": "Özgüven",
+        "fillerWords": "Dolgu kelimeleri",
+        "listening": "Dinleme"
+      },
+      "practiceNext": "Bir dahaki sefere kadar çalışın",
+      "onScreen": "Ekranda ne vardı",
+      "actionItems": "Eylem maddeleri",
+      "keyMoments": "Yeniden izlenecek anlar",
+      "hideTranscript": "Transkripti gizle",
+      "showTranscript": "Transkripti göster",
+      "disclaimer": "Görüşme kaydından yapay zekâ tarafından yazıldı. Konuşmacı etiketleri otomatik konuşmacı algılamadan gelir ve hatalı olabilir.",
+      "disclaimerWithModel": "Görüşme kaydından yapay zekâ ({model}) tarafından yazıldı. Konuşmacı etiketleri otomatik konuşmacı algılamadan gelir ve hatalı olabilir."
+    }
+  },
+  "devices": {
+    "title": "Cihazlarım",
+    "intro": "<code>pairux daemon</code> çalıştıran bir bilgisayarda buradan ekran paylaşımı başlatın. Telefonunuz elinizdeyken bir dizüstü bilgisayardan sunum yapmak için kullanışlı.",
+    "addressLabel": "Cihaz adresi",
+    "add": "Ekle",
+    "errors": {
+      "invalidAddress": "Bu bir cihaz adresine benzemiyor.",
+      "duplicate": "Bu cihaz zaten ekli."
+    },
+    "empty": "Henüz cihaz yok. Paylaşmak istediğiniz bilgisayarda <code>pairux daemon</code> komutunu çalıştırın; buraya yapıştıracağınız adresi yazdırır.",
+    "howToSetUp": "Nasıl kurulur",
+    "remove": "{name} cihazını kaldır",
+    "joinSession": "{name} üzerindeki oturuma katıl",
+    "stopSharing": "Paylaşımı durdur",
+    "startSharing": "Paylaşmaya başla",
+    "check": "Kontrol et"
+  },
+  "notifications": {
+    "unsupported": "Bu tarayıcı anlık bildirimleri desteklemiyor.",
+    "push": {
+      "title": "Anlık Bildirimler",
+      "enabled": "Bu cihaz için bildirimler etkin",
+      "blocked": "Bildirimler tarayıcı ayarlarında engellenmiş",
+      "prompt": "Uygulama arka plandayken bildirim almak için etkinleştirin",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak"
+    },
+    "notifyMeAbout": "Bana bildir",
+    "events": {
+      "controlRequest": "Kontrol talepleri",
+      "chatMessage": "Sohbet mesajları",
+      "participantJoined": "Katılımcı katıldı",
+      "participantLeft": "Katılımcı ayrıldı",
+      "hostDisconnected": "Oturum sahibinin bağlantısı kesildi",
+      "creatorLive": "Takip ettiğiniz bir içerik üreticisi canlı yayına başladı",
+      "directMessage": "Biri size doğrudan mesaj gönderdi"
+    },
+    "reminders": {
+      "title": "Toplantı hatırlatıcıları",
+      "description": "E-postayla ve anlık bildirimler açıksa bildirim olarak gönderilir.",
+      "meetingReminder1Day": "1 gün önce",
+      "meetingReminder1Hour": "1 saat önce",
+      "meetingReminder15Min": "15 dakika önce",
+      "meetingReminder1Min": "1 dakika önce"
+    },
+    "controlRequest": {
+      "title": "Kontrol Talebi",
+      "message": "<strong>{name}</strong> ekranınızı kontrol etmek istiyor",
+      "approve": "Onayla",
+      "deny": "Reddet"
+    },
+    "toasts": {
+      "region": "Bildirimler",
+      "joined": "<strong>{name}</strong> katıldı",
+      "left": "<strong>{name}</strong> ayrıldı",
+      "dismiss": "Kapat"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Kuruluşlar - PairUX",
+      "detailTitle": "Kuruluş - PairUX"
+    },
+    "roles": {
+      "owner": "Sahip",
+      "admin": "Yönetici",
+      "member": "Üye"
+    },
+    "list": {
+      "title": "Kuruluşlar",
+      "intro": "Bir kuruluş, canlı yayın yapılacak kanalları, görüşme analizi raporlarını ve sahibinin planını üyeleriyle paylaşır. İçinde kişileri ekiplere ayırın.",
+      "teamCount": "{count, plural, one {# ekip} other {# ekip}}",
+      "createHeading": "Kuruluş oluşturun",
+      "namePlaceholder": "Şirket veya grup adı",
+      "create": "Oluştur",
+      "createError": "Kuruluş oluşturulamadı"
+    },
+    "detail": {
+      "back": "← Kuruluşlar",
+      "notFound": "Kuruluş bulunamadı",
+      "genericError": "Bir şeyler ters gitti",
+      "summary": "{role, select, owner {Sahibi sizsiniz} admin {Yöneticisiniz} other {Üyesiniz}}. Üyeler <strong>{plan}</strong> planı kapsamındadır.",
+      "confirmDelete": "{name} silinsin mi? Kanalları ve raporları, onları oluşturan kişilere geri döner.",
+      "deleteOrg": "Kuruluşu sil",
+      "confirmLeave": "{name} kuruluşundan ayrılınsın mı?",
+      "leaveOrg": "Kuruluştan ayrıl",
+      "members": "Üyeler",
+      "teamLead": "{team} (lider)",
+      "removeMember": "{name} kişisini çıkar",
+      "confirmRemoveMember": "{name}, {org} kuruluşundan çıkarılsın mı?",
+      "inviteByEmail": "E-postayla davet et",
+      "noTeam": "Ekip yok",
+      "invite": "Davet et",
+      "pendingInvitations": "Bekleyen davetler",
+      "revoke": "İptal et",
+      "teams": "Ekipler",
+      "teamsIntro": "Ekip üyeleri ekibin kanallarında canlı yayın yapabilir ve ekibin görüşme raporlarını okuyabilir. Liderler ekipte kimin olduğunu yönetir.",
+      "confirmDeleteTeam": "{name} ekibi silinsin mi? Kanalları ve raporları kuruluşta kalır.",
+      "deleteTeam": "Ekibi sil",
+      "lead": "lider",
+      "makeMember": "üye yap",
+      "makeLead": "lider yap",
+      "removeFromTeam": "{name} kişisini {team} ekibinden çıkar",
+      "noMembers": "Henüz üye yok",
+      "addMember": "Üye ekle…",
+      "noTeams": "Henüz ekip yok.",
+      "newTeamPlaceholder": "Yeni ekip, ör. Mühendislik",
+      "createTeam": "Ekip oluştur"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Ayarlar - PairUX",
+      "description": "PairUX ayarlarınızı yönetin."
+    },
+    "back": "Geri",
+    "title": "Ayarlar",
+    "saved": "Kaydedildi",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (mümkün olduğunda)"
+    },
+    "account": {
+      "title": "Hesap",
+      "description": "Hesap bilgileriniz",
+      "email": "E-posta:",
+      "name": "Ad:",
+      "signInPrompt": "Ayarlarınızı cihazlar arasında eşitlemek ve daha fazla özelliğe erişmek için giriş yapın.",
+      "signIn": "Giriş Yap",
+      "createAccount": "Hesap Oluştur"
+    },
+    "recording": {
+      "title": "Kayıt",
+      "description": "Varsayılan kayıt tercihleri",
+      "defaultRecordingQuality": "Varsayılan Kayıt Kalitesi",
+      "recordingQualityHint": "Yüksek kaliteli kayıtların boyutu daha büyüktür",
+      "defaultCaptureQuality": "Varsayılan Yakalama Kalitesi",
+      "captureQualityHint": "Yüksek kalite, yayın için daha fazla bant genişliği kullanır",
+      "includeSystemAudio": "Sistem Sesini Dahil Et",
+      "includeSystemAudioHint": "Ekranla birlikte sistem sesini de kaydet",
+      "webRecordingNote": "<strong>Web Kaydı:</strong> Kayıtlar tarayıcınızın indirilenler klasörüne kaydedilir. Dosyaların otomatik düzenlenmesi için <link>masaüstü uygulamasını</link> kullanın."
+    },
+    "session": {
+      "title": "Oturum Varsayılanları",
+      "description": "Yeni oturumlar için varsayılan ayarlar",
+      "maxParticipants": "Maksimum Katılımcı",
+      "viewers": "{count, plural, one {# izleyici} other {# izleyici}}",
+      "openInDesktopApp": "Oturumları Masaüstü Uygulamasında Aç",
+      "openInDesktopAppHint": "Oturum başlatmak, bir misafire kontrol verebileceğiniz masaüstü uygulamasını açar. Uygulama yüklü değilse bu tarayıcı kullanılır.",
+      "openInDesktopAppAria": "Oturumları masaüstü uygulamasında aç",
+      "remoteControlNote": "<strong>Not:</strong> Uzaktan kontrol yalnızca <link>masaüstü uygulamasında</link> kullanılabilir. Web oturumları yalnızca izlemeye açıktır."
+    },
+    "notifications": {
+      "title": "Bildirimler",
+      "description": "Anlık bildirim tercihleri"
+    },
+    "language": {
+      "title": "Dil",
+      "description": "PairUX’in gösterileceği dili seçin",
+      "hint": "Bu tarayıcıda kaydedilir. Varsayılan olarak tarayıcınızın dili kullanılır."
+    },
+    "appearance": {
+      "title": "Görünüm",
+      "description": "Deneyiminizi özelleştirin",
+      "theme": "Tema",
+      "themes": {
+        "light": "Açık",
+        "dark": "Koyu",
+        "system": "Sistem"
+      },
+      "systemHint": "Sistem teması cihaz ayarlarınızı izler"
+    },
+    "about": {
+      "title": "Hakkında",
+      "description": "Uygulama bilgileri",
+      "application": "Uygulama",
+      "platform": "Platform",
+      "platformValue": "Tarayıcı / PWA",
+      "features": "Özellikler",
+      "featuresValue": "Ekran Paylaşımı, Kayıt, Sohbet",
+      "downloadNote": "Uzaktan kontrol dahil tüm özellikler için <link>masaüstü uygulamasını</link> indirin."
+    },
+    "youtube": {
+      "title": "YouTube’da otomatik canlı yayın",
+      "description": "Yayına başladığınızda YouTube yayınınızı otomatik olarak canlıya alın; artık “Yayın hazırlanıyor” beklemesi yok.",
+      "notConfigured": "Henüz kullanılamıyor; sunucuda Google OAuth yapılandırması eksik.",
+      "connected": "Bağlı",
+      "connectedTo": "Bağlı: {channel}",
+      "disconnect": "Bağlantıyı kes",
+      "connect": "YouTube’u bağla"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Canlı yayın bulunamadı",
+    "defaultTitle": "PairUX’te canlı",
+    "defaultDescription": "{name} tarafından herkese açık bir canlı yayın.",
+    "defaultDescriptionAnonymous": "Bir PairUX içerik üreticisinden herkese açık bir canlı yayın.",
+    "anonymous": "Anonim",
+    "liveNow": "Şu an canlı",
+    "untitled": "Başlıksız canlı yayın",
+    "watchFree": "Ücretsiz izle",
+    "commentsHeading": "Yorumlar ({count})",
+    "like": "Beğen ({count, plural, one {# beğeni} other {# beğeni}})",
+    "unlike": "Beğenmekten vazgeç ({count, plural, one {# beğeni} other {# beğeni}})",
+    "comments": {
+      "someone": "Biri",
+      "postFailed": "Yorumunuz gönderilemedi.",
+      "networkError": "Ağ hatası. Lütfen tekrar deneyin.",
+      "placeholder": "Yorum ekleyin…",
+      "post": "Gönder",
+      "empty": "Henüz yorum yok; ilk yorumu siz yapın.",
+      "delete": "Sil"
+    },
+    "embed": {
+      "title": "Bu canlı yayını yerleştir",
+      "button": "Yerleştir",
+      "label": "Bunu HTML’e izin verilen her yere yapıştırın",
+      "copied": "Kopyalandı",
+      "copy": "Kodu kopyala"
+    }
+  },
+  "embed": {
+    "defaultTitle": "PairUX oynatıcı",
+    "untitled": "Başlıksız canlı yayın",
+    "watchLive": "PairUX’te canlı izle",
+    "watch": "PairUX’te izle",
+    "live": "Canlı"
+  },
+  "room": {
+    "metadata": {
+      "title": "Şifreli oda",
+      "description": "Uçtan uca şifreli bir PairUX sesli ve görüntülü odası. Hesap gerekmez."
+    },
+    "creating": "Şifreli oda oluşturuluyor…",
+    "guest": "Misafir",
+    "joinFailed": "Odaya katılınamadı",
+    "callFailed": "Görüşme başarısız oldu",
+    "e2ee": "Uçtan uca şifreli",
+    "incomplete": {
+      "title": "Bu bağlantı eksik",
+      "body": "Oda bağlantısı, görüşmeyi şifreleyen anahtar olan <code>#k=…</code> ile biter. Bağlantının tamamını isteyin veya <link>yeni bir oda başlatın</link>."
+    },
+    "join": {
+      "title": "Odaya katılın",
+      "body": "Hesap gerekmez. Ses ve görüntü, cihazınızda yalnızca bu bağlantıya sahip kişilerin bildiği bir anahtarla şifrelenir. PairUX görüşmeyi duyamaz veya göremez ve hiçbir şey kaydedilmez.",
+      "nameLabel": "Adınız",
+      "voice": "Sesli",
+      "video": "Görüntülü"
+    },
+    "copied": "Kopyalandı",
+    "copyInvite": "Davet bağlantısını kopyala"
+  },
+  "live": {
+    "metadata": {
+      "title": "Canlı Odalar",
+      "description": "PairUX’te şu anda süren herkese açık ekran paylaşımı odalarına göz atın."
+    },
+    "title": "Canlı Odalar",
+    "intro": "Oturum sahiplerinin şu anda yürüttüğü herkese açık ekran paylaşımı odaları. Davet gerekmeden birine katılın ya da <link>tüm kanallara</link> (geçmiş ve şimdiki) göz atın.",
+    "empty": {
+      "title": "Henüz herkese açık oda yok",
+      "body": "Bir oturum başlatın ve burada listelemek için <strong>/live’da yayınla</strong> seçeneğini kullanın.",
+      "cta": "Oturum başlat"
+    },
+    "badgeLive": "Canlı",
+    "badgeIdle": "Boşta",
+    "viewers": "{count, plural, one {# izleyici} other {# izleyici}}",
+    "untitledRoom": "Başlıksız oda",
+    "anonymous": "Anonim",
+    "joinRoom": "Odaya katıl",
+    "creators": "İçerik üreticileri",
+    "followers": "{count, plural, one {# takipçi} other {# takipçi}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Kanallar",
+      "description": "PairUX’teki içerik üreticisi kanallarına göz atın."
+    },
+    "title": "Kanallar",
+    "intro": "PairUX’teki içerik üreticisi kanalları. Canlı yayına başladıklarında bildirim almak için abone olun ya da <link>şu anda kimin canlı</link> olduğunu görün.",
+    "empty": {
+      "title": "Henüz kanal yok",
+      "body": "<link>Panelinizden</link> bir tane oluşturun."
+    },
+    "liveNow": "Şu an canlı",
+    "subscribers": "{count, plural, one {# abone} other {# abone}}",
+    "liveCount": "{count} canlı",
+    "recordings": "{count, plural, one {# kayıt} other {# kayıt}}"
+  },
+  "channel": {
+    "notFoundTitle": "Kanal bulunamadı",
+    "defaultDescription": "PairUX’teki {name} kanalı.",
+    "liveNow": "Şu an canlı",
+    "live": "Canlı",
+    "watching": "{count} kişi izliyor",
+    "manage": "Kanalı yönet",
+    "streams": "Yayınlar",
+    "noStreams": "Henüz yayın yok.",
+    "untitledStream": "Başlıksız yayın",
+    "recordings": "Kayıtlar",
+    "rssTitle": "Bir podcast uygulamasında veya akış okuyucuda abone olun",
+    "recording": "Kayıt",
+    "subscribe": {
+      "subscribe": "Abone ol",
+      "subscribed": "Abone olundu",
+      "count": "{count, plural, one {# abone} other {# abone}}"
+    },
+    "share": {
+      "text": "PairUX’te {name} kanalına göz atın",
+      "share": "Paylaş",
+      "shareOn": "{network} üzerinde paylaş",
+      "copyLink": "Bağlantıyı kopyala",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Profil bulunamadı",
+    "defaultDescription": "{name} kullanıcısının PairUX’teki herkese açık odaları.",
+    "channels": "Kanallar",
+    "live": "Canlı",
+    "subscribers": "{count, plural, one {# abone} other {# abone}}",
+    "lives": "Canlı yayınlar",
+    "noLives": "{handle} henüz canlı yayın yapmadı.",
+    "liveNow": "Şu an canlı",
+    "untitledRoom": "Başlıksız oda",
+    "joinRoom": "Odaya katıl",
+    "follow": {
+      "follow": "Takip et",
+      "following": "Takip ediliyor",
+      "count": "{count, plural, one {# takipçi} other {# takipçi}}"
+    },
+    "message": {
+      "button": "Mesaj",
+      "title": "{name} kullanıcısına mesaj gönder",
+      "close": "Kapat",
+      "sent": "Mesaj gönderildi",
+      "sentNote": "{name} kullanıcısına e-posta ve anlık bildirimle haber verilecek.",
+      "viewConversation": "Konuşmayı görüntüle",
+      "placeholder": "{name} kullanıcısına özel bir mesaj yazın…",
+      "cancel": "İptal",
+      "send": "Gönder",
+      "sendFailed": "Mesaj gönderilemedi"
+    }
+  },
+  "messages": {
+    "title": "Mesajlar",
+    "conversationTitle": "Konuşma",
+    "allMessages": "Tüm mesajlar",
+    "empty": {
+      "title": "Henüz mesaj yok",
+      "body": "Bir içerik üreticisinin profilini ziyaret edin ve konuşma başlatmak için <strong>Mesaj</strong>’a tıklayın.",
+      "cta": "İçerik üreticilerine göz atın →"
+    },
+    "youPrefix": "Siz:",
+    "thread": {
+      "empty": "Henüz mesaj yok. {name} kullanıcısına merhaba deyin.",
+      "placeholder": "{name} kullanıcısına mesaj…",
+      "send": "Gönder",
+      "sendFailed": "Mesaj gönderilemedi"
+    }
+  }
+}

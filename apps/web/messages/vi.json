@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - Chia sẻ màn hình cộng tác với điều khiển từ xa",
+    "description": "Chia sẻ màn hình thời gian thực, cho phép nhiều người cùng điều khiển chuột và bàn phím từ xa. Như Screenhero, nhưng mã nguồn mở. Có cho macOS, Windows và Linux.",
+    "shortDescription": "Chia sẻ màn hình thời gian thực, cho phép nhiều người cùng điều khiển chuột và bàn phím từ xa. Như Screenhero, nhưng mã nguồn mở.",
+    "imageAlt": "PairUX - Chia sẻ màn hình cộng tác"
+  },
+  "common": {
+    "language": "Ngôn ngữ",
+    "loading": "Đang tải…",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "saved": "Đã lưu",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "back": "Quay lại",
+    "continue": "Tiếp tục",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép!",
+    "retry": "Thử lại",
+    "yes": "Có",
+    "no": "Không",
+    "or": "hoặc",
+    "optional": "Không bắt buộc",
+    "learnMore": "Tìm hiểu thêm",
+    "somethingWentWrong": "Đã xảy ra lỗi. Vui lòng thử lại."
+  },
+  "nav": {
+    "live": "Trực tiếp",
+    "channels": "Kênh",
+    "features": "Tính năng",
+    "useCases": "Trường hợp sử dụng",
+    "download": "Tải xuống",
+    "docs": "Tài liệu",
+    "blog": "Blog",
+    "pricing": "Bảng giá",
+    "dashboard": "Bảng điều khiển",
+    "organizations": "Tổ chức",
+    "callAnalyses": "Phân tích cuộc gọi",
+    "settings": "Cài đặt",
+    "messages": "Tin nhắn",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "signOut": "Đăng xuất",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "userFallback": "Người dùng"
+  },
+  "footer": {
+    "tagline": "Chia sẻ màn hình cộng tác, cho phép nhiều người cùng điều khiển từ xa. Như Screenhero, nhưng mã nguồn mở.",
+    "license": "Mã nguồn mở theo Giấy phép MIT.",
+    "sections": {
+      "product": "Sản phẩm",
+      "install": "Cài đặt",
+      "resources": "Tài nguyên",
+      "company": "Công ty"
+    },
+    "links": {
+      "features": "Tính năng",
+      "useCases": "Trường hợp sử dụng",
+      "download": "Tải xuống",
+      "pricing": "Bảng giá",
+      "changelog": "Nhật ký thay đổi",
+      "documentation": "Tài liệu",
+      "faq": "Câu hỏi thường gặp",
+      "systemRequirements": "Yêu cầu hệ thống",
+      "troubleshooting": "Khắc phục sự cố",
+      "about": "Giới thiệu",
+      "blog": "Blog",
+      "privacy": "Chính sách quyền riêng tư",
+      "terms": "Điều khoản dịch vụ"
+    }
+  },
+  "auth": {
+    "or": "hoặc",
+    "comingSoon": "Sắp ra mắt",
+    "checkEmail": "Kiểm tra email của bạn",
+    "backToSignIn": "Quay lại đăng nhập",
+    "errors": {
+      "unexpected": "Đã xảy ra lỗi không mong muốn"
+    },
+    "fields": {
+      "email": "Địa chỉ email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Tối thiểu 8 ký tự, 1 chữ hoa, 1 chữ số",
+      "passwordHint": "Ít nhất 8 ký tự, gồm một chữ hoa và một chữ số",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Mật khẩu không khớp",
+      "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
+      "passwordNeedsUppercase": "Mật khẩu phải có ít nhất một chữ hoa",
+      "passwordNeedsNumber": "Mật khẩu phải có ít nhất một chữ số"
+    },
+    "login": {
+      "meta": {
+        "title": "Đăng nhập - PairUX",
+        "description": "Đăng nhập vào tài khoản PairUX của bạn"
+      },
+      "title": "Chào mừng trở lại",
+      "subtitle": "Đăng nhập vào tài khoản để tiếp tục",
+      "failed": "Đăng nhập không thành công",
+      "forgotPassword": "Quên mật khẩu?",
+      "passwordPlaceholder": "Nhập mật khẩu của bạn",
+      "rememberMe": "Ghi nhớ đăng nhập",
+      "submit": "Đăng nhập",
+      "submitting": "Đang đăng nhập...",
+      "passkey": "Đăng nhập bằng Passkey",
+      "noAccount": "Chưa có tài khoản? <link>Đăng ký</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Đăng ký - PairUX",
+        "description": "Tạo tài khoản PairUX để bắt đầu chia sẻ màn hình"
+      },
+      "failed": "Không thể tạo tài khoản",
+      "confirmationSent": "Chúng tôi đã gửi liên kết xác nhận đến <strong>{email}</strong>. Nhấp vào liên kết để xác minh tài khoản của bạn.",
+      "firstName": "Tên",
+      "firstNamePlaceholder": "Tên",
+      "lastName": "Họ",
+      "lastNamePlaceholder": "Họ",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+      "submit": "Tạo tài khoản",
+      "submitting": "Đang tạo tài khoản...",
+      "haveAccount": "Đã có tài khoản? <link>Đăng nhập</link>",
+      "page": {
+        "earlyAdopterTitle": "Ưu đãi người dùng sớm",
+        "earlyAdopterBody": "Đăng ký ngay và nhận <bold>thêm 20% tín dụng</bold> cho mọi khoản nạp!",
+        "waitlistTitle": "Tham gia danh sách chờ",
+        "recommended": "Khuyên dùng",
+        "waitlistBody": "Giữ chỗ với khoản nạp tín dụng $100 để được ưu tiên truy cập cùng nhiều đặc quyền riêng.",
+        "perkCredits": "Nạp $100 = <semibold>$120 tín dụng</semibold> (thưởng 20%)",
+        "perkPriority": "Ưu tiên truy cập khi ra mắt",
+        "perkPricing": "Giữ nguyên giá ưu đãi người dùng sớm mãi mãi",
+        "perkCommunity": "Truy cập kênh Discord/Slack độc quyền",
+        "paymentMethods": "Phương thức thanh toán",
+        "payCard": "Thanh toán bằng thẻ",
+        "payCardDetail": "Visa, Mastercard, Amex qua Stripe",
+        "payCrypto": "Thanh toán bằng tiền mã hóa",
+        "payCryptoDetail": "BTC, ETH, USDC qua CoinPayPortal",
+        "comingSoon": "Sắp ra mắt",
+        "refundable": "Khoản nạp được hoàn lại toàn bộ trước khi ra mắt nếu bạn đổi ý.",
+        "orFree": "hoặc đăng ký miễn phí",
+        "freeTitle": "Tạo tài khoản miễn phí",
+        "freeBody": "Bắt đầu với 2 người tham gia + 5 người xem, miễn phí mãi mãi",
+        "creditsTitle": "Cách tín dụng hoạt động",
+        "creditsBody": "PairUX dùng hệ thống tín dụng. Tín dụng được dùng cho máy chủ chuyển tiếp SFU khi bạn cần hơn 5 người xem. <medium>$0.08 mỗi người xem mỗi giờ ở 720p</medium>. Kết nối P2P ở gói miễn phí không bao giờ hết hạn."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Quên mật khẩu - PairUX",
+        "description": "Đặt lại mật khẩu tài khoản PairUX của bạn"
+      },
+      "title": "Quên mật khẩu?",
+      "subtitle": "Nhập email và chúng tôi sẽ gửi cho bạn liên kết đặt lại",
+      "failed": "Không thể gửi email đặt lại",
+      "sent": "Nếu có tài khoản với <strong>{email}</strong>, bạn sẽ nhận được liên kết đặt lại mật khẩu.",
+      "submit": "Gửi liên kết đặt lại",
+      "submitting": "Đang gửi..."
+    },
+    "reset": {
+      "title": "Đặt lại mật khẩu",
+      "subtitle": "Nhập mật khẩu mới bên dưới",
+      "failed": "Không thể đặt lại mật khẩu",
+      "successTitle": "Đã cập nhật mật khẩu",
+      "successBody": "Mật khẩu của bạn đã được đặt lại thành công. Đang chuyển đến trang đăng nhập...",
+      "signInNow": "Đăng nhập ngay",
+      "invalidTitle": "Liên kết không hợp lệ hoặc đã hết hạn",
+      "invalidBody": "Liên kết đặt lại mật khẩu này không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.",
+      "requestNewLink": "Yêu cầu liên kết mới",
+      "newPassword": "Mật khẩu mới",
+      "confirmNewPassword": "Xác nhận mật khẩu mới",
+      "confirmNewPasswordPlaceholder": "Nhập lại mật khẩu mới",
+      "submit": "Đặt lại mật khẩu",
+      "submitting": "Đang đặt lại..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "Cấp quyền cho PairUX CLI - PairUX",
+    "invalidTitle": "Liên kết đăng nhập này không hợp lệ",
+    "invalidBody": "Chạy lại <code>{command}</code> để nhận liên kết mới.",
+    "allowedTitle": "Bạn có thể quay lại terminal",
+    "deniedTitle": "Đã hủy đăng nhập",
+    "closeTab": "Bạn có thể đóng tab này.",
+    "title": "Cấp quyền cho {clientName}?",
+    "intro": "Công cụ dòng lệnh PairUX trên máy tính này đang yêu cầu hoạt động dưới danh nghĩa <strong>{email}</strong>.",
+    "agentsNote": "Các agent bạn khởi chạy bằng công cụ này sẽ tham gia phiên với nhãn là agent của bạn, để người chủ trì biết chúng thuộc về ai.",
+    "limitsNote": "Công cụ này không thể xem màn hình, điều khiển từ xa hay thay đổi tài khoản của bạn.",
+    "revokeNote": "Đăng xuất bằng <code>{command}</code> sẽ thu hồi quyền này.",
+    "allow": "Cho phép",
+    "deny": "Từ chối",
+    "errors": {
+      "authorizeFailed": "Không thể cấp quyền cho CLI",
+      "network": "Không thể kết nối tới PairUX. Kiểm tra kết nối mạng và thử lại."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Tham gia tổ chức - PairUX",
+    "title": "Tham gia {orgName}",
+    "invited": "Bạn được mời với vai trò {role, select, admin {quản trị viên} other {thành viên}}. Đăng nhập bằng <strong>{email}</strong> để chấp nhận.",
+    "invitedToTeam": "Bạn được mời với vai trò {role, select, admin {quản trị viên} other {thành viên}} của nhóm {teamName}. Đăng nhập bằng <strong>{email}</strong> để chấp nhận.",
+    "expired": "Lời mời này đã hết hạn. Hãy yêu cầu lời mời mới.",
+    "accept": "Chấp nhận lời mời",
+    "errors": {
+      "invalid": "Lời mời này không còn hợp lệ",
+      "acceptFailed": "Không thể chấp nhận lời mời"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Tính năng",
+      "description": "Khám phá mọi tính năng của PairUX: chia sẻ màn hình thời gian thực, điều khiển từ xa, cộng tác nhiều con trỏ, hỗ trợ đa nền tảng và hơn thế nữa."
+    },
+    "hero": {
+      "title": "Tính năng",
+      "subtitle": "Mọi thứ bạn cần để cộng tác thời gian thực, được xây dựng với quyền riêng tư và bảo mật làm trọng tâm.",
+      "imageAlt": "Bảng điều khiển PairUX, hiển thị số liệu phiên, các kênh, thao tác nhanh để bắt đầu hoặc tham gia phiên, và gói hiện tại."
+    },
+    "comingSoon": "Sắp ra mắt",
+    "main": {
+      "callAnalysis": {
+        "title": "Phân tích cuộc gọi bằng AI",
+        "description": "Bật tính năng này trước buổi phỏng vấn, họp nhóm hoặc thuyết trình và nhận báo cáo phản hồi riêng sau cuộc gọi: điểm số, điều đã làm tốt, điều cần cải thiện và những khoảnh khắc đáng xem lại.",
+        "details": {
+          "d0": "Thời lượng nói, tốc độ và từ đệm của từng người",
+          "d1": "Chế độ phỏng vấn, họp nhóm và thuyết trình",
+          "d2": "Ảnh chụp màn hình được đánh giá cho slide và demo",
+          "d3": "Mọi người trong cuộc gọi đều được thông báo là đang ghi"
+        }
+      },
+      "screenSharing": {
+        "title": "Chia sẻ màn hình thời gian thực",
+        "description": "Chia sẻ toàn bộ màn hình hoặc từng cửa sổ với chất lượng sắc nét. Truyền phát dựa trên WebRTC mang lại video độ trễ thấp với bitrate thích ứng.",
+        "details": {
+          "d0": "Chia sẻ toàn màn hình hoặc cửa sổ",
+          "d1": "Chất lượng tiêu chuẩn 1080p @ 30fps",
+          "d2": "Bitrate thích ứng với mọi kết nối",
+          "d3": "Con trỏ hiển thị trong luồng"
+        }
+      },
+      "remoteControl": {
+        "title": "Chuột và bàn phím từ xa",
+        "description": "Cho phép cộng sự điều khiển với đầy đủ thao tác chuột và bàn phím. Mọi quyền điều khiển đều cần người chủ trì phê duyệt rõ ràng.",
+        "details": {
+          "d0": "Điều khiển chuột đầy đủ (nhấp, cuộn, kéo)",
+          "d1": "Nhập liệu bàn phím đầy đủ",
+          "d2": "Phím đặc biệt và phím tắt",
+          "d3": "Tương thích đa nền tảng"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Nhập liệu đồng thời",
+        "description": "Cả người chủ trì và người xem đều có thể điều khiển cùng lúc. Thao tác của người chủ trì luôn được ưu tiên để đảm bảo an toàn và thoải mái.",
+        "details": {
+          "d0": "Cả hai cùng điều khiển được",
+          "d1": "Người chủ trì luôn được ưu tiên",
+          "d2": "Không chặn hay xếp hàng thao tác",
+          "d3": "Chỉ báo trực quan cho biết ai đang điều khiển"
+        }
+      },
+      "consent": {
+        "title": "Mô hình đồng ý rõ ràng",
+        "description": "Bảo mật được tích hợp ngay từ nền tảng. Người xem phải yêu cầu quyền điều khiển và người chủ trì phải phê duyệt rõ ràng.",
+        "details": {
+          "d0": "Yêu cầu điều khiển cần được phê duyệt",
+          "d1": "Phím tắt thu hồi khẩn cấp (Ctrl+Shift+Esc)",
+          "d2": "Chỉ báo trực quan khi đang có người điều khiển",
+          "d3": "Có thể thu hồi quyền điều khiển bất cứ lúc nào"
+        }
+      },
+      "pwaViewer": {
+        "title": "Trình xem PWA",
+        "description": "Người xem tham gia từ bất kỳ trình duyệt hiện đại nào - không cần tải xuống. Cài đặt dưới dạng Progressive Web App để truy cập nhanh.",
+        "details": {
+          "d0": "Hoạt động trên mọi trình duyệt hiện đại",
+          "d1": "Không cần tài khoản để tham gia",
+          "d2": "Có thể cài đặt dưới dạng PWA",
+          "d3": "Xem tốt trên thiết bị di động"
+        }
+      },
+      "crossPlatform": {
+        "title": "Ứng dụng máy tính đa nền tảng",
+        "description": "Ứng dụng máy tính gốc cho macOS, Windows và Linux. Cài đặt qua trình quản lý gói bạn yêu thích.",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "Có bản tải xuống trực tiếp"
+        }
+      },
+      "recording": {
+        "title": "Ghi màn hình",
+        "description": "Ghi lại phiên trên máy để xem sau. Lý tưởng cho video hướng dẫn, tài liệu và lưu lại các phiên lập trình cặp.",
+        "details": {
+          "d0": "Ghi ra WebM/MP4 trên máy",
+          "d1": "Thu âm thanh hệ thống + micro",
+          "d2": "Cài đặt sẵn chất lượng (720p/1080p/4K)",
+          "d3": "Tạm dừng/tiếp tục ghi"
+        }
+      },
+      "textChat": {
+        "title": "Trò chuyện văn bản",
+        "description": "Trò chuyện văn bản tích hợp khi bạn cần chia sẻ liên kết, đoạn mã hoặc trao đổi mà không cần giọng nói.",
+        "details": {
+          "d0": "Nhắn tin thời gian thực",
+          "d1": "Thông báo hệ thống (tham gia/rời đi)",
+          "d2": "Hoạt động song song với chia sẻ màn hình",
+          "d3": "Lịch sử tin nhắn theo từng phiên"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "Bảng điều khiển của người chủ trì PairUX trong một phiên, hiển thị bộ chọn chất lượng, mã tham gia, danh sách người tham gia và bảng thông tin phiên.",
+      "consent": "Bảng điều khiển người xem PairUX, nơi khách phải nhấn Yêu cầu điều khiển trước khi người chủ trì cấp quyền nhập liệu.",
+      "pwaViewer": "Màn hình tham gia PairUX trong trình duyệt, hiển thị mã phiên, trạng thái trực tiếp và nút Xem miễn phí không cần tài khoản.",
+      "crossPlatform": "Trang tải xuống PairUX liệt kê các trình cài đặt một dòng cùng các bản DMG, EXE, AppImage, DEB và RPM cho macOS, Windows và Linux.",
+      "recording": "Cài đặt ghi của PairUX, với các tùy chọn sẵn cho chất lượng ghi mặc định và chất lượng thu, cùng nút bật/tắt âm thanh hệ thống."
+    },
+    "tech": {
+      "title": "Xây dựng trên công nghệ hiện đại",
+      "subtitle": "PairUX dùng WebRTC theo chuẩn công nghiệp để truyền phát ổn định, độ trễ thấp."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Kết nối ngang hàng trực tiếp cho độ trễ tối thiểu."
+      },
+      "e2e": {
+        "title": "Mã hóa đầu cuối",
+        "description": "Mã hóa DTLS-SRTP cho mọi luồng media."
+      },
+      "nat": {
+        "title": "Vượt NAT",
+        "description": "Máy chủ STUN/TURN cho kết nối ổn định."
+      },
+      "adaptive": {
+        "title": "Chất lượng thích ứng",
+        "description": "Tự động điều chỉnh chất lượng theo băng thông."
+      },
+      "sharedControl": {
+        "title": "Điều khiển chung",
+        "description": "Người chủ trì và khách lần lượt dùng con trỏ hệ thống của máy chủ trì."
+      },
+      "keyboard": {
+        "title": "Bàn phím đầy đủ",
+        "description": "Mọi phím, kể cả phím bổ trợ và phím đặc biệt."
+      }
+    },
+    "compare": {
+      "title": "PairUX so với các giải pháp khác",
+      "subtitle": "Xem PairUX so sánh thế nào với các giải pháp chia sẻ màn hình khác.",
+      "feature": "Tính năng",
+      "others": "Khác",
+      "rows": {
+        "screenSharing": "Chia sẻ màn hình",
+        "remoteControl": "Điều khiển từ xa",
+        "simultaneousControl": "Điều khiển đồng thời",
+        "localRecording": "Ghi màn hình (trên máy)",
+        "textChat": "Trò chuyện văn bản",
+        "noAccount": "Người xem không cần tài khoản",
+        "openSource": "Mã nguồn mở",
+        "selfHostable": "Tự lưu trữ được",
+        "e2e": "Mã hóa đầu cuối",
+        "nativeApps": "Ứng dụng gốc",
+        "browserViewer": "Xem trên trình duyệt",
+        "freeTier": "Gói miễn phí"
+      },
+      "values": {
+        "soon": "sắp có",
+        "partial": "một phần",
+        "unlimited": "không giới hạn",
+        "limited": "giới hạn"
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng bắt đầu?",
+      "subtitle": "Tải PairUX và bắt đầu cộng tác chỉ trong vài giây.",
+      "button": "Tải xuống ngay"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "Phân tích cuộc gọi bằng AI: phản hồi cho phỏng vấn, họp nhóm và thuyết trình | PairUX",
+        "description": "Bật phân tích cuộc gọi bằng AI trước cuộc gọi PairUX và nhận báo cáo phản hồi sau đó: thời lượng nói, tốc độ nói, từ đệm, điều gây ấn tượng, điều cần luyện tập và những khoảnh khắc đáng xem lại."
+      },
+      "eyebrow": "Phân tích cuộc gọi bằng AI · Pro và Team",
+      "title": "Biết cuộc gọi thực sự diễn ra thế nào.",
+      "intro": "Bật phân tích cuộc gọi bằng AI trước buổi phỏng vấn, họp nhóm hoặc thuyết trình. Khi cuộc gọi kết thúc, bạn nhận được báo cáo riêng: điểm số, điều đã làm tốt, điều cần cải thiện, số liệu cụ thể và những khoảnh khắc đáng xem lại.",
+      "startCta": "Bắt đầu cuộc gọi có phân tích",
+      "seePlans": "Xem các gói",
+      "kindsTitle": "Phản hồi phù hợp với từng loại cuộc gọi",
+      "kinds": {
+        "interviews": {
+          "title": "Phỏng vấn",
+          "body": "Theo từng câu hỏi: mỗi câu trả lời tạo ấn tượng ra sao, chỗ nào quá dài hoặc mơ hồ, và cách nói thuyết phục hơn. Bạn là người phỏng vấn? AI sẽ đánh giá câu hỏi của bạn và mức độ bạn lắng nghe."
+        },
+        "teamSyncs": {
+          "title": "Họp nhóm",
+          "body": "Các quyết định đã đưa ra, câu hỏi còn bỏ ngỏ, chỗ cuộc họp bị lạc đề và mọi cam kết kèm người phụ trách, để không có gì bị bỏ sót giữa các buổi họp."
+        },
+        "presentations": {
+          "title": "Thuyết trình và demo",
+          "body": "Phần mở đầu, mạch chính và phần kết, thời điểm khán giả có thể mất tập trung, và nội dung trên màn hình: mật độ slide, độ dễ đọc, và màn hình có khớp với lời bạn nói không."
+        }
+      },
+      "measuredTitle": "Đo lường, không phỏng đoán",
+      "measuredBody": "Số liệu được đếm từ bản chép lời, phân biệt từng người nói, và phần nhận xét đều dẫn chứng chúng. Khi báo cáo nói bạn đã nói 70% thời lượng buổi phỏng vấn, đó là sự thật bạn có thể kiểm chứng.",
+      "measured": {
+        "m0": "Tỷ lệ thời lượng nói của từng người",
+        "m1": "Tốc độ nói tính bằng từ mỗi phút",
+        "m2": "Số từ đệm trên 100 từ, và đó là những từ nào",
+        "m3": "Số câu hỏi, đoạn độc thoại dài nhất, số lần ngắt lời"
+      },
+      "howTitle": "Cách hoạt động",
+      "how": {
+        "s0": "Trước cuộc gọi, bật <strong>Phân tích cuộc gọi bằng AI</strong> trên màn hình bắt đầu (pairux.com, ứng dụng máy tính hoặc ứng dụng di động) và chọn loại cuộc gọi. Tính năng ghi cuộc gọi sẽ bật theo, và bạn có thể tắt nó.",
+        "s1": "Trong cuộc gọi, ứng dụng tải lên âm thanh cuộc gọi và một ảnh chụp màn hình bạn đang chia sẻ mỗi 20 giây. Mọi người tham gia đều thấy cuộc gọi đang được ghi để phân tích.",
+        "s2": "Sau cuộc gọi, âm thanh được chép lời có phân biệt người nói và một huấn luyện viên AI viết báo cáo cho bạn. Báo cáo được gửi qua email và lưu trong mục Phân tích cuộc gọi trên bảng điều khiển."
+      },
+      "privacyTitle": "Sự đồng ý và quyền riêng tư",
+      "privacy": {
+        "p0": "Lựa chọn được đưa ra trước khi cuộc gọi bắt đầu và không thể bật giữa chừng.",
+        "p1": "Mọi người tham gia đều thấy thông báo trong suốt cuộc gọi, trên web, ứng dụng máy tính và di động.",
+        "p2": "Báo cáo và bản ghi chỉ người chủ trì, hoặc nhóm hay tổ chức nơi diễn ra cuộc gọi, mới xem được, và có thể xóa bất cứ lúc nào.",
+        "p3": "Nếu tắt ghi, âm thanh sẽ bị xóa ngay khi báo cáo được viết xong.",
+        "p4": "Trên điện thoại, chỉ micro của bạn được ghi; hãy bắt đầu từ pairux.com hoặc ứng dụng máy tính để thu âm tất cả mọi người."
+      },
+      "tryCta": "Dùng thử trong cuộc gọi tiếp theo"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Trường hợp sử dụng khi làm việc với AI agent",
+        "description": "Lập trình cặp, review mã do AI tạo, gỡ lỗi, hướng dẫn đồng đội mới và dạy trực tiếp với PairUX. Nhận phản hồi từ AI cho phỏng vấn, họp nhóm và thuyết trình."
+      },
+      "eyebrow": "Trường hợp sử dụng PairUX",
+      "title": "Làm việc tốt hơn với agent. Cùng nhau.",
+      "intro": "Agent có thể viết mã. Nhưng nhóm của bạn vẫn cần hiểu kết quả. Dùng PairUX để chia sẻ màn hình, dùng thử ứng dụng và cùng nhau đưa ra quyết định tiếp theo.",
+      "findWorkflow": "Tìm quy trình của bạn",
+      "featuredLabel": "Nổi bật · Lập trình cặp với agent",
+      "featuredTitle": "Hai người. Một phiên agent.",
+      "featuredBody": "Chia sẻ terminal moshcode trực tiếp với đồng đội, rồi dùng PairUX để cùng review trình soạn thảo và ứng dụng. Xem trước hoặc cùng tham gia trong một phiên.",
+      "featuredCta": "Khám phá lập trình cặp với agent",
+      "workflowsTitle": "Mời thêm người vào công việc",
+      "workflowsIntro": "Bắt đầu bằng một màn hình chia sẻ. Cho phép cộng sự dùng chuột và bàn phím khi người chủ trì phê duyệt điều khiển từ xa.",
+      "notesPlans": "Gói Pro và Team",
+      "notesTitle": "Ghi chú bằng AI",
+      "notesBody": "Biến một phiên làm việc thành bản nháp ghi chú, quyết định và việc cần làm. Giúp đồng đội nắm bắt nhanh hoặc mang ngữ cảnh sang nhiệm vụ agent tiếp theo.",
+      "notesFootnote": "Thuộc tính năng phân tích cuộc gọi bằng AI: bật trước cuộc gọi và báo cáo sẽ được gửi qua email khi cuộc gọi kết thúc.",
+      "notesCta": "Khám phá ghi chú cuộc gọi bằng AI",
+      "ctaTitle": "Bắt đầu với một phiên chia sẻ",
+      "ctaBody": "Tải PairUX, chia sẻ màn hình và mời đồng đội cùng giải quyết một nhiệm vụ thực tế.",
+      "getPairux": "Tải PairUX",
+      "comparePlans": "So sánh các gói"
+    },
+    "exploreWorkflow": "Khám phá quy trình",
+    "allUseCases": "Tất cả trường hợp sử dụng",
+    "detail": {
+      "plannedTitle": "{title} · Dự kiến cho các gói Premium",
+      "notAvailable": "Chưa khả dụng. Hãy liên hệ với chúng tôi về quyền truy cập premium và thời gian triển khai trước khi mua vì tính năng này.",
+      "whenHelps": "Khi nào hữu ích",
+      "tryWorkflow": "Thử quy trình này",
+      "plannedWorkflow": "Quy trình dự kiến",
+      "leaveWith": "Bạn nhận được gì",
+      "goal": "Mục tiêu",
+      "discussPremium": "Trao đổi về ghi chú AI premium",
+      "startWithPairux": "Bắt đầu với PairUX",
+      "seeCurrentPlans": "Xem các gói hiện tại",
+      "comparePlans": "So sánh các gói",
+      "moreWays": "Thêm cách để làm việc cùng nhau"
+    },
+    "agentic": {
+      "meta": {
+        "title": "Lập trình cặp với agent bằng moshcode | PairUX",
+        "description": "Làm việc với đồng đội trong cùng một phiên agent lập trình trực tiếp. Dùng moshcode cho terminal chung và PairUX để cùng review màn hình và ứng dụng."
+      },
+      "backLink": "← Tất cả trường hợp sử dụng",
+      "eyebrow": "Lập trình cặp với agent",
+      "title": "Hai người. Một phiên agent.",
+      "intro": "Lập trình cặp vẫn cần ngữ cảnh chung khi AI agent viết mã. Mời đồng đội vào phiên moshcode trực tiếp của bạn, rồi dùng PairUX để review những gì agent xây dựng và cùng quyết định bước tiếp theo.",
+      "openMoshcode": "Mở moshcode",
+      "getPairux": "Tải PairUX",
+      "stepsTitle": "Từ quan sát đến cùng làm việc",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Bắt đầu với một phiên trực tiếp",
+          "body": "Chạy moshcode trên máy phát triển và mở phiên tại app.moshcode.sh. Bạn và đồng đội theo dõi cùng một đầu ra của agent và làm việc trong cùng một terminal."
+        },
+        "s1": {
+          "title": "Đưa nhóm vào phiên",
+          "body": "Tạo tổ chức và nhóm trong moshcode, thêm đồng đội bằng email tài khoản của họ, rồi chia sẻ phiên với nhóm đó. Quyền đọc cho phép họ xem; quyền ghi cho phép họ gửi dữ liệu nhập vào phiên đang chạy."
+        },
+        "s2": {
+          "title": "Cùng review kết quả trong PairUX",
+          "body": "Chia sẻ terminal, trình soạn thảo hoặc bản xem trước ứng dụng bằng PairUX. Đồng đội tham gia từ trình duyệt để xem công việc trong ngữ cảnh. Phê duyệt điều khiển từ xa khi bạn muốn họ dùng cả chuột và bàn phím của bạn."
+        }
+      },
+      "permissionsNote": "Quyền nhóm trong moshcode quyết định quyền truy cập phiên terminal. Điều khiển từ xa của PairUX là lựa chọn riêng do người chủ trì chia sẻ màn hình phê duyệt. Dùng một trong hai hoặc cả hai, tùy cách bạn muốn cộng tác.",
+      "contractorTitle": "Cách thực tế để hướng dẫn nhà thầu mới",
+      "contractorP1": "Thêm nhà thầu vào nhóm và cho họ xem phiên đầu tiên với quyền đọc. Giải thích nhiệm vụ, đầu ra của agent và ứng dụng đang chạy. Khi họ sẵn sàng tham gia, cấp quyền ghi để họ làm việc cùng bạn trong chính phiên đó.",
+      "contractorP2": "Bạn cũng có thể dùng quy trình này để điều tra một bài kiểm thử lỗi, so sánh cách agent triển khai với hành vi mong muốn, hoặc review thay đổi trước khi merge. Mọi người đều thấy công việc ngay khi nó diễn ra.",
+      "startPairing": "Bắt đầu lập trình cặp với PairUX"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Lập trình cặp với agent",
+        "audience": "Lập trình viên & đồng đội",
+        "description": "Làm việc với đồng đội trong một phiên agent lập trình trực tiếp. Chia sẻ terminal qua moshcode và cùng review màn hình trong PairUX.",
+        "scenario": "Bạn muốn đồng đội giúp định hướng agent khi nó làm việc trong môi trường phát triển của bạn.",
+        "outcome": "Hiểu biết chung về những gì agent đã thay đổi và việc cần làm tiếp theo.",
+        "steps": {
+          "s0": {
+            "title": "Mở terminal chung",
+            "body": "Mở phiên moshcode trực tiếp và chia sẻ với nhóm của bạn."
+          },
+          "s1": {
+            "title": "Hiển thị ứng dụng",
+            "body": "Chia sẻ trình soạn thảo hoặc bản xem trước ứng dụng qua PairUX."
+          },
+          "s2": {
+            "title": "Cùng xử lý bước tiếp theo",
+            "body": "Cùng review kết quả và quyết định sẽ yêu cầu agent làm gì tiếp."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "Review mã do AI tạo",
+        "audience": "Lập trình viên & người review",
+        "description": "Cùng xem qua diff, bài kiểm thử và ứng dụng đang chạy trước khi thay đổi của agent trở thành một pull request được merge.",
+        "scenario": "Agent vừa tạo ra một thay đổi lớn. Người review cần hiểu hành vi của nó, chứ không chỉ đọc bản tóm tắt bản vá.",
+        "outcome": "Một thay đổi đã được review, với các bản sửa rõ ràng, bài kiểm thử bổ sung và quyết định merge thống nhất.",
+        "steps": {
+          "s0": {
+            "title": "Mở bằng chứng",
+            "body": "Chia sẻ trình soạn thảo với diff, yêu cầu nhiệm vụ và kết quả kiểm thử hiển thị. Giải thích bạn đã yêu cầu agent thay đổi gì."
+          },
+          "s1": {
+            "title": "Cùng thử hành vi",
+            "body": "Chạy ứng dụng và thử các luồng quan trọng. Phê duyệt điều khiển từ xa nếu người review muốn tự thử một trường hợp biên."
+          },
+          "s2": {
+            "title": "Biến phát hiện thành chỉnh sửa tiếp theo",
+            "body": "Thống nhất các chỉnh sửa và yêu cầu agent lập trình thực hiện. Review diff mới và chạy lại các bước kiểm tra liên quan trước khi merge."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Gỡ rối cho agent bị kẹt",
+        "audience": "Lập trình viên & cộng sự gỡ lỗi",
+        "description": "Mời thêm một người vào khi bài kiểm thử lỗi hoặc các lần sửa liên tục thất bại. Cùng xem xét bằng chứng và chọn thử nghiệm tiếp theo.",
+        "scenario": "Agent lập trình liên tục sửa mã mà không khắc phục được lỗi. Đồng đội có thể giúp phát hiện một giả định bị thiếu hoặc vấn đề môi trường.",
+        "outcome": "Một lỗi tái hiện được và bước tiếp theo rõ ràng cho agent.",
+        "steps": {
+          "s0": {
+            "title": "Cho thấy lỗi khi nó xảy ra",
+            "body": "Chia sẻ terminal và tái hiện sự cố. Giải thích cho đồng đội về lỗi, các thay đổi gần đây và những gì đã thử."
+          },
+          "s1": {
+            "title": "Kiểm chứng một giả thuyết",
+            "body": "Cùng xem log, cấu hình và ứng dụng đang chạy. Cấp quyền điều khiển từ xa khi đồng đội cần khám phá cùng môi trường."
+          },
+          "s2": {
+            "title": "Định hướng agent tốt hơn",
+            "body": "Ghi lại các bước tái hiện và bằng chứng cho cách sửa đã chọn. Yêu cầu agent thực hiện một thay đổi tập trung, rồi kiểm tra lại lỗi ban đầu."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Hướng dẫn nhà thầu trong bối cảnh thực",
+        "audience": "Trưởng nhóm & đồng đội mới",
+        "description": "Để đồng đội mới quan sát một nhiệm vụ thực, làm quen với codebase và quy trình agent của bạn, rồi tham gia khi đã sẵn sàng.",
+        "scenario": "Một nhà thầu sắp tham gia dự án và cần hiểu cách bạn dùng agent, review thay đổi và quyết định khi nào công việc sẵn sàng phát hành.",
+        "outcome": "Một đồng đội hiểu quy trình của bạn và có thể đảm nhận nhiệm vụ tiếp theo với đầy đủ ngữ cảnh.",
+        "steps": {
+          "s0": {
+            "title": "Bắt đầu với một nhiệm vụ thực",
+            "body": "Chia sẻ màn hình phát triển và giải thích dự án, nhiệm vụ và cách bạn giao việc cho agent lập trình. Để nhà thầu quan sát lượt đầu tiên."
+          },
+          "s1": {
+            "title": "Giải thích các quyết định",
+            "body": "Đi qua đầu ra của agent, bài kiểm thử và ứng dụng đang chạy. Cho thấy khi nào bạn chấp nhận đề xuất và khi nào bạn yêu cầu cách tiếp cận khác."
+          },
+          "s2": {
+            "title": "Để họ thử sức",
+            "body": "Phê duyệt điều khiển từ xa PairUX cho một lần chỉnh sửa có hướng dẫn. Nếu bạn cũng dùng moshcode, hãy cấp cho họ quyền ghi vào phiên nhóm chung khi họ sẵn sàng gửi dữ liệu nhập terminal."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "Review ứng dụng cùng đội sản phẩm và thiết kế",
+        "audience": "Người xây dựng, nhà thiết kế & đội sản phẩm",
+        "description": "Cho những người sẽ đánh giá kết quả xem ứng dụng mà agent đang xây dựng. Cùng thử luồng sử dụng và biến phản hồi thành thay đổi cụ thể.",
+        "scenario": "Một prototype chạy được đã sẵn sàng, nhưng tương tác, câu chữ hoặc bố cục cần phản hồi từ người ngoài mã nguồn.",
+        "outcome": "Tiêu chí chấp nhận cụ thể và danh sách thay đổi đã thống nhất cho ứng dụng.",
+        "steps": {
+          "s0": {
+            "title": "Chia sẻ trải nghiệm thực tế",
+            "body": "Mở bản xem trước ứng dụng và chia sẻ cửa sổ đó trong PairUX. Đi qua nhiệm vụ mà một người dùng thực phải hoàn thành được."
+          },
+          "s1": {
+            "title": "Để người review tự khám phá",
+            "body": "Mời góp ý trong khi bạn thao tác, hoặc phê duyệt điều khiển từ xa để người review tự thử luồng trên máy của bạn."
+          },
+          "s2": {
+            "title": "Khép lại vòng phản hồi",
+            "body": "Biến nhận xét thành yêu cầu cụ thể cho agent lập trình. Hiển thị ứng dụng đã cập nhật trong cùng phiên và thống nhất những gì đã sẵn sàng."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Gỡ vướng quy trình AI cho người khác",
+        "audience": "Đội hỗ trợ & trưởng nhóm kỹ thuật",
+        "description": "Giúp đồng đội cấu hình công cụ, hiểu một lỗi hoặc khôi phục quy trình cục bộ bị hỏng trong khi cả hai cùng thấy một màn hình.",
+        "scenario": "Một agent hoặc công cụ phát triển chạy được trên máy này nhưng lỗi trên máy khác. Ảnh chụp màn hình và thông báo lỗi sao chép lại thiếu ngữ cảnh.",
+        "outcome": "Một môi trường hoạt động tốt và một người hiểu cách sự cố đã được giải quyết.",
+        "steps": {
+          "s0": {
+            "title": "Để họ cho thấy vấn đề",
+            "body": "Người gặp sự cố chủ trì một phiên PairUX và chia sẻ cửa sổ công cụ liên quan. Tham gia từ trình duyệt và xem họ tái hiện lỗi."
+          },
+          "s1": {
+            "title": "Hướng dẫn sửa trong môi trường của họ",
+            "body": "Giải thích bước kiểm tra tiếp theo và để họ tự thực hiện. Yêu cầu điều khiển từ xa khi cần hỗ trợ trực tiếp; người chủ trì quyết định có phê duyệt hay không."
+          },
+          "s2": {
+            "title": "Xác minh toàn bộ quy trình",
+            "body": "Đề nghị họ chạy lại nhiệm vụ ban đầu. Để lại cho họ các bước đã khắc phục sự cố để lần sau họ tự nhận ra."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Dạy workshop lập trình AI trực tiếp",
+        "audience": "Giảng viên, cộng đồng & các nhóm",
+        "description": "Cho khán giả thấy cách bạn giao việc cho agent, kiểm tra kết quả và xử lý sai sót khi xây dựng một sản phẩm thực.",
+        "scenario": "Nhóm của bạn muốn học quy trình làm việc với agent bằng cách xem những quyết định và chỉnh sửa mà một bản demo trau chuốt thường bỏ qua.",
+        "outcome": "Khán giả đã thấy toàn bộ hành trình từ bản giao việc đến kết quả đã được kiểm tra.",
+        "steps": {
+          "s0": {
+            "title": "Chuẩn bị một buổi trình diễn tập trung",
+            "body": "Chọn một nhiệm vụ nhỏ và chia sẻ terminal, trình soạn thảo hoặc ứng dụng bạn sẽ dùng. Chọn gói PairUX phù hợp với số người nghe trong phòng."
+          },
+          "s1": {
+            "title": "Giải thích lý do đằng sau các prompt",
+            "body": "Giải thích ngữ cảnh bạn cung cấp cho agent và lý do. Dừng lại ở những thời điểm quan trọng để xem diff, chạy kiểm thử và thảo luận kết quả bất ngờ."
+          },
+          "s2": {
+            "title": "Thực hành review kết quả",
+            "body": "Để cả nhóm đề xuất trường hợp biên và thay đổi bổ sung. Chạy các bước kiểm tra đó công khai để người tham gia thấy cách bạn quyết định công việc đã sẵn sàng hay chưa."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "Ghi chú bằng AI",
+        "audience": "Gói Pro và Team",
+        "description": "Bật phân tích cuộc gọi bằng AI trước buổi họp nhóm và ra về với các quyết định, câu hỏi còn mở và việc cần làm, cùng phản hồi về cách cuộc họp diễn ra.",
+        "scenario": "Nhóm của bạn muốn tập trung vào công việc chung và có ghi chú hữu ích cho phiên tiếp theo.",
+        "outcome": "Bản tóm tắt đã được xem lại về công việc, các quyết định và bước tiếp theo.",
+        "steps": {
+          "s0": {
+            "title": "Bật phân tích cuộc gọi bằng AI trước cuộc gọi",
+            "body": "Trên màn hình bắt đầu, bật phân tích cuộc gọi bằng AI và chọn “Họp nhóm”. Mọi người tham gia đều thấy cuộc gọi đang được ghi để phân tích."
+          },
+          "s1": {
+            "title": "Đọc báo cáo",
+            "body": "Sau cuộc gọi, bạn nhận được bản tóm tắt, các quyết định đã đạt được, câu hỏi còn mở và mọi việc cần làm kèm người phụ trách, cùng phản hồi về cách cuộc họp diễn ra."
+          },
+          "s2": {
+            "title": "Mang ngữ cảnh sang nhiệm vụ tiếp theo",
+            "body": "Chia sẻ các việc cần làm với nhóm, hoặc dùng bản tóm tắt để cập nhật cho đồng đội hay chuẩn bị yêu cầu tiếp theo cho agent."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Giới thiệu",
+      "description": "Tìm hiểu về PairUX - công cụ chia sẻ màn hình cộng tác mã nguồn mở."
+    },
+    "title": "Giới thiệu PairUX",
+    "subtitle": "Xây dựng những công cụ cộng tác mà chúng tôi hằng mong có",
+    "missionTitle": "Sứ mệnh",
+    "missionP1": "PairUX ra đời từ sự bực bội. Sau khi Slack mua lại Screenhero và đóng cửa nó, lập trình cặp từ xa trở nên khó khăn không cần thiết. Các công cụ hiện có hoặc thiếu điều khiển từ xa, hoặc đòi hỏi giấy phép đắt đỏ, hoặc khiến bạn bị phụ thuộc vào nhà cung cấp.",
+    "missionP2": "Chúng tôi tin rằng chia sẻ màn hình cộng tác nên dành cho tất cả mọi người. Vì vậy PairUX là mã nguồn mở, với giá cả minh bạch và không có giới hạn giả tạo.",
+    "buildingTitle": "Chúng tôi đang xây dựng gì",
+    "buildingBody": "PairUX là ứng dụng máy tính để chia sẻ màn hình cộng tác, cho phép nhiều người cùng điều khiển từ xa. Hãy hình dung Screenhero, nhưng hiện đại, mã nguồn mở và đa nền tảng.",
+    "buildingList": {
+      "b0": "Chia sẻ màn hình thời gian thực với độ trễ thấp",
+      "b1": "Nhiều người tham gia có thể cùng lúc điều khiển màn hình được chia sẻ",
+      "b2": "Mã hóa đầu cuối để bảo mật",
+      "b3": "Hoạt động trên macOS, Windows và Linux",
+      "b4": "Người xem có thể tham gia từ bất kỳ trình duyệt nào"
+    },
+    "openSourceTitle": "Mã nguồn mở",
+    "openSourceBody": "PairUX được phát hành theo giấy phép MIT. Bạn có thể xem, sửa đổi và đóng góp mã nguồn trên <link>GitHub</link>. Chúng tôi luôn chào đón đóng góp từ cộng đồng.",
+    "contactTitle": "Liên hệ",
+    "contactBody": "Có câu hỏi hoặc góp ý? Liên hệ với chúng tôi tại <link>hello@pairux.com</link>."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blog - PairUX",
+      "description": "Tin tức, cập nhật và hướng dẫn từ đội ngũ PairUX."
+    },
+    "title": "Blog",
+    "subtitle": "Tin tức, cập nhật và hướng dẫn từ đội ngũ PairUX",
+    "comingSoonTitle": "Sắp ra mắt",
+    "comingSoonBody": "Chúng tôi đang viết những bài blog đầu tiên. Hãy quay lại sớm để xem hướng dẫn, cập nhật sản phẩm và hậu trường xây dựng PairUX.",
+    "postNotFound": "Không tìm thấy bài viết",
+    "postTitle": "{title} - Blog PairUX",
+    "backToBlog": "← Quay lại blog"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Nhật ký thay đổi",
+      "description": "Xem có gì mới trong PairUX. Ghi chú phát hành và lịch sử phiên bản."
+    },
+    "title": "Nhật ký thay đổi",
+    "subtitle": "Xem có gì mới trong PairUX",
+    "version": "v{version}",
+    "englishOnly": "Ghi chú phát hành được công bố bằng tiếng Anh."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Chính sách quyền riêng tư",
+      "description": "Chính sách quyền riêng tư của PairUX - cách chúng tôi xử lý dữ liệu của bạn."
+    },
+    "terms": {
+      "title": "Điều khoản dịch vụ",
+      "description": "Điều khoản dịch vụ và chính sách sử dụng chấp nhận được của PairUX."
+    },
+    "lastUpdated": "Cập nhật lần cuối: {date}",
+    "englishOnly": "Tài liệu này được cung cấp bằng tiếng Anh, là phiên bản có giá trị pháp lý."
+  },
+  "docs": {
+    "meta": {
+      "title": "Tài liệu",
+      "description": "Tìm hiểu cách dùng PairUX: hướng dẫn cài đặt, yêu cầu hệ thống, thông tin bảo mật và câu hỏi thường gặp."
+    },
+    "title": "Tài liệu",
+    "subtitle": "Mọi điều bạn cần biết về việc dùng PairUX để chia sẻ màn hình cộng tác.",
+    "onThisPage": "Trên trang này",
+    "toc": {
+      "gettingStarted": "Bắt đầu",
+      "requirements": "Yêu cầu hệ thống",
+      "hosting": "Chủ trì phiên",
+      "viewing": "Xem phiên",
+      "control": "Điều khiển từ xa",
+      "remoteStart": "Khởi động từ xa (Tailscale)",
+      "security": "Bảo mật",
+      "troubleshooting": "Khắc phục sự cố",
+      "uninstalling": "Gỡ cài đặt",
+      "faq": "Câu hỏi thường gặp"
+    },
+    "englishOnly": "Tài liệu chỉ có bằng tiếng Anh.",
+    "agents": {
+      "meta": {
+        "title": "Agent tham gia | Tài liệu PairUX",
+        "description": "Đưa một AI agent như Claude Code vào phiên PairUX trực tiếp. Agent tham gia bằng mã tham gia, theo dõi và trả lời trong khung chat, và được gắn nhãn là agent trên web, máy tính và di động."
+      },
+      "backLink": "← Tài liệu",
+      "title": "Agent tham gia"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Bảng điều khiển - PairUX",
+      "description": "Bảng điều khiển PairUX - Quản lý phiên, thanh toán và cài đặt."
+    },
+    "stats": {
+      "sessionsThisMonth": "Phiên trong tháng",
+      "totalParticipants": "Tổng người tham gia",
+      "hoursUsed": "Số giờ đã dùng",
+      "hoursValue": "{hours} giờ"
+    },
+    "channelsHeading": "Kênh",
+    "usageAnalytics": "Phân tích sử dụng",
+    "analyticsPlaceholder": "Số liệu phân tích sẽ hiển thị ở đây",
+    "yourPlan": "Gói của bạn",
+    "freePlan": "Gói miễn phí",
+    "current": "Hiện tại",
+    "freePlanSummary": "2 người tham gia, chỉ P2P",
+    "upgradePlan": "Nâng cấp gói",
+    "comingSoon": "Sắp ra mắt",
+    "comingSoonButton": "Sắp ra mắt",
+    "perMonth": "/tháng",
+    "plans": {
+      "pro": {
+        "description": "Cho người làm chuyên nghiệp & nhóm đang phát triển",
+        "features": {
+          "participants": "10 người tham gia + 50 người xem",
+          "hours": "Bao gồm 100 giờ-người xem"
+        }
+      },
+      "team": {
+        "description": "Cho nhóm & tổ chức",
+        "features": {
+          "participants": "Không giới hạn người tham gia",
+          "hours": "Bao gồm 500 giờ-người xem"
+        }
+      }
+    },
+    "billing": "Thanh toán",
+    "noPaymentMethod": "Chưa có phương thức thanh toán",
+    "addPaymentMethod": "Thêm phương thức thanh toán",
+    "settings": "Cài đặt",
+    "accountSettings": "Cài đặt tài khoản",
+    "notifications": "Thông báo",
+    "welcome": {
+      "title": "Chào mừng đến với PairUX",
+      "subtitle": "Chia sẻ màn hình, cộng tác thời gian thực và nhận hỗ trợ từ xa.",
+      "startSharing": "Bắt đầu chia sẻ",
+      "joinSession": "Tham gia phiên",
+      "scheduleMeeting": "Lên lịch họp",
+      "callAnalyses": "Phân tích cuộc gọi"
+    },
+    "quickActions": {
+      "title": "Thao tác nhanh",
+      "startSession": "Bắt đầu phiên",
+      "startSessionHint": "Chia sẻ màn hình của bạn",
+      "joinSession": "Tham gia phiên",
+      "joinSessionHint": "Nhập mã tham gia",
+      "scheduleMeeting": "Lên lịch họp",
+      "scheduleMeetingHint": "Mời nhóm của bạn"
+    },
+    "recentSessions": {
+      "title": "Phiên gần đây",
+      "fetchFailed": "Không thể lấy danh sách phiên",
+      "loadFailed": "Không thể tải phiên",
+      "tryAgain": "Thử lại",
+      "empty": "Chưa có phiên nào",
+      "emptyHint": "Bắt đầu phiên đầu tiên để thấy nó ở đây",
+      "startSession": "Bắt đầu phiên",
+      "viewAll": "Xem tất cả",
+      "join": "Tham gia",
+      "resume": "Tiếp tục",
+      "status": {
+        "created": "Đã tạo",
+        "active": "Đang diễn ra",
+        "paused": "Tạm dừng",
+        "ended": "Đã kết thúc"
+      },
+      "duration": {
+        "underMinute": "< 1 phút",
+        "minutes": "{minutes} phút",
+        "hours": "{hours} giờ",
+        "hoursMinutes": "{hours} giờ {minutes} phút"
+      },
+      "date": {
+        "today": "Hôm nay",
+        "yesterday": "Hôm qua",
+        "daysAgo": "{days, plural, other {# ngày trước}}"
+      }
+    },
+    "upcoming": {
+      "title": "Cuộc họp sắp tới",
+      "loadFailed": "Không thể tải các cuộc họp sắp tới",
+      "startFailed": "Không thể bắt đầu cuộc họp",
+      "cancelConfirm": "Hủy cuộc họp đã lên lịch này? Người được mời sẽ nhận được thông báo.",
+      "schedule": "Lên lịch",
+      "empty": "Chưa có cuộc họp nào sắp tới",
+      "scheduleFirst": "Lên lịch cuộc họp đầu tiên",
+      "todayAt": "Hôm nay lúc {time}",
+      "tomorrowAt": "Ngày mai lúc {time}",
+      "durationMinutes": "{minutes} phút",
+      "durationHours": "{hours} giờ",
+      "goesLiveOn": "Phát trực tiếp trên {channel}",
+      "invited": "{count} người được mời",
+      "accepted": "{count} người đã chấp nhận",
+      "startEarlyHint": "Mở phòng ngay và gửi email cho mọi người được mời",
+      "startEarly": "Bắt đầu sớm",
+      "startNow": "Bắt đầu ngay",
+      "addToCalendar": "Thêm vào lịch",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Sửa cuộc họp",
+      "cancelMeeting": "Hủy cuộc họp"
+    },
+    "schedule": {
+      "yourChannels": "Kênh của bạn",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 giờ} =90 {1,5 giờ} =120 {2 giờ} other {# phút}}",
+      "durationCustomHours": "{hours, plural, other {# giờ}}",
+      "repeatNone": "Không lặp lại",
+      "repeatDaily": "Hằng ngày",
+      "repeatWeekly": "Hằng tuần",
+      "repeatMonthly": "Hằng tháng",
+      "repeatUnit": "{freq, select, daily {ngày} weekly {tuần} other {tháng}}",
+      "invalidDate": "Ngày/giờ không hợp lệ",
+      "saveFailed": "Không thể lưu thay đổi",
+      "scheduleFailed": "Không thể lên lịch cuộc họp",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "editTitle": "Sửa cuộc họp",
+      "scheduleTitle": "Lên lịch họp",
+      "close": "Đóng",
+      "meetingTitle": "Tiêu đề cuộc họp",
+      "titlePlaceholder": "VD: Họp nhóm hằng tuần",
+      "dateTime": "Ngày & giờ",
+      "durationLabel": "Thời lượng",
+      "repeat": "Lặp lại",
+      "every": "Mỗi",
+      "numberOfTimes": "Số lần",
+      "zeroForever": "0 = mãi mãi",
+      "recurrenceSummary": "{description}. Mọi người dùng chung mã tham gia và liên kết.",
+      "broadcastChannel": "Kênh phát sóng",
+      "optional": "(không bắt buộc)",
+      "loadingChannels": "Đang tải các kênh của bạn…",
+      "noChannel": "Không có kênh (cuộc họp riêng tư)",
+      "channelUnavailable": "Kênh hiện tại (bạn không còn quyền truy cập)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Bạn chưa có kênh nào. Tạo kênh trong mục Kênh trên bảng điều khiển, hoặc tham gia một nhóm đã có kênh.",
+      "channelHint": "Phát trực tiếp từ cuộc họp này sẽ phát sóng trên kênh này. Kênh của nhóm được liệt kê dưới tên nhóm.",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Chương trình họp, ghi chú hoặc bối cảnh...",
+      "invitees": "Người được mời",
+      "inviteByEmail": "Mời qua email",
+      "removeInvitee": "Xóa người được mời",
+      "addAnother": "Thêm người khác",
+      "editInviteHint": "Người mới được mời sẽ nhận email mời; người bị xóa sẽ được thông báo họ không còn trong danh sách. Dán nhiều địa chỉ, phân tách bằng dấu phẩy.",
+      "newInviteHint": "Lời mời được gửi ngay. Dán nhiều địa chỉ, phân tách bằng dấu phẩy.",
+      "toInvite": "{count} người sẽ được mời",
+      "toRemove": "{count} người sẽ bị xóa",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "saveChanges": "Lưu thay đổi",
+      "scheduling": "Đang lên lịch...",
+      "submitSchedule": "Lên lịch họp"
+    },
+    "booking": {
+      "loadFailed": "Không thể tải trang đặt lịch",
+      "saveFailed": "Không thể lưu",
+      "deleteConfirm": "Xóa “{title}”? Các cuộc họp đã được đặt qua liên kết này vẫn được giữ lại.",
+      "title": "Liên kết đặt lịch",
+      "subtitle": "Cho phép bất kỳ ai đặt lịch gọi với bạn. Cuộc gọi diễn ra trên PairUX.",
+      "newLink": "Liên kết mới",
+      "needUsername": "Hãy đặt tên người dùng trong Cài đặt trước. Liên kết của bạn sẽ là {url}",
+      "empty": "Chưa có liên kết đặt lịch nào. Tạo một liên kết và chia sẻ {url}.",
+      "meta": "· {minutes} phút · {timezone}",
+      "off": "tắt",
+      "copyLink": "Sao chép liên kết",
+      "copied": "Đã sao chép",
+      "turnOff": "Tắt",
+      "turnOn": "Bật",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "newTitle": "Liên kết đặt lịch mới",
+      "editTitle": "Sửa liên kết đặt lịch",
+      "close": "Đóng",
+      "fieldTitle": "Tiêu đề",
+      "titlePlaceholder": "Cuộc gọi làm quen",
+      "fieldLink": "Liên kết",
+      "fieldDescription": "Mô tả",
+      "optional": "(không bắt buộc)",
+      "fieldDuration": "Thời lượng",
+      "durationOption": "{minutes} phút",
+      "fieldTimezone": "Múi giờ",
+      "availableHours": "Giờ rảnh",
+      "to": "đến",
+      "buffer": "Thời gian đệm (phút)",
+      "minNotice": "Báo trước tối thiểu (phút)",
+      "daysAhead": "Số ngày trước",
+      "cancel": "Hủy",
+      "create": "Tạo liên kết",
+      "save": "Lưu",
+      "usernameToken": "tên-người-dùng",
+      "slugToken": "slug"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Không thể tạo ảnh bìa. Hãy thử lại.",
+      "bannerSaveFailed": "Đã tạo ảnh bìa nhưng không thể lưu.",
+      "bannerFailed": "Tạo ảnh bìa không thành công. Vui lòng thử lại.",
+      "uploadFailed": "Không thể tải ảnh lên.",
+      "processFailed": "Không thể xử lý ảnh đó.",
+      "handleInvalid": "Handle phải gồm 3-30 chữ cái, chữ số hoặc dấu gạch dưới.",
+      "createFailed": "Không thể tạo kênh.",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "loading": "Đang tải các kênh của bạn…",
+      "signInPrompt": "Đăng nhập để quản lý kênh của bạn.",
+      "signIn": "Đăng nhập",
+      "empty": "Bạn chưa có kênh nào. Tạo một kênh bên dưới — đây là nơi diễn ra các buổi phát trực tiếp công khai của bạn.",
+      "uploadBanner": "Tải lên ảnh bìa kênh (6:1)",
+      "changeBanner": "Đổi ảnh bìa",
+      "bannerPromptPlaceholder": "Không bắt buộc: mô tả ảnh bìa bạn muốn…",
+      "generateHint": "Dùng AI tạo ảnh bìa 6:1 đúng kích thước từ ảnh bìa hiện tại",
+      "generating": "Đang tạo…",
+      "generate": "Tạo bằng AI",
+      "uploadAvatar": "Tải lên ảnh đại diện (vuông)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · bạn có thể phát trực tiếp tại đây",
+      "subscribers": "{count, plural, other {# người theo dõi}}",
+      "view": "Xem",
+      "streamHeading": "Phát lên kênh này (OBS / mọi ứng dụng RTMP)",
+      "rtmpUrl": "URL RTMP",
+      "streamKey": "Khóa luồng",
+      "copy": "Sao chép",
+      "hide": "Ẩn",
+      "show": "Hiện",
+      "newChannel": "Kênh mới",
+      "handle": "Handle",
+      "handlePlaceholder": "mychannel",
+      "name": "Tên",
+      "namePlaceholder": "Kênh của tôi",
+      "belongsTo": "Thuộc về (thành viên nhóm có thể phát trực tiếp trên kênh của nhóm)",
+      "descriptionLabel": "Mô tả (không bắt buộc, markdown)",
+      "create": "Tạo kênh"
+    },
+    "website": {
+      "saveFailed": "Không thể lưu trang web.",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "label": "Trang web (không bắt buộc)",
+      "placeholder": "example.com",
+      "saved": "Đã lưu",
+      "save": "Lưu",
+      "hint": "Hiển thị trên trang kênh như một liên kết xác thực danh tính. Để trống để xóa."
+    },
+    "restream": {
+      "customRtmp": "RTMP tùy chỉnh",
+      "urlInvalid": "URL RTMP phải bắt đầu bằng rtmp:// hoặc rtmps://",
+      "keyRequired": "Cần nhập khóa luồng.",
+      "saveFailed": "Không thể lưu điểm đến.",
+      "title": "Phát lại ra nền tảng ngoài",
+      "toggleHint": "Tự động phát lại các buổi trực tiếp của kênh này đến các điểm đến bên dưới",
+      "description": "Khi bật, phát trực tiếp trên kênh này cũng sẽ phát lên YouTube/Twitch/v.v. Tắt cho các buổi chia sẻ màn hình riêng tư.",
+      "loading": "Đang tải…",
+      "empty": "Chưa có điểm đến nào.",
+      "on": "Bật",
+      "off": "Tắt",
+      "remove": "Xóa",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Khóa luồng",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "add": "Thêm điểm đến"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Không lặp lại",
+      "describe": "Lặp lại {freq, select, daily {{interval, plural, =1 {hằng ngày} other {mỗi # ngày}}} weekly {{interval, plural, =1 {hằng tuần} other {mỗi # tuần}}} other {{interval, plural, =1 {hằng tháng} other {mỗi # tháng}}}}{when, select, weekday { vào {weekday}} monthDay { vào ngày {day}} other {}}{count, plural, =0 {, mãi mãi} other {, # lần}}",
+      "short": "{freq, select, daily {{interval, plural, =1 {Hằng ngày} other {Mỗi # ngày}}} weekly {{interval, plural, =1 {Hằng tuần} other {Mỗi # tuần}}} other {{interval, plural, =1 {Hằng tháng} other {Mỗi # tháng}}}}",
+      "shortWithLeft": "{label} · còn {left}"
+    }
+  },
+  "workspace": {
+    "label": "Không gian làm việc",
+    "personal": "Cá nhân",
+    "wholeOrg": "{org} (toàn bộ tổ chức)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Tham gia phiên",
+      "subtitle": "Nhập mã tham gia hoặc dán liên kết",
+      "invalidCode": "Vui lòng nhập mã tham gia hợp lệ gồm 6 ký tự",
+      "label": "Mã tham gia hoặc liên kết",
+      "placeholder": "ABC123 hoặc dán liên kết",
+      "hint": "Nhập mã 6 ký tự hoặc dán liên kết tham gia",
+      "continue": "Tiếp tục",
+      "backHome": "Về trang chủ"
+    },
+    "session": {
+      "notFound": "Không tìm thấy phiên",
+      "lookupFailed": "Không thể tra cứu phiên",
+      "joinFailed": "Không thể tham gia phiên",
+      "lookingUp": "Đang tra cứu phiên...",
+      "countdown": {
+        "startingNow": "Bắt đầu ngay bây giờ",
+        "startsInDays": "Bắt đầu sau {days} ngày {hours} giờ",
+        "startsInHours": "Bắt đầu sau {hours} giờ {mins} phút",
+        "startsInMinutes": "Bắt đầu sau {mins} phút"
+      },
+      "durationMinutes": "{minutes, plural, other {# phút}}",
+      "durationHours": "{hours, plural, other {# giờ}}",
+      "invitedCount": "{count} người được mời",
+      "acceptedCount": "{count} người đã chấp nhận",
+      "autoUpdate": "Trang này sẽ tự động cập nhật khi người chủ trì bắt đầu phiên.",
+      "joinCode": "Mã tham gia",
+      "addToCalendar": "Thêm vào lịch",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Không tìm thấy phiên",
+      "goHome": "Về trang chủ",
+      "title": "Tham gia phiên",
+      "subtitle": "Bạn sắp tham gia một phiên chia sẻ màn hình",
+      "sessionCode": "Mã phiên",
+      "status": "Trạng thái",
+      "statusActive": "Người chủ trì đang chia sẻ",
+      "statusPaused": "Người chủ trì hiện không có mặt",
+      "statusWaiting": "Đang chờ người chủ trì",
+      "participants": "Người tham gia",
+      "signedInAs": "Đã đăng nhập với tên {name}",
+      "displayNameOptional": "Tên hiển thị (không bắt buộc)",
+      "useAccountName": "Dùng tên tài khoản",
+      "yourName": "Tên của bạn",
+      "namePlaceholder": "Nhập tên của bạn",
+      "nameHint": "Đây là tên người khác sẽ thấy trong phiên",
+      "joining": "Đang tham gia...",
+      "joinButton": "Tham gia phiên",
+      "watchFree": "Xem miễn phí",
+      "guestNote": "Không cần tài khoản — xem trực tiếp với tư cách khách.",
+      "signInPrompt": "Đã có tài khoản? <link>Đăng nhập</link> để trình bày hoặc điều khiển"
+    }
+  },
+  "invite": {
+    "notFound": "Không tìm thấy lời mời",
+    "loadFailed": "Không thể tải lời mời",
+    "invalidOrExpired": "Liên kết mời này có thể không hợp lệ hoặc đã hết hạn.",
+    "goToPairux": "Đến PairUX",
+    "heading": "Lời mời họp",
+    "fromHost": "từ {name}",
+    "cancelled": "Cuộc họp này đã bị hủy.",
+    "dateTime": "Ngày & giờ",
+    "duration": "Thời lượng",
+    "durationMinutes": "{minutes, plural, other {# phút}}",
+    "durationHours": "{hours, plural, other {# giờ}}",
+    "host": "Người chủ trì",
+    "notes": "Ghi chú",
+    "yourJoinCode": "Mã tham gia của bạn",
+    "useCodeHint": "Dùng mã này khi cuộc họp bắt đầu",
+    "joinMeeting": "Tham gia cuộc họp",
+    "addToCalendar": "Thêm vào lịch",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Bạn đã chấp nhận!",
+    "acceptedNote": "Hẹn gặp bạn tại cuộc họp.",
+    "cantMakeItAfterAll": "Rốt cuộc không thể tham dự?",
+    "declined": "Bạn đã từ chối",
+    "declinedNote": "Bạn đã cho biết mình không thể tham dự.",
+    "changedMind": "Đổi ý?",
+    "willYouAttend": "Bạn sẽ tham dự chứ?",
+    "yes": "Có, tôi sẽ tham dự",
+    "no": "Không thể tham dự",
+    "invitedAs": "Được mời với email {email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Đặt lịch gọi · PairUX",
+      "bookCallWith": "Đặt lịch gọi với {name} · PairUX",
+      "hostDescription": "Chọn thời gian phù hợp với bạn. Cuộc gọi diễn ra trên PairUX.",
+      "pageWith": "{title} với {name} · PairUX",
+      "pageDescription": "Đặt {minutes} phút với {name}. Cuộc gọi diễn ra trên PairUX."
+    },
+    "host": {
+      "subtitle": "Đặt lịch gọi. Cuộc gọi diễn ra ngay trên PairUX.",
+      "notTakingBookings": "{name} hiện không nhận đặt lịch.",
+      "minutes": "{minutes} phút",
+      "pickTime": "Chọn thời gian"
+    },
+    "booking": {
+      "loadFailed": "Không thể tải khung giờ",
+      "bookFailed": "Không thể đặt khung giờ đó",
+      "calendarDescription": "Tham gia tại {url} với mã {code}",
+      "booked": "Bạn đã đặt lịch thành công",
+      "whenWith": "{when} với {name}",
+      "confirmationSent": "Email xác nhận với đầy đủ thông tin bên dưới đang được gửi đến {email}.",
+      "yourJoinCode": "Mã tham gia của bạn",
+      "callHappensHint": "Cuộc gọi diễn ra trên PairUX. Khi đến giờ, hãy mở liên kết bên dưới hoặc nhập mã.",
+      "openCallPage": "Mở trang cuộc gọi",
+      "addToCalendar": "Thêm vào lịch:",
+      "cantMakeIt": "Rốt cuộc không thể tham dự? <link>Báo cho {name}</link>.",
+      "durationMinutes": "{minutes, plural, other {# phút}}",
+      "timesShownIn": "Thời gian hiển thị theo",
+      "aboutCall": "Cuộc gọi diễn ra trên PairUX: thoại, chia sẻ màn hình và điều khiển từ xa, không cần tải xuống khi tham gia từ trình duyệt.",
+      "pickDifferentTime": "Chọn thời gian khác",
+      "minutesWith": "{minutes, plural, other {# phút}} với {name}",
+      "yourName": "Tên của bạn",
+      "email": "Email",
+      "notesLabel": "{name} cần biết điều gì không?",
+      "optional": "(không bắt buộc)",
+      "confirm": "Xác nhận đặt lịch",
+      "previousWeek": "Tuần trước",
+      "nextWeek": "Tuần sau",
+      "nothingFree": "Tuần này không còn khung giờ trống.",
+      "nothingFreeTryNext": "Tuần này không còn khung giờ trống. Hãy thử tuần sau."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Vui lòng đăng nhập để tạo liên kết tham gia",
+    "createFailed": "Không thể tạo phiên",
+    "title": "Tạo liên kết tham gia",
+    "subtitle": "Tạo liên kết để chia sẻ với người tham gia",
+    "signIn": "Đăng nhập",
+    "creating": "Đang tạo...",
+    "createButton": "Tạo liên kết tham gia",
+    "backHome": "Về trang chủ",
+    "joinCode": "Mã tham gia",
+    "joinUrl": "URL tham gia",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép",
+    "shareHint": "Chia sẻ liên kết này với người khác. Họ có thể tham gia và chờ bạn bắt đầu chia sẻ màn hình từ ứng dụng máy tính.",
+    "createAnother": "Tạo liên kết khác",
+    "downloadApp": "Tải ứng dụng"
+  },
+  "hostStart": {
+    "metaTitle": "Chia sẻ màn hình - PairUX",
+    "analysisRequiresPlan": "Phân tích cuộc gọi bằng AI có trong gói Pro và Team. Hãy tắt tính năng này, hoặc nâng cấp trên trang bảng giá.",
+    "createFailed": "Không thể tạo phiên",
+    "createFailedRetry": "Không thể tạo phiên. Vui lòng thử lại.",
+    "title": "Chia sẻ màn hình",
+    "subtitle": "Bắt đầu phiên chia sẻ màn hình chỉ xem từ trình duyệt",
+    "sessionSettings": "Cài đặt phiên",
+    "defaults": "Mặc định",
+    "maxViewers": "Số người xem tối đa",
+    "viewers": "{count, plural, other {# người xem}}",
+    "remoteControl": "Điều khiển từ xa",
+    "enableGuestControl": "Cho phép khách điều khiển",
+    "notAvailableWeb": "Không khả dụng khi chia sẻ trên web",
+    "remoteControlRequires": "Điều khiển từ xa cần <link>ứng dụng máy tính</link>.",
+    "workspaceLabel": "Không gian làm việc (báo cáo cuộc gọi nhóm sẽ được chia sẻ với nhóm)",
+    "creating": "Đang tạo phiên...",
+    "startSharing": "Bắt đầu chia sẻ",
+    "viewOnlyNote": "<strong>Chia sẻ trên web chỉ cho phép xem.</strong> Người xem thấy màn hình của bạn nhưng không thể điều khiển. Để dùng điều khiển từ xa, hãy dùng ứng dụng máy tính.",
+    "joinInstead": "Muốn tham gia phiên khác? <link>Nhập mã tham gia</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "Cùng <rotating></rotating>, <highlight>theo cách hoàn toàn mới</highlight>",
+      "subtitle": "Chia sẻ màn hình cộng tác, cho phép nhiều người cùng điều khiển chuột và bàn phím từ xa. Như Screenhero, nhưng mã nguồn mở.",
+      "download": "Tải xuống miễn phí",
+      "github": "Xem trên GitHub",
+      "note": "Miễn phí và mã nguồn mở. Người xem không cần tài khoản."
+    },
+    "rotating": {
+      "programming": "lập trình",
+      "pitching": "chào hàng",
+      "presenting": "thuyết trình",
+      "demoing": "demo",
+      "designing": "thiết kế",
+      "debugging": "gỡ lỗi",
+      "teaching": "giảng dạy",
+      "training": "đào tạo",
+      "reviewing": "review",
+      "brainstorming": "động não"
+    },
+    "featuresSection": {
+      "title": "Mọi thứ bạn cần để cộng tác từ xa",
+      "subtitle": "Dành cho lập trình viên, nhà thiết kế và bất kỳ ai cần làm việc cùng nhau theo thời gian thực."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Chia sẻ màn hình thời gian thực",
+        "description": "Truyền phát WebRTC độ trễ thấp mang lại hình ảnh chia sẻ sắc nét với chất lượng thích ứng."
+      },
+      "remoteControl": {
+        "title": "Điều khiển từ xa",
+        "description": "Điều khiển chuột và bàn phím khi được người chủ trì phê duyệt rõ ràng. Cả hai có thể điều khiển cùng lúc."
+      },
+      "simultaneousInput": {
+        "title": "Nhập liệu đồng thời",
+        "description": "Người chủ trì và người xem có thể điều khiển cùng lúc. Người chủ trì luôn được ưu tiên để đảm bảo an toàn."
+      },
+      "secure": {
+        "title": "Bảo mật từ thiết kế",
+        "description": "Mã hóa qua WebRTC DTLS-SRTP. Media không bao giờ đi qua máy chủ của chúng tôi, trừ khi bạn bật phân tích cuộc gọi bằng AI."
+      },
+      "pwaViewer": {
+        "title": "Trình xem PWA",
+        "description": "Tham gia phiên từ bất kỳ trình duyệt nào. Người xem không cần tải xuống gì."
+      },
+      "crossPlatform": {
+        "title": "Đa nền tảng",
+        "description": "Ứng dụng máy tính cho macOS, Windows và Linux. Cài đặt qua Homebrew, WinGet hoặc APT."
+      }
+    },
+    "steps": {
+      "title": "Bắt đầu chỉ trong vài phút",
+      "subtitle": "Không cần thiết lập phức tạp. Chỉ cần cài đặt, chia sẻ và cộng tác.",
+      "install": {
+        "title": "Cài đặt ứng dụng máy tính",
+        "description": "Tải PairUX về máy qua trình quản lý gói hoặc tải xuống trực tiếp."
+      },
+      "start": {
+        "title": "Bắt đầu phiên",
+        "description": "Nhấp “Bắt đầu phiên” và chọn màn hình hoặc cửa sổ muốn chia sẻ."
+      },
+      "share": {
+        "title": "Chia sẻ liên kết",
+        "description": "Gửi liên kết tham gia cho cộng sự. Họ có thể tham gia từ bất kỳ trình duyệt nào."
+      }
+    },
+    "community": {
+      "title": "Dành cho cộng tác thực tế",
+      "subtitle": "PairUX đã được dùng để lập trình cặp, review thiết kế và hỗ trợ từ xa. Chúng tôi đang thu thập phản hồi sớm — hãy dùng thử và chia sẻ ý kiến của bạn.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Cuối cùng cũng có một sản phẩm thay thế Screenhero thực sự hoạt động. Tính năng điều khiển đồng thời là bước ngoặt cho lập trình cặp.",
+          "role": "Kỹ sư phần mềm"
+        },
+        "techLead": {
+          "quote": "Việc người xem có thể tham gia từ bất kỳ trình duyệt nào mà không cần cài đặt khiến nó hoàn hảo cho những phiên cộng tác nhanh.",
+          "role": "Trưởng nhóm kỹ thuật"
+        },
+        "contributor": {
+          "quote": "Mã nguồn mở, mã hóa đầu cuối và cứ thế hoạt động. Đúng là thứ cộng đồng lập trình viên cần.",
+          "role": "Người đóng góp mã nguồn mở"
+        }
+      },
+      "feedback": "Đang dùng PairUX? <link>Chia sẻ trải nghiệm của bạn trên GitHub</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Mới · Phân tích cuộc gọi bằng AI",
+      "title": "Nhận phản hồi cho mọi buổi phỏng vấn, họp nhóm và thuyết trình.",
+      "description": "Bật trước cuộc gọi. Sau đó bạn nhận được báo cáo riêng: điểm số, điều đã làm tốt, điều cần cải thiện, thời lượng nói, tốc độ, từ đệm và những khoảnh khắc đáng xem lại.",
+      "cta": "Xem cách phân tích cuộc gọi hoạt động",
+      "sample": {
+        "label": "Báo cáo mẫu · Phỏng vấn",
+        "headline": "Câu trả lời rõ ràng, nhưng bạn kết thúc quá vội",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Bạn nói {percent}% thời gian, tốc độ {wpm} từ/phút",
+        "fillers": "{rate} từ đệm trên 100 từ (“kiểu như”, “thì là”)",
+        "practice": "Luyện tập: kết thúc mỗi câu trả lời bằng kết quả, trong một câu"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Lập trình cặp với agent",
+      "title": "Hai người. Một phiên agent.",
+      "description": "Mời đồng đội cùng làm việc trong khi agent lập trình đang chạy. Theo dõi cùng một terminal, cùng review ứng dụng và quyết định sẽ yêu cầu agent làm gì tiếp.",
+      "cta": "Lập trình cặp với moshcode và PairUX",
+      "browse": "Xem tất cả trường hợp sử dụng",
+      "cardTitle": "Quan sát, thảo luận, rồi cùng làm",
+      "step1": "1. Bắt đầu một phiên moshcode trực tiếp và chia sẻ với nhóm.",
+      "step2": "2. Dùng PairUX để hiển thị terminal và ứng dụng bạn đang xây dựng.",
+      "step3": "3. Cùng review các thay đổi của agent và để đồng đội tham gia.",
+      "note": "Hữu ích khi hướng dẫn nhà thầu mới, cùng gỡ lỗi và review công việc trước khi phát hành."
+    },
+    "security": {
+      "title": "Bảo mật đáng tin cậy",
+      "subtitle": "PairUX được xây dựng với bảo mật làm cốt lõi. Dữ liệu màn hình của bạn không bao giờ đi qua máy chủ của chúng tôi.",
+      "encryption": {
+        "title": "Mã hóa đầu cuối",
+        "description": "Mọi media được mã hóa qua WebRTC DTLS-SRTP"
+      },
+      "consent": {
+        "title": "Đồng ý rõ ràng",
+        "description": "Người chủ trì phải phê duyệt mọi yêu cầu điều khiển"
+      },
+      "revoke": {
+        "title": "Thu hồi khẩn cấp",
+        "description": "{shortcut} thu hồi ngay mọi quyền điều khiển"
+      },
+      "openSource": {
+        "title": "Mã nguồn mở",
+        "description": "Mã nguồn có thể kiểm tra hoàn toàn, theo giấy phép MIT"
+      },
+      "diagram": {
+        "p2p": "Kết nối ngang hàng trực tiếp",
+        "noStorage": "Không lưu trữ media trên máy chủ"
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng cộng tác?",
+      "subtitle": "Tải PairUX và bắt đầu chia sẻ màn hình chỉ trong vài giây. Miễn phí, mã nguồn mở và chú trọng quyền riêng tư.",
+      "download": "Tải xuống ngay",
+      "learnMore": "Tìm hiểu thêm"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Bảng giá",
+      "description": "Giá cố định đơn giản. Không tính phí theo người dùng. Plus $1/tháng (tối đa 100 người nghe), Pro $12/tháng, Team $49/tháng. Rẻ hơn 40-70% so với Zoom, Teams và các giải pháp doanh nghiệp khác."
+    },
+    "hero": {
+      "title": "Rẻ hơn 40–70% so với các ông lớn",
+      "subtitle": "Giá cố định đơn giản. Không tính phí theo người dùng, không hợp đồng năm, không cuộc gọi bán hàng doanh nghiệp."
+    },
+    "mostPopular": "Phổ biến nhất",
+    "period": {
+      "forever": "/mãi mãi",
+      "month": "/tháng"
+    },
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "description": "Lý tưởng cho cá nhân và nhóm nhỏ",
+        "cta": "Bắt đầu",
+        "features": {
+          "participants": "2 người tham gia + tối đa {count} người nghe",
+          "publicViewers": "Không giới hạn người xem miễn phí với buổi phát trực tiếp công khai",
+          "p2p": "Kết nối P2P",
+          "screenSharing": "Chia sẻ màn hình",
+          "remoteControl": "Điều khiển từ xa",
+          "e2e": "Mã hóa đầu cuối",
+          "support": "Hỗ trợ từ cộng đồng"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Chủ trì cho khán giả — giảng dạy, họp đứng, xem cùng nhau",
+        "cta": "Nâng cấp lên Plus",
+        "features": {
+          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "sfu": "Máy chủ chuyển tiếp SFU",
+          "liveDirectory": "Phòng công khai trong danh bạ /live",
+          "screenVoice": "Chia sẻ màn hình + thoại",
+          "remoteControl": "Điều khiển từ xa",
+          "cancel": "Hủy bất cứ lúc nào"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Cho người làm chuyên nghiệp và nhóm đang phát triển",
+        "cta": "Nâng cấp lên Pro",
+        "features": {
+          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "sfu": "Máy chủ chuyển tiếp SFU",
+          "streaming": "Mọi nền tảng phát trực tiếp (YouTube, Twitch, …)",
+          "hd": "Chia sẻ màn hình HD (1080p)",
+          "liveDirectory": "Phòng công khai trong danh bạ /live",
+          "callAnalysis": "Phân tích cuộc gọi bằng AI",
+          "support": "Hỗ trợ ưu tiên"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "Cho nhóm và tổ chức",
+        "cta": "Nâng cấp lên Team",
+        "features": {
+          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "sfu": "Máy chủ SFU riêng",
+          "streaming": "Mọi nền tảng phát trực tiếp",
+          "uhd": "Chia sẻ màn hình 4K",
+          "callAnalysis": "Phân tích cuộc gọi bằng AI",
+          "admin": "Công cụ quản trị",
+          "support": "Hỗ trợ ưu tiên"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Đang bắt đầu thanh toán…",
+      "checkoutFailed": "Không thể bắt đầu thanh toán. Vui lòng thử lại.",
+      "networkError": "Lỗi mạng. Vui lòng thử lại."
+    },
+    "callAnalysis": {
+      "eyebrow": "Có trong gói Pro và Team",
+      "title": "Phân tích cuộc gọi bằng AI",
+      "description": "Bật trước cuộc gọi và nhận báo cáo phản hồi sau đó: điểm số, thời lượng nói, tốc độ, từ đệm, điều đã làm tốt, điều cần luyện tập, và với họp nhóm là các quyết định và việc cần làm.",
+      "cta": "Xem cách phân tích cuộc gọi hoạt động →"
+    },
+    "cost": {
+      "title": "So sánh chi phí thực tế",
+      "subtitle": "So sánh giá của chúng tôi với chi phí thông thường của Zoom Webinars và Microsoft Teams",
+      "plan": "Gói",
+      "rows": {
+        "free": "Miễn phí",
+        "pro": "Pro / Nhóm nhỏ",
+        "team": "Team / Doanh nghiệp",
+        "tenPerson": "Nhóm 10 người"
+      },
+      "cells": {
+        "freeLimit": "{price} (giới hạn {minutes} phút)",
+        "perMonth": "{price}/tháng",
+        "perHost": "{price}/tháng/người chủ trì",
+        "perUser": "{price}/tháng/người dùng",
+        "perMonthTotal": "Tổng {price}/tháng"
+      },
+      "footnote": "* PairUX tính phí theo nhóm, không theo người dùng. Không cấp phép theo số chỗ."
+    },
+    "comparison": {
+      "title": "So sánh tính năng",
+      "subtitle": "Xem PairUX so sánh thế nào với Zoom, Teams, Webex, Google Meet và Jitsi",
+      "feature": "Tính năng",
+      "rows": {
+        "transparent": "Giá cả minh bạch",
+        "noSeatFees": "Không tính phí theo người dùng",
+        "noContracts": "Không hợp đồng năm",
+        "flatRate": "Gói giá cố định đơn giản",
+        "openSource": "Mã nguồn mở",
+        "selfHost": "Tự lưu trữ được",
+        "remoteControl": "Điều khiển từ xa",
+        "multiCursor": "Hỗ trợ nhiều con trỏ",
+        "noAccount": "Không cần tài khoản (người xem)"
+      }
+    },
+    "advantages": {
+      "title": "Điều làm nên khác biệt của PairUX",
+      "subtitle": "Các công cụ doanh nghiệp không thể sao chép điều này mà không phá vỡ mô hình định giá của họ",
+      "items": {
+        "noSeatFees": {
+          "title": "Không tính phí theo người dùng",
+          "description": "Một mức giá cho cả nhóm. Thêm người mà không tăng chi phí."
+        },
+        "noLockIn": {
+          "title": "Không ràng buộc",
+          "description": "Không hợp đồng năm hay cam kết. Hủy bất cứ lúc nào."
+        },
+        "openSource": {
+          "title": "Mã nguồn mở",
+          "description": "Kiểm tra mã nguồn, tự lưu trữ hoặc tùy biến. Dữ liệu của bạn, quy tắc của bạn."
+        },
+        "developer": {
+          "title": "Thân thiện với lập trình viên",
+          "description": "Cài đặt qua CLI, truy cập API và sẵn sàng tự động hóa ngay từ đầu."
+        }
+      }
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "capacity": {
+        "question": "Bao nhiêu người có thể xem phòng của tôi?",
+        "answer": "Số người nghe đồng thời mỗi phòng tăng theo gói của bạn: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Ngoài ra, buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản.",
+        "answerLong": "Số người nghe đồng thời mỗi phòng tăng theo gói của bạn: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Ngoài ra, buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản."
+      },
+      "free": {
+        "question": "Gói miễn phí có thực sự miễn phí?",
+        "answer": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi — và buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản. Không giới hạn thời gian, không cần thẻ tín dụng.",
+        "answerLong": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi — và buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản. Không giới hạn thời gian, không cần thẻ tín dụng. Rất phù hợp cho lập trình cặp và các buổi demo nhỏ."
+      },
+      "selfHost": {
+        "question": "Tôi có thể tự lưu trữ để tránh chi phí không?",
+        "answer": "Hoàn toàn được. PairUX là mã nguồn mở theo giấy phép MIT. Bạn có thể tự vận hành hạ tầng SFU nếu muốn.",
+        "answerLong": "Hoàn toàn được. PairUX là mã nguồn mở theo giấy phép MIT. Bạn có thể tự vận hành hạ tầng SFU nếu muốn. Rất phù hợp cho doanh nghiệp có yêu cầu bảo mật riêng."
+      },
+      "cheaper": {
+        "question": "Vì sao PairUX rẻ hơn Zoom và Teams?",
+        "answer": "Chúng tôi tính phí theo nhóm, không theo người dùng. Một nhóm 10 người chỉ trả tổng cộng {teamPrice}/tháng với PairUX, so với {competitorPrice}/tháng với Zoom hoặc Teams.",
+        "answerLong": "Chúng tôi tính phí theo nhóm, không theo người dùng. Một nhóm 10 người chỉ trả tổng cộng {teamPrice}/tháng với PairUX, so với {competitorPrice}/tháng với Zoom hoặc Teams. Không có đội bán hàng doanh nghiệp nghĩa là chi phí thấp hơn cho bạn."
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng tiết kiệm chi phí hạ tầng video?",
+      "subtitle": "Bắt đầu miễn phí với phiên P2P, hoặc nâng cấp lên Pro chỉ với {price}/tháng. Không bao giờ tính phí theo người dùng.",
+      "download": "Tải xuống miễn phí",
+      "signup": "Tạo tài khoản"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "Tải xuống",
+      "description": "Tải PairUX cho macOS, Windows hoặc Linux. Có sẵn qua Homebrew, WinGet, APT và tải xuống trực tiếp."
+    },
+    "hero": {
+      "title": "Tải PairUX",
+      "subtitle": "Tải ứng dụng máy tính để chủ trì phiên. Người xem có thể tham gia từ bất kỳ trình duyệt nào."
+    },
+    "copyToClipboard": "Sao chép vào bộ nhớ tạm",
+    "loading": "Đang tải thông tin phiên bản...",
+    "loadFailed": "Không thể tải thông tin phiên bản",
+    "viewReleases": "Xem các bản phát hành trên GitHub",
+    "latest": "Mới nhất: v{version}",
+    "quickInstall": {
+      "title": "Cài đặt nhanh",
+      "subtitle": "Cách nhanh nhất để bắt đầu. Hoạt động trên macOS, Linux và Windows.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Tự động tải phiên bản mới nhất cho nền tảng của bạn",
+      "afterInstall": "Sau khi cài đặt, dùng <update></update> để nâng cấp và <uninstall></uninstall> để gỡ bỏ."
+    },
+    "detected": "Được phát hiện dựa trên trình duyệt của bạn",
+    "downloadDmg": "Tải DMG",
+    "downloadInstaller": "Tải trình cài đặt",
+    "downloadAppImage": "Tải AppImage",
+    "allPlatforms": {
+      "title": "Tất cả nền tảng",
+      "subtitle": "Chọn hệ điều hành và định dạng bạn muốn"
+    },
+    "requirements": {
+      "macos": "Yêu cầu macOS 12 (Monterey) trở lên",
+      "windows": "Yêu cầu Windows 10 (1809) trở lên",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Shell script",
+    "installerX64": "Trình cài đặt (x64)",
+    "viewAllReleases": "Xem tất cả bản phát hành trên GitHub",
+    "checksums": {
+      "toggle": "Xác minh tệp tải xuống (checksum SHA256)",
+      "description": "Xác minh tệp tải xuống bằng cách so sánh checksum SHA256.",
+      "file": "Tệp"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "Cài đặt ứng dụng PairUX",
+    "installApp": "Cài ứng dụng",
+    "title": "Cài đặt PairUX",
+    "mobileDescription": "Thêm vào màn hình chính để truy cập nhanh",
+    "desktopDescription": "Cài đặt ứng dụng máy tính để có trải nghiệm tốt hơn",
+    "dismiss": "Bỏ qua lời nhắc cài đặt",
+    "installing": "Đang cài đặt...",
+    "install": "Cài đặt"
+  },
+  "offline": {
+    "title": "Bạn đang ngoại tuyến",
+    "description": "PairUX cần kết nối internet để chia sẻ màn hình và cộng tác theo thời gian thực. Vui lòng kiểm tra kết nối và thử lại.",
+    "retry": "Thử lại"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Trả quyền điều khiển",
+      "inControl": "Đang điều khiển",
+      "waitingApproval": "Đang chờ người chủ trì phê duyệt",
+      "requesting": "Đang yêu cầu...",
+      "waitingConnection": "Đang chờ kết nối",
+      "requestTitle": "Yêu cầu điều khiển máy của người chủ trì",
+      "requestControl": "Yêu cầu điều khiển"
+    },
+    "status": {
+      "title": "Trạng thái điều khiển: {state}",
+      "viewOnly": "Chỉ xem",
+      "pending": "Đang chờ",
+      "controlling": "Đang điều khiển"
+    },
+    "capture": {
+      "clickToControl": "Nhấp để điều khiển · Esc để trả quyền",
+      "pointerUnavailable": "Không thể chiếm con trỏ · Nhấp để thử lại",
+      "fullscreenLock": "Toàn màn hình + khóa con trỏ",
+      "exitFullscreen": "Thoát toàn màn hình",
+      "capturePointerAgain": "Chiếm lại con trỏ"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "Phân tích cuộc gọi bằng AI",
+      "description": "Nhận phản hồi sau cuộc gọi: thời lượng nói, tốc độ, từ đệm, điều gây ấn tượng và điều cần luyện tập. Hãy quyết định ngay; không thể bật sau khi cuộc gọi đã bắt đầu.",
+      "toggle": "Phân tích cuộc gọi này",
+      "kindLabel": "Đây là loại cuộc gọi nào?",
+      "kinds": {
+        "general": "Cuộc gọi thông thường",
+        "interview": "Phỏng vấn",
+        "team-sync": "Họp nhóm",
+        "presentation": "Thuyết trình"
+      },
+      "keepRecording": "Ghi cuộc gọi và giữ lại bản ghi",
+      "disclosure": "Mọi người tham gia đều được thông báo cuộc gọi đang được ghi để AI phân tích. Báo cáo chỉ mình bạn xem được. <link>Cách hoạt động</link>"
+    },
+    "handoff": {
+      "openedTitle": "Đã mở trong ứng dụng máy tính",
+      "openingTitle": "Đang mở ứng dụng máy tính PairUX…",
+      "openedBody": "Cuộc họp của bạn đang chạy trong ứng dụng máy tính, nơi khách có thể được cấp quyền điều khiển.",
+      "openingBody": "Ứng dụng máy tính có thể chia sẻ quyền điều khiển màn hình. Trình duyệt chỉ có thể hiển thị.",
+      "continueInBrowser": "Tiếp tục trong trình duyệt này",
+      "download": "Chưa có ứng dụng? Tải xuống"
+    },
+    "hostPresence": {
+      "notJoined": "Người chủ trì chưa tham gia",
+      "left": "Người chủ trì đã rời đi",
+      "chatAvailable": "Bạn vẫn có thể trò chuyện. Bạn sẽ được thông báo khi người chủ trì quay lại."
+    },
+    "recordingNotice": {
+      "recorded": "Cuộc gọi này đang được người chủ trì ghi lại để AI phân tích. Hãy rời cuộc gọi nếu bạn không muốn tham gia.",
+      "recordedKept": "Cuộc gọi này đang được người chủ trì ghi lại để AI phân tích, và người chủ trì sẽ giữ bản ghi. Hãy rời cuộc gọi nếu bạn không muốn tham gia."
+    },
+    "settingsPanel": {
+      "title": "Cài đặt phiên",
+      "sessionInfo": "Thông tin phiên",
+      "sessionCode": "Mã phiên",
+      "status": "Trạng thái",
+      "participants": "Người tham gia",
+      "created": "Đã tạo",
+      "connectionQuality": "Chất lượng kết nối",
+      "network": "Mạng",
+      "frameRate": "Tốc độ khung hình",
+      "fps": "{value} fps",
+      "packetLoss": "Mất gói",
+      "latency": "Độ trễ",
+      "ms": "{value} ms",
+      "appearance": "Giao diện",
+      "theme": {
+        "light": "sáng",
+        "dark": "tối",
+        "system": "hệ thống"
+      },
+      "sessionStatus": {
+        "created": "đã tạo",
+        "active": "đang diễn ra",
+        "paused": "tạm dừng",
+        "ended": "đã kết thúc"
+      },
+      "connectionState": {
+        "idle": "chờ",
+        "connecting": "đang kết nối",
+        "connected": "đã kết nối",
+        "reconnecting": "đang kết nối lại",
+        "failed": "thất bại",
+        "disconnected": "mất kết nối"
+      },
+      "networkQuality": {
+        "excellent": "Rất tốt",
+        "good": "Tốt",
+        "poor": "Yếu",
+        "bad": "Kém"
+      }
+    },
+    "publish": {
+      "titlePublic": "Phòng đang công khai",
+      "titlePublish": "Đăng lên /live",
+      "intro": "Liệt kê phòng của bạn trên <strong>pairux.com/live</strong> cho phép bất kỳ ai tìm thấy và tham gia — không cần liên kết mời.",
+      "subject": "Chủ đề",
+      "subjectPlaceholder": "VD: Xây dựng ứng dụng Next.js trực tiếp",
+      "description": "Mô tả",
+      "optional": "(không bắt buộc)",
+      "descriptionPlaceholder": "Phòng này đang diễn ra điều gì?",
+      "publish": "Đăng",
+      "liveNotice": "Phòng của bạn đang hiển thị trong danh bạ công khai.",
+      "viewLive": "Xem /live",
+      "profileLink": "Liên kết hồ sơ của bạn",
+      "copied": "Đã sao chép",
+      "claimPrompt": "Đăng ký tên người dùng để có trang hồ sơ chia sẻ được tại <code>{path}</code>.",
+      "usernamePlaceholder": "tên người dùng",
+      "claim": "Đăng ký",
+      "makePrivate": "Đặt riêng tư",
+      "done": "Xong",
+      "errors": {
+        "publishFailed": "Không thể đăng phòng",
+        "unpublishFailed": "Không thể gỡ phòng khỏi danh bạ",
+        "usernameFailed": "Không thể lưu tên người dùng",
+        "network": "Lỗi mạng. Vui lòng thử lại."
+      }
+    }
+  },
+  "participants": {
+    "title": "Người tham gia",
+    "activeCount": "{count, plural, other {# đang hoạt động}}",
+    "emptyTitle": "Chưa có người tham gia",
+    "emptyHint": "Chia sẻ liên kết để mời người khác",
+    "you": "(bạn)",
+    "agent": "Agent",
+    "agentWithClient": "Agent ({client})",
+    "host": "Người chủ trì",
+    "inControl": "Đang điều khiển",
+    "requesting": "Đang yêu cầu",
+    "viewer": "Người xem",
+    "removeAgent": "Xóa agent",
+    "mute": "Tắt tiếng người tham gia",
+    "unmute": "Bật tiếng người tham gia",
+    "grantControl": "Cấp quyền điều khiển",
+    "revokeControl": "Thu hồi quyền điều khiển",
+    "removeParticipant": "Xóa người tham gia",
+    "makeHost": "Đặt làm người chủ trì",
+    "connection": {
+      "connected": "đã kết nối",
+      "reconnecting": "đang kết nối lại",
+      "disconnected": "mất kết nối"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "Đang chờ chia sẻ màn hình",
+      "idleBody": "Người chủ trì chưa bắt đầu chia sẻ màn hình. Bạn sẽ thấy màn hình của họ tại đây khi họ bắt đầu.",
+      "connectingTitle": "Đang kết nối...",
+      "connectingBody": "Đang thiết lập kết nối bảo mật với người chủ trì. Thường chỉ mất vài giây.",
+      "reconnectingTitle": "Đang kết nối lại...",
+      "reconnectingBody": "Kết nối bị gián đoạn. Đang thử kết nối lại...",
+      "failedTitle": "Kết nối thất bại",
+      "failedBody": "Không thể thiết lập kết nối. Vui lòng kiểm tra mạng và thử lại.",
+      "tryAgain": "Thử lại",
+      "disconnectedTitle": "Người chủ trì đã mất kết nối",
+      "disconnectedBody": "Người chủ trì đã dừng chia sẻ hoặc mất kết nối. Đang chờ họ kết nối lại...",
+      "reconnect": "Kết nối lại"
+    },
+    "quality": {
+      "title": "Kết nối: {quality}",
+      "details": "Chi tiết kết nối",
+      "quality": "Chất lượng",
+      "bitrate": "Bitrate",
+      "frameRate": "Tốc độ khung hình",
+      "latency": "Độ trễ",
+      "packetLoss": "Mất gói",
+      "levels": {
+        "excellent": "Rất tốt",
+        "good": "Tốt",
+        "poor": "Yếu",
+        "bad": "Kém"
+      }
+    },
+    "player": {
+      "unsupported": "Trình duyệt của bạn không hỗ trợ phát video."
+    },
+    "preview": {
+      "idleHint": "Nhấp bên dưới để bắt đầu chia sẻ màn hình",
+      "start": "Bắt đầu chia sẻ màn hình",
+      "requesting": "Đang yêu cầu quyền truy cập màn hình...",
+      "selectSource": "Vui lòng chọn màn hình hoặc cửa sổ để chia sẻ",
+      "tryAgain": "Thử lại",
+      "stop": "Dừng chia sẻ"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Quản trị - PairUX"
+    },
+    "title": "Quản trị",
+    "loggedInAs": "Đã đăng nhập với {email}",
+    "integrations": {
+      "title": "Tích hợp autoblog",
+      "description": "Tạo bearer token, rồi dán vào <link>CrawlProof</link> làm webhook secret. Token này đồng thời là khóa ký HMAC để xác minh yêu cầu.",
+      "confirmRevoke": "Thu hồi “{name}”? Nguồn này sẽ không thể đăng bài nữa.",
+      "webhookEndpoint": "Endpoint webhook",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "generateToken": "Tạo token",
+      "namePlaceholder": "Tên tích hợp",
+      "generate": "Tạo",
+      "tokenCreated": "Đã tạo token — hãy sao chép ngay và dán vào cài đặt webhook autoblog của CrawlProof.",
+      "accessTokens": "Token truy cập ({count})",
+      "empty": "Chưa có — hãy tạo một token ở trên.",
+      "requests": "{count, plural, other {# yêu cầu}}",
+      "lastUsed": "lần cuối {date}",
+      "hide": "Ẩn",
+      "reveal": "Hiện",
+      "revoke": "Thu hồi"
+    },
+    "email": {
+      "title": "Gửi email cho người dùng",
+      "description": "Soạn email HTML và gửi đến tất cả người dùng đã đăng ký qua Resend.",
+      "subject": "Tiêu đề",
+      "subjectPlaceholder": "Thông báo: ...",
+      "body": "Nội dung (Markdown)",
+      "result": "Đã gửi {sent} · Thất bại {failed}",
+      "sending": "Đang gửi…",
+      "send": "Gửi cho tất cả người dùng"
+    },
+    "posts": {
+      "title": "Bài blog gần đây",
+      "empty": "Chưa có bài viết nào được nhập.",
+      "columnTitle": "Tiêu đề",
+      "columnSource": "Nguồn",
+      "columnPublished": "Ngày đăng"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Phân tích cuộc gọi - PairUX",
+      "detailTitle": "Phân tích cuộc gọi - PairUX"
+    },
+    "kinds": {
+      "general": "Cuộc gọi thông thường",
+      "interview": "Phỏng vấn",
+      "team-sync": "Họp nhóm",
+      "presentation": "Thuyết trình"
+    },
+    "status": {
+      "recording": "Đang ghi",
+      "queued": "Đang chờ phân tích",
+      "processing": "Đang viết báo cáo",
+      "ready": "Sẵn sàng",
+      "failed": "Thất bại"
+    },
+    "list": {
+      "title": "Phân tích cuộc gọi",
+      "intro": "Phản hồi cho các cuộc gọi bạn đã bật phân tích bằng AI. Bật tính năng này trước cuộc gọi trên màn hình bắt đầu của web, ứng dụng máy tính hoặc di động.",
+      "loadError": "Không thể tải các bản phân tích",
+      "empty": "Chưa có cuộc gọi nào được phân tích. <link>Bắt đầu cuộc gọi có phân tích bằng AI</link>",
+      "untitled": "Cuộc gọi không tên",
+      "sharedWithTeam": "đã chia sẻ với nhóm của bạn"
+    },
+    "report": {
+      "back": "← Tất cả phân tích cuộc gọi",
+      "loadError": "Không thể tải bản phân tích này",
+      "failed": "Không thể hoàn tất bản phân tích này: {error}",
+      "stillRecording": "Cuộc gọi vẫn đang được ghi.",
+      "beingWritten": "Báo cáo của bạn đang được viết. Trang này tự cập nhật, và bạn sẽ nhận email khi báo cáo sẵn sàng.",
+      "outOf10": "trên 10",
+      "byTheNumbers": "Qua các con số",
+      "table": {
+        "speaker": "Người nói",
+        "talkTime": "Thời lượng nói",
+        "pace": "Tốc độ",
+        "fillers": "Từ đệm",
+        "questions": "Câu hỏi",
+        "longestTurn": "Lượt nói dài nhất",
+        "wpm": "{value} từ/phút",
+        "fillerRate": "{value} / 100 từ"
+      },
+      "mobileNote": "Ghi trên điện thoại: chỉ micro của bạn được ghi lại.",
+      "whatWorked": "Điều đã làm tốt",
+      "toImprove": "Cần cải thiện",
+      "try": "Hãy thử: {suggestion}",
+      "delivery": {
+        "title": "Cách trình bày",
+        "pace": "Tốc độ",
+        "clarity": "Độ rõ ràng",
+        "confidence": "Sự tự tin",
+        "fillerWords": "Từ đệm",
+        "listening": "Lắng nghe"
+      },
+      "practiceNext": "Luyện tập cho lần sau",
+      "onScreen": "Nội dung trên màn hình",
+      "actionItems": "Việc cần làm",
+      "keyMoments": "Khoảnh khắc đáng xem lại",
+      "hideTranscript": "Ẩn bản chép lời",
+      "showTranscript": "Hiện bản chép lời",
+      "disclaimer": "Do AI viết từ bản ghi cuộc gọi. Nhãn người nói được xác định tự động và có thể không chính xác.",
+      "disclaimerWithModel": "Do AI ({model}) viết từ bản ghi cuộc gọi. Nhãn người nói được xác định tự động và có thể không chính xác."
+    }
+  },
+  "devices": {
+    "title": "Thiết bị của tôi",
+    "intro": "Bắt đầu chia sẻ màn hình trên máy tính đang chạy <code>pairux daemon</code>, ngay từ đây. Hữu ích khi thuyết trình từ laptop trong lúc cầm điện thoại.",
+    "addressLabel": "Địa chỉ thiết bị",
+    "add": "Thêm",
+    "errors": {
+      "invalidAddress": "Đây có vẻ không phải là địa chỉ thiết bị.",
+      "duplicate": "Thiết bị này đã có trong danh sách."
+    },
+    "empty": "Chưa có thiết bị nào. Trên máy tính bạn muốn chia sẻ, hãy chạy <code>pairux daemon</code> — lệnh này sẽ in ra địa chỉ để dán vào đây.",
+    "howToSetUp": "Cách thiết lập",
+    "remove": "Xóa {name}",
+    "joinSession": "Tham gia phiên trên {name}",
+    "stopSharing": "Dừng chia sẻ",
+    "startSharing": "Bắt đầu chia sẻ",
+    "check": "Kiểm tra"
+  },
+  "notifications": {
+    "unsupported": "Trình duyệt này không hỗ trợ thông báo đẩy.",
+    "push": {
+      "title": "Thông báo đẩy",
+      "enabled": "Thông báo đã được bật cho thiết bị này",
+      "blocked": "Thông báo đang bị chặn trong cài đặt trình duyệt",
+      "prompt": "Bật để nhận thông báo khi ứng dụng chạy nền",
+      "enable": "Bật",
+      "disable": "Tắt"
+    },
+    "notifyMeAbout": "Thông báo cho tôi khi",
+    "events": {
+      "controlRequest": "Có yêu cầu điều khiển",
+      "chatMessage": "Có tin nhắn trò chuyện",
+      "participantJoined": "Có người tham gia",
+      "participantLeft": "Có người rời đi",
+      "hostDisconnected": "Người chủ trì mất kết nối",
+      "creatorLive": "Nhà sáng tạo bạn theo dõi phát trực tiếp",
+      "directMessage": "Có người gửi tin nhắn riêng cho bạn"
+    },
+    "reminders": {
+      "title": "Nhắc lịch họp",
+      "description": "Gửi qua email, và qua thông báo khi bật thông báo đẩy.",
+      "meetingReminder1Day": "Trước 1 ngày",
+      "meetingReminder1Hour": "Trước 1 giờ",
+      "meetingReminder15Min": "Trước 15 phút",
+      "meetingReminder1Min": "Trước 1 phút"
+    },
+    "controlRequest": {
+      "title": "Yêu cầu điều khiển",
+      "message": "<strong>{name}</strong> muốn điều khiển màn hình của bạn",
+      "approve": "Phê duyệt",
+      "deny": "Từ chối"
+    },
+    "toasts": {
+      "region": "Thông báo",
+      "joined": "<strong>{name}</strong> đã tham gia",
+      "left": "<strong>{name}</strong> đã rời đi",
+      "dismiss": "Đóng"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Tổ chức - PairUX",
+      "detailTitle": "Tổ chức - PairUX"
+    },
+    "roles": {
+      "owner": "Chủ sở hữu",
+      "admin": "Quản trị viên",
+      "member": "Thành viên"
+    },
+    "list": {
+      "title": "Tổ chức",
+      "intro": "Một tổ chức chia sẻ với các thành viên những kênh để phát trực tiếp, báo cáo phân tích cuộc gọi và gói của chủ sở hữu. Bạn có thể chia mọi người thành các nhóm bên trong.",
+      "teamCount": "{count, plural, other {# nhóm}}",
+      "createHeading": "Tạo tổ chức",
+      "namePlaceholder": "Tên công ty hoặc nhóm",
+      "create": "Tạo",
+      "createError": "Không thể tạo tổ chức"
+    },
+    "detail": {
+      "back": "← Tổ chức",
+      "notFound": "Không tìm thấy tổ chức",
+      "genericError": "Đã xảy ra lỗi",
+      "summary": "{role, select, owner {Bạn là chủ sở hữu} admin {Bạn là quản trị viên} other {Bạn là thành viên}}. Các thành viên được hưởng gói <strong>{plan}</strong>.",
+      "confirmDelete": "Xóa {name}? Các kênh và báo cáo của tổ chức sẽ được trả về cho người đã tạo chúng.",
+      "deleteOrg": "Xóa tổ chức",
+      "confirmLeave": "Rời khỏi {name}?",
+      "leaveOrg": "Rời tổ chức",
+      "members": "Thành viên",
+      "teamLead": "{team} (trưởng nhóm)",
+      "removeMember": "Xóa {name}",
+      "confirmRemoveMember": "Xóa {name} khỏi {org}?",
+      "inviteByEmail": "Mời qua email",
+      "noTeam": "Không thuộc nhóm",
+      "invite": "Mời",
+      "pendingInvitations": "Lời mời đang chờ",
+      "revoke": "Thu hồi",
+      "teams": "Nhóm",
+      "teamsIntro": "Thành viên nhóm có thể phát trực tiếp trên các kênh của nhóm và đọc báo cáo cuộc gọi của nhóm. Trưởng nhóm quản lý ai thuộc nhóm.",
+      "confirmDeleteTeam": "Xóa nhóm {name}? Các kênh và báo cáo của nhóm vẫn được giữ trong tổ chức.",
+      "deleteTeam": "Xóa nhóm",
+      "lead": "trưởng nhóm",
+      "makeMember": "đặt làm thành viên",
+      "makeLead": "đặt làm trưởng nhóm",
+      "removeFromTeam": "Xóa {name} khỏi {team}",
+      "noMembers": "Chưa có thành viên",
+      "addMember": "Thêm thành viên…",
+      "noTeams": "Chưa có nhóm nào.",
+      "newTeamPlaceholder": "Nhóm mới, VD: Kỹ thuật",
+      "createTeam": "Tạo nhóm"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Cài đặt - PairUX",
+      "description": "Quản lý cài đặt PairUX của bạn."
+    },
+    "back": "Quay lại",
+    "title": "Cài đặt",
+    "saved": "Đã lưu",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (nếu có)"
+    },
+    "account": {
+      "title": "Tài khoản",
+      "description": "Thông tin tài khoản của bạn",
+      "email": "Email:",
+      "name": "Tên:",
+      "signInPrompt": "Đăng nhập để đồng bộ cài đặt giữa các thiết bị và dùng thêm nhiều tính năng.",
+      "signIn": "Đăng nhập",
+      "createAccount": "Tạo tài khoản"
+    },
+    "recording": {
+      "title": "Ghi hình",
+      "description": "Tùy chọn ghi mặc định",
+      "defaultRecordingQuality": "Chất lượng ghi mặc định",
+      "recordingQualityHint": "Bản ghi chất lượng cao hơn sẽ có dung lượng lớn hơn",
+      "defaultCaptureQuality": "Chất lượng thu mặc định",
+      "captureQualityHint": "Chất lượng cao hơn dùng nhiều băng thông hơn khi truyền phát",
+      "includeSystemAudio": "Bao gồm âm thanh hệ thống",
+      "includeSystemAudioHint": "Thu âm thanh hệ thống cùng với màn hình",
+      "webRecordingNote": "<strong>Ghi trên web:</strong> Bản ghi được lưu vào thư mục tải xuống của trình duyệt. Để tự động sắp xếp tệp, hãy dùng <link>ứng dụng máy tính</link>."
+    },
+    "session": {
+      "title": "Mặc định cho phiên",
+      "description": "Cài đặt mặc định cho phiên mới",
+      "maxParticipants": "Số người tham gia tối đa",
+      "viewers": "{count, plural, other {# người xem}}",
+      "openInDesktopApp": "Mở phiên trong ứng dụng máy tính",
+      "openInDesktopAppHint": "Khi bắt đầu phiên, ứng dụng máy tính sẽ mở ra để bạn có thể trao quyền điều khiển cho khách. Nếu chưa cài ứng dụng, phiên sẽ chạy trong trình duyệt này.",
+      "openInDesktopAppAria": "Mở phiên trong ứng dụng máy tính",
+      "remoteControlNote": "<strong>Lưu ý:</strong> Điều khiển từ xa chỉ có trong <link>ứng dụng máy tính</link>. Phiên trên web chỉ cho phép xem."
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "description": "Tùy chọn thông báo đẩy"
+    },
+    "language": {
+      "title": "Ngôn ngữ",
+      "description": "Chọn ngôn ngữ hiển thị của PairUX",
+      "hint": "Lưu trong trình duyệt này. Mặc định theo ngôn ngữ của trình duyệt."
+    },
+    "appearance": {
+      "title": "Giao diện",
+      "description": "Tùy chỉnh trải nghiệm của bạn",
+      "theme": "Chủ đề",
+      "themes": {
+        "light": "Sáng",
+        "dark": "Tối",
+        "system": "Hệ thống"
+      },
+      "systemHint": "Chủ đề hệ thống theo cài đặt của thiết bị"
+    },
+    "about": {
+      "title": "Giới thiệu",
+      "description": "Thông tin ứng dụng",
+      "application": "Ứng dụng",
+      "platform": "Nền tảng",
+      "platformValue": "Trình duyệt / PWA",
+      "features": "Tính năng",
+      "featuresValue": "Chia sẻ màn hình, Ghi hình, Trò chuyện",
+      "downloadNote": "Để dùng đầy đủ tính năng, kể cả điều khiển từ xa, hãy tải <link>ứng dụng máy tính</link>."
+    },
+    "youtube": {
+      "title": "Tự động phát trực tiếp trên YouTube",
+      "description": "Tự động đưa buổi phát sóng YouTube lên trực tiếp khi bạn bắt đầu truyền phát — không còn “Đang chuẩn bị luồng”.",
+      "notConfigured": "Chưa khả dụng — máy chủ chưa được cấu hình Google OAuth.",
+      "connected": "Đã kết nối",
+      "connectedTo": "Đã kết nối — {channel}",
+      "disconnect": "Ngắt kết nối",
+      "connect": "Kết nối YouTube"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Không tìm thấy buổi phát trực tiếp",
+    "defaultTitle": "Phát trực tiếp trên PairUX",
+    "defaultDescription": "Buổi phát trực tiếp công khai của {name}.",
+    "defaultDescriptionAnonymous": "Buổi phát trực tiếp công khai của một nhà sáng tạo PairUX.",
+    "anonymous": "Ẩn danh",
+    "liveNow": "Đang trực tiếp",
+    "untitled": "Buổi phát trực tiếp không tên",
+    "watchFree": "Xem miễn phí",
+    "commentsHeading": "Bình luận ({count})",
+    "like": "Thích ({count, plural, other {# lượt thích}})",
+    "unlike": "Bỏ thích ({count, plural, other {# lượt thích}})",
+    "comments": {
+      "someone": "Ai đó",
+      "postFailed": "Không thể đăng bình luận của bạn.",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "placeholder": "Thêm bình luận…",
+      "post": "Đăng",
+      "empty": "Chưa có bình luận — hãy là người đầu tiên.",
+      "delete": "Xóa"
+    },
+    "embed": {
+      "title": "Nhúng buổi phát trực tiếp này",
+      "button": "Nhúng",
+      "label": "Dán đoạn này vào bất kỳ đâu cho phép HTML",
+      "copied": "Đã sao chép",
+      "copy": "Sao chép mã"
+    }
+  },
+  "embed": {
+    "defaultTitle": "Trình phát PairUX",
+    "untitled": "Buổi phát trực tiếp không tên",
+    "watchLive": "Xem trực tiếp trên PairUX",
+    "watch": "Xem trên PairUX",
+    "live": "Trực tiếp"
+  },
+  "room": {
+    "metadata": {
+      "title": "Phòng được mã hóa",
+      "description": "Phòng thoại và video PairUX được mã hóa đầu cuối. Không cần tài khoản."
+    },
+    "creating": "Đang tạo phòng được mã hóa…",
+    "guest": "Khách",
+    "joinFailed": "Không thể tham gia phòng",
+    "callFailed": "Cuộc gọi thất bại",
+    "e2ee": "Mã hóa đầu cuối",
+    "incomplete": {
+      "title": "Liên kết này chưa đầy đủ",
+      "body": "Liên kết phòng kết thúc bằng <code>#k=…</code>, là khóa mã hóa cuộc gọi. Hãy yêu cầu liên kết đầy đủ, hoặc <link>tạo phòng mới</link>."
+    },
+    "join": {
+      "title": "Tham gia phòng",
+      "body": "Không cần tài khoản. Âm thanh và video được mã hóa trên thiết bị của bạn bằng khóa chỉ những người có liên kết này mới có. PairUX không thể nghe hay xem cuộc gọi, và không có gì được ghi lại.",
+      "nameLabel": "Tên của bạn",
+      "voice": "Thoại",
+      "video": "Video"
+    },
+    "copied": "Đã sao chép",
+    "copyInvite": "Sao chép liên kết mời"
+  },
+  "live": {
+    "metadata": {
+      "title": "Phòng trực tiếp",
+      "description": "Duyệt các phòng chia sẻ màn hình công khai đang diễn ra trên PairUX."
+    },
+    "title": "Phòng trực tiếp",
+    "intro": "Các phòng chia sẻ màn hình công khai mà người chủ trì đang mở ngay lúc này. Tham gia ngay, không cần lời mời — hoặc duyệt <link>tất cả kênh</link> (trước đây & hiện tại).",
+    "empty": {
+      "title": "Chưa có phòng công khai nào",
+      "body": "Chủ trì một phiên và dùng <strong>Đăng lên /live</strong> để hiển thị tại đây.",
+      "cta": "Bắt đầu chủ trì"
+    },
+    "badgeLive": "Trực tiếp",
+    "badgeIdle": "Chờ",
+    "viewers": "{count, plural, other {# người xem}}",
+    "untitledRoom": "Phòng không tên",
+    "anonymous": "Ẩn danh",
+    "joinRoom": "Vào phòng",
+    "creators": "Nhà sáng tạo",
+    "followers": "{count, plural, other {# người theo dõi}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Kênh",
+      "description": "Duyệt các kênh của nhà sáng tạo trên PairUX."
+    },
+    "title": "Kênh",
+    "intro": "Các kênh của nhà sáng tạo trên PairUX. Đăng ký để nhận thông báo khi họ phát trực tiếp — hoặc xem ai đang <link>trực tiếp ngay bây giờ</link>.",
+    "empty": {
+      "title": "Chưa có kênh nào",
+      "body": "Tạo kênh từ <link>bảng điều khiển</link> của bạn."
+    },
+    "liveNow": "Đang trực tiếp",
+    "subscribers": "{count, plural, other {# người đăng ký}}",
+    "liveCount": "{count} đang trực tiếp",
+    "recordings": "{count, plural, other {# bản ghi}}"
+  },
+  "channel": {
+    "notFoundTitle": "Không tìm thấy kênh",
+    "defaultDescription": "Kênh của {name} trên PairUX.",
+    "liveNow": "Đang trực tiếp",
+    "live": "Trực tiếp",
+    "watching": "{count} người đang xem",
+    "manage": "Quản lý kênh",
+    "streams": "Buổi phát",
+    "noStreams": "Chưa có buổi phát nào.",
+    "untitledStream": "Buổi phát không tên",
+    "recordings": "Bản ghi",
+    "rssTitle": "Đăng ký trong ứng dụng podcast hoặc trình đọc RSS",
+    "recording": "Bản ghi",
+    "subscribe": {
+      "subscribe": "Đăng ký",
+      "subscribed": "Đã đăng ký",
+      "count": "{count, plural, other {# người đăng ký}}"
+    },
+    "share": {
+      "text": "Xem {name} trên PairUX",
+      "share": "Chia sẻ",
+      "shareOn": "Chia sẻ lên {network}",
+      "copyLink": "Sao chép liên kết",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Không tìm thấy hồ sơ",
+    "defaultDescription": "Các phòng công khai của {name} trên PairUX.",
+    "channels": "Kênh",
+    "live": "Trực tiếp",
+    "subscribers": "{count, plural, other {# người đăng ký}}",
+    "lives": "Buổi phát trực tiếp",
+    "noLives": "{handle} chưa phát trực tiếp lần nào.",
+    "liveNow": "Đang trực tiếp",
+    "untitledRoom": "Phòng không tên",
+    "joinRoom": "Vào phòng",
+    "follow": {
+      "follow": "Theo dõi",
+      "following": "Đang theo dõi",
+      "count": "{count, plural, other {# người theo dõi}}"
+    },
+    "message": {
+      "button": "Nhắn tin",
+      "title": "Nhắn tin cho {name}",
+      "close": "Đóng",
+      "sent": "Đã gửi tin nhắn",
+      "sentNote": "{name} sẽ được thông báo qua email và thông báo đẩy.",
+      "viewConversation": "Xem cuộc trò chuyện",
+      "placeholder": "Viết tin nhắn riêng cho {name}…",
+      "cancel": "Hủy",
+      "send": "Gửi",
+      "sendFailed": "Không thể gửi tin nhắn"
+    }
+  },
+  "messages": {
+    "title": "Tin nhắn",
+    "conversationTitle": "Cuộc trò chuyện",
+    "allMessages": "Tất cả tin nhắn",
+    "empty": {
+      "title": "Chưa có tin nhắn",
+      "body": "Truy cập hồ sơ của một nhà sáng tạo và nhấn <strong>Nhắn tin</strong> để bắt đầu trò chuyện.",
+      "cta": "Duyệt nhà sáng tạo →"
+    },
+    "youPrefix": "Bạn:",
+    "thread": {
+      "empty": "Chưa có tin nhắn. Hãy chào {name}.",
+      "placeholder": "Nhắn tin cho {name}…",
+      "send": "Gửi",
+      "sendFailed": "Không thể gửi tin nhắn"
+    }
+  }
+}

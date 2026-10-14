@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - Samen schermdelen met bediening op afstand",
+    "description": "Realtime schermdelen met gelijktijdige muis- en toetsenbordbediening op afstand. Zoals Screenhero, maar open source. Beschikbaar voor macOS, Windows en Linux.",
+    "shortDescription": "Realtime schermdelen met gelijktijdige muis- en toetsenbordbediening op afstand. Zoals Screenhero, maar open source.",
+    "imageAlt": "PairUX - Samen schermdelen"
+  },
+  "common": {
+    "language": "Taal",
+    "loading": "Laden…",
+    "save": "Opslaan",
+    "saving": "Opslaan…",
+    "saved": "Opgeslagen",
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "back": "Terug",
+    "continue": "Doorgaan",
+    "copy": "Kopiëren",
+    "copied": "Gekopieerd!",
+    "retry": "Opnieuw proberen",
+    "yes": "Ja",
+    "no": "Nee",
+    "or": "of",
+    "optional": "Optioneel",
+    "learnMore": "Meer informatie",
+    "somethingWentWrong": "Er ging iets mis. Probeer het opnieuw."
+  },
+  "nav": {
+    "live": "Live",
+    "channels": "Kanalen",
+    "features": "Functies",
+    "useCases": "Toepassingen",
+    "download": "Downloaden",
+    "docs": "Docs",
+    "blog": "Blog",
+    "pricing": "Prijzen",
+    "dashboard": "Dashboard",
+    "organizations": "Organisaties",
+    "callAnalyses": "Gespreksanalyses",
+    "settings": "Instellingen",
+    "messages": "Berichten",
+    "signIn": "Inloggen",
+    "signUp": "Registreren",
+    "signOut": "Uitloggen",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten",
+    "userFallback": "Gebruiker"
+  },
+  "footer": {
+    "tagline": "Samen schermdelen met gelijktijdige bediening op afstand. Zoals Screenhero, maar open source.",
+    "license": "Open source onder de MIT-licentie.",
+    "sections": {
+      "product": "Product",
+      "install": "Installeren",
+      "resources": "Bronnen",
+      "company": "Bedrijf"
+    },
+    "links": {
+      "features": "Functies",
+      "useCases": "Toepassingen",
+      "download": "Downloaden",
+      "pricing": "Prijzen",
+      "changelog": "Wijzigingslog",
+      "documentation": "Documentatie",
+      "faq": "Veelgestelde vragen",
+      "systemRequirements": "Systeemvereisten",
+      "troubleshooting": "Probleemoplossing",
+      "about": "Over ons",
+      "blog": "Blog",
+      "privacy": "Privacybeleid",
+      "terms": "Servicevoorwaarden"
+    }
+  },
+  "auth": {
+    "or": "of",
+    "comingSoon": "Binnenkort",
+    "checkEmail": "Check je e-mail",
+    "backToSignIn": "Terug naar inloggen",
+    "errors": {
+      "unexpected": "Er is een onverwachte fout opgetreden"
+    },
+    "fields": {
+      "email": "E-mailadres",
+      "emailPlaceholder": "jij@voorbeeld.nl",
+      "password": "Wachtwoord",
+      "passwordPlaceholder": "Min. 8 tekens, 1 hoofdletter, 1 cijfer",
+      "passwordHint": "Minimaal 8 tekens met één hoofdletter en één cijfer",
+      "showPassword": "Wachtwoord tonen",
+      "hidePassword": "Wachtwoord verbergen"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
+      "passwordTooShort": "Wachtwoord moet minimaal 8 tekens bevatten",
+      "passwordNeedsUppercase": "Wachtwoord moet minimaal één hoofdletter bevatten",
+      "passwordNeedsNumber": "Wachtwoord moet minimaal één cijfer bevatten"
+    },
+    "login": {
+      "meta": {
+        "title": "Inloggen - PairUX",
+        "description": "Log in bij je PairUX-account"
+      },
+      "title": "Welkom terug",
+      "subtitle": "Log in bij je account om verder te gaan",
+      "failed": "Inloggen mislukt",
+      "forgotPassword": "Wachtwoord vergeten?",
+      "passwordPlaceholder": "Voer je wachtwoord in",
+      "rememberMe": "Onthoud mij",
+      "submit": "Inloggen",
+      "submitting": "Inloggen...",
+      "passkey": "Inloggen met passkey",
+      "noAccount": "Nog geen account? <link>Registreren</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Registreren - PairUX",
+        "description": "Maak een PairUX-account aan en begin met schermdelen"
+      },
+      "failed": "Account aanmaken mislukt",
+      "confirmationSent": "We hebben een bevestigingslink gestuurd naar <strong>{email}</strong>. Klik op de link om je account te verifiëren.",
+      "firstName": "Voornaam",
+      "firstNamePlaceholder": "Voornaam",
+      "lastName": "Achternaam",
+      "lastNamePlaceholder": "Achternaam",
+      "confirmPassword": "Wachtwoord bevestigen",
+      "confirmPasswordPlaceholder": "Bevestig je wachtwoord",
+      "submit": "Account aanmaken",
+      "submitting": "Account aanmaken...",
+      "haveAccount": "Heb je al een account? <link>Inloggen</link>",
+      "page": {
+        "earlyAdopterTitle": "Early-adopterbonus",
+        "earlyAdopterBody": "Registreer je nu en krijg <bold>20% extra tegoed</bold> bij elke storting!",
+        "waitlistTitle": "Op de wachtlijst",
+        "recommended": "Aanbevolen",
+        "waitlistBody": "Reserveer je plek met een storting van $100 aan tegoed en krijg voorrang plus exclusieve voordelen.",
+        "perkCredits": "$100 storting = <semibold>$120 aan tegoed</semibold> (20% bonus)",
+        "perkPriority": "Voorrang bij de lancering",
+        "perkPricing": "Voor altijd vaste early-adopterprijzen",
+        "perkCommunity": "Toegang tot een exclusief Discord-/Slack-kanaal",
+        "paymentMethods": "Betaalmethoden",
+        "payCard": "Betalen met kaart",
+        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
+        "payCrypto": "Betalen met crypto",
+        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
+        "comingSoon": "Binnenkort",
+        "refundable": "Stortingen worden vóór de lancering volledig terugbetaald als je van gedachten verandert.",
+        "orFree": "of registreer gratis",
+        "freeTitle": "Maak een gratis account aan",
+        "freeBody": "Begin met 2 deelnemers + 5 kijkers, voor altijd gratis",
+        "creditsTitle": "Zo werkt tegoed",
+        "creditsBody": "PairUX werkt met tegoed. Tegoed wordt gebruikt voor SFU-relayservers als je meer dan 5 kijkers nodig hebt. <medium>$0,08 per kijkeruur bij 720p</medium>. Gratis P2P-verbindingen verlopen nooit."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Wachtwoord vergeten - PairUX",
+        "description": "Stel het wachtwoord van je PairUX-account opnieuw in"
+      },
+      "title": "Wachtwoord vergeten?",
+      "subtitle": "Voer je e-mailadres in, dan sturen we je een resetlink",
+      "failed": "Resetmail versturen mislukt",
+      "sent": "Als er een account bestaat met <strong>{email}</strong>, ontvang je een link om je wachtwoord opnieuw in te stellen.",
+      "submit": "Resetlink versturen",
+      "submitting": "Versturen..."
+    },
+    "reset": {
+      "title": "Wachtwoord opnieuw instellen",
+      "subtitle": "Voer hieronder je nieuwe wachtwoord in",
+      "failed": "Wachtwoord opnieuw instellen mislukt",
+      "successTitle": "Wachtwoord bijgewerkt",
+      "successBody": "Je wachtwoord is opnieuw ingesteld. Je wordt doorgestuurd naar inloggen...",
+      "signInNow": "Nu inloggen",
+      "invalidTitle": "Ongeldige of verlopen link",
+      "invalidBody": "Deze resetlink is ongeldig of verlopen. Vraag een nieuwe aan.",
+      "requestNewLink": "Nieuwe link aanvragen",
+      "newPassword": "Nieuw wachtwoord",
+      "confirmNewPassword": "Nieuw wachtwoord bevestigen",
+      "confirmNewPasswordPlaceholder": "Bevestig je nieuwe wachtwoord",
+      "submit": "Wachtwoord opnieuw instellen",
+      "submitting": "Opnieuw instellen..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "De PairUX CLI autoriseren - PairUX",
+    "invalidTitle": "Deze inloglink is niet geldig",
+    "invalidBody": "Voer <code>{command}</code> opnieuw uit voor een nieuwe link.",
+    "allowedTitle": "Je kunt teruggaan naar je terminal",
+    "deniedTitle": "Inloggen geannuleerd",
+    "closeTab": "Je kunt dit tabblad sluiten.",
+    "title": "{clientName} autoriseren?",
+    "intro": "De PairUX-opdrachtregeltool op deze computer vraagt om namens <strong>{email}</strong> te handelen.",
+    "agentsNote": "Agents die je ermee start, nemen deel aan sessies als jouw agent, zodat hosts weten van wie ze zijn.",
+    "limitsNote": "De tool kan je scherm niet zien, geen bediening op afstand overnemen en je account niet wijzigen.",
+    "revokeNote": "Uitloggen met <code>{command}</code> trekt de toegang in.",
+    "allow": "Toestaan",
+    "deny": "Weigeren",
+    "errors": {
+      "authorizeFailed": "Kan de CLI niet autoriseren",
+      "network": "Kan PairUX niet bereiken. Controleer je verbinding en probeer het opnieuw."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Lid worden van een organisatie - PairUX",
+    "title": "Lid worden van {orgName}",
+    "invited": "Je bent uitgenodigd als {role, select, admin {beheerder} other {lid}}. Log in als <strong>{email}</strong> om te accepteren.",
+    "invitedToTeam": "Je bent uitgenodigd als {role, select, admin {beheerder} other {lid}} van het team {teamName}. Log in als <strong>{email}</strong> om te accepteren.",
+    "expired": "Deze uitnodiging is verlopen. Vraag een nieuwe aan.",
+    "accept": "Uitnodiging accepteren",
+    "errors": {
+      "invalid": "Deze uitnodiging is niet meer geldig",
+      "acceptFailed": "Kan de uitnodiging niet accepteren"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Functies",
+      "description": "Ontdek alle functies van PairUX: realtime schermdelen, bediening op afstand, samenwerken met meerdere cursors, ondersteuning voor alle platforms en meer."
+    },
+    "hero": {
+      "title": "Functies",
+      "subtitle": "Alles wat je nodig hebt om realtime samen te werken, gebouwd met privacy en beveiliging voorop.",
+      "imageAlt": "Het PairUX-dashboard met sessiestatistieken, kanalen, snelle acties om een sessie te starten of eraan deel te nemen, en het huidige abonnement."
+    },
+    "comingSoon": "Binnenkort",
+    "main": {
+      "callAnalysis": {
+        "title": "AI-gespreksanalyse",
+        "description": "Zet het aan vóór een sollicitatiegesprek, teamoverleg of presentatie en ontvang na afloop een privé feedbackrapport: een score, wat goed ging, wat beter kan en de momenten die het terugkijken waard zijn.",
+        "details": {
+          "d0": "Spreektijd, tempo en stopwoorden per spreker",
+          "d1": "Modi voor sollicitatiegesprek, teamoverleg en presentatie",
+          "d2": "Schermafbeeldingen beoordeeld op slides en demo’s",
+          "d3": "Iedereen in het gesprek weet dat het wordt opgenomen"
+        }
+      },
+      "screenSharing": {
+        "title": "Realtime schermdelen",
+        "description": "Deel je hele scherm of losse vensters in haarscherpe kwaliteit. Streaming via WebRTC levert video met lage latentie en adaptieve bitrate.",
+        "details": {
+          "d0": "Volledig scherm of venster delen",
+          "d1": "Standaard 1080p @ 30fps",
+          "d2": "Adaptieve bitrate voor elke verbinding",
+          "d3": "Cursor zichtbaar in de stream"
+        }
+      },
+      "remoteControl": {
+        "title": "Muis en toetsenbord op afstand",
+        "description": "Laat je collega het overnemen met volledige muis- en toetsenbordinvoer. Bediening vereist altijd expliciete toestemming van de host.",
+        "details": {
+          "d0": "Volledige muisbediening (klikken, scrollen, slepen)",
+          "d1": "Volledige toetsenbordinvoer",
+          "d2": "Speciale toetsen en sneltoetsen",
+          "d3": "Werkt op alle platforms"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Gelijktijdige invoer",
+        "description": "Host en kijker kunnen tegelijk bedienen. Invoer van de host heeft altijd voorrang, voor veiligheid en gemak.",
+        "details": {
+          "d0": "Beide gebruikers kunnen samen bedienen",
+          "d1": "De host heeft altijd voorrang",
+          "d2": "Geen blokkering of wachtrij voor invoer",
+          "d3": "Indicator toont wie er bedient"
+        }
+      },
+      "consent": {
+        "title": "Expliciete toestemming",
+        "description": "Beveiliging zit er vanaf de basis in. Kijkers moeten bediening aanvragen en hosts moeten expliciet goedkeuren.",
+        "details": {
+          "d0": "Bedieningsverzoeken vereisen goedkeuring",
+          "d1": "Noodsneltoets om in te trekken (Ctrl+Shift+Esc)",
+          "d2": "Indicator wanneer bediening actief is",
+          "d3": "Bediening op elk moment intrekken"
+        }
+      },
+      "pwaViewer": {
+        "title": "PWA-viewer",
+        "description": "Kijkers doen mee vanuit elke moderne browser, zonder download. Installeer als Progressive Web App voor snelle toegang.",
+        "details": {
+          "d0": "Werkt in elke moderne browser",
+          "d1": "Geen account nodig om deel te nemen",
+          "d2": "Te installeren als PWA",
+          "d3": "Mobielvriendelijk om te kijken"
+        }
+      },
+      "crossPlatform": {
+        "title": "Desktop op elk platform",
+        "description": "Native desktopapps voor macOS, Windows en Linux. Installeer via je favoriete pakketbeheerder.",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "Directe download beschikbaar"
+        }
+      },
+      "recording": {
+        "title": "Schermopname",
+        "description": "Neem je sessies lokaal op om later terug te kijken. Perfect voor tutorials, documentatie en het vastleggen van pair-programmingsessies.",
+        "details": {
+          "d0": "Lokaal opnemen naar WebM/MP4",
+          "d1": "Systeemaudio + microfoon opnemen",
+          "d2": "Kwaliteitsprofielen (720p/1080p/4K)",
+          "d3": "Opname pauzeren/hervatten"
+        }
+      },
+      "textChat": {
+        "title": "Tekstchat",
+        "description": "Ingebouwde tekstchat om links en codefragmenten te delen of te communiceren zonder spraak.",
+        "details": {
+          "d0": "Realtime berichten",
+          "d1": "Systeemmeldingen (deelnemen/verlaten)",
+          "d2": "Werkt naast schermdelen",
+          "d3": "Berichtgeschiedenis per sessie"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "De PairUX-hostconsole tijdens een sessie, met de kwaliteitskiezer, deelnamecode, deelnemerslijst en het sessie-infopaneel.",
+      "consent": "De PairUX-kijkerconsole, waar een gast op Bediening aanvragen moet klikken voordat de host invoer toestaat.",
+      "pwaViewer": "Het PairUX-deelnamescherm in een browser, met de sessiecode, de live-status en een knop Gratis kijken waarvoor geen account nodig is.",
+      "crossPlatform": "De PairUX-downloadpagina met installers van één regel plus DMG-, EXE-, AppImage-, DEB- en RPM-builds voor macOS, Windows en Linux.",
+      "recording": "De opname-instellingen van PairUX, met standaardopname, kwaliteitsprofielen en een schakelaar voor systeemaudio."
+    },
+    "tech": {
+      "title": "Gebouwd op moderne technologie",
+      "subtitle": "PairUX gebruikt de industriestandaard WebRTC voor betrouwbare streaming met lage latentie."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Directe peer-to-peerverbinding voor minimale latentie."
+      },
+      "e2e": {
+        "title": "E2E-versleuteld",
+        "description": "DTLS-SRTP-versleuteling voor alle mediastreams."
+      },
+      "nat": {
+        "title": "NAT-traversal",
+        "description": "STUN-/TURN-servers voor een betrouwbare verbinding."
+      },
+      "adaptive": {
+        "title": "Adaptieve kwaliteit",
+        "description": "Kwaliteit past zich automatisch aan de bandbreedte aan."
+      },
+      "sharedControl": {
+        "title": "Gedeelde bediening",
+        "description": "Host en gast gebruiken om beurten de systeemaanwijzer van de host."
+      },
+      "keyboard": {
+        "title": "Volledig toetsenbord",
+        "description": "Alle toetsen, inclusief modifiers en speciale toetsen."
+      }
+    },
+    "compare": {
+      "title": "PairUX vergeleken",
+      "subtitle": "Zo verhoudt PairUX zich tot andere oplossingen voor schermdelen.",
+      "feature": "Functie",
+      "others": "Anderen",
+      "rows": {
+        "screenSharing": "Schermdelen",
+        "remoteControl": "Bediening op afstand",
+        "simultaneousControl": "Gelijktijdige bediening",
+        "localRecording": "Schermopname (lokaal)",
+        "textChat": "Tekstchat",
+        "noAccount": "Geen account voor kijkers",
+        "openSource": "Open source",
+        "selfHostable": "Zelf te hosten",
+        "e2e": "E2E-versleuteld",
+        "nativeApps": "Native apps",
+        "browserViewer": "Kijken in de browser",
+        "freeTier": "Gratis versie"
+      },
+      "values": {
+        "soon": "binnenkort",
+        "partial": "gedeeltelijk",
+        "unlimited": "onbeperkt",
+        "limited": "beperkt"
+      }
+    },
+    "cta": {
+      "title": "Klaar om te beginnen?",
+      "subtitle": "Download PairUX en werk binnen enkele seconden samen.",
+      "button": "Nu downloaden"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "AI-gespreksanalyse: feedback op sollicitatiegesprekken, teamoverleg en presentaties | PairUX",
+        "description": "Zet AI-gespreksanalyse aan vóór een PairUX-gesprek en ontvang achteraf een feedbackrapport: spreektijd, spreektempo, stopwoorden, wat aansloeg, wat je kunt oefenen en momenten om terug te kijken."
+      },
+      "eyebrow": "AI-gespreksanalyse · Pro en Team",
+      "title": "Ontdek hoe het gesprek echt ging.",
+      "intro": "Zet AI-gespreksanalyse aan vóór je sollicitatiegesprek, teamoverleg of presentatie. Na afloop krijg je een privérapport: een score, wat goed ging, wat beter kan, de cijfers erachter en de momenten die het terugkijken waard zijn.",
+      "startCta": "Start een geanalyseerd gesprek",
+      "seePlans": "Bekijk abonnementen",
+      "kindsTitle": "Feedback op maat van het gesprek",
+      "kinds": {
+        "interviews": {
+          "title": "Sollicitatiegesprekken",
+          "body": "Vraag voor vraag: hoe elk antwoord overkwam, waar het te lang of te vaag werd en hoe je het sterker kunt zeggen. Neem je zelf iemand af? Dan beoordeelt het je vragen en hoe goed je luisterde."
+        },
+        "teamSyncs": {
+          "title": "Teamoverleg",
+          "body": "Genomen besluiten, open vragen, waar het overleg afdwaalde en elke toezegging met de eigenaar ervan, zodat er tussen twee overleggen niets verloren gaat."
+        },
+        "presentations": {
+          "title": "Presentaties en demo’s",
+          "body": "Je opening, rode draad en afsluiting, waar je het publiek waarschijnlijk kwijtraakte, en wat er op het scherm stond: hoe vol de slides waren, leesbaarheid en of het scherm klopte met wat je zei."
+        }
+      },
+      "measuredTitle": "Gemeten, niet gegokt",
+      "measuredBody": "De cijfers worden geteld uit het transcript, met elke spreker apart, en de geschreven feedback verwijst ernaar. Als het rapport zegt dat jij 70% van een sollicitatiegesprek aan het woord was, is dat een feit dat je kunt controleren.",
+      "measured": {
+        "m0": "Aandeel spreektijd per spreker",
+        "m1": "Spreektempo in woorden per minuut",
+        "m2": "Stopwoorden per 100 woorden, en welke",
+        "m3": "Gestelde vragen, langste monoloog, onderbrekingen"
+      },
+      "howTitle": "Zo werkt het",
+      "how": {
+        "s0": "Zet vóór het gesprek <strong>AI-gespreksanalyse</strong> aan op het startscherm (pairux.com, de desktopapp of de mobiele app) en kies het soort gesprek. Opnemen gaat dan ook aan; dat kun je uitzetten.",
+        "s1": "Tijdens het gesprek uploadt je app de audio en elke 20 seconden een stilstaand beeld van je gedeelde scherm. Iedereen die deelneemt ziet dat het gesprek wordt opgenomen voor analyse.",
+        "s2": "Na het gesprek wordt de audio getranscribeerd, met elke spreker apart, en schrijft een AI-coach je rapport. Je ontvangt het per e-mail en vindt het onder Gespreksanalyses op je dashboard."
+      },
+      "privacyTitle": "Toestemming en privacy",
+      "privacy": {
+        "p0": "De keuze wordt gemaakt voordat het gesprek begint en kan niet halverwege worden aangezet.",
+        "p1": "Elke deelnemer ziet het hele gesprek een melding, op het web en in de desktop- en mobiele apps.",
+        "p2": "Rapporten en opnames zijn privé voor de host, of voor het team of de organisatie waarin het gesprek plaatsvond, en kunnen op elk moment worden verwijderd.",
+        "p3": "Laat je de opname uit, dan wordt de audio verwijderd zodra het rapport klaar is.",
+        "p4": "Op een telefoon wordt alleen je eigen microfoon opgenomen; start vanaf pairux.com of de desktopapp om iedereen op te nemen."
+      },
+      "tryCta": "Probeer het bij je volgende gesprek"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Toepassingen voor werken met AI-agents",
+        "description": "Pair-programmen, AI-gegenereerde code reviewen, debuggen, collega’s inwerken en live lesgeven met PairUX. Krijg AI-feedback op sollicitatiegesprekken, teamoverleg en presentaties."
+      },
+      "eyebrow": "PairUX-toepassingen",
+      "title": "Beter werken met agents. Samen.",
+      "intro": "Een agent kan de code schrijven. Je team moet het resultaat nog steeds begrijpen. Gebruik PairUX om je scherm te delen, de app uit te proberen en samen de volgende beslissing te nemen.",
+      "findWorkflow": "Vind jouw workflow",
+      "featuredLabel": "Uitgelicht · Agentisch pair-programmen",
+      "featuredTitle": "Twee mensen. Eén agentsessie.",
+      "featuredBody": "Deel een live moshcode-terminal met je collega en gebruik PairUX om samen de editor en de app te bekijken. Kijk eerst mee of doe mee in dezelfde sessie.",
+      "featuredCta": "Ontdek agentisch pair-programmen",
+      "workflowsTitle": "Haal een tweede persoon bij het werk",
+      "workflowsIntro": "Begin met een gedeeld scherm. Laat medewerkers de muis en het toetsenbord gebruiken als de host bediening op afstand goedkeurt.",
+      "notesPlans": "Pro- en Team-abonnementen",
+      "notesTitle": "AI-notulist",
+      "notesBody": "Maak van een werksessie conceptnotities, besluiten en actiepunten. Help een collega bij te praten of neem de context mee naar je volgende agenttaak.",
+      "notesFootnote": "Onderdeel van AI-gespreksanalyse: zet het aan vóór het gesprek en het rapport komt per e-mail binnen zodra het afloopt.",
+      "notesCta": "Ontdek AI-gespreksnotities",
+      "ctaTitle": "Begin met één gedeelde sessie",
+      "ctaBody": "Download PairUX, deel je scherm en nodig een collega uit om samen een echte taak af te ronden.",
+      "getPairux": "PairUX downloaden",
+      "comparePlans": "Abonnementen vergelijken"
+    },
+    "exploreWorkflow": "Workflow bekijken",
+    "allUseCases": "Alle toepassingen",
+    "detail": {
+      "plannedTitle": "{title} · Gepland voor premium-abonnementen",
+      "notAvailable": "Nog niet beschikbaar. Neem contact met ons op over premiumtoegang en levering voordat je voor deze functie betaalt.",
+      "whenHelps": "Wanneer dit helpt",
+      "tryWorkflow": "Probeer deze workflow",
+      "plannedWorkflow": "De geplande workflow",
+      "leaveWith": "Wat je eraan overhoudt",
+      "goal": "Het doel",
+      "discussPremium": "Premium AI-notities bespreken",
+      "startWithPairux": "Begin met PairUX",
+      "seeCurrentPlans": "Bekijk de huidige abonnementen",
+      "comparePlans": "Abonnementen vergelijken",
+      "moreWays": "Meer manieren om samen te werken"
+    },
+    "agentic": {
+      "meta": {
+        "title": "Agentisch pair-programmen met moshcode | PairUX",
+        "description": "Werk met een collega in dezelfde live sessie van een coding-agent. Gebruik moshcode voor een gedeelde terminal en PairUX om samen het scherm en de app te bekijken."
+      },
+      "backLink": "← Alle toepassingen",
+      "eyebrow": "Agentisch pair-programmen",
+      "title": "Twee mensen. Eén agentsessie.",
+      "intro": "Ook als een AI-agent de code schrijft, heb je bij pair-programmen gedeelde context nodig. Haal een collega in je live moshcode-sessie en gebruik PairUX om te bekijken wat de agent bouwt en samen de volgende stap te bepalen.",
+      "openMoshcode": "moshcode openen",
+      "getPairux": "PairUX downloaden",
+      "stepsTitle": "Van meekijken naar samenwerken",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Begin met één live sessie",
+          "body": "Start moshcode op je ontwikkelmachine en open de sessie op app.moshcode.sh. Jij en je collega volgen dezelfde agentoutput en werken in dezelfde terminal."
+        },
+        "s1": {
+          "title": "Haal je team in de sessie",
+          "body": "Maak in moshcode een organisatie en team aan, voeg je collega toe via het e-mailadres van diens account en deel de sessie met dat team. Met leestoegang kunnen ze meekijken; met schrijftoegang kunnen ze invoer naar de lopende sessie sturen."
+        },
+        "s2": {
+          "title": "Bekijk het resultaat samen in PairUX",
+          "body": "Deel je terminal, editor of app-preview met PairUX. Je collega doet mee vanuit een browser en ziet het werk in context. Keur bediening op afstand goed als je wilt dat diegene ook je muis en toetsenbord gebruikt."
+        }
+      },
+      "permissionsNote": "Teamrechten in moshcode bepalen de toegang tot de terminalsessie. Bediening op afstand in PairUX is een aparte keuze die de host van het schermdelen goedkeurt. Gebruik een van beide of allebei, afhankelijk van hoe je wilt samenwerken.",
+      "contractorTitle": "Een praktische manier om een freelancer in te werken",
+      "contractorP1": "Voeg een freelancer toe aan je team en laat diegene je eerste sessie met leestoegang volgen. Loop de taak, de output van de agent en de draaiende app door. Is diegene klaar om mee te doen, geef dan schrijftoegang zodat jullie in dezelfde sessie samenwerken.",
+      "contractorP2": "Je kunt deze workflow ook gebruiken om een falende test te onderzoeken, de implementatie van een agent te vergelijken met het bedoelde gedrag of een wijziging te reviewen voordat je die merget. Iedereen ziet het werk terwijl het gebeurt.",
+      "startPairing": "Begin met pairen in PairUX"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Agentisch pair-programmen",
+        "audience": "Developers & collega’s",
+        "description": "Werk met een collega in één live sessie van een coding-agent. Deel de terminal via moshcode en bekijk het scherm samen in PairUX.",
+        "scenario": "Je wilt dat een collega helpt een agent bij te sturen terwijl die in je ontwikkelomgeving werkt.",
+        "outcome": "Een gedeeld beeld van wat de agent heeft veranderd en wat de volgende stap is.",
+        "steps": {
+          "s0": {
+            "title": "Start een gedeelde terminal",
+            "body": "Open je live moshcode-sessie en deel die met je team."
+          },
+          "s1": {
+            "title": "Haal de app in beeld",
+            "body": "Deel je editor of app-preview via PairUX."
+          },
+          "s2": {
+            "title": "Werk samen de volgende stap uit",
+            "body": "Bekijk het resultaat samen en bepaal wat je de agent hierna vraagt."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "AI-gegenereerde code reviewen",
+        "audience": "Developers & reviewers",
+        "description": "Loop samen de diff, de tests en de draaiende app door voordat de wijzigingen van een agent een gemergede pull request worden.",
+        "scenario": "Een agent heeft een grote wijziging gemaakt. Een reviewer moet het gedrag begrijpen, niet alleen een samenvatting van de patch lezen.",
+        "outcome": "Een gereviewde wijziging met duidelijke fixes, vervolgtests en een gezamenlijk besluit over de merge.",
+        "steps": {
+          "s0": {
+            "title": "Laat het bewijs zien",
+            "body": "Deel je editor met de diff, de taakeisen en de testoutput in beeld. Leg uit wat je de agent hebt gevraagd te veranderen."
+          },
+          "s1": {
+            "title": "Probeer het gedrag samen uit",
+            "body": "Start de app en doorloop de belangrijke paden. Keur bediening op afstand goed als de reviewer zelf een edge case wil proberen."
+          },
+          "s2": {
+            "title": "Maak van bevindingen de volgende wijziging",
+            "body": "Spreek correcties af en vraag je coding-agent ze door te voeren. Bekijk de nieuwe diff en draai de relevante checks opnieuw voordat je merget."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Een vastgelopen agent weer op gang helpen",
+        "audience": "Developers & debugpartners",
+        "description": "Haal een tweede persoon bij een falende test of een reeks mislukte fixes. Bekijk samen het bewijs en kies het volgende experiment.",
+        "scenario": "Je coding-agent blijft code aanpassen zonder de fout op te lossen. Een collega kan helpen een ontbrekende aanname of een omgevingsprobleem te vinden.",
+        "outcome": "Een reproduceerbare fout en een gerichte volgende stap voor de agent.",
+        "steps": {
+          "s0": {
+            "title": "Laat de fout live zien",
+            "body": "Deel de terminal en reproduceer het probleem. Neem je collega mee door de foutmelding, de recente wijzigingen en wat er al is geprobeerd."
+          },
+          "s1": {
+            "title": "Test één verklaring",
+            "body": "Bekijk samen logs, configuratie en de draaiende app. Geef bediening op afstand als je collega dezelfde omgeving wil verkennen."
+          },
+          "s2": {
+            "title": "Geef de agent betere richting",
+            "body": "Schrijf de reproductiestappen op en het bewijs achter de gekozen fix. Vraag de agent om een gerichte wijziging en controleer daarna de oorspronkelijke fout opnieuw."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Freelancers in context inwerken",
+        "audience": "Teamleads & nieuwe collega’s",
+        "description": "Laat een nieuwe collega een echte taak volgen, je codebase en agentworkflow leren kennen en meedoen zodra diegene er klaar voor is.",
+        "scenario": "Een freelancer komt bij je project en moet begrijpen hoe je agents inzet, wijzigingen reviewt en bepaalt wanneer werk klaar is om te shippen.",
+        "outcome": "Een collega die je workflow begrijpt en de volgende taak met context kan oppakken.",
+        "steps": {
+          "s0": {
+            "title": "Begin met een echte taak",
+            "body": "Deel je ontwikkelscherm en leg het project, de taak en je briefing aan de coding-agent uit. Laat de freelancer de eerste ronde observeren."
+          },
+          "s1": {
+            "title": "Leg de keuzes uit",
+            "body": "Loop de output van de agent, de tests en de draaiende app door. Laat zien waar je een suggestie accepteert en waar je om een andere aanpak vraagt."
+          },
+          "s2": {
+            "title": "Laat diegene het overnemen",
+            "body": "Keur bediening op afstand in PairUX goed voor een begeleide wijziging. Gebruik je ook moshcode, geef dan schrijftoegang tot een gedeelde teamsessie zodra diegene klaar is om terminalinvoer te sturen."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "De app reviewen met product en design",
+        "audience": "Bouwers, designers & productteams",
+        "description": "Laat de app die een agent bouwt zien aan de mensen die het resultaat beoordelen. Probeer de flow samen en maak van feedback concrete wijzigingen.",
+        "scenario": "Een werkend prototype is klaar, maar de interactie, teksten of layout hebben feedback nodig van iemand buiten de code.",
+        "outcome": "Concrete acceptatiecriteria en een afgesproken lijst met wijzigingen aan de werkende app.",
+        "steps": {
+          "s0": {
+            "title": "Deel de werkende ervaring",
+            "body": "Open de app-preview en deel dat venster in PairUX. Loop de taak door die een echte gebruiker moet kunnen voltooien."
+          },
+          "s1": {
+            "title": "Laat de reviewer rondkijken",
+            "body": "Vraag om feedback terwijl je navigeert, of keur bediening op afstand goed zodat de reviewer de flow op jouw machine kan proberen."
+          },
+          "s2": {
+            "title": "Rond de feedbackloop af",
+            "body": "Maak van observaties concrete verzoeken aan je coding-agent. Laat de bijgewerkte app in dezelfde sessie zien en spreek af wat klaar is."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Iemands AI-workflow vlottrekken",
+        "audience": "Supportteams & technisch leads",
+        "description": "Help een collega een tool te configureren, een foutmelding te begrijpen of een kapotte lokale workflow te herstellen terwijl jullie hetzelfde scherm zien.",
+        "scenario": "Een agent of ontwikkeltool werkt op de ene machine maar faalt op de andere. Screenshots en gekopieerde foutmeldingen missen de context.",
+        "outcome": "Een werkende setup en iemand die begrijpt hoe het probleem is opgelost.",
+        "steps": {
+          "s0": {
+            "title": "Laat diegene het probleem tonen",
+            "body": "Wie het probleem heeft, host een PairUX-sessie en deelt het relevante toolvenster. Doe mee vanuit je browser en kijk mee terwijl de fout wordt gereproduceerd."
+          },
+          "s1": {
+            "title": "Begeleid de fix in diens omgeving",
+            "body": "Leg de volgende controle uit en laat diegene die uitvoeren. Vraag bediening op afstand aan als hands-on hulp nuttig is; de host beslist of die wordt goedgekeurd."
+          },
+          "s2": {
+            "title": "Controleer de hele workflow",
+            "body": "Vraag om de oorspronkelijke taak opnieuw uit te voeren. Laat de stappen achter die het probleem oplosten, zodat diegene het de volgende keer herkent."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Geef een live workshop AI-coding",
+        "audience": "Docenten, community’s & teams",
+        "description": "Laat een publiek zien hoe je een agent briefet, het werk controleert en met fouten omgaat terwijl je iets echts bouwt.",
+        "scenario": "Je team wil een agentworkflow leren door de beslissingen en correcties te zien die een gepolijste demo meestal weglaat.",
+        "outcome": "Een publiek dat het hele traject heeft gezien, van taakbriefing tot gecontroleerd resultaat.",
+        "steps": {
+          "s0": {
+            "title": "Zet een gerichte demonstratie op",
+            "body": "Kies een kleine taak en deel de terminal, editor of app die je gebruikt. Kies een PairUX-abonnement dat past bij het aantal luisteraars in je ruimte."
+          },
+          "s1": {
+            "title": "Laat de redenering achter de prompts zien",
+            "body": "Leg uit welke context je de agent geeft en waarom. Pauzeer op belangrijke momenten om de diff te bekijken, tests te draaien en een onverwacht resultaat te bespreken."
+          },
+          "s2": {
+            "title": "Oefen het reviewen van het resultaat",
+            "body": "Laat de groep edge cases en vervolgwijzigingen voorstellen. Voer die checks zichtbaar uit, zodat deelnemers zien hoe je beslist of het werk klaar is."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "AI-notulist",
+        "audience": "Pro- en Team-abonnementen",
+        "description": "Zet AI-gespreksanalyse aan vóór een teamoverleg en ga weg met de besluiten, open vragen en actiepunten, plus feedback over hoe het overleg verliep.",
+        "scenario": "Je team wil gefocust blijven op het gezamenlijke werk en weggaan met bruikbare notities voor de volgende sessie.",
+        "outcome": "Een gecontroleerde samenvatting van het werk, de besluiten en de volgende stappen.",
+        "steps": {
+          "s0": {
+            "title": "Zet AI-gespreksanalyse aan vóór het gesprek",
+            "body": "Zet op het startscherm AI-gespreksanalyse aan en kies “Teamoverleg”. Iedereen die deelneemt ziet dat het gesprek wordt opgenomen voor analyse."
+          },
+          "s1": {
+            "title": "Lees het rapport",
+            "body": "Na het gesprek krijg je een samenvatting, de genomen besluiten, de open vragen en elk actiepunt met de eigenaar ervan, naast feedback over hoe het overleg verliep."
+          },
+          "s2": {
+            "title": "Neem de context mee naar de volgende taak",
+            "body": "Deel de actiepunten met het team, of gebruik de samenvatting om een collega bij te praten of je volgende verzoek aan je agent voor te bereiden."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Over ons",
+      "description": "Lees meer over PairUX, de opensourcetool om samen schermen te delen."
+    },
+    "title": "Over PairUX",
+    "subtitle": "We bouwen de samenwerkingstools die we zelf misten",
+    "missionTitle": "Onze missie",
+    "missionP1": "PairUX is ontstaan uit frustratie. Nadat Slack Screenhero overnam en stopzette, werd pair-programmen op afstand onnodig lastig. Bestaande tools missen bediening op afstand, vereisen dure licenties of houden je vast aan één leverancier.",
+    "missionP2": "Wij vinden dat samen schermdelen voor iedereen toegankelijk moet zijn. Daarom is PairUX open source, met transparante prijzen en zonder kunstmatige beperkingen.",
+    "buildingTitle": "Wat we bouwen",
+    "buildingBody": "PairUX is een desktopapp om samen schermen te delen met gelijktijdige bediening op afstand. Denk aan Screenhero, maar modern, open source en voor elk platform.",
+    "buildingList": {
+      "b0": "Realtime schermdelen met lage latentie",
+      "b1": "Meerdere deelnemers kunnen het gedeelde scherm tegelijk bedienen",
+      "b2": "End-to-end-versleuteling voor veiligheid",
+      "b3": "Werkt op macOS, Windows en Linux",
+      "b4": "Kijkers kunnen deelnemen vanuit elke browser"
+    },
+    "openSourceTitle": "Open source",
+    "openSourceBody": "PairUX is uitgebracht onder de MIT-licentie. Je kunt de code bekijken, aanpassen en eraan bijdragen op <link>GitHub</link>. Bijdragen uit de community zijn welkom.",
+    "contactTitle": "Contact",
+    "contactBody": "Vragen of feedback? Neem contact met ons op via <link>hello@pairux.com</link>."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blog - PairUX",
+      "description": "Nieuws, updates en tutorials van het PairUX-team."
+    },
+    "title": "Blog",
+    "subtitle": "Nieuws, updates en tutorials van het PairUX-team",
+    "comingSoonTitle": "Binnenkort",
+    "comingSoonBody": "We werken aan onze eerste blogposts. Kom snel terug voor tutorials, productupdates en een kijkje achter de schermen bij het bouwen van PairUX.",
+    "postNotFound": "Post niet gevonden",
+    "postTitle": "{title} - PairUX Blog",
+    "backToBlog": "← Terug naar de blog"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Wijzigingslog",
+      "description": "Bekijk wat er nieuw is in PairUX. Releasenotes en versiegeschiedenis."
+    },
+    "title": "Wijzigingslog",
+    "subtitle": "Bekijk wat er nieuw is in PairUX",
+    "version": "v{version}",
+    "englishOnly": "Releasenotes worden in het Engels gepubliceerd."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacybeleid",
+      "description": "Privacybeleid van PairUX: hoe we met je gegevens omgaan."
+    },
+    "terms": {
+      "title": "Servicevoorwaarden",
+      "description": "Servicevoorwaarden en beleid voor acceptabel gebruik van PairUX."
+    },
+    "lastUpdated": "Laatst bijgewerkt: {date}",
+    "englishOnly": "Dit document is beschikbaar in het Engels; dat is de bindende versie."
+  },
+  "docs": {
+    "meta": {
+      "title": "Documentatie",
+      "description": "Leer werken met PairUX: installatiehandleidingen, systeemvereisten, informatie over beveiliging en veelgestelde vragen."
+    },
+    "title": "Documentatie",
+    "subtitle": "Alles wat je moet weten om PairUX te gebruiken voor samen schermdelen.",
+    "onThisPage": "Op deze pagina",
+    "toc": {
+      "gettingStarted": "Aan de slag",
+      "requirements": "Systeemvereisten",
+      "hosting": "Een sessie hosten",
+      "viewing": "Een sessie bekijken",
+      "control": "Bediening op afstand",
+      "remoteStart": "Op afstand starten (Tailscale)",
+      "security": "Beveiliging",
+      "troubleshooting": "Probleemoplossing",
+      "uninstalling": "Verwijderen",
+      "faq": "Veelgestelde vragen"
+    },
+    "englishOnly": "De documentatie is alleen in het Engels beschikbaar.",
+    "agents": {
+      "meta": {
+        "title": "Agents als deelnemer | PairUX Docs",
+        "description": "Haal een AI-agent zoals Claude Code in een live PairUX-sessie. Hij neemt deel met de deelnamecode, volgt de chat, antwoordt daarin en wordt op web, desktop en mobiel als agent aangeduid."
+      },
+      "backLink": "← Documentatie",
+      "title": "Agents als deelnemer"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Dashboard - PairUX",
+      "description": "PairUX-dashboard - Beheer je sessies, facturatie en instellingen."
+    },
+    "stats": {
+      "sessionsThisMonth": "Sessies deze maand",
+      "totalParticipants": "Totaal deelnemers",
+      "hoursUsed": "Gebruikte uren",
+      "hoursValue": "{hours} u"
+    },
+    "channelsHeading": "Kanalen",
+    "usageAnalytics": "Gebruiksstatistieken",
+    "analyticsPlaceholder": "Statistieken verschijnen hier",
+    "yourPlan": "Je abonnement",
+    "freePlan": "Gratis abonnement",
+    "current": "Huidig",
+    "freePlanSummary": "2 deelnemers, alleen P2P",
+    "upgradePlan": "Abonnement upgraden",
+    "comingSoon": "Binnenkort",
+    "comingSoonButton": "Binnenkort",
+    "perMonth": "/maand",
+    "plans": {
+      "pro": {
+        "description": "Voor professionals en groeiende teams",
+        "features": {
+          "participants": "10 deelnemers + 50 kijkers",
+          "hours": "100 kijkeruren inbegrepen"
+        }
+      },
+      "team": {
+        "description": "Voor teams en organisaties",
+        "features": {
+          "participants": "Onbeperkt deelnemers",
+          "hours": "500 kijkeruren inbegrepen"
+        }
+      }
+    },
+    "billing": "Facturatie",
+    "noPaymentMethod": "Geen betaalmethode opgeslagen",
+    "addPaymentMethod": "Betaalmethode toevoegen",
+    "settings": "Instellingen",
+    "accountSettings": "Accountinstellingen",
+    "notifications": "Meldingen",
+    "welcome": {
+      "title": "Welkom bij PairUX",
+      "subtitle": "Deel je scherm, werk realtime samen en krijg hulp op afstand.",
+      "startSharing": "Begin met delen",
+      "joinSession": "Deelnemen aan sessie",
+      "scheduleMeeting": "Meeting plannen",
+      "callAnalyses": "Gespreksanalyses"
+    },
+    "quickActions": {
+      "title": "Snelle acties",
+      "startSession": "Sessie starten",
+      "startSessionHint": "Deel je scherm",
+      "joinSession": "Deelnemen aan sessie",
+      "joinSessionHint": "Voer een deelnamecode in",
+      "scheduleMeeting": "Meeting plannen",
+      "scheduleMeetingHint": "Nodig je team uit"
+    },
+    "recentSessions": {
+      "title": "Recente sessies",
+      "fetchFailed": "Sessies ophalen mislukt",
+      "loadFailed": "Sessies laden mislukt",
+      "tryAgain": "Opnieuw proberen",
+      "empty": "Nog geen sessies",
+      "emptyHint": "Start je eerste sessie om die hier te zien",
+      "startSession": "Sessie starten",
+      "viewAll": "Alles bekijken",
+      "join": "Deelnemen",
+      "resume": "Hervatten",
+      "status": {
+        "created": "Aangemaakt",
+        "active": "Actief",
+        "paused": "Gepauzeerd",
+        "ended": "Beëindigd"
+      },
+      "duration": {
+        "underMinute": "< 1 min",
+        "minutes": "{minutes} min",
+        "hours": "{hours} u",
+        "hoursMinutes": "{hours} u {minutes} m"
+      },
+      "date": {
+        "today": "Vandaag",
+        "yesterday": "Gisteren",
+        "daysAgo": "{days, plural, one {# dag geleden} other {# dagen geleden}}"
+      }
+    },
+    "upcoming": {
+      "title": "Komende meetings",
+      "loadFailed": "Komende meetings laden mislukt",
+      "startFailed": "Meeting starten mislukt",
+      "cancelConfirm": "Deze geplande meeting annuleren? Genodigden krijgen een melding.",
+      "schedule": "Plannen",
+      "empty": "Geen komende meetings gepland",
+      "scheduleFirst": "Plan je eerste meeting",
+      "todayAt": "Vandaag om {time}",
+      "tomorrowAt": "Morgen om {time}",
+      "durationMinutes": "{minutes} m",
+      "durationHours": "{hours} u",
+      "goesLiveOn": "Gaat live op {channel}",
+      "invited": "{count} uitgenodigd",
+      "accepted": "{count} geaccepteerd",
+      "startEarlyHint": "Opent de ruimte nu en mailt iedereen die is uitgenodigd",
+      "startEarly": "Eerder starten",
+      "startNow": "Nu starten",
+      "addToCalendar": "Toevoegen aan agenda",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Meeting bewerken",
+      "cancelMeeting": "Meeting annuleren"
+    },
+    "schedule": {
+      "yourChannels": "Je kanalen",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 uur} =90 {1,5 uur} =120 {2 uur} other {# minuten}}",
+      "durationCustomHours": "{hours, plural, one {# uur} other {# uur}}",
+      "repeatNone": "Wordt niet herhaald",
+      "repeatDaily": "Dagelijks",
+      "repeatWeekly": "Wekelijks",
+      "repeatMonthly": "Maandelijks",
+      "repeatUnit": "{freq, select, daily {dagen} weekly {weken} other {maanden}}",
+      "invalidDate": "Ongeldige datum/tijd",
+      "saveFailed": "Wijzigingen opslaan mislukt",
+      "scheduleFailed": "Meeting plannen mislukt",
+      "networkError": "Netwerkfout. Probeer het opnieuw.",
+      "editTitle": "Meeting bewerken",
+      "scheduleTitle": "Meeting plannen",
+      "close": "Sluiten",
+      "meetingTitle": "Titel van de meeting",
+      "titlePlaceholder": "bijv. Wekelijks teamoverleg",
+      "dateTime": "Datum en tijd",
+      "durationLabel": "Duur",
+      "repeat": "Herhalen",
+      "every": "Elke",
+      "numberOfTimes": "Aantal keer",
+      "zeroForever": "0 = altijd",
+      "recurrenceSummary": "{description}. Iedereen houdt dezelfde deelnamecode en link.",
+      "broadcastChannel": "Uitzendkanaal",
+      "optional": "(optioneel)",
+      "loadingChannels": "Je kanalen laden…",
+      "noChannel": "Geen kanaal (privémeeting)",
+      "channelUnavailable": "Huidig kanaal (je hebt geen toegang meer)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Je hebt nog geen kanalen. Maak er een aan onder Kanalen op je dashboard, of word lid van een team dat er een heeft.",
+      "channelHint": "Als je vanuit deze meeting live gaat, wordt er op dit kanaal uitgezonden. Teamkanalen staan onder hun team.",
+      "description": "Beschrijving",
+      "descriptionPlaceholder": "Agenda, notulen of context...",
+      "invitees": "Genodigden",
+      "inviteByEmail": "Uitnodigen per e-mail",
+      "removeInvitee": "Genodigde verwijderen",
+      "addAnother": "Nog een toevoegen",
+      "editInviteHint": "Nieuwe genodigden krijgen een uitnodiging per e-mail; verwijderde genodigden horen dat ze niet meer op de lijst staan. Plak meerdere adressen, gescheiden door komma’s.",
+      "newInviteHint": "Uitnodigingen worden direct verstuurd. Plak meerdere adressen, gescheiden door komma’s.",
+      "toInvite": "{count} uit te nodigen",
+      "toRemove": "{count} te verwijderen",
+      "cancel": "Annuleren",
+      "saving": "Opslaan...",
+      "saveChanges": "Wijzigingen opslaan",
+      "scheduling": "Plannen...",
+      "submitSchedule": "Meeting plannen"
+    },
+    "booking": {
+      "loadFailed": "Kan boekingspagina’s niet laden",
+      "saveFailed": "Kan niet opslaan",
+      "deleteConfirm": "“{title}” verwijderen? Meetings die er al op zijn geboekt, blijven bestaan.",
+      "title": "Boekingslinks",
+      "subtitle": "Laat iedereen een gesprek met je boeken. Het vindt plaats in PairUX.",
+      "newLink": "Nieuwe link",
+      "needUsername": "Stel eerst een gebruikersnaam in bij Instellingen. Je links worden {url}",
+      "empty": "Nog geen boekingslinks. Maak er een en deel {url}.",
+      "meta": "· {minutes} min · {timezone}",
+      "off": "uit",
+      "copyLink": "Link kopiëren",
+      "copied": "Gekopieerd",
+      "turnOff": "Uitzetten",
+      "turnOn": "Aanzetten",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "newTitle": "Nieuwe boekingslink",
+      "editTitle": "Boekingslink bewerken",
+      "close": "Sluiten",
+      "fieldTitle": "Titel",
+      "titlePlaceholder": "Kennismakingsgesprek",
+      "fieldLink": "Link",
+      "fieldDescription": "Beschrijving",
+      "optional": "(optioneel)",
+      "fieldDuration": "Duur",
+      "durationOption": "{minutes} minuten",
+      "fieldTimezone": "Tijdzone",
+      "availableHours": "Beschikbare uren",
+      "to": "tot",
+      "buffer": "Buffer (min)",
+      "minNotice": "Min. vooraf (min)",
+      "daysAhead": "Dagen vooruit",
+      "cancel": "Annuleren",
+      "create": "Link maken",
+      "save": "Opslaan",
+      "usernameToken": "gebruikersnaam",
+      "slugToken": "slug"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Kan geen banner genereren. Probeer het opnieuw.",
+      "bannerSaveFailed": "Banner gegenereerd, maar opslaan is mislukt.",
+      "bannerFailed": "Banner genereren mislukt. Probeer het opnieuw.",
+      "uploadFailed": "Kan de afbeelding niet uploaden.",
+      "processFailed": "Kan die afbeelding niet verwerken.",
+      "handleInvalid": "Handle moet 3-30 letters, cijfers of underscores bevatten.",
+      "createFailed": "Kan kanaal niet aanmaken.",
+      "networkError": "Netwerkfout. Probeer het opnieuw.",
+      "loading": "Je kanalen laden…",
+      "signInPrompt": "Log in om je kanalen te beheren.",
+      "signIn": "Inloggen",
+      "empty": "Je hebt nog geen kanaal. Maak er hieronder een aan; daar komen je openbare livestreams.",
+      "uploadBanner": "Kanaalbanner uploaden (6:1)",
+      "changeBanner": "Banner wijzigen",
+      "bannerPromptPlaceholder": "Optioneel: beschrijf de banner die je wilt…",
+      "generateHint": "Genereer met AI een banner van het juiste formaat (6:1) op basis van de huidige",
+      "generating": "Genereren…",
+      "generate": "Genereren met AI",
+      "uploadAvatar": "Avatar uploaden (vierkant)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · je kunt hier live gaan",
+      "subscribers": "{count, plural, one {# abonnee} other {# abonnees}}",
+      "view": "Bekijken",
+      "streamHeading": "Stream naar dit kanaal (OBS / elke RTMP-client)",
+      "rtmpUrl": "RTMP-URL",
+      "streamKey": "Streamsleutel",
+      "copy": "Kopiëren",
+      "hide": "Verbergen",
+      "show": "Tonen",
+      "newChannel": "Nieuw kanaal",
+      "handle": "Handle",
+      "handlePlaceholder": "mijnkanaal",
+      "name": "Naam",
+      "namePlaceholder": "Mijn kanaal",
+      "belongsTo": "Hoort bij (teamleden kunnen live gaan op een teamkanaal)",
+      "descriptionLabel": "Beschrijving (optioneel, markdown)",
+      "create": "Kanaal aanmaken"
+    },
+    "website": {
+      "saveFailed": "Kan de website niet opslaan.",
+      "networkError": "Netwerkfout. Probeer het opnieuw.",
+      "label": "Website (optioneel)",
+      "placeholder": "voorbeeld.nl",
+      "saved": "Opgeslagen",
+      "save": "Opslaan",
+      "hint": "Wordt op je kanaalpagina getoond als identiteitslink. Laat leeg om te verwijderen."
+    },
+    "restream": {
+      "customRtmp": "Aangepaste RTMP",
+      "urlInvalid": "RTMP-URL moet beginnen met rtmp:// of rtmps://",
+      "keyRequired": "Streamsleutel is verplicht.",
+      "saveFailed": "Kan de bestemming niet opslaan.",
+      "title": "Extern restreamen",
+      "toggleHint": "Livestreams van dit kanaal automatisch restreamen naar de bestemmingen hieronder",
+      "description": "Als dit aanstaat, streamt live gaan op dit kanaal ook naar YouTube/Twitch/enz. Uit voor privé schermdelen.",
+      "loading": "Laden…",
+      "empty": "Nog geen bestemmingen.",
+      "on": "Aan",
+      "off": "Uit",
+      "remove": "Verwijderen",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Streamsleutel",
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "add": "Bestemming toevoegen"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Wordt niet herhaald",
+      "describe": "Herhaalt {freq, select, daily {{interval, plural, one {elke dag} other {elke # dagen}}} weekly {{interval, plural, one {elke week} other {elke # weken}}} other {{interval, plural, one {elke maand} other {elke # maanden}}}}{when, select, weekday { op {weekday}} monthDay { op dag {day}} other {}}{count, plural, =0 {, voor altijd} one {, # keer} other {, # keer}}",
+      "short": "{freq, select, daily {{interval, plural, one {Dagelijks} other {Elke # dagen}}} weekly {{interval, plural, one {Wekelijks} other {Elke # weken}}} other {{interval, plural, one {Maandelijks} other {Elke # maanden}}}}",
+      "shortWithLeft": "{label} · nog {left}"
+    }
+  },
+  "workspace": {
+    "label": "Werkruimte",
+    "personal": "Persoonlijk",
+    "wholeOrg": "{org} (hele organisatie)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Deelnemen aan een sessie",
+      "subtitle": "Voer een deelnamecode in of plak een link",
+      "invalidCode": "Voer een geldige deelnamecode van 6 tekens in",
+      "label": "Deelnamecode of link",
+      "placeholder": "ABC123 of plak een link",
+      "hint": "Voer de code van 6 tekens in of plak een deelnamelink",
+      "continue": "Doorgaan",
+      "backHome": "Terug naar home"
+    },
+    "session": {
+      "notFound": "Sessie niet gevonden",
+      "lookupFailed": "Sessie opzoeken mislukt",
+      "joinFailed": "Deelnemen aan sessie mislukt",
+      "lookingUp": "Sessie opzoeken...",
+      "countdown": {
+        "startingNow": "Begint nu",
+        "startsInDays": "Begint over {days} d {hours} u",
+        "startsInHours": "Begint over {hours} u {mins} m",
+        "startsInMinutes": "Begint over {mins} m"
+      },
+      "durationMinutes": "{minutes, plural, one {# minuut} other {# minuten}}",
+      "durationHours": "{hours, plural, one {# uur} other {# uur}}",
+      "invitedCount": "{count} uitgenodigd",
+      "acceptedCount": "{count} geaccepteerd",
+      "autoUpdate": "Deze pagina wordt automatisch bijgewerkt zodra de host de sessie start.",
+      "joinCode": "Deelnamecode",
+      "addToCalendar": "Toevoegen aan agenda",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Sessie niet gevonden",
+      "goHome": "Naar de homepage",
+      "title": "Deelnemen aan sessie",
+      "subtitle": "Je staat op het punt deel te nemen aan een sessie met schermdelen",
+      "sessionCode": "Sessiecode",
+      "status": "Status",
+      "statusActive": "Host deelt scherm",
+      "statusPaused": "Host is momenteel niet aanwezig",
+      "statusWaiting": "Wachten op host",
+      "participants": "Deelnemers",
+      "signedInAs": "Ingelogd als {name}",
+      "displayNameOptional": "Weergavenaam (optioneel)",
+      "useAccountName": "Accountnaam gebruiken",
+      "yourName": "Je naam",
+      "namePlaceholder": "Voer je naam in",
+      "nameHint": "Zo zien anderen je in de sessie",
+      "joining": "Deelnemen...",
+      "joinButton": "Deelnemen aan sessie",
+      "watchFree": "Gratis kijken",
+      "guestNote": "Geen account nodig: kijk live mee als gast.",
+      "signInPrompt": "Heb je een account? <link>Log in</link> om te presenteren of de bediening over te nemen"
+    }
+  },
+  "invite": {
+    "notFound": "Uitnodiging niet gevonden",
+    "loadFailed": "Uitnodiging laden mislukt",
+    "invalidOrExpired": "Deze uitnodigingslink is mogelijk ongeldig of verlopen.",
+    "goToPairux": "Naar PairUX",
+    "heading": "Uitnodiging voor meeting",
+    "fromHost": "van {name}",
+    "cancelled": "Deze meeting is geannuleerd.",
+    "dateTime": "Datum en tijd",
+    "duration": "Duur",
+    "durationMinutes": "{minutes, plural, one {# minuut} other {# minuten}}",
+    "durationHours": "{hours, plural, one {# uur} other {# uur}}",
+    "host": "Host",
+    "notes": "Notities",
+    "yourJoinCode": "Je deelnamecode",
+    "useCodeHint": "Gebruik deze code als de meeting begint",
+    "joinMeeting": "Deelnemen aan meeting",
+    "addToCalendar": "Toevoegen aan agenda",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Je hebt geaccepteerd!",
+    "acceptedNote": "Tot bij de meeting.",
+    "cantMakeItAfterAll": "Kun je toch niet?",
+    "declined": "Je hebt afgezegd",
+    "declinedNote": "Je hebt aangegeven dat je er niet bij kunt zijn.",
+    "changedMind": "Van gedachten veranderd?",
+    "willYouAttend": "Ben je erbij?",
+    "yes": "Ja, ik ben erbij",
+    "no": "Ik kan niet",
+    "invitedAs": "Uitgenodigd als {email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Boek een gesprek · PairUX",
+      "bookCallWith": "Boek een gesprek met {name} · PairUX",
+      "hostDescription": "Kies een tijd die jou uitkomt. Het gesprek vindt plaats in PairUX.",
+      "pageWith": "{title} met {name} · PairUX",
+      "pageDescription": "Boek {minutes} minuten met {name}. Het gesprek vindt plaats in PairUX."
+    },
+    "host": {
+      "subtitle": "Boek een gesprek. Het vindt gewoon hier in PairUX plaats.",
+      "notTakingBookings": "{name} neemt op dit moment geen boekingen aan.",
+      "minutes": "{minutes} min",
+      "pickTime": "Kies een tijd"
+    },
+    "booking": {
+      "loadFailed": "Kan tijden niet laden",
+      "bookFailed": "Kan die tijd niet boeken",
+      "calendarDescription": "Doe mee via {url} met code {code}",
+      "booked": "Je bent geboekt",
+      "whenWith": "{when} met {name}",
+      "confirmationSent": "Een bevestiging met alles hieronder is onderweg naar {email}.",
+      "yourJoinCode": "Je deelnamecode",
+      "callHappensHint": "Het gesprek vindt plaats in PairUX. Open op het afgesproken moment de link hieronder of voer de code in.",
+      "openCallPage": "Gesprekspagina openen",
+      "addToCalendar": "Toevoegen aan agenda:",
+      "cantMakeIt": "Kun je toch niet? <link>Laat het {name} weten</link>.",
+      "durationMinutes": "{minutes, plural, one {# minuut} other {# minuten}}",
+      "timesShownIn": "Tijden weergegeven in",
+      "aboutCall": "Het gesprek zelf vindt plaats in PairUX: spraak, schermdelen en bediening op afstand, zonder download als je via een browser deelneemt.",
+      "pickDifferentTime": "Kies een andere tijd",
+      "minutesWith": "{minutes, plural, one {# minuut} other {# minuten}} met {name}",
+      "yourName": "Je naam",
+      "email": "E-mail",
+      "notesLabel": "Iets wat {name} moet weten?",
+      "optional": "(optioneel)",
+      "confirm": "Boeking bevestigen",
+      "previousWeek": "Vorige week",
+      "nextWeek": "Volgende week",
+      "nothingFree": "Deze week niets vrij.",
+      "nothingFreeTryNext": "Deze week niets vrij. Probeer de volgende."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Log in om een deelnamelink te maken",
+    "createFailed": "Sessie aanmaken mislukt",
+    "title": "Deelnamelink maken",
+    "subtitle": "Maak een link om met deelnemers te delen",
+    "signIn": "Inloggen",
+    "creating": "Aanmaken...",
+    "createButton": "Deelnamelink maken",
+    "backHome": "Terug naar home",
+    "joinCode": "Deelnamecode",
+    "joinUrl": "Deelname-URL",
+    "copyLink": "Link kopiëren",
+    "copied": "Gekopieerd",
+    "shareHint": "Deel deze link met anderen. Ze kunnen deelnemen en wachten tot jij je scherm deelt vanuit de desktopapp.",
+    "createAnother": "Nog een maken",
+    "downloadApp": "App downloaden"
+  },
+  "hostStart": {
+    "metaTitle": "Deel je scherm - PairUX",
+    "analysisRequiresPlan": "AI-gespreksanalyse zit in de Pro- en Team-abonnementen. Zet het uit, of upgrade op de prijzenpagina.",
+    "createFailed": "Sessie aanmaken mislukt",
+    "createFailedRetry": "Sessie aanmaken mislukt. Probeer het opnieuw.",
+    "title": "Deel je scherm",
+    "subtitle": "Start vanuit je browser een sessie waarin anderen alleen meekijken",
+    "sessionSettings": "Sessie-instellingen",
+    "defaults": "Standaardwaarden",
+    "maxViewers": "Maximaal aantal kijkers",
+    "viewers": "{count, plural, one {# kijker} other {# kijkers}}",
+    "remoteControl": "Bediening op afstand",
+    "enableGuestControl": "Bediening door gasten toestaan",
+    "notAvailableWeb": "Niet beschikbaar bij delen via het web",
+    "remoteControlRequires": "Voor bediening op afstand heb je de <link>desktopapp</link> nodig.",
+    "workspaceLabel": "Werkruimte (het rapport van een teamgesprek wordt met het team gedeeld)",
+    "creating": "Sessie aanmaken...",
+    "startSharing": "Begin met delen",
+    "viewOnlyNote": "<strong>Delen via het web is alleen om te kijken.</strong> Kijkers zien je scherm, maar kunnen het niet bedienen. Gebruik de desktopapp voor bediening op afstand.",
+    "joinInstead": "Wil je liever deelnemen aan een sessie? <link>Voer een deelnamecode in</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "Samen <rotating></rotating>, <highlight>opnieuw uitgevonden</highlight>",
+      "subtitle": "Samen schermdelen met gelijktijdige muis- en toetsenbordbediening op afstand. Zoals Screenhero, maar open source.",
+      "download": "Gratis downloaden",
+      "github": "Bekijk op GitHub",
+      "note": "Gratis en open source. Kijkers hebben geen account nodig."
+    },
+    "rotating": {
+      "programming": "programmeren",
+      "pitching": "pitchen",
+      "presenting": "presenteren",
+      "demoing": "demo’s geven",
+      "designing": "ontwerpen",
+      "debugging": "debuggen",
+      "teaching": "lesgeven",
+      "training": "trainen",
+      "reviewing": "reviewen",
+      "brainstorming": "brainstormen"
+    },
+    "featuresSection": {
+      "title": "Alles wat je nodig hebt om op afstand samen te werken",
+      "subtitle": "Gemaakt voor developers, designers en iedereen die realtime moet samenwerken."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Realtime schermdelen",
+        "description": "WebRTC-streaming met lage latentie levert haarscherp schermdelen met adaptieve kwaliteit."
+      },
+      "remoteControl": {
+        "title": "Bediening op afstand",
+        "description": "Muis- en toetsenbordbediening met expliciete goedkeuring van de host. Beiden kunnen tegelijk bedienen."
+      },
+      "simultaneousInput": {
+        "title": "Gelijktijdige invoer",
+        "description": "Host en kijker kunnen tegelijk bedienen. De host heeft voor de veiligheid altijd voorrang."
+      },
+      "secure": {
+        "title": "Veilig door ontwerp",
+        "description": "Versleuteld via WebRTC DTLS-SRTP. Media komen nooit op onze servers, tenzij je AI-gespreksanalyse aanzet."
+      },
+      "pwaViewer": {
+        "title": "PWA-viewer",
+        "description": "Neem deel aan sessies vanuit elke browser. Kijkers hoeven niets te downloaden."
+      },
+      "crossPlatform": {
+        "title": "Voor elk platform",
+        "description": "Desktopapps voor macOS, Windows en Linux. Installeer via Homebrew, WinGet of APT."
+      }
+    },
+    "steps": {
+      "title": "Binnen een paar minuten aan de slag",
+      "subtitle": "Geen ingewikkelde setup. Gewoon installeren, delen en samenwerken.",
+      "install": {
+        "title": "Installeer de desktopapp",
+        "description": "Download PairUX op je computer via je pakketbeheerder of als directe download."
+      },
+      "start": {
+        "title": "Start een sessie",
+        "description": "Klik op “Sessie starten” en kies welk scherm of venster je wilt delen."
+      },
+      "share": {
+        "title": "Deel de link",
+        "description": "Stuur de deelnamelink naar je collega. Die kan deelnemen vanuit elke browser."
+      }
+    },
+    "community": {
+      "title": "Gemaakt voor samenwerking in de praktijk",
+      "subtitle": "PairUX wordt al gebruikt voor pair-programmen, designreviews en ondersteuning op afstand. We verzamelen vroege feedback: probeer het en deel de jouwe.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Eindelijk een vervanger voor Screenhero die echt werkt. Gelijktijdige bediening verandert pair-programmen compleet.",
+          "role": "Software engineer"
+        },
+        "techLead": {
+          "quote": "Dat kijkers vanuit elke browser kunnen meedoen zonder iets te installeren, maakt dit perfect voor snelle samenwerksessies.",
+          "role": "Tech lead"
+        },
+        "contributor": {
+          "quote": "Open source, end-to-end versleuteld en het werkt gewoon. Precies wat de developercommunity nodig had.",
+          "role": "Opensourcebijdrager"
+        }
+      },
+      "feedback": "Gebruik je PairUX? <link>Deel je ervaring op GitHub</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Nieuw · AI-gespreksanalyse",
+      "title": "Krijg feedback op elk sollicitatiegesprek, overleg en elke presentatie.",
+      "description": "Zet het aan vóór het gesprek. Daarna krijg je een privérapport: een score, wat goed ging, wat beter kan, je spreektijd, tempo en stopwoorden, en de momenten die het terugkijken waard zijn.",
+      "cta": "Bekijk hoe gespreksanalyse werkt",
+      "sample": {
+        "label": "Voorbeeldrapport · Sollicitatiegesprek",
+        "headline": "Heldere antwoorden, maar je raffelde het einde af",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Je sprak {percent}% van de tijd, met {wpm} woorden per minuut",
+        "fillers": "{rate} stopwoorden per 100 (“eh”, “zeg maar”)",
+        "practice": "Oefenen: sluit elk antwoord af met het resultaat, in één zin"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Agentisch pair-programmen",
+      "title": "Twee mensen. Eén agentsessie.",
+      "description": "Haal een collega bij het werk terwijl je coding-agent draait. Volg dezelfde terminal, bekijk samen de app en bepaal wat je de agent hierna vraagt.",
+      "cta": "Pair met moshcode en PairUX",
+      "browse": "Alle toepassingen bekijken",
+      "cardTitle": "Meekijken, bespreken en dan samenwerken",
+      "step1": "1. Start een live moshcode-sessie en deel die met je team.",
+      "step2": "2. Gebruik PairUX om de terminal en de app die je bouwt te laten zien.",
+      "step3": "3. Bekijk samen de wijzigingen van de agent en laat je collega meedoen.",
+      "note": "Handig om freelancers in te werken, samen te debuggen en werk te reviewen voordat het live gaat."
+    },
+    "security": {
+      "title": "Beveiliging waarop je kunt vertrouwen",
+      "subtitle": "PairUX is gebouwd met beveiliging als basis. Je schermdata komt nooit op onze servers.",
+      "encryption": {
+        "title": "End-to-end-versleuteling",
+        "description": "Alle media versleuteld via WebRTC DTLS-SRTP"
+      },
+      "consent": {
+        "title": "Expliciete toestemming",
+        "description": "De host moet elk bedieningsverzoek goedkeuren"
+      },
+      "revoke": {
+        "title": "Noodstop",
+        "description": "{shortcut} trekt direct alle bediening in"
+      },
+      "openSource": {
+        "title": "Open source",
+        "description": "Volledig controleerbare code onder de MIT-licentie"
+      },
+      "diagram": {
+        "p2p": "Directe peer-to-peerverbinding",
+        "noStorage": "Geen opslag van media op servers"
+      }
+    },
+    "cta": {
+      "title": "Klaar om samen te werken?",
+      "subtitle": "Download PairUX en deel binnen enkele seconden je scherm. Gratis, open source en privacyvriendelijk.",
+      "download": "Nu downloaden",
+      "learnMore": "Meer informatie"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Prijzen",
+      "description": "Eenvoudige vaste prijzen. Geen kosten per gebruiker. $1/mnd voor Plus (tot 100 luisteraars), $12/mnd Pro, $49/mnd Team. 40-70% goedkoper dan Zoom, Teams en andere zakelijke oplossingen."
+    },
+    "hero": {
+      "title": "40–70% goedkoper dan de grote spelers",
+      "subtitle": "Eenvoudige vaste prijzen. Geen kosten per gebruiker, geen jaarcontracten, geen verkoopgesprekken."
+    },
+    "mostPopular": "Populairst",
+    "period": {
+      "forever": "/voor altijd",
+      "month": "/maand"
+    },
+    "tiers": {
+      "free": {
+        "name": "Gratis",
+        "description": "Perfect voor persoonlijk gebruik en kleine teams",
+        "cta": "Aan de slag",
+        "features": {
+          "participants": "2 deelnemers + tot {count} luisteraars",
+          "publicViewers": "Onbeperkt gratis kijkers bij openbare livestreams",
+          "p2p": "P2P-verbindingen",
+          "screenSharing": "Schermdelen",
+          "remoteControl": "Bediening op afstand",
+          "e2e": "End-to-end-versleuteling",
+          "support": "Community-ondersteuning"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Voor een publiek: lesgeven, stand-ups, samen kijken",
+        "cta": "Upgraden naar Plus",
+        "features": {
+          "listeners": "Tot {count} luisteraars per ruimte",
+          "sfu": "SFU-relayservers",
+          "liveDirectory": "Openbare ruimte in de /live-directory",
+          "screenVoice": "Schermdelen + spraak",
+          "remoteControl": "Bediening op afstand",
+          "cancel": "Altijd opzegbaar"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Voor professionals en groeiende teams",
+        "cta": "Upgraden naar Pro",
+        "features": {
+          "listeners": "Tot {count} luisteraars per ruimte",
+          "sfu": "SFU-relayservers",
+          "streaming": "Alle streamingplatforms (YouTube, Twitch, …)",
+          "hd": "Schermdelen in HD (1080p)",
+          "liveDirectory": "Openbare ruimte in de /live-directory",
+          "callAnalysis": "AI-gespreksanalyse",
+          "support": "Ondersteuning met voorrang"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "Voor teams en organisaties",
+        "cta": "Upgraden naar Team",
+        "features": {
+          "listeners": "Tot {count} luisteraars per ruimte",
+          "sfu": "Dedicated SFU-servers",
+          "streaming": "Alle streamingplatforms",
+          "uhd": "Schermdelen in 4K",
+          "callAnalysis": "AI-gespreksanalyse",
+          "admin": "Beheerdersinstellingen",
+          "support": "Ondersteuning met voorrang"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Afrekenen starten…",
+      "checkoutFailed": "Kan afrekenen niet starten. Probeer het opnieuw.",
+      "networkError": "Netwerkfout. Probeer het opnieuw."
+    },
+    "callAnalysis": {
+      "eyebrow": "Inbegrepen bij Pro en Team",
+      "title": "AI-gespreksanalyse",
+      "description": "Zet het aan vóór een gesprek en ontvang achteraf een feedbackrapport: een score, spreektijd, tempo, stopwoorden, wat goed ging, wat je kunt oefenen en bij teamoverleg de besluiten en actiepunten.",
+      "cta": "Bekijk hoe gespreksanalyse werkt →"
+    },
+    "cost": {
+      "title": "Echte kostenvergelijking",
+      "subtitle": "Vergelijk onze prijzen met de gebruikelijke kosten van Zoom Webinars en Microsoft Teams",
+      "plan": "Abonnement",
+      "rows": {
+        "free": "Gratis",
+        "pro": "Pro / klein team",
+        "team": "Team / zakelijk",
+        "tenPerson": "Team van 10 personen"
+      },
+      "cells": {
+        "freeLimit": "{price} (limiet van {minutes} min)",
+        "perMonth": "{price}/mnd",
+        "perHost": "{price}/mnd/host",
+        "perUser": "{price}/mnd/gebruiker",
+        "perMonthTotal": "{price}/mnd totaal"
+      },
+      "footnote": "* PairUX rekent per team, niet per gebruiker. Geen licenties per gebruiker."
+    },
+    "comparison": {
+      "title": "Functievergelijking",
+      "subtitle": "Zo verhoudt PairUX zich tot Zoom, Teams, Webex, Google Meet en Jitsi",
+      "feature": "Functie",
+      "rows": {
+        "transparent": "Transparante prijzen",
+        "noSeatFees": "Geen kosten per gebruiker",
+        "noContracts": "Geen jaarcontracten",
+        "flatRate": "Eenvoudige vaste abonnementen",
+        "openSource": "Open source",
+        "selfHost": "Zelf te hosten",
+        "remoteControl": "Bediening op afstand",
+        "multiCursor": "Meerdere cursors",
+        "noAccount": "Geen account nodig (kijkers)"
+      }
+    },
+    "advantages": {
+      "title": "Waarom PairUX anders is",
+      "subtitle": "Zakelijke tools kunnen dit niet kopiëren zonder hun prijsmodel te breken",
+      "items": {
+        "noSeatFees": {
+          "title": "Geen kosten per gebruiker",
+          "description": "Eén prijs voor je hele team. Voeg gebruikers toe zonder extra kosten."
+        },
+        "noLockIn": {
+          "title": "Geen lock-in",
+          "description": "Geen jaarcontracten of verplichtingen. Altijd opzegbaar."
+        },
+        "openSource": {
+          "title": "Open source",
+          "description": "Controleer de code, host zelf of pas aan. Jouw data, jouw regels."
+        },
+        "developer": {
+          "title": "Developervriendelijk",
+          "description": "Installatie via CLI, API-toegang en klaar voor automatisering vanaf dag één."
+        }
+      }
+    },
+    "faq": {
+      "title": "Veelgestelde vragen",
+      "capacity": {
+        "question": "Hoeveel mensen kunnen in mijn ruimte meekijken?",
+        "answer": "Het aantal gelijktijdige luisteraars per ruimte hangt af van je abonnement: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Daarnaast kunnen onbeperkt veel gasten zonder account gratis naar openbare livestreams kijken.",
+        "answerLong": "Het aantal gelijktijdige luisteraars per ruimte hangt af van je abonnement: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Daarnaast kunnen onbeperkt veel gasten zonder account gratis naar openbare livestreams kijken."
+      },
+      "free": {
+        "question": "Is de gratis versie echt gratis?",
+        "answer": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis, en onbeperkt veel gasten zonder account kunnen gratis naar openbare livestreams kijken. Geen tijdslimiet, geen creditcard nodig.",
+        "answerLong": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis, en onbeperkt veel gasten zonder account kunnen gratis naar openbare livestreams kijken. Geen tijdslimiet, geen creditcard nodig. Ideaal voor pair-programmen en kleine demo’s."
+      },
+      "selfHost": {
+        "question": "Kan ik zelf hosten om kosten te besparen?",
+        "answer": "Zeker. PairUX is open source onder de MIT-licentie. Je kunt je eigen SFU-infrastructuur draaien als je dat liever hebt.",
+        "answerLong": "Zeker. PairUX is open source onder de MIT-licentie. Je kunt je eigen SFU-infrastructuur draaien als je dat liever hebt. Ideaal voor bedrijven met specifieke beveiligingseisen."
+      },
+      "cheaper": {
+        "question": "Waarom zijn jullie goedkoper dan Zoom en Teams?",
+        "answer": "We rekenen per team, niet per gebruiker. Een team van 10 personen betaalt bij PairUX in totaal {teamPrice}/maand, tegenover {competitorPrice}/maand bij Zoom of Teams.",
+        "answerLong": "We rekenen per team, niet per gebruiker. Een team van 10 personen betaalt bij PairUX in totaal {teamPrice}/maand, tegenover {competitorPrice}/maand bij Zoom of Teams. Geen enterprise-salesteams betekent lagere kosten voor jou."
+      }
+    },
+    "cta": {
+      "title": "Klaar om te besparen op video-infrastructuur?",
+      "subtitle": "Begin gratis met P2P-sessies of upgrade naar Pro voor maar {price}/maand. Nooit kosten per gebruiker.",
+      "download": "Gratis downloaden",
+      "signup": "Account aanmaken"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "Downloaden",
+      "description": "Download PairUX voor macOS, Windows of Linux. Beschikbaar via Homebrew, WinGet, APT en als directe download."
+    },
+    "hero": {
+      "title": "PairUX downloaden",
+      "subtitle": "Download de desktopapp om sessies te hosten. Kijkers kunnen deelnemen vanuit elke browser."
+    },
+    "copyToClipboard": "Kopiëren naar klembord",
+    "loading": "Release-informatie laden...",
+    "loadFailed": "Release-informatie laden mislukt",
+    "viewReleases": "Bekijk releases op GitHub",
+    "latest": "Nieuwste: v{version}",
+    "quickInstall": {
+      "title": "Snel installeren",
+      "subtitle": "De snelste manier om te beginnen. Werkt op macOS, Linux en Windows.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Downloadt automatisch de nieuwste versie voor je platform",
+      "afterInstall": "Gebruik na de installatie <update></update> om te updaten en <uninstall></uninstall> om te verwijderen."
+    },
+    "detected": "Gedetecteerd op basis van je browser",
+    "downloadDmg": "DMG downloaden",
+    "downloadInstaller": "Installer downloaden",
+    "downloadAppImage": "AppImage downloaden",
+    "allPlatforms": {
+      "title": "Alle platforms",
+      "subtitle": "Kies je besturingssysteem en het gewenste formaat"
+    },
+    "requirements": {
+      "macos": "Vereist macOS 12 (Monterey) of hoger",
+      "windows": "Vereist Windows 10 (1809) of hoger",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Shellscript",
+    "installerX64": "Installer (x64)",
+    "viewAllReleases": "Bekijk alle releases op GitHub",
+    "checksums": {
+      "toggle": "Downloads verifiëren (SHA256-checksums)",
+      "description": "Verifieer je download door de SHA256-checksum te vergelijken.",
+      "file": "Bestand"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "PairUX-app installeren",
+    "installApp": "App installeren",
+    "title": "PairUX installeren",
+    "mobileDescription": "Zet op je beginscherm voor snelle toegang",
+    "desktopDescription": "Installeer de desktopapp voor een betere ervaring",
+    "dismiss": "Installatievraag sluiten",
+    "installing": "Installeren...",
+    "install": "Installeren"
+  },
+  "offline": {
+    "title": "Je bent offline",
+    "description": "PairUX heeft een internetverbinding nodig voor realtime schermdelen en samenwerken. Controleer je verbinding en probeer het opnieuw.",
+    "retry": "Opnieuw proberen"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Bediening vrijgeven",
+      "inControl": "Aan het bedienen",
+      "waitingApproval": "Wachten op goedkeuring van de host",
+      "requesting": "Aanvragen...",
+      "waitingConnection": "Wachten op verbinding",
+      "requestTitle": "Bediening van de host aanvragen",
+      "requestControl": "Bediening aanvragen"
+    },
+    "status": {
+      "title": "Bedieningsstatus: {state}",
+      "viewOnly": "Alleen kijken",
+      "pending": "In afwachting",
+      "controlling": "Aan het bedienen"
+    },
+    "capture": {
+      "clickToControl": "Klik om te bedienen · Esc om vrij te geven",
+      "pointerUnavailable": "Aanwijzer vastleggen was niet mogelijk · Klik om het opnieuw te proberen",
+      "fullscreenLock": "Volledig scherm + aanwijzervergrendeling",
+      "exitFullscreen": "Volledig scherm sluiten",
+      "capturePointerAgain": "Aanwijzer opnieuw vastleggen"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "AI-gespreksanalyse",
+      "description": "Krijg na het gesprek feedback: spreektijd, tempo, stopwoorden, wat aansloeg en wat je kunt oefenen. Beslis nu; het kan niet meer worden aangezet zodra het gesprek begint.",
+      "toggle": "Dit gesprek analyseren",
+      "kindLabel": "Wat voor gesprek is het?",
+      "kinds": {
+        "general": "Algemeen gesprek",
+        "interview": "Sollicitatiegesprek",
+        "team-sync": "Teamoverleg",
+        "presentation": "Presentatie"
+      },
+      "keepRecording": "Het gesprek opnemen en de opname bewaren",
+      "disclosure": "Iedereen die deelneemt hoort dat het gesprek wordt opgenomen voor AI-analyse. Rapporten zijn alleen voor jou. <link>Zo werkt het</link>"
+    },
+    "handoff": {
+      "openedTitle": "Geopend in de desktopapp",
+      "openingTitle": "De PairUX-desktopapp openen…",
+      "openedBody": "Je meeting draait in de desktopapp, waar gasten de bediening kunnen krijgen.",
+      "openingBody": "De desktopapp kan de bediening van je scherm delen. De browser kan het alleen tonen.",
+      "continueInBrowser": "Doorgaan in deze browser",
+      "download": "Heb je de app niet? Download hem"
+    },
+    "hostPresence": {
+      "notJoined": "De host is er nog niet",
+      "left": "De host is vertrokken",
+      "chatAvailable": "De chat is nog beschikbaar. Je krijgt een melding als de host terugkomt."
+    },
+    "recordingNotice": {
+      "recorded": "De host neemt dit gesprek op voor AI-analyse. Verlaat het gesprek als je niet wilt meedoen.",
+      "recordedKept": "De host neemt dit gesprek op voor AI-analyse en bewaart de opname. Verlaat het gesprek als je niet wilt meedoen."
+    },
+    "settingsPanel": {
+      "title": "Sessie-instellingen",
+      "sessionInfo": "Sessie-info",
+      "sessionCode": "Sessiecode",
+      "status": "Status",
+      "participants": "Deelnemers",
+      "created": "Aangemaakt",
+      "connectionQuality": "Verbindingskwaliteit",
+      "network": "Netwerk",
+      "frameRate": "Framerate",
+      "fps": "{value} fps",
+      "packetLoss": "Pakketverlies",
+      "latency": "Latentie",
+      "ms": "{value} ms",
+      "appearance": "Weergave",
+      "theme": {
+        "light": "licht",
+        "dark": "donker",
+        "system": "systeem"
+      },
+      "sessionStatus": {
+        "created": "aangemaakt",
+        "active": "actief",
+        "paused": "gepauzeerd",
+        "ended": "beëindigd"
+      },
+      "connectionState": {
+        "idle": "inactief",
+        "connecting": "verbinden",
+        "connected": "verbonden",
+        "reconnecting": "opnieuw verbinden",
+        "failed": "mislukt",
+        "disconnected": "verbroken"
+      },
+      "networkQuality": {
+        "excellent": "Uitstekend",
+        "good": "Goed",
+        "poor": "Matig",
+        "bad": "Slecht"
+      }
+    },
+    "publish": {
+      "titlePublic": "Ruimte is openbaar",
+      "titlePublish": "Publiceren op /live",
+      "intro": "Als je je ruimte op <strong>pairux.com/live</strong> zet, kan iedereen hem vinden en deelnemen, zonder uitnodigingslink.",
+      "subject": "Onderwerp",
+      "subjectPlaceholder": "bijv. Live een Next.js-app bouwen",
+      "description": "Beschrijving",
+      "optional": "(optioneel)",
+      "descriptionPlaceholder": "Wat gebeurt er in deze ruimte?",
+      "publish": "Publiceren",
+      "liveNotice": "Je ruimte staat live in de openbare directory.",
+      "viewLive": "/live bekijken",
+      "profileLink": "Je profiellink",
+      "copied": "Gekopieerd",
+      "claimPrompt": "Claim een gebruikersnaam voor een deelbare profielpagina op <code>{path}</code>.",
+      "usernamePlaceholder": "gebruikersnaam",
+      "claim": "Claimen",
+      "makePrivate": "Privé maken",
+      "done": "Klaar",
+      "errors": {
+        "publishFailed": "Ruimte publiceren mislukt",
+        "unpublishFailed": "Publicatie van ruimte intrekken mislukt",
+        "usernameFailed": "Gebruikersnaam opslaan mislukt",
+        "network": "Netwerkfout. Probeer het opnieuw."
+      }
+    }
+  },
+  "participants": {
+    "title": "Deelnemers",
+    "activeCount": "{count, plural, other {# actief}}",
+    "emptyTitle": "Nog geen deelnemers",
+    "emptyHint": "Deel je link om anderen uit te nodigen",
+    "you": "(jij)",
+    "agent": "Agent",
+    "agentWithClient": "Agent ({client})",
+    "host": "Host",
+    "inControl": "Aan het bedienen",
+    "requesting": "Vraagt aan",
+    "viewer": "Kijker",
+    "removeAgent": "Agent verwijderen",
+    "mute": "Deelnemer dempen",
+    "unmute": "Dempen opheffen",
+    "grantControl": "Bediening geven",
+    "revokeControl": "Bediening intrekken",
+    "removeParticipant": "Deelnemer verwijderen",
+    "makeHost": "Host maken",
+    "connection": {
+      "connected": "verbonden",
+      "reconnecting": "opnieuw verbinden",
+      "disconnected": "verbroken"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "Wachten op schermdelen",
+      "idleBody": "De host deelt zijn scherm nog niet. Zodra dat begint, zie je het scherm hier.",
+      "connectingTitle": "Verbinden...",
+      "connectingBody": "Er wordt een beveiligde verbinding met de host opgezet. Dit duurt meestal een paar seconden.",
+      "reconnectingTitle": "Opnieuw verbinden...",
+      "reconnectingBody": "Verbinding onderbroken. Opnieuw verbinden...",
+      "failedTitle": "Verbinding mislukt",
+      "failedBody": "Kan geen verbinding maken. Controleer je netwerk en probeer het opnieuw.",
+      "tryAgain": "Opnieuw proberen",
+      "disconnectedTitle": "Host niet meer verbonden",
+      "disconnectedBody": "De host is gestopt met delen of de verbinding is verbroken. Wachten tot de host opnieuw verbindt...",
+      "reconnect": "Opnieuw verbinden"
+    },
+    "quality": {
+      "title": "Verbinding: {quality}",
+      "details": "Verbindingsdetails",
+      "quality": "Kwaliteit",
+      "bitrate": "Bitrate",
+      "frameRate": "Framerate",
+      "latency": "Latentie",
+      "packetLoss": "Pakketverlies",
+      "levels": {
+        "excellent": "Uitstekend",
+        "good": "Goed",
+        "poor": "Matig",
+        "bad": "Slecht"
+      }
+    },
+    "player": {
+      "unsupported": "Je browser ondersteunt het afspelen van video niet."
+    },
+    "preview": {
+      "idleHint": "Klik hieronder om je scherm te delen",
+      "start": "Scherm delen",
+      "requesting": "Toegang tot scherm aanvragen...",
+      "selectSource": "Kies een scherm of venster om te delen",
+      "tryAgain": "Opnieuw proberen",
+      "stop": "Stoppen met delen"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Beheer - PairUX"
+    },
+    "title": "Beheer",
+    "loggedInAs": "Ingelogd als {email}",
+    "integrations": {
+      "title": "Autoblog-integraties",
+      "description": "Genereer een bearer-token en plak het in <link>CrawlProof</link> als webhook-secret. Het token dient ook als HMAC-ondertekeningssecret om verzoeken te verifiëren.",
+      "confirmRevoke": "“{name}” intrekken? De bron kan dan niet meer publiceren.",
+      "webhookEndpoint": "Webhook-endpoint",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd",
+      "generateToken": "Token genereren",
+      "namePlaceholder": "Naam van de integratie",
+      "generate": "Genereren",
+      "tokenCreated": "Token aangemaakt: kopieer het nu en plak het in de autoblog-webhookinstellingen van CrawlProof.",
+      "accessTokens": "Toegangstokens ({count})",
+      "empty": "Nog geen; genereer er hierboven een.",
+      "requests": "{count, plural, one {# verzoek} other {# verzoeken}}",
+      "lastUsed": "laatst {date}",
+      "hide": "Verbergen",
+      "reveal": "Tonen",
+      "revoke": "Intrekken"
+    },
+    "email": {
+      "title": "Gebruikers mailen",
+      "description": "Stel een HTML-e-mail op en stuur die via Resend naar alle geregistreerde gebruikers.",
+      "subject": "Onderwerp",
+      "subjectPlaceholder": "Aankondiging: ...",
+      "body": "Inhoud (Markdown)",
+      "result": "Verstuurd {sent} · Mislukt {failed}",
+      "sending": "Versturen…",
+      "send": "Naar alle gebruikers sturen"
+    },
+    "posts": {
+      "title": "Recente blogposts",
+      "empty": "Nog geen posts binnengehaald.",
+      "columnTitle": "Titel",
+      "columnSource": "Bron",
+      "columnPublished": "Gepubliceerd"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Gespreksanalyses - PairUX",
+      "detailTitle": "Gespreksanalyse - PairUX"
+    },
+    "kinds": {
+      "general": "Algemeen gesprek",
+      "interview": "Sollicitatiegesprek",
+      "team-sync": "Teamoverleg",
+      "presentation": "Presentatie"
+    },
+    "status": {
+      "recording": "Opnemen",
+      "queued": "Wacht op analyse",
+      "processing": "Je rapport wordt geschreven",
+      "ready": "Klaar",
+      "failed": "Mislukt"
+    },
+    "list": {
+      "title": "Gespreksanalyses",
+      "intro": "Feedback op de gesprekken die je met AI-analyse hebt gevoerd. Zet het vóór een gesprek aan op het startscherm op het web of in de desktop- of mobiele app.",
+      "loadError": "Kan je analyses niet laden",
+      "empty": "Nog geen geanalyseerde gesprekken. <link>Start een gesprek met AI-analyse</link>",
+      "untitled": "Naamloos gesprek",
+      "sharedWithTeam": "gedeeld met je team"
+    },
+    "report": {
+      "back": "← Alle gespreksanalyses",
+      "loadError": "Kan deze analyse niet laden",
+      "failed": "Deze analyse kon niet worden voltooid: {error}",
+      "stillRecording": "Het gesprek wordt nog opgenomen.",
+      "beingWritten": "Je rapport wordt geschreven. Deze pagina wordt vanzelf bijgewerkt en je krijgt een e-mail zodra het klaar is.",
+      "outOf10": "van 10",
+      "byTheNumbers": "In cijfers",
+      "table": {
+        "speaker": "Spreker",
+        "talkTime": "Spreektijd",
+        "pace": "Tempo",
+        "fillers": "Stopwoorden",
+        "questions": "Vragen",
+        "longestTurn": "Langste beurt",
+        "wpm": "{value} wpm",
+        "fillerRate": "{value} / 100 woorden"
+      },
+      "mobileNote": "Opgenomen op een telefoon: alleen je eigen microfoon is opgenomen.",
+      "whatWorked": "Wat goed ging",
+      "toImprove": "Wat beter kan",
+      "try": "Probeer: {suggestion}",
+      "delivery": {
+        "title": "Presentatie",
+        "pace": "Tempo",
+        "clarity": "Duidelijkheid",
+        "confidence": "Zelfvertrouwen",
+        "fillerWords": "Stopwoorden",
+        "listening": "Luisteren"
+      },
+      "practiceNext": "Oefenen voor de volgende keer",
+      "onScreen": "Wat er op het scherm stond",
+      "actionItems": "Actiepunten",
+      "keyMoments": "Momenten om terug te kijken",
+      "hideTranscript": "Transcript verbergen",
+      "showTranscript": "Transcript tonen",
+      "disclaimer": "Door AI geschreven op basis van de gespreksopname. Sprekerlabels komen uit automatische sprekerherkenning en kunnen onjuist zijn.",
+      "disclaimerWithModel": "Door AI ({model}) geschreven op basis van de gespreksopname. Sprekerlabels komen uit automatische sprekerherkenning en kunnen onjuist zijn."
+    }
+  },
+  "devices": {
+    "title": "Mijn apparaten",
+    "intro": "Start vanaf hier schermdelen op een computer waarop <code>pairux daemon</code> draait. Handig om vanaf een laptop te presenteren terwijl je je telefoon vasthoudt.",
+    "addressLabel": "Apparaatadres",
+    "add": "Toevoegen",
+    "errors": {
+      "invalidAddress": "Dat lijkt geen apparaatadres.",
+      "duplicate": "Dat apparaat staat er al."
+    },
+    "empty": "Nog geen apparaten. Voer op de computer die je wilt delen <code>pairux daemon</code> uit; dat toont het adres dat je hier plakt.",
+    "howToSetUp": "Zo stel je dit in",
+    "remove": "{name} verwijderen",
+    "joinSession": "Deelnemen aan de sessie op {name}",
+    "stopSharing": "Stoppen met delen",
+    "startSharing": "Begin met delen",
+    "check": "Controleren"
+  },
+  "notifications": {
+    "unsupported": "Pushmeldingen worden niet ondersteund in deze browser.",
+    "push": {
+      "title": "Pushmeldingen",
+      "enabled": "Meldingen zijn ingeschakeld voor dit apparaat",
+      "blocked": "Meldingen zijn geblokkeerd in de browserinstellingen",
+      "prompt": "Schakel in om meldingen te krijgen als de app op de achtergrond draait",
+      "enable": "Inschakelen",
+      "disable": "Uitschakelen"
+    },
+    "notifyMeAbout": "Meld mij",
+    "events": {
+      "controlRequest": "Bedieningsverzoeken",
+      "chatMessage": "Chatberichten",
+      "participantJoined": "Deelnemer neemt deel",
+      "participantLeft": "Deelnemer vertrokken",
+      "hostDisconnected": "Host niet meer verbonden",
+      "creatorLive": "Een maker die je volgt gaat live",
+      "directMessage": "Iemand stuurt je een direct bericht"
+    },
+    "reminders": {
+      "title": "Herinneringen voor meetings",
+      "description": "Verstuurd per e-mail, en als melding als push aanstaat.",
+      "meetingReminder1Day": "1 dag van tevoren",
+      "meetingReminder1Hour": "1 uur van tevoren",
+      "meetingReminder15Min": "15 minuten van tevoren",
+      "meetingReminder1Min": "1 minuut van tevoren"
+    },
+    "controlRequest": {
+      "title": "Bedieningsverzoek",
+      "message": "<strong>{name}</strong> wil je scherm bedienen",
+      "approve": "Goedkeuren",
+      "deny": "Weigeren"
+    },
+    "toasts": {
+      "region": "Meldingen",
+      "joined": "<strong>{name}</strong> doet mee",
+      "left": "<strong>{name}</strong> is vertrokken",
+      "dismiss": "Sluiten"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Organisaties - PairUX",
+      "detailTitle": "Organisatie - PairUX"
+    },
+    "roles": {
+      "owner": "Eigenaar",
+      "admin": "Beheerder",
+      "member": "Lid"
+    },
+    "list": {
+      "title": "Organisaties",
+      "intro": "Een organisatie deelt kanalen om live te gaan, rapporten van gespreksanalyses en het abonnement van de eigenaar met haar leden. Deel mensen daarbinnen in teams in.",
+      "teamCount": "{count, plural, one {# team} other {# teams}}",
+      "createHeading": "Een organisatie aanmaken",
+      "namePlaceholder": "Naam van bedrijf of groep",
+      "create": "Aanmaken",
+      "createError": "Kan de organisatie niet aanmaken"
+    },
+    "detail": {
+      "back": "← Organisaties",
+      "notFound": "Organisatie niet gevonden",
+      "genericError": "Er ging iets mis",
+      "summary": "{role, select, owner {Je bent de eigenaar} admin {Je bent beheerder} other {Je bent lid}}. Leden vallen onder het <strong>{plan}</strong>-abonnement.",
+      "confirmDelete": "{name} verwijderen? De kanalen en rapporten gaan terug naar de mensen die ze hebben gemaakt.",
+      "deleteOrg": "Organisatie verwijderen",
+      "confirmLeave": "{name} verlaten?",
+      "leaveOrg": "Organisatie verlaten",
+      "members": "Leden",
+      "teamLead": "{team} (lead)",
+      "removeMember": "{name} verwijderen",
+      "confirmRemoveMember": "{name} verwijderen uit {org}?",
+      "inviteByEmail": "Uitnodigen per e-mail",
+      "noTeam": "Geen team",
+      "invite": "Uitnodigen",
+      "pendingInvitations": "Openstaande uitnodigingen",
+      "revoke": "Intrekken",
+      "teams": "Teams",
+      "teamsIntro": "Teamleden kunnen live gaan op de kanalen van het team en de gespreksrapporten van het team lezen. Leads bepalen wie er in het team zit.",
+      "confirmDeleteTeam": "Het team {name} verwijderen? De kanalen en rapporten blijven in de organisatie.",
+      "deleteTeam": "Team verwijderen",
+      "lead": "lead",
+      "makeMember": "lid maken",
+      "makeLead": "lead maken",
+      "removeFromTeam": "{name} verwijderen uit {team}",
+      "noMembers": "Nog geen leden",
+      "addMember": "Lid toevoegen…",
+      "noTeams": "Nog geen teams.",
+      "newTeamPlaceholder": "Nieuw team, bijv. Engineering",
+      "createTeam": "Team aanmaken"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Instellingen - PairUX",
+      "description": "Beheer je PairUX-instellingen."
+    },
+    "back": "Terug",
+    "title": "Instellingen",
+    "saved": "Opgeslagen",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (indien beschikbaar)"
+    },
+    "account": {
+      "title": "Account",
+      "description": "Je accountgegevens",
+      "email": "E-mail:",
+      "name": "Naam:",
+      "signInPrompt": "Log in om je instellingen tussen apparaten te synchroniseren en meer functies te gebruiken.",
+      "signIn": "Inloggen",
+      "createAccount": "Account aanmaken"
+    },
+    "recording": {
+      "title": "Opname",
+      "description": "Standaardvoorkeuren voor opnames",
+      "defaultRecordingQuality": "Standaard opnamekwaliteit",
+      "recordingQualityHint": "Opnames van hogere kwaliteit zijn groter",
+      "defaultCaptureQuality": "Standaard schermkwaliteit",
+      "captureQualityHint": "Hogere kwaliteit gebruikt meer bandbreedte bij streamen",
+      "includeSystemAudio": "Systeemaudio opnemen",
+      "includeSystemAudioHint": "Systeemaudio samen met het scherm opnemen",
+      "webRecordingNote": "<strong>Opnemen via het web:</strong> opnames worden opgeslagen in de downloadmap van je browser. Gebruik de <link>desktopapp</link> voor automatische bestandsorganisatie."
+    },
+    "session": {
+      "title": "Standaardinstellingen voor sessies",
+      "description": "Standaardinstellingen voor nieuwe sessies",
+      "maxParticipants": "Maximaal aantal deelnemers",
+      "viewers": "{count, plural, one {# kijker} other {# kijkers}}",
+      "openInDesktopApp": "Sessies openen in de desktopapp",
+      "openInDesktopAppHint": "Een sessie starten opent de desktopapp, waar je een gast de bediening kunt geven. Valt terug op deze browser als de app niet is geïnstalleerd.",
+      "openInDesktopAppAria": "Sessies openen in de desktopapp",
+      "remoteControlNote": "<strong>Let op:</strong> bediening op afstand is alleen beschikbaar in de <link>desktopapp</link>. Websessies zijn alleen om te kijken."
+    },
+    "notifications": {
+      "title": "Meldingen",
+      "description": "Voorkeuren voor pushmeldingen"
+    },
+    "language": {
+      "title": "Taal",
+      "description": "Kies de taal waarin PairUX wordt weergegeven",
+      "hint": "Opgeslagen in deze browser. Standaard de taal van je browser."
+    },
+    "appearance": {
+      "title": "Weergave",
+      "description": "Pas je ervaring aan",
+      "theme": "Thema",
+      "themes": {
+        "light": "Licht",
+        "dark": "Donker",
+        "system": "Systeem"
+      },
+      "systemHint": "Het systeemthema volgt de instellingen van je apparaat"
+    },
+    "about": {
+      "title": "Over",
+      "description": "Informatie over de applicatie",
+      "application": "Applicatie",
+      "platform": "Platform",
+      "platformValue": "Browser / PWA",
+      "features": "Functies",
+      "featuresValue": "Schermdelen, opnemen, chat",
+      "downloadNote": "Download de <link>desktopapp</link> voor alle functies, inclusief bediening op afstand."
+    },
+    "youtube": {
+      "title": "Automatisch live gaan op YouTube",
+      "description": "Zet je YouTube-uitzending automatisch live zodra je begint met streamen; nooit meer “Stream voorbereiden”.",
+      "notConfigured": "Nog niet beschikbaar: de server mist de Google OAuth-configuratie.",
+      "connected": "Verbonden",
+      "connectedTo": "Verbonden: {channel}",
+      "disconnect": "Verbinding verbreken",
+      "connect": "YouTube koppelen"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Livestream niet gevonden",
+    "defaultTitle": "Live op PairUX",
+    "defaultDescription": "Een openbare livestream van {name}.",
+    "defaultDescriptionAnonymous": "Een openbare livestream van een PairUX-maker.",
+    "anonymous": "Anoniem",
+    "liveNow": "Nu live",
+    "untitled": "Naamloze livestream",
+    "watchFree": "Gratis kijken",
+    "commentsHeading": "Reacties ({count})",
+    "like": "Vind ik leuk ({count, plural, one {# like} other {# likes}})",
+    "unlike": "Vind ik niet meer leuk ({count, plural, one {# like} other {# likes}})",
+    "comments": {
+      "someone": "Iemand",
+      "postFailed": "Kan je reactie niet plaatsen.",
+      "networkError": "Netwerkfout. Probeer het opnieuw.",
+      "placeholder": "Voeg een reactie toe…",
+      "post": "Plaatsen",
+      "empty": "Nog geen reacties. Wees de eerste.",
+      "delete": "Verwijderen"
+    },
+    "embed": {
+      "title": "Deze livestream insluiten",
+      "button": "Insluiten",
+      "label": "Plak dit overal waar HTML is toegestaan",
+      "copied": "Gekopieerd",
+      "copy": "Code kopiëren"
+    }
+  },
+  "embed": {
+    "defaultTitle": "PairUX-speler",
+    "untitled": "Naamloze livestream",
+    "watchLive": "Live kijken op PairUX",
+    "watch": "Kijken op PairUX",
+    "live": "Live"
+  },
+  "room": {
+    "metadata": {
+      "title": "Versleutelde ruimte",
+      "description": "Een end-to-end versleutelde spraak- en videoruimte van PairUX. Geen account nodig."
+    },
+    "creating": "Versleutelde ruimte aanmaken…",
+    "guest": "Gast",
+    "joinFailed": "Kan niet deelnemen aan de ruimte",
+    "callFailed": "Het gesprek is mislukt",
+    "e2ee": "End-to-end versleuteld",
+    "incomplete": {
+      "title": "Deze link is onvolledig",
+      "body": "Een ruimtelink eindigt op <code>#k=…</code>, de sleutel die het gesprek versleutelt. Vraag om de volledige link, of <link>start een nieuwe ruimte</link>."
+    },
+    "join": {
+      "title": "Deelnemen aan de ruimte",
+      "body": "Geen account nodig. Audio en video worden op je apparaat versleuteld met een sleutel die alleen mensen met deze link hebben. PairUX kan het gesprek niet horen of zien, en er wordt niets opgenomen.",
+      "nameLabel": "Je naam",
+      "voice": "Spraak",
+      "video": "Video"
+    },
+    "copied": "Gekopieerd",
+    "copyInvite": "Uitnodigingslink kopiëren"
+  },
+  "live": {
+    "metadata": {
+      "title": "Live ruimtes",
+      "description": "Bekijk openbare ruimtes voor schermdelen die nu actief zijn op PairUX."
+    },
+    "title": "Live ruimtes",
+    "intro": "Openbare ruimtes voor schermdelen die hosts op dit moment draaien. Spring erin, geen uitnodiging nodig, of bekijk <link>alle kanalen</link> (eerder en nu).",
+    "empty": {
+      "title": "Nog geen openbare ruimtes",
+      "body": "Host een sessie en gebruik <strong>Publiceren op /live</strong> om hem hier te tonen.",
+      "cta": "Begin met hosten"
+    },
+    "badgeLive": "Live",
+    "badgeIdle": "Inactief",
+    "viewers": "{count, plural, one {# kijker} other {# kijkers}}",
+    "untitledRoom": "Naamloze ruimte",
+    "anonymous": "Anoniem",
+    "joinRoom": "Deelnemen",
+    "creators": "Makers",
+    "followers": "{count, plural, one {# volger} other {# volgers}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Kanalen",
+      "description": "Bekijk kanalen van makers op PairUX."
+    },
+    "title": "Kanalen",
+    "intro": "Kanalen van makers op PairUX. Abonneer je om een melding te krijgen als ze live gaan, of kijk wie er <link>nu live is</link>.",
+    "empty": {
+      "title": "Nog geen kanalen",
+      "body": "Maak er een aan via je <link>dashboard</link>."
+    },
+    "liveNow": "Nu live",
+    "subscribers": "{count, plural, one {# abonnee} other {# abonnees}}",
+    "liveCount": "{count} live",
+    "recordings": "{count, plural, one {# opname} other {# opnames}}"
+  },
+  "channel": {
+    "notFoundTitle": "Kanaal niet gevonden",
+    "defaultDescription": "Kanaal van {name} op PairUX.",
+    "liveNow": "Nu live",
+    "live": "Live",
+    "watching": "{count} kijken mee",
+    "manage": "Kanaal beheren",
+    "streams": "Streams",
+    "noStreams": "Nog geen streams.",
+    "untitledStream": "Naamloze stream",
+    "recordings": "Opnames",
+    "rssTitle": "Abonneer je in een podcastapp of feedreader",
+    "recording": "Opname",
+    "subscribe": {
+      "subscribe": "Abonneren",
+      "subscribed": "Geabonneerd",
+      "count": "{count, plural, one {# abonnee} other {# abonnees}}"
+    },
+    "share": {
+      "text": "Bekijk {name} op PairUX",
+      "share": "Delen",
+      "shareOn": "Delen op {network}",
+      "copyLink": "Link kopiëren",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Profiel niet gevonden",
+    "defaultDescription": "Openbare ruimtes van {name} op PairUX.",
+    "channels": "Kanalen",
+    "live": "Live",
+    "subscribers": "{count, plural, one {# abonnee} other {# abonnees}}",
+    "lives": "Livestreams",
+    "noLives": "{handle} is nog niet live gegaan.",
+    "liveNow": "Nu live",
+    "untitledRoom": "Naamloze ruimte",
+    "joinRoom": "Deelnemen",
+    "follow": {
+      "follow": "Volgen",
+      "following": "Volgend",
+      "count": "{count, plural, one {# volger} other {# volgers}}"
+    },
+    "message": {
+      "button": "Bericht",
+      "title": "Bericht aan {name}",
+      "close": "Sluiten",
+      "sent": "Bericht verstuurd",
+      "sentNote": "{name} krijgt een melding per e-mail en push.",
+      "viewConversation": "Gesprek bekijken",
+      "placeholder": "Schrijf een privébericht aan {name}…",
+      "cancel": "Annuleren",
+      "send": "Versturen",
+      "sendFailed": "Bericht versturen mislukt"
+    }
+  },
+  "messages": {
+    "title": "Berichten",
+    "conversationTitle": "Gesprek",
+    "allMessages": "Alle berichten",
+    "empty": {
+      "title": "Nog geen berichten",
+      "body": "Ga naar het profiel van een maker en klik op <strong>Bericht</strong> om een gesprek te beginnen.",
+      "cta": "Makers bekijken →"
+    },
+    "youPrefix": "Jij:",
+    "thread": {
+      "empty": "Nog geen berichten. Zeg hallo tegen {name}.",
+      "placeholder": "Bericht aan {name}…",
+      "send": "Versturen",
+      "sendFailed": "Bericht versturen mislukt"
+    }
+  }
+}

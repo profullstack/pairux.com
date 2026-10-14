@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - 支持远程控制的协作屏幕共享",
+    "description": "实时屏幕共享，多人可同时远程控制鼠标和键盘。类似 Screenhero，但完全开源。支持 macOS、Windows 和 Linux。",
+    "shortDescription": "实时屏幕共享，多人可同时远程控制鼠标和键盘。类似 Screenhero，但完全开源。",
+    "imageAlt": "PairUX - 协作屏幕共享"
+  },
+  "common": {
+    "language": "语言",
+    "loading": "加载中…",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "已保存",
+    "cancel": "取消",
+    "close": "关闭",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回",
+    "continue": "继续",
+    "copy": "复制",
+    "copied": "已复制！",
+    "retry": "重试",
+    "yes": "是",
+    "no": "否",
+    "or": "或",
+    "optional": "可选",
+    "learnMore": "了解更多",
+    "somethingWentWrong": "出了点问题，请重试。"
+  },
+  "nav": {
+    "live": "直播",
+    "channels": "频道",
+    "features": "功能",
+    "useCases": "使用场景",
+    "download": "下载",
+    "docs": "文档",
+    "blog": "博客",
+    "pricing": "价格",
+    "dashboard": "控制台",
+    "organizations": "组织",
+    "callAnalyses": "通话分析",
+    "settings": "设置",
+    "messages": "消息",
+    "signIn": "登录",
+    "signUp": "注册",
+    "signOut": "退出登录",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "userFallback": "用户"
+  },
+  "footer": {
+    "tagline": "支持多人同时远程控制的协作屏幕共享。类似 Screenhero，但完全开源。",
+    "license": "基于 MIT 许可证开源。",
+    "sections": {
+      "product": "产品",
+      "install": "安装",
+      "resources": "资源",
+      "company": "公司"
+    },
+    "links": {
+      "features": "功能",
+      "useCases": "使用场景",
+      "download": "下载",
+      "pricing": "价格",
+      "changelog": "更新日志",
+      "documentation": "文档",
+      "faq": "常见问题",
+      "systemRequirements": "系统要求",
+      "troubleshooting": "故障排除",
+      "about": "关于",
+      "blog": "博客",
+      "privacy": "隐私政策",
+      "terms": "服务条款"
+    }
+  },
+  "auth": {
+    "or": "或",
+    "comingSoon": "即将推出",
+    "checkEmail": "请查收邮件",
+    "backToSignIn": "返回登录",
+    "errors": {
+      "unexpected": "发生意外错误"
+    },
+    "fields": {
+      "email": "邮箱地址",
+      "emailPlaceholder": "you@example.com",
+      "password": "密码",
+      "passwordPlaceholder": "至少 8 位，含 1 个大写字母和 1 个数字",
+      "passwordHint": "至少 8 个字符，包含一个大写字母和一个数字",
+      "showPassword": "显示密码",
+      "hidePassword": "隐藏密码"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "两次输入的密码不一致",
+      "passwordTooShort": "密码至少需要 8 个字符",
+      "passwordNeedsUppercase": "密码必须包含至少一个大写字母",
+      "passwordNeedsNumber": "密码必须包含至少一个数字"
+    },
+    "login": {
+      "meta": {
+        "title": "登录 - PairUX",
+        "description": "登录您的 PairUX 账户"
+      },
+      "title": "欢迎回来",
+      "subtitle": "登录账户以继续",
+      "failed": "登录失败",
+      "forgotPassword": "忘记密码？",
+      "passwordPlaceholder": "输入密码",
+      "rememberMe": "记住我",
+      "submit": "登录",
+      "submitting": "正在登录...",
+      "passkey": "使用通行密钥登录",
+      "noAccount": "还没有账户？<link>注册</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "注册 - PairUX",
+        "description": "创建 PairUX 账户，开始共享屏幕"
+      },
+      "failed": "创建账户失败",
+      "confirmationSent": "我们已向 <strong>{email}</strong> 发送了确认链接。点击该链接即可验证您的账户。",
+      "firstName": "名",
+      "firstNamePlaceholder": "名",
+      "lastName": "姓",
+      "lastNamePlaceholder": "姓",
+      "confirmPassword": "确认密码",
+      "confirmPasswordPlaceholder": "再次输入密码",
+      "submit": "创建账户",
+      "submitting": "正在创建账户...",
+      "haveAccount": "已有账户？<link>登录</link>",
+      "page": {
+        "earlyAdopterTitle": "早期用户福利",
+        "earlyAdopterBody": "立即注册，任意充值均可获得<bold>额外 20% 额度</bold>！",
+        "waitlistTitle": "加入候补名单",
+        "recommended": "推荐",
+        "waitlistBody": "预存 $100 额度即可锁定名额，享受优先体验和专属福利。",
+        "perkCredits": "预存 $100 = <semibold>$120 额度</semibold>（赠送 20%）",
+        "perkPriority": "正式上线时优先体验",
+        "perkPricing": "永久锁定早期用户价格",
+        "perkCommunity": "专属 Discord/Slack 频道",
+        "paymentMethods": "支付方式",
+        "payCard": "银行卡支付",
+        "payCardDetail": "通过 Stripe 支持 Visa、Mastercard、Amex",
+        "payCrypto": "加密货币支付",
+        "payCryptoDetail": "通过 CoinPayPortal 支持 BTC、ETH、USDC",
+        "comingSoon": "即将推出",
+        "refundable": "上线前如改变主意，预存款可全额退还。",
+        "orFree": "或免费注册",
+        "freeTitle": "创建免费账户",
+        "freeBody": "永久免费支持 2 名参与者 + 5 名观看者",
+        "creditsTitle": "额度说明",
+        "creditsBody": "PairUX 采用额度计费。当观看者超过 5 人时，额度用于 SFU 中继服务器。<medium>720p 下每观看者每小时 $0.08</medium>。免费版 P2P 连接永不过期。"
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "忘记密码 - PairUX",
+        "description": "重置您的 PairUX 账户密码"
+      },
+      "title": "忘记密码了？",
+      "subtitle": "输入您的邮箱，我们会发送重置链接",
+      "failed": "发送重置邮件失败",
+      "sent": "如果存在使用 <strong>{email}</strong> 注册的账户，您将收到密码重置链接。",
+      "submit": "发送重置链接",
+      "submitting": "发送中..."
+    },
+    "reset": {
+      "title": "重置密码",
+      "subtitle": "请在下方输入新密码",
+      "failed": "重置密码失败",
+      "successTitle": "密码已更新",
+      "successBody": "您的密码已成功重置。正在跳转到登录页...",
+      "signInNow": "立即登录",
+      "invalidTitle": "链接无效或已过期",
+      "invalidBody": "此密码重置链接无效或已过期，请重新申请。",
+      "requestNewLink": "重新获取链接",
+      "newPassword": "新密码",
+      "confirmNewPassword": "确认新密码",
+      "confirmNewPasswordPlaceholder": "再次输入新密码",
+      "submit": "重置密码",
+      "submitting": "正在重置..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "授权 PairUX CLI - PairUX",
+    "invalidTitle": "此登录链接无效",
+    "invalidBody": "请重新运行 <code>{command}</code> 获取新链接。",
+    "allowedTitle": "现在可以返回终端了",
+    "deniedTitle": "已取消登录",
+    "closeTab": "您可以关闭此标签页。",
+    "title": "授权 {clientName}？",
+    "intro": "此电脑上的 PairUX 命令行工具正在请求以 <strong>{email}</strong> 的身份操作。",
+    "agentsNote": "通过它启动的智能体加入会话时会标注为您的智能体，方便主持人知道其归属。",
+    "limitsNote": "它无法查看您的屏幕、进行远程控制或更改您的账户。",
+    "revokeNote": "使用 <code>{command}</code> 退出登录即可撤销授权。",
+    "allow": "允许",
+    "deny": "拒绝",
+    "errors": {
+      "authorizeFailed": "无法授权 CLI",
+      "network": "无法连接 PairUX，请检查网络后重试。"
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "加入组织 - PairUX",
+    "title": "加入 {orgName}",
+    "invited": "您被邀请成为{role, select, admin {管理员} other {成员}}。请以 <strong>{email}</strong> 登录以接受邀请。",
+    "invitedToTeam": "您被邀请成为 {teamName} 团队的{role, select, admin {管理员} other {成员}}。请以 <strong>{email}</strong> 登录以接受邀请。",
+    "expired": "此邀请已过期，请重新索取。",
+    "accept": "接受邀请",
+    "errors": {
+      "invalid": "此邀请已失效",
+      "acceptFailed": "无法接受邀请"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "功能",
+      "description": "探索 PairUX 的全部功能：实时屏幕共享、远程控制、多光标协作、跨平台支持等。"
+    },
+    "hero": {
+      "title": "功能",
+      "subtitle": "实时协作所需的一切，从设计之初就注重隐私与安全。",
+      "imageAlt": "PairUX 控制台，显示会话统计、频道、开始或加入会话的快捷操作以及当前套餐。"
+    },
+    "comingSoon": "即将推出",
+    "main": {
+      "callAnalysis": {
+        "title": "AI 通话分析",
+        "description": "在面试、团队同步会或演示前开启，通话结束后即可获得一份私密反馈报告：评分、亮点、待改进之处，以及值得回看的片段。",
+        "details": {
+          "d0": "每位发言者的发言时长、语速和口头禅",
+          "d1": "面试、团队同步会和演示三种模式",
+          "d2": "审阅屏幕截图中的幻灯片和演示内容",
+          "d3": "通话中的每个人都会被告知正在录制"
+        }
+      },
+      "screenSharing": {
+        "title": "实时屏幕共享",
+        "description": "以清晰画质共享整个屏幕或单个窗口。基于 WebRTC 的串流提供低延迟视频和自适应码率。",
+        "details": {
+          "d0": "共享全屏或单个窗口",
+          "d1": "标准画质 1080p @ 30fps",
+          "d2": "自适应码率，适应任何网络",
+          "d3": "串流中包含光标"
+        }
+      },
+      "remoteControl": {
+        "title": "远程鼠标和键盘",
+        "description": "让协作者通过鼠标和键盘完全接管操作。所有控制都需要主持人明确批准。",
+        "details": {
+          "d0": "完整鼠标控制（点击、滚动、拖动）",
+          "d1": "完整键盘输入",
+          "d2": "支持特殊键和快捷键",
+          "d3": "跨平台兼容"
+        }
+      },
+      "simultaneousInput": {
+        "title": "同时输入",
+        "description": "主持人和观看者可以同时控制。为保证安全和舒适，主持人的输入始终优先。",
+        "details": {
+          "d0": "双方可以一起控制",
+          "d1": "主持人始终优先",
+          "d2": "输入不会被阻塞或排队",
+          "d3": "可视指示器显示当前控制者"
+        }
+      },
+      "consent": {
+        "title": "明确授权模式",
+        "description": "安全从底层设计开始。观看者必须申请控制权，主持人必须明确批准。",
+        "details": {
+          "d0": "控制请求需要批准",
+          "d1": "紧急撤销快捷键（Ctrl+Shift+Esc）",
+          "d2": "控制激活时显示可视指示器",
+          "d3": "可随时撤销控制权"
+        }
+      },
+      "pwaViewer": {
+        "title": "PWA 观看端",
+        "description": "观看者可通过任意现代浏览器加入，无需下载。可安装为渐进式 Web 应用，快速访问。",
+        "details": {
+          "d0": "支持任意现代浏览器",
+          "d1": "加入无需账户",
+          "d2": "可安装为 PWA",
+          "d3": "适配移动端观看"
+        }
+      },
+      "crossPlatform": {
+        "title": "跨平台桌面应用",
+        "description": "适用于 macOS、Windows 和 Linux 的原生桌面应用。可通过常用的包管理器安装。",
+        "details": {
+          "d0": "macOS：Homebrew cask",
+          "d1": "Windows：WinGet",
+          "d2": "Linux：APT、DNF、AUR",
+          "d3": "也可直接下载"
+        }
+      },
+      "recording": {
+        "title": "屏幕录制",
+        "description": "在本地录制会话，方便日后回看。非常适合制作教程、文档，以及保存结对编程会话记录。",
+        "details": {
+          "d0": "在本地录制为 WebM/MP4",
+          "d1": "同时采集系统音频和麦克风",
+          "d2": "画质预设（720p/1080p/4K）",
+          "d3": "暂停/继续录制"
+        }
+      },
+      "textChat": {
+        "title": "文字聊天",
+        "description": "内置文字聊天，方便分享链接、代码片段，或在不便语音时沟通。",
+        "details": {
+          "d0": "实时消息",
+          "d1": "系统通知（加入/离开）",
+          "d2": "可与屏幕共享同时使用",
+          "d3": "每个会话的消息历史"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "会话中的 PairUX 主持人控制台，显示画质选择器、加入码、参与者列表和会话信息面板。",
+      "consent": "PairUX 观看者控制台，访客必须点击“申请控制”，主持人才会授予输入权限。",
+      "pwaViewer": "浏览器中的 PairUX 加入页面，显示会话代码、直播状态以及无需账户的“免费观看”按钮。",
+      "crossPlatform": "PairUX 下载页面，列出一行命令安装方式以及适用于 macOS、Windows 和 Linux 的 DMG、EXE、AppImage、DEB 和 RPM 安装包。",
+      "recording": "PairUX 录制设置，包括默认录制、采集画质预设和系统音频开关。"
+    },
+    "tech": {
+      "title": "基于现代技术构建",
+      "subtitle": "PairUX 采用业界标准的 WebRTC，提供可靠、低延迟的串流。"
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "点对点直连，延迟极低。"
+      },
+      "e2e": {
+        "title": "端到端加密",
+        "description": "所有媒体流均采用 DTLS-SRTP 加密。"
+      },
+      "nat": {
+        "title": "NAT 穿透",
+        "description": "STUN/TURN 服务器确保连接可靠。"
+      },
+      "adaptive": {
+        "title": "自适应画质",
+        "description": "根据带宽自动调整画质。"
+      },
+      "sharedControl": {
+        "title": "共享控制",
+        "description": "主持人和访客轮流使用主持人系统的指针。"
+      },
+      "keyboard": {
+        "title": "完整键盘",
+        "description": "支持所有按键，包括修饰键和特殊键。"
+      }
+    },
+    "compare": {
+      "title": "PairUX 对比",
+      "subtitle": "看看 PairUX 与其他屏幕共享方案相比如何。",
+      "feature": "功能",
+      "others": "其他产品",
+      "rows": {
+        "screenSharing": "屏幕共享",
+        "remoteControl": "远程控制",
+        "simultaneousControl": "同时控制",
+        "localRecording": "屏幕录制（本地）",
+        "textChat": "文字聊天",
+        "noAccount": "观看者无需账户",
+        "openSource": "开源",
+        "selfHostable": "可自托管",
+        "e2e": "端到端加密",
+        "nativeApps": "原生应用",
+        "browserViewer": "浏览器观看",
+        "freeTier": "免费版"
+      },
+      "values": {
+        "soon": "即将推出",
+        "partial": "部分支持",
+        "unlimited": "无限制",
+        "limited": "有限制"
+      }
+    },
+    "cta": {
+      "title": "准备好开始了吗？",
+      "subtitle": "下载 PairUX，几秒钟即可开始协作。",
+      "button": "立即下载"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "AI 通话分析：为面试、团队同步会和演示提供反馈 | PairUX",
+        "description": "在 PairUX 通话前开启 AI 通话分析，结束后获得反馈报告：发言时长、语速、口头禅、表现出色之处、需要练习的地方以及值得回看的片段。"
+      },
+      "eyebrow": "AI 通话分析 · Pro 和 Team",
+      "title": "了解这次通话的真实表现。",
+      "intro": "在面试、团队同步会或演示前开启 AI 通话分析。通话结束后，您将收到一份私密报告：评分、亮点、待改进之处、背后的数据，以及值得回看的片段。",
+      "startCta": "开始分析通话",
+      "seePlans": "查看套餐",
+      "kindsTitle": "针对通话类型的反馈",
+      "kinds": {
+        "interviews": {
+          "title": "面试",
+          "body": "逐题分析：每个回答的效果如何，哪里过于冗长或含糊，以及更好的表达方式。如果您是面试官，它会评估您的提问以及倾听的质量。"
+        },
+        "teamSyncs": {
+          "title": "团队同步会",
+          "body": "做出的决定、悬而未决的问题、会议跑题的地方，以及每项承诺及其负责人，确保两次同步会之间不遗漏任何事项。"
+        },
+        "presentations": {
+          "title": "演示和产品展示",
+          "body": "开场、主线和收尾，听众可能在哪里走神，以及屏幕上的内容：幻灯片密度、可读性，以及画面是否与您所讲内容一致。"
+        }
+      },
+      "measuredTitle": "数据实测，而非猜测",
+      "measuredBody": "所有数据均从区分发言者的转录文本中统计得出，书面反馈会引用这些数据。当报告说您在面试中发言占比 70% 时，这是可以核实的事实。",
+      "measured": {
+        "m0": "每位发言者的发言时长占比",
+        "m1": "语速（每分钟字数）",
+        "m2": "每 100 词中的口头禅数量及具体用词",
+        "m3": "提问数量、最长独白、打断次数"
+      },
+      "howTitle": "工作原理",
+      "how": {
+        "s0": "通话前，在开始页面（pairux.com、桌面应用或移动应用）开启 <strong>AI 通话分析</strong>，并选择通话类型。通话录制会随之开启，您也可以将其关闭。",
+        "s1": "通话期间，应用会上传通话音频，并每 20 秒上传一张共享屏幕的截图。每位加入者都会看到通话正在录制以供分析。",
+        "s2": "通话结束后，音频会被转录并区分发言者，由 AI 教练撰写报告。报告将通过邮件发送，并保存在控制台的“通话分析”中。"
+      },
+      "privacyTitle": "授权与隐私",
+      "privacy": {
+        "p0": "必须在通话开始前做出选择，无法在通话中途开启。",
+        "p1": "在网页版、桌面和移动应用中，所有参与者在整个通话期间都会看到提示。",
+        "p2": "报告和录制内容仅对主持人或通话所属的团队或组织可见，并可随时删除。",
+        "p3": "如果关闭录制，报告生成后音频会立即删除。",
+        "p4": "在手机上只会录制您自己的麦克风；如需录制所有人，请从 pairux.com 或桌面应用开始。"
+      },
+      "tryCta": "在下次通话中试试"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "与 AI 智能体协作的使用场景",
+        "description": "使用 PairUX 进行结对编程、审查 AI 生成的代码、调试、帮助新成员上手以及现场教学。还能获得关于面试、团队同步会和演示的 AI 反馈。"
+      },
+      "eyebrow": "PairUX 使用场景",
+      "title": "与智能体更好地协作。一起。",
+      "intro": "智能体可以写代码，但团队仍需要理解结果。使用 PairUX 共享屏幕、试用应用，一起推进下一个决策。",
+      "findWorkflow": "找到适合您的工作流",
+      "featuredLabel": "精选 · 智能体结对编程",
+      "featuredTitle": "两个人，一个智能体会话。",
+      "featuredBody": "与队友共享一个实时 moshcode 终端，再用 PairUX 一起审查编辑器和应用。可以先观看，也可以在同一会话中直接参与。",
+      "featuredCta": "探索智能体结对编程",
+      "workflowsTitle": "邀请他人加入工作",
+      "workflowsIntro": "从共享屏幕开始。主持人批准远程控制后，协作者即可使用鼠标和键盘。",
+      "notesPlans": "Pro 和 Team 套餐",
+      "notesTitle": "AI 笔记助手",
+      "notesBody": "将工作会话转化为笔记草稿、决策和待办事项。帮助队友快速跟进，或将上下文带入下一个智能体任务。",
+      "notesFootnote": "属于 AI 通话分析功能：通话前开启，结束后报告会通过邮件发送。",
+      "notesCta": "探索 AI 通话笔记",
+      "ctaTitle": "从一次共享会话开始",
+      "ctaBody": "获取 PairUX，共享屏幕，邀请队友一起完成一项真实任务。",
+      "getPairux": "获取 PairUX",
+      "comparePlans": "比较套餐"
+    },
+    "exploreWorkflow": "探索工作流",
+    "allUseCases": "所有使用场景",
+    "detail": {
+      "plannedTitle": "{title} · 计划用于高级套餐",
+      "notAvailable": "暂不可用。如需为此功能购买，请先联系我们了解高级版的开通和交付。",
+      "whenHelps": "适用场景",
+      "tryWorkflow": "试试这个工作流",
+      "plannedWorkflow": "计划中的工作流",
+      "leaveWith": "您将获得",
+      "goal": "目标",
+      "discussPremium": "咨询高级 AI 笔记",
+      "startWithPairux": "开始使用 PairUX",
+      "seeCurrentPlans": "查看当前套餐",
+      "comparePlans": "比较套餐",
+      "moreWays": "更多协作方式"
+    },
+    "agentic": {
+      "meta": {
+        "title": "使用 moshcode 进行智能体结对编程 | PairUX",
+        "description": "与队友在同一个实时编程智能体会话中协作。用 moshcode 共享终端，用 PairUX 一起审查屏幕和应用。"
+      },
+      "backLink": "← 所有使用场景",
+      "eyebrow": "智能体结对编程",
+      "title": "两个人，一个智能体会话。",
+      "intro": "即使由 AI 智能体编写代码，结对编程仍需要共享上下文。邀请队友加入您的实时 moshcode 会话，再用 PairUX 一起审查智能体的成果并决定下一步。",
+      "openMoshcode": "打开 moshcode",
+      "getPairux": "获取 PairUX",
+      "stepsTitle": "从旁观到共同协作",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "从一个实时会话开始",
+          "body": "在开发机上运行 moshcode，并在 app.moshcode.sh 打开其会话。您和队友会看到同样的智能体输出，并在同一个终端中工作。"
+        },
+        "s1": {
+          "title": "邀请团队加入会话",
+          "body": "在 moshcode 中创建组织和团队，通过队友的账户邮箱添加对方，然后将会话共享给该团队。只读权限可观看；写入权限可向运行中的会话发送输入。"
+        },
+        "s2": {
+          "title": "在 PairUX 中一起审查结果",
+          "body": "通过 PairUX 共享终端、编辑器或应用预览。队友从浏览器加入，即可在上下文中查看工作。需要对方使用您的鼠标和键盘时，批准远程控制即可。"
+        }
+      },
+      "permissionsNote": "moshcode 团队权限控制终端会话的访问。PairUX 远程控制是另一项独立选择，由屏幕共享的主持人批准。可根据协作方式单独或同时使用。",
+      "contractorTitle": "帮助外包人员上手的实用方法",
+      "contractorP1": "将外包人员加入团队，先以只读权限观看您的第一次会话。讲解任务、智能体的输出和运行中的应用。当对方准备好参与时，授予写入权限，即可在同一会话中与您协作。",
+      "contractorP2": "您也可以用这个工作流排查失败的测试、比较智能体的实现与预期行为，或在合并前审查变更。每个人都能实时看到工作进展。",
+      "startPairing": "开始使用 PairUX 结对"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "智能体结对编程",
+        "audience": "开发者和队友",
+        "description": "与队友在同一个实时编程智能体会话中协作。通过 moshcode 共享终端，并在 PairUX 中一起审查屏幕。",
+        "scenario": "您希望队友在智能体于开发环境中工作时帮忙引导它。",
+        "outcome": "对智能体做了哪些更改以及下一步该做什么形成共识。",
+        "steps": {
+          "s0": {
+            "title": "开启共享终端",
+            "body": "打开您的实时 moshcode 会话并共享给团队。"
+          },
+          "s1": {
+            "title": "展示应用",
+            "body": "通过 PairUX 共享编辑器或应用预览。"
+          },
+          "s2": {
+            "title": "推进下一步",
+            "body": "一起审查结果，决定接下来让智能体做什么。"
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "审查 AI 生成的代码",
+        "audience": "开发者和审查者",
+        "description": "在智能体的更改合并为拉取请求之前，一起查看 diff、测试和运行中的应用。",
+        "scenario": "智能体产生了大量更改。审查者需要理解其行为，而不仅仅是阅读补丁摘要。",
+        "outcome": "经过审查的更改，包含明确的修复、后续测试以及共同的合并决定。",
+        "steps": {
+          "s0": {
+            "title": "打开依据",
+            "body": "共享编辑器，显示 diff、任务需求和测试输出。说明您让智能体做了哪些更改。"
+          },
+          "s1": {
+            "title": "一起试用功能",
+            "body": "运行应用，走一遍重要流程。如果审查者想亲自测试边界情况，可批准远程控制。"
+          },
+          "s2": {
+            "title": "将发现转化为下一步修改",
+            "body": "商定修正方案，让编程智能体执行。合并前审查新的 diff 并重新运行相关检查。"
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "让卡住的智能体继续推进",
+        "audience": "开发者和调试伙伴",
+        "description": "遇到失败的测试或反复无效的修复时，邀请另一个人加入。一起检查证据，选择下一个实验。",
+        "scenario": "编程智能体不断修改代码，却始终没能修复问题。队友可以帮忙发现遗漏的假设或环境问题。",
+        "outcome": "一个可复现的故障，以及给智能体的明确下一步。",
+        "steps": {
+          "s0": {
+            "title": "实时展示故障",
+            "body": "共享终端并复现问题。向队友讲解错误、近期更改以及已经尝试过的方法。"
+          },
+          "s1": {
+            "title": "验证一种解释",
+            "body": "一起检查日志、配置和运行中的应用。当队友需要探索同一环境时，授予远程控制。"
+          },
+          "s2": {
+            "title": "给智能体更好的方向",
+            "body": "记下复现步骤和所选修复方案的依据。让智能体做针对性修改，然后再次检查最初的故障。"
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "在实际工作中帮助外包人员上手",
+        "audience": "团队负责人和新成员",
+        "description": "让新成员观看真实任务，了解您的代码库和智能体工作流，准备好后再参与进来。",
+        "scenario": "一位外包人员加入项目，需要了解您如何使用智能体、审查更改，以及如何判断工作可以发布。",
+        "outcome": "一位理解您工作流、能带着上下文接手下一项任务的队友。",
+        "steps": {
+          "s0": {
+            "title": "从真实任务开始",
+            "body": "共享开发屏幕，讲解项目、任务以及您如何向编程智能体交代任务。让外包人员观察第一轮操作。"
+          },
+          "s1": {
+            "title": "解释每个决策",
+            "body": "逐一讲解智能体的输出、测试和运行中的应用。说明您在哪里接受建议，在哪里要求换种方法。"
+          },
+          "s2": {
+            "title": "让对方上手试试",
+            "body": "批准 PairUX 远程控制，进行有指导的编辑。如果您也在用 moshcode，当对方准备好发送终端输入时，授予其团队共享会话的写入权限。"
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "与产品和设计一起审查应用",
+        "audience": "开发者、设计师和产品团队",
+        "description": "向评判结果的人展示智能体正在构建的应用。一起体验流程，将反馈转化为具体修改。",
+        "scenario": "可运行的原型已经就绪，但交互、文案或布局需要代码之外的人提供反馈。",
+        "outcome": "具体的验收标准，以及一份针对可运行应用的商定修改清单。",
+        "steps": {
+          "s0": {
+            "title": "共享实际体验",
+            "body": "打开应用预览，在 PairUX 中共享该窗口。走一遍真实用户应能完成的任务。"
+          },
+          "s1": {
+            "title": "让审查者自行探索",
+            "body": "边操作边征求反馈，或批准远程控制，让审查者在您的电脑上体验流程。"
+          },
+          "s2": {
+            "title": "形成反馈闭环",
+            "body": "将观察转化为给编程智能体的具体请求。在同一会话中展示更新后的应用，并确认哪些已就绪。"
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "帮他人解决 AI 工作流的阻碍",
+        "audience": "支持团队和技术负责人",
+        "description": "在双方看到同一屏幕的情况下，帮助队友配置工具、理解错误或修复损坏的本地工作流。",
+        "scenario": "某个智能体或开发工具在一台电脑上正常，在另一台上却失败。截图和复制的错误信息缺少上下文。",
+        "outcome": "一套正常运行的环境，以及一位理解问题如何解决的同事。",
+        "steps": {
+          "s0": {
+            "title": "让对方展示问题",
+            "body": "遇到问题的人主持 PairUX 会话并共享相关工具窗口。您从浏览器加入，观看对方复现故障。"
+          },
+          "s1": {
+            "title": "在对方环境中指导修复",
+            "body": "说明下一项检查并让对方执行。需要亲自操作时申请远程控制，由主持人决定是否批准。"
+          },
+          "s2": {
+            "title": "验证完整工作流",
+            "body": "请对方重新运行最初的任务。留下修复步骤，方便对方下次遇到时能够识别。"
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "举办实时 AI 编程工作坊",
+        "audience": "教育者、社区和团队",
+        "description": "在构建真实项目的过程中，向观众展示您如何给智能体布置任务、检查其成果并处理错误。",
+        "scenario": "团队希望通过观察精心准备的演示通常会略过的决策和修正，来学习智能体工作流。",
+        "outcome": "观众完整看到从任务说明到经过检查的结果的全过程。",
+        "steps": {
+          "s0": {
+            "title": "准备一个聚焦的演示",
+            "body": "选择一个小任务，共享您要用的终端、编辑器或应用。选择与房间听众容量相符的 PairUX 套餐。"
+          },
+          "s1": {
+            "title": "展示提示词背后的思路",
+            "body": "解释您提供给智能体的上下文及原因。在关键时刻暂停，检查 diff、运行测试并讨论意外结果。"
+          },
+          "s2": {
+            "title": "练习审查结果",
+            "body": "让大家提出边界情况和后续修改建议。当场运行这些检查，让参与者看到您如何判断工作是否就绪。"
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "AI 笔记助手",
+        "audience": "Pro 和 Team 套餐",
+        "description": "在团队同步会前开启 AI 通话分析，会后即可获得决策、未决问题和待办事项，以及关于会议效果的反馈。",
+        "scenario": "团队希望专注于共同的工作，并在会后获得对下次会话有用的笔记。",
+        "outcome": "一份关于工作内容、决策和后续步骤的回顾总结。",
+        "steps": {
+          "s0": {
+            "title": "通话前开启 AI 通话分析",
+            "body": "在开始页面开启 AI 通话分析并选择“团队同步会”。每位加入者都会看到通话正在录制以供分析。"
+          },
+          "s1": {
+            "title": "阅读报告",
+            "body": "通话结束后，您将获得摘要、达成的决策、未决问题，以及每项待办事项及其负责人，同时附有关于会议效果的反馈。"
+          },
+          "s2": {
+            "title": "将上下文带入下一项任务",
+            "body": "与团队分享待办事项，或用摘要向队友介绍情况，或为智能体准备下一个请求。"
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "关于",
+      "description": "了解 PairUX —— 开源的协作屏幕共享工具。"
+    },
+    "title": "关于 PairUX",
+    "subtitle": "打造我们一直期望存在的协作工具",
+    "missionTitle": "我们的使命",
+    "missionP1": "PairUX 源于一种挫败感。Slack 收购并关闭 Screenhero 之后，远程结对编程变得异常困难。现有工具要么缺少远程控制，要么需要昂贵的许可证，要么把您锁定在特定供应商。",
+    "missionP2": "我们相信协作屏幕共享应该人人可用。因此 PairUX 是开源的，价格透明，没有人为限制。",
+    "buildingTitle": "我们在构建什么",
+    "buildingBody": "PairUX 是一款支持多人同时远程控制的协作屏幕共享桌面应用。可以把它看作现代化、开源、跨平台的 Screenhero。",
+    "buildingList": {
+      "b0": "低延迟实时屏幕共享",
+      "b1": "多名参与者可同时控制共享屏幕",
+      "b2": "端到端加密，保障安全",
+      "b3": "支持 macOS、Windows 和 Linux",
+      "b4": "观看者可通过任意浏览器加入"
+    },
+    "openSourceTitle": "开源",
+    "openSourceBody": "PairUX 基于 MIT 许可证发布。您可以在 <link>GitHub</link> 上查看、修改代码并参与贡献。我们欢迎社区的贡献。",
+    "contactTitle": "联系我们",
+    "contactBody": "有问题或建议？请发送邮件至 <link>hello@pairux.com</link>。"
+  },
+  "blog": {
+    "meta": {
+      "title": "博客 - PairUX",
+      "description": "来自 PairUX 团队的新闻、更新和教程。"
+    },
+    "title": "博客",
+    "subtitle": "来自 PairUX 团队的新闻、更新和教程",
+    "comingSoonTitle": "即将推出",
+    "comingSoonBody": "我们正在撰写第一批博客文章。敬请期待教程、产品更新以及 PairUX 开发幕后故事。",
+    "postNotFound": "未找到文章",
+    "postTitle": "{title} - PairUX 博客",
+    "backToBlog": "← 返回博客"
+  },
+  "changelog": {
+    "meta": {
+      "title": "更新日志",
+      "description": "了解 PairUX 的最新变化。发布说明和版本历史。"
+    },
+    "title": "更新日志",
+    "subtitle": "了解 PairUX 的最新变化",
+    "version": "v{version}",
+    "englishOnly": "发布说明仅以英文发布。"
+  },
+  "legal": {
+    "privacy": {
+      "title": "隐私政策",
+      "description": "PairUX 隐私政策 —— 我们如何处理您的数据。"
+    },
+    "terms": {
+      "title": "服务条款",
+      "description": "PairUX 服务条款和可接受使用政策。"
+    },
+    "lastUpdated": "最后更新：{date}",
+    "englishOnly": "本文档以英文提供，英文版本为准。"
+  },
+  "docs": {
+    "meta": {
+      "title": "文档",
+      "description": "了解如何使用 PairUX：安装指南、系统要求、安全信息和常见问题。"
+    },
+    "title": "文档",
+    "subtitle": "使用 PairUX 进行协作屏幕共享所需了解的一切。",
+    "onThisPage": "本页内容",
+    "toc": {
+      "gettingStarted": "快速入门",
+      "requirements": "系统要求",
+      "hosting": "主持会话",
+      "viewing": "观看会话",
+      "control": "远程控制",
+      "remoteStart": "远程启动（Tailscale）",
+      "security": "安全",
+      "troubleshooting": "故障排除",
+      "uninstalling": "卸载",
+      "faq": "常见问题"
+    },
+    "englishOnly": "文档仅提供英文版。",
+    "agents": {
+      "meta": {
+        "title": "智能体参与者 | PairUX 文档",
+        "description": "让 Claude Code 等 AI 智能体加入实时 PairUX 会话。它通过加入码加入，跟进聊天并在其中回复，在网页、桌面和移动端都会标注为智能体。"
+      },
+      "backLink": "← 文档",
+      "title": "智能体参与者"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "控制台 - PairUX",
+      "description": "PairUX 控制台 —— 管理您的会话、账单和设置。"
+    },
+    "stats": {
+      "sessionsThisMonth": "本月会话",
+      "totalParticipants": "参与者总数",
+      "hoursUsed": "已用时长",
+      "hoursValue": "{hours} 小时"
+    },
+    "channelsHeading": "频道",
+    "usageAnalytics": "使用分析",
+    "analyticsPlaceholder": "分析数据将显示在这里",
+    "yourPlan": "您的套餐",
+    "freePlan": "免费版",
+    "current": "当前",
+    "freePlanSummary": "2 名参与者，仅限 P2P",
+    "upgradePlan": "升级套餐",
+    "comingSoon": "即将推出",
+    "comingSoonButton": "即将推出",
+    "perMonth": "/月",
+    "plans": {
+      "pro": {
+        "description": "适合专业人士和成长中的团队",
+        "features": {
+          "participants": "10 名参与者 + 50 名观看者",
+          "hours": "含 100 观看者小时"
+        }
+      },
+      "team": {
+        "description": "适合团队和组织",
+        "features": {
+          "participants": "参与者人数不限",
+          "hours": "含 500 观看者小时"
+        }
+      }
+    },
+    "billing": "账单",
+    "noPaymentMethod": "尚未添加支付方式",
+    "addPaymentMethod": "添加支付方式",
+    "settings": "设置",
+    "accountSettings": "账户设置",
+    "notifications": "通知",
+    "welcome": {
+      "title": "欢迎使用 PairUX",
+      "subtitle": "共享屏幕、实时协作，并获得远程协助。",
+      "startSharing": "开始共享",
+      "joinSession": "加入会话",
+      "scheduleMeeting": "预定会议",
+      "callAnalyses": "通话分析"
+    },
+    "quickActions": {
+      "title": "快捷操作",
+      "startSession": "开始会话",
+      "startSessionHint": "共享您的屏幕",
+      "joinSession": "加入会话",
+      "joinSessionHint": "输入加入码",
+      "scheduleMeeting": "预定会议",
+      "scheduleMeetingHint": "邀请您的团队"
+    },
+    "recentSessions": {
+      "title": "最近的会话",
+      "fetchFailed": "获取会话失败",
+      "loadFailed": "加载会话失败",
+      "tryAgain": "重试",
+      "empty": "暂无会话",
+      "emptyHint": "开始您的第一个会话后，它会显示在这里",
+      "startSession": "开始会话",
+      "viewAll": "查看全部",
+      "join": "加入",
+      "resume": "继续",
+      "status": {
+        "created": "已创建",
+        "active": "进行中",
+        "paused": "已暂停",
+        "ended": "已结束"
+      },
+      "duration": {
+        "underMinute": "< 1 分钟",
+        "minutes": "{minutes} 分钟",
+        "hours": "{hours} 小时",
+        "hoursMinutes": "{hours} 小时 {minutes} 分钟"
+      },
+      "date": {
+        "today": "今天",
+        "yesterday": "昨天",
+        "daysAgo": "{days, plural, other {# 天前}}"
+      }
+    },
+    "upcoming": {
+      "title": "即将开始的会议",
+      "loadFailed": "加载即将开始的会议失败",
+      "startFailed": "启动会议失败",
+      "cancelConfirm": "确定取消此预定会议吗？受邀者将收到通知。",
+      "schedule": "预定",
+      "empty": "暂无即将开始的会议",
+      "scheduleFirst": "预定您的第一场会议",
+      "todayAt": "今天 {time}",
+      "tomorrowAt": "明天 {time}",
+      "durationMinutes": "{minutes} 分钟",
+      "durationHours": "{hours} 小时",
+      "goesLiveOn": "将在 {channel} 直播",
+      "invited": "已邀请 {count} 人",
+      "accepted": "{count} 人已接受",
+      "startEarlyHint": "立即开放房间并通过邮件通知所有受邀者",
+      "startEarly": "提前开始",
+      "startNow": "立即开始",
+      "addToCalendar": "添加到日历",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "编辑会议",
+      "cancelMeeting": "取消会议"
+    },
+    "schedule": {
+      "yourChannels": "您的频道",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 小时} =90 {1.5 小时} =120 {2 小时} other {# 分钟}}",
+      "durationCustomHours": "{hours, plural, other {# 小时}}",
+      "repeatNone": "不重复",
+      "repeatDaily": "每天",
+      "repeatWeekly": "每周",
+      "repeatMonthly": "每月",
+      "repeatUnit": "{freq, select, daily {天} weekly {周} other {月}}",
+      "invalidDate": "日期/时间无效",
+      "saveFailed": "保存更改失败",
+      "scheduleFailed": "预定会议失败",
+      "networkError": "网络错误，请重试。",
+      "editTitle": "编辑会议",
+      "scheduleTitle": "预定会议",
+      "close": "关闭",
+      "meetingTitle": "会议标题",
+      "titlePlaceholder": "例如：每周团队同步会",
+      "dateTime": "日期和时间",
+      "durationLabel": "时长",
+      "repeat": "重复",
+      "every": "每",
+      "numberOfTimes": "次数",
+      "zeroForever": "0 = 永久",
+      "recurrenceSummary": "{description}。所有人使用相同的加入码和链接。",
+      "broadcastChannel": "直播频道",
+      "optional": "（可选）",
+      "loadingChannels": "正在加载您的频道…",
+      "noChannel": "无频道（私密会议）",
+      "channelUnavailable": "当前频道（您已无访问权限）",
+      "channelOption": "{name}（@{handle}）",
+      "noChannelsHint": "您还没有频道。可在控制台的“频道”中创建，或加入一个已有频道的团队。",
+      "channelHint": "从此会议开始直播时，将在该频道播出。团队频道列在所属团队下。",
+      "description": "描述",
+      "descriptionPlaceholder": "议程、会议记录或背景信息...",
+      "invitees": "受邀者",
+      "inviteByEmail": "通过邮件邀请",
+      "removeInvitee": "移除受邀者",
+      "addAnother": "再添加一位",
+      "editInviteHint": "新受邀者会收到邀请邮件；被移除的人会收到已移出名单的通知。可粘贴多个地址，用逗号分隔。",
+      "newInviteHint": "邀请将立即发送。可粘贴多个地址，用逗号分隔。",
+      "toInvite": "待邀请 {count} 人",
+      "toRemove": "待移除 {count} 人",
+      "cancel": "取消",
+      "saving": "保存中...",
+      "saveChanges": "保存更改",
+      "scheduling": "正在预定...",
+      "submitSchedule": "预定会议"
+    },
+    "booking": {
+      "loadFailed": "无法加载预约页面",
+      "saveFailed": "无法保存",
+      "deleteConfirm": "确定删除“{title}”吗？已通过它预约的会议会保留。",
+      "title": "预约链接",
+      "subtitle": "让任何人都能预约与您通话，通话在 PairUX 中进行。",
+      "newLink": "新建链接",
+      "needUsername": "请先在设置中设置用户名。您的链接将是 {url}",
+      "empty": "暂无预约链接。创建一个并分享 {url}。",
+      "meta": "· {minutes} 分钟 · {timezone}",
+      "off": "已关闭",
+      "copyLink": "复制链接",
+      "copied": "已复制",
+      "turnOff": "关闭",
+      "turnOn": "开启",
+      "edit": "编辑",
+      "delete": "删除",
+      "newTitle": "新建预约链接",
+      "editTitle": "编辑预约链接",
+      "close": "关闭",
+      "fieldTitle": "标题",
+      "titlePlaceholder": "初次沟通",
+      "fieldLink": "链接",
+      "fieldDescription": "描述",
+      "optional": "（可选）",
+      "fieldDuration": "时长",
+      "durationOption": "{minutes} 分钟",
+      "fieldTimezone": "时区",
+      "availableHours": "可预约时段",
+      "to": "至",
+      "buffer": "缓冲时间（分钟）",
+      "minNotice": "最短提前时间（分钟）",
+      "daysAhead": "可提前预约天数",
+      "cancel": "取消",
+      "create": "创建链接",
+      "save": "保存",
+      "usernameToken": "用户名",
+      "slugToken": "标识"
+    },
+    "channels": {
+      "bannerGenerateFailed": "无法生成横幅，请重试。",
+      "bannerSaveFailed": "横幅已生成，但无法保存。",
+      "bannerFailed": "横幅生成失败，请重试。",
+      "uploadFailed": "无法上传图片。",
+      "processFailed": "无法处理该图片。",
+      "handleInvalid": "账号名须为 3-30 个字母、数字或下划线。",
+      "createFailed": "无法创建频道。",
+      "networkError": "网络错误，请重试。",
+      "loading": "正在加载您的频道…",
+      "signInPrompt": "登录以管理您的频道。",
+      "signIn": "登录",
+      "empty": "您还没有频道。在下方创建一个 —— 您的公开直播都在这里。",
+      "uploadBanner": "上传频道横幅（6:1）",
+      "changeBanner": "更换横幅",
+      "bannerPromptPlaceholder": "可选：描述您想要的横幅…",
+      "generateHint": "基于当前横幅，用 AI 生成尺寸合适的 6:1 横幅",
+      "generating": "生成中…",
+      "generate": "用 AI 生成",
+      "uploadAvatar": "上传头像（正方形）",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · 您可以在此直播",
+      "subscribers": "{count, plural, other {# 位订阅者}}",
+      "view": "查看",
+      "streamHeading": "推流到此频道（OBS / 任意 RTMP 客户端）",
+      "rtmpUrl": "RTMP URL",
+      "streamKey": "推流密钥",
+      "copy": "复制",
+      "hide": "隐藏",
+      "show": "显示",
+      "newChannel": "新建频道",
+      "handle": "账号名",
+      "handlePlaceholder": "mychannel",
+      "name": "名称",
+      "namePlaceholder": "我的频道",
+      "belongsTo": "所属（团队成员可在团队频道直播）",
+      "descriptionLabel": "描述（可选，支持 Markdown）",
+      "create": "创建频道"
+    },
+    "website": {
+      "saveFailed": "无法保存网站。",
+      "networkError": "网络错误，请重试。",
+      "label": "网站（可选）",
+      "placeholder": "example.com",
+      "saved": "已保存",
+      "save": "保存",
+      "hint": "作为身份链接显示在您的频道页面上。留空即可移除。"
+    },
+    "restream": {
+      "customRtmp": "自定义 RTMP",
+      "urlInvalid": "RTMP URL 必须以 rtmp:// 或 rtmps:// 开头",
+      "keyRequired": "推流密钥为必填项。",
+      "saveFailed": "无法保存推流目标。",
+      "title": "外部转推",
+      "toggleHint": "自动将此频道的直播转推到下列目标",
+      "description": "开启后，在此频道直播时也会推流到 YouTube/Twitch 等平台。私密屏幕共享时请关闭。",
+      "loading": "加载中…",
+      "empty": "暂无推流目标。",
+      "on": "开",
+      "off": "关",
+      "remove": "移除",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "推流密钥",
+      "save": "保存",
+      "cancel": "取消",
+      "add": "添加推流目标"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "不重复",
+      "describe": "{freq, select, daily {{interval, plural, =1 {每天} other {每 # 天}}} weekly {{interval, plural, =1 {每周} other {每 # 周}}} other {{interval, plural, =1 {每月} other {每 # 个月}}}}{when, select, weekday {的{weekday}} monthDay {的第 {day} 天} other {}}重复{count, plural, =0 {，永久} other {，共 # 次}}",
+      "short": "{freq, select, daily {{interval, plural, =1 {每天} other {每 # 天}}} weekly {{interval, plural, =1 {每周} other {每 # 周}}} other {{interval, plural, =1 {每月} other {每 # 个月}}}}",
+      "shortWithLeft": "{label} · 剩余 {left} 次"
+    }
+  },
+  "workspace": {
+    "label": "工作区",
+    "personal": "个人",
+    "wholeOrg": "{org}（整个组织）",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "加入会话",
+      "subtitle": "输入加入码或粘贴链接",
+      "invalidCode": "请输入有效的 6 位加入码",
+      "label": "加入码或链接",
+      "placeholder": "ABC123 或粘贴链接",
+      "hint": "输入 6 位加入码或粘贴加入链接",
+      "continue": "继续",
+      "backHome": "返回首页"
+    },
+    "session": {
+      "notFound": "未找到会话",
+      "lookupFailed": "查找会话失败",
+      "joinFailed": "加入会话失败",
+      "lookingUp": "正在查找会话...",
+      "countdown": {
+        "startingNow": "即将开始",
+        "startsInDays": "{days} 天 {hours} 小时后开始",
+        "startsInHours": "{hours} 小时 {mins} 分钟后开始",
+        "startsInMinutes": "{mins} 分钟后开始"
+      },
+      "durationMinutes": "{minutes, plural, other {# 分钟}}",
+      "durationHours": "{hours, plural, other {# 小时}}",
+      "invitedCount": "已邀请 {count} 人",
+      "acceptedCount": "{count} 人已接受",
+      "autoUpdate": "主持人开始会话后，此页面将自动更新。",
+      "joinCode": "加入码",
+      "addToCalendar": "添加到日历",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "未找到会话",
+      "goHome": "前往首页",
+      "title": "加入会话",
+      "subtitle": "您即将加入一个屏幕共享会话",
+      "sessionCode": "会话代码",
+      "status": "状态",
+      "statusActive": "主持人正在共享",
+      "statusPaused": "主持人暂时不在",
+      "statusWaiting": "等待主持人",
+      "participants": "参与者",
+      "signedInAs": "已登录为 {name}",
+      "displayNameOptional": "显示名称（可选）",
+      "useAccountName": "使用账户名称",
+      "yourName": "您的名字",
+      "namePlaceholder": "输入您的名字",
+      "nameHint": "其他人在会话中将看到这个名字",
+      "joining": "正在加入...",
+      "joinButton": "加入会话",
+      "watchFree": "免费观看",
+      "guestNote": "无需账户 —— 以访客身份观看直播。",
+      "signInPrompt": "已有账户？<link>登录</link>后即可演示或获取控制权"
+    }
+  },
+  "invite": {
+    "notFound": "未找到邀请",
+    "loadFailed": "加载邀请失败",
+    "invalidOrExpired": "此邀请链接可能无效或已过期。",
+    "goToPairux": "前往 PairUX",
+    "heading": "会议邀请",
+    "fromHost": "来自 {name}",
+    "cancelled": "此会议已取消。",
+    "dateTime": "日期和时间",
+    "duration": "时长",
+    "durationMinutes": "{minutes, plural, other {# 分钟}}",
+    "durationHours": "{hours, plural, other {# 小时}}",
+    "host": "主持人",
+    "notes": "备注",
+    "yourJoinCode": "您的加入码",
+    "useCodeHint": "会议开始时使用此代码",
+    "joinMeeting": "加入会议",
+    "addToCalendar": "添加到日历",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "您已接受！",
+    "acceptedNote": "会议上见。",
+    "cantMakeItAfterAll": "临时无法参加？",
+    "declined": "您已拒绝",
+    "declinedNote": "您已表示无法参加。",
+    "changedMind": "改变主意了？",
+    "willYouAttend": "您会参加吗？",
+    "yes": "是的，我会参加",
+    "no": "无法参加",
+    "invitedAs": "受邀邮箱：{email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "预约通话 · PairUX",
+      "bookCallWith": "预约与 {name} 通话 · PairUX",
+      "hostDescription": "选择一个适合您的时间。通话在 PairUX 中进行。",
+      "pageWith": "与 {name} 的{title} · PairUX",
+      "pageDescription": "预约与 {name} 通话 {minutes} 分钟。通话在 PairUX 中进行。"
+    },
+    "host": {
+      "subtitle": "预约通话，就在 PairUX 中进行。",
+      "notTakingBookings": "{name} 目前不接受预约。",
+      "minutes": "{minutes} 分钟",
+      "pickTime": "选择时间"
+    },
+    "booking": {
+      "loadFailed": "无法加载可选时间",
+      "bookFailed": "无法预约该时间",
+      "calendarDescription": "在 {url} 使用代码 {code} 加入",
+      "booked": "预约成功",
+      "whenWith": "{when}，与 {name}",
+      "confirmationSent": "包含以下全部信息的确认邮件正在发送至 {email}。",
+      "yourJoinCode": "您的加入码",
+      "callHappensHint": "通话在 PairUX 中进行。到时间后，打开下方链接或输入代码即可。",
+      "openCallPage": "打开通话页面",
+      "addToCalendar": "添加到日历：",
+      "cantMakeIt": "临时无法参加？<link>告知 {name}</link>。",
+      "durationMinutes": "{minutes, plural, other {# 分钟}}",
+      "timesShownIn": "时间显示时区",
+      "aboutCall": "通话本身在 PairUX 中进行：语音、屏幕共享和远程控制，从浏览器加入无需下载。",
+      "pickDifferentTime": "选择其他时间",
+      "minutesWith": "与 {name} 通话 {minutes, plural, other {# 分钟}}",
+      "yourName": "您的名字",
+      "email": "邮箱",
+      "notesLabel": "有什么需要 {name} 提前了解的吗？",
+      "optional": "（可选）",
+      "confirm": "确认预约",
+      "previousWeek": "上一周",
+      "nextWeek": "下一周",
+      "nothingFree": "本周没有空闲时间。",
+      "nothingFreeTryNext": "本周没有空闲时间，请看看下一周。"
+    }
+  },
+  "createLink": {
+    "signInRequired": "请登录以创建加入链接",
+    "createFailed": "创建会话失败",
+    "title": "创建加入链接",
+    "subtitle": "生成一个链接分享给参与者",
+    "signIn": "登录",
+    "creating": "正在创建...",
+    "createButton": "创建加入链接",
+    "backHome": "返回首页",
+    "joinCode": "加入码",
+    "joinUrl": "加入链接",
+    "copyLink": "复制链接",
+    "copied": "已复制",
+    "shareHint": "将此链接分享给他人。他们可以先加入，等待您从桌面应用开始共享屏幕。",
+    "createAnother": "再创建一个",
+    "downloadApp": "下载应用"
+  },
+  "hostStart": {
+    "metaTitle": "共享屏幕 - PairUX",
+    "analysisRequiresPlan": "AI 通话分析仅适用于 Pro 和 Team 套餐。请将其关闭，或在价格页面升级。",
+    "createFailed": "创建会话失败",
+    "createFailedRetry": "创建会话失败，请重试。",
+    "title": "共享屏幕",
+    "subtitle": "从浏览器开始一个仅供观看的屏幕共享会话",
+    "sessionSettings": "会话设置",
+    "defaults": "默认设置",
+    "maxViewers": "最大观看人数",
+    "viewers": "{count, plural, other {# 名观看者}}",
+    "remoteControl": "远程控制",
+    "enableGuestControl": "允许访客控制",
+    "notAvailableWeb": "网页共享不支持",
+    "remoteControlRequires": "远程控制需要使用<link>桌面应用</link>。",
+    "workspaceLabel": "工作区（团队通话的报告会与团队共享）",
+    "creating": "正在创建会话...",
+    "startSharing": "开始共享",
+    "viewOnlyNote": "<strong>网页共享仅供观看。</strong>观看者可以看到您的屏幕，但无法控制。如需远程控制功能，请使用桌面应用。",
+    "joinInstead": "想加入会话？<link>输入加入码</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "协同<rotating></rotating>，<highlight>焕然一新</highlight>",
+      "subtitle": "支持多人同时远程控制鼠标和键盘的协作屏幕共享。类似 Screenhero，但完全开源。",
+      "download": "免费下载",
+      "github": "在 GitHub 上查看",
+      "note": "免费开源。观看者无需账户。"
+    },
+    "rotating": {
+      "programming": "编程",
+      "pitching": "路演",
+      "presenting": "演示",
+      "demoing": "展示",
+      "designing": "设计",
+      "debugging": "调试",
+      "teaching": "教学",
+      "training": "培训",
+      "reviewing": "评审",
+      "brainstorming": "头脑风暴"
+    },
+    "featuresSection": {
+      "title": "远程协作所需的一切",
+      "subtitle": "为开发者、设计师以及所有需要实时协作的人打造。"
+    },
+    "features": {
+      "screenSharing": {
+        "title": "实时屏幕共享",
+        "description": "低延迟的 WebRTC 串流带来清晰的屏幕共享，画质自适应。"
+      },
+      "remoteControl": {
+        "title": "远程控制",
+        "description": "鼠标和键盘控制需主持人明确批准。双方可同时控制。"
+      },
+      "simultaneousInput": {
+        "title": "同时输入",
+        "description": "主持人和观看者可同时控制。为确保安全，主持人始终优先。"
+      },
+      "secure": {
+        "title": "安全设计",
+        "description": "通过 WebRTC DTLS-SRTP 加密。除非您开启 AI 通话分析，否则媒体数据绝不经过我们的服务器。"
+      },
+      "pwaViewer": {
+        "title": "PWA 观看端",
+        "description": "从任意浏览器加入会话。观看者无需下载。"
+      },
+      "crossPlatform": {
+        "title": "跨平台",
+        "description": "提供 macOS、Windows 和 Linux 桌面应用。可通过 Homebrew、WinGet 或 APT 安装。"
+      }
+    },
+    "steps": {
+      "title": "几分钟即可上手",
+      "subtitle": "无需复杂设置。安装、共享、协作，就这么简单。",
+      "install": {
+        "title": "安装桌面应用",
+        "description": "通过包管理器或直接下载，在电脑上安装 PairUX。"
+      },
+      "start": {
+        "title": "开始会话",
+        "description": "点击“开始会话”，选择要共享的屏幕或窗口。"
+      },
+      "share": {
+        "title": "分享链接",
+        "description": "将加入链接发送给协作者。对方可以从任意浏览器加入。"
+      }
+    },
+    "community": {
+      "title": "为真实协作场景打造",
+      "subtitle": "PairUX 已被用于结对编程、设计评审和远程支持。我们正在收集早期反馈 —— 欢迎试用并分享您的体验。",
+      "testimonials": {
+        "engineer": {
+          "quote": "终于有了真正好用的 Screenhero 替代品。同时控制功能彻底改变了结对编程的体验。",
+          "role": "软件工程师"
+        },
+        "techLead": {
+          "quote": "观看者无需安装任何东西就能从浏览器加入，非常适合快速协作。",
+          "role": "技术负责人"
+        },
+        "contributor": {
+          "quote": "开源、端到端加密，而且开箱即用。这正是开发者社区所需要的。",
+          "role": "开源贡献者"
+        }
+      },
+      "feedback": "正在使用 PairUX？<link>在 GitHub 上分享您的体验</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "新功能 · AI 通话分析",
+      "title": "每次面试、同步会和演示都能获得反馈。",
+      "description": "通话前开启，结束后您将获得一份私密报告：评分、亮点、待改进之处、发言时长、语速、口头禅，以及值得回看的片段。",
+      "cta": "了解通话分析如何运作",
+      "sample": {
+        "label": "示例报告 · 面试",
+        "headline": "回答清晰，但结尾有些仓促",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "您的发言占比 {percent}%，语速 {wpm} 词/分钟",
+        "fillers": "每 100 词有 {rate} 个口头禅（“就是”“那个”）",
+        "practice": "练习：每个回答都用一句话点明结果作结"
+      }
+    },
+    "agentic": {
+      "eyebrow": "智能体结对编程",
+      "title": "两个人，一个智能体会话。",
+      "description": "在编程智能体运行时邀请队友加入。关注同一个终端，一起审查应用，并决定接下来让智能体做什么。",
+      "cta": "用 moshcode 和 PairUX 结对",
+      "browse": "浏览所有使用场景",
+      "cardTitle": "观看、讨论，然后共同协作",
+      "step1": "1. 开启一个实时 moshcode 会话并共享给团队。",
+      "step2": "2. 用 PairUX 展示终端和您正在构建的应用。",
+      "step3": "3. 一起审查智能体的更改，并让队友参与进来。",
+      "note": "适用于外包人员上手、协同调试，以及发布前的工作审查。"
+    },
+    "security": {
+      "title": "值得信赖的安全性",
+      "subtitle": "PairUX 以安全为核心构建。您的屏幕数据绝不经过我们的服务器。",
+      "encryption": {
+        "title": "端到端加密",
+        "description": "所有媒体均通过 WebRTC DTLS-SRTP 加密"
+      },
+      "consent": {
+        "title": "明确授权",
+        "description": "所有控制请求均需主持人批准"
+      },
+      "revoke": {
+        "title": "紧急撤销",
+        "description": "{shortcut} 立即撤销所有控制权"
+      },
+      "openSource": {
+        "title": "开源",
+        "description": "基于 MIT 许可证，代码完全可审计"
+      },
+      "diagram": {
+        "p2p": "点对点直连",
+        "noStorage": "服务器端不存储媒体"
+      }
+    },
+    "cta": {
+      "title": "准备好协作了吗？",
+      "subtitle": "下载 PairUX，几秒钟即可开始共享屏幕。免费、开源、注重隐私。",
+      "download": "立即下载",
+      "learnMore": "了解更多"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "价格",
+      "description": "简单的固定价格，不按席位收费。Plus 每月 $1（最多 100 名听众），Pro 每月 $12，Team 每月 $49。比 Zoom、Teams 等企业方案便宜 40-70%。"
+    },
+    "hero": {
+      "title": "比大厂便宜 40–70%",
+      "subtitle": "简单的固定价格。不按席位收费，无需年度合同，无需企业销售洽谈。"
+    },
+    "mostPopular": "最受欢迎",
+    "period": {
+      "forever": "/永久",
+      "month": "/月"
+    },
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "description": "适合个人使用和小型团队",
+        "cta": "开始使用",
+        "features": {
+          "participants": "2 名参与者 + 最多 {count} 名听众",
+          "publicViewers": "公开直播的免费观看人数不限",
+          "p2p": "P2P 连接",
+          "screenSharing": "屏幕共享",
+          "remoteControl": "远程控制",
+          "e2e": "端到端加密",
+          "support": "社区支持"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "面向观众 —— 教学、站会、一起观看",
+        "cta": "升级到 Plus",
+        "features": {
+          "listeners": "每个房间最多 {count} 名听众",
+          "sfu": "SFU 中继服务器",
+          "liveDirectory": "在 /live 目录中展示公开房间",
+          "screenVoice": "屏幕共享 + 语音",
+          "remoteControl": "远程控制",
+          "cancel": "随时取消"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "适合专业人士和成长中的团队",
+        "cta": "升级到 Pro",
+        "features": {
+          "listeners": "每个房间最多 {count} 名听众",
+          "sfu": "SFU 中继服务器",
+          "streaming": "支持所有直播平台（YouTube、Twitch……）",
+          "hd": "高清屏幕共享（1080p）",
+          "liveDirectory": "在 /live 目录中展示公开房间",
+          "callAnalysis": "AI 通话分析",
+          "support": "优先支持"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "适合团队和组织",
+        "cta": "升级到 Team",
+        "features": {
+          "listeners": "每个房间最多 {count} 名听众",
+          "sfu": "专用 SFU 服务器",
+          "streaming": "支持所有直播平台",
+          "uhd": "4K 屏幕共享",
+          "callAnalysis": "AI 通话分析",
+          "admin": "管理员控制",
+          "support": "优先支持"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "正在前往结账…",
+      "checkoutFailed": "无法开始结账，请重试。",
+      "networkError": "网络错误，请重试。"
+    },
+    "callAnalysis": {
+      "eyebrow": "Pro 和 Team 套餐包含",
+      "title": "AI 通话分析",
+      "description": "通话前开启，结束后获得反馈报告：评分、发言时长、语速、口头禅、亮点、需要练习的地方；团队同步会还会包含决策和待办事项。",
+      "cta": "了解通话分析如何运作 →"
+    },
+    "cost": {
+      "title": "真实成本对比",
+      "subtitle": "将我们的价格与 Zoom Webinars 和 Microsoft Teams 的常见费用进行比较",
+      "plan": "套餐",
+      "rows": {
+        "free": "免费版",
+        "pro": "Pro / 小型团队",
+        "team": "Team / 企业",
+        "tenPerson": "10 人团队"
+      },
+      "cells": {
+        "freeLimit": "{price}（限时 {minutes} 分钟）",
+        "perMonth": "{price}/月",
+        "perHost": "{price}/月/主持人",
+        "perUser": "{price}/月/用户",
+        "perMonthTotal": "共 {price}/月"
+      },
+      "footnote": "* PairUX 按团队收费，而非按用户收费。没有按席位计费的许可。"
+    },
+    "comparison": {
+      "title": "功能对比",
+      "subtitle": "看看 PairUX 与 Zoom、Teams、Webex、Google Meet 和 Jitsi 相比如何",
+      "feature": "功能",
+      "rows": {
+        "transparent": "价格透明",
+        "noSeatFees": "不按席位收费",
+        "noContracts": "无需年度合同",
+        "flatRate": "简单的固定价格套餐",
+        "openSource": "开源",
+        "selfHost": "可自托管",
+        "remoteControl": "远程控制",
+        "multiCursor": "多光标支持",
+        "noAccount": "无需账户（观看者）"
+      }
+    },
+    "advantages": {
+      "title": "PairUX 的不同之处",
+      "subtitle": "企业工具无法照搬这些，否则会打破它们的定价模式",
+      "items": {
+        "noSeatFees": {
+          "title": "不按席位收费",
+          "description": "整个团队一个价格。增加用户不增加费用。"
+        },
+        "noLockIn": {
+          "title": "无锁定",
+          "description": "无年度合同或承诺。随时取消。"
+        },
+        "openSource": {
+          "title": "开源",
+          "description": "审计代码、自托管或自定义。您的数据，您做主。"
+        },
+        "developer": {
+          "title": "开发者友好",
+          "description": "从第一天起就支持 CLI 安装、API 访问和自动化。"
+        }
+      }
+    },
+    "faq": {
+      "title": "常见问题",
+      "capacity": {
+        "question": "我的房间可以容纳多少人观看？",
+        "answer": "每个房间的同时在线听众数随套餐提升：Free {free}，Plus {plus}，Pro {pro}，Team {team}。此外，公开直播可供无限访客免费观看，无需账户。",
+        "answerLong": "每个房间的同时在线听众数随套餐提升：Free {free}，Plus {plus}，Pro {pro}，Team {team}。此外，公开直播可供无限访客免费观看，无需账户。"
+      },
+      "free": {
+        "question": "免费版真的免费吗？",
+        "answer": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费 —— 公开直播还可供无限访客免费观看，无需账户。没有时间限制，无需信用卡。",
+        "answerLong": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费 —— 公开直播还可供无限访客免费观看，无需账户。没有时间限制，无需信用卡。非常适合结对编程和小型演示。"
+      },
+      "selfHost": {
+        "question": "可以自托管来节省费用吗？",
+        "answer": "当然可以。PairUX 基于 MIT 许可证开源。如果您愿意，可以运行自己的 SFU 基础设施。",
+        "answerLong": "当然可以。PairUX 基于 MIT 许可证开源。如果您愿意，可以运行自己的 SFU 基础设施。非常适合有特定安全要求的企业。"
+      },
+      "cheaper": {
+        "question": "为什么你们比 Zoom 和 Teams 便宜？",
+        "answer": "我们按团队收费，而非按席位收费。10 人团队使用 PairUX 每月共 {teamPrice}，而使用 Zoom 或 Teams 则需每月 {competitorPrice}。",
+        "answerLong": "我们按团队收费，而非按席位收费。10 人团队使用 PairUX 每月共 {teamPrice}，而使用 Zoom 或 Teams 则需每月 {competitorPrice}。没有企业销售团队，意味着为您降低了成本。"
+      }
+    },
+    "cta": {
+      "title": "准备好节省视频基础设施费用了吗？",
+      "subtitle": "从免费的 P2P 会话开始，或以每月仅 {price} 升级到 Pro。永远不按席位收费。",
+      "download": "免费下载",
+      "signup": "创建账户"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "下载",
+      "description": "下载适用于 macOS、Windows 或 Linux 的 PairUX。可通过 Homebrew、WinGet、APT 安装或直接下载。"
+    },
+    "hero": {
+      "title": "下载 PairUX",
+      "subtitle": "使用桌面应用主持会话。观看者可从任意浏览器加入。"
+    },
+    "copyToClipboard": "复制到剪贴板",
+    "loading": "正在加载版本信息...",
+    "loadFailed": "加载版本信息失败",
+    "viewReleases": "在 GitHub 上查看版本",
+    "latest": "最新版本：v{version}",
+    "quickInstall": {
+      "title": "快速安装",
+      "subtitle": "最快的上手方式。适用于 macOS、Linux 和 Windows。",
+      "windows": "Windows（PowerShell）",
+      "auto": "自动下载适合您平台的最新版本",
+      "afterInstall": "安装后，使用 <update></update> 升级，使用 <uninstall></uninstall> 卸载。"
+    },
+    "detected": "根据您的浏览器检测",
+    "downloadDmg": "下载 DMG",
+    "downloadInstaller": "下载安装程序",
+    "downloadAppImage": "下载 AppImage",
+    "allPlatforms": {
+      "title": "所有平台",
+      "subtitle": "选择您的操作系统和偏好的格式"
+    },
+    "requirements": {
+      "macos": "需要 macOS 12（Monterey）或更高版本",
+      "windows": "需要 Windows 10（1809）或更高版本",
+      "linux": "Ubuntu 20.04+、Fedora 35+、Arch Linux"
+    },
+    "shellScript": "Shell 脚本",
+    "installerX64": "安装程序（x64）",
+    "viewAllReleases": "在 GitHub 上查看所有版本",
+    "checksums": {
+      "toggle": "验证下载（SHA256 校验和）",
+      "description": "通过比对 SHA256 校验和来验证您的下载。",
+      "file": "文件"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "安装 PairUX 应用",
+    "installApp": "安装应用",
+    "title": "安装 PairUX",
+    "mobileDescription": "添加到主屏幕，快速访问",
+    "desktopDescription": "安装桌面应用，获得更好的体验",
+    "dismiss": "关闭安装提示",
+    "installing": "正在安装...",
+    "install": "安装"
+  },
+  "offline": {
+    "title": "您已离线",
+    "description": "PairUX 需要网络连接才能进行实时屏幕共享和协作。请检查网络连接后重试。",
+    "retry": "重试"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "释放控制权",
+      "inControl": "控制中",
+      "waitingApproval": "等待主持人批准",
+      "requesting": "正在申请...",
+      "waitingConnection": "等待连接",
+      "requestTitle": "申请控制主持人的电脑",
+      "requestControl": "申请控制"
+    },
+    "status": {
+      "title": "控制状态：{state}",
+      "viewOnly": "仅观看",
+      "pending": "待批准",
+      "controlling": "控制中"
+    },
+    "capture": {
+      "clickToControl": "点击开始控制 · 按 Esc 释放",
+      "pointerUnavailable": "无法捕获指针 · 点击重试",
+      "fullscreenLock": "全屏 + 指针锁定",
+      "exitFullscreen": "退出全屏",
+      "capturePointerAgain": "重新捕获指针"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "AI 通话分析",
+      "description": "通话后获得反馈：发言时长、语速、口头禅、表现出色之处和需要练习的地方。请现在决定；通话开始后无法开启。",
+      "toggle": "分析此通话",
+      "kindLabel": "这是什么类型的通话？",
+      "kinds": {
+        "general": "普通通话",
+        "interview": "面试",
+        "team-sync": "团队同步会",
+        "presentation": "演示"
+      },
+      "keepRecording": "录制通话并保留录制内容",
+      "disclosure": "每位加入者都会被告知通话正在录制以供 AI 分析。报告仅您本人可见。<link>工作原理</link>"
+    },
+    "handoff": {
+      "openedTitle": "已在桌面应用中打开",
+      "openingTitle": "正在打开 PairUX 桌面应用…",
+      "openedBody": "您的会议正在桌面应用中进行，可在其中向访客授予控制权。",
+      "openingBody": "桌面应用可以共享屏幕控制权，浏览器只能显示屏幕。",
+      "continueInBrowser": "在此浏览器中继续",
+      "download": "还没有应用？立即下载"
+    },
+    "hostPresence": {
+      "notJoined": "主持人尚未加入",
+      "left": "主持人已离开",
+      "chatAvailable": "聊天仍可使用。主持人返回时您会收到通知。"
+    },
+    "recordingNotice": {
+      "recorded": "主持人正在录制此通话以供 AI 分析。如果您不想参与，请离开通话。",
+      "recordedKept": "主持人正在录制此通话以供 AI 分析，并将保留录制内容。如果您不想参与，请离开通话。"
+    },
+    "settingsPanel": {
+      "title": "会话设置",
+      "sessionInfo": "会话信息",
+      "sessionCode": "会话代码",
+      "status": "状态",
+      "participants": "参与者",
+      "created": "创建时间",
+      "connectionQuality": "连接质量",
+      "network": "网络",
+      "frameRate": "帧率",
+      "fps": "{value} fps",
+      "packetLoss": "丢包率",
+      "latency": "延迟",
+      "ms": "{value} ms",
+      "appearance": "外观",
+      "theme": {
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      },
+      "sessionStatus": {
+        "created": "已创建",
+        "active": "进行中",
+        "paused": "已暂停",
+        "ended": "已结束"
+      },
+      "connectionState": {
+        "idle": "空闲",
+        "connecting": "连接中",
+        "connected": "已连接",
+        "reconnecting": "重新连接中",
+        "failed": "失败",
+        "disconnected": "已断开"
+      },
+      "networkQuality": {
+        "excellent": "极佳",
+        "good": "良好",
+        "poor": "较差",
+        "bad": "很差"
+      }
+    },
+    "publish": {
+      "titlePublic": "房间已公开",
+      "titlePublish": "发布到 /live",
+      "intro": "将房间列在 <strong>pairux.com/live</strong> 上，任何人都能发现并加入 —— 无需邀请链接。",
+      "subject": "主题",
+      "subjectPlaceholder": "例如：现场构建一个 Next.js 应用",
+      "description": "描述",
+      "optional": "（可选）",
+      "descriptionPlaceholder": "这个房间里在做什么？",
+      "publish": "发布",
+      "liveNotice": "您的房间已在公开目录中上线。",
+      "viewLive": "查看 /live",
+      "profileLink": "您的个人主页链接",
+      "copied": "已复制",
+      "claimPrompt": "认领一个用户名，即可在 <code>{path}</code> 获得可分享的个人主页。",
+      "usernamePlaceholder": "用户名",
+      "claim": "认领",
+      "makePrivate": "设为私密",
+      "done": "完成",
+      "errors": {
+        "publishFailed": "发布房间失败",
+        "unpublishFailed": "取消发布房间失败",
+        "usernameFailed": "保存用户名失败",
+        "network": "网络错误，请重试。"
+      }
+    }
+  },
+  "participants": {
+    "title": "参与者",
+    "activeCount": "{count, plural, other {# 人在线}}",
+    "emptyTitle": "暂无参与者",
+    "emptyHint": "分享链接邀请他人加入",
+    "you": "（您）",
+    "agent": "智能体",
+    "agentWithClient": "智能体（{client}）",
+    "host": "主持人",
+    "inControl": "控制中",
+    "requesting": "申请中",
+    "viewer": "观看者",
+    "removeAgent": "移除智能体",
+    "mute": "将参与者静音",
+    "unmute": "取消参与者静音",
+    "grantControl": "授予控制权",
+    "revokeControl": "撤销控制权",
+    "removeParticipant": "移除参与者",
+    "makeHost": "设为主持人",
+    "connection": {
+      "connected": "已连接",
+      "reconnecting": "重新连接中",
+      "disconnected": "已断开"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "等待屏幕共享",
+      "idleBody": "主持人尚未开始共享屏幕。开始后，您将在此处看到其屏幕。",
+      "connectingTitle": "正在连接...",
+      "connectingBody": "正在与主持人建立安全连接，通常只需几秒钟。",
+      "reconnectingTitle": "正在重新连接...",
+      "reconnectingBody": "连接中断，正在尝试重新连接...",
+      "failedTitle": "连接失败",
+      "failedBody": "无法建立连接。请检查网络后重试。",
+      "tryAgain": "重试",
+      "disconnectedTitle": "主持人已断开",
+      "disconnectedBody": "主持人已停止共享或断开连接。正在等待其重新连接...",
+      "reconnect": "重新连接"
+    },
+    "quality": {
+      "title": "连接：{quality}",
+      "details": "连接详情",
+      "quality": "质量",
+      "bitrate": "码率",
+      "frameRate": "帧率",
+      "latency": "延迟",
+      "packetLoss": "丢包率",
+      "levels": {
+        "excellent": "极佳",
+        "good": "良好",
+        "poor": "较差",
+        "bad": "很差"
+      }
+    },
+    "player": {
+      "unsupported": "您的浏览器不支持视频播放。"
+    },
+    "preview": {
+      "idleHint": "点击下方按钮开始共享屏幕",
+      "start": "开始屏幕共享",
+      "requesting": "正在请求屏幕访问权限...",
+      "selectSource": "请选择要共享的屏幕或窗口",
+      "tryAgain": "重试",
+      "stop": "停止共享"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "管理 - PairUX"
+    },
+    "title": "管理",
+    "loggedInAs": "已登录为 {email}",
+    "integrations": {
+      "title": "自动博客集成",
+      "description": "生成一个 Bearer 令牌，然后将其作为 webhook 密钥粘贴到 <link>CrawlProof</link> 中。该令牌同时用作验证请求的 HMAC 签名密钥。",
+      "confirmRevoke": "确定撤销“{name}”吗？该来源将无法再发布内容。",
+      "webhookEndpoint": "Webhook 端点",
+      "copy": "复制",
+      "copied": "已复制",
+      "generateToken": "生成令牌",
+      "namePlaceholder": "集成名称",
+      "generate": "生成",
+      "tokenCreated": "令牌已创建 —— 请立即复制并粘贴到 CrawlProof 自动博客的 webhook 设置中。",
+      "accessTokens": "访问令牌（{count}）",
+      "empty": "暂无 —— 请在上方生成一个。",
+      "requests": "{count, plural, other {# 次请求}}",
+      "lastUsed": "最近使用 {date}",
+      "hide": "隐藏",
+      "reveal": "显示",
+      "revoke": "撤销"
+    },
+    "email": {
+      "title": "给用户发邮件",
+      "description": "撰写 HTML 邮件，并通过 Resend 发送给所有注册用户。",
+      "subject": "主题",
+      "subjectPlaceholder": "公告：...",
+      "body": "正文（Markdown）",
+      "result": "已发送 {sent} · 失败 {failed}",
+      "sending": "发送中…",
+      "send": "发送给所有用户"
+    },
+    "posts": {
+      "title": "最近的博客文章",
+      "empty": "尚未导入任何文章。",
+      "columnTitle": "标题",
+      "columnSource": "来源",
+      "columnPublished": "发布时间"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "通话分析 - PairUX",
+      "detailTitle": "通话分析 - PairUX"
+    },
+    "kinds": {
+      "general": "普通通话",
+      "interview": "面试",
+      "team-sync": "团队同步会",
+      "presentation": "演示"
+    },
+    "status": {
+      "recording": "录制中",
+      "queued": "等待分析",
+      "processing": "正在撰写报告",
+      "ready": "已就绪",
+      "failed": "失败"
+    },
+    "list": {
+      "title": "通话分析",
+      "intro": "开启 AI 分析的通话会在这里提供反馈。可在网页版、桌面或移动应用的开始页面于通话前开启。",
+      "loadError": "无法加载您的分析",
+      "empty": "暂无已分析的通话。<link>开始一次 AI 分析通话</link>",
+      "untitled": "未命名通话",
+      "sharedWithTeam": "已与团队共享"
+    },
+    "report": {
+      "back": "← 所有通话分析",
+      "loadError": "无法加载此分析",
+      "failed": "此分析未能完成：{error}",
+      "stillRecording": "通话仍在录制中。",
+      "beingWritten": "正在撰写您的报告。此页面会自动更新，报告就绪后您将收到邮件。",
+      "outOf10": "满分 10",
+      "byTheNumbers": "数据一览",
+      "table": {
+        "speaker": "发言者",
+        "talkTime": "发言时长",
+        "pace": "语速",
+        "fillers": "口头禅",
+        "questions": "提问",
+        "longestTurn": "最长发言",
+        "wpm": "{value} 词/分钟",
+        "fillerRate": "{value} / 100 词"
+      },
+      "mobileNote": "在手机上采集：仅录制了您的麦克风。",
+      "whatWorked": "亮点",
+      "toImprove": "待改进",
+      "try": "试试：{suggestion}",
+      "delivery": {
+        "title": "表达",
+        "pace": "语速",
+        "clarity": "清晰度",
+        "confidence": "自信度",
+        "fillerWords": "口头禅",
+        "listening": "倾听"
+      },
+      "practiceNext": "下次之前的练习",
+      "onScreen": "屏幕内容",
+      "actionItems": "待办事项",
+      "keyMoments": "值得回看的片段",
+      "hideTranscript": "隐藏转录文本",
+      "showTranscript": "显示转录文本",
+      "disclaimer": "由 AI 根据通话录音撰写。发言者标签来自自动发言者识别，可能有误。",
+      "disclaimerWithModel": "由 AI（{model}）根据通话录音撰写。发言者标签来自自动发言者识别，可能有误。"
+    }
+  },
+  "devices": {
+    "title": "我的设备",
+    "intro": "在这里即可让运行 <code>pairux daemon</code> 的电脑开始屏幕共享。适合手持手机、从笔记本电脑进行演示。",
+    "addressLabel": "设备地址",
+    "add": "添加",
+    "errors": {
+      "invalidAddress": "这看起来不是有效的设备地址。",
+      "duplicate": "该设备已存在。"
+    },
+    "empty": "暂无设备。在要共享的电脑上运行 <code>pairux daemon</code> —— 它会输出可粘贴到此处的地址。",
+    "howToSetUp": "如何设置",
+    "remove": "移除 {name}",
+    "joinSession": "加入 {name} 上的会话",
+    "stopSharing": "停止共享",
+    "startSharing": "开始共享",
+    "check": "检查"
+  },
+  "notifications": {
+    "unsupported": "此浏览器不支持推送通知。",
+    "push": {
+      "title": "推送通知",
+      "enabled": "此设备已开启通知",
+      "blocked": "通知已在浏览器设置中被阻止",
+      "prompt": "开启后，应用在后台时也能收到通知",
+      "enable": "开启",
+      "disable": "关闭"
+    },
+    "notifyMeAbout": "通知我以下事项",
+    "events": {
+      "controlRequest": "控制请求",
+      "chatMessage": "聊天消息",
+      "participantJoined": "参与者加入",
+      "participantLeft": "参与者离开",
+      "hostDisconnected": "主持人断开连接",
+      "creatorLive": "关注的创作者开始直播",
+      "directMessage": "有人给您发私信"
+    },
+    "reminders": {
+      "title": "会议提醒",
+      "description": "通过邮件发送；开启推送时也会发送通知。",
+      "meetingReminder1Day": "提前 1 天",
+      "meetingReminder1Hour": "提前 1 小时",
+      "meetingReminder15Min": "提前 15 分钟",
+      "meetingReminder1Min": "提前 1 分钟"
+    },
+    "controlRequest": {
+      "title": "控制请求",
+      "message": "<strong>{name}</strong> 想要控制您的屏幕",
+      "approve": "批准",
+      "deny": "拒绝"
+    },
+    "toasts": {
+      "region": "通知",
+      "joined": "<strong>{name}</strong> 已加入",
+      "left": "<strong>{name}</strong> 已离开",
+      "dismiss": "关闭"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "组织 - PairUX",
+      "detailTitle": "组织 - PairUX"
+    },
+    "roles": {
+      "owner": "所有者",
+      "admin": "管理员",
+      "member": "成员"
+    },
+    "list": {
+      "title": "组织",
+      "intro": "组织会与成员共享可直播的频道、通话分析报告以及所有者的套餐。可在组织内将成员分组为团队。",
+      "teamCount": "{count, plural, other {# 个团队}}",
+      "createHeading": "创建组织",
+      "namePlaceholder": "公司或团体名称",
+      "create": "创建",
+      "createError": "无法创建组织"
+    },
+    "detail": {
+      "back": "← 组织",
+      "notFound": "未找到组织",
+      "genericError": "出了点问题",
+      "summary": "{role, select, owner {您是所有者} admin {您是管理员} other {您是成员}}。成员享受 <strong>{plan}</strong> 套餐。",
+      "confirmDelete": "确定删除 {name} 吗？其频道和报告将归还给各自的创建者。",
+      "deleteOrg": "删除组织",
+      "confirmLeave": "确定离开 {name} 吗？",
+      "leaveOrg": "离开组织",
+      "members": "成员",
+      "teamLead": "{team}（负责人）",
+      "removeMember": "移除 {name}",
+      "confirmRemoveMember": "确定将 {name} 从 {org} 中移除吗？",
+      "inviteByEmail": "通过邮件邀请",
+      "noTeam": "无团队",
+      "invite": "邀请",
+      "pendingInvitations": "待接受的邀请",
+      "revoke": "撤销",
+      "teams": "团队",
+      "teamsIntro": "团队成员可在团队频道直播，并查看团队的通话报告。负责人管理团队成员。",
+      "confirmDeleteTeam": "确定删除 {name} 团队吗？其频道和报告将保留在组织中。",
+      "deleteTeam": "删除团队",
+      "lead": "负责人",
+      "makeMember": "设为成员",
+      "makeLead": "设为负责人",
+      "removeFromTeam": "将 {name} 从 {team} 中移除",
+      "noMembers": "暂无成员",
+      "addMember": "添加成员…",
+      "noTeams": "暂无团队。",
+      "newTeamPlaceholder": "新团队，例如：工程部",
+      "createTeam": "创建团队"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "设置 - PairUX",
+      "description": "管理您的 PairUX 设置。"
+    },
+    "back": "返回",
+    "title": "设置",
+    "saved": "已保存",
+    "quality": {
+      "720p": "720p（高清）",
+      "1080p": "1080p（全高清）",
+      "4k": "4K（如支持）"
+    },
+    "account": {
+      "title": "账户",
+      "description": "您的账户信息",
+      "email": "邮箱：",
+      "name": "姓名：",
+      "signInPrompt": "登录后可在多台设备间同步设置，并使用更多功能。",
+      "signIn": "登录",
+      "createAccount": "创建账户"
+    },
+    "recording": {
+      "title": "录制",
+      "description": "默认录制偏好",
+      "defaultRecordingQuality": "默认录制画质",
+      "recordingQualityHint": "画质越高，录制文件越大",
+      "defaultCaptureQuality": "默认采集画质",
+      "captureQualityHint": "画质越高，串流占用的带宽越多",
+      "includeSystemAudio": "包含系统音频",
+      "includeSystemAudioHint": "录屏时同时采集系统音频",
+      "webRecordingNote": "<strong>网页录制：</strong>录制内容保存在浏览器的下载文件夹中。如需自动整理文件，请使用<link>桌面应用</link>。"
+    },
+    "session": {
+      "title": "会话默认设置",
+      "description": "新会话的默认设置",
+      "maxParticipants": "最大参与人数",
+      "viewers": "{count, plural, other {# 名观看者}}",
+      "openInDesktopApp": "在桌面应用中打开会话",
+      "openInDesktopAppHint": "开始会话时会打开桌面应用，您可在其中将控制权交给访客。如果未安装应用，则回退到此浏览器。",
+      "openInDesktopAppAria": "在桌面应用中打开会话",
+      "remoteControlNote": "<strong>注意：</strong>远程控制仅在<link>桌面应用</link>中可用。网页会话仅供观看。"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "推送通知偏好"
+    },
+    "language": {
+      "title": "语言",
+      "description": "选择 PairUX 的显示语言",
+      "hint": "保存在此浏览器中。默认使用浏览器语言。"
+    },
+    "appearance": {
+      "title": "外观",
+      "description": "自定义您的体验",
+      "theme": "主题",
+      "themes": {
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      },
+      "systemHint": "系统主题会跟随您的设备设置"
+    },
+    "about": {
+      "title": "关于",
+      "description": "应用信息",
+      "application": "应用",
+      "platform": "平台",
+      "platformValue": "浏览器 / PWA",
+      "features": "功能",
+      "featuresValue": "屏幕共享、录制、聊天",
+      "downloadNote": "如需远程控制等完整功能，请下载<link>桌面应用</link>。"
+    },
+    "youtube": {
+      "title": "YouTube 自动开播",
+      "description": "开始推流时自动让 YouTube 直播上线 —— 不再卡在“正在准备直播”。",
+      "notConfigured": "暂不可用 —— 服务器缺少 Google OAuth 配置。",
+      "connected": "已连接",
+      "connectedTo": "已连接 —— {channel}",
+      "disconnect": "断开连接",
+      "connect": "连接 YouTube"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "未找到直播",
+    "defaultTitle": "PairUX 直播",
+    "defaultDescription": "{name} 的公开直播。",
+    "defaultDescriptionAnonymous": "一位 PairUX 创作者的公开直播。",
+    "anonymous": "匿名",
+    "liveNow": "正在直播",
+    "untitled": "未命名直播",
+    "watchFree": "免费观看",
+    "commentsHeading": "评论（{count}）",
+    "like": "点赞（{count, plural, other {# 个赞}}）",
+    "unlike": "取消点赞（{count, plural, other {# 个赞}}）",
+    "comments": {
+      "someone": "某人",
+      "postFailed": "无法发布您的评论。",
+      "networkError": "网络错误，请重试。",
+      "placeholder": "添加评论…",
+      "post": "发布",
+      "empty": "暂无评论 —— 来抢沙发吧。",
+      "delete": "删除"
+    },
+    "embed": {
+      "title": "嵌入此直播",
+      "button": "嵌入",
+      "label": "可粘贴到任何允许 HTML 的地方",
+      "copied": "已复制",
+      "copy": "复制代码"
+    }
+  },
+  "embed": {
+    "defaultTitle": "PairUX 播放器",
+    "untitled": "未命名直播",
+    "watchLive": "在 PairUX 观看直播",
+    "watch": "在 PairUX 观看",
+    "live": "直播"
+  },
+  "room": {
+    "metadata": {
+      "title": "加密房间",
+      "description": "端到端加密的 PairUX 语音和视频房间。无需账户。"
+    },
+    "creating": "正在创建加密房间…",
+    "guest": "访客",
+    "joinFailed": "无法加入房间",
+    "callFailed": "通话失败",
+    "e2ee": "端到端加密",
+    "incomplete": {
+      "title": "此链接不完整",
+      "body": "房间链接以 <code>#k=…</code> 结尾，这是加密通话的密钥。请索取完整链接，或<link>创建新房间</link>。"
+    },
+    "join": {
+      "title": "加入房间",
+      "body": "无需账户。音频和视频在您的设备上加密，密钥只有持有此链接的人才有。PairUX 无法听到或看到通话内容，也不会录制任何内容。",
+      "nameLabel": "您的名字",
+      "voice": "语音",
+      "video": "视频"
+    },
+    "copied": "已复制",
+    "copyInvite": "复制邀请链接"
+  },
+  "live": {
+    "metadata": {
+      "title": "直播房间",
+      "description": "浏览 PairUX 上正在进行的公开屏幕共享房间。"
+    },
+    "title": "直播房间",
+    "intro": "主持人正在进行的公开屏幕共享房间。无需邀请，直接加入 —— 或浏览<link>所有频道</link>（过去和现在）。",
+    "empty": {
+      "title": "暂无公开房间",
+      "body": "主持一个会话，并使用<strong>发布到 /live</strong> 将其列在这里。",
+      "cta": "开始主持"
+    },
+    "badgeLive": "直播中",
+    "badgeIdle": "空闲",
+    "viewers": "{count, plural, other {# 名观看者}}",
+    "untitledRoom": "未命名房间",
+    "anonymous": "匿名",
+    "joinRoom": "加入房间",
+    "creators": "创作者",
+    "followers": "{count, plural, other {# 位关注者}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "频道",
+      "description": "浏览 PairUX 上的创作者频道。"
+    },
+    "title": "频道",
+    "intro": "PairUX 上的创作者频道。订阅后可在其开播时收到通知 —— 或看看谁<link>正在直播</link>。",
+    "empty": {
+      "title": "暂无频道",
+      "body": "可在<link>控制台</link>中创建。"
+    },
+    "liveNow": "正在直播",
+    "subscribers": "{count, plural, other {# 位订阅者}}",
+    "liveCount": "{count} 场直播",
+    "recordings": "{count, plural, other {# 个录制}}"
+  },
+  "channel": {
+    "notFoundTitle": "未找到频道",
+    "defaultDescription": "{name} 在 PairUX 上的频道。",
+    "liveNow": "正在直播",
+    "live": "直播",
+    "watching": "{count} 人正在观看",
+    "manage": "管理频道",
+    "streams": "直播",
+    "noStreams": "暂无直播。",
+    "untitledStream": "未命名直播",
+    "recordings": "录制",
+    "rssTitle": "在播客应用或 RSS 阅读器中订阅",
+    "recording": "录制",
+    "subscribe": {
+      "subscribe": "订阅",
+      "subscribed": "已订阅",
+      "count": "{count, plural, other {# 位订阅者}}"
+    },
+    "share": {
+      "text": "来 PairUX 看看 {name}",
+      "share": "分享",
+      "shareOn": "分享到 {network}",
+      "copyLink": "复制链接",
+      "copy": "复制",
+      "copied": "已复制"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "未找到个人主页",
+    "defaultDescription": "{name} 在 PairUX 上的公开房间。",
+    "channels": "频道",
+    "live": "直播",
+    "subscribers": "{count, plural, other {# 订阅}}",
+    "lives": "直播",
+    "noLives": "{handle} 还没有直播过。",
+    "liveNow": "正在直播",
+    "untitledRoom": "未命名房间",
+    "joinRoom": "加入房间",
+    "follow": {
+      "follow": "关注",
+      "following": "已关注",
+      "count": "{count, plural, other {# 位关注者}}"
+    },
+    "message": {
+      "button": "私信",
+      "title": "私信 {name}",
+      "close": "关闭",
+      "sent": "消息已发送",
+      "sentNote": "{name} 将通过邮件和推送收到通知。",
+      "viewConversation": "查看对话",
+      "placeholder": "给 {name} 写一条私信…",
+      "cancel": "取消",
+      "send": "发送",
+      "sendFailed": "发送消息失败"
+    }
+  },
+  "messages": {
+    "title": "消息",
+    "conversationTitle": "对话",
+    "allMessages": "所有消息",
+    "empty": {
+      "title": "暂无消息",
+      "body": "访问创作者的个人主页并点击<strong>私信</strong>即可开始对话。",
+      "cta": "浏览创作者 →"
+    },
+    "youPrefix": "您：",
+    "thread": {
+      "empty": "暂无消息。向 {name} 打个招呼吧。",
+      "placeholder": "发消息给 {name}…",
+      "send": "发送",
+      "sendFailed": "发送消息失败"
+    }
+  }
+}

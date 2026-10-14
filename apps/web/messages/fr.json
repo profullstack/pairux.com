@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - Partage d’écran collaboratif avec contrôle à distance",
+    "description": "Partage d’écran en temps réel avec contrôle simultané de la souris et du clavier à distance. Comme Screenhero, mais open source. Disponible pour macOS, Windows et Linux.",
+    "shortDescription": "Partage d’écran en temps réel avec contrôle simultané de la souris et du clavier à distance. Comme Screenhero, mais open source.",
+    "imageAlt": "PairUX - Partage d’écran collaboratif"
+  },
+  "common": {
+    "language": "Langue",
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "continue": "Continuer",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "retry": "Réessayer",
+    "yes": "Oui",
+    "no": "Non",
+    "or": "ou",
+    "optional": "Facultatif",
+    "learnMore": "En savoir plus",
+    "somethingWentWrong": "Une erreur s’est produite. Veuillez réessayer."
+  },
+  "nav": {
+    "live": "En direct",
+    "channels": "Chaînes",
+    "features": "Fonctionnalités",
+    "useCases": "Cas d’usage",
+    "download": "Télécharger",
+    "docs": "Docs",
+    "blog": "Blog",
+    "pricing": "Tarifs",
+    "dashboard": "Tableau de bord",
+    "organizations": "Organisations",
+    "callAnalyses": "Analyses d’appels",
+    "settings": "Paramètres",
+    "messages": "Messages",
+    "signIn": "Se connecter",
+    "signUp": "S’inscrire",
+    "signOut": "Se déconnecter",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "userFallback": "Utilisateur"
+  },
+  "footer": {
+    "tagline": "Partage d’écran collaboratif avec contrôle à distance simultané. Comme Screenhero, mais open source.",
+    "license": "Open source sous licence MIT.",
+    "sections": {
+      "product": "Produit",
+      "install": "Installation",
+      "resources": "Ressources",
+      "company": "Entreprise"
+    },
+    "links": {
+      "features": "Fonctionnalités",
+      "useCases": "Cas d’usage",
+      "download": "Télécharger",
+      "pricing": "Tarifs",
+      "changelog": "Journal des modifications",
+      "documentation": "Documentation",
+      "faq": "FAQ",
+      "systemRequirements": "Configuration requise",
+      "troubleshooting": "Dépannage",
+      "about": "À propos",
+      "blog": "Blog",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d’utilisation"
+    }
+  },
+  "auth": {
+    "or": "ou",
+    "comingSoon": "Bientôt disponible",
+    "checkEmail": "Consultez vos e-mails",
+    "backToSignIn": "Retour à la connexion",
+    "errors": {
+      "unexpected": "Une erreur inattendue s’est produite"
+    },
+    "fields": {
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "8 caractères min., 1 majuscule, 1 chiffre",
+      "passwordHint": "Au moins 8 caractères, dont une majuscule et un chiffre",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordNeedsUppercase": "Le mot de passe doit contenir au moins une majuscule",
+      "passwordNeedsNumber": "Le mot de passe doit contenir au moins un chiffre"
+    },
+    "login": {
+      "meta": {
+        "title": "Connexion - PairUX",
+        "description": "Connectez-vous à votre compte PairUX"
+      },
+      "title": "Bon retour parmi nous",
+      "subtitle": "Connectez-vous à votre compte pour continuer",
+      "failed": "Échec de la connexion",
+      "forgotPassword": "Mot de passe oublié ?",
+      "passwordPlaceholder": "Saisissez votre mot de passe",
+      "rememberMe": "Se souvenir de moi",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "passkey": "Se connecter avec une clé d’accès",
+      "noAccount": "Pas encore de compte ? <link>S’inscrire</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Inscription - PairUX",
+        "description": "Créez un compte PairUX pour commencer à partager votre écran"
+      },
+      "failed": "Échec de la création du compte",
+      "confirmationSent": "Nous avons envoyé un lien de confirmation à <strong>{email}</strong>. Cliquez sur le lien pour vérifier votre compte.",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Prénom",
+      "lastName": "Nom",
+      "lastNamePlaceholder": "Nom",
+      "confirmPassword": "Confirmer le mot de passe",
+      "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
+      "submit": "Créer un compte",
+      "submitting": "Création du compte…",
+      "haveAccount": "Vous avez déjà un compte ? <link>Se connecter</link>",
+      "page": {
+        "earlyAdopterTitle": "Bonus early adopter",
+        "earlyAdopterBody": "Inscrivez-vous maintenant et obtenez <bold>20 % de crédits en plus</bold> sur chaque dépôt !",
+        "waitlistTitle": "Rejoindre la liste d’attente",
+        "recommended": "Recommandé",
+        "waitlistBody": "Réservez votre place avec un dépôt de 100 $ en crédits et bénéficiez d’un accès prioritaire ainsi que d’avantages exclusifs.",
+        "perkCredits": "Dépôt de 100 $ = <semibold>120 $ de crédits</semibold> (bonus de 20 %)",
+        "perkPriority": "Accès prioritaire au lancement",
+        "perkPricing": "Tarif early adopter garanti à vie",
+        "perkCommunity": "Accès à un canal Discord/Slack exclusif",
+        "paymentMethods": "Moyens de paiement",
+        "payCard": "Payer par carte",
+        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
+        "payCrypto": "Payer en crypto",
+        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
+        "comingSoon": "Bientôt disponible",
+        "refundable": "Les dépôts sont intégralement remboursables avant le lancement si vous changez d’avis.",
+        "orFree": "ou inscrivez-vous gratuitement",
+        "freeTitle": "Créer un compte gratuit",
+        "freeBody": "Commencez avec 2 participants + 5 spectateurs, gratuitement et pour toujours",
+        "creditsTitle": "Fonctionnement des crédits",
+        "creditsBody": "PairUX utilise un système de crédits. Les crédits servent aux serveurs relais SFU lorsque vous avez besoin de plus de 5 spectateurs. <medium>0,08 $ par heure-spectateur en 720p</medium>. Les connexions P2P de l’offre gratuite n’expirent jamais."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Mot de passe oublié - PairUX",
+        "description": "Réinitialisez le mot de passe de votre compte PairUX"
+      },
+      "title": "Mot de passe oublié ?",
+      "subtitle": "Saisissez votre e-mail et nous vous enverrons un lien de réinitialisation",
+      "failed": "Échec de l’envoi de l’e-mail de réinitialisation",
+      "sent": "Si un compte existe pour <strong>{email}</strong>, vous recevrez un lien de réinitialisation du mot de passe.",
+      "submit": "Envoyer le lien",
+      "submitting": "Envoi…"
+    },
+    "reset": {
+      "title": "Réinitialiser votre mot de passe",
+      "subtitle": "Saisissez votre nouveau mot de passe ci-dessous",
+      "failed": "Échec de la réinitialisation du mot de passe",
+      "successTitle": "Mot de passe mis à jour",
+      "successBody": "Votre mot de passe a bien été réinitialisé. Redirection vers la connexion…",
+      "signInNow": "Se connecter maintenant",
+      "invalidTitle": "Lien invalide ou expiré",
+      "invalidBody": "Ce lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.",
+      "requestNewLink": "Demander un nouveau lien",
+      "newPassword": "Nouveau mot de passe",
+      "confirmNewPassword": "Confirmer le nouveau mot de passe",
+      "confirmNewPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
+      "submit": "Réinitialiser le mot de passe",
+      "submitting": "Réinitialisation…"
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "Autoriser la CLI PairUX - PairUX",
+    "invalidTitle": "Ce lien de connexion n’est pas valide",
+    "invalidBody": "Exécutez à nouveau <code>{command}</code> pour en obtenir un nouveau.",
+    "allowedTitle": "Vous pouvez retourner à votre terminal",
+    "deniedTitle": "Connexion annulée",
+    "closeTab": "Vous pouvez fermer cet onglet.",
+    "title": "Autoriser {clientName} ?",
+    "intro": "L’outil en ligne de commande PairUX de cet ordinateur demande à agir en tant que <strong>{email}</strong>.",
+    "agentsNote": "Les agents que vous lancez avec lui rejoignent les sessions identifiés comme vos agents, afin que les hôtes sachent à qui ils appartiennent.",
+    "limitsNote": "Il ne peut ni voir votre écran, ni prendre le contrôle à distance, ni modifier votre compte.",
+    "revokeNote": "Se déconnecter avec <code>{command}</code> révoque cet accès.",
+    "allow": "Autoriser",
+    "deny": "Refuser",
+    "errors": {
+      "authorizeFailed": "Impossible d’autoriser la CLI",
+      "network": "Impossible de joindre PairUX. Vérifiez votre connexion et réessayez."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Rejoindre une organisation - PairUX",
+    "title": "Rejoindre {orgName}",
+    "invited": "Vous êtes invité en tant {role, select, admin {qu’administrateur} other {que membre}}. Connectez-vous en tant que <strong>{email}</strong> pour accepter.",
+    "invitedToTeam": "Vous êtes invité en tant {role, select, admin {qu’administrateur} other {que membre}} de l’équipe {teamName}. Connectez-vous en tant que <strong>{email}</strong> pour accepter.",
+    "expired": "Cette invitation a expiré. Demandez-en une nouvelle.",
+    "accept": "Accepter l’invitation",
+    "errors": {
+      "invalid": "Cette invitation n’est plus valide",
+      "acceptFailed": "Impossible d’accepter l’invitation"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Fonctionnalités",
+      "description": "Découvrez toutes les fonctionnalités de PairUX : partage d’écran en temps réel, contrôle à distance, collaboration multi-curseurs, prise en charge multiplateforme et bien plus."
+    },
+    "hero": {
+      "title": "Fonctionnalités",
+      "subtitle": "Tout ce dont vous avez besoin pour collaborer en temps réel, conçu dans le respect de la confidentialité et de la sécurité.",
+      "imageAlt": "Le tableau de bord PairUX, avec les statistiques des sessions, les chaînes, des actions rapides pour démarrer ou rejoindre une session, et l’offre actuelle."
+    },
+    "comingSoon": "Bientôt disponible",
+    "main": {
+      "callAnalysis": {
+        "title": "Analyse d’appels par IA",
+        "description": "Activez-la avant un entretien, une réunion d’équipe ou une présentation et recevez un rapport privé après l’appel : une note, ce qui a fonctionné, ce qu’il faut corriger et les moments à revoir.",
+        "details": {
+          "d0": "Temps de parole, débit et mots de remplissage par intervenant",
+          "d1": "Modes entretien, réunion d’équipe et présentation",
+          "d2": "Captures d’écran analysées pour les slides et les démos",
+          "d3": "Tous les participants sont informés de l’enregistrement"
+        }
+      },
+      "screenSharing": {
+        "title": "Partage d’écran en temps réel",
+        "description": "Partagez tout votre écran ou des fenêtres individuelles avec une qualité d’une grande netteté. Le streaming basé sur WebRTC offre une vidéo à faible latence avec un débit adaptatif.",
+        "details": {
+          "d0": "Partage de l’écran entier ou d’une fenêtre",
+          "d1": "Qualité standard 1080p à 30 i/s",
+          "d2": "Débit adaptatif pour toutes les connexions",
+          "d3": "Curseur inclus dans le flux"
+        }
+      },
+      "remoteControl": {
+        "title": "Souris et clavier à distance",
+        "description": "Laissez votre collaborateur prendre la main avec un contrôle complet de la souris et du clavier. Tout contrôle nécessite l’approbation explicite de l’hôte.",
+        "details": {
+          "d0": "Contrôle complet de la souris (clic, défilement, glisser)",
+          "d1": "Saisie clavier complète",
+          "d2": "Touches spéciales et raccourcis",
+          "d3": "Compatible multiplateforme"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Saisie simultanée",
+        "description": "L’hôte et le spectateur peuvent contrôler en même temps. La saisie de l’hôte reste toujours prioritaire, pour plus de sécurité et de confort.",
+        "details": {
+          "d0": "Les deux utilisateurs contrôlent ensemble",
+          "d1": "L’hôte est toujours prioritaire",
+          "d2": "Aucun blocage ni file d’attente de saisie",
+          "d3": "Un indicateur visuel montre qui contrôle"
+        }
+      },
+      "consent": {
+        "title": "Consentement explicite",
+        "description": "La sécurité est intégrée dès la conception. Les spectateurs doivent demander le contrôle, et les hôtes doivent l’approuver explicitement.",
+        "details": {
+          "d0": "Les demandes de contrôle nécessitent une approbation",
+          "d1": "Raccourci de révocation d’urgence (Ctrl+Shift+Esc)",
+          "d2": "Indicateur visuel lorsque le contrôle est actif",
+          "d3": "Révocation du contrôle à tout moment"
+        }
+      },
+      "pwaViewer": {
+        "title": "Lecteur PWA",
+        "description": "Les spectateurs rejoignent depuis n’importe quel navigateur récent, sans téléchargement. Installez-le en tant que Progressive Web App pour un accès rapide.",
+        "details": {
+          "d0": "Fonctionne dans tout navigateur récent",
+          "d1": "Aucun compte requis pour rejoindre",
+          "d2": "Installable en tant que PWA",
+          "d3": "Adapté au mobile pour le visionnage"
+        }
+      },
+      "crossPlatform": {
+        "title": "Application de bureau multiplateforme",
+        "description": "Applications de bureau natives pour macOS, Windows et Linux. Installez-les via votre gestionnaire de paquets préféré.",
+        "details": {
+          "d0": "macOS : cask Homebrew",
+          "d1": "Windows : WinGet",
+          "d2": "Linux : APT, DNF, AUR",
+          "d3": "Téléchargement direct disponible"
+        }
+      },
+      "recording": {
+        "title": "Enregistrement d’écran",
+        "description": "Enregistrez vos sessions localement pour les revoir plus tard. Idéal pour les tutoriels, la documentation et pour garder une trace de vos sessions de pair programming.",
+        "details": {
+          "d0": "Enregistrement local en WebM/MP4",
+          "d1": "Capture de l’audio système et du micro",
+          "d2": "Préréglages de qualité (720p/1080p/4K)",
+          "d3": "Pause/reprise de l’enregistrement"
+        }
+      },
+      "textChat": {
+        "title": "Chat textuel",
+        "description": "Un chat textuel intégré pour partager des liens, des extraits de code ou communiquer sans la voix.",
+        "details": {
+          "d0": "Messagerie en temps réel",
+          "d1": "Notifications système (arrivées/départs)",
+          "d2": "Fonctionne en parallèle du partage d’écran",
+          "d3": "Historique des messages par session"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "La console hôte PairUX pendant une session, avec le sélecteur de qualité, le code de participation, la liste des participants et le panneau d’informations de la session.",
+      "consent": "La console spectateur PairUX, où un invité doit cliquer sur Demander le contrôle avant que l’hôte ne lui accorde la saisie.",
+      "pwaViewer": "L’écran de participation PairUX dans un navigateur, avec le code de session, le statut en direct et un bouton Regarder gratuitement qui ne nécessite aucun compte.",
+      "crossPlatform": "La page de téléchargement PairUX listant les installateurs en une ligne ainsi que les builds DMG, EXE, AppImage, DEB et RPM pour macOS, Windows et Linux.",
+      "recording": "Les paramètres d’enregistrement PairUX, avec les préréglages d’enregistrement par défaut et de qualité de capture, et une option pour l’audio système."
+    },
+    "tech": {
+      "title": "Basé sur des technologies modernes",
+      "subtitle": "PairUX utilise WebRTC, le standard du secteur, pour un streaming fiable et à faible latence."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Connexion directe de pair à pair pour une latence minimale."
+      },
+      "e2e": {
+        "title": "Chiffré de bout en bout",
+        "description": "Chiffrement DTLS-SRTP pour tous les flux multimédias."
+      },
+      "nat": {
+        "title": "Traversée de NAT",
+        "description": "Serveurs STUN/TURN pour une connectivité fiable."
+      },
+      "adaptive": {
+        "title": "Qualité adaptative",
+        "description": "Ajustement automatique de la qualité selon la bande passante."
+      },
+      "sharedControl": {
+        "title": "Contrôle partagé",
+        "description": "L’hôte et l’invité utilisent à tour de rôle le pointeur système de l’hôte."
+      },
+      "keyboard": {
+        "title": "Clavier complet",
+        "description": "Toutes les touches, y compris les modificateurs et les touches spéciales."
+      }
+    },
+    "compare": {
+      "title": "PairUX face aux autres",
+      "subtitle": "Comparez PairUX aux autres solutions de partage d’écran.",
+      "feature": "Fonctionnalité",
+      "others": "Autres",
+      "rows": {
+        "screenSharing": "Partage d’écran",
+        "remoteControl": "Contrôle à distance",
+        "simultaneousControl": "Contrôle simultané",
+        "localRecording": "Enregistrement d’écran (local)",
+        "textChat": "Chat textuel",
+        "noAccount": "Pas de compte pour les spectateurs",
+        "openSource": "Open source",
+        "selfHostable": "Auto-hébergeable",
+        "e2e": "Chiffré de bout en bout",
+        "nativeApps": "Applications natives",
+        "browserViewer": "Lecteur dans le navigateur",
+        "freeTier": "Offre gratuite"
+      },
+      "values": {
+        "soon": "bientôt",
+        "partial": "partiel",
+        "unlimited": "illimité",
+        "limited": "limité"
+      }
+    },
+    "cta": {
+      "title": "Prêt à commencer ?",
+      "subtitle": "Téléchargez PairUX et commencez à collaborer en quelques secondes.",
+      "button": "Télécharger"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "Analyse d’appels par IA : retours sur vos entretiens, réunions d’équipe et présentations | PairUX",
+        "description": "Activez l’analyse d’appels par IA avant un appel PairUX et recevez ensuite un rapport : temps de parole, débit, mots de remplissage, ce qui a marqué, ce qu’il faut travailler et les moments à revoir."
+      },
+      "eyebrow": "Analyse d’appels par IA · Pro et Team",
+      "title": "Découvrez comment s’est vraiment passé l’appel.",
+      "intro": "Activez l’analyse d’appels par IA avant votre entretien, votre réunion d’équipe ou votre présentation. À la fin de l’appel, vous recevez un rapport privé : une note, ce qui a fonctionné, ce qu’il faut corriger, les chiffres qui le justifient et les moments à revoir.",
+      "startCta": "Démarrer un appel analysé",
+      "seePlans": "Voir les offres",
+      "kindsTitle": "Des retours adaptés à chaque appel",
+      "kinds": {
+        "interviews": {
+          "title": "Entretiens",
+          "body": "Question par question : l’impact de chaque réponse, là où elle a traîné en longueur ou manqué de précision, et une meilleure façon de la formuler. Vous menez l’entretien ? L’analyse évalue vos questions et la qualité de votre écoute."
+        },
+        "teamSyncs": {
+          "title": "Réunions d’équipe",
+          "body": "Les décisions prises, les questions restées en suspens, les moments où la réunion a dérivé, et chaque engagement avec son responsable, pour que rien ne se perde d’une réunion à l’autre."
+        },
+        "presentations": {
+          "title": "Présentations et démos",
+          "body": "Votre ouverture, votre fil conducteur et votre conclusion, les moments où vous avez probablement perdu l’auditoire, et ce qui était à l’écran : densité des slides, lisibilité, et cohérence entre l’écran et votre discours."
+        }
+      },
+      "measuredTitle": "Mesuré, pas deviné",
+      "measuredBody": "Les chiffres sont calculés à partir de la transcription, en distinguant chaque intervenant, et les retours écrits s’y réfèrent. Quand le rapport indique que vous avez parlé 70 % d’un entretien, c’est un fait vérifiable.",
+      "measured": {
+        "m0": "Part du temps de parole de chaque intervenant",
+        "m1": "Débit de parole en mots par minute",
+        "m2": "Mots de remplissage pour 100 mots, et lesquels",
+        "m3": "Questions posées, plus long monologue, interruptions"
+      },
+      "howTitle": "Comment ça marche",
+      "how": {
+        "s0": "Avant l’appel, activez <strong>Analyse d’appels par IA</strong> sur l’écran de démarrage (pairux.com, l’application de bureau ou l’application mobile) et choisissez le type d’appel. L’enregistrement de l’appel s’active en même temps, et vous pouvez le désactiver.",
+        "s1": "Pendant l’appel, votre application envoie l’audio de l’appel et une capture de votre écran partagé toutes les 20 secondes. Chaque participant voit que l’appel est enregistré pour analyse.",
+        "s2": "Après l’appel, l’audio est transcrit en distinguant les intervenants, puis un coach IA rédige votre rapport. Il vous parvient par e-mail et reste disponible dans Analyses d’appels sur votre tableau de bord."
+      },
+      "privacyTitle": "Consentement et confidentialité",
+      "privacy": {
+        "p0": "Le choix se fait avant le début de l’appel et ne peut pas être activé en cours de route.",
+        "p1": "Chaque participant voit un avis pendant tout l’appel, sur le web, sur ordinateur et sur mobile.",
+        "p2": "Les rapports et enregistrements sont réservés à l’hôte, ou à l’équipe ou l’organisation dans laquelle l’appel a eu lieu, et peuvent être supprimés à tout moment.",
+        "p3": "Si l’enregistrement reste désactivé, l’audio est supprimé dès que le rapport est rédigé.",
+        "p4": "Sur un téléphone, seul votre propre micro est enregistré ; démarrez depuis pairux.com ou l’application de bureau pour capter tout le monde."
+      },
+      "tryCta": "Essayez-la lors de votre prochain appel"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Cas d’usage pour travailler avec des agents IA",
+        "description": "Programmez en binôme, relisez du code généré par IA, déboguez, intégrez vos coéquipiers et enseignez en direct avec PairUX. Obtenez des retours IA sur vos entretiens, réunions d’équipe et présentations."
+      },
+      "eyebrow": "Cas d’usage de PairUX",
+      "title": "Mieux travailler avec les agents. Ensemble.",
+      "intro": "Un agent peut écrire le code. Votre équipe doit tout de même comprendre le résultat. Utilisez PairUX pour partager l’écran, tester l’application et prendre ensemble la prochaine décision.",
+      "findWorkflow": "Trouvez votre workflow",
+      "featuredLabel": "À la une · Pair programming agentique",
+      "featuredTitle": "Deux personnes. Une session d’agent.",
+      "featuredBody": "Partagez un terminal moshcode en direct avec votre coéquipier, puis utilisez PairUX pour examiner ensemble l’éditeur et l’application. Regardez d’abord ou participez à la même session.",
+      "featuredCta": "Découvrir le pair programming agentique",
+      "workflowsTitle": "Faites participer une autre personne",
+      "workflowsIntro": "Commencez par un écran partagé. Laissez vos collaborateurs utiliser la souris et le clavier lorsque l’hôte approuve le contrôle à distance.",
+      "notesPlans": "Offres Pro et Team",
+      "notesTitle": "Prise de notes par IA",
+      "notesBody": "Transformez une session de travail en brouillon de notes, décisions et actions à mener. Aidez un coéquipier à rattraper son retard ou reportez le contexte dans la prochaine tâche de votre agent.",
+      "notesFootnote": "Fait partie de l’analyse d’appels par IA : activez-la avant l’appel et le rapport arrive par e-mail à la fin.",
+      "notesCta": "Découvrir les notes d’appel IA",
+      "ctaTitle": "Commencez par une session partagée",
+      "ctaBody": "Installez PairUX, partagez votre écran et invitez un coéquipier à travailler sur une vraie tâche.",
+      "getPairux": "Obtenir PairUX",
+      "comparePlans": "Comparer les offres"
+    },
+    "exploreWorkflow": "Découvrir le workflow",
+    "allUseCases": "Tous les cas d’usage",
+    "detail": {
+      "plannedTitle": "{title} · Prévu pour les offres Premium",
+      "notAvailable": "Pas encore disponible. Contactez-nous au sujet de l’accès premium et de la date de disponibilité avant tout achat pour cette fonctionnalité.",
+      "whenHelps": "Quand c’est utile",
+      "tryWorkflow": "Essayer ce workflow",
+      "plannedWorkflow": "Le workflow prévu",
+      "leaveWith": "Ce que vous en retirez",
+      "goal": "L’objectif",
+      "discussPremium": "Parler des notes IA premium",
+      "startWithPairux": "Commencer avec PairUX",
+      "seeCurrentPlans": "Voir les offres actuelles",
+      "comparePlans": "Comparer les offres",
+      "moreWays": "D’autres façons de travailler ensemble"
+    },
+    "agentic": {
+      "meta": {
+        "title": "Pair programming agentique avec moshcode | PairUX",
+        "description": "Travaillez avec un coéquipier dans la même session d’agent de code en direct. Utilisez moshcode pour un terminal partagé et PairUX pour examiner ensemble l’écran et l’application."
+      },
+      "backLink": "← Tous les cas d’usage",
+      "eyebrow": "Pair programming agentique",
+      "title": "Deux personnes. Une session d’agent.",
+      "intro": "Le pair programming a toujours besoin d’un contexte partagé quand un agent IA écrit le code. Faites entrer un coéquipier dans votre session moshcode en direct, puis utilisez PairUX pour examiner ce que l’agent construit et décider ensemble de la suite.",
+      "openMoshcode": "Ouvrir moshcode",
+      "getPairux": "Obtenir PairUX",
+      "stepsTitle": "D’observateur à collaborateur",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Commencez par une session en direct",
+          "body": "Lancez moshcode sur votre machine de développement et ouvrez sa session sur app.moshcode.sh. Votre coéquipier et vous suivez la même sortie de l’agent et travaillez dans le même terminal."
+        },
+        "s1": {
+          "title": "Faites entrer votre équipe dans la session",
+          "body": "Créez une organisation et une équipe dans moshcode, ajoutez votre coéquipier avec l’e-mail de son compte, puis partagez la session avec cette équipe. L’accès en lecture lui permet de regarder ; l’accès en écriture lui permet d’envoyer des saisies à la session en cours."
+        },
+        "s2": {
+          "title": "Examinez le résultat ensemble dans PairUX",
+          "body": "Partagez votre terminal, votre éditeur ou l’aperçu de votre application avec PairUX. Votre coéquipier rejoint depuis un navigateur pour voir le travail en contexte. Approuvez le contrôle à distance si vous voulez qu’il utilise aussi votre souris et votre clavier."
+        }
+      },
+      "permissionsNote": "Les autorisations d’équipe moshcode régissent l’accès à la session de terminal. Le contrôle à distance PairUX est un choix distinct, approuvé par l’hôte du partage d’écran. Utilisez l’un, l’autre ou les deux, selon votre façon de collaborer.",
+      "contractorTitle": "Une façon pratique d’intégrer un prestataire",
+      "contractorP1": "Ajoutez un prestataire à votre équipe et laissez-le regarder votre première session avec un accès en lecture. Présentez la tâche, la sortie de l’agent et l’application en cours d’exécution. Quand il est prêt à participer, accordez-lui l’accès en écriture pour qu’il travaille avec vous dans cette même session.",
+      "contractorP2": "Vous pouvez aussi utiliser ce workflow pour analyser un test en échec, comparer l’implémentation d’un agent au comportement attendu ou relire une modification avant de la fusionner. Tout le monde voit le travail en temps réel.",
+      "startPairing": "Commencer à travailler en binôme avec PairUX"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Pair programming agentique",
+        "audience": "Développeurs et coéquipiers",
+        "description": "Travaillez avec un coéquipier dans une même session d’agent de code en direct. Partagez le terminal via moshcode et examinez l’écran ensemble dans PairUX.",
+        "scenario": "Vous voulez qu’un coéquipier vous aide à guider un agent pendant qu’il travaille dans votre environnement de développement.",
+        "outcome": "Une compréhension commune de ce que l’agent a modifié et de la suite à donner.",
+        "steps": {
+          "s0": {
+            "title": "Démarrez un terminal partagé",
+            "body": "Ouvrez votre session moshcode en direct et partagez-la avec votre équipe."
+          },
+          "s1": {
+            "title": "Affichez l’application",
+            "body": "Partagez votre éditeur ou l’aperçu de votre application via PairUX."
+          },
+          "s2": {
+            "title": "Passez à l’étape suivante",
+            "body": "Examinez le résultat ensemble et décidez de ce que vous demanderez ensuite à l’agent."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "Relire du code généré par IA",
+        "audience": "Développeurs et relecteurs",
+        "description": "Parcourez ensemble le diff, les tests et l’application en cours d’exécution avant que les modifications d’un agent ne deviennent une pull request fusionnée.",
+        "scenario": "Un agent a produit une modification importante. Un relecteur doit comprendre son comportement, pas seulement lire un résumé du patch.",
+        "outcome": "Une modification relue, avec des corrections claires, des tests complémentaires et une décision de fusion partagée.",
+        "steps": {
+          "s0": {
+            "title": "Ouvrez les éléments",
+            "body": "Partagez votre éditeur avec le diff, les exigences de la tâche et la sortie des tests visibles. Expliquez ce que vous avez demandé à l’agent de modifier."
+          },
+          "s1": {
+            "title": "Testez le comportement ensemble",
+            "body": "Lancez l’application et parcourez les chemins importants. Approuvez le contrôle à distance si le relecteur veut tester lui-même un cas limite."
+          },
+          "s2": {
+            "title": "Transformez les constats en prochaine modification",
+            "body": "Mettez-vous d’accord sur les corrections et demandez à votre agent de code de les effectuer. Relisez le nouveau diff et relancez les vérifications concernées avant la fusion."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Débloquer un agent bloqué",
+        "audience": "Développeurs et partenaires de débogage",
+        "description": "Faites intervenir une deuxième personne sur un test en échec ou une série de correctifs infructueux. Examinez les éléments et choisissez ensemble la prochaine expérience.",
+        "scenario": "Votre agent de code modifie sans cesse le code sans corriger l’échec. Un coéquipier peut vous aider à repérer une hypothèse manquante ou un problème d’environnement.",
+        "outcome": "Un échec reproductible et une prochaine étape ciblée pour l’agent.",
+        "steps": {
+          "s0": {
+            "title": "Montrez l’échec en direct",
+            "body": "Partagez le terminal et reproduisez le problème. Présentez à votre coéquipier l’erreur, les modifications récentes et ce qui a déjà été tenté."
+          },
+          "s1": {
+            "title": "Testez une explication",
+            "body": "Examinez ensemble les logs, la configuration et l’application en cours d’exécution. Accordez le contrôle à distance quand votre coéquipier doit explorer le même environnement."
+          },
+          "s2": {
+            "title": "Donnez à l’agent une meilleure direction",
+            "body": "Notez les étapes de reproduction et les éléments qui justifient le correctif choisi. Demandez à l’agent une modification ciblée, puis vérifiez à nouveau l’échec d’origine."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Intégrer des prestataires en contexte",
+        "audience": "Responsables d’équipe et nouveaux coéquipiers",
+        "description": "Laissez un nouveau coéquipier observer une vraie tâche, découvrir votre code et votre workflow avec les agents, puis participer quand il est prêt.",
+        "scenario": "Un prestataire rejoint votre projet et doit comprendre comment vous utilisez les agents, relisez les modifications et décidez quand le travail est prêt à être livré.",
+        "outcome": "Un coéquipier qui comprend votre workflow et peut prendre en charge la tâche suivante avec le bon contexte.",
+        "steps": {
+          "s0": {
+            "title": "Commencez par une vraie tâche",
+            "body": "Partagez votre écran de développement et présentez le projet, la tâche et la façon dont vous briefez votre agent de code. Laissez le prestataire observer le premier passage."
+          },
+          "s1": {
+            "title": "Expliquez vos décisions",
+            "body": "Parcourez la sortie de l’agent, les tests et l’application en cours d’exécution. Montrez quand vous acceptez une suggestion et quand vous demandez une autre approche."
+          },
+          "s2": {
+            "title": "Laissez-le prendre la main",
+            "body": "Approuvez le contrôle à distance PairUX pour une modification guidée. Si vous utilisez aussi moshcode, donnez-lui l’accès en écriture à une session d’équipe partagée lorsqu’il est prêt à envoyer des saisies au terminal."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "Examiner l’application avec le produit et le design",
+        "audience": "Développeurs, designers et équipes produit",
+        "description": "Montrez l’application qu’un agent construit aux personnes qui jugeront le résultat. Testez le parcours ensemble et transformez les retours en modifications précises.",
+        "scenario": "Un prototype fonctionnel est prêt, mais l’interaction, les textes ou la mise en page ont besoin de l’avis de quelqu’un d’extérieur au code.",
+        "outcome": "Des critères d’acceptation concrets et une liste convenue de modifications à apporter à l’application.",
+        "steps": {
+          "s0": {
+            "title": "Partagez l’expérience réelle",
+            "body": "Ouvrez l’aperçu de l’application et partagez cette fenêtre dans PairUX. Parcourez la tâche qu’un vrai utilisateur doit pouvoir accomplir."
+          },
+          "s1": {
+            "title": "Laissez le relecteur explorer",
+            "body": "Recueillez les retours pendant que vous naviguez, ou approuvez le contrôle à distance pour que le relecteur teste le parcours sur votre machine."
+          },
+          "s2": {
+            "title": "Bouclez la boucle de retours",
+            "body": "Transformez les observations en demandes précises pour votre agent de code. Montrez l’application mise à jour dans la même session et convenez de ce qui est prêt."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Débloquer le workflow IA de quelqu’un",
+        "audience": "Équipes support et responsables techniques",
+        "description": "Aidez un coéquipier à configurer un outil, comprendre une erreur ou réparer un workflow local défaillant, en voyant tous les deux le même écran.",
+        "scenario": "Un agent ou un outil de développement fonctionne sur une machine mais échoue sur une autre. Les captures d’écran et les messages d’erreur copiés manquent de contexte.",
+        "outcome": "Une configuration qui fonctionne et une personne qui comprend comment le problème a été résolu.",
+        "steps": {
+          "s0": {
+            "title": "Demandez-lui de montrer le problème",
+            "body": "La personne concernée héberge une session PairUX et partage la fenêtre de l’outil en question. Rejoignez-la depuis votre navigateur et regardez-la reproduire l’échec."
+          },
+          "s1": {
+            "title": "Guidez la correction dans son environnement",
+            "body": "Expliquez la prochaine vérification et laissez-la l’effectuer. Demandez le contrôle à distance quand une aide directe est utile ; c’est l’hôte qui décide de l’approuver."
+          },
+          "s2": {
+            "title": "Vérifiez tout le workflow",
+            "body": "Demandez-lui de relancer la tâche d’origine. Laissez-lui les étapes qui ont résolu le problème pour qu’elle le reconnaisse la prochaine fois."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Animer un atelier de code IA en direct",
+        "audience": "Formateurs, communautés et équipes",
+        "description": "Montrez à un public comment vous briefez un agent, examinez son travail et gérez ses erreurs en construisant quelque chose de concret.",
+        "scenario": "Votre équipe veut apprendre un workflow avec agent en observant les décisions et corrections qu’une démo léchée omet généralement.",
+        "outcome": "Un public qui a vu tout le parcours, du brief de la tâche au résultat vérifié.",
+        "steps": {
+          "s0": {
+            "title": "Préparez une démonstration ciblée",
+            "body": "Choisissez une petite tâche et partagez le terminal, l’éditeur ou l’application que vous utiliserez. Choisissez une offre PairUX adaptée au nombre de participants de votre salle."
+          },
+          "s1": {
+            "title": "Montrez le raisonnement derrière les prompts",
+            "body": "Expliquez le contexte que vous donnez à l’agent et pourquoi. Faites une pause aux moments clés pour examiner le diff, lancer les tests et discuter d’un résultat inattendu."
+          },
+          "s2": {
+            "title": "Entraînez-vous à relire le résultat",
+            "body": "Demandez au groupe de proposer des cas limites et des modifications complémentaires. Effectuez ces vérifications à l’écran pour que les participants voient comment vous décidez si le travail est prêt."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "Prise de notes par IA",
+        "audience": "Offres Pro et Team",
+        "description": "Activez l’analyse d’appels par IA avant une réunion d’équipe et repartez avec les décisions, les questions en suspens et les actions à mener, ainsi qu’un retour sur le déroulement de la réunion.",
+        "scenario": "Votre équipe veut rester concentrée sur le travail commun et repartir avec des notes utiles pour la prochaine session.",
+        "outcome": "Un récapitulatif relu du travail, des décisions et des prochaines étapes.",
+        "steps": {
+          "s0": {
+            "title": "Activez l’analyse d’appels par IA avant l’appel",
+            "body": "Sur l’écran de démarrage, activez l’analyse d’appels par IA et choisissez « Réunion d’équipe ». Chaque participant voit que l’appel est enregistré pour analyse."
+          },
+          "s1": {
+            "title": "Lisez le rapport",
+            "body": "Après l’appel, vous recevez un résumé, les décisions prises, les questions restées ouvertes et chaque action à mener avec son responsable, accompagnés d’un retour sur le déroulement de la réunion."
+          },
+          "s2": {
+            "title": "Reportez le contexte dans la tâche suivante",
+            "body": "Partagez les actions à mener avec l’équipe, ou utilisez le résumé pour briefer un coéquipier ou préparer la prochaine demande à votre agent."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "À propos",
+      "description": "Découvrez PairUX, l’outil open source de partage d’écran collaboratif."
+    },
+    "title": "À propos de PairUX",
+    "subtitle": "Créer les outils collaboratifs dont nous rêvions",
+    "missionTitle": "Notre mission",
+    "missionP1": "PairUX est né d’une frustration. Après le rachat et la fermeture de Screenhero par Slack, le pair programming à distance est devenu inutilement compliqué. Les outils existants n’offrent pas de contrôle à distance, exigent des licences coûteuses ou vous enferment chez un fournisseur.",
+    "missionP2": "Nous pensons que le partage d’écran collaboratif doit être accessible à tous. C’est pourquoi PairUX est open source, avec des tarifs transparents et sans limitations artificielles.",
+    "buildingTitle": "Ce que nous construisons",
+    "buildingBody": "PairUX est une application de bureau de partage d’écran collaboratif avec contrôle à distance simultané. Pensez à Screenhero, en version moderne, open source et multiplateforme.",
+    "buildingList": {
+      "b0": "Partage d’écran en temps réel à faible latence",
+      "b1": "Plusieurs participants peuvent contrôler simultanément l’écran partagé",
+      "b2": "Chiffrement de bout en bout pour la sécurité",
+      "b3": "Fonctionne sur macOS, Windows et Linux",
+      "b4": "Les spectateurs peuvent rejoindre depuis n’importe quel navigateur"
+    },
+    "openSourceTitle": "Open source",
+    "openSourceBody": "PairUX est publié sous licence MIT. Vous pouvez consulter, modifier et contribuer au code sur <link>GitHub</link>. Les contributions de la communauté sont les bienvenues.",
+    "contactTitle": "Contact",
+    "contactBody": "Des questions ou des remarques ? Écrivez-nous à <link>hello@pairux.com</link>."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blog - PairUX",
+      "description": "Actualités, nouveautés et tutoriels de l’équipe PairUX."
+    },
+    "title": "Blog",
+    "subtitle": "Actualités, nouveautés et tutoriels de l’équipe PairUX",
+    "comingSoonTitle": "Bientôt disponible",
+    "comingSoonBody": "Nous préparons nos premiers articles. Revenez bientôt pour des tutoriels, des nouveautés produit et les coulisses de la création de PairUX.",
+    "postNotFound": "Article introuvable",
+    "postTitle": "{title} - Blog PairUX",
+    "backToBlog": "← Retour au blog"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Journal des modifications",
+      "description": "Découvrez les nouveautés de PairUX. Notes de version et historique des versions."
+    },
+    "title": "Journal des modifications",
+    "subtitle": "Découvrez les nouveautés de PairUX",
+    "version": "v{version}",
+    "englishOnly": "Les notes de version sont publiées en anglais."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "description": "Politique de confidentialité de PairUX : comment nous traitons vos données."
+    },
+    "terms": {
+      "title": "Conditions d’utilisation",
+      "description": "Conditions d’utilisation et politique d’usage acceptable de PairUX."
+    },
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "englishOnly": "Ce document est fourni en anglais, qui en est la version faisant foi."
+  },
+  "docs": {
+    "meta": {
+      "title": "Documentation",
+      "description": "Apprenez à utiliser PairUX : guides d’installation, configuration requise, informations de sécurité et questions fréquentes."
+    },
+    "title": "Documentation",
+    "subtitle": "Tout ce qu’il faut savoir pour utiliser PairUX pour le partage d’écran collaboratif.",
+    "onThisPage": "Sur cette page",
+    "toc": {
+      "gettingStarted": "Premiers pas",
+      "requirements": "Configuration requise",
+      "hosting": "Héberger une session",
+      "viewing": "Regarder une session",
+      "control": "Contrôle à distance",
+      "remoteStart": "Démarrage à distance (Tailscale)",
+      "security": "Sécurité",
+      "troubleshooting": "Dépannage",
+      "uninstalling": "Désinstallation",
+      "faq": "FAQ"
+    },
+    "englishOnly": "La documentation est disponible uniquement en anglais.",
+    "agents": {
+      "meta": {
+        "title": "Agents participants | Docs PairUX",
+        "description": "Faites entrer un agent IA comme Claude Code dans une session PairUX en direct. Il rejoint avec le code de participation, suit le chat, y répond et apparaît identifié comme agent sur le web, sur ordinateur et sur mobile."
+      },
+      "backLink": "← Documentation",
+      "title": "Agents participants"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Tableau de bord - PairUX",
+      "description": "Tableau de bord PairUX : gérez vos sessions, votre facturation et vos paramètres."
+    },
+    "stats": {
+      "sessionsThisMonth": "Sessions ce mois-ci",
+      "totalParticipants": "Total des participants",
+      "hoursUsed": "Heures utilisées",
+      "hoursValue": "{hours} h"
+    },
+    "channelsHeading": "Chaînes",
+    "usageAnalytics": "Statistiques d’utilisation",
+    "analyticsPlaceholder": "Les statistiques s’afficheront ici",
+    "yourPlan": "Votre offre",
+    "freePlan": "Offre gratuite",
+    "current": "Actuelle",
+    "freePlanSummary": "2 participants, P2P uniquement",
+    "upgradePlan": "Changer d’offre",
+    "comingSoon": "Bientôt disponible",
+    "comingSoonButton": "Bientôt disponible",
+    "perMonth": "/mois",
+    "plans": {
+      "pro": {
+        "description": "Pour les professionnels et les équipes en croissance",
+        "features": {
+          "participants": "10 participants + 50 spectateurs",
+          "hours": "100 heures-spectateur incluses"
+        }
+      },
+      "team": {
+        "description": "Pour les équipes et les organisations",
+        "features": {
+          "participants": "Participants illimités",
+          "hours": "500 heures-spectateur incluses"
+        }
+      }
+    },
+    "billing": "Facturation",
+    "noPaymentMethod": "Aucun moyen de paiement enregistré",
+    "addPaymentMethod": "Ajouter un moyen de paiement",
+    "settings": "Paramètres",
+    "accountSettings": "Paramètres du compte",
+    "notifications": "Notifications",
+    "welcome": {
+      "title": "Bienvenue sur PairUX",
+      "subtitle": "Partagez votre écran, collaborez en temps réel et obtenez une assistance à distance.",
+      "startSharing": "Commencer le partage",
+      "joinSession": "Rejoindre une session",
+      "scheduleMeeting": "Planifier une réunion",
+      "callAnalyses": "Analyses d’appels"
+    },
+    "quickActions": {
+      "title": "Actions rapides",
+      "startSession": "Démarrer une session",
+      "startSessionHint": "Partagez votre écran",
+      "joinSession": "Rejoindre une session",
+      "joinSessionHint": "Saisissez un code de participation",
+      "scheduleMeeting": "Planifier une réunion",
+      "scheduleMeetingHint": "Invitez votre équipe"
+    },
+    "recentSessions": {
+      "title": "Sessions récentes",
+      "fetchFailed": "Échec de la récupération des sessions",
+      "loadFailed": "Échec du chargement des sessions",
+      "tryAgain": "Réessayer",
+      "empty": "Aucune session pour l’instant",
+      "emptyHint": "Démarrez votre première session pour la voir ici",
+      "startSession": "Démarrer une session",
+      "viewAll": "Tout voir",
+      "join": "Rejoindre",
+      "resume": "Reprendre",
+      "status": {
+        "created": "Créée",
+        "active": "Active",
+        "paused": "En pause",
+        "ended": "Terminée"
+      },
+      "duration": {
+        "underMinute": "< 1 min",
+        "minutes": "{minutes} min",
+        "hours": "{hours} h",
+        "hoursMinutes": "{hours} h {minutes} min"
+      },
+      "date": {
+        "today": "Aujourd’hui",
+        "yesterday": "Hier",
+        "daysAgo": "{days, plural, one {il y a # jour} other {il y a # jours}}"
+      }
+    },
+    "upcoming": {
+      "title": "Réunions à venir",
+      "loadFailed": "Échec du chargement des réunions à venir",
+      "startFailed": "Échec du démarrage de la réunion",
+      "cancelConfirm": "Annuler cette réunion planifiée ? Les invités seront prévenus.",
+      "schedule": "Planifier",
+      "empty": "Aucune réunion planifiée à venir",
+      "scheduleFirst": "Planifiez votre première réunion",
+      "todayAt": "Aujourd’hui à {time}",
+      "tomorrowAt": "Demain à {time}",
+      "durationMinutes": "{minutes} min",
+      "durationHours": "{hours} h",
+      "goesLiveOn": "En direct sur {channel}",
+      "invited": "{count} invité(s)",
+      "accepted": "{count} accepté(s)",
+      "startEarlyHint": "Ouvre la salle maintenant et envoie un e-mail à tous les invités",
+      "startEarly": "Démarrer en avance",
+      "startNow": "Démarrer",
+      "addToCalendar": "Ajouter au calendrier",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Modifier la réunion",
+      "cancelMeeting": "Annuler la réunion"
+    },
+    "schedule": {
+      "yourChannels": "Vos chaînes",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 heure} =90 {1 h 30} =120 {2 heures} other {# minutes}}",
+      "durationCustomHours": "{hours, plural, one {# heure} other {# heures}}",
+      "repeatNone": "Ne se répète pas",
+      "repeatDaily": "Tous les jours",
+      "repeatWeekly": "Toutes les semaines",
+      "repeatMonthly": "Tous les mois",
+      "repeatUnit": "{freq, select, daily {jours} weekly {semaines} other {mois}}",
+      "invalidDate": "Date/heure invalide",
+      "saveFailed": "Échec de l’enregistrement des modifications",
+      "scheduleFailed": "Échec de la planification de la réunion",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "editTitle": "Modifier la réunion",
+      "scheduleTitle": "Planifier une réunion",
+      "close": "Fermer",
+      "meetingTitle": "Titre de la réunion",
+      "titlePlaceholder": "ex. Point d’équipe hebdomadaire",
+      "dateTime": "Date et heure",
+      "durationLabel": "Durée",
+      "repeat": "Répétition",
+      "every": "Tous les",
+      "numberOfTimes": "Nombre d’occurrences",
+      "zeroForever": "0 = sans fin",
+      "recurrenceSummary": "{description}. Tout le monde conserve le même code de participation et le même lien.",
+      "broadcastChannel": "Chaîne de diffusion",
+      "optional": "(facultatif)",
+      "loadingChannels": "Chargement de vos chaînes…",
+      "noChannel": "Aucune chaîne (réunion privée)",
+      "channelUnavailable": "Chaîne actuelle (vous n’y avez plus accès)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Vous n’avez pas encore de chaîne. Créez-en une dans Chaînes sur votre tableau de bord, ou rejoignez une équipe qui en possède une.",
+      "channelHint": "Passer en direct depuis cette réunion diffuse sur cette chaîne. Les chaînes d’équipe sont listées sous leur équipe.",
+      "description": "Description",
+      "descriptionPlaceholder": "Ordre du jour, notes de réunion ou contexte…",
+      "invitees": "Invités",
+      "inviteByEmail": "Inviter par e-mail",
+      "removeInvitee": "Retirer l’invité",
+      "addAnother": "Ajouter un autre",
+      "editInviteHint": "Les nouveaux invités reçoivent une invitation par e-mail ; ceux qui sont retirés sont prévenus. Collez plusieurs adresses séparées par des virgules.",
+      "newInviteHint": "Les invitations sont envoyées immédiatement. Collez plusieurs adresses séparées par des virgules.",
+      "toInvite": "{count} à inviter",
+      "toRemove": "{count} à retirer",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "saveChanges": "Enregistrer les modifications",
+      "scheduling": "Planification…",
+      "submitSchedule": "Planifier la réunion"
+    },
+    "booking": {
+      "loadFailed": "Impossible de charger les pages de réservation",
+      "saveFailed": "Impossible d’enregistrer",
+      "deleteConfirm": "Supprimer « {title} » ? Les réunions déjà réservées sont conservées.",
+      "title": "Liens de réservation",
+      "subtitle": "Permettez à n’importe qui de réserver un appel avec vous. Il a lieu dans PairUX.",
+      "newLink": "Nouveau lien",
+      "needUsername": "Définissez d’abord un nom d’utilisateur dans les Paramètres. Vos liens seront {url}",
+      "empty": "Aucun lien de réservation pour l’instant. Créez-en un et partagez {url}.",
+      "meta": "· {minutes} min · {timezone}",
+      "off": "désactivé",
+      "copyLink": "Copier le lien",
+      "copied": "Copié",
+      "turnOff": "Désactiver",
+      "turnOn": "Activer",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "newTitle": "Nouveau lien de réservation",
+      "editTitle": "Modifier le lien de réservation",
+      "close": "Fermer",
+      "fieldTitle": "Titre",
+      "titlePlaceholder": "Appel de présentation",
+      "fieldLink": "Lien",
+      "fieldDescription": "Description",
+      "optional": "(facultatif)",
+      "fieldDuration": "Durée",
+      "durationOption": "{minutes} minutes",
+      "fieldTimezone": "Fuseau horaire",
+      "availableHours": "Heures disponibles",
+      "to": "à",
+      "buffer": "Marge (min)",
+      "minNotice": "Préavis min. (min)",
+      "daysAhead": "Jours à l’avance",
+      "cancel": "Annuler",
+      "create": "Créer le lien",
+      "save": "Enregistrer",
+      "usernameToken": "nom-utilisateur",
+      "slugToken": "slug"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Impossible de générer une bannière. Réessayez.",
+      "bannerSaveFailed": "La bannière a été générée mais n’a pas pu être enregistrée.",
+      "bannerFailed": "Échec de la génération de la bannière. Veuillez réessayer.",
+      "uploadFailed": "Impossible d’envoyer l’image.",
+      "processFailed": "Impossible de traiter cette image.",
+      "handleInvalid": "L’identifiant doit comporter de 3 à 30 lettres, chiffres ou tirets bas.",
+      "createFailed": "Impossible de créer la chaîne.",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "loading": "Chargement de vos chaînes…",
+      "signInPrompt": "Connectez-vous pour gérer vos chaînes.",
+      "signIn": "Se connecter",
+      "empty": "Vous n’avez pas encore de chaîne. Créez-en une ci-dessous : c’est là que vivent vos directs publics.",
+      "uploadBanner": "Envoyer une bannière de chaîne (6:1)",
+      "changeBanner": "Changer la bannière",
+      "bannerPromptPlaceholder": "Facultatif : décrivez la bannière souhaitée…",
+      "generateHint": "Générer par IA une bannière au format 6:1 à partir de l’actuelle",
+      "generating": "Génération…",
+      "generate": "Générer avec l’IA",
+      "uploadAvatar": "Envoyer un avatar (carré)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · vous pouvez passer en direct ici",
+      "subscribers": "{count, plural, one {# abonné} other {# abonnés}}",
+      "view": "Voir",
+      "streamHeading": "Diffuser sur cette chaîne (OBS / tout client RTMP)",
+      "rtmpUrl": "URL RTMP",
+      "streamKey": "Clé de stream",
+      "copy": "Copier",
+      "hide": "Masquer",
+      "show": "Afficher",
+      "newChannel": "Nouvelle chaîne",
+      "handle": "Identifiant",
+      "handlePlaceholder": "machaine",
+      "name": "Nom",
+      "namePlaceholder": "Ma chaîne",
+      "belongsTo": "Appartient à (les membres de l’équipe peuvent passer en direct sur une chaîne d’équipe)",
+      "descriptionLabel": "Description (facultative, markdown)",
+      "create": "Créer la chaîne"
+    },
+    "website": {
+      "saveFailed": "Impossible d’enregistrer le site web.",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "label": "Site web (facultatif)",
+      "placeholder": "example.com",
+      "saved": "Enregistré",
+      "save": "Enregistrer",
+      "hint": "Affiché sur la page de votre chaîne comme lien d’identité. Laissez vide pour le supprimer."
+    },
+    "restream": {
+      "customRtmp": "RTMP personnalisé",
+      "urlInvalid": "L’URL RTMP doit commencer par rtmp:// ou rtmps://",
+      "keyRequired": "La clé de stream est requise.",
+      "saveFailed": "Impossible d’enregistrer la destination.",
+      "title": "Rediffusion externe",
+      "toggleHint": "Rediffuser automatiquement les directs de cette chaîne vers les destinations ci-dessous",
+      "description": "Si activé, passer en direct sur cette chaîne diffuse aussi sur YouTube, Twitch, etc. Désactivé pour les partages d’écran privés.",
+      "loading": "Chargement…",
+      "empty": "Aucune destination pour l’instant.",
+      "on": "Activé",
+      "off": "Désactivé",
+      "remove": "Supprimer",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Clé de stream",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "add": "Ajouter une destination"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Ne se répète pas",
+      "describe": "Se répète {freq, select, daily {{interval, plural, one {tous les jours} other {tous les # jours}}} weekly {{interval, plural, one {toutes les semaines} other {toutes les # semaines}}} other {{interval, plural, one {tous les mois} other {tous les # mois}}}}{when, select, weekday { le {weekday}} monthDay { le {day}} other {}}{count, plural, =0 {, sans fin} one {, # fois} other {, # fois}}",
+      "short": "{freq, select, daily {{interval, plural, one {Tous les jours} other {Tous les # jours}}} weekly {{interval, plural, one {Toutes les semaines} other {Toutes les # semaines}}} other {{interval, plural, one {Tous les mois} other {Tous les # mois}}}}",
+      "shortWithLeft": "{label} · {left} restante(s)"
+    }
+  },
+  "workspace": {
+    "label": "Espace de travail",
+    "personal": "Personnel",
+    "wholeOrg": "{org} (toute l’organisation)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Rejoindre une session",
+      "subtitle": "Saisissez un code de participation ou collez un lien",
+      "invalidCode": "Veuillez saisir un code de participation valide de 6 caractères",
+      "label": "Code de participation ou lien",
+      "placeholder": "ABC123 ou collez un lien",
+      "hint": "Saisissez le code à 6 caractères ou collez un lien de participation",
+      "continue": "Continuer",
+      "backHome": "Retour à l’accueil"
+    },
+    "session": {
+      "notFound": "Session introuvable",
+      "lookupFailed": "Échec de la recherche de la session",
+      "joinFailed": "Impossible de rejoindre la session",
+      "lookingUp": "Recherche de la session…",
+      "countdown": {
+        "startingNow": "Commence maintenant",
+        "startsInDays": "Commence dans {days} j {hours} h",
+        "startsInHours": "Commence dans {hours} h {mins} min",
+        "startsInMinutes": "Commence dans {mins} min"
+      },
+      "durationMinutes": "{minutes, plural, one {# minute} other {# minutes}}",
+      "durationHours": "{hours, plural, one {# heure} other {# heures}}",
+      "invitedCount": "{count} invité(s)",
+      "acceptedCount": "{count} accepté(s)",
+      "autoUpdate": "Cette page se mettra à jour automatiquement lorsque l’hôte démarrera la session.",
+      "joinCode": "Code de participation",
+      "addToCalendar": "Ajouter au calendrier",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Session introuvable",
+      "goHome": "Aller à l’accueil",
+      "title": "Rejoindre la session",
+      "subtitle": "Vous êtes sur le point de rejoindre une session de partage d’écran",
+      "sessionCode": "Code de session",
+      "status": "Statut",
+      "statusActive": "L’hôte partage son écran",
+      "statusPaused": "L’hôte est absent pour le moment",
+      "statusWaiting": "En attente de l’hôte",
+      "participants": "Participants",
+      "signedInAs": "Connecté en tant que {name}",
+      "displayNameOptional": "Nom affiché (facultatif)",
+      "useAccountName": "Utiliser le nom du compte",
+      "yourName": "Votre nom",
+      "namePlaceholder": "Saisissez votre nom",
+      "nameHint": "C’est ainsi que les autres vous verront dans la session",
+      "joining": "Connexion…",
+      "joinButton": "Rejoindre la session",
+      "watchFree": "Regarder gratuitement",
+      "guestNote": "Aucun compte nécessaire : regardez en direct en tant qu’invité.",
+      "signInPrompt": "Vous avez un compte ? <link>Connectez-vous</link> pour présenter ou prendre le contrôle"
+    }
+  },
+  "invite": {
+    "notFound": "Invitation introuvable",
+    "loadFailed": "Échec du chargement de l’invitation",
+    "invalidOrExpired": "Ce lien d’invitation est peut-être invalide ou expiré.",
+    "goToPairux": "Aller sur PairUX",
+    "heading": "Invitation à une réunion",
+    "fromHost": "de {name}",
+    "cancelled": "Cette réunion a été annulée.",
+    "dateTime": "Date et heure",
+    "duration": "Durée",
+    "durationMinutes": "{minutes, plural, one {# minute} other {# minutes}}",
+    "durationHours": "{hours, plural, one {# heure} other {# heures}}",
+    "host": "Hôte",
+    "notes": "Notes",
+    "yourJoinCode": "Votre code de participation",
+    "useCodeHint": "Utilisez ce code au début de la réunion",
+    "joinMeeting": "Rejoindre la réunion",
+    "addToCalendar": "Ajouter au calendrier",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Vous avez accepté !",
+    "acceptedNote": "À bientôt à la réunion.",
+    "cantMakeItAfterAll": "Finalement indisponible ?",
+    "declined": "Vous avez décliné",
+    "declinedNote": "Vous avez indiqué ne pas pouvoir participer.",
+    "changedMind": "Vous avez changé d’avis ?",
+    "willYouAttend": "Serez-vous présent ?",
+    "yes": "Oui, je serai là",
+    "no": "Je ne peux pas",
+    "invitedAs": "Invité en tant que {email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Réserver un appel · PairUX",
+      "bookCallWith": "Réserver un appel avec {name} · PairUX",
+      "hostDescription": "Choisissez un créneau qui vous convient. L’appel a lieu dans PairUX.",
+      "pageWith": "{title} avec {name} · PairUX",
+      "pageDescription": "Réservez {minutes} minutes avec {name}. L’appel a lieu dans PairUX."
+    },
+    "host": {
+      "subtitle": "Réservez un appel. Il a lieu directement ici, dans PairUX.",
+      "notTakingBookings": "{name} n’accepte pas de réservations pour le moment.",
+      "minutes": "{minutes} min",
+      "pickTime": "Choisir un créneau"
+    },
+    "booking": {
+      "loadFailed": "Impossible de charger les créneaux",
+      "bookFailed": "Impossible de réserver ce créneau",
+      "calendarDescription": "Rejoignez sur {url} avec le code {code}",
+      "booked": "Votre réservation est confirmée",
+      "whenWith": "{when} avec {name}",
+      "confirmationSent": "Une confirmation reprenant toutes les informations ci-dessous est en route vers {email}.",
+      "yourJoinCode": "Votre code de participation",
+      "callHappensHint": "L’appel a lieu dans PairUX. Le moment venu, ouvrez le lien ci-dessous ou saisissez le code.",
+      "openCallPage": "Ouvrir la page de l’appel",
+      "addToCalendar": "Ajouter au calendrier :",
+      "cantMakeIt": "Finalement indisponible ? <link>Prévenez {name}</link>.",
+      "durationMinutes": "{minutes, plural, one {# minute} other {# minutes}}",
+      "timesShownIn": "Horaires affichés en",
+      "aboutCall": "L’appel lui-même a lieu dans PairUX : voix, partage d’écran et contrôle à distance, sans téléchargement pour rejoindre depuis un navigateur.",
+      "pickDifferentTime": "Choisir un autre créneau",
+      "minutesWith": "{minutes, plural, one {# minute} other {# minutes}} avec {name}",
+      "yourName": "Votre nom",
+      "email": "E-mail",
+      "notesLabel": "Quelque chose que {name} devrait savoir ?",
+      "optional": "(facultatif)",
+      "confirm": "Confirmer la réservation",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "nothingFree": "Aucun créneau libre cette semaine.",
+      "nothingFreeTryNext": "Aucun créneau libre cette semaine. Essayez la suivante."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Veuillez vous connecter pour créer un lien de participation",
+    "createFailed": "Échec de la création de la session",
+    "title": "Créer un lien de participation",
+    "subtitle": "Générez un lien à partager avec les participants",
+    "signIn": "Se connecter",
+    "creating": "Création…",
+    "createButton": "Créer un lien de participation",
+    "backHome": "Retour à l’accueil",
+    "joinCode": "Code de participation",
+    "joinUrl": "URL de participation",
+    "copyLink": "Copier le lien",
+    "copied": "Copié",
+    "shareHint": "Partagez ce lien. Les participants peuvent rejoindre et attendre que vous commenciez à partager votre écran depuis l’application de bureau.",
+    "createAnother": "En créer un autre",
+    "downloadApp": "Télécharger l’application"
+  },
+  "hostStart": {
+    "metaTitle": "Partager votre écran - PairUX",
+    "analysisRequiresPlan": "L’analyse d’appels par IA est incluse dans les offres Pro et Team. Désactivez-la, ou changez d’offre sur la page des tarifs.",
+    "createFailed": "Échec de la création de la session",
+    "createFailedRetry": "Échec de la création de la session. Veuillez réessayer.",
+    "title": "Partager votre écran",
+    "subtitle": "Démarrez une session de partage d’écran en lecture seule depuis votre navigateur",
+    "sessionSettings": "Paramètres de la session",
+    "defaults": "Valeurs par défaut",
+    "maxViewers": "Nombre maximal de spectateurs",
+    "viewers": "{count, plural, one {# spectateur} other {# spectateurs}}",
+    "remoteControl": "Contrôle à distance",
+    "enableGuestControl": "Autoriser le contrôle par les invités",
+    "notAvailableWeb": "Non disponible pour le partage web",
+    "remoteControlRequires": "Le contrôle à distance nécessite l’<link>application de bureau</link>.",
+    "workspaceLabel": "Espace de travail (le rapport d’un appel d’équipe est partagé avec l’équipe)",
+    "creating": "Création de la session…",
+    "startSharing": "Commencer le partage",
+    "viewOnlyNote": "<strong>Le partage web est en lecture seule.</strong> Les spectateurs voient votre écran mais ne peuvent pas le contrôler. Pour le contrôle à distance, utilisez l’application de bureau.",
+    "joinInstead": "Vous voulez plutôt rejoindre une session ? <link>Saisir un code de participation</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "<rotating></rotating> à deux, <highlight>autrement</highlight>",
+      "subtitle": "Partage d’écran collaboratif avec contrôle simultané de la souris et du clavier à distance. Comme Screenhero, mais open source.",
+      "download": "Télécharger gratuitement",
+      "github": "Voir sur GitHub",
+      "note": "Gratuit et open source. Aucun compte requis pour les spectateurs."
+    },
+    "rotating": {
+      "programming": "Programmer",
+      "pitching": "Pitcher",
+      "presenting": "Présenter",
+      "demoing": "Faire des démos",
+      "designing": "Concevoir",
+      "debugging": "Déboguer",
+      "teaching": "Enseigner",
+      "training": "Former",
+      "reviewing": "Relire",
+      "brainstorming": "Brainstormer"
+    },
+    "featuresSection": {
+      "title": "Tout ce qu’il faut pour collaborer à distance",
+      "subtitle": "Conçu pour les développeurs, les designers et tous ceux qui doivent travailler ensemble en temps réel."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Partage d’écran en temps réel",
+        "description": "Le streaming WebRTC à faible latence offre un partage d’écran d’une grande netteté avec une qualité adaptative."
+      },
+      "remoteControl": {
+        "title": "Contrôle à distance",
+        "description": "Contrôle de la souris et du clavier avec approbation explicite de l’hôte. Les deux peuvent contrôler simultanément."
+      },
+      "simultaneousInput": {
+        "title": "Saisie simultanée",
+        "description": "L’hôte et le spectateur peuvent contrôler en même temps. L’hôte reste toujours prioritaire, par sécurité."
+      },
+      "secure": {
+        "title": "Sécurisé dès la conception",
+        "description": "Chiffré via WebRTC DTLS-SRTP. Les médias ne passent jamais par nos serveurs, sauf si vous activez l’analyse d’appels par IA."
+      },
+      "pwaViewer": {
+        "title": "Lecteur PWA",
+        "description": "Rejoignez des sessions depuis n’importe quel navigateur. Aucun téléchargement requis pour les spectateurs."
+      },
+      "crossPlatform": {
+        "title": "Multiplateforme",
+        "description": "Applications de bureau pour macOS, Windows et Linux. Installation via Homebrew, WinGet ou APT."
+      }
+    },
+    "steps": {
+      "title": "Opérationnel en quelques minutes",
+      "subtitle": "Aucune configuration compliquée. Installez, partagez et collaborez.",
+      "install": {
+        "title": "Installez l’application de bureau",
+        "description": "Téléchargez PairUX sur votre ordinateur via votre gestionnaire de paquets ou en téléchargement direct."
+      },
+      "start": {
+        "title": "Démarrez une session",
+        "description": "Cliquez sur « Démarrer une session » et choisissez l’écran ou la fenêtre à partager."
+      },
+      "share": {
+        "title": "Partagez le lien",
+        "description": "Envoyez le lien de participation à votre collaborateur. Il peut rejoindre depuis n’importe quel navigateur."
+      }
+    },
+    "community": {
+      "title": "Conçu pour la collaboration au quotidien",
+      "subtitle": "PairUX est déjà utilisé pour le pair programming, les revues de design et l’assistance à distance. Nous recueillons les premiers retours : essayez-le et partagez le vôtre.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Enfin un remplaçant de Screenhero qui fonctionne vraiment. Le contrôle simultané change tout pour le pair programming.",
+          "role": "Ingénieur logiciel"
+        },
+        "techLead": {
+          "quote": "Le fait que les spectateurs puissent rejoindre depuis n’importe quel navigateur sans rien installer le rend parfait pour des sessions de collaboration rapides.",
+          "role": "Tech lead"
+        },
+        "contributor": {
+          "quote": "Open source, chiffré de bout en bout, et ça marche tout simplement. C’est exactement ce dont la communauté des développeurs avait besoin.",
+          "role": "Contributeur open source"
+        }
+      },
+      "feedback": "Vous utilisez PairUX ? <link>Partagez votre expérience sur GitHub</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Nouveau · Analyse d’appels par IA",
+      "title": "Recevez un retour sur chaque entretien, réunion et présentation.",
+      "description": "Activez-la avant l’appel. Ensuite, vous recevez un rapport privé : une note, ce qui a fonctionné, ce qu’il faut corriger, votre temps de parole, votre débit, vos mots de remplissage et les moments à revoir.",
+      "cta": "Découvrir l’analyse d’appels",
+      "sample": {
+        "label": "Exemple de rapport · Entretien",
+        "headline": "Des réponses claires, mais une fin précipitée",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Vous avez parlé {percent} % du temps à {wpm} mots/min",
+        "fillers": "{rate} mots de remplissage pour 100 (« genre », « tu vois »)",
+        "practice": "À travailler : concluez chaque réponse par le résultat, en une phrase"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Pair programming agentique",
+      "title": "Deux personnes. Une session d’agent.",
+      "description": "Faites participer un coéquipier pendant que votre agent de code travaille. Suivez le même terminal, examinez l’application ensemble et décidez de ce que vous demanderez ensuite à l’agent.",
+      "cta": "Travailler en binôme avec moshcode et PairUX",
+      "browse": "Voir tous les cas d’usage",
+      "cardTitle": "Regardez, discutez, puis travaillez ensemble",
+      "step1": "1. Démarrez une session moshcode en direct et partagez-la avec votre équipe.",
+      "step2": "2. Utilisez PairUX pour montrer le terminal et l’application que vous construisez.",
+      "step3": "3. Examinez ensemble les modifications de l’agent et laissez votre coéquipier participer.",
+      "note": "Utile pour intégrer des prestataires, déboguer ensemble et relire le travail avant sa mise en production."
+    },
+    "security": {
+      "title": "Une sécurité digne de confiance",
+      "subtitle": "La sécurité est au cœur de PairUX. Les données de votre écran ne passent jamais par nos serveurs.",
+      "encryption": {
+        "title": "Chiffrement de bout en bout",
+        "description": "Tous les médias sont chiffrés via WebRTC DTLS-SRTP"
+      },
+      "consent": {
+        "title": "Consentement explicite",
+        "description": "L’hôte doit approuver chaque demande de contrôle"
+      },
+      "revoke": {
+        "title": "Révocation d’urgence",
+        "description": "{shortcut} révoque instantanément tout contrôle"
+      },
+      "openSource": {
+        "title": "Open source",
+        "description": "Code entièrement auditable sous licence MIT"
+      },
+      "diagram": {
+        "p2p": "Connexion directe de pair à pair",
+        "noStorage": "Aucun stockage des médias côté serveur"
+      }
+    },
+    "cta": {
+      "title": "Prêt à collaborer ?",
+      "subtitle": "Téléchargez PairUX et partagez votre écran en quelques secondes. Gratuit, open source et respectueux de la vie privée.",
+      "download": "Télécharger",
+      "learnMore": "En savoir plus"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Tarifs",
+      "description": "Des tarifs forfaitaires simples. Aucun frais par utilisateur. 1 $/mois pour Plus (jusqu’à 100 auditeurs), 12 $/mois pour Pro, 49 $/mois pour Team. 40 à 70 % moins cher que Zoom, Teams et les autres solutions d’entreprise."
+    },
+    "hero": {
+      "title": "40 à 70 % moins cher que les géants",
+      "subtitle": "Des tarifs forfaitaires simples. Aucun frais par utilisateur, aucun contrat annuel, aucun appel commercial."
+    },
+    "mostPopular": "Le plus populaire",
+    "period": {
+      "forever": "/à vie",
+      "month": "/mois"
+    },
+    "tiers": {
+      "free": {
+        "name": "Gratuit",
+        "description": "Idéal pour un usage personnel et les petites équipes",
+        "cta": "Commencer",
+        "features": {
+          "participants": "2 participants + jusqu’à {count} auditeurs",
+          "publicViewers": "Spectateurs gratuits illimités sur les directs publics",
+          "p2p": "Connexions P2P",
+          "screenSharing": "Partage d’écran",
+          "remoteControl": "Contrôle à distance",
+          "e2e": "Chiffrement de bout en bout",
+          "support": "Support communautaire"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Accueillez un public : cours, standups, visionnages en groupe",
+        "cta": "Passer à Plus",
+        "features": {
+          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "sfu": "Serveurs relais SFU",
+          "liveDirectory": "Salle publique dans l’annuaire /live",
+          "screenVoice": "Partage d’écran + voix",
+          "remoteControl": "Contrôle à distance",
+          "cancel": "Résiliable à tout moment"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Pour les professionnels et les équipes en croissance",
+        "cta": "Passer à Pro",
+        "features": {
+          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "sfu": "Serveurs relais SFU",
+          "streaming": "Toutes les plateformes de streaming (YouTube, Twitch, …)",
+          "hd": "Partage d’écran HD (1080p)",
+          "liveDirectory": "Salle publique dans l’annuaire /live",
+          "callAnalysis": "Analyse d’appels par IA",
+          "support": "Support prioritaire"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "Pour les équipes et les organisations",
+        "cta": "Passer à Team",
+        "features": {
+          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "sfu": "Serveurs SFU dédiés",
+          "streaming": "Toutes les plateformes de streaming",
+          "uhd": "Partage d’écran en 4K",
+          "callAnalysis": "Analyse d’appels par IA",
+          "admin": "Contrôles d’administration",
+          "support": "Support prioritaire"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Ouverture du paiement…",
+      "checkoutFailed": "Impossible d’ouvrir le paiement. Veuillez réessayer.",
+      "networkError": "Erreur réseau. Veuillez réessayer."
+    },
+    "callAnalysis": {
+      "eyebrow": "Inclus dans Pro et Team",
+      "title": "Analyse d’appels par IA",
+      "description": "Activez-la avant un appel et recevez ensuite un rapport : une note, le temps de parole, le débit, les mots de remplissage, ce qui a fonctionné, ce qu’il faut travailler et, pour les réunions d’équipe, les décisions et les actions à mener.",
+      "cta": "Découvrir l’analyse d’appels →"
+    },
+    "cost": {
+      "title": "Comparaison des coûts réels",
+      "subtitle": "Comparez nos tarifs aux coûts habituels de Zoom Webinars et Microsoft Teams",
+      "plan": "Offre",
+      "rows": {
+        "free": "Gratuit",
+        "pro": "Pro / Petite équipe",
+        "team": "Team / Entreprise",
+        "tenPerson": "Équipe de 10 personnes"
+      },
+      "cells": {
+        "freeLimit": "{price} (limite de {minutes} min)",
+        "perMonth": "{price}/mois",
+        "perHost": "{price}/mois/hôte",
+        "perUser": "{price}/mois/utilisateur",
+        "perMonthTotal": "{price}/mois au total"
+      },
+      "footnote": "* PairUX facture par équipe, pas par utilisateur. Aucune licence par siège."
+    },
+    "comparison": {
+      "title": "Comparaison des fonctionnalités",
+      "subtitle": "Comparez PairUX à Zoom, Teams, Webex, Google Meet et Jitsi",
+      "feature": "Fonctionnalité",
+      "rows": {
+        "transparent": "Tarifs transparents",
+        "noSeatFees": "Aucun frais par utilisateur",
+        "noContracts": "Aucun contrat annuel",
+        "flatRate": "Offres forfaitaires simples",
+        "openSource": "Open source",
+        "selfHost": "Auto-hébergeable",
+        "remoteControl": "Contrôle à distance",
+        "multiCursor": "Prise en charge multi-curseurs",
+        "noAccount": "Aucun compte requis (spectateurs)"
+      }
+    },
+    "advantages": {
+      "title": "Ce qui rend PairUX différent",
+      "subtitle": "Les outils d’entreprise ne peuvent pas copier cela sans casser leur modèle tarifaire",
+      "items": {
+        "noSeatFees": {
+          "title": "Aucun frais par utilisateur",
+          "description": "Un seul prix pour toute votre équipe. Ajoutez des utilisateurs sans coût supplémentaire."
+        },
+        "noLockIn": {
+          "title": "Aucun engagement",
+          "description": "Aucun contrat annuel ni engagement. Résiliable à tout moment."
+        },
+        "openSource": {
+          "title": "Open source",
+          "description": "Auditez le code, auto-hébergez-le ou personnalisez-le. Vos données, vos règles."
+        },
+        "developer": {
+          "title": "Pensé pour les développeurs",
+          "description": "Installation en CLI, accès API et automatisation possible dès le premier jour."
+        }
+      }
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "capacity": {
+        "question": "Combien de personnes peuvent regarder ma salle ?",
+        "answer": "Le nombre d’auditeurs simultanés par salle dépend de votre offre : Gratuit {free}, Plus {plus}, Pro {pro}, Team {team}. En plus, les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte.",
+        "answerLong": "Le nombre d’auditeurs simultanés par salle dépend de votre offre : Gratuit {free}, Plus {plus}, Pro {pro}, Team {team}. En plus, les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte."
+      },
+      "free": {
+        "question": "L’offre gratuite est-elle vraiment gratuite ?",
+        "answer": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours, et les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte. Sans limite de temps, sans carte bancaire.",
+        "answerLong": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours, et les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte. Sans limite de temps, sans carte bancaire. Idéal pour le pair programming et les petites démos."
+      },
+      "selfHost": {
+        "question": "Puis-je auto-héberger PairUX pour éviter les coûts ?",
+        "answer": "Absolument. PairUX est open source sous licence MIT. Vous pouvez exploiter votre propre infrastructure SFU si vous le souhaitez.",
+        "answerLong": "Absolument. PairUX est open source sous licence MIT. Vous pouvez exploiter votre propre infrastructure SFU si vous le souhaitez. Idéal pour les entreprises ayant des exigences de sécurité spécifiques."
+      },
+      "cheaper": {
+        "question": "Pourquoi êtes-vous moins cher que Zoom et Teams ?",
+        "answer": "Nous facturons par équipe, pas par utilisateur. Une équipe de 10 personnes paie {teamPrice}/mois au total avec PairUX, contre {competitorPrice}/mois avec Zoom ou Teams.",
+        "answerLong": "Nous facturons par équipe, pas par utilisateur. Une équipe de 10 personnes paie {teamPrice}/mois au total avec PairUX, contre {competitorPrice}/mois avec Zoom ou Teams. Pas d’équipe commerciale grands comptes, donc moins de frais pour vous."
+      }
+    },
+    "cta": {
+      "title": "Prêt à économiser sur votre infrastructure vidéo ?",
+      "subtitle": "Commencez gratuitement avec des sessions P2P, ou passez à Pro pour seulement {price}/mois. Jamais de frais par utilisateur.",
+      "download": "Télécharger gratuitement",
+      "signup": "Créer un compte"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "Télécharger",
+      "description": "Téléchargez PairUX pour macOS, Windows ou Linux. Disponible via Homebrew, WinGet, APT et en téléchargement direct."
+    },
+    "hero": {
+      "title": "Télécharger PairUX",
+      "subtitle": "Installez l’application de bureau pour héberger des sessions. Les spectateurs peuvent rejoindre depuis n’importe quel navigateur."
+    },
+    "copyToClipboard": "Copier dans le presse-papiers",
+    "loading": "Chargement des informations de version…",
+    "loadFailed": "Échec du chargement des informations de version",
+    "viewReleases": "Voir les versions sur GitHub",
+    "latest": "Dernière version : v{version}",
+    "quickInstall": {
+      "title": "Installation rapide",
+      "subtitle": "Le moyen le plus rapide de commencer. Fonctionne sur macOS, Linux et Windows.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Télécharge automatiquement la dernière version pour votre plateforme",
+      "afterInstall": "Après l’installation, utilisez <update></update> pour mettre à jour et <uninstall></uninstall> pour désinstaller."
+    },
+    "detected": "Détecté d’après votre navigateur",
+    "downloadDmg": "Télécharger le DMG",
+    "downloadInstaller": "Télécharger l’installateur",
+    "downloadAppImage": "Télécharger l’AppImage",
+    "allPlatforms": {
+      "title": "Toutes les plateformes",
+      "subtitle": "Choisissez votre système d’exploitation et votre format préféré"
+    },
+    "requirements": {
+      "macos": "Nécessite macOS 12 (Monterey) ou version ultérieure",
+      "windows": "Nécessite Windows 10 (1809) ou version ultérieure",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Script shell",
+    "installerX64": "Installateur (x64)",
+    "viewAllReleases": "Voir toutes les versions sur GitHub",
+    "checksums": {
+      "toggle": "Vérifier les téléchargements (sommes de contrôle SHA256)",
+      "description": "Vérifiez votre téléchargement en comparant la somme de contrôle SHA256.",
+      "file": "Fichier"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "Installer l’application PairUX",
+    "installApp": "Installer l’app",
+    "title": "Installer PairUX",
+    "mobileDescription": "Ajoutez-la à votre écran d’accueil pour un accès rapide",
+    "desktopDescription": "Installez l’application de bureau pour une meilleure expérience",
+    "dismiss": "Ignorer l’invitation à installer",
+    "installing": "Installation…",
+    "install": "Installer"
+  },
+  "offline": {
+    "title": "Vous êtes hors ligne",
+    "description": "PairUX nécessite une connexion internet pour le partage d’écran et la collaboration en temps réel. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Rendre le contrôle",
+      "inControl": "Aux commandes",
+      "waitingApproval": "En attente de l’approbation de l’hôte",
+      "requesting": "Demande en cours…",
+      "waitingConnection": "En attente de connexion",
+      "requestTitle": "Demander le contrôle à l’hôte",
+      "requestControl": "Demander le contrôle"
+    },
+    "status": {
+      "title": "État du contrôle : {state}",
+      "viewOnly": "Lecture seule",
+      "pending": "En attente",
+      "controlling": "Aux commandes"
+    },
+    "capture": {
+      "clickToControl": "Cliquez pour contrôler · Échap pour relâcher",
+      "pointerUnavailable": "La capture du pointeur n’était pas disponible · Cliquez pour réessayer",
+      "fullscreenLock": "Plein écran + verrouillage du pointeur",
+      "exitFullscreen": "Quitter le plein écran",
+      "capturePointerAgain": "Capturer à nouveau le pointeur"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "Analyse d’appels par IA",
+      "description": "Recevez un retour après l’appel : temps de parole, débit, mots de remplissage, ce qui a marqué et ce qu’il faut travailler. Décidez maintenant : elle ne peut pas être activée une fois l’appel commencé.",
+      "toggle": "Analyser cet appel",
+      "kindLabel": "De quel type d’appel s’agit-il ?",
+      "kinds": {
+        "general": "Appel général",
+        "interview": "Entretien",
+        "team-sync": "Réunion d’équipe",
+        "presentation": "Présentation"
+      },
+      "keepRecording": "Enregistrer l’appel et conserver l’enregistrement",
+      "disclosure": "Chaque participant est informé que l’appel est enregistré pour une analyse par IA. Les rapports vous sont réservés. <link>Comment ça marche</link>"
+    },
+    "handoff": {
+      "openedTitle": "Ouvert dans l’application de bureau",
+      "openingTitle": "Ouverture de l’application de bureau PairUX…",
+      "openedBody": "Votre réunion se déroule dans l’application de bureau, où vous pouvez donner le contrôle aux invités.",
+      "openingBody": "L’application de bureau peut partager le contrôle de votre écran. Le navigateur peut seulement l’afficher.",
+      "continueInBrowser": "Continuer dans ce navigateur",
+      "download": "Vous n’avez pas l’application ? Téléchargez-la"
+    },
+    "hostPresence": {
+      "notJoined": "L’hôte n’a pas encore rejoint",
+      "left": "L’hôte est parti",
+      "chatAvailable": "Le chat reste disponible. Vous serez averti du retour de l’hôte."
+    },
+    "recordingNotice": {
+      "recorded": "Cet appel est enregistré par l’hôte pour une analyse par IA. Quittez l’appel si vous ne souhaitez pas y participer.",
+      "recordedKept": "Cet appel est enregistré par l’hôte pour une analyse par IA, et l’hôte conservera l’enregistrement. Quittez l’appel si vous ne souhaitez pas y participer."
+    },
+    "settingsPanel": {
+      "title": "Paramètres de la session",
+      "sessionInfo": "Informations sur la session",
+      "sessionCode": "Code de session",
+      "status": "Statut",
+      "participants": "Participants",
+      "created": "Créée",
+      "connectionQuality": "Qualité de connexion",
+      "network": "Réseau",
+      "frameRate": "Fréquence d’images",
+      "fps": "{value} i/s",
+      "packetLoss": "Perte de paquets",
+      "latency": "Latence",
+      "ms": "{value} ms",
+      "appearance": "Apparence",
+      "theme": {
+        "light": "clair",
+        "dark": "sombre",
+        "system": "système"
+      },
+      "sessionStatus": {
+        "created": "créée",
+        "active": "active",
+        "paused": "en pause",
+        "ended": "terminée"
+      },
+      "connectionState": {
+        "idle": "inactif",
+        "connecting": "connexion",
+        "connected": "connecté",
+        "reconnecting": "reconnexion",
+        "failed": "échec",
+        "disconnected": "déconnecté"
+      },
+      "networkQuality": {
+        "excellent": "Excellente",
+        "good": "Bonne",
+        "poor": "Faible",
+        "bad": "Mauvaise"
+      }
+    },
+    "publish": {
+      "titlePublic": "La salle est publique",
+      "titlePublish": "Publier sur /live",
+      "intro": "Référencer votre salle sur <strong>pairux.com/live</strong> permet à n’importe qui de la découvrir et de la rejoindre, sans lien d’invitation.",
+      "subject": "Sujet",
+      "subjectPlaceholder": "ex. Création d’une app Next.js en direct",
+      "description": "Description",
+      "optional": "(facultatif)",
+      "descriptionPlaceholder": "Que se passe-t-il dans cette salle ?",
+      "publish": "Publier",
+      "liveNotice": "Votre salle est visible dans l’annuaire public.",
+      "viewLive": "Voir /live",
+      "profileLink": "Le lien de votre profil",
+      "copied": "Copié",
+      "claimPrompt": "Réservez un nom d’utilisateur pour obtenir une page de profil partageable sur <code>{path}</code>.",
+      "usernamePlaceholder": "nom d’utilisateur",
+      "claim": "Réserver",
+      "makePrivate": "Rendre privée",
+      "done": "Terminé",
+      "errors": {
+        "publishFailed": "Échec de la publication de la salle",
+        "unpublishFailed": "Échec du retrait de la salle",
+        "usernameFailed": "Échec de l’enregistrement du nom d’utilisateur",
+        "network": "Erreur réseau. Veuillez réessayer."
+      }
+    }
+  },
+  "participants": {
+    "title": "Participants",
+    "activeCount": "{count, plural, one {# actif} other {# actifs}}",
+    "emptyTitle": "Aucun participant pour l’instant",
+    "emptyHint": "Partagez votre lien pour inviter d’autres personnes",
+    "you": "(vous)",
+    "agent": "Agent",
+    "agentWithClient": "Agent ({client})",
+    "host": "Hôte",
+    "inControl": "Aux commandes",
+    "requesting": "Demande en cours",
+    "viewer": "Spectateur",
+    "removeAgent": "Retirer l’agent",
+    "mute": "Couper le micro du participant",
+    "unmute": "Réactiver le micro du participant",
+    "grantControl": "Accorder le contrôle",
+    "revokeControl": "Révoquer le contrôle",
+    "removeParticipant": "Retirer le participant",
+    "makeHost": "Nommer hôte",
+    "connection": {
+      "connected": "connecté",
+      "reconnecting": "reconnexion",
+      "disconnected": "déconnecté"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "En attente du partage d’écran",
+      "idleBody": "L’hôte n’a pas encore commencé à partager son écran. Vous le verrez ici dès qu’il commencera.",
+      "connectingTitle": "Connexion…",
+      "connectingBody": "Établissement d’une connexion sécurisée avec l’hôte. Cela prend généralement quelques secondes.",
+      "reconnectingTitle": "Reconnexion…",
+      "reconnectingBody": "Connexion interrompue. Tentative de reconnexion…",
+      "failedTitle": "Échec de la connexion",
+      "failedBody": "Impossible d’établir une connexion. Vérifiez votre réseau et réessayez.",
+      "tryAgain": "Réessayer",
+      "disconnectedTitle": "Hôte déconnecté",
+      "disconnectedBody": "L’hôte a arrêté le partage ou s’est déconnecté. En attente de sa reconnexion…",
+      "reconnect": "Se reconnecter"
+    },
+    "quality": {
+      "title": "Connexion : {quality}",
+      "details": "Détails de la connexion",
+      "quality": "Qualité",
+      "bitrate": "Débit",
+      "frameRate": "Fréquence d’images",
+      "latency": "Latence",
+      "packetLoss": "Perte de paquets",
+      "levels": {
+        "excellent": "Excellente",
+        "good": "Bonne",
+        "poor": "Faible",
+        "bad": "Mauvaise"
+      }
+    },
+    "player": {
+      "unsupported": "Votre navigateur ne prend pas en charge la lecture vidéo."
+    },
+    "preview": {
+      "idleHint": "Cliquez ci-dessous pour commencer à partager votre écran",
+      "start": "Partager l’écran",
+      "requesting": "Demande d’accès à l’écran…",
+      "selectSource": "Veuillez sélectionner un écran ou une fenêtre à partager",
+      "tryAgain": "Réessayer",
+      "stop": "Arrêter le partage"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Administration - PairUX"
+    },
+    "title": "Administration",
+    "loggedInAs": "Connecté en tant que {email}",
+    "integrations": {
+      "title": "Intégrations Autoblog",
+      "description": "Générez un jeton bearer, puis collez-le dans <link>CrawlProof</link> comme secret du webhook. Le jeton sert aussi de secret de signature HMAC pour vérifier les requêtes.",
+      "confirmRevoke": "Révoquer « {name} » ? La source ne pourra plus publier.",
+      "webhookEndpoint": "Point de terminaison du webhook",
+      "copy": "Copier",
+      "copied": "Copié",
+      "generateToken": "Générer un jeton",
+      "namePlaceholder": "Nom de l’intégration",
+      "generate": "Générer",
+      "tokenCreated": "Jeton créé : copiez-le maintenant et collez-le dans les paramètres du webhook autoblog de CrawlProof.",
+      "accessTokens": "Jetons d’accès ({count})",
+      "empty": "Aucun pour l’instant : générez-en un ci-dessus.",
+      "requests": "{count, plural, one {# requête} other {# requêtes}}",
+      "lastUsed": "dernière utilisation {date}",
+      "hide": "Masquer",
+      "reveal": "Afficher",
+      "revoke": "Révoquer"
+    },
+    "email": {
+      "title": "E-mail aux utilisateurs",
+      "description": "Rédigez un e-mail HTML et envoyez-le à tous les utilisateurs inscrits via Resend.",
+      "subject": "Objet",
+      "subjectPlaceholder": "Annonce : …",
+      "body": "Corps (Markdown)",
+      "result": "Envoyés : {sent} · Échecs : {failed}",
+      "sending": "Envoi…",
+      "send": "Envoyer à tous les utilisateurs"
+    },
+    "posts": {
+      "title": "Articles de blog récents",
+      "empty": "Aucun article importé pour l’instant.",
+      "columnTitle": "Titre",
+      "columnSource": "Source",
+      "columnPublished": "Publié"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Analyses d’appels - PairUX",
+      "detailTitle": "Analyse d’appel - PairUX"
+    },
+    "kinds": {
+      "general": "Appel général",
+      "interview": "Entretien",
+      "team-sync": "Réunion d’équipe",
+      "presentation": "Présentation"
+    },
+    "status": {
+      "recording": "Enregistrement",
+      "queued": "En attente d’analyse",
+      "processing": "Rédaction de votre rapport",
+      "ready": "Prêt",
+      "failed": "Échec"
+    },
+    "list": {
+      "title": "Analyses d’appels",
+      "intro": "Les retours sur les appels que vous avez passés avec l’analyse par IA activée. Activez-la avant un appel depuis l’écran de démarrage, sur le web, sur ordinateur ou sur mobile.",
+      "loadError": "Impossible de charger vos analyses",
+      "empty": "Aucun appel analysé pour l’instant. <link>Démarrer un appel avec analyse par IA</link>",
+      "untitled": "Appel sans titre",
+      "sharedWithTeam": "partagé avec votre équipe"
+    },
+    "report": {
+      "back": "← Toutes les analyses d’appels",
+      "loadError": "Impossible de charger cette analyse",
+      "failed": "Cette analyse n’a pas pu être terminée : {error}",
+      "stillRecording": "L’appel est toujours en cours d’enregistrement.",
+      "beingWritten": "Votre rapport est en cours de rédaction. Cette page se met à jour toute seule, et vous recevrez un e-mail dès qu’il sera prêt.",
+      "outOf10": "sur 10",
+      "byTheNumbers": "En chiffres",
+      "table": {
+        "speaker": "Intervenant",
+        "talkTime": "Temps de parole",
+        "pace": "Débit",
+        "fillers": "Remplissage",
+        "questions": "Questions",
+        "longestTurn": "Plus longue intervention",
+        "wpm": "{value} mots/min",
+        "fillerRate": "{value} / 100 mots"
+      },
+      "mobileNote": "Capturé sur un téléphone : seul votre micro a été enregistré.",
+      "whatWorked": "Ce qui a fonctionné",
+      "toImprove": "À améliorer",
+      "try": "Essayez : {suggestion}",
+      "delivery": {
+        "title": "Expression",
+        "pace": "Débit",
+        "clarity": "Clarté",
+        "confidence": "Assurance",
+        "fillerWords": "Mots de remplissage",
+        "listening": "Écoute"
+      },
+      "practiceNext": "À travailler pour la prochaine fois",
+      "onScreen": "Ce qui était à l’écran",
+      "actionItems": "Actions à mener",
+      "keyMoments": "Moments à revoir",
+      "hideTranscript": "Masquer la transcription",
+      "showTranscript": "Afficher la transcription",
+      "disclaimer": "Rédigé par une IA à partir de l’enregistrement de l’appel. Les noms des intervenants proviennent d’une détection automatique et peuvent être erronés.",
+      "disclaimerWithModel": "Rédigé par une IA ({model}) à partir de l’enregistrement de l’appel. Les noms des intervenants proviennent d’une détection automatique et peuvent être erronés."
+    }
+  },
+  "devices": {
+    "title": "Mes appareils",
+    "intro": "Démarrez d’ici un partage d’écran sur un ordinateur qui exécute <code>pairux daemon</code>. Pratique pour présenter depuis un portable en tenant votre téléphone.",
+    "addressLabel": "Adresse de l’appareil",
+    "add": "Ajouter",
+    "errors": {
+      "invalidAddress": "Cela ne ressemble pas à une adresse d’appareil.",
+      "duplicate": "Cet appareil figure déjà ici."
+    },
+    "empty": "Aucun appareil pour l’instant. Sur l’ordinateur à partager, exécutez <code>pairux daemon</code> : il affiche l’adresse à coller ici.",
+    "howToSetUp": "Comment le configurer",
+    "remove": "Retirer {name}",
+    "joinSession": "Rejoindre la session sur {name}",
+    "stopSharing": "Arrêter le partage",
+    "startSharing": "Commencer le partage",
+    "check": "Vérifier"
+  },
+  "notifications": {
+    "unsupported": "Les notifications push ne sont pas prises en charge par ce navigateur.",
+    "push": {
+      "title": "Notifications push",
+      "enabled": "Les notifications sont activées pour cet appareil",
+      "blocked": "Les notifications sont bloquées dans les paramètres du navigateur",
+      "prompt": "Activez-les pour recevoir des notifications lorsque l’application est en arrière-plan",
+      "enable": "Activer",
+      "disable": "Désactiver"
+    },
+    "notifyMeAbout": "Me notifier pour",
+    "events": {
+      "controlRequest": "Demandes de contrôle",
+      "chatMessage": "Messages du chat",
+      "participantJoined": "Arrivée d’un participant",
+      "participantLeft": "Départ d’un participant",
+      "hostDisconnected": "Déconnexion de l’hôte",
+      "creatorLive": "Un créateur que vous suivez passe en direct",
+      "directMessage": "Quelqu’un vous envoie un message privé"
+    },
+    "reminders": {
+      "title": "Rappels de réunion",
+      "description": "Envoyés par e-mail, et sous forme de notification lorsque le push est activé.",
+      "meetingReminder1Day": "1 jour avant",
+      "meetingReminder1Hour": "1 heure avant",
+      "meetingReminder15Min": "15 minutes avant",
+      "meetingReminder1Min": "1 minute avant"
+    },
+    "controlRequest": {
+      "title": "Demande de contrôle",
+      "message": "<strong>{name}</strong> souhaite contrôler votre écran",
+      "approve": "Approuver",
+      "deny": "Refuser"
+    },
+    "toasts": {
+      "region": "Notifications",
+      "joined": "<strong>{name}</strong> a rejoint",
+      "left": "<strong>{name}</strong> est parti",
+      "dismiss": "Ignorer"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Organisations - PairUX",
+      "detailTitle": "Organisation - PairUX"
+    },
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
+    "list": {
+      "title": "Organisations",
+      "intro": "Une organisation partage avec ses membres des chaînes pour passer en direct, des rapports d’analyse d’appels et l’offre de son propriétaire. Regroupez les personnes en équipes au sein de l’organisation.",
+      "teamCount": "{count, plural, one {# équipe} other {# équipes}}",
+      "createHeading": "Créer une organisation",
+      "namePlaceholder": "Nom de l’entreprise ou du groupe",
+      "create": "Créer",
+      "createError": "Impossible de créer l’organisation"
+    },
+    "detail": {
+      "back": "← Organisations",
+      "notFound": "Organisation introuvable",
+      "genericError": "Une erreur s’est produite",
+      "summary": "{role, select, owner {Vous êtes le propriétaire} admin {Vous êtes administrateur} other {Vous êtes membre}}. Les membres sont couverts par l’offre <strong>{plan}</strong>.",
+      "confirmDelete": "Supprimer {name} ? Ses chaînes et rapports reviennent à leurs créateurs.",
+      "deleteOrg": "Supprimer l’organisation",
+      "confirmLeave": "Quitter {name} ?",
+      "leaveOrg": "Quitter l’organisation",
+      "members": "Membres",
+      "teamLead": "{team} (responsable)",
+      "removeMember": "Retirer {name}",
+      "confirmRemoveMember": "Retirer {name} de {org} ?",
+      "inviteByEmail": "Inviter par e-mail",
+      "noTeam": "Aucune équipe",
+      "invite": "Inviter",
+      "pendingInvitations": "Invitations en attente",
+      "revoke": "Révoquer",
+      "teams": "Équipes",
+      "teamsIntro": "Les membres d’une équipe peuvent passer en direct sur les chaînes de l’équipe et lire ses rapports d’appels. Les responsables gèrent la composition de l’équipe.",
+      "confirmDeleteTeam": "Supprimer l’équipe {name} ? Ses chaînes et rapports restent dans l’organisation.",
+      "deleteTeam": "Supprimer l’équipe",
+      "lead": "responsable",
+      "makeMember": "passer membre",
+      "makeLead": "nommer responsable",
+      "removeFromTeam": "Retirer {name} de {team}",
+      "noMembers": "Aucun membre pour l’instant",
+      "addMember": "Ajouter un membre…",
+      "noTeams": "Aucune équipe pour l’instant.",
+      "newTeamPlaceholder": "Nouvelle équipe, ex. Ingénierie",
+      "createTeam": "Créer l’équipe"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Paramètres - PairUX",
+      "description": "Gérez vos paramètres PairUX."
+    },
+    "back": "Retour",
+    "title": "Paramètres",
+    "saved": "Enregistré",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (si disponible)"
+    },
+    "account": {
+      "title": "Compte",
+      "description": "Les informations de votre compte",
+      "email": "E-mail :",
+      "name": "Nom :",
+      "signInPrompt": "Connectez-vous pour synchroniser vos paramètres sur tous vos appareils et accéder à plus de fonctionnalités.",
+      "signIn": "Se connecter",
+      "createAccount": "Créer un compte"
+    },
+    "recording": {
+      "title": "Enregistrement",
+      "description": "Préférences d’enregistrement par défaut",
+      "defaultRecordingQuality": "Qualité d’enregistrement par défaut",
+      "recordingQualityHint": "Les enregistrements de meilleure qualité sont plus volumineux",
+      "defaultCaptureQuality": "Qualité de capture par défaut",
+      "captureQualityHint": "Une meilleure qualité consomme plus de bande passante pour le streaming",
+      "includeSystemAudio": "Inclure l’audio système",
+      "includeSystemAudioHint": "Capturer l’audio système avec l’écran",
+      "webRecordingNote": "<strong>Enregistrement web :</strong> les enregistrements sont sauvegardés dans le dossier de téléchargements de votre navigateur. Pour un classement automatique des fichiers, utilisez l’<link>application de bureau</link>."
+    },
+    "session": {
+      "title": "Valeurs par défaut des sessions",
+      "description": "Paramètres par défaut des nouvelles sessions",
+      "maxParticipants": "Nombre maximal de participants",
+      "viewers": "{count, plural, one {# spectateur} other {# spectateurs}}",
+      "openInDesktopApp": "Ouvrir les sessions dans l’application de bureau",
+      "openInDesktopAppHint": "Démarrer une session ouvre l’application de bureau, où vous pouvez donner le contrôle à un invité. Ce navigateur prend le relais si l’application n’est pas installée.",
+      "openInDesktopAppAria": "Ouvrir les sessions dans l’application de bureau",
+      "remoteControlNote": "<strong>Remarque :</strong> le contrôle à distance n’est disponible que dans l’<link>application de bureau</link>. Les sessions web sont en lecture seule."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Préférences des notifications push"
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Choisissez la langue d’affichage de PairUX",
+      "hint": "Enregistré dans ce navigateur. Par défaut, la langue de votre navigateur."
+    },
+    "appearance": {
+      "title": "Apparence",
+      "description": "Personnalisez votre expérience",
+      "theme": "Thème",
+      "themes": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+      },
+      "systemHint": "Le thème système suit les réglages de votre appareil"
+    },
+    "about": {
+      "title": "À propos",
+      "description": "Informations sur l’application",
+      "application": "Application",
+      "platform": "Plateforme",
+      "platformValue": "Navigateur / PWA",
+      "features": "Fonctionnalités",
+      "featuresValue": "Partage d’écran, enregistrement, chat",
+      "downloadNote": "Pour toutes les fonctionnalités, y compris le contrôle à distance, téléchargez l’<link>application de bureau</link>."
+    },
+    "youtube": {
+      "title": "Passage en direct automatique sur YouTube",
+      "description": "Lancez automatiquement votre diffusion YouTube dès que vous commencez à streamer, sans rester bloqué sur « Préparation du flux ».",
+      "notConfigured": "Pas encore disponible : la configuration Google OAuth manque sur le serveur.",
+      "connected": "Connecté",
+      "connectedTo": "Connecté : {channel}",
+      "disconnect": "Déconnecter",
+      "connect": "Connecter YouTube"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Direct introuvable",
+    "defaultTitle": "En direct sur PairUX",
+    "defaultDescription": "Un direct public de {name}.",
+    "defaultDescriptionAnonymous": "Un direct public d’un créateur PairUX.",
+    "anonymous": "Anonyme",
+    "liveNow": "En direct",
+    "untitled": "Direct sans titre",
+    "watchFree": "Regarder gratuitement",
+    "commentsHeading": "Commentaires ({count})",
+    "like": "J’aime ({count, plural, one {# j’aime} other {# j’aime}})",
+    "unlike": "Je n’aime plus ({count, plural, one {# j’aime} other {# j’aime}})",
+    "comments": {
+      "someone": "Quelqu’un",
+      "postFailed": "Impossible de publier votre commentaire.",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "placeholder": "Ajouter un commentaire…",
+      "post": "Publier",
+      "empty": "Aucun commentaire pour l’instant : soyez le premier.",
+      "delete": "Supprimer"
+    },
+    "embed": {
+      "title": "Intégrer ce direct",
+      "button": "Intégrer",
+      "label": "Collez ce code partout où le HTML est autorisé",
+      "copied": "Copié",
+      "copy": "Copier le code"
+    }
+  },
+  "embed": {
+    "defaultTitle": "Lecteur PairUX",
+    "untitled": "Direct sans titre",
+    "watchLive": "Regarder en direct sur PairUX",
+    "watch": "Regarder sur PairUX",
+    "live": "En direct"
+  },
+  "room": {
+    "metadata": {
+      "title": "Salle chiffrée",
+      "description": "Une salle audio et vidéo PairUX chiffrée de bout en bout. Aucun compte nécessaire."
+    },
+    "creating": "Création d’une salle chiffrée…",
+    "guest": "Invité",
+    "joinFailed": "Impossible de rejoindre la salle",
+    "callFailed": "L’appel a échoué",
+    "e2ee": "Chiffré de bout en bout",
+    "incomplete": {
+      "title": "Ce lien est incomplet",
+      "body": "Un lien de salle se termine par <code>#k=…</code>, la clé qui chiffre l’appel. Demandez le lien complet, ou <link>créez une nouvelle salle</link>."
+    },
+    "join": {
+      "title": "Rejoindre la salle",
+      "body": "Aucun compte nécessaire. L’audio et la vidéo sont chiffrés sur votre appareil avec une clé que seules les personnes disposant de ce lien possèdent. PairUX ne peut ni entendre ni voir l’appel, et rien n’est enregistré.",
+      "nameLabel": "Votre nom",
+      "voice": "Voix",
+      "video": "Vidéo"
+    },
+    "copied": "Copié",
+    "copyInvite": "Copier le lien d’invitation"
+  },
+  "live": {
+    "metadata": {
+      "title": "Salles en direct",
+      "description": "Parcourez les salles publiques de partage d’écran en cours sur PairUX."
+    },
+    "title": "Salles en direct",
+    "intro": "Les salles publiques de partage d’écran que des hôtes animent en ce moment. Rejoignez-en une, sans invitation, ou parcourez <link>toutes les chaînes</link> (passées et actuelles).",
+    "empty": {
+      "title": "Aucune salle publique pour l’instant",
+      "body": "Hébergez une session et utilisez <strong>Publier sur /live</strong> pour la faire apparaître ici.",
+      "cta": "Commencer à héberger"
+    },
+    "badgeLive": "En direct",
+    "badgeIdle": "Inactive",
+    "viewers": "{count, plural, one {# spectateur} other {# spectateurs}}",
+    "untitledRoom": "Salle sans titre",
+    "anonymous": "Anonyme",
+    "joinRoom": "Rejoindre la salle",
+    "creators": "Créateurs",
+    "followers": "{count, plural, one {# abonné} other {# abonnés}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Chaînes",
+      "description": "Parcourez les chaînes des créateurs sur PairUX."
+    },
+    "title": "Chaînes",
+    "intro": "Les chaînes des créateurs sur PairUX. Abonnez-vous pour être averti quand ils passent en direct, ou découvrez qui est <link>en direct maintenant</link>.",
+    "empty": {
+      "title": "Aucune chaîne pour l’instant",
+      "body": "Créez-en une depuis votre <link>tableau de bord</link>."
+    },
+    "liveNow": "En direct",
+    "subscribers": "{count, plural, one {# abonné} other {# abonnés}}",
+    "liveCount": "{count} en direct",
+    "recordings": "{count, plural, one {# enregistrement} other {# enregistrements}}"
+  },
+  "channel": {
+    "notFoundTitle": "Chaîne introuvable",
+    "defaultDescription": "La chaîne de {name} sur PairUX.",
+    "liveNow": "En direct",
+    "live": "En direct",
+    "watching": "{count} spectateur(s)",
+    "manage": "Gérer la chaîne",
+    "streams": "Diffusions",
+    "noStreams": "Aucune diffusion pour l’instant.",
+    "untitledStream": "Diffusion sans titre",
+    "recordings": "Enregistrements",
+    "rssTitle": "S’abonner dans une application de podcast ou un lecteur de flux",
+    "recording": "Enregistrement",
+    "subscribe": {
+      "subscribe": "S’abonner",
+      "subscribed": "Abonné",
+      "count": "{count, plural, one {# abonné} other {# abonnés}}"
+    },
+    "share": {
+      "text": "Découvrez {name} sur PairUX",
+      "share": "Partager",
+      "shareOn": "Partager sur {network}",
+      "copyLink": "Copier le lien",
+      "copy": "Copier",
+      "copied": "Copié"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Profil introuvable",
+    "defaultDescription": "Les salles publiques de {name} sur PairUX.",
+    "channels": "Chaînes",
+    "live": "En direct",
+    "subscribers": "{count, plural, one {# abonné} other {# abonnés}}",
+    "lives": "Directs",
+    "noLives": "{handle} n’est pas encore passé en direct.",
+    "liveNow": "En direct",
+    "untitledRoom": "Salle sans titre",
+    "joinRoom": "Rejoindre la salle",
+    "follow": {
+      "follow": "Suivre",
+      "following": "Suivi",
+      "count": "{count, plural, one {# abonné} other {# abonnés}}"
+    },
+    "message": {
+      "button": "Message",
+      "title": "Envoyer un message à {name}",
+      "close": "Fermer",
+      "sent": "Message envoyé",
+      "sentNote": "{name} sera averti par e-mail et par notification push.",
+      "viewConversation": "Voir la conversation",
+      "placeholder": "Écrivez un message privé à {name}…",
+      "cancel": "Annuler",
+      "send": "Envoyer",
+      "sendFailed": "Échec de l’envoi du message"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "conversationTitle": "Conversation",
+    "allMessages": "Tous les messages",
+    "empty": {
+      "title": "Aucun message pour l’instant",
+      "body": "Rendez-vous sur le profil d’un créateur et cliquez sur <strong>Message</strong> pour démarrer une conversation.",
+      "cta": "Parcourir les créateurs →"
+    },
+    "youPrefix": "Vous :",
+    "thread": {
+      "empty": "Aucun message pour l’instant. Dites bonjour à {name}.",
+      "placeholder": "Message à {name}…",
+      "send": "Envoyer",
+      "sendFailed": "Échec de l’envoi du message"
+    }
+  }
+}

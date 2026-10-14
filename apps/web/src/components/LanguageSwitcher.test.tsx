@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render as plainRender } from '@testing-library/react';
-import { fireEvent, render, screen } from '@/test/intl';
+import { fireEvent, messagesFor, render, screen } from '@/test/intl';
 import { HeaderClient } from './header-client';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { LOCALES, LOCALE_COOKIE, LOCALE_STORAGE_KEY, localeName } from '@/i18n/locales';
@@ -30,5 +30,13 @@ describe('HeaderClient translations', () => {
     plainRender(<HeaderClient user={null} />);
     expect(screen.getAllByText('Pricing').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Sign in').length).toBeGreaterThan(0);
+  });
+
+  it('renders the active locale via the intl test helper', () => {
+    render(<HeaderClient user={null} />, { locale: 'es' });
+    const es = messagesFor('es') as { nav: { pricing: string; signIn: string } };
+    expect(es.nav.signIn).not.toBe('Sign in');
+    expect(screen.getAllByText(es.nav.signIn).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Sign in')).not.toBeInTheDocument();
   });
 });

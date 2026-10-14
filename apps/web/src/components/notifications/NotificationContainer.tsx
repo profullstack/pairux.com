@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { UserPlus, UserMinus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { ControlRequestNotification } from './ControlRequestNotification';
 import type { Notification } from '@/hooks/useNotifications';
 
@@ -18,6 +19,7 @@ export const NotificationContainer = memo(function NotificationContainer({
   onDenyControl,
   onDismiss,
 }: NotificationContainerProps) {
+  const t = useTranslations('notifications.toasts');
   if (notifications.length === 0) {
     return null;
   }
@@ -26,7 +28,7 @@ export const NotificationContainer = memo(function NotificationContainer({
     <div
       className="fixed right-4 bottom-4 z-50 flex flex-col gap-2"
       role="region"
-      aria-label="Notifications"
+      aria-label={t('region')}
     >
       {notifications.map((notification) => {
         if (notification.type === 'control-request') {
@@ -51,14 +53,17 @@ export const NotificationContainer = memo(function NotificationContainer({
                 <UserPlus className="h-4 w-4 text-green-500" />
               </div>
               <p className="min-w-0 flex-1 truncate text-sm text-gray-300">
-                <span className="font-medium text-white">{notification.displayName}</span> joined
+                {t.rich('joined', {
+                  name: notification.displayName,
+                  strong: (chunks) => <span className="font-medium text-white">{chunks}</span>,
+                })}
               </p>
               <button
                 onClick={() => {
                   onDismiss(notification.id);
                 }}
                 className="text-gray-500 hover:text-gray-300"
-                aria-label="Dismiss"
+                aria-label={t('dismiss')}
               >
                 &times;
               </button>
@@ -77,14 +82,17 @@ export const NotificationContainer = memo(function NotificationContainer({
               <UserMinus className="h-4 w-4 text-gray-500" />
             </div>
             <p className="min-w-0 flex-1 truncate text-sm text-gray-300">
-              <span className="font-medium text-white">{notification.displayName}</span> left
+              {t.rich('left', {
+                name: notification.displayName,
+                strong: (chunks) => <span className="font-medium text-white">{chunks}</span>,
+              })}
             </p>
             <button
               onClick={() => {
                 onDismiss(notification.id);
               }}
               className="text-gray-500 hover:text-gray-300"
-              aria-label="Dismiss"
+              aria-label={t('dismiss')}
             >
               &times;
             </button>

@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, Video, Users, Palette, Info, ArrowLeft, Check, Bell } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { User, Video, Users, Palette, Info, ArrowLeft, Check, Bell, Languages } from 'lucide-react';
 import { HeaderClient } from '@/components/header-client';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import { YouTubeConnect } from './youtube-connect';
 import type { UserData } from '@/components/header';
@@ -55,6 +57,7 @@ export function SettingsContent({
   user: UserData | null;
   footer?: React.ReactNode;
 }) {
+  const t = useTranslations('settings');
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
 
@@ -101,13 +104,13 @@ export function SettingsContent({
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              {t('back')}
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
             {saved && (
               <span className="flex items-center gap-1 text-sm text-green-600">
                 <Check className="h-4 w-4" />
-                Saved
+                {t('saved')}
               </span>
             )}
           </div>
@@ -124,8 +127,8 @@ export function SettingsContent({
                     <User className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">Account</h2>
-                    <p className="text-sm text-gray-500">Your account information</p>
+                    <h2 className="font-semibold text-gray-900">{t('account.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('account.description')}</p>
                   </div>
                 </div>
               </div>
@@ -133,31 +136,30 @@ export function SettingsContent({
                 {user ? (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700">
-                      <span className="font-medium">Email:</span> {user.email}
+                      <span className="font-medium">{t('account.email')}</span> {user.email}
                     </p>
                     {(user.firstName || user.lastName) && (
                       <p className="text-sm text-gray-700">
-                        <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
+                        <span className="font-medium">{t('account.name')}</span> {user.firstName}{' '}
+                        {user.lastName}
                       </p>
                     )}
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-500">
-                      Sign in to sync your settings across devices and access more features.
-                    </p>
+                    <p className="text-sm text-gray-500">{t('account.signInPrompt')}</p>
                     <div className="mt-4 flex gap-3">
                       <Link
                         href="/login"
                         className="bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors"
                       >
-                        Sign In
+                        {t('account.signIn')}
                       </Link>
                       <Link
                         href="/signup"
                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       >
-                        Create Account
+                        {t('account.createAccount')}
                       </Link>
                     </div>
                   </>
@@ -173,15 +175,15 @@ export function SettingsContent({
                     <Video className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">Recording</h2>
-                    <p className="text-sm text-gray-500">Default recording preferences</p>
+                    <h2 className="font-semibold text-gray-900">{t('recording.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('recording.description')}</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-4 p-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Default Recording Quality
+                    {t('recording.defaultRecordingQuality')}
                   </label>
                   <select
                     value={settings.recording.defaultQuality}
@@ -196,18 +198,18 @@ export function SettingsContent({
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
-                    <option value="720p">720p (HD)</option>
-                    <option value="1080p">1080p (Full HD)</option>
-                    <option value="4k">4K (where available)</option>
+                    <option value="720p">{t('quality.720p')}</option>
+                    <option value="1080p">{t('quality.1080p')}</option>
+                    <option value="4k">{t('quality.4k')}</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
-                    Higher quality recordings are larger in size
+                    {t('recording.recordingQualityHint')}
                   </p>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Default Capture Quality
+                    {t('recording.defaultCaptureQuality')}
                   </label>
                   <select
                     value={settings.capture.defaultQuality}
@@ -222,22 +224,24 @@ export function SettingsContent({
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
-                    <option value="720p">720p (HD)</option>
-                    <option value="1080p">1080p (Full HD)</option>
-                    <option value="4k">4K (where available)</option>
+                    <option value="720p">{t('quality.720p')}</option>
+                    <option value="1080p">{t('quality.1080p')}</option>
+                    <option value="4k">{t('quality.4k')}</option>
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Higher quality uses more bandwidth for streaming
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">{t('recording.captureQualityHint')}</p>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Include System Audio</p>
-                    <p className="text-xs text-gray-500">Capture system audio along with screen</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t('recording.includeSystemAudio')}
+                    </p>
+                    <p className="text-xs text-gray-500">{t('recording.includeSystemAudioHint')}</p>
                   </div>
                   <button
                     type="button"
+                    aria-label={t('recording.includeSystemAudio')}
+                    aria-pressed={settings.capture.includeAudio}
                     onClick={() => {
                       saveSettings({
                         ...settings,
@@ -261,12 +265,14 @@ export function SettingsContent({
 
                 <div className="rounded-lg bg-blue-50 p-4">
                   <p className="text-sm text-blue-800">
-                    <strong>Web Recording:</strong> Recordings are saved to your browser&apos;s
-                    downloads folder. For automatic file organization, use the{' '}
-                    <Link href="/download" className="underline hover:text-blue-900">
-                      desktop app
-                    </Link>
-                    .
+                    {t.rich('recording.webRecordingNote', {
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                      link: (chunks) => (
+                        <Link href="/download" className="underline hover:text-blue-900">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
                   </p>
                 </div>
               </div>
@@ -280,15 +286,15 @@ export function SettingsContent({
                     <Users className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">Session Defaults</h2>
-                    <p className="text-sm text-gray-500">Default settings for new sessions</p>
+                    <h2 className="font-semibold text-gray-900">{t('session.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('session.description')}</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-4 p-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Maximum Participants
+                    {t('session.maxParticipants')}
                   </label>
                   <select
                     value={settings.session.defaultMaxParticipants}
@@ -303,25 +309,24 @@ export function SettingsContent({
                     }}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
-                    <option value={2}>2 viewers</option>
-                    <option value={5}>5 viewers</option>
-                    <option value={10}>10 viewers</option>
+                    {[2, 5, 10].map((count) => (
+                      <option key={count} value={count}>
+                        {t('session.viewers', { count })}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-700">
-                      Open Sessions in the Desktop App
+                      {t('session.openInDesktopApp')}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Starting a session opens the desktop app, where you can hand a guest control.
-                      Falls back to this browser if the app is not installed.
-                    </p>
+                    <p className="text-xs text-gray-500">{t('session.openInDesktopAppHint')}</p>
                   </div>
                   <button
                     type="button"
-                    aria-label="Open sessions in the desktop app"
+                    aria-label={t('session.openInDesktopAppAria')}
                     aria-pressed={settings.session.openInDesktopApp}
                     onClick={() => {
                       saveSettings({
@@ -346,11 +351,14 @@ export function SettingsContent({
 
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                   <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> Remote control is only available in the{' '}
-                    <Link href="/download" className="underline hover:text-yellow-900">
-                      desktop app
-                    </Link>
-                    . Web sessions are view-only.
+                    {t.rich('session.remoteControlNote', {
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                      link: (chunks) => (
+                        <Link href="/download" className="underline hover:text-yellow-900">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
                   </p>
                 </div>
               </div>
@@ -364,13 +372,32 @@ export function SettingsContent({
                     <Bell className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">Notifications</h2>
-                    <p className="text-sm text-gray-500">Push notification preferences</p>
+                    <h2 className="font-semibold text-gray-900">{t('notifications.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('notifications.description')}</p>
                   </div>
                 </div>
               </div>
               <div className="p-6">
                 <NotificationPreferences />
+              </div>
+            </div>
+
+            {/* Language */}
+            <div id="language" className="rounded-xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-100 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary-100 flex h-10 w-10 items-center justify-center rounded-lg">
+                    <Languages className="text-primary-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-gray-900">{t('language.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('language.description')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <LanguageSwitcher id="language-switcher-settings" showLabel />
+                <p className="mt-2 text-xs text-gray-500">{t('language.hint')}</p>
               </div>
             </div>
 
@@ -382,13 +409,15 @@ export function SettingsContent({
                     <Palette className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">Appearance</h2>
-                    <p className="text-sm text-gray-500">Customize your experience</p>
+                    <h2 className="font-semibold text-gray-900">{t('appearance.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('appearance.description')}</p>
                   </div>
                 </div>
               </div>
               <div className="p-6">
-                <label className="mb-2 block text-sm font-medium text-gray-700">Theme</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  {t('appearance.theme')}
+                </label>
                 <div className="flex gap-3">
                   {(['light', 'dark', 'system'] as const).map((theme) => (
                     <button
@@ -409,13 +438,11 @@ export function SettingsContent({
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      {theme}
+                      {t(`appearance.themes.${theme}`)}
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  System theme follows your device settings
-                </p>
+                <p className="mt-2 text-xs text-gray-500">{t('appearance.systemHint')}</p>
               </div>
             </div>
 
@@ -427,33 +454,37 @@ export function SettingsContent({
                     <Info className="text-primary-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900">About</h2>
-                    <p className="text-sm text-gray-500">Application information</p>
+                    <h2 className="font-semibold text-gray-900">{t('about.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('about.description')}</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-3 p-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Application</span>
+                  <span className="text-sm text-gray-600">{t('about.application')}</span>
                   <span className="text-sm font-medium text-gray-900">PairUX Web</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Platform</span>
-                  <span className="text-sm font-medium text-gray-900">Browser / PWA</span>
+                  <span className="text-sm text-gray-600">{t('about.platform')}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {t('about.platformValue')}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Features</span>
+                  <span className="text-sm text-gray-600">{t('about.features')}</span>
                   <span className="text-sm font-medium text-gray-900">
-                    Screen Share, Recording, Chat
+                    {t('about.featuresValue')}
                   </span>
                 </div>
                 <div className="mt-4 border-t border-gray-100 pt-4">
                   <p className="text-sm text-gray-600">
-                    For full features including remote control, download the{' '}
-                    <Link href="/download" className="text-primary-600 hover:underline">
-                      desktop app
-                    </Link>
-                    .
+                    {t.rich('about.downloadNote', {
+                      link: (chunks) => (
+                        <Link href="/download" className="text-primary-600 hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
                   </p>
                 </div>
               </div>

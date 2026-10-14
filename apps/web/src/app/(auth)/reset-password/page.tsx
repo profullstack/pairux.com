@@ -6,8 +6,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
 import { createBrowserClient } from '@supabase/ssr';
+import { useTranslations } from 'next-intl';
 
 function ResetPasswordForm() {
+  const t = useTranslations('auth');
   const searchParams = useSearchParams();
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -69,22 +71,22 @@ function ResetPasswordForm() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('validation.passwordsDoNotMatch'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('validation.passwordTooShort'));
       return;
     }
 
     if (!/[A-Z]/.test(password)) {
-      setError('Password must contain at least one uppercase letter');
+      setError(t('validation.passwordNeedsUppercase'));
       return;
     }
 
     if (!/[0-9]/.test(password)) {
-      setError('Password must contain at least one number');
+      setError(t('validation.passwordNeedsNumber'));
       return;
     }
 
@@ -100,7 +102,7 @@ function ResetPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to reset password');
+        setError(data.error || t('reset.failed'));
         return;
       }
 
@@ -109,7 +111,7 @@ function ResetPasswordForm() {
         router.push('/login');
       }, 3000);
     } catch {
-      setError('An unexpected error occurred');
+      setError(t('errors.unexpected'));
     } finally {
       setLoading(false);
     }
@@ -130,15 +132,13 @@ function ResetPasswordForm() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
             <CheckCircle className="h-6 w-6 text-green-600" />
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">Password updated</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Your password has been successfully reset. Redirecting to sign in...
-          </p>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">{t('reset.successTitle')}</h3>
+          <p className="mt-2 text-sm text-gray-600">{t('reset.successBody')}</p>
           <Link
             href="/login"
             className="text-primary-600 hover:text-primary-500 mt-6 inline-block text-sm font-medium"
           >
-            Sign in now
+            {t('reset.signInNow')}
           </Link>
         </div>
       </div>
@@ -152,15 +152,13 @@ function ResetPasswordForm() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
             <KeyRound className="h-6 w-6 text-red-600" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">Invalid or expired link</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            This password reset link is invalid or has expired. Please request a new one.
-          </p>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">{t('reset.invalidTitle')}</h1>
+          <p className="mt-2 text-sm text-gray-600">{t('reset.invalidBody')}</p>
           <a
             href="/forgot-password"
             className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white"
           >
-            Request new link
+            {t('reset.requestNewLink')}
           </a>
         </div>
       </div>
@@ -170,8 +168,8 @@ function ResetPasswordForm() {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
-        <p className="mt-2 text-sm text-gray-600">Enter your new password below</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('reset.title')}</h1>
+        <p className="mt-2 text-sm text-gray-600">{t('reset.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -184,7 +182,7 @@ function ResetPasswordForm() {
 
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            New password
+            {t('reset.newPassword')}
           </label>
           <div className="relative mt-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -198,24 +196,23 @@ function ResetPasswordForm() {
               required
               autoComplete="new-password"
               className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-10 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-              placeholder="Min 8 chars, 1 uppercase, 1 number"
+              placeholder={t('fields.passwordPlaceholder')}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? t('fields.hidePassword') : t('fields.showPassword')}
               className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            At least 8 characters with one uppercase letter and one number
-          </p>
+          <p className="mt-1 text-xs text-gray-500">{t('fields.passwordHint')}</p>
         </div>
 
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-            Confirm new password
+            {t('reset.confirmNewPassword')}
           </label>
           <div className="relative mt-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -229,7 +226,7 @@ function ResetPasswordForm() {
               required
               autoComplete="new-password"
               className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-              placeholder="Confirm your new password"
+              placeholder={t('reset.confirmNewPasswordPlaceholder')}
             />
           </div>
         </div>
@@ -240,7 +237,7 @@ function ResetPasswordForm() {
           className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? 'Resetting...' : 'Reset password'}
+          {loading ? t('reset.submitting') : t('reset.submit')}
         </button>
       </form>
     </div>

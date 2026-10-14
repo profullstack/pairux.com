@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Loader2, Mail, Trash2, UserPlus, Users } from 'lucide-react';
 
 type OrgRole = 'owner' | 'admin' | 'member';
@@ -32,7 +33,12 @@ interface OrgData {
   }[];
 }
 
-async function call(url: string, method: string, body?: unknown): Promise<string | null> {
+async function call(
+  url: string,
+  method: string,
+  body: unknown,
+  fallbackError: string
+): Promise<string | null> {
   const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -40,12 +46,14 @@ async function call(url: string, method: string, body?: unknown): Promise<string
   });
   if (res.ok) return null;
   const data = (await res.json().catch(() => ({}))) as { error?: string };
-  return data.error ?? 'Something went wrong';
+  return data.error ?? fallbackError;
 }
 
-const who = (m: Member) => m.displayName ?? m.username ?? m.email ?? 'Member';
+const who = (m: Member, fallback: string) => m.displayName ?? m.username ?? m.email ?? fallback;
 
 export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode }) {
+  const t = useTranslations('orgs');
+  const name = (m: Member) => who(m, t('roles.member'));
   const [org, setOrg] = useState<OrgData | null>(null);
   const [error, setError] = useState('');
   const [invite, setInvite] = useState({ email: '', role: 'member', teamId: '' });
@@ -59,9 +67,9 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
       return;
     }
     const body = (await res.json()) as { data?: OrgData; error?: string };
-    if (!res.ok || !body.data) setError(body.error ?? 'Organization not found');
+    if (!res.ok || !body.data) setError(body.error ?? t('detail.notFound'));
     else setOrg(body.data);
-  }, [orgId]);
+  }, [orgId, t]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -69,7 +77,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
   const act = async (url: string, method: string, body?: unknown) => {
     setBusy(true);
     setError('');
-    const problem = await call(url, method, body);
+    const problem = await call(url, method, body, t('detail.genericError'));
     setBusy(false);
     if (problem) setError(problem);
     await load();
@@ -84,7 +92,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
       {header}
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-12">
         <Link href="/orgs" className="text-primary-600 text-sm hover:underline">
-          ← Organizations
+          {t('detail.back')}
         </Link>
         {!org && !error && <Loader2 className="mt-10 h-6 w-6 animate-spin text-gray-400" />}
         {error && <p className="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
@@ -95,12 +103,11 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{org.name}</h1>
                 <p className="mt-1 text-sm text-gray-600">
-                  You are{' '}
-                  {org.myRole === 'owner'
-                    ? 'the owner'
-                    : `a${org.myRole === 'admin' ? 'n' : ''} ${org.myRole}`}
-                  . Members are covered by the <strong className="capitalize">{org.plan}</strong>{' '}
-                  plan.
+                  {t.rich('detail.summary', {
+                    role: org.myRole,
+                    plan: org.plan,
+                    strong: (chunks) => <strong className="capitalize">{chunks}</strong>,
+                  })}
                 </p>
               </div>
               {org.myRole === 'owner' ? (
@@ -108,11 +115,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                   type="button"
                   disabled={busy}
                   onClick={() => {
-                    if (
-                      window.confirm(
-                        `Delete ${org.name}? Its channels and reports go back to the people who made them.`
-                      )
-                    ) {
+                    if (window.confirm(t('detail.confirmDelete', { name: org.name }))) {
                       void act(base, 'DELETE').then((ok) => {
                         if (ok) window.location.href = '/orgs';
                       });
@@ -120,14 +123,14 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                   }}
                   className="text-sm text-red-600 hover:underline"
                 >
-                  Delete organization
+                  {t('detail.deleteOrg')}
                 </button>
               ) : (
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => {
-                    if (window.confirm(`Leave ${org.name}?`)) {
+                    if (window.confirm(t('detail.confirmLeave', { name: org.name }))) {
                       void fetch('/api/auth/session')
                         .then(
                           async (r) =>
@@ -142,14 +145,14 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                   }}
                   className="text-sm text-red-600 hover:underline"
                 >
-                  Leave organization
+                  {t('detail.leaveOrg')}
                 </button>
               )}
             </header>
 
             <section className="rounded-xl border border-gray-200 bg-white p-6">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <Users className="h-5 w-5" aria-hidden="true" /> Members
+                <Users className="h-5 w-5" aria-hidden="true" /> {t('detail.members')}
               </h2>
               <ul className="mt-4 divide-y divide-gray-100">
                 {org.members.map((m) => (
@@ -158,15 +161,17 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     className="flex flex-wrap items-center justify-between gap-3 py-3"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">{who(m)}</p>
+                      <p className="font-medium text-gray-900">{name(m)}</p>
                       <p className="text-xs text-gray-500">
                         {m.email}
                         {m.teams.length > 0 &&
                           ` · ${m.teams
-                            .map((t) => {
-                              const team = org.teams.find((x) => x.id === t.teamId);
+                            .map((mt) => {
+                              const team = org.teams.find((x) => x.id === mt.teamId);
                               return team
-                                ? `${team.name}${t.role === 'lead' ? ' (lead)' : ''}`
+                                ? mt.role === 'lead'
+                                  ? t('teamLead', { team: team.name })
+                                  : team.name
                                 : '';
                             })
                             .filter(Boolean)
@@ -185,19 +190,25 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                           }
                           className="rounded border border-gray-300 px-2 py-1 text-sm"
                         >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
+                          <option value="member">{t('roles.member')}</option>
+                          <option value="admin">{t('roles.admin')}</option>
                         </select>
                       ) : (
-                        <span className="text-sm text-gray-600 capitalize">{m.role}</span>
+                        <span className="text-sm text-gray-600 capitalize">
+                          {t(`roles.${m.role}`)}
+                        </span>
                       )}
                       {admin && m.role !== 'owner' && (
                         <button
                           type="button"
-                          aria-label={`Remove ${who(m)}`}
+                          aria-label={t('detail.removeMember', { name: name(m) })}
                           disabled={busy}
                           onClick={() => {
-                            if (window.confirm(`Remove ${who(m)} from ${org.name}?`)) {
+                            if (
+                              window.confirm(
+                                t('detail.confirmRemoveMember', { name: name(m), org: org.name })
+                              )
+                            ) {
                               void act(`${base}/members/${m.userId}`, 'DELETE');
                             }
                           }}
@@ -226,7 +237,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                   }}
                 >
                   <label className="flex-1 text-sm text-gray-700">
-                    Invite by email
+                    {t('detail.inviteByEmail')}
                     <input
                       type="email"
                       required
@@ -245,8 +256,8 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     }}
                     className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   >
-                    <option value="member">Member</option>
-                    {org.myRole === 'owner' && <option value="admin">Admin</option>}
+                    <option value="member">{t('roles.member')}</option>
+                    {org.myRole === 'owner' && <option value="admin">{t('roles.admin')}</option>}
                   </select>
                   <select
                     value={invite.teamId}
@@ -255,10 +266,10 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     }}
                     className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   >
-                    <option value="">No team</option>
-                    {org.teams.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
+                    <option value="">{t('detail.noTeam')}</option>
+                    {org.teams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
                       </option>
                     ))}
                   </select>
@@ -267,21 +278,26 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     disabled={busy}
                     className="bg-primary-600 hover:bg-primary-700 inline-flex items-center gap-1 rounded-lg px-4 py-2 font-semibold text-white disabled:opacity-60"
                   >
-                    <UserPlus className="h-4 w-4" /> Invite
+                    <UserPlus className="h-4 w-4" /> {t('detail.invite')}
                   </button>
                 </form>
               )}
 
               {admin && org.invitations.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-semibold text-gray-700">Pending invitations</h3>
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    {t('detail.pendingInvitations')}
+                  </h3>
                   <ul className="mt-2 space-y-1 text-sm text-gray-600">
                     {org.invitations.map((i) => (
                       <li key={i.id} className="flex items-center justify-between">
                         <span className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" /> {i.email} · {i.role}
+                          <Mail className="h-4 w-4 text-gray-400" /> {i.email} ·{' '}
+                          {i.role === 'admin' || i.role === 'member' || i.role === 'owner'
+                            ? t(`roles.${i.role}`)
+                            : i.role}
                           {i.team_id
-                            ? ` · ${org.teams.find((t) => t.id === i.team_id)?.name ?? ''}`
+                            ? ` · ${org.teams.find((team) => team.id === i.team_id)?.name ?? ''}`
                             : ''}
                         </span>
                         <button
@@ -290,7 +306,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                           onClick={() => void act(`${base}/invitations/${i.id}`, 'DELETE')}
                           className="text-xs text-red-600 hover:underline"
                         >
-                          Revoke
+                          {t('detail.revoke')}
                         </button>
                       </li>
                     ))}
@@ -300,18 +316,15 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
             </section>
 
             <section className="rounded-xl border border-gray-200 bg-white p-6">
-              <h2 className="text-lg font-semibold text-gray-900">Teams</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                Team members can go live on the team’s channels and read the team’s call reports.
-                Leads manage who is in the team.
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('detail.teams')}</h2>
+              <p className="mt-1 text-sm text-gray-600">{t('detail.teamsIntro')}</p>
               <div className="mt-4 space-y-4">
                 {org.teams.map((team) => {
                   const inTeam = org.members.filter((m) =>
-                    m.teams.some((t) => t.teamId === team.id)
+                    m.teams.some((mt) => mt.teamId === team.id)
                   );
                   const notInTeam = org.members.filter(
-                    (m) => !m.teams.some((t) => t.teamId === team.id)
+                    (m) => !m.teams.some((mt) => mt.teamId === team.id)
                   );
                   return (
                     <div key={team.id} className="rounded-lg border border-gray-100 p-4">
@@ -323,30 +336,28 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                             disabled={busy}
                             onClick={() => {
                               if (
-                                window.confirm(
-                                  `Delete the ${team.name} team? Its channels and reports stay in the organization.`
-                                )
+                                window.confirm(t('detail.confirmDeleteTeam', { name: team.name }))
                               ) {
                                 void act(`${base}/teams/${team.id}`, 'DELETE');
                               }
                             }}
                             className="text-xs text-red-600 hover:underline"
                           >
-                            Delete team
+                            {t('detail.deleteTeam')}
                           </button>
                         )}
                       </div>
                       <ul className="mt-2 flex flex-wrap gap-2">
                         {inTeam.map((m) => {
-                          const role = m.teams.find((t) => t.teamId === team.id)?.role;
+                          const role = m.teams.find((mt) => mt.teamId === team.id)?.role;
                           return (
                             <li
                               key={m.userId}
                               className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm"
                             >
-                              {who(m)}
+                              {name(m)}
                               {role === 'lead' && (
-                                <span className="text-primary-700 text-xs">lead</span>
+                                <span className="text-primary-700 text-xs">{t('detail.lead')}</span>
                               )}
                               {admin && (
                                 <>
@@ -361,11 +372,16 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                                       })
                                     }
                                   >
-                                    {role === 'lead' ? 'make member' : 'make lead'}
+                                    {role === 'lead'
+                                      ? t('detail.makeMember')
+                                      : t('detail.makeLead')}
                                   </button>
                                   <button
                                     type="button"
-                                    aria-label={`Remove ${who(m)} from ${team.name}`}
+                                    aria-label={t('detail.removeFromTeam', {
+                                      name: name(m),
+                                      team: team.name,
+                                    })}
                                     disabled={busy}
                                     className="ml-1 text-gray-400 hover:text-red-600"
                                     onClick={() =>
@@ -382,7 +398,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                           );
                         })}
                         {inTeam.length === 0 && (
-                          <li className="text-sm text-gray-500">No members yet</li>
+                          <li className="text-sm text-gray-500">{t('detail.noMembers')}</li>
                         )}
                       </ul>
                       {admin && notInTeam.length > 0 && (
@@ -399,10 +415,10 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                           }}
                           className="mt-3 rounded border border-gray-300 px-2 py-1 text-sm"
                         >
-                          <option value="">Add a member…</option>
+                          <option value="">{t('detail.addMember')}</option>
                           {notInTeam.map((m) => (
                             <option key={m.userId} value={m.userId}>
-                              {who(m)}
+                              {name(m)}
                             </option>
                           ))}
                         </select>
@@ -410,7 +426,9 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     </div>
                   );
                 })}
-                {org.teams.length === 0 && <p className="text-sm text-gray-500">No teams yet.</p>}
+                {org.teams.length === 0 && (
+                  <p className="text-sm text-gray-500">{t('detail.noTeams')}</p>
+                )}
               </div>
               {admin && (
                 <form
@@ -427,7 +445,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     onChange={(e) => {
                       setTeamName(e.target.value);
                     }}
-                    placeholder="New team, e.g. Engineering"
+                    placeholder={t('detail.newTeamPlaceholder')}
                     minLength={2}
                     maxLength={60}
                     required
@@ -438,7 +456,7 @@ export function OrgDetail({ orgId, header }: { orgId: string; header: ReactNode 
                     disabled={busy}
                     className="bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 font-semibold text-white disabled:opacity-60"
                   >
-                    Create team
+                    {t('detail.createTeam')}
                   </button>
                 </form>
               )}

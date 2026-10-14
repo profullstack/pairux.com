@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { Radio, Eye, Users, Circle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -7,11 +8,14 @@ import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import type { PublicRoom, Creator } from '@pairux/shared-types';
 
-export const metadata: Metadata = {
-  title: 'Live Rooms',
-  description: 'Browse public screen-sharing rooms happening now on PairUX.',
-  alternates: { canonical: 'https://pairux.com/live' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('live.metadata');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/live' },
+  };
+}
 
 // Public directory changes frequently — always render fresh
 export const dynamic = 'force-dynamic';
@@ -49,12 +53,16 @@ async function getCreators(): Promise<Creator[]> {
   }
 }
 
-function hostLabel(room: PublicRoom): string {
-  return room.host_display_name ?? room.host_username ?? 'Anonymous';
+function hostLabel(room: PublicRoom, anonymous: string): string {
+  return room.host_display_name ?? room.host_username ?? anonymous;
 }
 
 export default async function LivePage() {
-  const [rooms, creators] = await Promise.all([getPublicRooms(), getCreators()]);
+  const [rooms, creators, t] = await Promise.all([
+    getPublicRooms(),
+    getCreators(),
+    getTranslations('live'),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -68,15 +76,16 @@ export default async function LivePage() {
                 <Radio className="h-6 w-6 text-red-600" />
               </div>
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Live Rooms
+                {t('title')}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Public screen-sharing rooms hosts are running right now. Jump into one, no invite
-                needed — or browse{' '}
-                <Link href="/channels" className="text-primary-600 font-medium hover:underline">
-                  all channels
-                </Link>{' '}
-                (past &amp; present).
+                {t.rich('intro', {
+                  link: (chunks) => (
+                    <Link href="/channels" className="text-primary-600 font-medium hover:underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </div>
           </div>
@@ -87,15 +96,15 @@ export default async function LivePage() {
             {rooms.length === 0 ? (
               <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-10 text-center">
                 <Radio className="mx-auto h-10 w-10 text-gray-300" />
-                <h2 className="mt-4 text-lg font-semibold text-gray-900">No public rooms yet</h2>
+                <h2 className="mt-4 text-lg font-semibold text-gray-900">{t('empty.title')}</h2>
                 <p className="mt-2 text-sm text-gray-500">
-                  Host a session and use <strong>Publish to /live</strong> to list it here.
+                  {t.rich('empty.body', { strong: (chunks) => <strong>{chunks}</strong> })}
                 </p>
                 <Link
                   href="/host"
                   className="bg-primary-600 hover:bg-primary-700 mt-6 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
                 >
-                  Start hosting
+                  {t('empty.cta')}
                 </Link>
               </div>
             ) : (
@@ -119,16 +128,16 @@ export default async function LivePage() {
                       {room.is_live ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
                           <Circle className="h-2 w-2 animate-pulse fill-current" />
-                          Live
+                          {t('badgeLive')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                          Idle
+                          {t('badgeIdle')}
                         </span>
                       )}
                       <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                         <Eye className="h-3.5 w-3.5" />
-                        {room.viewer_count} {room.viewer_count === 1 ? 'viewer' : 'viewers'}
+                        {t('viewers', { count: room.viewer_count })}
                       </span>
                     </div>
 
@@ -136,7 +145,7 @@ export default async function LivePage() {
                       href={`/l/${room.join_code}`}
                       className="text-base font-semibold text-gray-900 hover:underline"
                     >
-                      {room.subject ?? 'Untitled room'}
+                      {room.subject ?? t('untitledRoom')}
                     </Link>
                     {room.description && (
                       <div
@@ -162,10 +171,10 @@ export default async function LivePage() {
                           href={`/u/${room.host_username}`}
                           className="text-primary-600 hover:underline"
                         >
-                          {hostLabel(room)}
+                          {hostLabel(room, t('anonymous'))}
                         </Link>
                       ) : (
-                        <span>{hostLabel(room)}</span>
+                        <span>{hostLabel(room, t('anonymous'))}</span>
                       )}
                     </div>
 
@@ -173,7 +182,7 @@ export default async function LivePage() {
                       href={`/join/${room.join_code}`}
                       className="bg-primary-600 hover:bg-primary-700 mt-5 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
                     >
-                      Join room
+                      {t('joinRoom')}
                     </Link>
                   </div>
                 ))}
@@ -187,7 +196,7 @@ export default async function LivePage() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
                 <Users className="h-5 w-5 text-gray-400" />
-                Creators
+                {t('creators')}
               </h2>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {creators.map((c) => (
@@ -216,12 +225,10 @@ export default async function LivePage() {
                       {c.is_live && (
                         <span className="inline-flex items-center gap-1 font-medium text-red-600">
                           <Circle className="h-2 w-2 animate-pulse fill-current" />
-                          Live
+                          {t('badgeLive')}
                         </span>
                       )}
-                      <span>
-                        {c.follower_count} {c.follower_count === 1 ? 'follower' : 'followers'}
-                      </span>
+                      <span>{t('followers', { count: c.follower_count })}</span>
                     </div>
                   </Link>
                 ))}

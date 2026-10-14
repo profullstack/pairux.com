@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Settings, Info, Wifi, Palette } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ConnectionState, QualityMetrics, NetworkQuality } from '@pairux/shared-types';
 
 interface SessionData {
@@ -33,13 +34,6 @@ export interface SessionSettingsPanelProps {
 
 const SETTINGS_KEY = 'pairux-web-settings';
 
-const networkQualityLabel: Record<NetworkQuality, string> = {
-  excellent: 'Excellent',
-  good: 'Good',
-  poor: 'Poor',
-  bad: 'Bad',
-};
-
 const networkQualityColor: Record<NetworkQuality, string> = {
   excellent: 'text-green-400',
   good: 'text-green-400',
@@ -54,7 +48,11 @@ export function SessionSettingsPanel({
   networkQuality,
   participantCount,
 }: SessionSettingsPanelProps) {
+  const t = useTranslations('session.settingsPanel');
+  const locale = useLocale();
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const statusKey = `sessionStatus.${session.status}` as 'sessionStatus.active';
+  const sessionStatusLabel = t.has(statusKey) ? t(statusKey) : session.status;
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
@@ -89,7 +87,7 @@ export function SessionSettingsPanel({
     <div className="flex h-full flex-col p-4" data-testid="session-settings-panel">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
         <Settings className="h-4 w-4" />
-        Session Settings
+        {t('title')}
       </h3>
 
       <div className="mt-4 space-y-4">
@@ -97,19 +95,21 @@ export function SessionSettingsPanel({
         <div className="rounded-lg bg-gray-800 p-3">
           <h4 className="flex items-center gap-1.5 text-xs font-medium text-gray-400 uppercase">
             <Info className="h-3.5 w-3.5" />
-            Session Info
+            {t('sessionInfo')}
           </h4>
           <div className="mt-2 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Session Code</span>
+              <span className="text-xs text-gray-400">{t('sessionCode')}</span>
               <span className="font-mono text-xs font-medium text-white">{session.join_code}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Status</span>
-              <span className="text-xs font-medium text-white capitalize">{session.status}</span>
+              <span className="text-xs text-gray-400">{t('status')}</span>
+              <span className="text-xs font-medium text-white capitalize">
+                {sessionStatusLabel}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Participants</span>
+              <span className="text-xs text-gray-400">{t('participants')}</span>
               <span className="text-xs font-medium text-white">
                 {participantCount}
                 {session.settings.maxParticipants
@@ -118,9 +118,9 @@ export function SessionSettingsPanel({
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Created</span>
+              <span className="text-xs text-gray-400">{t('created')}</span>
               <span className="text-xs font-medium text-white">
-                {new Date(session.created_at).toLocaleTimeString()}
+                {new Date(session.created_at).toLocaleTimeString(locale)}
               </span>
             </div>
           </div>
@@ -130,37 +130,39 @@ export function SessionSettingsPanel({
         <div className="rounded-lg bg-gray-800 p-3">
           <h4 className="flex items-center gap-1.5 text-xs font-medium text-gray-400 uppercase">
             <Wifi className="h-3.5 w-3.5" />
-            Connection Quality
+            {t('connectionQuality')}
           </h4>
           <div className="mt-2 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Status</span>
-              <span className="text-xs font-medium text-white capitalize">{connectionState}</span>
+              <span className="text-xs text-gray-400">{t('status')}</span>
+              <span className="text-xs font-medium text-white capitalize">
+                {t(`connectionState.${connectionState}`)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Network</span>
+              <span className="text-xs text-gray-400">{t('network')}</span>
               <span className={`text-xs font-medium ${networkQualityColor[networkQuality]}`}>
-                {networkQualityLabel[networkQuality]}
+                {t(`networkQuality.${networkQuality}`)}
               </span>
             </div>
             {qualityMetrics && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">Frame Rate</span>
+                  <span className="text-xs text-gray-400">{t('frameRate')}</span>
                   <span className="text-xs font-medium text-white">
-                    {String(qualityMetrics.frameRate)} fps
+                    {t('fps', { value: qualityMetrics.frameRate })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">Packet Loss</span>
+                  <span className="text-xs text-gray-400">{t('packetLoss')}</span>
                   <span className="text-xs font-medium text-white">
                     {qualityMetrics.packetLoss.toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">Latency</span>
+                  <span className="text-xs text-gray-400">{t('latency')}</span>
                   <span className="text-xs font-medium text-white">
-                    {qualityMetrics.roundTripTime.toFixed(0)} ms
+                    {t('ms', { value: qualityMetrics.roundTripTime.toFixed(0) })}
                   </span>
                 </div>
               </>
@@ -172,23 +174,23 @@ export function SessionSettingsPanel({
         <div className="rounded-lg bg-gray-800 p-3">
           <h4 className="flex items-center gap-1.5 text-xs font-medium text-gray-400 uppercase">
             <Palette className="h-3.5 w-3.5" />
-            Appearance
+            {t('appearance')}
           </h4>
           <div className="mt-2 flex gap-2">
-            {(['light', 'dark', 'system'] as const).map((t) => (
+            {(['light', 'dark', 'system'] as const).map((option) => (
               <button
-                key={t}
+                key={option}
                 type="button"
                 onClick={() => {
-                  handleThemeChange(t);
+                  handleThemeChange(option);
                 }}
                 className={`flex-1 rounded px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
-                  theme === t
+                  theme === option
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                {t}
+                {t(`theme.${option}`)}
               </button>
             ))}
           </div>

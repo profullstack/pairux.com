@@ -3,16 +3,19 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { findPost } from '@/lib/blog/posts';
+import { formatPostDate } from '@/lib/blog/date';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await findPost(slug);
-  if (!post) return { title: 'Post not found' };
+  const t = await getTranslations('blog');
+  if (!post) return { title: t('postNotFound') };
   return {
-    title: `${post.title} - PairUX Blog`,
+    title: t('postTitle', { title: post.title }),
     description: post.excerpt || undefined,
     alternates: { canonical: `https://pairux.com/blog/${slug}` },
     openGraph: {
@@ -29,6 +32,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = await findPost(slug);
   if (!post) notFound();
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const [locale, t] = await Promise.all([getLocale(), getTranslations('blog')]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -40,7 +44,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             href="/blog"
             className="mb-8 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
           >
-            ← Back to blog
+            {t('backToBlog')}
           </Link>
           <script
             type="application/ld+json"
@@ -57,7 +61,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               }),
             }}
           />
-          <p className="mt-4 text-sm text-gray-500">{post.date}</p>
+          <p className="mt-4 text-sm text-gray-500">
+            <time dateTime={post.date}>{formatPostDate(post.date, locale)}</time>
+          </p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900">{post.title}</h1>
           {post.image_url && (
             // eslint-disable-next-line @next/next/no-img-element

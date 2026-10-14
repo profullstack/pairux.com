@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Code2, Copy, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface EmbedButtonProps {
   /** Ready-made <iframe> snippet, built server-side from the join code. */
@@ -10,6 +11,7 @@ interface EmbedButtonProps {
 
 /** Reveal and copy the iframe snippet for this live's embeddable player. */
 export function EmbedButton({ snippet }: EmbedButtonProps) {
+  const t = useTranslations('replay.embed');
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -34,16 +36,16 @@ export function EmbedButton({ snippet }: EmbedButtonProps) {
         }}
         aria-expanded={open}
         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        title="Embed this live"
+        title={t('title')}
       >
         <Code2 className="h-4 w-4" />
-        Embed
+        {t('button')}
       </button>
 
       {open && (
         <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
           <label htmlFor="embed-snippet" className="mb-1.5 block text-xs font-medium text-gray-600">
-            Paste this anywhere HTML is allowed
+            {t('label')}
           </label>
           <textarea
             id="embed-snippet"
@@ -65,7 +67,7 @@ export function EmbedButton({ snippet }: EmbedButtonProps) {
             ) : (
               <Copy className="h-3.5 w-3.5" />
             )}
-            {copied ? 'Copied' : 'Copy code'}
+            {copied ? t('copied') : t('copy')}
           </button>
         </div>
       )}

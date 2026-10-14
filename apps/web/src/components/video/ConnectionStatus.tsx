@@ -1,6 +1,7 @@
 'use client';
 
 import { Monitor, Loader2, AlertCircle, WifiOff, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ConnectionState } from '@pairux/shared-types';
 
 interface ConnectionStatusProps {
@@ -33,44 +34,40 @@ export function ConnectionStatus({ connectionState, error, onReconnect }: Connec
 }
 
 function IdleState() {
+  const t = useTranslations('video.connection');
   return (
     <>
       <div className="rounded-full bg-gray-800 p-6">
         <Monitor className="h-16 w-16 text-gray-600" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-white">Waiting for screen share</h2>
-      <p className="mt-2 max-w-md text-sm text-gray-400">
-        The host hasn&apos;t started sharing their screen yet. You&apos;ll see their screen here
-        once they begin.
-      </p>
+      <h2 className="mt-6 text-xl font-semibold text-white">{t('idleTitle')}</h2>
+      <p className="mt-2 max-w-md text-sm text-gray-400">{t('idleBody')}</p>
     </>
   );
 }
 
 function ConnectingState() {
+  const t = useTranslations('video.connection');
   return (
     <>
       <div className="rounded-full bg-gray-800 p-6">
         <Loader2 className="h-16 w-16 animate-spin text-blue-400" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-white">Connecting...</h2>
-      <p className="mt-2 max-w-md text-sm text-gray-400">
-        Establishing a secure connection to the host. This usually takes a few seconds.
-      </p>
+      <h2 className="mt-6 text-xl font-semibold text-white">{t('connectingTitle')}</h2>
+      <p className="mt-2 max-w-md text-sm text-gray-400">{t('connectingBody')}</p>
     </>
   );
 }
 
 function ReconnectingState({ error }: { error: string | null }) {
+  const t = useTranslations('video.connection');
   return (
     <>
       <div className="rounded-full bg-yellow-900/50 p-6">
         <RefreshCw className="h-16 w-16 animate-spin text-yellow-400" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-white">Reconnecting...</h2>
-      <p className="mt-2 max-w-md text-sm text-gray-400">
-        {error ?? 'Connection interrupted. Attempting to reconnect...'}
-      </p>
+      <h2 className="mt-6 text-xl font-semibold text-white">{t('reconnectingTitle')}</h2>
+      <p className="mt-2 max-w-md text-sm text-gray-400">{error ?? t('reconnectingBody')}</p>
     </>
   );
 }
@@ -82,15 +79,14 @@ function FailedState({
   error: string | null;
   onReconnect?: (() => void) | undefined;
 }) {
+  const t = useTranslations('video.connection');
   return (
     <>
       <div className="rounded-full bg-red-900/50 p-6">
         <AlertCircle className="h-16 w-16 text-red-400" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-white">Connection Failed</h2>
-      <p className="mt-2 max-w-md text-sm text-gray-400">
-        {error ?? 'Unable to establish a connection. Please check your network and try again.'}
-      </p>
+      <h2 className="mt-6 text-xl font-semibold text-white">{t('failedTitle')}</h2>
+      <p className="mt-2 max-w-md text-sm text-gray-400">{error ?? t('failedBody')}</p>
       {onReconnect && (
         <button
           type="button"
@@ -98,7 +94,7 @@ function FailedState({
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
         >
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('tryAgain')}
         </button>
       )}
     </>
@@ -106,15 +102,14 @@ function FailedState({
 }
 
 function DisconnectedState({ onReconnect }: { onReconnect?: (() => void) | undefined }) {
+  const t = useTranslations('video.connection');
   return (
     <>
       <div className="rounded-full bg-gray-800 p-6">
         <WifiOff className="h-16 w-16 text-gray-500" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-white">Host Disconnected</h2>
-      <p className="mt-2 max-w-md text-sm text-gray-400">
-        The host has stopped sharing or disconnected. Waiting for them to reconnect...
-      </p>
+      <h2 className="mt-6 text-xl font-semibold text-white">{t('disconnectedTitle')}</h2>
+      <p className="mt-2 max-w-md text-sm text-gray-400">{t('disconnectedBody')}</p>
       {onReconnect && (
         <button
           type="button"
@@ -122,7 +117,7 @@ function DisconnectedState({ onReconnect }: { onReconnect?: (() => void) | undef
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-600"
         >
           <RefreshCw className="h-4 w-4" />
-          Reconnect
+          {t('reconnect')}
         </button>
       )}
     </>

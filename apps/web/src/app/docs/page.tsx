@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import {
@@ -11,25 +13,29 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Documentation',
-  description:
-    'Learn how to use PairUX: installation guides, system requirements, security information, and frequently asked questions.',
-  alternates: { canonical: 'https://pairux.com/docs' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('docs.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/docs' },
+  };
+}
 
+// Sidebar labels are translated (docs.toc.*); the documentation body below,
+// including its section headings and the FAQ, is published in English only.
 const tableOfContents = [
-  { id: 'getting-started', title: 'Getting Started' },
-  { id: 'requirements', title: 'System Requirements' },
-  { id: 'hosting', title: 'Hosting a Session' },
-  { id: 'viewing', title: 'Viewing a Session' },
-  { id: 'control', title: 'Remote Control' },
-  { id: 'remote-start', title: 'Remote Start (Tailscale)' },
-  { id: 'security', title: 'Security' },
-  { id: 'troubleshooting', title: 'Troubleshooting' },
-  { id: 'uninstalling', title: 'Uninstalling' },
-  { id: 'faq', title: 'FAQ' },
-];
+  { id: 'getting-started', key: 'gettingStarted' },
+  { id: 'requirements', key: 'requirements' },
+  { id: 'hosting', key: 'hosting' },
+  { id: 'viewing', key: 'viewing' },
+  { id: 'control', key: 'control' },
+  { id: 'remote-start', key: 'remoteStart' },
+  { id: 'security', key: 'security' },
+  { id: 'troubleshooting', key: 'troubleshooting' },
+  { id: 'uninstalling', key: 'uninstalling' },
+  { id: 'faq', key: 'faq' },
+] as const;
 
 const faqs = [
   {
@@ -80,6 +86,8 @@ const faqs = [
 ];
 
 export default function DocsPage() {
+  const t = useTranslations('docs');
+  const locale = useLocale();
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -88,10 +96,8 @@ export default function DocsPage() {
         {/* Hero */}
         <section className="gradient-bg py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Documentation</h1>
-            <p className="mt-4 max-w-2xl text-lg text-gray-600">
-              Everything you need to know about using PairUX for collaborative screen sharing.
-            </p>
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+            <p className="mt-4 max-w-2xl text-lg text-gray-600">{t('subtitle')}</p>
           </div>
         </section>
 
@@ -103,7 +109,7 @@ export default function DocsPage() {
               <aside className="hidden lg:col-span-3 lg:block">
                 <nav className="sticky top-24">
                   <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
-                    On this page
+                    {t('onThisPage')}
                   </h2>
                   <ul className="mt-4 space-y-2">
                     {tableOfContents.map((item) => (
@@ -113,7 +119,7 @@ export default function DocsPage() {
                           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
                         >
                           <ChevronRight className="h-4 w-4" />
-                          {item.title}
+                          {t(`toc.${item.key}`)}
                         </a>
                       </li>
                     ))}
@@ -123,7 +129,12 @@ export default function DocsPage() {
 
               {/* Main content */}
               <div className="lg:col-span-9">
-                <div className="prose prose-gray max-w-none">
+                {locale !== 'en' && (
+                  <p className="mb-8 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+                    {t('englishOnly')}
+                  </p>
+                )}
+                <div lang="en" className="prose prose-gray max-w-none">
                   {/* Getting Started */}
                   <section id="getting-started">
                     <h2>Getting Started</h2>

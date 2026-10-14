@@ -1,11 +1,15 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/header';
 import { OrgsList } from './orgs-list';
 
-export const metadata: Metadata = {
-  title: 'Organizations - PairUX',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('orgs.meta');
+  return {
+    title: t('listTitle'),
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 

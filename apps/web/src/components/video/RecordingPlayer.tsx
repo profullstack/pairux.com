@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { createPlayer, parseTimeParam, type Chapter } from '@/lib/player';
 import '@/lib/player/player.css';
 
@@ -41,6 +42,7 @@ export function RecordingPlayer({
   shareable = true,
   className,
 }: RecordingPlayerProps) {
+  const t = useTranslations('video.player');
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -90,7 +92,7 @@ export function RecordingPlayer({
         poster={poster ?? undefined}
         src={src}
       >
-        Your browser does not support video playback.
+        {t('unsupported')}
       </video>
     </div>
   );

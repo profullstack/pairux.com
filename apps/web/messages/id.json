@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX - Berbagi Layar Kolaboratif dengan Kontrol Jarak Jauh",
+    "description": "Berbagi layar real-time dengan kontrol mouse dan keyboard jarak jauh secara bersamaan. Seperti Screenhero, tetapi open source. Tersedia untuk macOS, Windows, dan Linux.",
+    "shortDescription": "Berbagi layar real-time dengan kontrol mouse dan keyboard jarak jauh secara bersamaan. Seperti Screenhero, tetapi open source.",
+    "imageAlt": "PairUX - Berbagi Layar Kolaboratif"
+  },
+  "common": {
+    "language": "Bahasa",
+    "loading": "Memuat…",
+    "save": "Simpan",
+    "saving": "Menyimpan…",
+    "saved": "Tersimpan",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "back": "Kembali",
+    "continue": "Lanjutkan",
+    "copy": "Salin",
+    "copied": "Tersalin!",
+    "retry": "Coba lagi",
+    "yes": "Ya",
+    "no": "Tidak",
+    "or": "atau",
+    "optional": "Opsional",
+    "learnMore": "Pelajari lebih lanjut",
+    "somethingWentWrong": "Terjadi kesalahan. Silakan coba lagi."
+  },
+  "nav": {
+    "live": "Live",
+    "channels": "Kanal",
+    "features": "Fitur",
+    "useCases": "Kasus penggunaan",
+    "download": "Unduh",
+    "docs": "Dokumentasi",
+    "blog": "Blog",
+    "pricing": "Harga",
+    "dashboard": "Dasbor",
+    "organizations": "Organisasi",
+    "callAnalyses": "Analisis panggilan",
+    "settings": "Pengaturan",
+    "messages": "Pesan",
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "signOut": "Keluar",
+    "openMenu": "Buka menu",
+    "closeMenu": "Tutup menu",
+    "userFallback": "Pengguna"
+  },
+  "footer": {
+    "tagline": "Berbagi layar kolaboratif dengan kontrol jarak jauh secara bersamaan. Seperti Screenhero, tetapi open source.",
+    "license": "Open source di bawah Lisensi MIT.",
+    "sections": {
+      "product": "Produk",
+      "install": "Instal",
+      "resources": "Sumber daya",
+      "company": "Perusahaan"
+    },
+    "links": {
+      "features": "Fitur",
+      "useCases": "Kasus penggunaan",
+      "download": "Unduh",
+      "pricing": "Harga",
+      "changelog": "Log perubahan",
+      "documentation": "Dokumentasi",
+      "faq": "FAQ",
+      "systemRequirements": "Persyaratan Sistem",
+      "troubleshooting": "Pemecahan Masalah",
+      "about": "Tentang",
+      "blog": "Blog",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Ketentuan Layanan"
+    }
+  },
+  "auth": {
+    "or": "atau",
+    "comingSoon": "Segera hadir",
+    "checkEmail": "Periksa email Anda",
+    "backToSignIn": "Kembali ke halaman masuk",
+    "errors": {
+      "unexpected": "Terjadi kesalahan tak terduga"
+    },
+    "fields": {
+      "email": "Alamat email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Kata sandi",
+      "passwordPlaceholder": "Min. 8 karakter, 1 huruf besar, 1 angka",
+      "passwordHint": "Minimal 8 karakter dengan satu huruf besar dan satu angka",
+      "showPassword": "Tampilkan kata sandi",
+      "hidePassword": "Sembunyikan kata sandi"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Kata sandi tidak cocok",
+      "passwordTooShort": "Kata sandi minimal 8 karakter",
+      "passwordNeedsUppercase": "Kata sandi harus berisi minimal satu huruf besar",
+      "passwordNeedsNumber": "Kata sandi harus berisi minimal satu angka"
+    },
+    "login": {
+      "meta": {
+        "title": "Masuk - PairUX",
+        "description": "Masuk ke akun PairUX Anda"
+      },
+      "title": "Selamat datang kembali",
+      "subtitle": "Masuk ke akun Anda untuk melanjutkan",
+      "failed": "Gagal masuk",
+      "forgotPassword": "Lupa kata sandi?",
+      "passwordPlaceholder": "Masukkan kata sandi Anda",
+      "rememberMe": "Ingat saya",
+      "submit": "Masuk",
+      "submitting": "Sedang masuk...",
+      "passkey": "Masuk dengan Passkey",
+      "noAccount": "Belum punya akun? <link>Daftar</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Daftar - PairUX",
+        "description": "Buat akun PairUX untuk mulai berbagi layar Anda"
+      },
+      "failed": "Gagal membuat akun",
+      "confirmationSent": "Kami telah mengirim tautan konfirmasi ke <strong>{email}</strong>. Klik tautan tersebut untuk memverifikasi akun Anda.",
+      "firstName": "Nama depan",
+      "firstNamePlaceholder": "Nama depan",
+      "lastName": "Nama belakang",
+      "lastNamePlaceholder": "Nama belakang",
+      "confirmPassword": "Konfirmasi kata sandi",
+      "confirmPasswordPlaceholder": "Konfirmasi kata sandi Anda",
+      "submit": "Buat akun",
+      "submitting": "Membuat akun...",
+      "haveAccount": "Sudah punya akun? <link>Masuk</link>",
+      "page": {
+        "earlyAdopterTitle": "Bonus Pengguna Awal",
+        "earlyAdopterBody": "Daftar sekarang dan dapatkan <bold>kredit ekstra 20%</bold> untuk setiap deposit!",
+        "waitlistTitle": "Gabung Daftar Tunggu",
+        "recommended": "Direkomendasikan",
+        "waitlistBody": "Amankan tempat Anda dengan deposit kredit $100 dan dapatkan akses prioritas serta keuntungan eksklusif.",
+        "perkCredits": "Deposit $100 = <semibold>kredit senilai $120</semibold> (bonus 20%)",
+        "perkPriority": "Akses prioritas saat kami meluncur",
+        "perkPricing": "Harga pengguna awal yang terkunci selamanya",
+        "perkCommunity": "Akses eksklusif ke kanal Discord/Slack",
+        "paymentMethods": "Metode Pembayaran",
+        "payCard": "Bayar dengan Kartu",
+        "payCardDetail": "Visa, Mastercard, Amex melalui Stripe",
+        "payCrypto": "Bayar dengan Kripto",
+        "payCryptoDetail": "BTC, ETH, USDC melalui CoinPayPortal",
+        "comingSoon": "Segera Hadir",
+        "refundable": "Deposit dapat dikembalikan sepenuhnya sebelum peluncuran jika Anda berubah pikiran.",
+        "orFree": "atau daftar gratis",
+        "freeTitle": "Buat akun gratis",
+        "freeBody": "Mulai dengan 2 peserta + 5 penonton, gratis selamanya",
+        "creditsTitle": "Cara Kerja Kredit",
+        "creditsBody": "PairUX menggunakan sistem berbasis kredit. Kredit dipakai untuk server relay SFU saat Anda membutuhkan lebih dari 5 penonton. <medium>$0,08 per jam-penonton pada 720p</medium>. Koneksi P2P paket gratis tidak pernah kedaluwarsa."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Lupa Kata Sandi - PairUX",
+        "description": "Atur ulang kata sandi akun PairUX Anda"
+      },
+      "title": "Lupa kata sandi?",
+      "subtitle": "Masukkan email Anda dan kami akan mengirimkan tautan pengaturan ulang",
+      "failed": "Gagal mengirim email pengaturan ulang",
+      "sent": "Jika ada akun dengan <strong>{email}</strong>, Anda akan menerima tautan untuk mengatur ulang kata sandi.",
+      "submit": "Kirim tautan",
+      "submitting": "Mengirim..."
+    },
+    "reset": {
+      "title": "Atur ulang kata sandi",
+      "subtitle": "Masukkan kata sandi baru Anda di bawah ini",
+      "failed": "Gagal mengatur ulang kata sandi",
+      "successTitle": "Kata sandi diperbarui",
+      "successBody": "Kata sandi Anda berhasil diatur ulang. Mengalihkan ke halaman masuk...",
+      "signInNow": "Masuk sekarang",
+      "invalidTitle": "Tautan tidak valid atau kedaluwarsa",
+      "invalidBody": "Tautan pengaturan ulang kata sandi ini tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru.",
+      "requestNewLink": "Minta tautan baru",
+      "newPassword": "Kata sandi baru",
+      "confirmNewPassword": "Konfirmasi kata sandi baru",
+      "confirmNewPasswordPlaceholder": "Konfirmasi kata sandi baru Anda",
+      "submit": "Atur ulang kata sandi",
+      "submitting": "Mengatur ulang..."
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "Otorisasi CLI PairUX - PairUX",
+    "invalidTitle": "Tautan masuk ini tidak valid",
+    "invalidBody": "Jalankan <code>{command}</code> lagi untuk mendapatkan tautan baru.",
+    "allowedTitle": "Anda dapat kembali ke terminal",
+    "deniedTitle": "Masuk dibatalkan",
+    "closeTab": "Anda dapat menutup tab ini.",
+    "title": "Otorisasi {clientName}?",
+    "intro": "Alat baris perintah PairUX di komputer ini meminta izin untuk bertindak sebagai <strong>{email}</strong>.",
+    "agentsNote": "Agen yang Anda jalankan dengannya bergabung ke sesi dengan label agen Anda, sehingga host tahu milik siapa agen tersebut.",
+    "limitsNote": "Alat ini tidak dapat melihat layar Anda, mengambil kontrol jarak jauh, atau mengubah akun Anda.",
+    "revokeNote": "Keluar dengan <code>{command}</code> akan mencabut aksesnya.",
+    "allow": "Izinkan",
+    "deny": "Tolak",
+    "errors": {
+      "authorizeFailed": "Tidak dapat mengotorisasi CLI",
+      "network": "Tidak dapat terhubung ke PairUX. Periksa koneksi Anda dan coba lagi."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Bergabung ke organisasi - PairUX",
+    "title": "Bergabung ke {orgName}",
+    "invited": "Anda diundang sebagai {role, select, admin {admin} other {anggota}}. Masuk sebagai <strong>{email}</strong> untuk menerima.",
+    "invitedToTeam": "Anda diundang sebagai {role, select, admin {admin} other {anggota}} tim {teamName}. Masuk sebagai <strong>{email}</strong> untuk menerima.",
+    "expired": "Undangan ini sudah kedaluwarsa. Mintalah undangan baru.",
+    "accept": "Terima undangan",
+    "errors": {
+      "invalid": "Undangan ini tidak lagi valid",
+      "acceptFailed": "Tidak dapat menerima undangan"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Fitur",
+      "description": "Jelajahi semua fitur PairUX: berbagi layar real-time, kontrol jarak jauh, kolaborasi multi-kursor, dukungan lintas platform, dan banyak lagi."
+    },
+    "hero": {
+      "title": "Fitur",
+      "subtitle": "Semua yang Anda butuhkan untuk kolaborasi real-time, dibangun dengan mengutamakan privasi dan keamanan.",
+      "imageAlt": "Dasbor PairUX, menampilkan statistik sesi, kanal, tindakan cepat untuk memulai atau bergabung ke sesi, serta paket saat ini."
+    },
+    "comingSoon": "Segera Hadir",
+    "main": {
+      "callAnalysis": {
+        "title": "Analisis Panggilan AI",
+        "description": "Aktifkan sebelum wawancara, rapat tim, atau presentasi, lalu dapatkan laporan umpan balik pribadi setelah panggilan: skor, apa yang berhasil, apa yang perlu diperbaiki, dan momen yang layak diputar ulang.",
+        "details": {
+          "d0": "Waktu bicara, tempo, dan kata pengisi per pembicara",
+          "d1": "Mode wawancara, rapat tim, dan presentasi",
+          "d2": "Tangkapan layar ditinjau untuk slide dan demo",
+          "d3": "Semua peserta diberi tahu bahwa panggilan direkam"
+        }
+      },
+      "screenSharing": {
+        "title": "Berbagi Layar Real-time",
+        "description": "Bagikan seluruh layar atau jendela tertentu dengan kualitas sangat jernih. Streaming berbasis WebRTC menghadirkan video berlatensi rendah dengan bitrate adaptif.",
+        "details": {
+          "d0": "Berbagi layar penuh atau jendela",
+          "d1": "Kualitas standar 1080p @ 30fps",
+          "d2": "Bitrate adaptif untuk koneksi apa pun",
+          "d3": "Kursor ikut ditampilkan dalam stream"
+        }
+      },
+      "remoteControl": {
+        "title": "Mouse & Keyboard Jarak Jauh",
+        "description": "Biarkan kolaborator Anda mengambil alih dengan input mouse dan keyboard penuh. Semua kontrol memerlukan persetujuan eksplisit dari host.",
+        "details": {
+          "d0": "Kontrol mouse penuh (klik, gulir, seret)",
+          "d1": "Input keyboard lengkap",
+          "d2": "Tombol khusus dan pintasan",
+          "d3": "Kompatibel lintas platform"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Input Bersamaan",
+        "description": "Host dan penonton dapat mengontrol secara bersamaan. Input host selalu diprioritaskan demi keamanan dan kenyamanan.",
+        "details": {
+          "d0": "Kedua pengguna dapat mengontrol bersama",
+          "d1": "Host selalu diprioritaskan",
+          "d2": "Tanpa pemblokiran atau antrean input",
+          "d3": "Indikator visual menunjukkan pengontrol aktif"
+        }
+      },
+      "consent": {
+        "title": "Model Persetujuan Eksplisit",
+        "description": "Keamanan dibangun sejak awal. Penonton harus meminta kontrol, dan host harus menyetujuinya secara eksplisit.",
+        "details": {
+          "d0": "Permintaan kontrol memerlukan persetujuan",
+          "d1": "Pintasan darurat untuk mencabut (Ctrl+Shift+Esc)",
+          "d2": "Indikator visual saat kontrol aktif",
+          "d3": "Kontrol dapat dicabut kapan saja"
+        }
+      },
+      "pwaViewer": {
+        "title": "Penampil PWA",
+        "description": "Penonton bergabung dari browser modern mana pun - tanpa perlu mengunduh. Instal sebagai Progressive Web App untuk akses cepat.",
+        "details": {
+          "d0": "Berfungsi di browser modern mana pun",
+          "d1": "Tidak perlu akun untuk bergabung",
+          "d2": "Dapat diinstal sebagai PWA",
+          "d3": "Ramah seluler untuk menonton"
+        }
+      },
+      "crossPlatform": {
+        "title": "Desktop Lintas Platform",
+        "description": "Aplikasi desktop native untuk macOS, Windows, dan Linux. Instal melalui package manager favorit Anda.",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "Tersedia unduhan langsung"
+        }
+      },
+      "recording": {
+        "title": "Rekaman Layar",
+        "description": "Rekam sesi Anda secara lokal untuk ditinjau nanti. Cocok untuk tutorial, dokumentasi, dan menyimpan catatan sesi pair programming.",
+        "details": {
+          "d0": "Rekam ke WebM/MP4 secara lokal",
+          "d1": "Tangkap audio sistem + mikrofon",
+          "d2": "Preset kualitas (720p/1080p/4K)",
+          "d3": "Jeda/lanjutkan rekaman"
+        }
+      },
+      "textChat": {
+        "title": "Chat Teks",
+        "description": "Chat teks bawaan untuk berbagi tautan, cuplikan kode, atau berkomunikasi tanpa suara.",
+        "details": {
+          "d0": "Pesan real-time",
+          "d1": "Notifikasi sistem (bergabung/keluar)",
+          "d2": "Berjalan bersama berbagi layar",
+          "d3": "Riwayat pesan per sesi"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "Konsol host PairUX selama sesi, menampilkan pemilih kualitas, kode bergabung, daftar peserta, dan panel info sesi.",
+      "consent": "Konsol penonton PairUX, tempat tamu harus menekan Minta Kontrol sebelum host memberikan akses input.",
+      "pwaViewer": "Layar bergabung PairUX di browser, menampilkan kode sesi, status live, dan tombol Tonton gratis yang tidak memerlukan akun.",
+      "crossPlatform": "Halaman unduhan PairUX yang mencantumkan installer satu baris serta build DMG, EXE, AppImage, DEB, dan RPM untuk macOS, Windows, dan Linux.",
+      "recording": "Pengaturan rekaman PairUX, dengan preset kualitas rekaman dan tangkapan bawaan serta sakelar audio sistem."
+    },
+    "tech": {
+      "title": "Dibangun dengan Teknologi Modern",
+      "subtitle": "PairUX menggunakan WebRTC standar industri untuk streaming yang andal dan berlatensi rendah."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Koneksi peer-to-peer langsung untuk latensi minimal."
+      },
+      "e2e": {
+        "title": "Enkripsi E2E",
+        "description": "Enkripsi DTLS-SRTP untuk semua stream media."
+      },
+      "nat": {
+        "title": "NAT Traversal",
+        "description": "Server STUN/TURN untuk konektivitas yang andal."
+      },
+      "adaptive": {
+        "title": "Kualitas Adaptif",
+        "description": "Penyesuaian kualitas otomatis berdasarkan bandwidth."
+      },
+      "sharedControl": {
+        "title": "Kontrol bersama",
+        "description": "Host dan tamu bergantian menggunakan pointer sistem host."
+      },
+      "keyboard": {
+        "title": "Keyboard Lengkap",
+        "description": "Semua tombol, termasuk tombol pengubah dan tombol khusus."
+      }
+    },
+    "compare": {
+      "title": "Perbandingan PairUX",
+      "subtitle": "Lihat bagaimana PairUX dibandingkan dengan solusi berbagi layar lainnya.",
+      "feature": "Fitur",
+      "others": "Lainnya",
+      "rows": {
+        "screenSharing": "Berbagi layar",
+        "remoteControl": "Kontrol jarak jauh",
+        "simultaneousControl": "Kontrol bersamaan",
+        "localRecording": "Rekaman layar (lokal)",
+        "textChat": "Chat teks",
+        "noAccount": "Penonton tanpa akun",
+        "openSource": "Open source",
+        "selfHostable": "Dapat di-host sendiri",
+        "e2e": "Enkripsi E2E",
+        "nativeApps": "Aplikasi native",
+        "browserViewer": "Penampil browser",
+        "freeTier": "Paket gratis"
+      },
+      "values": {
+        "soon": "segera",
+        "partial": "sebagian",
+        "unlimited": "tanpa batas",
+        "limited": "terbatas"
+      }
+    },
+    "cta": {
+      "title": "Siap untuk memulai?",
+      "subtitle": "Unduh PairUX dan mulai berkolaborasi dalam hitungan detik.",
+      "button": "Unduh Sekarang"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "Analisis Panggilan AI: umpan balik untuk wawancara, rapat tim, dan presentasi | PairUX",
+        "description": "Aktifkan analisis panggilan AI sebelum panggilan PairUX dan dapatkan laporan umpan balik setelahnya: waktu bicara, tempo bicara, kata pengisi, apa yang berhasil, apa yang perlu dilatih, dan momen untuk diputar ulang."
+      },
+      "eyebrow": "Analisis panggilan AI · Pro dan Team",
+      "title": "Ketahui bagaimana panggilan sebenarnya berjalan.",
+      "intro": "Aktifkan analisis panggilan AI sebelum wawancara, rapat tim, atau presentasi Anda. Saat panggilan berakhir, Anda menerima laporan pribadi: skor, apa yang berhasil, apa yang perlu diperbaiki, angka di baliknya, dan momen yang layak diputar ulang.",
+      "startCta": "Mulai panggilan yang dianalisis",
+      "seePlans": "Lihat paket",
+      "kindsTitle": "Umpan balik yang disesuaikan dengan panggilan",
+      "kinds": {
+        "interviews": {
+          "title": "Wawancara",
+          "body": "Pertanyaan demi pertanyaan: bagaimana setiap jawaban diterima, di mana terlalu panjang atau kurang jelas, dan cara yang lebih kuat untuk menyampaikannya. Anda yang mewawancarai? Analisis meninjau pertanyaan Anda dan seberapa baik Anda mendengarkan."
+        },
+        "teamSyncs": {
+          "title": "Rapat tim",
+          "body": "Keputusan yang dibuat, pertanyaan yang belum terjawab, saat rapat melenceng, dan setiap komitmen beserta penanggung jawabnya, sehingga tidak ada yang terlewat antar-rapat."
+        },
+        "presentations": {
+          "title": "Presentasi dan demo",
+          "body": "Pembukaan, alur, dan penutup Anda, di mana audiens kemungkinan kehilangan fokus, dan apa yang tampil di layar: kepadatan slide, keterbacaan, dan apakah layar sesuai dengan yang Anda ucapkan."
+        }
+      },
+      "measuredTitle": "Diukur, bukan ditebak",
+      "measuredBody": "Angka dihitung dari transkrip, dengan setiap pembicara dibedakan, dan umpan balik tertulis mengutipnya. Jika laporan menyebut Anda berbicara 70% dari sebuah wawancara, itu fakta yang dapat Anda periksa.",
+      "measured": {
+        "m0": "Porsi waktu bicara setiap pembicara",
+        "m1": "Tempo bicara dalam kata per menit",
+        "m2": "Kata pengisi per 100 kata, beserta jenisnya",
+        "m3": "Pertanyaan yang diajukan, monolog terpanjang, interupsi"
+      },
+      "howTitle": "Cara kerjanya",
+      "how": {
+        "s0": "Sebelum panggilan, aktifkan <strong>analisis panggilan AI</strong> di layar mulai (pairux.com, aplikasi desktop, atau aplikasi seluler) dan pilih jenis panggilan. Rekaman panggilan ikut aktif, dan Anda dapat menonaktifkannya.",
+        "s1": "Selama panggilan, aplikasi Anda mengunggah audio panggilan dan tangkapan layar yang Anda bagikan setiap 20 detik. Semua yang bergabung melihat bahwa panggilan direkam untuk dianalisis.",
+        "s2": "Setelah panggilan, audio ditranskripsi dengan pembicara dibedakan, lalu pelatih AI menulis laporan Anda. Laporan dikirim lewat email dan tersimpan di Analisis panggilan pada dasbor Anda."
+      },
+      "privacyTitle": "Persetujuan dan privasi",
+      "privacy": {
+        "p0": "Pilihan dibuat sebelum panggilan dimulai dan tidak dapat diaktifkan di tengah jalan.",
+        "p1": "Setiap peserta melihat pemberitahuan sepanjang panggilan, di web, aplikasi desktop, dan aplikasi seluler.",
+        "p2": "Laporan dan rekaman bersifat pribadi bagi host, atau bagi tim atau organisasi tempat panggilan berlangsung, dan dapat dihapus kapan saja.",
+        "p3": "Biarkan rekaman nonaktif, maka audio dihapus segera setelah laporan selesai ditulis.",
+        "p4": "Di ponsel, hanya mikrofon Anda sendiri yang direkam; mulai dari pairux.com atau aplikasi desktop untuk merekam semua orang."
+      },
+      "tryCta": "Coba di panggilan berikutnya"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Kasus Penggunaan untuk Bekerja dengan Agen AI",
+        "description": "Pair programming, tinjau kode buatan AI, debug, bantu rekan tim baru, dan mengajar secara live dengan PairUX. Dapatkan umpan balik AI untuk wawancara, rapat tim, dan presentasi."
+      },
+      "eyebrow": "Kasus penggunaan PairUX",
+      "title": "Bekerja lebih baik dengan agen. Bersama.",
+      "intro": "Agen bisa menulis kodenya. Tim Anda tetap perlu memahami hasilnya. Gunakan PairUX untuk berbagi layar, mencoba aplikasi, dan menentukan keputusan berikutnya bersama-sama.",
+      "findWorkflow": "Temukan alur kerja Anda",
+      "featuredLabel": "Unggulan · Pair programming dengan agen",
+      "featuredTitle": "Dua orang. Satu sesi agen.",
+      "featuredBody": "Bagikan terminal moshcode live dengan rekan tim, lalu gunakan PairUX untuk meninjau editor dan aplikasi bersama. Tonton dulu atau ikut berpartisipasi dalam sesi yang sama.",
+      "featuredCta": "Jelajahi pair programming dengan agen",
+      "workflowsTitle": "Libatkan orang lain dalam pekerjaan",
+      "workflowsIntro": "Mulailah dengan layar bersama. Izinkan kolaborator menggunakan mouse dan keyboard saat host menyetujui kontrol jarak jauh.",
+      "notesPlans": "Paket Pro dan Team",
+      "notesTitle": "Pencatat AI",
+      "notesBody": "Ubah sesi kerja menjadi draf catatan, keputusan, dan item tindakan. Bantu rekan tim mengejar ketertinggalan atau bawa konteksnya ke tugas agen berikutnya.",
+      "notesFootnote": "Bagian dari analisis panggilan AI: aktifkan sebelum panggilan dan laporan dikirim lewat email saat panggilan berakhir.",
+      "notesCta": "Jelajahi catatan panggilan AI",
+      "ctaTitle": "Mulai dengan satu sesi bersama",
+      "ctaBody": "Dapatkan PairUX, bagikan layar Anda, dan undang rekan tim untuk mengerjakan tugas nyata.",
+      "getPairux": "Dapatkan PairUX",
+      "comparePlans": "Bandingkan paket"
+    },
+    "exploreWorkflow": "Jelajahi alur kerja",
+    "allUseCases": "Semua kasus penggunaan",
+    "detail": {
+      "plannedTitle": "{title} · Direncanakan untuk Paket Premium",
+      "notAvailable": "Belum tersedia. Hubungi kami tentang akses premium dan jadwal ketersediaan sebelum membeli untuk fitur ini.",
+      "whenHelps": "Kapan ini membantu",
+      "tryWorkflow": "Coba alur kerja ini",
+      "plannedWorkflow": "Alur kerja yang direncanakan",
+      "leaveWith": "Yang Anda dapatkan",
+      "goal": "Tujuannya",
+      "discussPremium": "Diskusikan catatan AI premium",
+      "startWithPairux": "Mulai dengan PairUX",
+      "seeCurrentPlans": "Lihat paket saat ini",
+      "comparePlans": "Bandingkan paket",
+      "moreWays": "Cara lain untuk bekerja bersama"
+    },
+    "agentic": {
+      "meta": {
+        "title": "Pair Programming dengan Agen menggunakan moshcode | PairUX",
+        "description": "Bekerja bersama rekan tim dalam sesi agen coding live yang sama. Gunakan moshcode untuk terminal bersama dan PairUX untuk meninjau layar dan aplikasi bersama."
+      },
+      "backLink": "← Semua kasus penggunaan",
+      "eyebrow": "Pair programming dengan agen",
+      "title": "Dua orang. Satu sesi agen.",
+      "intro": "Pair programming tetap membutuhkan konteks bersama saat agen AI yang menulis kode. Ajak rekan tim ke sesi moshcode live Anda, lalu gunakan PairUX untuk meninjau apa yang dibangun agen dan menentukan langkah berikutnya bersama.",
+      "openMoshcode": "Buka moshcode",
+      "getPairux": "Dapatkan PairUX",
+      "stepsTitle": "Dari menonton hingga bekerja bersama",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Mulai dengan satu sesi live",
+          "body": "Jalankan moshcode di mesin pengembangan Anda dan buka sesinya di app.moshcode.sh. Anda dan rekan tim mengikuti output agen yang sama dan bekerja di terminal yang sama."
+        },
+        "s1": {
+          "title": "Ajak tim Anda ke dalam sesi",
+          "body": "Buat organisasi dan tim di moshcode, tambahkan rekan tim menggunakan email akunnya, lalu bagikan sesi dengan tim tersebut. Akses baca memungkinkan mereka menonton; akses tulis memungkinkan mereka mengirim input ke sesi yang sedang berjalan."
+        },
+        "s2": {
+          "title": "Tinjau hasilnya bersama di PairUX",
+          "body": "Bagikan terminal, editor, atau pratinjau aplikasi Anda dengan PairUX. Rekan tim bergabung dari browser untuk melihat pekerjaan dalam konteksnya. Setujui kontrol jarak jauh jika Anda ingin mereka juga menggunakan mouse dan keyboard Anda."
+        }
+      },
+      "permissionsNote": "Izin tim moshcode mengatur akses ke sesi terminal. Kontrol jarak jauh PairUX adalah pilihan terpisah yang disetujui oleh host berbagi layar. Gunakan salah satu atau keduanya, sesuai cara Anda ingin berkolaborasi.",
+      "contractorTitle": "Cara praktis untuk membantu kontraktor memulai",
+      "contractorP1": "Tambahkan kontraktor ke tim Anda dan biarkan mereka menonton sesi pertama Anda dengan akses baca. Jelaskan tugasnya, output agen, dan aplikasi yang berjalan. Saat mereka siap berpartisipasi, berikan akses tulis agar mereka dapat bekerja bersama Anda di sesi yang sama.",
+      "contractorP2": "Anda juga dapat menggunakan alur kerja ini untuk menyelidiki tes yang gagal, membandingkan implementasi agen dengan perilaku yang diharapkan, atau meninjau perubahan sebelum di-merge. Semua orang melihat pekerjaan saat sedang berlangsung.",
+      "startPairing": "Mulai pairing dengan PairUX"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Pair programming dengan agen",
+        "audience": "Developer & rekan tim",
+        "description": "Bekerja bersama rekan tim dalam satu sesi agen coding live. Bagikan terminal melalui moshcode dan tinjau layar bersama di PairUX.",
+        "scenario": "Anda ingin rekan tim membantu mengarahkan agen saat bekerja di lingkungan pengembangan Anda.",
+        "outcome": "Pemahaman bersama tentang apa yang diubah agen dan apa yang harus dilakukan selanjutnya.",
+        "steps": {
+          "s0": {
+            "title": "Mulai terminal bersama",
+            "body": "Buka sesi moshcode live Anda dan bagikan dengan tim Anda."
+          },
+          "s1": {
+            "title": "Tampilkan aplikasinya",
+            "body": "Bagikan editor atau pratinjau aplikasi Anda melalui PairUX."
+          },
+          "s2": {
+            "title": "Kerjakan langkah berikutnya",
+            "body": "Tinjau hasilnya bersama dan tentukan apa yang akan diminta dari agen selanjutnya."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "Tinjau kode buatan AI",
+        "audience": "Developer & peninjau",
+        "description": "Telusuri diff, tes, dan aplikasi yang berjalan bersama sebelum perubahan dari agen menjadi pull request yang di-merge.",
+        "scenario": "Agen telah menghasilkan perubahan besar. Peninjau perlu memahami perilakunya, bukan sekadar membaca ringkasan patch.",
+        "outcome": "Perubahan yang sudah ditinjau dengan perbaikan yang jelas, tes lanjutan, dan keputusan merge bersama.",
+        "steps": {
+          "s0": {
+            "title": "Buka buktinya",
+            "body": "Bagikan editor Anda dengan diff, kebutuhan tugas, dan output tes yang terlihat. Jelaskan apa yang Anda minta agen ubah."
+          },
+          "s1": {
+            "title": "Coba perilakunya bersama",
+            "body": "Jalankan aplikasi dan uji jalur-jalur penting. Setujui kontrol jarak jauh jika peninjau ingin mencoba kasus tepi secara langsung."
+          },
+          "s2": {
+            "title": "Ubah temuan menjadi edit berikutnya",
+            "body": "Sepakati koreksinya dan minta agen coding Anda untuk menerapkannya. Tinjau diff baru dan jalankan ulang pemeriksaan terkait sebelum merge."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Gerakkan kembali agen yang macet",
+        "audience": "Developer & rekan debugging",
+        "description": "Libatkan orang kedua saat ada tes yang gagal atau perbaikan yang terus gagal. Periksa buktinya dan pilih eksperimen berikutnya bersama.",
+        "scenario": "Agen coding Anda terus mengubah kode tanpa memperbaiki kegagalan. Rekan tim dapat membantu menemukan asumsi yang terlewat atau masalah lingkungan.",
+        "outcome": "Kegagalan yang dapat direproduksi dan langkah berikutnya yang terarah untuk agen.",
+        "steps": {
+          "s0": {
+            "title": "Tunjukkan kegagalan saat terjadi",
+            "body": "Bagikan terminal dan reproduksi masalahnya. Jelaskan kepada rekan tim error-nya, perubahan terbaru, dan apa yang sudah dicoba."
+          },
+          "s1": {
+            "title": "Uji satu penjelasan",
+            "body": "Periksa log, konfigurasi, dan aplikasi yang berjalan bersama. Berikan kontrol jarak jauh saat rekan tim perlu menjelajahi lingkungan yang sama."
+          },
+          "s2": {
+            "title": "Beri agen arahan yang lebih baik",
+            "body": "Catat langkah reproduksi dan bukti di balik perbaikan yang Anda pilih. Minta agen membuat perubahan yang terarah, lalu periksa kembali kegagalan awal."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Bantu kontraktor memulai dalam konteks",
+        "audience": "Pemimpin tim & rekan tim baru",
+        "description": "Biarkan rekan tim baru menonton tugas nyata, mempelajari codebase dan alur kerja agen Anda, lalu berpartisipasi saat mereka siap.",
+        "scenario": "Seorang kontraktor bergabung dengan proyek Anda dan perlu memahami cara Anda menggunakan agen, meninjau perubahan, dan memutuskan kapan pekerjaan siap dirilis.",
+        "outcome": "Rekan tim yang memahami alur kerja Anda dan dapat mengerjakan tugas berikutnya dengan konteks.",
+        "steps": {
+          "s0": {
+            "title": "Mulai dengan tugas nyata",
+            "body": "Bagikan layar pengembangan Anda dan jelaskan proyek, tugas, serta cara Anda memberi arahan ke agen coding. Biarkan kontraktor mengamati tahap pertama."
+          },
+          "s1": {
+            "title": "Jelaskan keputusannya",
+            "body": "Telusuri output agen, tes, dan aplikasi yang berjalan. Tunjukkan kapan Anda menerima saran dan kapan Anda meminta pendekatan lain."
+          },
+          "s2": {
+            "title": "Beri mereka giliran",
+            "body": "Setujui kontrol jarak jauh PairUX untuk edit yang dipandu. Jika Anda juga menggunakan moshcode, berikan akses tulis ke sesi tim bersama saat mereka siap mengirim input terminal."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "Tinjau aplikasi bersama tim produk dan desain",
+        "audience": "Builder, desainer & tim produk",
+        "description": "Tunjukkan aplikasi yang sedang dibangun agen kepada orang-orang yang akan menilai hasilnya. Coba alurnya bersama dan ubah umpan balik menjadi perubahan spesifik.",
+        "scenario": "Prototipe yang berfungsi sudah siap, tetapi interaksi, kata-kata, atau tata letaknya perlu umpan balik dari seseorang di luar kode.",
+        "outcome": "Kriteria penerimaan yang konkret dan daftar perubahan yang disepakati untuk aplikasi yang berjalan.",
+        "steps": {
+          "s0": {
+            "title": "Bagikan pengalaman yang berfungsi",
+            "body": "Buka pratinjau aplikasi dan bagikan jendela tersebut di PairUX. Telusuri tugas yang seharusnya dapat diselesaikan oleh pengguna nyata."
+          },
+          "s1": {
+            "title": "Biarkan peninjau menjelajah",
+            "body": "Mintalah umpan balik sambil Anda bernavigasi, atau setujui kontrol jarak jauh agar peninjau dapat mencoba alurnya di mesin Anda."
+          },
+          "s2": {
+            "title": "Tuntaskan siklus umpan balik",
+            "body": "Ubah pengamatan menjadi permintaan spesifik untuk agen coding Anda. Tunjukkan aplikasi yang diperbarui di sesi yang sama dan sepakati apa yang sudah siap."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Lancarkan alur kerja AI seseorang",
+        "audience": "Tim dukungan & pemimpin teknis",
+        "description": "Bantu rekan tim mengonfigurasi alat, memahami error, atau memulihkan alur kerja lokal yang rusak sementara Anda berdua melihat layar yang sama.",
+        "scenario": "Agen atau alat pengembangan berfungsi di satu mesin tetapi gagal di mesin lain. Tangkapan layar dan pesan error yang disalin kehilangan konteksnya.",
+        "outcome": "Setup yang berfungsi dan orang yang memahami bagaimana masalahnya diselesaikan.",
+        "steps": {
+          "s0": {
+            "title": "Minta mereka menunjukkan masalahnya",
+            "body": "Orang yang mengalami masalah menjadi host sesi PairUX dan membagikan jendela alat yang relevan. Bergabunglah dari browser Anda dan saksikan mereka mereproduksi kegagalannya."
+          },
+          "s1": {
+            "title": "Pandu perbaikan di lingkungan mereka",
+            "body": "Jelaskan pemeriksaan berikutnya dan biarkan mereka melakukannya. Minta kontrol jarak jauh saat bantuan langsung diperlukan; host yang memutuskan untuk menyetujuinya atau tidak."
+          },
+          "s2": {
+            "title": "Verifikasi seluruh alur kerja",
+            "body": "Minta mereka menjalankan tugas awal lagi. Tinggalkan langkah-langkah yang memperbaiki masalah agar mereka dapat mengenalinya lain kali."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Ajarkan workshop coding AI secara live",
+        "audience": "Pendidik, komunitas & tim",
+        "description": "Tunjukkan kepada audiens cara Anda memberi arahan ke agen, memeriksa hasil kerjanya, dan menangani kesalahan sambil membangun sesuatu yang nyata.",
+        "scenario": "Tim Anda ingin mempelajari alur kerja agen dengan melihat keputusan dan koreksi yang biasanya tidak muncul dalam demo yang dipoles.",
+        "outcome": "Audiens yang telah melihat jalur lengkap dari arahan tugas hingga hasil yang diperiksa.",
+        "steps": {
+          "s0": {
+            "title": "Siapkan demonstrasi yang terfokus",
+            "body": "Pilih tugas kecil dan bagikan terminal, editor, atau aplikasi yang akan Anda gunakan. Pilih paket PairUX yang sesuai dengan kapasitas pendengar ruangan Anda."
+          },
+          "s1": {
+            "title": "Tunjukkan alasan di balik prompt",
+            "body": "Jelaskan konteks yang Anda berikan kepada agen dan alasannya. Berhentilah di momen penting untuk memeriksa diff, menjalankan tes, dan membahas hasil yang tidak terduga."
+          },
+          "s2": {
+            "title": "Latih peninjauan hasil",
+            "body": "Minta kelompok mengusulkan kasus tepi dan perubahan lanjutan. Jalankan pemeriksaan tersebut secara terlihat agar peserta melihat cara Anda memutuskan apakah pekerjaan sudah siap."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "Pencatat AI",
+        "audience": "Paket Pro dan Team",
+        "description": "Aktifkan analisis panggilan AI sebelum rapat tim dan dapatkan keputusan, pertanyaan terbuka, dan item tindakan, ditambah umpan balik tentang jalannya rapat.",
+        "scenario": "Tim Anda ingin tetap fokus pada pekerjaan bersama dan membawa catatan yang berguna untuk sesi berikutnya.",
+        "outcome": "Rangkuman pekerjaan, keputusan, dan langkah selanjutnya yang sudah ditinjau.",
+        "steps": {
+          "s0": {
+            "title": "Aktifkan analisis panggilan AI sebelum panggilan",
+            "body": "Di layar mulai, aktifkan analisis panggilan AI dan pilih \"Rapat tim\". Semua yang bergabung melihat bahwa panggilan direkam untuk dianalisis."
+          },
+          "s1": {
+            "title": "Baca laporannya",
+            "body": "Setelah panggilan, Anda mendapatkan ringkasan, keputusan yang diambil, pertanyaan yang masih terbuka, dan setiap item tindakan beserta penanggung jawabnya, di samping umpan balik tentang jalannya rapat."
+          },
+          "s2": {
+            "title": "Bawa konteks ke tugas berikutnya",
+            "body": "Bagikan item tindakan dengan tim, atau gunakan ringkasan untuk memberi arahan ke rekan tim atau menyiapkan permintaan berikutnya untuk agen Anda."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Tentang",
+      "description": "Pelajari tentang PairUX - alat berbagi layar kolaboratif yang open source."
+    },
+    "title": "Tentang PairUX",
+    "subtitle": "Membangun alat kolaborasi yang kami harap sudah ada",
+    "missionTitle": "Misi Kami",
+    "missionP1": "PairUX lahir dari rasa frustrasi. Setelah Slack mengakuisisi Screenhero lalu menghentikannya, pair programming jarak jauh menjadi sulit tanpa alasan. Alat yang ada tidak memiliki kontrol jarak jauh, memerlukan lisensi mahal, atau mengunci Anda pada satu vendor.",
+    "missionP2": "Kami percaya berbagi layar kolaboratif harus dapat diakses oleh semua orang. Itulah sebabnya PairUX open source, dengan harga transparan dan tanpa batasan buatan.",
+    "buildingTitle": "Apa yang Kami Bangun",
+    "buildingBody": "PairUX adalah aplikasi desktop untuk berbagi layar kolaboratif dengan kontrol jarak jauh secara bersamaan. Bayangkan Screenhero, tetapi modern, open source, dan lintas platform.",
+    "buildingList": {
+      "b0": "Berbagi layar real-time dengan latensi rendah",
+      "b1": "Beberapa peserta dapat mengontrol layar bersama secara bersamaan",
+      "b2": "Enkripsi end-to-end untuk keamanan",
+      "b3": "Berjalan di macOS, Windows, dan Linux",
+      "b4": "Penonton dapat bergabung dari browser apa pun"
+    },
+    "openSourceTitle": "Open Source",
+    "openSourceBody": "PairUX dirilis di bawah lisensi MIT. Anda dapat melihat, memodifikasi, dan berkontribusi pada kodenya di <link>GitHub</link>. Kami menyambut kontribusi dari komunitas.",
+    "contactTitle": "Kontak",
+    "contactBody": "Punya pertanyaan atau masukan? Hubungi kami di <link>hello@pairux.com</link>."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blog - PairUX",
+      "description": "Berita, pembaruan, dan tutorial dari tim PairUX."
+    },
+    "title": "Blog",
+    "subtitle": "Berita, pembaruan, dan tutorial dari tim PairUX",
+    "comingSoonTitle": "Segera Hadir",
+    "comingSoonBody": "Kami sedang menyiapkan artikel blog pertama. Kunjungi lagi nanti untuk tutorial, pembaruan produk, dan cerita di balik layar pembuatan PairUX.",
+    "postNotFound": "Artikel tidak ditemukan",
+    "postTitle": "{title} - Blog PairUX",
+    "backToBlog": "← Kembali ke blog"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Log Perubahan",
+      "description": "Lihat apa yang baru di PairUX. Catatan rilis dan riwayat versi."
+    },
+    "title": "Log Perubahan",
+    "subtitle": "Lihat apa yang baru di PairUX",
+    "version": "v{version}",
+    "englishOnly": "Catatan rilis diterbitkan dalam bahasa Inggris."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Kebijakan Privasi",
+      "description": "Kebijakan privasi PairUX - cara kami menangani data Anda."
+    },
+    "terms": {
+      "title": "Ketentuan Layanan",
+      "description": "Ketentuan layanan dan kebijakan penggunaan yang wajar PairUX."
+    },
+    "lastUpdated": "Terakhir diperbarui: {date}",
+    "englishOnly": "Dokumen ini disediakan dalam bahasa Inggris, yang merupakan versi yang berlaku."
+  },
+  "docs": {
+    "meta": {
+      "title": "Dokumentasi",
+      "description": "Pelajari cara menggunakan PairUX: panduan instalasi, persyaratan sistem, informasi keamanan, dan pertanyaan yang sering diajukan."
+    },
+    "title": "Dokumentasi",
+    "subtitle": "Semua yang perlu Anda ketahui tentang penggunaan PairUX untuk berbagi layar kolaboratif.",
+    "onThisPage": "Di halaman ini",
+    "toc": {
+      "gettingStarted": "Memulai",
+      "requirements": "Persyaratan Sistem",
+      "hosting": "Menjadi Host Sesi",
+      "viewing": "Menonton Sesi",
+      "control": "Kontrol Jarak Jauh",
+      "remoteStart": "Mulai Jarak Jauh (Tailscale)",
+      "security": "Keamanan",
+      "troubleshooting": "Pemecahan Masalah",
+      "uninstalling": "Menghapus Instalasi",
+      "faq": "FAQ"
+    },
+    "englishOnly": "Dokumentasi hanya tersedia dalam bahasa Inggris.",
+    "agents": {
+      "meta": {
+        "title": "Peserta agen | Dokumentasi PairUX",
+        "description": "Ajak agen AI seperti Claude Code ke sesi PairUX live. Agen bergabung dengan kode bergabung, mengikuti chat, menjawab di dalamnya, dan tampil dengan label agen di web, desktop, dan seluler."
+      },
+      "backLink": "← Dokumentasi",
+      "title": "Peserta agen"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Dasbor - PairUX",
+      "description": "Dasbor PairUX - Kelola sesi, tagihan, dan pengaturan Anda."
+    },
+    "stats": {
+      "sessionsThisMonth": "Sesi Bulan Ini",
+      "totalParticipants": "Total Peserta",
+      "hoursUsed": "Jam Terpakai",
+      "hoursValue": "{hours} j"
+    },
+    "channelsHeading": "Kanal",
+    "usageAnalytics": "Analitik Penggunaan",
+    "analyticsPlaceholder": "Analitik akan muncul di sini",
+    "yourPlan": "Paket Anda",
+    "freePlan": "Paket Gratis",
+    "current": "Saat ini",
+    "freePlanSummary": "2 peserta, hanya P2P",
+    "upgradePlan": "Tingkatkan Paket",
+    "comingSoon": "Segera hadir",
+    "comingSoonButton": "Segera Hadir",
+    "perMonth": "/bulan",
+    "plans": {
+      "pro": {
+        "description": "Untuk profesional & tim yang berkembang",
+        "features": {
+          "participants": "10 peserta + 50 penonton",
+          "hours": "Termasuk 100 jam-penonton"
+        }
+      },
+      "team": {
+        "description": "Untuk tim & organisasi",
+        "features": {
+          "participants": "Peserta tanpa batas",
+          "hours": "Termasuk 500 jam-penonton"
+        }
+      }
+    },
+    "billing": "Tagihan",
+    "noPaymentMethod": "Belum ada metode pembayaran",
+    "addPaymentMethod": "Tambah Metode Pembayaran",
+    "settings": "Pengaturan",
+    "accountSettings": "Pengaturan Akun",
+    "notifications": "Notifikasi",
+    "welcome": {
+      "title": "Selamat datang di PairUX",
+      "subtitle": "Bagikan layar Anda, berkolaborasi secara real-time, dan dapatkan bantuan jarak jauh.",
+      "startSharing": "Mulai Berbagi",
+      "joinSession": "Gabung Sesi",
+      "scheduleMeeting": "Jadwalkan Rapat",
+      "callAnalyses": "Analisis Panggilan"
+    },
+    "quickActions": {
+      "title": "Tindakan Cepat",
+      "startSession": "Mulai Sesi",
+      "startSessionHint": "Bagikan layar Anda",
+      "joinSession": "Gabung Sesi",
+      "joinSessionHint": "Masukkan kode bergabung",
+      "scheduleMeeting": "Jadwalkan Rapat",
+      "scheduleMeetingHint": "Undang tim Anda"
+    },
+    "recentSessions": {
+      "title": "Sesi Terbaru",
+      "fetchFailed": "Gagal mengambil sesi",
+      "loadFailed": "Gagal memuat sesi",
+      "tryAgain": "Coba lagi",
+      "empty": "Belum ada sesi",
+      "emptyHint": "Mulai sesi pertama Anda untuk melihatnya di sini",
+      "startSession": "Mulai Sesi",
+      "viewAll": "Lihat semua",
+      "join": "Gabung",
+      "resume": "Lanjutkan",
+      "status": {
+        "created": "Dibuat",
+        "active": "Aktif",
+        "paused": "Dijeda",
+        "ended": "Berakhir"
+      },
+      "duration": {
+        "underMinute": "< 1 mnt",
+        "minutes": "{minutes} mnt",
+        "hours": "{hours} j",
+        "hoursMinutes": "{hours} j {minutes} m"
+      },
+      "date": {
+        "today": "Hari ini",
+        "yesterday": "Kemarin",
+        "daysAgo": "{days, plural, other {# hari lalu}}"
+      }
+    },
+    "upcoming": {
+      "title": "Rapat Mendatang",
+      "loadFailed": "Gagal memuat rapat mendatang",
+      "startFailed": "Gagal memulai rapat",
+      "cancelConfirm": "Batalkan rapat terjadwal ini? Para undangan akan diberi tahu.",
+      "schedule": "Jadwalkan",
+      "empty": "Tidak ada rapat terjadwal",
+      "scheduleFirst": "Jadwalkan rapat pertama Anda",
+      "todayAt": "Hari ini pukul {time}",
+      "tomorrowAt": "Besok pukul {time}",
+      "durationMinutes": "{minutes} m",
+      "durationHours": "{hours} j",
+      "goesLiveOn": "Tayang live di {channel}",
+      "invited": "{count} diundang",
+      "accepted": "{count} menerima",
+      "startEarlyHint": "Membuka ruang sekarang dan mengirim email ke semua undangan",
+      "startEarly": "Mulai Lebih Awal",
+      "startNow": "Mulai Sekarang",
+      "addToCalendar": "Tambahkan ke kalender",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Edit rapat",
+      "cancelMeeting": "Batalkan rapat"
+    },
+    "schedule": {
+      "yourChannels": "Kanal Anda",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 jam} =90 {1,5 jam} =120 {2 jam} other {# menit}}",
+      "durationCustomHours": "{hours, plural, other {# jam}}",
+      "repeatNone": "Tidak berulang",
+      "repeatDaily": "Harian",
+      "repeatWeekly": "Mingguan",
+      "repeatMonthly": "Bulanan",
+      "repeatUnit": "{freq, select, daily {hari} weekly {minggu} other {bulan}}",
+      "invalidDate": "Tanggal/waktu tidak valid",
+      "saveFailed": "Gagal menyimpan perubahan",
+      "scheduleFailed": "Gagal menjadwalkan rapat",
+      "networkError": "Kesalahan jaringan. Silakan coba lagi.",
+      "editTitle": "Edit Rapat",
+      "scheduleTitle": "Jadwalkan Rapat",
+      "close": "Tutup",
+      "meetingTitle": "Judul Rapat",
+      "titlePlaceholder": "mis. Rapat Tim Mingguan",
+      "dateTime": "Tanggal & Waktu",
+      "durationLabel": "Durasi",
+      "repeat": "Ulangi",
+      "every": "Setiap",
+      "numberOfTimes": "Jumlah pengulangan",
+      "zeroForever": "0 = selamanya",
+      "recurrenceSummary": "{description}. Semua orang tetap memakai kode bergabung dan tautan yang sama.",
+      "broadcastChannel": "Kanal siaran",
+      "optional": "(opsional)",
+      "loadingChannels": "Memuat kanal Anda…",
+      "noChannel": "Tanpa kanal (rapat pribadi)",
+      "channelUnavailable": "Kanal saat ini (Anda tidak lagi memiliki akses)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Anda belum memiliki kanal. Buat kanal di bagian Kanal pada dasbor Anda, atau bergabunglah dengan tim yang memilikinya.",
+      "channelHint": "Siaran live dari rapat ini akan ditayangkan di kanal ini. Kanal tim tercantum di bawah timnya masing-masing.",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Agenda, catatan rapat, atau konteks...",
+      "invitees": "Undangan",
+      "inviteByEmail": "Undang lewat Email",
+      "removeInvitee": "Hapus undangan",
+      "addAnother": "Tambah lagi",
+      "editInviteHint": "Undangan baru akan menerima email undangan; yang dihapus akan diberi tahu bahwa mereka tidak lagi diundang. Tempel beberapa alamat yang dipisahkan koma.",
+      "newInviteHint": "Undangan langsung dikirim. Tempel beberapa alamat yang dipisahkan koma.",
+      "toInvite": "{count} akan diundang",
+      "toRemove": "{count} akan dihapus",
+      "cancel": "Batal",
+      "saving": "Menyimpan...",
+      "saveChanges": "Simpan Perubahan",
+      "scheduling": "Menjadwalkan...",
+      "submitSchedule": "Jadwalkan Rapat"
+    },
+    "booking": {
+      "loadFailed": "Tidak dapat memuat halaman pemesanan",
+      "saveFailed": "Tidak dapat menyimpan",
+      "deleteConfirm": "Hapus \"{title}\"? Rapat yang sudah dipesan melaluinya tetap disimpan.",
+      "title": "Tautan pemesanan",
+      "subtitle": "Biarkan siapa pun memesan panggilan dengan Anda. Panggilan berlangsung di PairUX.",
+      "newLink": "Tautan baru",
+      "needUsername": "Atur nama pengguna di Pengaturan terlebih dahulu. Tautan Anda akan menjadi {url}",
+      "empty": "Belum ada tautan pemesanan. Buat satu dan bagikan {url}.",
+      "meta": "· {minutes} mnt · {timezone}",
+      "off": "nonaktif",
+      "copyLink": "Salin tautan",
+      "copied": "Tersalin",
+      "turnOff": "Nonaktifkan",
+      "turnOn": "Aktifkan",
+      "edit": "Edit",
+      "delete": "Hapus",
+      "newTitle": "Tautan pemesanan baru",
+      "editTitle": "Edit tautan pemesanan",
+      "close": "Tutup",
+      "fieldTitle": "Judul",
+      "titlePlaceholder": "Panggilan perkenalan",
+      "fieldLink": "Tautan",
+      "fieldDescription": "Deskripsi",
+      "optional": "(opsional)",
+      "fieldDuration": "Durasi",
+      "durationOption": "{minutes} menit",
+      "fieldTimezone": "Zona waktu",
+      "availableHours": "Jam tersedia",
+      "to": "sampai",
+      "buffer": "Jeda (mnt)",
+      "minNotice": "Pemberitahuan min. (mnt)",
+      "daysAhead": "Hari ke depan",
+      "cancel": "Batal",
+      "create": "Buat tautan",
+      "save": "Simpan",
+      "usernameToken": "namapengguna",
+      "slugToken": "slug"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Tidak dapat membuat banner. Coba lagi.",
+      "bannerSaveFailed": "Banner berhasil dibuat tetapi tidak dapat disimpan.",
+      "bannerFailed": "Pembuatan banner gagal. Silakan coba lagi.",
+      "uploadFailed": "Tidak dapat mengunggah gambar.",
+      "processFailed": "Tidak dapat memproses gambar tersebut.",
+      "handleInvalid": "Handle harus terdiri dari 3-30 huruf, angka, atau garis bawah.",
+      "createFailed": "Tidak dapat membuat kanal.",
+      "networkError": "Kesalahan jaringan. Silakan coba lagi.",
+      "loading": "Memuat kanal Anda…",
+      "signInPrompt": "Masuk untuk mengelola kanal Anda.",
+      "signIn": "Masuk",
+      "empty": "Anda belum memiliki kanal. Buat kanal di bawah — di sanalah siaran live publik Anda berada.",
+      "uploadBanner": "Unggah banner kanal (6:1)",
+      "changeBanner": "Ganti banner",
+      "bannerPromptPlaceholder": "Opsional: jelaskan banner yang Anda inginkan…",
+      "generateHint": "Buat banner 6:1 dengan ukuran yang tepat menggunakan AI dari banner saat ini",
+      "generating": "Membuat…",
+      "generate": "Buat dengan AI",
+      "uploadAvatar": "Unggah avatar (persegi)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · Anda dapat siaran live di sini",
+      "subscribers": "{count, plural, other {# pelanggan}}",
+      "view": "Lihat",
+      "streamHeading": "Streaming ke kanal ini (OBS / klien RTMP apa pun)",
+      "rtmpUrl": "URL RTMP",
+      "streamKey": "Kunci stream",
+      "copy": "Salin",
+      "hide": "Sembunyikan",
+      "show": "Tampilkan",
+      "newChannel": "Kanal baru",
+      "handle": "Handle",
+      "handlePlaceholder": "kanalsaya",
+      "name": "Nama",
+      "namePlaceholder": "Kanal Saya",
+      "belongsTo": "Milik (anggota tim dapat siaran live di kanal tim)",
+      "descriptionLabel": "Deskripsi (opsional, markdown)",
+      "create": "Buat kanal"
+    },
+    "website": {
+      "saveFailed": "Tidak dapat menyimpan situs web.",
+      "networkError": "Kesalahan jaringan. Silakan coba lagi.",
+      "label": "Situs web (opsional)",
+      "placeholder": "example.com",
+      "saved": "Tersimpan",
+      "save": "Simpan",
+      "hint": "Ditampilkan di halaman kanal Anda sebagai tautan identitas. Kosongkan untuk menghapusnya."
+    },
+    "restream": {
+      "customRtmp": "RTMP Kustom",
+      "urlInvalid": "URL RTMP harus diawali dengan rtmp:// atau rtmps://",
+      "keyRequired": "Kunci stream wajib diisi.",
+      "saveFailed": "Tidak dapat menyimpan tujuan.",
+      "title": "Restreaming eksternal",
+      "toggleHint": "Otomatis restream siaran live kanal ini ke tujuan di bawah",
+      "description": "Jika aktif, siaran live di kanal ini juga di-stream ke YouTube/Twitch/dll. Nonaktif untuk berbagi layar pribadi.",
+      "loading": "Memuat…",
+      "empty": "Belum ada tujuan.",
+      "on": "Aktif",
+      "off": "Nonaktif",
+      "remove": "Hapus",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Kunci stream",
+      "save": "Simpan",
+      "cancel": "Batal",
+      "add": "Tambah tujuan"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Tidak berulang",
+      "describe": "Berulang {freq, select, daily {{interval, plural, =1 {setiap hari} other {setiap # hari}}} weekly {{interval, plural, =1 {setiap minggu} other {setiap # minggu}}} other {{interval, plural, =1 {setiap bulan} other {setiap # bulan}}}}{when, select, weekday { pada hari {weekday}} monthDay { pada tanggal {day}} other {}}{count, plural, =0 {, selamanya} other {, # kali}}",
+      "short": "{freq, select, daily {{interval, plural, =1 {Harian} other {Setiap # hari}}} weekly {{interval, plural, =1 {Mingguan} other {Setiap # minggu}}} other {{interval, plural, =1 {Bulanan} other {Setiap # bulan}}}}",
+      "shortWithLeft": "{label} · sisa {left}"
+    }
+  },
+  "workspace": {
+    "label": "Ruang kerja",
+    "personal": "Pribadi",
+    "wholeOrg": "{org} (seluruh organisasi)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Gabung ke Sesi",
+      "subtitle": "Masukkan kode bergabung atau tempel tautan",
+      "invalidCode": "Masukkan kode bergabung 6 karakter yang valid",
+      "label": "Kode Bergabung atau Tautan",
+      "placeholder": "ABC123 atau tempel tautan",
+      "hint": "Masukkan kode 6 karakter atau tempel tautan bergabung",
+      "continue": "Lanjutkan",
+      "backHome": "Kembali ke Beranda"
+    },
+    "session": {
+      "notFound": "Sesi tidak ditemukan",
+      "lookupFailed": "Gagal mencari sesi",
+      "joinFailed": "Gagal bergabung ke sesi",
+      "lookingUp": "Mencari sesi...",
+      "countdown": {
+        "startingNow": "Dimulai sekarang",
+        "startsInDays": "Dimulai dalam {days} h {hours} j",
+        "startsInHours": "Dimulai dalam {hours} j {mins} m",
+        "startsInMinutes": "Dimulai dalam {mins} m"
+      },
+      "durationMinutes": "{minutes, plural, other {# menit}}",
+      "durationHours": "{hours, plural, other {# jam}}",
+      "invitedCount": "{count} diundang",
+      "acceptedCount": "{count} menerima",
+      "autoUpdate": "Halaman ini akan diperbarui otomatis saat host memulai sesi.",
+      "joinCode": "Kode bergabung",
+      "addToCalendar": "Tambahkan ke Kalender",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Sesi Tidak Ditemukan",
+      "goHome": "Ke Beranda",
+      "title": "Gabung Sesi",
+      "subtitle": "Anda akan bergabung ke sesi berbagi layar",
+      "sessionCode": "Kode Sesi",
+      "status": "Status",
+      "statusActive": "Host sedang berbagi",
+      "statusPaused": "Host sedang tidak ada",
+      "statusWaiting": "Menunggu host",
+      "participants": "Peserta",
+      "signedInAs": "Masuk sebagai {name}",
+      "displayNameOptional": "Nama tampilan (opsional)",
+      "useAccountName": "Gunakan nama akun",
+      "yourName": "Nama Anda",
+      "namePlaceholder": "Masukkan nama Anda",
+      "nameHint": "Begini orang lain akan melihat Anda di sesi",
+      "joining": "Bergabung...",
+      "joinButton": "Gabung Sesi",
+      "watchFree": "Tonton gratis",
+      "guestNote": "Tidak perlu akun — tonton live sebagai tamu.",
+      "signInPrompt": "Punya akun? <link>Masuk</link> untuk presentasi atau mengambil kontrol"
+    }
+  },
+  "invite": {
+    "notFound": "Undangan tidak ditemukan",
+    "loadFailed": "Gagal memuat undangan",
+    "invalidOrExpired": "Tautan undangan ini mungkin tidak valid atau sudah kedaluwarsa.",
+    "goToPairux": "Ke PairUX",
+    "heading": "Undangan Rapat",
+    "fromHost": "dari {name}",
+    "cancelled": "Rapat ini telah dibatalkan.",
+    "dateTime": "Tanggal & Waktu",
+    "duration": "Durasi",
+    "durationMinutes": "{minutes, plural, other {# menit}}",
+    "durationHours": "{hours, plural, other {# jam}}",
+    "host": "Host",
+    "notes": "Catatan",
+    "yourJoinCode": "Kode Bergabung Anda",
+    "useCodeHint": "Gunakan kode ini saat rapat dimulai",
+    "joinMeeting": "Gabung Rapat",
+    "addToCalendar": "Tambahkan ke Kalender",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Anda menerima!",
+    "acceptedNote": "Sampai jumpa di rapat.",
+    "cantMakeItAfterAll": "Ternyata tidak bisa hadir?",
+    "declined": "Anda menolak",
+    "declinedNote": "Anda telah menyatakan tidak dapat hadir.",
+    "changedMind": "Berubah pikiran?",
+    "willYouAttend": "Apakah Anda akan hadir?",
+    "yes": "Ya, saya akan hadir",
+    "no": "Tidak bisa hadir",
+    "invitedAs": "Diundang sebagai {email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Pesan panggilan · PairUX",
+      "bookCallWith": "Pesan panggilan dengan {name} · PairUX",
+      "hostDescription": "Pilih waktu yang cocok untuk Anda. Panggilan berlangsung di PairUX.",
+      "pageWith": "{title} dengan {name} · PairUX",
+      "pageDescription": "Pesan {minutes} menit dengan {name}. Panggilan berlangsung di PairUX."
+    },
+    "host": {
+      "subtitle": "Pesan panggilan. Berlangsung langsung di PairUX.",
+      "notTakingBookings": "{name} sedang tidak menerima pemesanan.",
+      "minutes": "{minutes} mnt",
+      "pickTime": "Pilih waktu"
+    },
+    "booking": {
+      "loadFailed": "Tidak dapat memuat waktu",
+      "bookFailed": "Tidak dapat memesan waktu tersebut",
+      "calendarDescription": "Bergabung di {url} dengan kode {code}",
+      "booked": "Pemesanan Anda berhasil",
+      "whenWith": "{when} dengan {name}",
+      "confirmationSent": "Konfirmasi berisi semua informasi di bawah sedang dikirim ke {email}.",
+      "yourJoinCode": "Kode bergabung Anda",
+      "callHappensHint": "Panggilan berlangsung di PairUX. Saat waktunya tiba, buka tautan di bawah atau masukkan kodenya.",
+      "openCallPage": "Buka halaman panggilan",
+      "addToCalendar": "Tambahkan ke kalender:",
+      "cantMakeIt": "Ternyata tidak bisa hadir? <link>Beri tahu {name}</link>.",
+      "durationMinutes": "{minutes, plural, other {# menit}}",
+      "timesShownIn": "Waktu ditampilkan dalam",
+      "aboutCall": "Panggilannya sendiri berlangsung di PairUX: suara, berbagi layar, dan kontrol jarak jauh, tanpa perlu mengunduh untuk bergabung dari browser.",
+      "pickDifferentTime": "Pilih waktu lain",
+      "minutesWith": "{minutes, plural, other {# menit}} dengan {name}",
+      "yourName": "Nama Anda",
+      "email": "Email",
+      "notesLabel": "Ada yang perlu diketahui {name}?",
+      "optional": "(opsional)",
+      "confirm": "Konfirmasi pemesanan",
+      "previousWeek": "Minggu sebelumnya",
+      "nextWeek": "Minggu berikutnya",
+      "nothingFree": "Tidak ada waktu kosong minggu ini.",
+      "nothingFreeTryNext": "Tidak ada waktu kosong minggu ini. Coba minggu berikutnya."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Silakan masuk untuk membuat tautan bergabung",
+    "createFailed": "Gagal membuat sesi",
+    "title": "Buat Tautan Bergabung",
+    "subtitle": "Buat tautan untuk dibagikan kepada peserta",
+    "signIn": "Masuk",
+    "creating": "Membuat...",
+    "createButton": "Buat Tautan Bergabung",
+    "backHome": "Kembali ke Beranda",
+    "joinCode": "Kode Bergabung",
+    "joinUrl": "URL Bergabung",
+    "copyLink": "Salin tautan",
+    "copied": "Tersalin",
+    "shareHint": "Bagikan tautan ini kepada orang lain. Mereka dapat bergabung dan menunggu Anda mulai berbagi layar dari aplikasi desktop.",
+    "createAnother": "Buat Lagi",
+    "downloadApp": "Unduh Aplikasi"
+  },
+  "hostStart": {
+    "metaTitle": "Bagikan layar Anda - PairUX",
+    "analysisRequiresPlan": "Analisis panggilan AI tersedia di paket Pro dan Team. Nonaktifkan, atau tingkatkan paket di halaman harga.",
+    "createFailed": "Gagal membuat sesi",
+    "createFailedRetry": "Gagal membuat sesi. Silakan coba lagi.",
+    "title": "Bagikan Layar Anda",
+    "subtitle": "Mulai sesi berbagi layar khusus tonton dari browser Anda",
+    "sessionSettings": "Pengaturan Sesi",
+    "defaults": "Bawaan",
+    "maxViewers": "Penonton Maksimum",
+    "viewers": "{count, plural, other {# penonton}}",
+    "remoteControl": "Kontrol Jarak Jauh",
+    "enableGuestControl": "Aktifkan kontrol tamu",
+    "notAvailableWeb": "Tidak tersedia saat berbagi lewat web",
+    "remoteControlRequires": "Kontrol jarak jauh memerlukan <link>aplikasi desktop</link>.",
+    "workspaceLabel": "Ruang kerja (laporan panggilan tim dibagikan dengan tim)",
+    "creating": "Membuat sesi...",
+    "startSharing": "Mulai Berbagi",
+    "viewOnlyNote": "<strong>Berbagi lewat web hanya untuk ditonton.</strong> Penonton dapat melihat layar Anda tetapi tidak dapat mengontrolnya. Untuk fitur kontrol jarak jauh, gunakan aplikasi desktop.",
+    "joinInstead": "Ingin bergabung ke sesi? <link>Masukkan kode bergabung</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "<rotating></rotating> berpasangan, <highlight>dalam rupa baru</highlight>",
+      "subtitle": "Berbagi layar kolaboratif dengan kontrol mouse dan keyboard jarak jauh secara bersamaan. Seperti Screenhero, tetapi open source.",
+      "download": "Unduh Gratis",
+      "github": "Lihat di GitHub",
+      "note": "Gratis dan open source. Penonton tidak perlu akun."
+    },
+    "rotating": {
+      "programming": "Pemrograman",
+      "pitching": "Pitching",
+      "presenting": "Presentasi",
+      "demoing": "Demo",
+      "designing": "Desain",
+      "debugging": "Debugging",
+      "teaching": "Pengajaran",
+      "training": "Pelatihan",
+      "reviewing": "Peninjauan",
+      "brainstorming": "Brainstorming"
+    },
+    "featuresSection": {
+      "title": "Semua yang Anda butuhkan untuk kolaborasi jarak jauh",
+      "subtitle": "Dibuat untuk developer, desainer, dan siapa pun yang perlu bekerja sama secara real-time."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Berbagi Layar Real-time",
+        "description": "Streaming WebRTC berlatensi rendah menghadirkan berbagi layar yang sangat jernih dengan kualitas adaptif."
+      },
+      "remoteControl": {
+        "title": "Kontrol Jarak Jauh",
+        "description": "Kontrol mouse dan keyboard dengan persetujuan eksplisit dari host. Keduanya dapat mengontrol secara bersamaan."
+      },
+      "simultaneousInput": {
+        "title": "Input Bersamaan",
+        "description": "Host dan penonton dapat mengontrol secara bersamaan. Host selalu diprioritaskan demi keamanan."
+      },
+      "secure": {
+        "title": "Aman Sejak Dirancang",
+        "description": "Dienkripsi melalui WebRTC DTLS-SRTP. Media tidak pernah menyentuh server kami kecuali Anda mengaktifkan analisis panggilan AI."
+      },
+      "pwaViewer": {
+        "title": "Penampil PWA",
+        "description": "Gabung ke sesi dari browser apa pun. Penonton tidak perlu mengunduh apa pun."
+      },
+      "crossPlatform": {
+        "title": "Lintas platform",
+        "description": "Aplikasi desktop untuk macOS, Windows, dan Linux. Instal melalui Homebrew, WinGet, atau APT."
+      }
+    },
+    "steps": {
+      "title": "Mulai dalam hitungan menit",
+      "subtitle": "Tanpa setup yang rumit. Cukup instal, bagikan, dan berkolaborasi.",
+      "install": {
+        "title": "Instal Aplikasi Desktop",
+        "description": "Unduh PairUX ke komputer Anda melalui package manager atau unduhan langsung."
+      },
+      "start": {
+        "title": "Mulai Sesi",
+        "description": "Klik \"Mulai Sesi\" dan pilih layar atau jendela yang ingin dibagikan."
+      },
+      "share": {
+        "title": "Bagikan Tautannya",
+        "description": "Kirim tautan bergabung ke kolaborator Anda. Mereka dapat bergabung dari browser apa pun."
+      }
+    },
+    "community": {
+      "title": "Dibuat untuk kolaborasi nyata",
+      "subtitle": "PairUX sudah digunakan untuk pair programming, tinjauan desain, dan dukungan jarak jauh. Kami sedang mengumpulkan masukan awal — cobalah dan bagikan pendapat Anda.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Akhirnya, pengganti Screenhero yang benar-benar berfungsi. Fitur kontrol bersamaan ini mengubah cara kami melakukan pair programming.",
+          "role": "Software Engineer"
+        },
+        "techLead": {
+          "quote": "Penonton bisa bergabung dari browser apa pun tanpa menginstal apa-apa, jadi ini sempurna untuk sesi kolaborasi singkat.",
+          "role": "Tech Lead"
+        },
+        "contributor": {
+          "quote": "Open source, terenkripsi end-to-end, dan langsung berfungsi. Inilah yang dibutuhkan komunitas developer.",
+          "role": "Kontributor Open Source"
+        }
+      },
+      "feedback": "Menggunakan PairUX? <link>Bagikan pengalaman Anda di GitHub</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Baru · Analisis panggilan AI",
+      "title": "Dapatkan umpan balik untuk setiap wawancara, rapat, dan presentasi.",
+      "description": "Aktifkan sebelum panggilan. Setelahnya Anda mendapatkan laporan pribadi: skor, apa yang berhasil, apa yang perlu diperbaiki, waktu bicara, tempo, dan kata pengisi Anda, serta momen yang layak diputar ulang.",
+      "cta": "Lihat cara kerja analisis panggilan",
+      "sample": {
+        "label": "Contoh laporan · Wawancara",
+        "headline": "Jawaban jelas, tetapi Anda terburu-buru di akhir",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Anda berbicara {percent}% dari waktu dengan {wpm} kata/menit",
+        "fillers": "{rate} kata pengisi per 100 (\"kayak\", \"gitu\")",
+        "practice": "Latihan: tutup setiap jawaban dengan hasilnya, dalam satu kalimat"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Pair programming dengan agen",
+      "title": "Dua orang. Satu sesi agen.",
+      "description": "Libatkan rekan tim dalam pekerjaan saat agen coding Anda berjalan. Ikuti terminal yang sama, tinjau aplikasi bersama, dan tentukan apa yang akan diminta dari agen selanjutnya.",
+      "cta": "Pairing dengan moshcode dan PairUX",
+      "browse": "Lihat semua kasus penggunaan",
+      "cardTitle": "Tonton, diskusikan, lalu bekerja bersama",
+      "step1": "1. Mulai sesi moshcode live dan bagikan dengan tim Anda.",
+      "step2": "2. Gunakan PairUX untuk menampilkan terminal dan aplikasi yang sedang Anda bangun.",
+      "step3": "3. Tinjau perubahan agen bersama dan biarkan rekan tim Anda ikut berpartisipasi.",
+      "note": "Berguna untuk membantu kontraktor memulai, debugging bersama, dan meninjau pekerjaan sebelum dirilis."
+    },
+    "security": {
+      "title": "Keamanan yang dapat Anda percaya",
+      "subtitle": "PairUX dibangun dengan keamanan sebagai intinya. Data layar Anda tidak pernah menyentuh server kami.",
+      "encryption": {
+        "title": "Enkripsi End-to-End",
+        "description": "Semua media dienkripsi melalui WebRTC DTLS-SRTP"
+      },
+      "consent": {
+        "title": "Persetujuan Eksplisit",
+        "description": "Host harus menyetujui semua permintaan kontrol"
+      },
+      "revoke": {
+        "title": "Pencabutan Darurat",
+        "description": "{shortcut} langsung mencabut semua kontrol"
+      },
+      "openSource": {
+        "title": "Open Source",
+        "description": "Kode yang sepenuhnya dapat diaudit di bawah lisensi MIT"
+      },
+      "diagram": {
+        "p2p": "Koneksi peer-to-peer langsung",
+        "noStorage": "Tanpa penyimpanan media di server"
+      }
+    },
+    "cta": {
+      "title": "Siap berkolaborasi?",
+      "subtitle": "Unduh PairUX dan mulai berbagi layar dalam hitungan detik. Gratis, open source, dan mengutamakan privasi.",
+      "download": "Unduh Sekarang",
+      "learnMore": "Pelajari Lebih Lanjut"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Harga",
+      "description": "Harga tetap yang sederhana. Tanpa biaya per pengguna. $1/bln untuk Plus (hingga 100 pendengar), $12/bln Pro, $49/bln Team. 40-70% lebih murah daripada Zoom, Teams, dan solusi enterprise lainnya."
+    },
+    "hero": {
+      "title": "40–70% Lebih Murah daripada Pemain Besar",
+      "subtitle": "Harga tetap yang sederhana. Tanpa biaya per pengguna, tanpa kontrak tahunan, tanpa telepon dari tim sales enterprise."
+    },
+    "mostPopular": "Paling Populer",
+    "period": {
+      "forever": "/selamanya",
+      "month": "/bulan"
+    },
+    "tiers": {
+      "free": {
+        "name": "Gratis",
+        "description": "Cocok untuk penggunaan pribadi dan tim kecil",
+        "cta": "Mulai",
+        "features": {
+          "participants": "2 peserta + hingga {count} pendengar",
+          "publicViewers": "Penonton gratis tanpa batas di siaran live publik",
+          "p2p": "Koneksi P2P",
+          "screenSharing": "Berbagi layar",
+          "remoteControl": "Kontrol jarak jauh",
+          "e2e": "Enkripsi end-to-end",
+          "support": "Dukungan komunitas"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Jadi host untuk audiens — mengajar, standup, nonton bareng",
+        "cta": "Tingkatkan ke Plus",
+        "features": {
+          "listeners": "Hingga {count} pendengar per ruang",
+          "sfu": "Server relay SFU",
+          "liveDirectory": "Ruang publik di direktori /live",
+          "screenVoice": "Berbagi layar + suara",
+          "remoteControl": "Kontrol jarak jauh",
+          "cancel": "Batalkan kapan saja"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Untuk profesional dan tim yang berkembang",
+        "cta": "Tingkatkan ke Pro",
+        "features": {
+          "listeners": "Hingga {count} pendengar per ruang",
+          "sfu": "Server relay SFU",
+          "streaming": "Semua platform streaming (YouTube, Twitch, …)",
+          "hd": "Berbagi layar HD (1080p)",
+          "liveDirectory": "Ruang publik di direktori /live",
+          "callAnalysis": "Analisis panggilan AI",
+          "support": "Dukungan prioritas"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "Untuk tim dan organisasi",
+        "cta": "Tingkatkan ke Team",
+        "features": {
+          "listeners": "Hingga {count} pendengar per ruang",
+          "sfu": "Server SFU khusus",
+          "streaming": "Semua platform streaming",
+          "uhd": "Berbagi layar 4K",
+          "callAnalysis": "Analisis panggilan AI",
+          "admin": "Kontrol admin",
+          "support": "Dukungan prioritas"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Memulai checkout…",
+      "checkoutFailed": "Tidak dapat memulai checkout. Silakan coba lagi.",
+      "networkError": "Kesalahan jaringan. Silakan coba lagi."
+    },
+    "callAnalysis": {
+      "eyebrow": "Termasuk dalam Pro dan Team",
+      "title": "Analisis panggilan AI",
+      "description": "Aktifkan sebelum panggilan dan dapatkan laporan umpan balik setelahnya: skor, waktu bicara, tempo, kata pengisi, apa yang berhasil, apa yang perlu dilatih, dan untuk rapat tim, keputusan serta item tindakan.",
+      "cta": "Lihat cara kerja analisis panggilan →"
+    },
+    "cost": {
+      "title": "Perbandingan Biaya Nyata",
+      "subtitle": "Bandingkan harga kami dengan biaya umum Zoom Webinars dan Microsoft Teams",
+      "plan": "Paket",
+      "rows": {
+        "free": "Gratis",
+        "pro": "Pro / Tim Kecil",
+        "team": "Team / Bisnis",
+        "tenPerson": "Tim 10 orang"
+      },
+      "cells": {
+        "freeLimit": "{price} (batas {minutes} mnt)",
+        "perMonth": "{price}/bln",
+        "perHost": "{price}/bln/host",
+        "perUser": "{price}/bln/pengguna",
+        "perMonthTotal": "Total {price}/bln"
+      },
+      "footnote": "* PairUX menagih per tim, bukan per pengguna. Tanpa lisensi berbasis jumlah pengguna."
+    },
+    "comparison": {
+      "title": "Perbandingan Fitur",
+      "subtitle": "Lihat bagaimana PairUX dibandingkan dengan Zoom, Teams, Webex, Google Meet, dan Jitsi",
+      "feature": "Fitur",
+      "rows": {
+        "transparent": "Harga transparan",
+        "noSeatFees": "Tanpa biaya per pengguna",
+        "noContracts": "Tanpa kontrak tahunan",
+        "flatRate": "Paket harga tetap yang sederhana",
+        "openSource": "Open source",
+        "selfHost": "Dapat di-host sendiri",
+        "remoteControl": "Kontrol jarak jauh",
+        "multiCursor": "Dukungan multi-kursor",
+        "noAccount": "Tanpa akun (penonton)"
+      }
+    },
+    "advantages": {
+      "title": "Mengapa PairUX Berbeda",
+      "subtitle": "Alat enterprise tidak bisa meniru ini tanpa merusak model harga mereka",
+      "items": {
+        "noSeatFees": {
+          "title": "Tanpa Biaya per Pengguna",
+          "description": "Satu harga untuk seluruh tim Anda. Tambah pengguna tanpa menambah biaya."
+        },
+        "noLockIn": {
+          "title": "Tanpa Keterikatan",
+          "description": "Tanpa kontrak atau komitmen tahunan. Batalkan kapan saja."
+        },
+        "openSource": {
+          "title": "Open Source",
+          "description": "Audit kodenya, host sendiri, atau sesuaikan. Data Anda, aturan Anda."
+        },
+        "developer": {
+          "title": "Ramah Developer",
+          "description": "Instalasi via CLI, akses API, dan siap otomatisasi sejak hari pertama."
+        }
+      }
+    },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "capacity": {
+        "question": "Berapa banyak orang yang dapat menonton ruang saya?",
+        "answer": "Jumlah pendengar bersamaan per ruang mengikuti paket Anda: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Selain itu, siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun.",
+        "answerLong": "Jumlah pendengar bersamaan per ruang mengikuti paket Anda: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Selain itu, siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun."
+      },
+      "free": {
+        "question": "Apakah paket gratis benar-benar gratis?",
+        "answer": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya — dan siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun. Tanpa batas waktu, tanpa kartu kredit.",
+        "answerLong": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya — dan siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun. Tanpa batas waktu, tanpa kartu kredit. Cocok untuk pair programming dan demo kecil."
+      },
+      "selfHost": {
+        "question": "Bisakah saya meng-host sendiri untuk menghemat biaya?",
+        "answer": "Tentu. PairUX open source di bawah lisensi MIT. Anda dapat menjalankan infrastruktur SFU sendiri jika mau.",
+        "answerLong": "Tentu. PairUX open source di bawah lisensi MIT. Anda dapat menjalankan infrastruktur SFU sendiri jika mau. Cocok untuk perusahaan dengan persyaratan keamanan khusus."
+      },
+      "cheaper": {
+        "question": "Mengapa Anda lebih murah daripada Zoom dan Teams?",
+        "answer": "Kami menagih per tim, bukan per pengguna. Tim 10 orang membayar total {teamPrice}/bulan dengan PairUX, dibandingkan {competitorPrice}/bulan dengan Zoom atau Teams.",
+        "answerLong": "Kami menagih per tim, bukan per pengguna. Tim 10 orang membayar total {teamPrice}/bulan dengan PairUX, dibandingkan {competitorPrice}/bulan dengan Zoom atau Teams. Tanpa tim sales enterprise berarti biaya operasional lebih rendah untuk Anda."
+      }
+    },
+    "cta": {
+      "title": "Siap berhemat untuk infrastruktur video?",
+      "subtitle": "Mulai gratis dengan sesi P2P, atau tingkatkan ke Pro hanya {price}/bulan. Tidak pernah ada biaya per pengguna.",
+      "download": "Unduh Gratis",
+      "signup": "Buat Akun"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "Unduh",
+      "description": "Unduh PairUX untuk macOS, Windows, atau Linux. Tersedia melalui Homebrew, WinGet, APT, dan unduhan langsung."
+    },
+    "hero": {
+      "title": "Unduh PairUX",
+      "subtitle": "Dapatkan aplikasi desktop untuk menjadi host sesi. Penonton dapat bergabung dari browser apa pun."
+    },
+    "copyToClipboard": "Salin ke clipboard",
+    "loading": "Memuat info rilis...",
+    "loadFailed": "Gagal memuat info rilis",
+    "viewReleases": "Lihat rilis di GitHub",
+    "latest": "Terbaru: v{version}",
+    "quickInstall": {
+      "title": "Instalasi Cepat",
+      "subtitle": "Cara tercepat untuk memulai. Berfungsi di macOS, Linux, dan Windows.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Otomatis mengunduh versi terbaru untuk platform Anda",
+      "afterInstall": "Setelah instalasi, gunakan <update></update> untuk memperbarui dan <uninstall></uninstall> untuk menghapus."
+    },
+    "detected": "Terdeteksi berdasarkan browser Anda",
+    "downloadDmg": "Unduh DMG",
+    "downloadInstaller": "Unduh Installer",
+    "downloadAppImage": "Unduh AppImage",
+    "allPlatforms": {
+      "title": "Semua Platform",
+      "subtitle": "Pilih sistem operasi dan format yang Anda inginkan"
+    },
+    "requirements": {
+      "macos": "Memerlukan macOS 12 (Monterey) atau lebih baru",
+      "windows": "Memerlukan Windows 10 (1809) atau lebih baru",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Skrip Shell",
+    "installerX64": "Installer (x64)",
+    "viewAllReleases": "Lihat semua rilis di GitHub",
+    "checksums": {
+      "toggle": "Verifikasi unduhan (checksum SHA256)",
+      "description": "Verifikasi unduhan Anda dengan membandingkan checksum SHA256.",
+      "file": "File"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "Instal aplikasi PairUX",
+    "installApp": "Instal Aplikasi",
+    "title": "Instal PairUX",
+    "mobileDescription": "Tambahkan ke layar utama untuk akses cepat",
+    "desktopDescription": "Instal aplikasi desktop untuk pengalaman yang lebih baik",
+    "dismiss": "Tutup ajakan instal",
+    "installing": "Menginstal...",
+    "install": "Instal"
+  },
+  "offline": {
+    "title": "Anda sedang offline",
+    "description": "PairUX memerlukan koneksi internet untuk berbagi layar dan kolaborasi real-time. Periksa koneksi Anda dan coba lagi.",
+    "retry": "Coba Lagi"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Lepaskan kontrol",
+      "inControl": "Memegang Kontrol",
+      "waitingApproval": "Menunggu persetujuan host",
+      "requesting": "Meminta...",
+      "waitingConnection": "Menunggu koneksi",
+      "requestTitle": "Minta kontrol dari host",
+      "requestControl": "Minta Kontrol"
+    },
+    "status": {
+      "title": "Status kontrol: {state}",
+      "viewOnly": "Hanya Menonton",
+      "pending": "Menunggu",
+      "controlling": "Mengontrol"
+    },
+    "capture": {
+      "clickToControl": "Klik untuk mengontrol · Esc untuk melepas",
+      "pointerUnavailable": "Penangkapan pointer tidak tersedia · Klik untuk mencoba lagi",
+      "fullscreenLock": "Layar penuh + kunci pointer",
+      "exitFullscreen": "Keluar dari layar penuh",
+      "capturePointerAgain": "Tangkap pointer lagi"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "Analisis panggilan AI",
+      "description": "Dapatkan umpan balik setelah panggilan: waktu bicara, tempo, kata pengisi, apa yang berhasil, dan apa yang perlu dilatih. Putuskan sekarang; fitur ini tidak dapat diaktifkan setelah panggilan dimulai.",
+      "toggle": "Analisis panggilan ini",
+      "kindLabel": "Panggilan jenis apa ini?",
+      "kinds": {
+        "general": "Panggilan umum",
+        "interview": "Wawancara",
+        "team-sync": "Rapat tim",
+        "presentation": "Presentasi"
+      },
+      "keepRecording": "Rekam panggilan dan simpan rekamannya",
+      "disclosure": "Semua yang bergabung diberi tahu bahwa panggilan direkam untuk analisis AI. Laporan bersifat pribadi untuk Anda. <link>Cara kerjanya</link>"
+    },
+    "handoff": {
+      "openedTitle": "Dibuka di aplikasi desktop",
+      "openingTitle": "Membuka aplikasi desktop PairUX…",
+      "openedBody": "Rapat Anda berjalan di aplikasi desktop, tempat tamu dapat diberi kontrol.",
+      "openingBody": "Aplikasi desktop dapat berbagi kontrol layar Anda. Browser hanya dapat menampilkannya.",
+      "continueInBrowser": "Lanjutkan di browser ini",
+      "download": "Belum punya aplikasinya? Unduh"
+    },
+    "hostPresence": {
+      "notJoined": "Host belum bergabung",
+      "left": "Host telah keluar",
+      "chatAvailable": "Chat masih tersedia. Anda akan diberi tahu saat host kembali."
+    },
+    "recordingNotice": {
+      "recorded": "Panggilan ini sedang direkam oleh host untuk analisis AI. Tinggalkan panggilan jika Anda tidak ingin ikut serta.",
+      "recordedKept": "Panggilan ini sedang direkam oleh host untuk analisis AI, dan host akan menyimpan rekamannya. Tinggalkan panggilan jika Anda tidak ingin ikut serta."
+    },
+    "settingsPanel": {
+      "title": "Pengaturan Sesi",
+      "sessionInfo": "Info Sesi",
+      "sessionCode": "Kode Sesi",
+      "status": "Status",
+      "participants": "Peserta",
+      "created": "Dibuat",
+      "connectionQuality": "Kualitas Koneksi",
+      "network": "Jaringan",
+      "frameRate": "Frame Rate",
+      "fps": "{value} fps",
+      "packetLoss": "Packet Loss",
+      "latency": "Latensi",
+      "ms": "{value} ms",
+      "appearance": "Tampilan",
+      "theme": {
+        "light": "terang",
+        "dark": "gelap",
+        "system": "sistem"
+      },
+      "sessionStatus": {
+        "created": "dibuat",
+        "active": "aktif",
+        "paused": "dijeda",
+        "ended": "berakhir"
+      },
+      "connectionState": {
+        "idle": "siaga",
+        "connecting": "menghubungkan",
+        "connected": "terhubung",
+        "reconnecting": "menghubungkan ulang",
+        "failed": "gagal",
+        "disconnected": "terputus"
+      },
+      "networkQuality": {
+        "excellent": "Sangat baik",
+        "good": "Baik",
+        "poor": "Kurang",
+        "bad": "Buruk"
+      }
+    },
+    "publish": {
+      "titlePublic": "Ruang bersifat publik",
+      "titlePublish": "Publikasikan ke /live",
+      "intro": "Mencantumkan ruang Anda di <strong>pairux.com/live</strong> memungkinkan siapa pun menemukan dan bergabung — tanpa perlu tautan undangan.",
+      "subject": "Topik",
+      "subjectPlaceholder": "mis. Membangun aplikasi Next.js secara live",
+      "description": "Deskripsi",
+      "optional": "(opsional)",
+      "descriptionPlaceholder": "Apa yang sedang terjadi di ruang ini?",
+      "publish": "Publikasikan",
+      "liveNotice": "Ruang Anda sedang live di direktori publik.",
+      "viewLive": "Lihat /live",
+      "profileLink": "Tautan profil Anda",
+      "copied": "Tersalin",
+      "claimPrompt": "Klaim nama pengguna untuk mendapatkan halaman profil yang dapat dibagikan di <code>{path}</code>.",
+      "usernamePlaceholder": "namapengguna",
+      "claim": "Klaim",
+      "makePrivate": "Jadikan pribadi",
+      "done": "Selesai",
+      "errors": {
+        "publishFailed": "Gagal memublikasikan ruang",
+        "unpublishFailed": "Gagal membatalkan publikasi ruang",
+        "usernameFailed": "Gagal menyimpan nama pengguna",
+        "network": "Kesalahan jaringan. Silakan coba lagi."
+      }
+    }
+  },
+  "participants": {
+    "title": "Peserta",
+    "activeCount": "{count, plural, other {# aktif}}",
+    "emptyTitle": "Belum ada peserta",
+    "emptyHint": "Bagikan tautan Anda untuk mengundang orang lain",
+    "you": "(Anda)",
+    "agent": "Agen",
+    "agentWithClient": "Agen ({client})",
+    "host": "Host",
+    "inControl": "Memegang Kontrol",
+    "requesting": "Meminta",
+    "viewer": "Penonton",
+    "removeAgent": "Keluarkan agen",
+    "mute": "Bisukan peserta",
+    "unmute": "Aktifkan suara peserta",
+    "grantControl": "Berikan kontrol",
+    "revokeControl": "Cabut kontrol",
+    "removeParticipant": "Keluarkan peserta",
+    "makeHost": "Jadikan host",
+    "connection": {
+      "connected": "terhubung",
+      "reconnecting": "menghubungkan ulang",
+      "disconnected": "terputus"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "Menunggu berbagi layar",
+      "idleBody": "Host belum mulai berbagi layar. Layar mereka akan muncul di sini setelah mereka mulai.",
+      "connectingTitle": "Menghubungkan...",
+      "connectingBody": "Membuat koneksi aman ke host. Biasanya hanya butuh beberapa detik.",
+      "reconnectingTitle": "Menghubungkan ulang...",
+      "reconnectingBody": "Koneksi terputus. Mencoba menghubungkan ulang...",
+      "failedTitle": "Koneksi Gagal",
+      "failedBody": "Tidak dapat membuat koneksi. Periksa jaringan Anda dan coba lagi.",
+      "tryAgain": "Coba Lagi",
+      "disconnectedTitle": "Host Terputus",
+      "disconnectedBody": "Host telah berhenti berbagi atau terputus. Menunggu host terhubung kembali...",
+      "reconnect": "Hubungkan Ulang"
+    },
+    "quality": {
+      "title": "Koneksi: {quality}",
+      "details": "Detail Koneksi",
+      "quality": "Kualitas",
+      "bitrate": "Bitrate",
+      "frameRate": "Frame Rate",
+      "latency": "Latensi",
+      "packetLoss": "Packet Loss",
+      "levels": {
+        "excellent": "Sangat baik",
+        "good": "Baik",
+        "poor": "Kurang",
+        "bad": "Buruk"
+      }
+    },
+    "player": {
+      "unsupported": "Browser Anda tidak mendukung pemutaran video."
+    },
+    "preview": {
+      "idleHint": "Klik di bawah untuk mulai berbagi layar",
+      "start": "Mulai Berbagi Layar",
+      "requesting": "Meminta akses layar...",
+      "selectSource": "Pilih layar atau jendela yang ingin dibagikan",
+      "tryAgain": "Coba Lagi",
+      "stop": "Berhenti Berbagi"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Admin - PairUX"
+    },
+    "title": "Admin",
+    "loggedInAs": "Masuk sebagai {email}",
+    "integrations": {
+      "title": "Integrasi autoblog",
+      "description": "Buat bearer token, lalu tempel ke <link>CrawlProof</link> sebagai secret webhook. Token ini juga berfungsi sebagai secret penandatanganan HMAC untuk verifikasi permintaan.",
+      "confirmRevoke": "Cabut \"{name}\"? Sumber tersebut tidak akan dapat memublikasikan lagi.",
+      "webhookEndpoint": "Endpoint webhook",
+      "copy": "Salin",
+      "copied": "Tersalin",
+      "generateToken": "Buat token",
+      "namePlaceholder": "Nama integrasi",
+      "generate": "Buat",
+      "tokenCreated": "Token dibuat — salin sekarang dan tempel ke pengaturan webhook autoblog CrawlProof.",
+      "accessTokens": "Token akses ({count})",
+      "empty": "Belum ada — buat satu di atas.",
+      "requests": "{count, plural, other {# permintaan}}",
+      "lastUsed": "terakhir {date}",
+      "hide": "Sembunyikan",
+      "reveal": "Tampilkan",
+      "revoke": "Cabut"
+    },
+    "email": {
+      "title": "Email pengguna",
+      "description": "Tulis email HTML dan kirim ke semua pengguna terdaftar melalui Resend.",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Pengumuman: ...",
+      "body": "Isi (Markdown)",
+      "result": "Terkirim {sent} · Gagal {failed}",
+      "sending": "Mengirim…",
+      "send": "Kirim ke semua pengguna"
+    },
+    "posts": {
+      "title": "Artikel blog terbaru",
+      "empty": "Belum ada artikel yang masuk.",
+      "columnTitle": "Judul",
+      "columnSource": "Sumber",
+      "columnPublished": "Diterbitkan"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Analisis panggilan - PairUX",
+      "detailTitle": "Analisis panggilan - PairUX"
+    },
+    "kinds": {
+      "general": "Panggilan umum",
+      "interview": "Wawancara",
+      "team-sync": "Rapat tim",
+      "presentation": "Presentasi"
+    },
+    "status": {
+      "recording": "Merekam",
+      "queued": "Menunggu dianalisis",
+      "processing": "Menulis laporan Anda",
+      "ready": "Siap",
+      "failed": "Gagal"
+    },
+    "list": {
+      "title": "Analisis panggilan",
+      "intro": "Umpan balik untuk panggilan yang Anda jalankan dengan analisis AI aktif. Aktifkan sebelum panggilan dari layar mulai di web, aplikasi desktop, atau aplikasi seluler.",
+      "loadError": "Tidak dapat memuat analisis Anda",
+      "empty": "Belum ada panggilan yang dianalisis. <link>Mulai panggilan dengan analisis AI</link>",
+      "untitled": "Panggilan tanpa judul",
+      "sharedWithTeam": "dibagikan dengan tim Anda"
+    },
+    "report": {
+      "back": "← Semua analisis panggilan",
+      "loadError": "Tidak dapat memuat analisis ini",
+      "failed": "Analisis ini tidak dapat diselesaikan: {error}",
+      "stillRecording": "Panggilan masih direkam.",
+      "beingWritten": "Laporan Anda sedang ditulis. Halaman ini diperbarui otomatis, dan Anda akan menerima email saat laporan siap.",
+      "outOf10": "dari 10",
+      "byTheNumbers": "Dalam angka",
+      "table": {
+        "speaker": "Pembicara",
+        "talkTime": "Waktu bicara",
+        "pace": "Tempo",
+        "fillers": "Kata pengisi",
+        "questions": "Pertanyaan",
+        "longestTurn": "Giliran terpanjang",
+        "wpm": "{value} kata/mnt",
+        "fillerRate": "{value} / 100 kata"
+      },
+      "mobileNote": "Direkam di ponsel: hanya mikrofon Anda yang direkam.",
+      "whatWorked": "Yang berhasil",
+      "toImprove": "Yang perlu diperbaiki",
+      "try": "Coba: {suggestion}",
+      "delivery": {
+        "title": "Penyampaian",
+        "pace": "Tempo",
+        "clarity": "Kejelasan",
+        "confidence": "Kepercayaan diri",
+        "fillerWords": "Kata pengisi",
+        "listening": "Mendengarkan"
+      },
+      "practiceNext": "Latihan untuk lain kali",
+      "onScreen": "Yang tampil di layar",
+      "actionItems": "Item tindakan",
+      "keyMoments": "Momen untuk diputar ulang",
+      "hideTranscript": "Sembunyikan transkrip",
+      "showTranscript": "Tampilkan transkrip",
+      "disclaimer": "Ditulis oleh AI dari rekaman panggilan. Label pembicara berasal dari deteksi pembicara otomatis dan bisa saja keliru.",
+      "disclaimerWithModel": "Ditulis oleh AI ({model}) dari rekaman panggilan. Label pembicara berasal dari deteksi pembicara otomatis dan bisa saja keliru."
+    }
+  },
+  "devices": {
+    "title": "Perangkat saya",
+    "intro": "Mulai berbagi layar dari sini di komputer yang menjalankan <code>pairux daemon</code>. Berguna untuk presentasi dari laptop sambil memegang ponsel.",
+    "addressLabel": "Alamat perangkat",
+    "add": "Tambah",
+    "errors": {
+      "invalidAddress": "Itu tidak terlihat seperti alamat perangkat.",
+      "duplicate": "Perangkat itu sudah ada di sini."
+    },
+    "empty": "Belum ada perangkat. Di komputer yang ingin Anda bagikan, jalankan <code>pairux daemon</code> — perintah itu menampilkan alamat untuk ditempel di sini.",
+    "howToSetUp": "Cara menyiapkannya",
+    "remove": "Hapus {name}",
+    "joinSession": "Gabung ke sesi di {name}",
+    "stopSharing": "Berhenti berbagi",
+    "startSharing": "Mulai berbagi",
+    "check": "Periksa"
+  },
+  "notifications": {
+    "unsupported": "Notifikasi push tidak didukung di browser ini.",
+    "push": {
+      "title": "Notifikasi Push",
+      "enabled": "Notifikasi aktif untuk perangkat ini",
+      "blocked": "Notifikasi diblokir di pengaturan browser",
+      "prompt": "Aktifkan untuk menerima notifikasi saat aplikasi berjalan di latar belakang",
+      "enable": "Aktifkan",
+      "disable": "Nonaktifkan"
+    },
+    "notifyMeAbout": "Beri tahu saya tentang",
+    "events": {
+      "controlRequest": "Permintaan kontrol",
+      "chatMessage": "Pesan chat",
+      "participantJoined": "Peserta bergabung",
+      "participantLeft": "Peserta keluar",
+      "hostDisconnected": "Host terputus",
+      "creatorLive": "Kreator yang Anda ikuti sedang live",
+      "directMessage": "Seseorang mengirimi Anda pesan langsung"
+    },
+    "reminders": {
+      "title": "Pengingat rapat",
+      "description": "Dikirim lewat email, dan sebagai notifikasi saat push aktif.",
+      "meetingReminder1Day": "1 hari sebelumnya",
+      "meetingReminder1Hour": "1 jam sebelumnya",
+      "meetingReminder15Min": "15 menit sebelumnya",
+      "meetingReminder1Min": "1 menit sebelumnya"
+    },
+    "controlRequest": {
+      "title": "Permintaan Kontrol",
+      "message": "<strong>{name}</strong> ingin mengontrol layar Anda",
+      "approve": "Setujui",
+      "deny": "Tolak"
+    },
+    "toasts": {
+      "region": "Notifikasi",
+      "joined": "<strong>{name}</strong> bergabung",
+      "left": "<strong>{name}</strong> keluar",
+      "dismiss": "Tutup"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Organisasi - PairUX",
+      "detailTitle": "Organisasi - PairUX"
+    },
+    "roles": {
+      "owner": "Pemilik",
+      "admin": "Admin",
+      "member": "Anggota"
+    },
+    "list": {
+      "title": "Organisasi",
+      "intro": "Organisasi berbagi kanal untuk siaran live, laporan analisis panggilan, dan paket pemiliknya dengan para anggota. Kelompokkan orang ke dalam tim di dalamnya.",
+      "teamCount": "{count, plural, other {# tim}}",
+      "createHeading": "Buat organisasi",
+      "namePlaceholder": "Nama perusahaan atau grup",
+      "create": "Buat",
+      "createError": "Tidak dapat membuat organisasi"
+    },
+    "detail": {
+      "back": "← Organisasi",
+      "notFound": "Organisasi tidak ditemukan",
+      "genericError": "Terjadi kesalahan",
+      "summary": "{role, select, owner {Anda adalah pemilik} admin {Anda adalah admin} other {Anda adalah anggota}}. Anggota tercakup dalam paket <strong>{plan}</strong>.",
+      "confirmDelete": "Hapus {name}? Kanal dan laporannya akan kembali ke orang yang membuatnya.",
+      "deleteOrg": "Hapus organisasi",
+      "confirmLeave": "Keluar dari {name}?",
+      "leaveOrg": "Keluar dari organisasi",
+      "members": "Anggota",
+      "teamLead": "{team} (pemimpin)",
+      "removeMember": "Keluarkan {name}",
+      "confirmRemoveMember": "Keluarkan {name} dari {org}?",
+      "inviteByEmail": "Undang lewat email",
+      "noTeam": "Tanpa tim",
+      "invite": "Undang",
+      "pendingInvitations": "Undangan tertunda",
+      "revoke": "Cabut",
+      "teams": "Tim",
+      "teamsIntro": "Anggota tim dapat siaran live di kanal tim dan membaca laporan panggilan tim. Pemimpin tim mengatur siapa saja yang ada di tim.",
+      "confirmDeleteTeam": "Hapus tim {name}? Kanal dan laporannya tetap berada di organisasi.",
+      "deleteTeam": "Hapus tim",
+      "lead": "pemimpin",
+      "makeMember": "jadikan anggota",
+      "makeLead": "jadikan pemimpin",
+      "removeFromTeam": "Keluarkan {name} dari {team}",
+      "noMembers": "Belum ada anggota",
+      "addMember": "Tambah anggota…",
+      "noTeams": "Belum ada tim.",
+      "newTeamPlaceholder": "Tim baru, mis. Engineering",
+      "createTeam": "Buat tim"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Pengaturan - PairUX",
+      "description": "Kelola pengaturan PairUX Anda."
+    },
+    "back": "Kembali",
+    "title": "Pengaturan",
+    "saved": "Tersimpan",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (jika tersedia)"
+    },
+    "account": {
+      "title": "Akun",
+      "description": "Informasi akun Anda",
+      "email": "Email:",
+      "name": "Nama:",
+      "signInPrompt": "Masuk untuk menyinkronkan pengaturan di semua perangkat dan mengakses lebih banyak fitur.",
+      "signIn": "Masuk",
+      "createAccount": "Buat Akun"
+    },
+    "recording": {
+      "title": "Rekaman",
+      "description": "Preferensi rekaman bawaan",
+      "defaultRecordingQuality": "Kualitas Rekaman Bawaan",
+      "recordingQualityHint": "Rekaman berkualitas lebih tinggi berukuran lebih besar",
+      "defaultCaptureQuality": "Kualitas Tangkapan Bawaan",
+      "captureQualityHint": "Kualitas lebih tinggi memakai lebih banyak bandwidth untuk streaming",
+      "includeSystemAudio": "Sertakan Audio Sistem",
+      "includeSystemAudioHint": "Tangkap audio sistem bersama layar",
+      "webRecordingNote": "<strong>Rekaman Web:</strong> Rekaman disimpan ke folder unduhan browser Anda. Untuk pengaturan file otomatis, gunakan <link>aplikasi desktop</link>."
+    },
+    "session": {
+      "title": "Bawaan Sesi",
+      "description": "Pengaturan bawaan untuk sesi baru",
+      "maxParticipants": "Peserta Maksimum",
+      "viewers": "{count, plural, other {# penonton}}",
+      "openInDesktopApp": "Buka Sesi di Aplikasi Desktop",
+      "openInDesktopAppHint": "Memulai sesi akan membuka aplikasi desktop, tempat Anda dapat memberikan kontrol kepada tamu. Kembali ke browser ini jika aplikasi belum terinstal.",
+      "openInDesktopAppAria": "Buka sesi di aplikasi desktop",
+      "remoteControlNote": "<strong>Catatan:</strong> Kontrol jarak jauh hanya tersedia di <link>aplikasi desktop</link>. Sesi web hanya untuk ditonton."
+    },
+    "notifications": {
+      "title": "Notifikasi",
+      "description": "Preferensi notifikasi push"
+    },
+    "language": {
+      "title": "Bahasa",
+      "description": "Pilih bahasa tampilan PairUX",
+      "hint": "Disimpan di browser ini. Bawaannya mengikuti bahasa browser Anda."
+    },
+    "appearance": {
+      "title": "Tampilan",
+      "description": "Sesuaikan pengalaman Anda",
+      "theme": "Tema",
+      "themes": {
+        "light": "Terang",
+        "dark": "Gelap",
+        "system": "Sistem"
+      },
+      "systemHint": "Tema sistem mengikuti pengaturan perangkat Anda"
+    },
+    "about": {
+      "title": "Tentang",
+      "description": "Informasi aplikasi",
+      "application": "Aplikasi",
+      "platform": "Platform",
+      "platformValue": "Browser / PWA",
+      "features": "Fitur",
+      "featuresValue": "Berbagi Layar, Rekaman, Chat",
+      "downloadNote": "Untuk fitur lengkap termasuk kontrol jarak jauh, unduh <link>aplikasi desktop</link>."
+    },
+    "youtube": {
+      "title": "Live otomatis di YouTube",
+      "description": "Siaran YouTube Anda otomatis tayang live saat Anda mulai streaming — tidak ada lagi “Preparing stream”.",
+      "notConfigured": "Belum tersedia — server belum memiliki konfigurasi Google OAuth.",
+      "connected": "Terhubung",
+      "connectedTo": "Terhubung — {channel}",
+      "disconnect": "Putuskan",
+      "connect": "Hubungkan YouTube"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Siaran live tidak ditemukan",
+    "defaultTitle": "Live di PairUX",
+    "defaultDescription": "Siaran live publik oleh {name}.",
+    "defaultDescriptionAnonymous": "Siaran live publik oleh kreator PairUX.",
+    "anonymous": "Anonim",
+    "liveNow": "Live sekarang",
+    "untitled": "Siaran live tanpa judul",
+    "watchFree": "Tonton gratis",
+    "commentsHeading": "Komentar ({count})",
+    "like": "Suka ({count, plural, other {# suka}})",
+    "unlike": "Batal suka ({count, plural, other {# suka}})",
+    "comments": {
+      "someone": "Seseorang",
+      "postFailed": "Tidak dapat mengirim komentar Anda.",
+      "networkError": "Kesalahan jaringan. Silakan coba lagi.",
+      "placeholder": "Tambahkan komentar…",
+      "post": "Kirim",
+      "empty": "Belum ada komentar — jadilah yang pertama.",
+      "delete": "Hapus"
+    },
+    "embed": {
+      "title": "Sematkan siaran live ini",
+      "button": "Sematkan",
+      "label": "Tempel di mana pun HTML diizinkan",
+      "copied": "Tersalin",
+      "copy": "Salin kode"
+    }
+  },
+  "embed": {
+    "defaultTitle": "Pemutar PairUX",
+    "untitled": "Siaran live tanpa judul",
+    "watchLive": "Tonton live di PairUX",
+    "watch": "Tonton di PairUX",
+    "live": "Live"
+  },
+  "room": {
+    "metadata": {
+      "title": "Ruang terenkripsi",
+      "description": "Ruang suara dan video PairUX yang terenkripsi end-to-end. Tidak perlu akun."
+    },
+    "creating": "Membuat ruang terenkripsi…",
+    "guest": "Tamu",
+    "joinFailed": "Tidak dapat bergabung ke ruang",
+    "callFailed": "Panggilan gagal",
+    "e2ee": "Terenkripsi end-to-end",
+    "incomplete": {
+      "title": "Tautan ini tidak lengkap",
+      "body": "Tautan ruang diakhiri dengan <code>#k=…</code>, yaitu kunci yang mengenkripsi panggilan. Mintalah tautan lengkapnya, atau <link>mulai ruang baru</link>."
+    },
+    "join": {
+      "title": "Gabung ke ruang",
+      "body": "Tidak perlu akun. Audio dan video dienkripsi di perangkat Anda dengan kunci yang hanya dimiliki oleh pemegang tautan ini. PairUX tidak dapat mendengar atau melihat panggilan, dan tidak ada yang direkam.",
+      "nameLabel": "Nama Anda",
+      "voice": "Suara",
+      "video": "Video"
+    },
+    "copied": "Tersalin",
+    "copyInvite": "Salin tautan undangan"
+  },
+  "live": {
+    "metadata": {
+      "title": "Ruang Live",
+      "description": "Jelajahi ruang berbagi layar publik yang sedang berlangsung di PairUX."
+    },
+    "title": "Ruang Live",
+    "intro": "Ruang berbagi layar publik yang sedang dijalankan para host saat ini. Langsung masuk, tanpa undangan — atau jelajahi <link>semua kanal</link> (dulu & sekarang).",
+    "empty": {
+      "title": "Belum ada ruang publik",
+      "body": "Jadilah host sesi dan gunakan <strong>Publikasikan ke /live</strong> untuk mencantumkannya di sini.",
+      "cta": "Mulai menjadi host"
+    },
+    "badgeLive": "Live",
+    "badgeIdle": "Siaga",
+    "viewers": "{count, plural, other {# penonton}}",
+    "untitledRoom": "Ruang tanpa judul",
+    "anonymous": "Anonim",
+    "joinRoom": "Gabung ruang",
+    "creators": "Kreator",
+    "followers": "{count, plural, other {# pengikut}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Kanal",
+      "description": "Jelajahi kanal kreator di PairUX."
+    },
+    "title": "Kanal",
+    "intro": "Kanal kreator di PairUX. Berlangganan untuk mendapat notifikasi saat mereka live — atau lihat siapa yang <link>sedang live sekarang</link>.",
+    "empty": {
+      "title": "Belum ada kanal",
+      "body": "Buat kanal dari <link>dasbor</link> Anda."
+    },
+    "liveNow": "Live sekarang",
+    "subscribers": "{count, plural, other {# pelanggan}}",
+    "liveCount": "{count} live",
+    "recordings": "{count, plural, other {# rekaman}}"
+  },
+  "channel": {
+    "notFoundTitle": "Kanal tidak ditemukan",
+    "defaultDescription": "Kanal {name} di PairUX.",
+    "liveNow": "Live sekarang",
+    "live": "Live",
+    "watching": "{count} menonton",
+    "manage": "Kelola kanal",
+    "streams": "Stream",
+    "noStreams": "Belum ada stream.",
+    "untitledStream": "Stream tanpa judul",
+    "recordings": "Rekaman",
+    "rssTitle": "Berlangganan di aplikasi podcast atau pembaca feed",
+    "recording": "Rekaman",
+    "subscribe": {
+      "subscribe": "Berlangganan",
+      "subscribed": "Sudah berlangganan",
+      "count": "{count, plural, other {# pelanggan}}"
+    },
+    "share": {
+      "text": "Lihat {name} di PairUX",
+      "share": "Bagikan",
+      "shareOn": "Bagikan di {network}",
+      "copyLink": "Salin tautan",
+      "copy": "Salin",
+      "copied": "Tersalin"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Profil tidak ditemukan",
+    "defaultDescription": "Ruang publik {name} di PairUX.",
+    "channels": "Kanal",
+    "live": "Live",
+    "subscribers": "{count, plural, other {# pelanggan}}",
+    "lives": "Siaran Live",
+    "noLives": "{handle} belum pernah live.",
+    "liveNow": "Live sekarang",
+    "untitledRoom": "Ruang tanpa judul",
+    "joinRoom": "Gabung ruang",
+    "follow": {
+      "follow": "Ikuti",
+      "following": "Mengikuti",
+      "count": "{count, plural, other {# pengikut}}"
+    },
+    "message": {
+      "button": "Kirim Pesan",
+      "title": "Kirim pesan ke {name}",
+      "close": "Tutup",
+      "sent": "Pesan terkirim",
+      "sentNote": "{name} akan diberi tahu lewat email dan notifikasi push.",
+      "viewConversation": "Lihat percakapan",
+      "placeholder": "Tulis pesan pribadi untuk {name}…",
+      "cancel": "Batal",
+      "send": "Kirim",
+      "sendFailed": "Gagal mengirim pesan"
+    }
+  },
+  "messages": {
+    "title": "Pesan",
+    "conversationTitle": "Percakapan",
+    "allMessages": "Semua pesan",
+    "empty": {
+      "title": "Belum ada pesan",
+      "body": "Kunjungi profil kreator dan tekan <strong>Kirim Pesan</strong> untuk memulai percakapan.",
+      "cta": "Jelajahi kreator →"
+    },
+    "youPrefix": "Anda:",
+    "thread": {
+      "empty": "Belum ada pesan. Sapa {name}.",
+      "placeholder": "Pesan untuk {name}…",
+      "send": "Kirim",
+      "sendFailed": "Gagal mengirim pesan"
+    }
+  }
+}

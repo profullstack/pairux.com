@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Download, X, Monitor, Smartphone } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 
@@ -29,6 +30,7 @@ interface InstallPromptProps {
 export function InstallPrompt({ className = '', variant = 'banner' }: InstallPromptProps) {
   const { canInstall, isInstalled, isDismissed, install, dismiss, platform } = usePWAInstall();
   const [isInstalling, setIsInstalling] = useState(false);
+  const t = useTranslations('pwa');
 
   // Don't show if can't install, already installed, or dismissed
   if (!canInstall || isInstalled || isDismissed) {
@@ -53,10 +55,10 @@ export function InstallPrompt({ className = '', variant = 'banner' }: InstallPro
         onClick={handleInstall}
         disabled={isInstalling}
         className={`fixed right-4 bottom-4 z-50 flex items-center gap-2 rounded-full bg-blue-600 px-4 py-3 font-medium text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl disabled:opacity-75 ${className}`}
-        aria-label="Install PairUX app"
+        aria-label={t('installAppLabel')}
       >
         <Download className="h-5 w-5" />
-        <span className="hidden sm:inline">Install App</span>
+        <span className="hidden sm:inline">{t('installApp')}</span>
       </button>
     );
   }
@@ -74,11 +76,9 @@ export function InstallPrompt({ className = '', variant = 'banner' }: InstallPro
             <Icon className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="font-medium text-white">Install PairUX</p>
+            <p className="font-medium text-white">{t('title')}</p>
             <p className="text-sm text-gray-400">
-              {isMobile
-                ? 'Add to your home screen for quick access'
-                : 'Install the desktop app for a better experience'}
+              {isMobile ? t('mobileDescription') : t('desktopDescription')}
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export function InstallPrompt({ className = '', variant = 'banner' }: InstallPro
           <button
             onClick={dismiss}
             className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-            aria-label="Dismiss install prompt"
+            aria-label={t('dismiss')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -97,7 +97,7 @@ export function InstallPrompt({ className = '', variant = 'banner' }: InstallPro
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-75"
           >
             <Download className="h-4 w-4" />
-            <span>{isInstalling ? 'Installing...' : 'Install'}</span>
+            <span>{isInstalling ? t('installing') : t('install')}</span>
           </button>
         </div>
       </div>

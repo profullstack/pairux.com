@@ -1,0 +1,2250 @@
+{
+  "metadata": {
+    "title": "PairUX – Gemensam skärmdelning med fjärrstyrning",
+    "description": "Skärmdelning i realtid med samtidig fjärrstyrning av mus och tangentbord. Som Screenhero, fast med öppen källkod. Finns för macOS, Windows och Linux.",
+    "shortDescription": "Skärmdelning i realtid med samtidig fjärrstyrning av mus och tangentbord. Som Screenhero, fast med öppen källkod.",
+    "imageAlt": "PairUX – Gemensam skärmdelning"
+  },
+  "common": {
+    "language": "Språk",
+    "loading": "Laddar…",
+    "save": "Spara",
+    "saving": "Sparar…",
+    "saved": "Sparat",
+    "cancel": "Avbryt",
+    "close": "Stäng",
+    "delete": "Ta bort",
+    "edit": "Redigera",
+    "back": "Tillbaka",
+    "continue": "Fortsätt",
+    "copy": "Kopiera",
+    "copied": "Kopierat!",
+    "retry": "Försök igen",
+    "yes": "Ja",
+    "no": "Nej",
+    "or": "eller",
+    "optional": "Valfritt",
+    "learnMore": "Läs mer",
+    "somethingWentWrong": "Något gick fel. Försök igen."
+  },
+  "nav": {
+    "live": "Live",
+    "channels": "Kanaler",
+    "features": "Funktioner",
+    "useCases": "Användningsfall",
+    "download": "Ladda ner",
+    "docs": "Dokumentation",
+    "blog": "Blogg",
+    "pricing": "Priser",
+    "dashboard": "Översikt",
+    "organizations": "Organisationer",
+    "callAnalyses": "Samtalsanalyser",
+    "settings": "Inställningar",
+    "messages": "Meddelanden",
+    "signIn": "Logga in",
+    "signUp": "Registrera dig",
+    "signOut": "Logga ut",
+    "openMenu": "Öppna menyn",
+    "closeMenu": "Stäng menyn",
+    "userFallback": "Användare"
+  },
+  "footer": {
+    "tagline": "Gemensam skärmdelning med samtidig fjärrstyrning. Som Screenhero, fast med öppen källkod.",
+    "license": "Öppen källkod under MIT-licensen.",
+    "sections": {
+      "product": "Produkt",
+      "install": "Installera",
+      "resources": "Resurser",
+      "company": "Företaget"
+    },
+    "links": {
+      "features": "Funktioner",
+      "useCases": "Användningsfall",
+      "download": "Ladda ner",
+      "pricing": "Priser",
+      "changelog": "Ändringslogg",
+      "documentation": "Dokumentation",
+      "faq": "Vanliga frågor",
+      "systemRequirements": "Systemkrav",
+      "troubleshooting": "Felsökning",
+      "about": "Om oss",
+      "blog": "Blogg",
+      "privacy": "Integritetspolicy",
+      "terms": "Användarvillkor"
+    }
+  },
+  "auth": {
+    "or": "eller",
+    "comingSoon": "Kommer snart",
+    "checkEmail": "Kolla din e-post",
+    "backToSignIn": "Tillbaka till inloggningen",
+    "errors": {
+      "unexpected": "Ett oväntat fel uppstod"
+    },
+    "fields": {
+      "email": "E-postadress",
+      "emailPlaceholder": "du@exempel.se",
+      "password": "Lösenord",
+      "passwordPlaceholder": "Minst 8 tecken, 1 versal, 1 siffra",
+      "passwordHint": "Minst 8 tecken, varav en versal och en siffra",
+      "showPassword": "Visa lösenord",
+      "hidePassword": "Dölj lösenord"
+    },
+    "validation": {
+      "passwordsDoNotMatch": "Lösenorden matchar inte",
+      "passwordTooShort": "Lösenordet måste ha minst 8 tecken",
+      "passwordNeedsUppercase": "Lösenordet måste innehålla minst en versal",
+      "passwordNeedsNumber": "Lösenordet måste innehålla minst en siffra"
+    },
+    "login": {
+      "meta": {
+        "title": "Logga in – PairUX",
+        "description": "Logga in på ditt PairUX-konto"
+      },
+      "title": "Välkommen tillbaka",
+      "subtitle": "Logga in på ditt konto för att fortsätta",
+      "failed": "Inloggningen misslyckades",
+      "forgotPassword": "Glömt lösenordet?",
+      "passwordPlaceholder": "Ange ditt lösenord",
+      "rememberMe": "Kom ihåg mig",
+      "submit": "Logga in",
+      "submitting": "Loggar in…",
+      "passkey": "Logga in med nyckel",
+      "noAccount": "Har du inget konto? <link>Registrera dig</link>"
+    },
+    "signup": {
+      "meta": {
+        "title": "Registrera dig – PairUX",
+        "description": "Skapa ett PairUX-konto och börja dela din skärm"
+      },
+      "failed": "Det gick inte att skapa kontot",
+      "confirmationSent": "Vi har skickat en bekräftelselänk till <strong>{email}</strong>. Klicka på länken för att verifiera ditt konto.",
+      "firstName": "Förnamn",
+      "firstNamePlaceholder": "Förnamn",
+      "lastName": "Efternamn",
+      "lastNamePlaceholder": "Efternamn",
+      "confirmPassword": "Bekräfta lösenord",
+      "confirmPasswordPlaceholder": "Bekräfta ditt lösenord",
+      "submit": "Skapa konto",
+      "submitting": "Skapar konto…",
+      "haveAccount": "Har du redan ett konto? <link>Logga in</link>",
+      "page": {
+        "earlyAdopterTitle": "Bonus för tidiga användare",
+        "earlyAdopterBody": "Registrera dig nu och få <bold>20 % extra krediter</bold> på varje insättning!",
+        "waitlistTitle": "Ställ dig i kön",
+        "recommended": "Rekommenderas",
+        "waitlistBody": "Säkra din plats med en insättning på 100 $ i krediter och få förtur plus exklusiva förmåner.",
+        "perkCredits": "100 $ insättning = <semibold>120 $ i krediter</semibold> (20 % bonus)",
+        "perkPriority": "Förtur när vi lanserar",
+        "perkPricing": "Låst pris för tidiga användare för alltid",
+        "perkCommunity": "Tillgång till exklusiv Discord/Slack-kanal",
+        "paymentMethods": "Betalningsmetoder",
+        "payCard": "Betala med kort",
+        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
+        "payCrypto": "Betala med krypto",
+        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
+        "comingSoon": "Kommer snart",
+        "refundable": "Insättningar återbetalas i sin helhet före lanseringen om du ångrar dig.",
+        "orFree": "eller registrera dig gratis",
+        "freeTitle": "Skapa ett gratiskonto",
+        "freeBody": "Kom igång med 2 deltagare + 5 tittare, gratis för alltid",
+        "creditsTitle": "Så fungerar krediter",
+        "creditsBody": "PairUX använder ett kreditbaserat system. Krediter används för SFU-reläservrar när du behöver fler än 5 tittare. <medium>0,08 $ per tittartimme i 720p</medium>. P2P-anslutningar på gratisnivån upphör aldrig."
+      }
+    },
+    "forgot": {
+      "meta": {
+        "title": "Glömt lösenordet – PairUX",
+        "description": "Återställ lösenordet till ditt PairUX-konto"
+      },
+      "title": "Glömt ditt lösenord?",
+      "subtitle": "Ange din e-post så skickar vi en återställningslänk",
+      "failed": "Det gick inte att skicka återställningsmejlet",
+      "sent": "Om det finns ett konto med <strong>{email}</strong> får du en länk för att återställa lösenordet.",
+      "submit": "Skicka återställningslänk",
+      "submitting": "Skickar…"
+    },
+    "reset": {
+      "title": "Återställ ditt lösenord",
+      "subtitle": "Ange ditt nya lösenord nedan",
+      "failed": "Det gick inte att återställa lösenordet",
+      "successTitle": "Lösenordet har uppdaterats",
+      "successBody": "Ditt lösenord har återställts. Du skickas till inloggningen…",
+      "signInNow": "Logga in nu",
+      "invalidTitle": "Ogiltig eller utgången länk",
+      "invalidBody": "Den här återställningslänken är ogiltig eller har gått ut. Begär en ny.",
+      "requestNewLink": "Begär ny länk",
+      "newPassword": "Nytt lösenord",
+      "confirmNewPassword": "Bekräfta nytt lösenord",
+      "confirmNewPasswordPlaceholder": "Bekräfta ditt nya lösenord",
+      "submit": "Återställ lösenord",
+      "submitting": "Återställer…"
+    }
+  },
+  "cliAuthorize": {
+    "metaTitle": "Auktorisera PairUX CLI – PairUX",
+    "invalidTitle": "Den här inloggningslänken är inte giltig",
+    "invalidBody": "Kör <code>{command}</code> igen för att få en ny.",
+    "allowedTitle": "Du kan gå tillbaka till terminalen",
+    "deniedTitle": "Inloggningen avbröts",
+    "closeTab": "Du kan stänga den här fliken.",
+    "title": "Auktorisera {clientName}?",
+    "intro": "PairUX-kommandoradsverktyget på den här datorn ber om att få agera som <strong>{email}</strong>.",
+    "agentsNote": "Agenter som du startar med det ansluter till sessioner märkta som din agent, så att värdarna vet vems de är.",
+    "limitsNote": "Det kan inte se din skärm, ta över fjärrstyrningen eller ändra ditt konto.",
+    "revokeNote": "Om du loggar ut med <code>{command}</code> återkallas behörigheten.",
+    "allow": "Tillåt",
+    "deny": "Neka",
+    "errors": {
+      "authorizeFailed": "Det gick inte att auktorisera CLI:t",
+      "network": "Det gick inte att nå PairUX. Kontrollera anslutningen och försök igen."
+    }
+  },
+  "orgInvite": {
+    "metaTitle": "Gå med i en organisation – PairUX",
+    "title": "Gå med i {orgName}",
+    "invited": "Du är inbjuden som {role, select, admin {administratör} other {medlem}}. Logga in som <strong>{email}</strong> för att acceptera.",
+    "invitedToTeam": "Du är inbjuden som {role, select, admin {administratör} other {medlem}} i teamet {teamName}. Logga in som <strong>{email}</strong> för att acceptera.",
+    "expired": "Den här inbjudan har gått ut. Be om en ny.",
+    "accept": "Acceptera inbjudan",
+    "errors": {
+      "invalid": "Den här inbjudan är inte längre giltig",
+      "acceptFailed": "Det gick inte att acceptera inbjudan"
+    }
+  },
+  "features": {
+    "meta": {
+      "title": "Funktioner",
+      "description": "Utforska alla funktioner i PairUX: skärmdelning i realtid, fjärrstyrning, samarbete med flera muspekare, stöd för flera plattformar och mycket mer."
+    },
+    "hero": {
+      "title": "Funktioner",
+      "subtitle": "Allt du behöver för samarbete i realtid, byggt med integritet och säkerhet i fokus.",
+      "imageAlt": "PairUX-översikten med sessionsstatistik, kanaler, snabbåtgärder för att starta eller gå med i en session och den aktuella planen."
+    },
+    "comingSoon": "Kommer snart",
+    "main": {
+      "callAnalysis": {
+        "title": "AI-samtalsanalys",
+        "description": "Slå på den före en intervju, ett teammöte eller en presentation och få en privat feedbackrapport efter samtalet: ett betyg, vad som fungerade, vad du kan förbättra och de ögonblick som är värda att se igen.",
+        "details": {
+          "d0": "Taltid, tempo och utfyllnadsord per talare",
+          "d1": "Lägen för intervju, teammöte och presentation",
+          "d2": "Skärmbilder granskas för bilder och demos",
+          "d3": "Alla i samtalet får veta att det spelas in"
+        }
+      },
+      "screenSharing": {
+        "title": "Skärmdelning i realtid",
+        "description": "Dela hela skärmen eller enskilda fönster i kristallklar kvalitet. WebRTC-baserad strömning ger video med låg fördröjning och adaptiv bithastighet.",
+        "details": {
+          "d0": "Dela hela skärmen eller ett fönster",
+          "d1": "1080p @ 30 fps som standard",
+          "d2": "Adaptiv bithastighet för alla anslutningar",
+          "d3": "Muspekaren syns i strömmen"
+        }
+      },
+      "remoteControl": {
+        "title": "Fjärrstyrd mus och tangentbord",
+        "description": "Låt din kollega ta över med full kontroll över mus och tangentbord. All styrning kräver uttryckligt godkännande från värden.",
+        "details": {
+          "d0": "Full muskontroll (klicka, scrolla, dra)",
+          "d1": "Fullständig tangentbordsinmatning",
+          "d2": "Specialtangenter och kortkommandon",
+          "d3": "Fungerar mellan plattformar"
+        }
+      },
+      "simultaneousInput": {
+        "title": "Samtidig inmatning",
+        "description": "Både värd och tittare kan styra samtidigt. Värdens inmatning har alltid företräde, för säkerhet och bekvämlighet.",
+        "details": {
+          "d0": "Båda kan styra tillsammans",
+          "d1": "Värden har alltid företräde",
+          "d2": "Ingen blockering eller kö för inmatning",
+          "d3": "Visuell indikator visar vem som styr"
+        }
+      },
+      "consent": {
+        "title": "Uttryckligt samtycke",
+        "description": "Säkerheten är inbyggd från grunden. Tittare måste begära styrning och värden måste uttryckligen godkänna.",
+        "details": {
+          "d0": "Begäran om styrning kräver godkännande",
+          "d1": "Snabbtangent för nödåterkallning (Ctrl+Shift+Esc)",
+          "d2": "Visuell indikator när styrning är aktiv",
+          "d3": "Styrningen kan återkallas när som helst"
+        }
+      },
+      "pwaViewer": {
+        "title": "PWA-visare",
+        "description": "Tittare ansluter från valfri modern webbläsare – ingen nedladdning krävs. Installera som progressiv webbapp för snabb åtkomst.",
+        "details": {
+          "d0": "Fungerar i alla moderna webbläsare",
+          "d1": "Inget konto krävs för att gå med",
+          "d2": "Kan installeras som PWA",
+          "d3": "Mobilvänlig för tittande"
+        }
+      },
+      "crossPlatform": {
+        "title": "Skrivbordsappar för alla plattformar",
+        "description": "Inbyggda skrivbordsappar för macOS, Windows och Linux. Installera via din favoritpakethanterare.",
+        "details": {
+          "d0": "macOS: Homebrew cask",
+          "d1": "Windows: WinGet",
+          "d2": "Linux: APT, DNF, AUR",
+          "d3": "Direktnedladdning finns"
+        }
+      },
+      "recording": {
+        "title": "Skärminspelning",
+        "description": "Spela in dina sessioner lokalt och titta på dem senare. Perfekt för guider, dokumentation och för att spara parprogrammeringssessioner.",
+        "details": {
+          "d0": "Spela in till WebM/MP4 lokalt",
+          "d1": "Inspelning av systemljud + mikrofon",
+          "d2": "Kvalitetsförval (720p/1080p/4K)",
+          "d3": "Pausa/återuppta inspelningen"
+        }
+      },
+      "textChat": {
+        "title": "Textchatt",
+        "description": "Inbyggd textchatt när du behöver dela länkar, kodsnuttar eller kommunicera utan röst.",
+        "details": {
+          "d0": "Meddelanden i realtid",
+          "d1": "Systemaviseringar (ansluter/lämnar)",
+          "d2": "Fungerar parallellt med skärmdelning",
+          "d3": "Meddelandehistorik per session"
+        }
+      }
+    },
+    "imageAlts": {
+      "screenSharing": "PairUX-värdkonsolen under en session, med kvalitetsväljare, anslutningskod, deltagarlista och panel med sessionsinformation.",
+      "consent": "PairUX-tittarkonsolen, där en gäst måste trycka på Begär styrning innan värden ger åtkomst till inmatning.",
+      "pwaViewer": "PairUX anslutningsskärm i en webbläsare, med sessionskod, livestatus och knappen Titta gratis som inte kräver något konto.",
+      "crossPlatform": "PairUX nedladdningssida med installationskommandon på en rad samt DMG-, EXE-, AppImage-, DEB- och RPM-paket för macOS, Windows och Linux.",
+      "recording": "PairUX inspelningsinställningar, med standardinspelning, kvalitetsförval och ett reglage för systemljud."
+    },
+    "tech": {
+      "title": "Byggt på modern teknik",
+      "subtitle": "PairUX använder branschstandarden WebRTC för pålitlig strömning med låg fördröjning."
+    },
+    "technical": {
+      "p2p": {
+        "title": "WebRTC P2P",
+        "description": "Direkt peer-to-peer-anslutning för minimal fördröjning."
+      },
+      "e2e": {
+        "title": "E2E-krypterat",
+        "description": "DTLS-SRTP-kryptering för alla medieströmmar."
+      },
+      "nat": {
+        "title": "NAT-traversering",
+        "description": "STUN/TURN-servrar för pålitlig anslutning."
+      },
+      "adaptive": {
+        "title": "Adaptiv kvalitet",
+        "description": "Automatisk kvalitetsjustering efter bandbredd."
+      },
+      "sharedControl": {
+        "title": "Delad styrning",
+        "description": "Värd och gäst turas om att använda värdsystemets muspekare."
+      },
+      "keyboard": {
+        "title": "Fullt tangentbord",
+        "description": "Alla tangenter, inklusive modifierare och specialtangenter."
+      }
+    },
+    "compare": {
+      "title": "Så står sig PairUX",
+      "subtitle": "Se hur PairUX står sig mot andra lösningar för skärmdelning.",
+      "feature": "Funktion",
+      "others": "Andra",
+      "rows": {
+        "screenSharing": "Skärmdelning",
+        "remoteControl": "Fjärrstyrning",
+        "simultaneousControl": "Samtidig styrning",
+        "localRecording": "Skärminspelning (lokal)",
+        "textChat": "Textchatt",
+        "noAccount": "Inget konto för tittare",
+        "openSource": "Öppen källkod",
+        "selfHostable": "Kan driftas själv",
+        "e2e": "E2E-krypterat",
+        "nativeApps": "Inbyggda appar",
+        "browserViewer": "Visning i webbläsaren",
+        "freeTier": "Gratisnivå"
+      },
+      "values": {
+        "soon": "snart",
+        "partial": "delvis",
+        "unlimited": "obegränsat",
+        "limited": "begränsat"
+      }
+    },
+    "cta": {
+      "title": "Redo att sätta igång?",
+      "subtitle": "Ladda ner PairUX och börja samarbeta på några sekunder.",
+      "button": "Ladda ner nu"
+    },
+    "callAnalysisPage": {
+      "meta": {
+        "title": "AI-samtalsanalys: feedback på intervjuer, teammöten och presentationer | PairUX",
+        "description": "Slå på AI-samtalsanalys före ett PairUX-samtal och få en feedbackrapport efteråt: taltid, taltempo, utfyllnadsord, vad som gick hem, vad du bör öva på och ögonblick att se igen."
+      },
+      "eyebrow": "AI-samtalsanalys · Pro och Team",
+      "title": "Ta reda på hur samtalet egentligen gick.",
+      "intro": "Slå på AI-samtalsanalys före din intervju, ditt teammöte eller din presentation. När samtalet är slut får du en privat rapport: ett betyg, vad som fungerade, vad du kan förbättra, siffrorna bakom och de ögonblick som är värda att se igen.",
+      "startCta": "Starta ett analyserat samtal",
+      "seePlans": "Se planer",
+      "kindsTitle": "Feedback anpassad efter samtalet",
+      "kinds": {
+        "interviews": {
+          "title": "Intervjuer",
+          "body": "Fråga för fråga: hur varje svar togs emot, var det blev för långt eller för vagt, och ett starkare sätt att säga det. Intervjuar du någon annan? Då granskas dina frågor och hur väl du lyssnade."
+        },
+        "teamSyncs": {
+          "title": "Teammöten",
+          "body": "Fattade beslut, obesvarade frågor, var mötet tappade fokus och varje åtagande med ansvarig, så att inget faller mellan stolarna."
+        },
+        "presentations": {
+          "title": "Presentationer och demos",
+          "body": "Din inledning, röda tråd och avslutning, var publiken troligen tappade intresset och vad som visades på skärmen: hur fullspäckade bilderna var, läsbarhet och om skärmen stämde med det du sa."
+        }
+      },
+      "measuredTitle": "Mätt, inte gissat",
+      "measuredBody": "Siffrorna räknas fram ur transkriptionen, där varje talare särskiljs, och den skriftliga feedbacken hänvisar till dem. När rapporten säger att du pratade 70 % av en intervju är det ett faktum du kan kontrollera.",
+      "measured": {
+        "m0": "Andel taltid för varje talare",
+        "m1": "Taltempo i ord per minut",
+        "m2": "Utfyllnadsord per 100 ord, och vilka",
+        "m3": "Ställda frågor, längsta monolog, avbrott"
+      },
+      "howTitle": "Så fungerar det",
+      "how": {
+        "s0": "Före samtalet slår du på <strong>AI-samtalsanalys</strong> på startskärmen (pairux.com, skrivbordsappen eller mobilappen) och väljer typ av samtal. Inspelning av samtalet slås på samtidigt, och den kan du stänga av.",
+        "s1": "Under samtalet laddar din app upp samtalsljudet och en stillbild av din delade skärm var 20:e sekund. Alla som ansluter ser att samtalet spelas in för analys.",
+        "s2": "Efter samtalet transkriberas ljudet med talarna åtskilda och en AI-coach skriver din rapport. Den kommer via e-post och finns under Samtalsanalyser i din översikt."
+      },
+      "privacyTitle": "Samtycke och integritet",
+      "privacy": {
+        "p0": "Valet görs innan samtalet startar och kan inte slås på mitt i samtalet.",
+        "p1": "Alla deltagare ser ett meddelande under hela samtalet, på webben, i skrivbordsappen och i mobilappen.",
+        "p2": "Rapporter och inspelningar är privata för värden, eller för teamet eller organisationen där samtalet hölls, och kan tas bort när som helst.",
+        "p3": "Låter du inspelningen vara avstängd raderas ljudet så snart rapporten är skriven.",
+        "p4": "På en telefon spelas bara din egen mikrofon in; starta från pairux.com eller skrivbordsappen för att få med alla."
+      },
+      "tryCta": "Testa i ditt nästa samtal"
+    }
+  },
+  "useCases": {
+    "index": {
+      "meta": {
+        "title": "Användningsfall för arbete med AI-agenter",
+        "description": "Parprogrammera, granska AI-genererad kod, felsök, introducera kollegor och undervisa live med PairUX. Få AI-feedback på intervjuer, teammöten och presentationer."
+      },
+      "eyebrow": "Användningsfall för PairUX",
+      "title": "Bättre arbete med agenter. Tillsammans.",
+      "intro": "En agent kan skriva koden. Ditt team behöver ändå förstå resultatet. Använd PairUX för att dela skärmen, testa appen och ta nästa beslut tillsammans.",
+      "findWorkflow": "Hitta ditt arbetsflöde",
+      "featuredLabel": "Utvalt · Agentisk parprogrammering",
+      "featuredTitle": "Två personer. En agentsession.",
+      "featuredBody": "Dela en live-terminal i moshcode med din kollega och använd sedan PairUX för att granska editorn och appen tillsammans. Titta först eller delta i samma session.",
+      "featuredCta": "Utforska agentisk parprogrammering",
+      "workflowsTitle": "Ta in en person till i arbetet",
+      "workflowsIntro": "Börja med en delad skärm. Låt medarbetare använda mus och tangentbord när värden godkänner fjärrstyrning.",
+      "notesPlans": "Pro- och Team-planer",
+      "notesTitle": "AI-anteckningar",
+      "notesBody": "Gör om ett arbetspass till utkast till anteckningar, beslut och åtgärdspunkter. Hjälp en kollega att komma ikapp eller ta med sammanhanget till din nästa agentuppgift.",
+      "notesFootnote": "Ingår i AI-samtalsanalys: slå på den före samtalet så kommer rapporten via e-post när det är slut.",
+      "notesCta": "Utforska AI-samtalsanteckningar",
+      "ctaTitle": "Börja med en delad session",
+      "ctaBody": "Skaffa PairUX, dela din skärm och bjud in en kollega att jobba med en riktig uppgift.",
+      "getPairux": "Skaffa PairUX",
+      "comparePlans": "Jämför planer"
+    },
+    "exploreWorkflow": "Utforska arbetsflödet",
+    "allUseCases": "Alla användningsfall",
+    "detail": {
+      "plannedTitle": "{title} · Planerat för premiumplaner",
+      "notAvailable": "Inte tillgängligt ännu. Kontakta oss om premiumåtkomst och leverans innan du köper för den här funktionen.",
+      "whenHelps": "När det här hjälper",
+      "tryWorkflow": "Testa arbetsflödet",
+      "plannedWorkflow": "Det planerade arbetsflödet",
+      "leaveWith": "Vad du får med dig",
+      "goal": "Målet",
+      "discussPremium": "Prata med oss om premium-AI-anteckningar",
+      "startWithPairux": "Börja med PairUX",
+      "seeCurrentPlans": "Se aktuella planer",
+      "comparePlans": "Jämför planer",
+      "moreWays": "Fler sätt att arbeta tillsammans"
+    },
+    "agentic": {
+      "meta": {
+        "title": "Agentisk parprogrammering med moshcode | PairUX",
+        "description": "Arbeta med en kollega i samma live-session med en kodagent. Använd moshcode för en delad terminal och PairUX för att granska skärmen och appen tillsammans."
+      },
+      "backLink": "← Alla användningsfall",
+      "eyebrow": "Agentisk parprogrammering",
+      "title": "Två personer. En agentsession.",
+      "intro": "Parprogrammering kräver fortfarande ett gemensamt sammanhang när en AI-agent skriver koden. Ta med en kollega in i din live-session i moshcode och använd sedan PairUX för att granska det agenten bygger och bestämma nästa steg tillsammans.",
+      "openMoshcode": "Öppna moshcode",
+      "getPairux": "Skaffa PairUX",
+      "stepsTitle": "Från att titta till att arbeta tillsammans",
+      "stepHeading": "{number}. {title}",
+      "steps": {
+        "s0": {
+          "title": "Börja med en live-session",
+          "body": "Kör moshcode på din utvecklingsdator och öppna sessionen på app.moshcode.sh. Du och din kollega följer samma agentutdata och arbetar i samma terminal."
+        },
+        "s1": {
+          "title": "Ta in ditt team i sessionen",
+          "body": "Skapa en organisation och ett team i moshcode, lägg till din kollega med hens kontomejl och dela sedan sessionen med teamet. Läsbehörighet låter dem titta; skrivbehörighet låter dem skicka inmatning till den pågående sessionen."
+        },
+        "s2": {
+          "title": "Granska resultatet tillsammans i PairUX",
+          "body": "Dela din terminal, editor eller förhandsvisning av appen med PairUX. Din kollega ansluter från en webbläsare och ser arbetet i sitt sammanhang. Godkänn fjärrstyrning när du vill att hen också ska använda din mus och ditt tangentbord."
+        }
+      },
+      "permissionsNote": "Teambehörigheter i moshcode styr åtkomsten till terminalsessionen. Fjärrstyrning i PairUX är ett separat val som värden för skärmdelningen godkänner. Använd det ena eller båda, beroende på hur ni vill samarbeta.",
+      "contractorTitle": "Ett praktiskt sätt att introducera en konsult",
+      "contractorP1": "Lägg till en konsult i ditt team och låt hen följa din första session med läsbehörighet. Gå igenom uppgiften, agentens utdata och den körande appen. När hen är redo att delta ger du skrivbehörighet så att ni kan arbeta tillsammans i samma session.",
+      "contractorP2": "Du kan också använda det här arbetsflödet för att undersöka ett test som fallerar, jämföra en agents implementation med det avsedda beteendet eller granska en ändring innan den slås ihop. Alla ser arbetet medan det händer.",
+      "startPairing": "Börja parprogrammera med PairUX"
+    },
+    "items": {
+      "agenticPairProgramming": {
+        "title": "Agentisk parprogrammering",
+        "audience": "Utvecklare och kollegor",
+        "description": "Arbeta med en kollega i en live-session med en kodagent. Dela terminalen via moshcode och granska skärmen tillsammans i PairUX.",
+        "scenario": "Du vill att en kollega ska hjälpa till att styra en agent medan den arbetar i din utvecklingsmiljö.",
+        "outcome": "En gemensam förståelse för vad agenten ändrade och vad som ska göras härnäst.",
+        "steps": {
+          "s0": {
+            "title": "Starta en delad terminal",
+            "body": "Öppna din live-session i moshcode och dela den med ditt team."
+          },
+          "s1": {
+            "title": "Visa appen",
+            "body": "Dela din editor eller förhandsvisning av appen via PairUX."
+          },
+          "s2": {
+            "title": "Ta nästa steg",
+            "body": "Granska resultatet tillsammans och bestäm vad ni ska be agenten om härnäst."
+          }
+        }
+      },
+      "aiCodeReview": {
+        "title": "Granska AI-genererad kod",
+        "audience": "Utvecklare och granskare",
+        "description": "Gå igenom diffen, testerna och den körande appen tillsammans innan en agents ändringar blir en sammanslagen pull request.",
+        "scenario": "En agent har gjort en stor ändring. En granskare behöver förstå hur den beter sig, inte bara läsa en sammanfattning av patchen.",
+        "outcome": "En granskad ändring med tydliga rättningar, uppföljande tester och ett gemensamt beslut om sammanslagning.",
+        "steps": {
+          "s0": {
+            "title": "Öppna underlaget",
+            "body": "Dela din editor med diffen, kraven för uppgiften och testutdata synliga. Förklara vad du bad agenten att ändra."
+          },
+          "s1": {
+            "title": "Testa beteendet tillsammans",
+            "body": "Kör appen och gå igenom de viktiga flödena. Godkänn fjärrstyrning om granskaren vill testa ett kantfall själv."
+          },
+          "s2": {
+            "title": "Gör om fynden till nästa ändring",
+            "body": "Kom överens om rättningar och be din kodagent att göra dem. Granska den nya diffen och kör relevanta kontroller igen innan sammanslagningen."
+          }
+        }
+      },
+      "debuggingWithAgents": {
+        "title": "Få en fastkörd agent att röra sig igen",
+        "audience": "Utvecklare och felsökningspartner",
+        "description": "Ta in en andra person när ett test fallerar eller när rättningarna går i cirklar. Granska underlaget och välj nästa experiment tillsammans.",
+        "scenario": "Din kodagent fortsätter att ändra kod utan att fixa felet. En kollega kan hjälpa till att hitta ett saknat antagande eller ett miljöproblem.",
+        "outcome": "Ett reproducerbart fel och ett fokuserat nästa steg för agenten.",
+        "steps": {
+          "s0": {
+            "title": "Visa felet när det händer",
+            "body": "Dela terminalen och återskapa problemet. Gå igenom felet, de senaste ändringarna och det som redan har testats med din kollega."
+          },
+          "s1": {
+            "title": "Testa en förklaring",
+            "body": "Granska loggar, konfiguration och den körande appen tillsammans. Ge fjärrstyrning när din kollega behöver utforska samma miljö."
+          },
+          "s2": {
+            "title": "Ge agenten bättre riktning",
+            "body": "Skriv ner stegen för att återskapa felet och underlaget för den lösning du valt. Be agenten om en fokuserad ändring och kontrollera sedan det ursprungliga felet igen."
+          }
+        }
+      },
+      "contractorOnboarding": {
+        "title": "Introducera konsulter i sitt sammanhang",
+        "audience": "Teamledare och nya kollegor",
+        "description": "Låt en ny kollega följa en riktig uppgift, lära sig er kodbas och ert agentflöde och sedan delta när hen är redo.",
+        "scenario": "En konsult ansluter till ditt projekt och behöver förstå hur ni använder agenter, granskar ändringar och avgör när arbetet är redo att levereras.",
+        "outcome": "En kollega som förstår ert arbetsflöde och kan ta sig an nästa uppgift med rätt sammanhang.",
+        "steps": {
+          "s0": {
+            "title": "Börja med en riktig uppgift",
+            "body": "Dela din utvecklingsskärm och förklara projektet, uppgiften och hur du instruerar din kodagent. Låt konsulten följa första genomgången."
+          },
+          "s1": {
+            "title": "Förklara besluten",
+            "body": "Gå igenom agentens utdata, testerna och den körande appen. Visa när du accepterar ett förslag och när du ber om ett annat angreppssätt."
+          },
+          "s2": {
+            "title": "Låt hen ta över",
+            "body": "Godkänn fjärrstyrning i PairUX för en guidad ändring. Om du också använder moshcode kan du ge skrivbehörighet till en delad teamsession när hen är redo att skicka terminalinmatning."
+          }
+        }
+      },
+      "productDesignReview": {
+        "title": "Granska appen med produkt och design",
+        "audience": "Utvecklare, designers och produktteam",
+        "description": "Visa appen som en agent bygger för dem som ska bedöma resultatet. Testa flödet tillsammans och gör om feedback till konkreta ändringar.",
+        "scenario": "En fungerande prototyp är klar, men interaktionen, formuleringarna eller layouten behöver feedback från någon utanför koden.",
+        "outcome": "Konkreta acceptanskriterier och en överenskommen lista med ändringar i den fungerande appen.",
+        "steps": {
+          "s0": {
+            "title": "Dela den fungerande upplevelsen",
+            "body": "Öppna förhandsvisningen av appen och dela fönstret i PairUX. Gå igenom uppgiften som en riktig användare ska kunna slutföra."
+          },
+          "s1": {
+            "title": "Låt granskaren utforska",
+            "body": "Be om feedback medan du navigerar, eller godkänn fjärrstyrning så att granskaren kan testa flödet på din dator."
+          },
+          "s2": {
+            "title": "Slut feedbackcirkeln",
+            "body": "Gör om iakttagelser till konkreta önskemål till din kodagent. Visa den uppdaterade appen i samma session och kom överens om vad som är klart."
+          }
+        }
+      },
+      "remoteSupport": {
+        "title": "Lös upp någons AI-arbetsflöde",
+        "audience": "Supportteam och tekniska ledare",
+        "description": "Hjälp en kollega att konfigurera ett verktyg, förstå ett fel eller rädda ett trasigt lokalt arbetsflöde medan ni båda ser samma skärm.",
+        "scenario": "En agent eller ett utvecklingsverktyg fungerar på en dator men inte på en annan. Skärmdumpar och kopierade felmeddelanden saknar sammanhanget.",
+        "outcome": "En fungerande miljö och en person som förstår hur problemet löstes.",
+        "steps": {
+          "s0": {
+            "title": "Låt hen visa problemet",
+            "body": "Personen med problemet är värd för en PairUX-session och delar det aktuella verktygsfönstret. Anslut från din webbläsare och se hen återskapa felet."
+          },
+          "s1": {
+            "title": "Guida lösningen i hens miljö",
+            "body": "Förklara nästa kontroll och låt hen utföra den. Begär fjärrstyrning när praktisk hjälp behövs; värden bestämmer om den ska godkännas."
+          },
+          "s2": {
+            "title": "Verifiera hela arbetsflödet",
+            "body": "Be hen köra den ursprungliga uppgiften igen. Lämna kvar stegen som löste problemet så att hen känner igen det nästa gång."
+          }
+        }
+      },
+      "liveAiWorkshops": {
+        "title": "Håll en live-workshop i AI-kodning",
+        "audience": "Utbildare, communityn och team",
+        "description": "Visa en publik hur du instruerar en agent, granskar dess arbete och hanterar misstag medan du bygger något på riktigt.",
+        "scenario": "Ditt team vill lära sig ett agentflöde genom att se de beslut och rättningar som en polerad demo oftast utelämnar.",
+        "outcome": "En publik som har sett hela vägen från uppgiftsbeskrivning till kontrollerat resultat.",
+        "steps": {
+          "s0": {
+            "title": "Förbered en fokuserad demonstration",
+            "body": "Välj en liten uppgift och dela terminalen, editorn eller appen du ska använda. Välj en PairUX-plan som passar antalet lyssnare."
+          },
+          "s1": {
+            "title": "Visa resonemanget bakom promptarna",
+            "body": "Förklara vilket sammanhang du ger agenten och varför. Pausa vid viktiga moment för att granska diffen, köra tester och diskutera oväntade resultat."
+          },
+          "s2": {
+            "title": "Öva på att granska resultatet",
+            "body": "Låt gruppen föreslå kantfall och uppföljande ändringar. Kör kontrollerna synligt så att deltagarna ser hur du avgör om arbetet är klart."
+          }
+        }
+      },
+      "aiNoteTaker": {
+        "title": "AI-anteckningar",
+        "audience": "Pro- och Team-planer",
+        "description": "Slå på AI-samtalsanalys före ett teammöte och gå därifrån med beslut, öppna frågor och åtgärdspunkter, plus feedback på hur mötet gick.",
+        "scenario": "Ditt team vill fokusera på det gemensamma arbetet och gå därifrån med användbara anteckningar inför nästa session.",
+        "outcome": "En granskad sammanfattning av arbetet, besluten och nästa steg.",
+        "steps": {
+          "s0": {
+            "title": "Slå på AI-samtalsanalys före samtalet",
+            "body": "Slå på AI-samtalsanalys på startskärmen och välj ”Teammöte”. Alla som ansluter ser att samtalet spelas in för analys."
+          },
+          "s1": {
+            "title": "Läs rapporten",
+            "body": "Efter samtalet får du en sammanfattning, de beslut som fattades, de frågor som är öppna och varje åtgärdspunkt med ansvarig, tillsammans med feedback på hur mötet gick."
+          },
+          "s2": {
+            "title": "Ta med sammanhanget till nästa uppgift",
+            "body": "Dela åtgärdspunkterna med teamet, eller använd sammanfattningen för att informera en kollega eller förbereda nästa förfrågan till din agent."
+          }
+        }
+      }
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Om oss",
+      "description": "Läs om PairUX – verktyget med öppen källkod för gemensam skärmdelning."
+    },
+    "title": "Om PairUX",
+    "subtitle": "Vi bygger samarbetsverktygen vi önskade fanns",
+    "missionTitle": "Vårt uppdrag",
+    "missionP1": "PairUX föddes ur frustration. När Slack köpte Screenhero och lade ner det blev parprogrammering på distans onödigt krånglig. Befintliga verktyg saknar antingen fjärrstyrning, kräver dyra licenser eller låser in dig hos en leverantör.",
+    "missionP2": "Vi anser att gemensam skärmdelning ska vara tillgänglig för alla. Därför är PairUX öppen källkod, med transparenta priser och utan konstgjorda begränsningar.",
+    "buildingTitle": "Vad vi bygger",
+    "buildingBody": "PairUX är en skrivbordsapp för gemensam skärmdelning med samtidig fjärrstyrning. Tänk Screenhero, fast modern, med öppen källkod och för alla plattformar.",
+    "buildingList": {
+      "b0": "Skärmdelning i realtid med låg fördröjning",
+      "b1": "Flera deltagare kan styra den delade skärmen samtidigt",
+      "b2": "End-to-end-kryptering för säkerhet",
+      "b3": "Fungerar på macOS, Windows och Linux",
+      "b4": "Tittare kan ansluta från valfri webbläsare"
+    },
+    "openSourceTitle": "Öppen källkod",
+    "openSourceBody": "PairUX släpps under MIT-licensen. Du kan läsa, ändra och bidra till koden på <link>GitHub</link>. Vi välkomnar bidrag från communityn.",
+    "contactTitle": "Kontakt",
+    "contactBody": "Har du frågor eller feedback? Hör av dig till oss på <link>hello@pairux.com</link>."
+  },
+  "blog": {
+    "meta": {
+      "title": "Blogg – PairUX",
+      "description": "Nyheter, uppdateringar och guider från PairUX-teamet."
+    },
+    "title": "Blogg",
+    "subtitle": "Nyheter, uppdateringar och guider från PairUX-teamet",
+    "comingSoonTitle": "Kommer snart",
+    "comingSoonBody": "Vi jobbar på våra första blogginlägg. Titta in snart för guider, produktnyheter och en titt bakom kulisserna på hur PairUX byggs.",
+    "postNotFound": "Inlägget hittades inte",
+    "postTitle": "{title} – PairUX-bloggen",
+    "backToBlog": "← Tillbaka till bloggen"
+  },
+  "changelog": {
+    "meta": {
+      "title": "Ändringslogg",
+      "description": "Se vad som är nytt i PairUX. Versionsinformation och versionshistorik."
+    },
+    "title": "Ändringslogg",
+    "subtitle": "Se vad som är nytt i PairUX",
+    "version": "v{version}",
+    "englishOnly": "Versionsinformationen publiceras på engelska."
+  },
+  "legal": {
+    "privacy": {
+      "title": "Integritetspolicy",
+      "description": "PairUX integritetspolicy – hur vi hanterar dina uppgifter."
+    },
+    "terms": {
+      "title": "Användarvillkor",
+      "description": "PairUX användarvillkor och policy för godtagbar användning."
+    },
+    "lastUpdated": "Senast uppdaterad: {date}",
+    "englishOnly": "Det här dokumentet tillhandahålls på engelska, som är den gällande versionen."
+  },
+  "docs": {
+    "meta": {
+      "title": "Dokumentation",
+      "description": "Lär dig använda PairUX: installationsguider, systemkrav, säkerhetsinformation och vanliga frågor."
+    },
+    "title": "Dokumentation",
+    "subtitle": "Allt du behöver veta om att använda PairUX för gemensam skärmdelning.",
+    "onThisPage": "På den här sidan",
+    "toc": {
+      "gettingStarted": "Kom igång",
+      "requirements": "Systemkrav",
+      "hosting": "Vara värd för en session",
+      "viewing": "Titta på en session",
+      "control": "Fjärrstyrning",
+      "remoteStart": "Fjärrstart (Tailscale)",
+      "security": "Säkerhet",
+      "troubleshooting": "Felsökning",
+      "uninstalling": "Avinstallera",
+      "faq": "Vanliga frågor"
+    },
+    "englishOnly": "Dokumentationen finns endast på engelska.",
+    "agents": {
+      "meta": {
+        "title": "Agentdeltagare | PairUX Docs",
+        "description": "Ta in en AI-agent som Claude Code i en live-session i PairUX. Den ansluter med anslutningskoden, följer chatten, svarar i den och visas märkt som agent på webben, i skrivbordsappen och i mobilappen."
+      },
+      "backLink": "← Dokumentation",
+      "title": "Agentdeltagare"
+    }
+  },
+  "dashboard": {
+    "metadata": {
+      "title": "Översikt – PairUX",
+      "description": "PairUX-översikt – hantera dina sessioner, din fakturering och dina inställningar."
+    },
+    "stats": {
+      "sessionsThisMonth": "Sessioner denna månad",
+      "totalParticipants": "Deltagare totalt",
+      "hoursUsed": "Använda timmar",
+      "hoursValue": "{hours} h"
+    },
+    "channelsHeading": "Kanaler",
+    "usageAnalytics": "Användningsstatistik",
+    "analyticsPlaceholder": "Statistiken visas här",
+    "yourPlan": "Din plan",
+    "freePlan": "Gratisplan",
+    "current": "Aktuell",
+    "freePlanSummary": "2 deltagare, endast P2P",
+    "upgradePlan": "Uppgradera plan",
+    "comingSoon": "Kommer snart",
+    "comingSoonButton": "Kommer snart",
+    "perMonth": "/månad",
+    "plans": {
+      "pro": {
+        "description": "För yrkesverksamma och växande team",
+        "features": {
+          "participants": "10 deltagare + 50 tittare",
+          "hours": "100 tittartimmar ingår"
+        }
+      },
+      "team": {
+        "description": "För team och organisationer",
+        "features": {
+          "participants": "Obegränsat antal deltagare",
+          "hours": "500 tittartimmar ingår"
+        }
+      }
+    },
+    "billing": "Fakturering",
+    "noPaymentMethod": "Ingen betalningsmetod registrerad",
+    "addPaymentMethod": "Lägg till betalningsmetod",
+    "settings": "Inställningar",
+    "accountSettings": "Kontoinställningar",
+    "notifications": "Aviseringar",
+    "welcome": {
+      "title": "Välkommen till PairUX",
+      "subtitle": "Dela din skärm, samarbeta i realtid och få hjälp på distans.",
+      "startSharing": "Börja dela",
+      "joinSession": "Gå med i session",
+      "scheduleMeeting": "Boka möte",
+      "callAnalyses": "Samtalsanalyser"
+    },
+    "quickActions": {
+      "title": "Snabbåtgärder",
+      "startSession": "Starta session",
+      "startSessionHint": "Dela din skärm",
+      "joinSession": "Gå med i session",
+      "joinSessionHint": "Ange en anslutningskod",
+      "scheduleMeeting": "Boka möte",
+      "scheduleMeetingHint": "Bjud in ditt team"
+    },
+    "recentSessions": {
+      "title": "Senaste sessioner",
+      "fetchFailed": "Det gick inte att hämta sessioner",
+      "loadFailed": "Det gick inte att läsa in sessioner",
+      "tryAgain": "Försök igen",
+      "empty": "Inga sessioner än",
+      "emptyHint": "Starta din första session så visas den här",
+      "startSession": "Starta session",
+      "viewAll": "Visa alla",
+      "join": "Gå med",
+      "resume": "Återuppta",
+      "status": {
+        "created": "Skapad",
+        "active": "Aktiv",
+        "paused": "Pausad",
+        "ended": "Avslutad"
+      },
+      "duration": {
+        "underMinute": "< 1 min",
+        "minutes": "{minutes} min",
+        "hours": "{hours} h",
+        "hoursMinutes": "{hours} h {minutes} min"
+      },
+      "date": {
+        "today": "I dag",
+        "yesterday": "I går",
+        "daysAgo": "{days, plural, one {för # dag sedan} other {för # dagar sedan}}"
+      }
+    },
+    "upcoming": {
+      "title": "Kommande möten",
+      "loadFailed": "Det gick inte att läsa in kommande möten",
+      "startFailed": "Det gick inte att starta mötet",
+      "cancelConfirm": "Avboka det här schemalagda mötet? De inbjudna meddelas.",
+      "schedule": "Boka",
+      "empty": "Inga kommande möten inbokade",
+      "scheduleFirst": "Boka ditt första möte",
+      "todayAt": "I dag kl. {time}",
+      "tomorrowAt": "I morgon kl. {time}",
+      "durationMinutes": "{minutes} min",
+      "durationHours": "{hours} h",
+      "goesLiveOn": "Sänds live på {channel}",
+      "invited": "{count} inbjudna",
+      "accepted": "{count} har tackat ja",
+      "startEarlyHint": "Öppnar rummet nu och mejlar alla inbjudna",
+      "startEarly": "Starta tidigt",
+      "startNow": "Starta nu",
+      "addToCalendar": "Lägg till i kalendern",
+      "appleIcal": "Apple / iCal",
+      "editMeeting": "Redigera möte",
+      "cancelMeeting": "Avboka möte"
+    },
+    "schedule": {
+      "yourChannels": "Dina kanaler",
+      "teamGroup": "{org} · {team}",
+      "duration": "{minutes, plural, =60 {1 timme} =90 {1,5 timmar} =120 {2 timmar} other {# minuter}}",
+      "durationCustomHours": "{hours, plural, one {# timme} other {# timmar}}",
+      "repeatNone": "Upprepas inte",
+      "repeatDaily": "Dagligen",
+      "repeatWeekly": "Varje vecka",
+      "repeatMonthly": "Varje månad",
+      "repeatUnit": "{freq, select, daily {dagar} weekly {veckor} other {månader}}",
+      "invalidDate": "Ogiltigt datum/tid",
+      "saveFailed": "Det gick inte att spara ändringarna",
+      "scheduleFailed": "Det gick inte att boka mötet",
+      "networkError": "Nätverksfel. Försök igen.",
+      "editTitle": "Redigera möte",
+      "scheduleTitle": "Boka möte",
+      "close": "Stäng",
+      "meetingTitle": "Mötesrubrik",
+      "titlePlaceholder": "t.ex. Veckovis teammöte",
+      "dateTime": "Datum och tid",
+      "durationLabel": "Längd",
+      "repeat": "Upprepa",
+      "every": "Intervall",
+      "numberOfTimes": "Antal gånger",
+      "zeroForever": "0 = för alltid",
+      "recurrenceSummary": "{description}. Alla behåller samma anslutningskod och länk.",
+      "broadcastChannel": "Sändningskanal",
+      "optional": "(valfritt)",
+      "loadingChannels": "Läser in dina kanaler…",
+      "noChannel": "Ingen kanal (privat möte)",
+      "channelUnavailable": "Nuvarande kanal (du har inte längre åtkomst)",
+      "channelOption": "{name} (@{handle})",
+      "noChannelsHint": "Du har inga kanaler än. Skapa en under Kanaler i din översikt, eller gå med i ett team som har en.",
+      "channelHint": "När du går live från det här mötet sänds det på den här kanalen. Teamkanaler visas under sitt team.",
+      "description": "Beskrivning",
+      "descriptionPlaceholder": "Agenda, mötesanteckningar eller bakgrund…",
+      "invitees": "Inbjudna",
+      "inviteByEmail": "Bjud in via e-post",
+      "removeInvitee": "Ta bort inbjuden",
+      "addAnother": "Lägg till fler",
+      "editInviteHint": "Nya inbjudna får en inbjudan via e-post; borttagna får veta att de inte längre är med. Klistra in flera adresser avgränsade med kommatecken.",
+      "newInviteHint": "Inbjudningar skickas direkt. Klistra in flera adresser avgränsade med kommatecken.",
+      "toInvite": "{count} att bjuda in",
+      "toRemove": "{count} att ta bort",
+      "cancel": "Avbryt",
+      "saving": "Sparar…",
+      "saveChanges": "Spara ändringar",
+      "scheduling": "Bokar…",
+      "submitSchedule": "Boka möte"
+    },
+    "booking": {
+      "loadFailed": "Det gick inte att läsa in bokningssidor",
+      "saveFailed": "Det gick inte att spara",
+      "deleteConfirm": "Ta bort ”{title}”? Möten som redan bokats via den behålls.",
+      "title": "Bokningslänkar",
+      "subtitle": "Låt vem som helst boka ett samtal med dig. Det sker i PairUX.",
+      "newLink": "Ny länk",
+      "needUsername": "Ange först ett användarnamn i Inställningar. Dina länkar blir {url}",
+      "empty": "Inga bokningslänkar än. Skapa en och dela {url}.",
+      "meta": "· {minutes} min · {timezone}",
+      "off": "av",
+      "copyLink": "Kopiera länk",
+      "copied": "Kopierad",
+      "turnOff": "Stäng av",
+      "turnOn": "Slå på",
+      "edit": "Redigera",
+      "delete": "Ta bort",
+      "newTitle": "Ny bokningslänk",
+      "editTitle": "Redigera bokningslänk",
+      "close": "Stäng",
+      "fieldTitle": "Rubrik",
+      "titlePlaceholder": "Introduktionssamtal",
+      "fieldLink": "Länk",
+      "fieldDescription": "Beskrivning",
+      "optional": "(valfritt)",
+      "fieldDuration": "Längd",
+      "durationOption": "{minutes} minuter",
+      "fieldTimezone": "Tidszon",
+      "availableHours": "Tillgängliga tider",
+      "to": "till",
+      "buffer": "Buffert (min)",
+      "minNotice": "Minsta varsel (min)",
+      "daysAhead": "Dagar framåt",
+      "cancel": "Avbryt",
+      "create": "Skapa länk",
+      "save": "Spara",
+      "usernameToken": "användarnamn",
+      "slugToken": "slug"
+    },
+    "channels": {
+      "bannerGenerateFailed": "Det gick inte att generera en banner. Försök igen.",
+      "bannerSaveFailed": "Bannern genererades men kunde inte sparas.",
+      "bannerFailed": "Det gick inte att generera bannern. Försök igen.",
+      "uploadFailed": "Det gick inte att ladda upp bilden.",
+      "processFailed": "Det gick inte att bearbeta bilden.",
+      "handleInvalid": "Handtaget måste vara 3–30 bokstäver, siffror eller understreck.",
+      "createFailed": "Det gick inte att skapa kanalen.",
+      "networkError": "Nätverksfel. Försök igen.",
+      "loading": "Läser in dina kanaler…",
+      "signInPrompt": "Logga in för att hantera dina kanaler.",
+      "signIn": "Logga in",
+      "empty": "Du har ingen kanal än. Skapa en nedan – det är där dina offentliga livesändningar finns.",
+      "uploadBanner": "Ladda upp kanalbanner (6:1)",
+      "changeBanner": "Byt banner",
+      "bannerPromptPlaceholder": "Valfritt: beskriv bannern du vill ha…",
+      "generateHint": "Generera en banner i rätt storlek (6:1) med AI utifrån den nuvarande",
+      "generating": "Genererar…",
+      "generate": "Generera med AI",
+      "uploadAvatar": "Ladda upp profilbild (kvadratisk)",
+      "teamPath": "{org} › {team}",
+      "canGoLive": " · du kan gå live här",
+      "subscribers": "{count, plural, one {# prenumerant} other {# prenumeranter}}",
+      "view": "Visa",
+      "streamHeading": "Strömma till den här kanalen (OBS / valfri RTMP-klient)",
+      "rtmpUrl": "RTMP-URL",
+      "streamKey": "Strömningsnyckel",
+      "copy": "Kopiera",
+      "hide": "Dölj",
+      "show": "Visa",
+      "newChannel": "Ny kanal",
+      "handle": "Handtag",
+      "handlePlaceholder": "minkanal",
+      "name": "Namn",
+      "namePlaceholder": "Min kanal",
+      "belongsTo": "Tillhör (teammedlemmar kan gå live på en teamkanal)",
+      "descriptionLabel": "Beskrivning (valfri, markdown)",
+      "create": "Skapa kanal"
+    },
+    "website": {
+      "saveFailed": "Det gick inte att spara webbplatsen.",
+      "networkError": "Nätverksfel. Försök igen.",
+      "label": "Webbplats (valfritt)",
+      "placeholder": "example.com",
+      "saved": "Sparad",
+      "save": "Spara",
+      "hint": "Visas på din kanalsida som en identitetslänk. Lämna tomt för att ta bort den."
+    },
+    "restream": {
+      "customRtmp": "Anpassad RTMP",
+      "urlInvalid": "RTMP-URL:en måste börja med rtmp:// eller rtmps://",
+      "keyRequired": "Strömningsnyckel krävs.",
+      "saveFailed": "Det gick inte att spara destinationen.",
+      "title": "Extern vidaresändning",
+      "toggleHint": "Vidaresänd automatiskt den här kanalens livesändningar till destinationerna nedan",
+      "description": "När det är på strömmas livesändningar på den här kanalen även till YouTube/Twitch/osv. Av för privata skärmdelningar.",
+      "loading": "Laddar…",
+      "empty": "Inga destinationer än.",
+      "on": "På",
+      "off": "Av",
+      "remove": "Ta bort",
+      "rtmpPlaceholder": "rtmp://…",
+      "streamKeyPlaceholder": "Strömningsnyckel",
+      "save": "Spara",
+      "cancel": "Avbryt",
+      "add": "Lägg till destination"
+    }
+  },
+  "meetings": {
+    "recurrence": {
+      "doesNotRepeat": "Upprepas inte",
+      "describe": "Upprepas {freq, select, daily {{interval, plural, one {varje dag} other {var #:e dag}}} weekly {{interval, plural, one {varje vecka} other {var #:e vecka}}} other {{interval, plural, one {varje månad} other {var #:e månad}}}}{when, select, weekday { på {weekday}} monthDay { dag {day} i månaden} other {}}{count, plural, =0 {, för alltid} one {, # gång} other {, # gånger}}",
+      "short": "{freq, select, daily {{interval, plural, one {Dagligen} other {Var #:e dag}}} weekly {{interval, plural, one {Varje vecka} other {Var #:e vecka}}} other {{interval, plural, one {Varje månad} other {Var #:e månad}}}}",
+      "shortWithLeft": "{label} · {left} kvar"
+    }
+  },
+  "workspace": {
+    "label": "Arbetsyta",
+    "personal": "Personlig",
+    "wholeOrg": "{org} (hela organisationen)",
+    "teamOption": "{org} › {team}"
+  },
+  "join": {
+    "input": {
+      "title": "Gå med i en session",
+      "subtitle": "Ange en anslutningskod eller klistra in en länk",
+      "invalidCode": "Ange en giltig anslutningskod med 6 tecken",
+      "label": "Anslutningskod eller länk",
+      "placeholder": "ABC123 eller klistra in länk",
+      "hint": "Ange koden med 6 tecken eller klistra in en anslutningslänk",
+      "continue": "Fortsätt",
+      "backHome": "Tillbaka till startsidan"
+    },
+    "session": {
+      "notFound": "Sessionen hittades inte",
+      "lookupFailed": "Det gick inte att hitta sessionen",
+      "joinFailed": "Det gick inte att gå med i sessionen",
+      "lookingUp": "Söker efter sessionen…",
+      "countdown": {
+        "startingNow": "Startar nu",
+        "startsInDays": "Startar om {days} d {hours} h",
+        "startsInHours": "Startar om {hours} h {mins} min",
+        "startsInMinutes": "Startar om {mins} min"
+      },
+      "durationMinutes": "{minutes, plural, one {# minut} other {# minuter}}",
+      "durationHours": "{hours, plural, one {# timme} other {# timmar}}",
+      "invitedCount": "{count} inbjudna",
+      "acceptedCount": "{count} har tackat ja",
+      "autoUpdate": "Sidan uppdateras automatiskt när värden startar sessionen.",
+      "joinCode": "Anslutningskod",
+      "addToCalendar": "Lägg till i kalendern",
+      "appleCalendar": "Apple / iCal",
+      "notFoundTitle": "Sessionen hittades inte",
+      "goHome": "Till startsidan",
+      "title": "Gå med i session",
+      "subtitle": "Du är på väg att gå med i en skärmdelningssession",
+      "sessionCode": "Sessionskod",
+      "status": "Status",
+      "statusActive": "Värden delar skärmen",
+      "statusPaused": "Värden är inte närvarande just nu",
+      "statusWaiting": "Väntar på värden",
+      "participants": "Deltagare",
+      "signedInAs": "Inloggad som {name}",
+      "displayNameOptional": "Visningsnamn (valfritt)",
+      "useAccountName": "Använd kontonamnet",
+      "yourName": "Ditt namn",
+      "namePlaceholder": "Ange ditt namn",
+      "nameHint": "Så här ser andra dig i sessionen",
+      "joining": "Ansluter…",
+      "joinButton": "Gå med i session",
+      "watchFree": "Titta gratis",
+      "guestNote": "Inget konto behövs – titta live som gäst.",
+      "signInPrompt": "Har du ett konto? <link>Logga in</link> för att presentera eller ta över styrningen"
+    }
+  },
+  "invite": {
+    "notFound": "Inbjudan hittades inte",
+    "loadFailed": "Det gick inte att läsa in inbjudan",
+    "invalidOrExpired": "Den här inbjudningslänken kan vara ogiltig eller ha gått ut.",
+    "goToPairux": "Gå till PairUX",
+    "heading": "Mötesinbjudan",
+    "fromHost": "från {name}",
+    "cancelled": "Det här mötet har ställts in.",
+    "dateTime": "Datum och tid",
+    "duration": "Längd",
+    "durationMinutes": "{minutes, plural, one {# minut} other {# minuter}}",
+    "durationHours": "{hours, plural, one {# timme} other {# timmar}}",
+    "host": "Värd",
+    "notes": "Anteckningar",
+    "yourJoinCode": "Din anslutningskod",
+    "useCodeHint": "Använd den här koden när mötet startar",
+    "joinMeeting": "Gå med i mötet",
+    "addToCalendar": "Lägg till i kalendern",
+    "appleCalendar": "Apple / iCal",
+    "accepted": "Du har tackat ja!",
+    "acceptedNote": "Vi ses på mötet.",
+    "cantMakeItAfterAll": "Kan du inte komma ändå?",
+    "declined": "Du har tackat nej",
+    "declinedNote": "Du har meddelat att du inte kan delta.",
+    "changedMind": "Har du ändrat dig?",
+    "willYouAttend": "Kommer du?",
+    "yes": "Ja, jag kommer",
+    "no": "Kan inte komma",
+    "invitedAs": "Inbjuden som {email}"
+  },
+  "book": {
+    "meta": {
+      "bookCall": "Boka ett samtal · PairUX",
+      "bookCallWith": "Boka ett samtal med {name} · PairUX",
+      "hostDescription": "Välj en tid som passar dig. Samtalet sker i PairUX.",
+      "pageWith": "{title} med {name} · PairUX",
+      "pageDescription": "Boka {minutes} minuter med {name}. Samtalet sker i PairUX."
+    },
+    "host": {
+      "subtitle": "Boka ett samtal. Det sker direkt här i PairUX.",
+      "notTakingBookings": "{name} tar inte emot bokningar just nu.",
+      "minutes": "{minutes} min",
+      "pickTime": "Välj en tid"
+    },
+    "booking": {
+      "loadFailed": "Det gick inte att läsa in tider",
+      "bookFailed": "Det gick inte att boka den tiden",
+      "calendarDescription": "Gå med på {url} med koden {code}",
+      "booked": "Du är bokad",
+      "whenWith": "{when} med {name}",
+      "confirmationSent": "En bekräftelse med allt nedan är på väg till {email}.",
+      "yourJoinCode": "Din anslutningskod",
+      "callHappensHint": "Samtalet sker i PairUX. När det är dags öppnar du länken nedan eller anger koden.",
+      "openCallPage": "Öppna samtalssidan",
+      "addToCalendar": "Lägg till i kalendern:",
+      "cantMakeIt": "Kan du inte komma ändå? <link>Meddela {name}</link>.",
+      "durationMinutes": "{minutes, plural, one {# minut} other {# minuter}}",
+      "timesShownIn": "Tider visas i",
+      "aboutCall": "Själva samtalet sker i PairUX: röst, skärmdelning och fjärrstyrning – ingen nedladdning krävs för att gå med från en webbläsare.",
+      "pickDifferentTime": "Välj en annan tid",
+      "minutesWith": "{minutes, plural, one {# minut} other {# minuter}} med {name}",
+      "yourName": "Ditt namn",
+      "email": "E-post",
+      "notesLabel": "Något {name} bör veta?",
+      "optional": "(valfritt)",
+      "confirm": "Bekräfta bokningen",
+      "previousWeek": "Föregående vecka",
+      "nextWeek": "Nästa vecka",
+      "nothingFree": "Inga lediga tider den här veckan.",
+      "nothingFreeTryNext": "Inga lediga tider den här veckan. Prova nästa."
+    }
+  },
+  "createLink": {
+    "signInRequired": "Logga in för att skapa en anslutningslänk",
+    "createFailed": "Det gick inte att skapa sessionen",
+    "title": "Skapa anslutningslänk",
+    "subtitle": "Skapa en länk att dela med deltagarna",
+    "signIn": "Logga in",
+    "creating": "Skapar…",
+    "createButton": "Skapa anslutningslänk",
+    "backHome": "Tillbaka till startsidan",
+    "joinCode": "Anslutningskod",
+    "joinUrl": "Anslutnings-URL",
+    "copyLink": "Kopiera länk",
+    "copied": "Kopierad",
+    "shareHint": "Dela den här länken med andra. De kan gå med och vänta tills du börjar dela skärmen från skrivbordsappen.",
+    "createAnother": "Skapa en till",
+    "downloadApp": "Ladda ner appen"
+  },
+  "hostStart": {
+    "metaTitle": "Dela din skärm – PairUX",
+    "analysisRequiresPlan": "AI-samtalsanalys ingår i Pro- och Team-planerna. Stäng av den, eller uppgradera på prissidan.",
+    "createFailed": "Det gick inte att skapa sessionen",
+    "createFailedRetry": "Det gick inte att skapa sessionen. Försök igen.",
+    "title": "Dela din skärm",
+    "subtitle": "Starta en skärmdelningssession för enbart visning från din webbläsare",
+    "sessionSettings": "Sessionsinställningar",
+    "defaults": "Standard",
+    "maxViewers": "Max antal tittare",
+    "viewers": "{count, plural, one {# tittare} other {# tittare}}",
+    "remoteControl": "Fjärrstyrning",
+    "enableGuestControl": "Låt gäster styra",
+    "notAvailableWeb": "Inte tillgängligt vid delning via webben",
+    "remoteControlRequires": "Fjärrstyrning kräver <link>skrivbordsappen</link>.",
+    "workspaceLabel": "Arbetsyta (rapporten från ett teamsamtal delas med teamet)",
+    "creating": "Skapar session…",
+    "startSharing": "Börja dela",
+    "viewOnlyNote": "<strong>Delning via webben är endast för visning.</strong> Tittarna ser din skärm men kan inte styra den. Använd skrivbordsappen för fjärrstyrning.",
+    "joinInstead": "Vill du gå med i en session i stället? <link>Ange anslutningskod</link>"
+  },
+  "home": {
+    "hero": {
+      "title": "<rotating></rotating> i par, <highlight>nytänkt</highlight>",
+      "subtitle": "Gemensam skärmdelning med samtidig fjärrstyrning av mus och tangentbord. Som Screenhero, fast med öppen källkod.",
+      "download": "Ladda ner gratis",
+      "github": "Visa på GitHub",
+      "note": "Gratis och öppen källkod. Tittare behöver inget konto."
+    },
+    "rotating": {
+      "programming": "Programmering",
+      "pitching": "Pitchning",
+      "presenting": "Presentation",
+      "demoing": "Demo",
+      "designing": "Design",
+      "debugging": "Felsökning",
+      "teaching": "Undervisning",
+      "training": "Utbildning",
+      "reviewing": "Granskning",
+      "brainstorming": "Brainstorming"
+    },
+    "featuresSection": {
+      "title": "Allt du behöver för samarbete på distans",
+      "subtitle": "Byggt för utvecklare, designers och alla som behöver arbeta tillsammans i realtid."
+    },
+    "features": {
+      "screenSharing": {
+        "title": "Skärmdelning i realtid",
+        "description": "WebRTC-strömning med låg fördröjning ger kristallklar skärmdelning med adaptiv kvalitet."
+      },
+      "remoteControl": {
+        "title": "Fjärrstyrning",
+        "description": "Styr mus och tangentbord med uttryckligt godkännande från värden. Båda kan styra samtidigt."
+      },
+      "simultaneousInput": {
+        "title": "Samtidig inmatning",
+        "description": "Värd och tittare kan styra samtidigt. Värden har alltid företräde för säkerhetens skull."
+      },
+      "secure": {
+        "title": "Säkert från grunden",
+        "description": "Krypterat med WebRTC DTLS-SRTP. Media passerar aldrig våra servrar om du inte slår på AI-samtalsanalys."
+      },
+      "pwaViewer": {
+        "title": "PWA-visare",
+        "description": "Gå med i sessioner från valfri webbläsare. Tittare behöver inte ladda ner något."
+      },
+      "crossPlatform": {
+        "title": "Alla plattformar",
+        "description": "Skrivbordsappar för macOS, Windows och Linux. Installera via Homebrew, WinGet eller APT."
+      }
+    },
+    "steps": {
+      "title": "Kom igång på några minuter",
+      "subtitle": "Ingen krånglig konfiguration. Installera, dela och samarbeta.",
+      "install": {
+        "title": "Installera skrivbordsappen",
+        "description": "Ladda ner PairUX till din dator via din pakethanterare eller direktnedladdning."
+      },
+      "start": {
+        "title": "Starta en session",
+        "description": "Klicka på ”Starta session” och välj vilken skärm eller vilket fönster du vill dela."
+      },
+      "share": {
+        "title": "Dela länken",
+        "description": "Skicka anslutningslänken till din kollega. Hen kan gå med från valfri webbläsare."
+      }
+    },
+    "community": {
+      "title": "Byggt för samarbete i verkligheten",
+      "subtitle": "PairUX används redan för parprogrammering, designgranskningar och fjärrsupport. Vi samlar in tidig feedback – testa och berätta vad du tycker.",
+      "testimonials": {
+        "engineer": {
+          "quote": "Äntligen en ersättare för Screenhero som faktiskt fungerar. Samtidig styrning förändrar allt för parprogrammering.",
+          "role": "Mjukvaruutvecklare"
+        },
+        "techLead": {
+          "quote": "Att tittare kan gå med från valfri webbläsare utan att installera något gör det perfekt för snabba samarbetssessioner.",
+          "role": "Teknisk ledare"
+        },
+        "contributor": {
+          "quote": "Öppen källkod, end-to-end-krypterat och det bara fungerar. Precis vad utvecklarcommunityn behövde.",
+          "role": "Bidragsgivare till öppen källkod"
+        }
+      },
+      "feedback": "Använder du PairUX? <link>Dela din upplevelse på GitHub</link>"
+    },
+    "callAnalysis": {
+      "eyebrow": "Nyhet · AI-samtalsanalys",
+      "title": "Få feedback på varje intervju, möte och presentation.",
+      "description": "Slå på den före samtalet. Efteråt får du en privat rapport: ett betyg, vad som fungerade, vad du kan förbättra, din taltid, ditt tempo och dina utfyllnadsord, plus de ögonblick som är värda att se igen.",
+      "cta": "Se hur samtalsanalys fungerar",
+      "sample": {
+        "label": "Exempelrapport · Intervju",
+        "headline": "Tydliga svar, men du stressade igenom slutet",
+        "score": "{score}<outOf>/10</outOf>",
+        "talkTime": "Du pratade {percent} % av tiden i {wpm} ord/min",
+        "fillers": "{rate} utfyllnadsord per 100 (”liksom”, ”typ”)",
+        "practice": "Öva på: avsluta varje svar med resultatet, i en mening"
+      }
+    },
+    "agentic": {
+      "eyebrow": "Agentisk parprogrammering",
+      "title": "Två personer. En agentsession.",
+      "description": "Ta in en kollega i arbetet medan din kodagent kör. Följ samma terminal, granska appen tillsammans och bestäm vad ni ska be agenten om härnäst.",
+      "cta": "Parprogrammera med moshcode och PairUX",
+      "browse": "Se alla användningsfall",
+      "cardTitle": "Titta, diskutera och arbeta sedan tillsammans",
+      "step1": "1. Starta en live-session i moshcode och dela den med ditt team.",
+      "step2": "2. Använd PairUX för att visa terminalen och appen du bygger.",
+      "step3": "3. Granska agentens ändringar tillsammans och låt din kollega delta.",
+      "note": "Användbart för att introducera konsulter, felsöka tillsammans och granska arbete innan det levereras."
+    },
+    "security": {
+      "title": "Säkerhet du kan lita på",
+      "subtitle": "PairUX är byggt med säkerhet i grunden. Din skärmdata passerar aldrig våra servrar.",
+      "encryption": {
+        "title": "End-to-end-kryptering",
+        "description": "All media krypteras med WebRTC DTLS-SRTP"
+      },
+      "consent": {
+        "title": "Uttryckligt samtycke",
+        "description": "Värden måste godkänna alla begäranden om styrning"
+      },
+      "revoke": {
+        "title": "Nödåterkallning",
+        "description": "{shortcut} återkallar all styrning direkt"
+      },
+      "openSource": {
+        "title": "Öppen källkod",
+        "description": "Helt granskningsbar kod under MIT-licensen"
+      },
+      "diagram": {
+        "p2p": "Direkt peer-to-peer-anslutning",
+        "noStorage": "Ingen lagring av media på servern"
+      }
+    },
+    "cta": {
+      "title": "Redo att samarbeta?",
+      "subtitle": "Ladda ner PairUX och börja dela skärmen på några sekunder. Gratis, öppen källkod och integritetsfokuserat.",
+      "download": "Ladda ner nu",
+      "learnMore": "Läs mer"
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Priser",
+      "description": "Enkla fasta priser. Inga avgifter per användare. 1 $/mån för Plus (upp till 100 lyssnare), 12 $/mån för Pro, 49 $/mån för Team. 40–70 % billigare än Zoom, Teams och andra företagslösningar."
+    },
+    "hero": {
+      "title": "40–70 % billigare än de stora drakarna",
+      "subtitle": "Enkla fasta priser. Inga avgifter per användare, inga årsavtal, inga säljsamtal."
+    },
+    "mostPopular": "Populärast",
+    "period": {
+      "forever": "/för alltid",
+      "month": "/månad"
+    },
+    "tiers": {
+      "free": {
+        "name": "Gratis",
+        "description": "Perfekt för privat bruk och små team",
+        "cta": "Kom igång",
+        "features": {
+          "participants": "2 deltagare + upp till {count} lyssnare",
+          "publicViewers": "Obegränsat antal gratis tittare på offentliga livesändningar",
+          "p2p": "P2P-anslutningar",
+          "screenSharing": "Skärmdelning",
+          "remoteControl": "Fjärrstyrning",
+          "e2e": "End-to-end-kryptering",
+          "support": "Support via communityn"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "description": "Ha en publik – undervisning, stand-ups, titta tillsammans",
+        "cta": "Uppgradera till Plus",
+        "features": {
+          "listeners": "Upp till {count} lyssnare per rum",
+          "sfu": "SFU-reläservrar",
+          "liveDirectory": "Offentligt rum i /live-katalogen",
+          "screenVoice": "Skärmdelning + röst",
+          "remoteControl": "Fjärrstyrning",
+          "cancel": "Avsluta när som helst"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "För yrkesverksamma och växande team",
+        "cta": "Uppgradera till Pro",
+        "features": {
+          "listeners": "Upp till {count} lyssnare per rum",
+          "sfu": "SFU-reläservrar",
+          "streaming": "Alla strömningsplattformar (YouTube, Twitch, …)",
+          "hd": "Skärmdelning i HD (1080p)",
+          "liveDirectory": "Offentligt rum i /live-katalogen",
+          "callAnalysis": "AI-samtalsanalys",
+          "support": "Prioriterad support"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "description": "För team och organisationer",
+        "cta": "Uppgradera till Team",
+        "features": {
+          "listeners": "Upp till {count} lyssnare per rum",
+          "sfu": "Dedikerade SFU-servrar",
+          "streaming": "Alla strömningsplattformar",
+          "uhd": "Skärmdelning i 4K",
+          "callAnalysis": "AI-samtalsanalys",
+          "admin": "Administratörskontroller",
+          "support": "Prioriterad support"
+        }
+      }
+    },
+    "upgrade": {
+      "starting": "Startar kassan…",
+      "checkoutFailed": "Det gick inte att starta kassan. Försök igen.",
+      "networkError": "Nätverksfel. Försök igen."
+    },
+    "callAnalysis": {
+      "eyebrow": "Ingår i Pro och Team",
+      "title": "AI-samtalsanalys",
+      "description": "Slå på den före ett samtal och få en feedbackrapport efteråt: ett betyg, taltid, tempo, utfyllnadsord, vad som fungerade, vad du bör öva på och, för teammöten, beslut och åtgärdspunkter.",
+      "cta": "Se hur samtalsanalys fungerar →"
+    },
+    "cost": {
+      "title": "Verklig kostnadsjämförelse",
+      "subtitle": "Jämför våra priser med typiska kostnader för Zoom Webinars och Microsoft Teams",
+      "plan": "Plan",
+      "rows": {
+        "free": "Gratis",
+        "pro": "Pro / litet team",
+        "team": "Team / företag",
+        "tenPerson": "Team med 10 personer"
+      },
+      "cells": {
+        "freeLimit": "{price} (gräns på {minutes} min)",
+        "perMonth": "{price}/mån",
+        "perHost": "{price}/mån/värd",
+        "perUser": "{price}/mån/användare",
+        "perMonthTotal": "{price}/mån totalt"
+      },
+      "footnote": "* PairUX tar betalt per team, inte per användare. Inga licenser per plats."
+    },
+    "comparison": {
+      "title": "Jämförelse av funktioner",
+      "subtitle": "Se hur PairUX står sig mot Zoom, Teams, Webex, Google Meet och Jitsi",
+      "feature": "Funktion",
+      "rows": {
+        "transparent": "Transparenta priser",
+        "noSeatFees": "Inga avgifter per plats",
+        "noContracts": "Inga årsavtal",
+        "flatRate": "Enkla planer med fast pris",
+        "openSource": "Öppen källkod",
+        "selfHost": "Kan driftas själv",
+        "remoteControl": "Fjärrstyrning",
+        "multiCursor": "Stöd för flera muspekare",
+        "noAccount": "Inget konto krävs (tittare)"
+      }
+    },
+    "advantages": {
+      "title": "Därför är PairUX annorlunda",
+      "subtitle": "Företagsverktygen kan inte kopiera det här utan att slå sönder sina prismodeller",
+      "items": {
+        "noSeatFees": {
+          "title": "Inga avgifter per plats",
+          "description": "Ett pris för hela teamet. Lägg till användare utan att kostnaden ökar."
+        },
+        "noLockIn": {
+          "title": "Ingen inlåsning",
+          "description": "Inga årsavtal eller bindningstider. Avsluta när du vill."
+        },
+        "openSource": {
+          "title": "Öppen källkod",
+          "description": "Granska koden, drifta själv eller anpassa. Din data, dina regler."
+        },
+        "developer": {
+          "title": "Utvecklarvänligt",
+          "description": "Installation via CLI, API-åtkomst och redo för automatisering från dag ett."
+        }
+      }
+    },
+    "faq": {
+      "title": "Vanliga frågor",
+      "capacity": {
+        "question": "Hur många kan titta på mitt rum?",
+        "answer": "Antalet samtidiga lyssnare per rum beror på din plan: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Dessutom kan offentliga livesändningar ses gratis av obegränsat antal gäster utan konto.",
+        "answerLong": "Antalet samtidiga lyssnare per rum beror på din plan: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Dessutom kan offentliga livesändningar ses gratis av obegränsat antal gäster utan konto."
+      },
+      "free": {
+        "question": "Är gratisnivån verkligen gratis?",
+        "answer": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid – och offentliga livesändningar kan ses gratis av obegränsat antal gäster utan konto. Inga tidsgränser och inget kreditkort krävs.",
+        "answerLong": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid – och offentliga livesändningar kan ses gratis av obegränsat antal gäster utan konto. Inga tidsgränser och inget kreditkort krävs. Perfekt för parprogrammering och små demos."
+      },
+      "selfHost": {
+        "question": "Kan jag drifta själv för att slippa kostnader?",
+        "answer": "Absolut. PairUX är öppen källkod under MIT-licensen. Du kan köra din egen SFU-infrastruktur om du vill.",
+        "answerLong": "Absolut. PairUX är öppen källkod under MIT-licensen. Du kan köra din egen SFU-infrastruktur om du vill. Perfekt för företag med särskilda säkerhetskrav."
+      },
+      "cheaper": {
+        "question": "Varför är ni billigare än Zoom och Teams?",
+        "answer": "Vi tar betalt per team, inte per plats. Ett team med 10 personer betalar {teamPrice}/månad totalt med PairUX, jämfört med {competitorPrice}/månad med Zoom eller Teams.",
+        "answerLong": "Vi tar betalt per team, inte per plats. Ett team med 10 personer betalar {teamPrice}/månad totalt med PairUX, jämfört med {competitorPrice}/månad med Zoom eller Teams. Inga säljteam för företag innebär lägre omkostnader för dig."
+      }
+    },
+    "cta": {
+      "title": "Redo att spara på videoinfrastruktur?",
+      "subtitle": "Börja gratis med P2P-sessioner, eller uppgradera till Pro för bara {price}/månad. Aldrig några avgifter per plats.",
+      "download": "Ladda ner gratis",
+      "signup": "Skapa konto"
+    }
+  },
+  "download": {
+    "meta": {
+      "title": "Ladda ner",
+      "description": "Ladda ner PairUX för macOS, Windows eller Linux. Finns via Homebrew, WinGet, APT och direktnedladdning."
+    },
+    "hero": {
+      "title": "Ladda ner PairUX",
+      "subtitle": "Skaffa skrivbordsappen för att vara värd för sessioner. Tittare kan gå med från valfri webbläsare."
+    },
+    "copyToClipboard": "Kopiera till urklipp",
+    "loading": "Läser in versionsinformation…",
+    "loadFailed": "Det gick inte att läsa in versionsinformation",
+    "viewReleases": "Visa versioner på GitHub",
+    "latest": "Senaste: v{version}",
+    "quickInstall": {
+      "title": "Snabbinstallation",
+      "subtitle": "Det snabbaste sättet att komma igång. Fungerar på macOS, Linux och Windows.",
+      "windows": "Windows (PowerShell)",
+      "auto": "Laddar automatiskt ner den senaste versionen för din plattform",
+      "afterInstall": "Efter installationen använder du <update></update> för att uppgradera och <uninstall></uninstall> för att avinstallera."
+    },
+    "detected": "Identifierat utifrån din webbläsare",
+    "downloadDmg": "Ladda ner DMG",
+    "downloadInstaller": "Ladda ner installationsprogram",
+    "downloadAppImage": "Ladda ner AppImage",
+    "allPlatforms": {
+      "title": "Alla plattformar",
+      "subtitle": "Välj ditt operativsystem och önskat format"
+    },
+    "requirements": {
+      "macos": "Kräver macOS 12 (Monterey) eller senare",
+      "windows": "Kräver Windows 10 (1809) eller senare",
+      "linux": "Ubuntu 20.04+, Fedora 35+, Arch Linux"
+    },
+    "shellScript": "Skalskript",
+    "installerX64": "Installationsprogram (x64)",
+    "viewAllReleases": "Visa alla versioner på GitHub",
+    "checksums": {
+      "toggle": "Verifiera nedladdningar (SHA256-kontrollsummor)",
+      "description": "Verifiera nedladdningen genom att jämföra SHA256-kontrollsumman.",
+      "file": "Fil"
+    }
+  },
+  "pwa": {
+    "installAppLabel": "Installera PairUX-appen",
+    "installApp": "Installera appen",
+    "title": "Installera PairUX",
+    "mobileDescription": "Lägg till på hemskärmen för snabb åtkomst",
+    "desktopDescription": "Installera skrivbordsappen för en bättre upplevelse",
+    "dismiss": "Stäng installationsfrågan",
+    "installing": "Installerar…",
+    "install": "Installera"
+  },
+  "offline": {
+    "title": "Du är offline",
+    "description": "PairUX kräver en internetanslutning för skärmdelning och samarbete i realtid. Kontrollera anslutningen och försök igen.",
+    "retry": "Försök igen"
+  },
+  "control": {
+    "request": {
+      "releaseTitle": "Släpp styrningen",
+      "inControl": "Styr",
+      "waitingApproval": "Väntar på godkännande från värden",
+      "requesting": "Begär…",
+      "waitingConnection": "Väntar på anslutning",
+      "requestTitle": "Begär styrning av värdens dator",
+      "requestControl": "Begär styrning"
+    },
+    "status": {
+      "title": "Styrningsläge: {state}",
+      "viewOnly": "Endast visning",
+      "pending": "Väntar",
+      "controlling": "Styr"
+    },
+    "capture": {
+      "clickToControl": "Klicka för att styra · Esc för att släppa",
+      "pointerUnavailable": "Det gick inte att fånga muspekaren · Klicka för att försöka igen",
+      "fullscreenLock": "Helskärm + pekarlås",
+      "exitFullscreen": "Avsluta helskärm",
+      "capturePointerAgain": "Fånga muspekaren igen"
+    }
+  },
+  "session": {
+    "analysis": {
+      "title": "AI-samtalsanalys",
+      "description": "Få feedback efter samtalet: taltid, tempo, utfyllnadsord, vad som gick hem och vad du bör öva på. Bestäm dig nu; det går inte att slå på när samtalet har startat.",
+      "toggle": "Analysera det här samtalet",
+      "kindLabel": "Vilken typ av samtal är det?",
+      "kinds": {
+        "general": "Allmänt samtal",
+        "interview": "Intervju",
+        "team-sync": "Teammöte",
+        "presentation": "Presentation"
+      },
+      "keepRecording": "Spela in samtalet och behåll inspelningen",
+      "disclosure": "Alla som ansluter får veta att samtalet spelas in för AI-analys. Rapporterna är privata för dig. <link>Så fungerar det</link>"
+    },
+    "handoff": {
+      "openedTitle": "Öppnat i skrivbordsappen",
+      "openingTitle": "Öppnar PairUX-skrivbordsappen…",
+      "openedBody": "Ditt möte körs i skrivbordsappen, där gäster kan få styrning.",
+      "openingBody": "Skrivbordsappen kan dela styrningen av din skärm. Webbläsaren kan bara visa den.",
+      "continueInBrowser": "Fortsätt i den här webbläsaren",
+      "download": "Har du inte appen? Ladda ner den"
+    },
+    "hostPresence": {
+      "notJoined": "Värden har inte anslutit än",
+      "left": "Värden har lämnat",
+      "chatAvailable": "Chatten är fortfarande tillgänglig. Du får en avisering när värden kommer tillbaka."
+    },
+    "recordingNotice": {
+      "recorded": "Det här samtalet spelas in av värden för AI-analys. Lämna samtalet om du inte vill delta.",
+      "recordedKept": "Det här samtalet spelas in av värden för AI-analys, och värden behåller inspelningen. Lämna samtalet om du inte vill delta."
+    },
+    "settingsPanel": {
+      "title": "Sessionsinställningar",
+      "sessionInfo": "Sessionsinformation",
+      "sessionCode": "Sessionskod",
+      "status": "Status",
+      "participants": "Deltagare",
+      "created": "Skapad",
+      "connectionQuality": "Anslutningskvalitet",
+      "network": "Nätverk",
+      "frameRate": "Bildfrekvens",
+      "fps": "{value} fps",
+      "packetLoss": "Paketförlust",
+      "latency": "Fördröjning",
+      "ms": "{value} ms",
+      "appearance": "Utseende",
+      "theme": {
+        "light": "ljust",
+        "dark": "mörkt",
+        "system": "system"
+      },
+      "sessionStatus": {
+        "created": "skapad",
+        "active": "aktiv",
+        "paused": "pausad",
+        "ended": "avslutad"
+      },
+      "connectionState": {
+        "idle": "inaktiv",
+        "connecting": "ansluter",
+        "connected": "ansluten",
+        "reconnecting": "återansluter",
+        "failed": "misslyckades",
+        "disconnected": "frånkopplad"
+      },
+      "networkQuality": {
+        "excellent": "Utmärkt",
+        "good": "Bra",
+        "poor": "Svag",
+        "bad": "Dålig"
+      }
+    },
+    "publish": {
+      "titlePublic": "Rummet är offentligt",
+      "titlePublish": "Publicera på /live",
+      "intro": "När ditt rum listas på <strong>pairux.com/live</strong> kan vem som helst hitta och gå med i det – ingen inbjudningslänk krävs.",
+      "subject": "Ämne",
+      "subjectPlaceholder": "t.ex. Vi bygger en Next.js-app live",
+      "description": "Beskrivning",
+      "optional": "(valfritt)",
+      "descriptionPlaceholder": "Vad händer i det här rummet?",
+      "publish": "Publicera",
+      "liveNotice": "Ditt rum är live i den offentliga katalogen.",
+      "viewLive": "Visa /live",
+      "profileLink": "Din profillänk",
+      "copied": "Kopierad",
+      "claimPrompt": "Registrera ett användarnamn för att få en delbar profilsida på <code>{path}</code>.",
+      "usernamePlaceholder": "användarnamn",
+      "claim": "Registrera",
+      "makePrivate": "Gör privat",
+      "done": "Klar",
+      "errors": {
+        "publishFailed": "Det gick inte att publicera rummet",
+        "unpublishFailed": "Det gick inte att avpublicera rummet",
+        "usernameFailed": "Det gick inte att spara användarnamnet",
+        "network": "Nätverksfel. Försök igen."
+      }
+    }
+  },
+  "participants": {
+    "title": "Deltagare",
+    "activeCount": "{count, plural, one {# aktiv} other {# aktiva}}",
+    "emptyTitle": "Inga deltagare än",
+    "emptyHint": "Dela din länk för att bjuda in andra",
+    "you": "(du)",
+    "agent": "Agent",
+    "agentWithClient": "Agent ({client})",
+    "host": "Värd",
+    "inControl": "Styr",
+    "requesting": "Begär styrning",
+    "viewer": "Tittare",
+    "removeAgent": "Ta bort agent",
+    "mute": "Stäng av deltagarens ljud",
+    "unmute": "Slå på deltagarens ljud",
+    "grantControl": "Ge styrning",
+    "revokeControl": "Återkalla styrning",
+    "removeParticipant": "Ta bort deltagare",
+    "makeHost": "Gör till värd",
+    "connection": {
+      "connected": "ansluten",
+      "reconnecting": "återansluter",
+      "disconnected": "frånkopplad"
+    }
+  },
+  "video": {
+    "connection": {
+      "idleTitle": "Väntar på skärmdelning",
+      "idleBody": "Värden har inte börjat dela sin skärm än. Du ser skärmen här så snart delningen startar.",
+      "connectingTitle": "Ansluter…",
+      "connectingBody": "Upprättar en säker anslutning till värden. Det brukar ta några sekunder.",
+      "reconnectingTitle": "Återansluter…",
+      "reconnectingBody": "Anslutningen avbröts. Försöker återansluta…",
+      "failedTitle": "Anslutningen misslyckades",
+      "failedBody": "Det gick inte att upprätta en anslutning. Kontrollera nätverket och försök igen.",
+      "tryAgain": "Försök igen",
+      "disconnectedTitle": "Värden har kopplats från",
+      "disconnectedBody": "Värden har slutat dela eller kopplats från. Väntar på att värden ska återansluta…",
+      "reconnect": "Återanslut"
+    },
+    "quality": {
+      "title": "Anslutning: {quality}",
+      "details": "Anslutningsdetaljer",
+      "quality": "Kvalitet",
+      "bitrate": "Bithastighet",
+      "frameRate": "Bildfrekvens",
+      "latency": "Fördröjning",
+      "packetLoss": "Paketförlust",
+      "levels": {
+        "excellent": "Utmärkt",
+        "good": "Bra",
+        "poor": "Svag",
+        "bad": "Dålig"
+      }
+    },
+    "player": {
+      "unsupported": "Din webbläsare har inte stöd för videouppspelning."
+    },
+    "preview": {
+      "idleHint": "Klicka nedan för att börja dela din skärm",
+      "start": "Starta skärmdelning",
+      "requesting": "Begär åtkomst till skärmen…",
+      "selectSource": "Välj en skärm eller ett fönster att dela",
+      "tryAgain": "Försök igen",
+      "stop": "Sluta dela"
+    }
+  },
+  "admin": {
+    "meta": {
+      "title": "Admin – PairUX"
+    },
+    "title": "Admin",
+    "loggedInAs": "Inloggad som {email}",
+    "integrations": {
+      "title": "Autoblogg-integrationer",
+      "description": "Generera en bearer-token och klistra sedan in den i <link>CrawlProof</link> som webhook-hemlighet. Token fungerar även som HMAC-signeringshemlighet för verifiering av förfrågningar.",
+      "confirmRevoke": "Återkalla ”{name}”? Källan kommer inte längre att kunna publicera.",
+      "webhookEndpoint": "Webhook-slutpunkt",
+      "copy": "Kopiera",
+      "copied": "Kopierad",
+      "generateToken": "Generera token",
+      "namePlaceholder": "Namn på integrationen",
+      "generate": "Generera",
+      "tokenCreated": "Token skapad – kopiera den nu och klistra in den i webhook-inställningarna för CrawlProof-autobloggen.",
+      "accessTokens": "Åtkomsttokens ({count})",
+      "empty": "Inga än – generera en ovan.",
+      "requests": "{count, plural, one {# förfrågan} other {# förfrågningar}}",
+      "lastUsed": "senast {date}",
+      "hide": "Dölj",
+      "reveal": "Visa",
+      "revoke": "Återkalla"
+    },
+    "email": {
+      "title": "Mejla användare",
+      "description": "Skriv ett HTML-mejl och skicka det till alla registrerade användare via Resend.",
+      "subject": "Ämne",
+      "subjectPlaceholder": "Meddelande: …",
+      "body": "Brödtext (Markdown)",
+      "result": "Skickade {sent} · Misslyckades {failed}",
+      "sending": "Skickar…",
+      "send": "Skicka till alla användare"
+    },
+    "posts": {
+      "title": "Senaste blogginläggen",
+      "empty": "Inga inlägg har tagits emot än.",
+      "columnTitle": "Rubrik",
+      "columnSource": "Källa",
+      "columnPublished": "Publicerad"
+    }
+  },
+  "analyses": {
+    "meta": {
+      "listTitle": "Samtalsanalyser – PairUX",
+      "detailTitle": "Samtalsanalys – PairUX"
+    },
+    "kinds": {
+      "general": "Allmänt samtal",
+      "interview": "Intervju",
+      "team-sync": "Teammöte",
+      "presentation": "Presentation"
+    },
+    "status": {
+      "recording": "Spelar in",
+      "queued": "Väntar på analys",
+      "processing": "Skriver din rapport",
+      "ready": "Klar",
+      "failed": "Misslyckades"
+    },
+    "list": {
+      "title": "Samtalsanalyser",
+      "intro": "Feedback på samtalen du höll med AI-analys påslagen. Slå på den före ett samtal från startskärmen på webben, i skrivbordsappen eller i mobilappen.",
+      "loadError": "Det gick inte att läsa in dina analyser",
+      "empty": "Inga analyserade samtal än. <link>Starta ett samtal med AI-analys</link>",
+      "untitled": "Namnlöst samtal",
+      "sharedWithTeam": "delas med ditt team"
+    },
+    "report": {
+      "back": "← Alla samtalsanalyser",
+      "loadError": "Det gick inte att läsa in den här analysen",
+      "failed": "Analysen kunde inte slutföras: {error}",
+      "stillRecording": "Samtalet spelas fortfarande in.",
+      "beingWritten": "Din rapport skrivs just nu. Sidan uppdateras automatiskt och du får ett mejl när den är klar.",
+      "outOf10": "av 10",
+      "byTheNumbers": "I siffror",
+      "table": {
+        "speaker": "Talare",
+        "talkTime": "Taltid",
+        "pace": "Tempo",
+        "fillers": "Utfyllnadsord",
+        "questions": "Frågor",
+        "longestTurn": "Längsta inlägg",
+        "wpm": "{value} ord/min",
+        "fillerRate": "{value} / 100 ord"
+      },
+      "mobileNote": "Inspelat på en telefon: bara din mikrofon spelades in.",
+      "whatWorked": "Vad som fungerade",
+      "toImprove": "Att förbättra",
+      "try": "Prova: {suggestion}",
+      "delivery": {
+        "title": "Framförande",
+        "pace": "Tempo",
+        "clarity": "Tydlighet",
+        "confidence": "Självsäkerhet",
+        "fillerWords": "Utfyllnadsord",
+        "listening": "Lyssnande"
+      },
+      "practiceNext": "Öva på till nästa gång",
+      "onScreen": "Vad som visades på skärmen",
+      "actionItems": "Åtgärdspunkter",
+      "keyMoments": "Ögonblick att se igen",
+      "hideTranscript": "Dölj transkription",
+      "showTranscript": "Visa transkription",
+      "disclaimer": "Skriven av AI utifrån samtalsinspelningen. Talaretiketterna kommer från automatisk talaridentifiering och kan vara fel.",
+      "disclaimerWithModel": "Skriven av AI ({model}) utifrån samtalsinspelningen. Talaretiketterna kommer från automatisk talaridentifiering och kan vara fel."
+    }
+  },
+  "devices": {
+    "title": "Mina enheter",
+    "intro": "Starta en skärmdelning härifrån på en dator som kör <code>pairux daemon</code>. Praktiskt när du presenterar från en laptop med telefonen i handen.",
+    "addressLabel": "Enhetsadress",
+    "add": "Lägg till",
+    "errors": {
+      "invalidAddress": "Det ser inte ut som en enhetsadress.",
+      "duplicate": "Den enheten finns redan här."
+    },
+    "empty": "Inga enheter än. Kör <code>pairux daemon</code> på datorn du vill dela – den skriver ut adressen som du klistrar in här.",
+    "howToSetUp": "Så här konfigurerar du det",
+    "remove": "Ta bort {name}",
+    "joinSession": "Gå med i sessionen på {name}",
+    "stopSharing": "Sluta dela",
+    "startSharing": "Börja dela",
+    "check": "Kontrollera"
+  },
+  "notifications": {
+    "unsupported": "Push-aviseringar stöds inte i den här webbläsaren.",
+    "push": {
+      "title": "Push-aviseringar",
+      "enabled": "Aviseringar är aktiverade för den här enheten",
+      "blocked": "Aviseringar är blockerade i webbläsarens inställningar",
+      "prompt": "Aktivera för att få aviseringar när appen körs i bakgrunden",
+      "enable": "Aktivera",
+      "disable": "Inaktivera"
+    },
+    "notifyMeAbout": "Avisera mig om",
+    "events": {
+      "controlRequest": "Begäranden om styrning",
+      "chatMessage": "Chattmeddelanden",
+      "participantJoined": "Deltagare ansluter",
+      "participantLeft": "Deltagare lämnar",
+      "hostDisconnected": "Värden kopplas från",
+      "creatorLive": "En kreatör du följer går live",
+      "directMessage": "Någon skickar ett direktmeddelande till dig"
+    },
+    "reminders": {
+      "title": "Mötespåminnelser",
+      "description": "Skickas via e-post, och som avisering när push är på.",
+      "meetingReminder1Day": "1 dag innan",
+      "meetingReminder1Hour": "1 timme innan",
+      "meetingReminder15Min": "15 minuter innan",
+      "meetingReminder1Min": "1 minut innan"
+    },
+    "controlRequest": {
+      "title": "Begäran om styrning",
+      "message": "<strong>{name}</strong> vill styra din skärm",
+      "approve": "Godkänn",
+      "deny": "Neka"
+    },
+    "toasts": {
+      "region": "Aviseringar",
+      "joined": "<strong>{name}</strong> anslöt",
+      "left": "<strong>{name}</strong> lämnade",
+      "dismiss": "Stäng"
+    }
+  },
+  "orgs": {
+    "meta": {
+      "listTitle": "Organisationer – PairUX",
+      "detailTitle": "Organisation – PairUX"
+    },
+    "roles": {
+      "owner": "Ägare",
+      "admin": "Administratör",
+      "member": "Medlem"
+    },
+    "list": {
+      "title": "Organisationer",
+      "intro": "En organisation delar kanaler att gå live på, rapporter från samtalsanalyser och ägarens plan med sina medlemmar. Dela in personer i team inom den.",
+      "teamCount": "{count, plural, one {# team} other {# team}}",
+      "createHeading": "Skapa en organisation",
+      "namePlaceholder": "Företagets eller gruppens namn",
+      "create": "Skapa",
+      "createError": "Det gick inte att skapa organisationen"
+    },
+    "detail": {
+      "back": "← Organisationer",
+      "notFound": "Organisationen hittades inte",
+      "genericError": "Något gick fel",
+      "summary": "{role, select, owner {Du är ägare} admin {Du är administratör} other {Du är medlem}}. Medlemmarna omfattas av planen <strong>{plan}</strong>.",
+      "confirmDelete": "Ta bort {name}? Dess kanaler och rapporter går tillbaka till dem som skapade dem.",
+      "deleteOrg": "Ta bort organisationen",
+      "confirmLeave": "Lämna {name}?",
+      "leaveOrg": "Lämna organisationen",
+      "members": "Medlemmar",
+      "teamLead": "{team} (ledare)",
+      "removeMember": "Ta bort {name}",
+      "confirmRemoveMember": "Ta bort {name} från {org}?",
+      "inviteByEmail": "Bjud in via e-post",
+      "noTeam": "Inget team",
+      "invite": "Bjud in",
+      "pendingInvitations": "Väntande inbjudningar",
+      "revoke": "Återkalla",
+      "teams": "Team",
+      "teamsIntro": "Teammedlemmar kan gå live på teamets kanaler och läsa teamets samtalsrapporter. Ledare bestämmer vilka som ingår i teamet.",
+      "confirmDeleteTeam": "Ta bort teamet {name}? Dess kanaler och rapporter stannar kvar i organisationen.",
+      "deleteTeam": "Ta bort team",
+      "lead": "ledare",
+      "makeMember": "gör till medlem",
+      "makeLead": "gör till ledare",
+      "removeFromTeam": "Ta bort {name} från {team}",
+      "noMembers": "Inga medlemmar än",
+      "addMember": "Lägg till en medlem…",
+      "noTeams": "Inga team än.",
+      "newTeamPlaceholder": "Nytt team, t.ex. Utveckling",
+      "createTeam": "Skapa team"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Inställningar – PairUX",
+      "description": "Hantera dina PairUX-inställningar."
+    },
+    "back": "Tillbaka",
+    "title": "Inställningar",
+    "saved": "Sparat",
+    "quality": {
+      "720p": "720p (HD)",
+      "1080p": "1080p (Full HD)",
+      "4k": "4K (där det finns)"
+    },
+    "account": {
+      "title": "Konto",
+      "description": "Din kontoinformation",
+      "email": "E-post:",
+      "name": "Namn:",
+      "signInPrompt": "Logga in för att synkronisera dina inställningar mellan enheter och få tillgång till fler funktioner.",
+      "signIn": "Logga in",
+      "createAccount": "Skapa konto"
+    },
+    "recording": {
+      "title": "Inspelning",
+      "description": "Standardinställningar för inspelning",
+      "defaultRecordingQuality": "Standardkvalitet för inspelning",
+      "recordingQualityHint": "Inspelningar med högre kvalitet tar mer plats",
+      "defaultCaptureQuality": "Standardkvalitet för upptagning",
+      "captureQualityHint": "Högre kvalitet använder mer bandbredd vid strömning",
+      "includeSystemAudio": "Ta med systemljud",
+      "includeSystemAudioHint": "Spela in systemljud tillsammans med skärmen",
+      "webRecordingNote": "<strong>Inspelning via webben:</strong> Inspelningar sparas i webbläsarens nedladdningsmapp. Använd <link>skrivbordsappen</link> för automatisk filorganisering."
+    },
+    "session": {
+      "title": "Standard för sessioner",
+      "description": "Standardinställningar för nya sessioner",
+      "maxParticipants": "Max antal deltagare",
+      "viewers": "{count, plural, one {# tittare} other {# tittare}}",
+      "openInDesktopApp": "Öppna sessioner i skrivbordsappen",
+      "openInDesktopAppHint": "När du startar en session öppnas skrivbordsappen, där du kan ge en gäst styrning. Använder den här webbläsaren om appen inte är installerad.",
+      "openInDesktopAppAria": "Öppna sessioner i skrivbordsappen",
+      "remoteControlNote": "<strong>Obs!</strong> Fjärrstyrning finns bara i <link>skrivbordsappen</link>. Webbsessioner är endast för visning."
+    },
+    "notifications": {
+      "title": "Aviseringar",
+      "description": "Inställningar för push-aviseringar"
+    },
+    "language": {
+      "title": "Språk",
+      "description": "Välj vilket språk PairUX visas på",
+      "hint": "Sparas i den här webbläsaren. Standard är webbläsarens språk."
+    },
+    "appearance": {
+      "title": "Utseende",
+      "description": "Anpassa din upplevelse",
+      "theme": "Tema",
+      "themes": {
+        "light": "Ljust",
+        "dark": "Mörkt",
+        "system": "System"
+      },
+      "systemHint": "Systemtemat följer enhetens inställningar"
+    },
+    "about": {
+      "title": "Om",
+      "description": "Information om appen",
+      "application": "Applikation",
+      "platform": "Plattform",
+      "platformValue": "Webbläsare / PWA",
+      "features": "Funktioner",
+      "featuresValue": "Skärmdelning, inspelning, chatt",
+      "downloadNote": "Ladda ner <link>skrivbordsappen</link> för alla funktioner, inklusive fjärrstyrning."
+    },
+    "youtube": {
+      "title": "Automatisk livestart på YouTube",
+      "description": "Starta din YouTube-sändning automatiskt när du börjar strömma – inget mer ”Förbereder ström”.",
+      "notConfigured": "Inte tillgängligt än – servern saknar Google OAuth-konfiguration.",
+      "connected": "Ansluten",
+      "connectedTo": "Ansluten – {channel}",
+      "disconnect": "Koppla från",
+      "connect": "Anslut YouTube"
+    }
+  },
+  "replay": {
+    "notFoundTitle": "Livesändningen hittades inte",
+    "defaultTitle": "Live på PairUX",
+    "defaultDescription": "En offentlig livesändning av {name}.",
+    "defaultDescriptionAnonymous": "En offentlig livesändning av en PairUX-kreatör.",
+    "anonymous": "Anonym",
+    "liveNow": "Live nu",
+    "untitled": "Namnlös livesändning",
+    "watchFree": "Titta gratis",
+    "commentsHeading": "Kommentarer ({count})",
+    "like": "Gilla ({count, plural, one {# gillning} other {# gillningar}})",
+    "unlike": "Sluta gilla ({count, plural, one {# gillning} other {# gillningar}})",
+    "comments": {
+      "someone": "Någon",
+      "postFailed": "Det gick inte att publicera din kommentar.",
+      "networkError": "Nätverksfel. Försök igen.",
+      "placeholder": "Skriv en kommentar…",
+      "post": "Publicera",
+      "empty": "Inga kommentarer än – bli först.",
+      "delete": "Ta bort"
+    },
+    "embed": {
+      "title": "Bädda in den här livesändningen",
+      "button": "Bädda in",
+      "label": "Klistra in det här var som helst där HTML är tillåtet",
+      "copied": "Kopierad",
+      "copy": "Kopiera koden"
+    }
+  },
+  "embed": {
+    "defaultTitle": "PairUX-spelare",
+    "untitled": "Namnlös livesändning",
+    "watchLive": "Titta live på PairUX",
+    "watch": "Titta på PairUX",
+    "live": "Live"
+  },
+  "room": {
+    "metadata": {
+      "title": "Krypterat rum",
+      "description": "Ett end-to-end-krypterat rum för röst och video i PairUX. Inget konto behövs."
+    },
+    "creating": "Skapar ett krypterat rum…",
+    "guest": "Gäst",
+    "joinFailed": "Det gick inte att gå med i rummet",
+    "callFailed": "Samtalet misslyckades",
+    "e2ee": "End-to-end-krypterat",
+    "incomplete": {
+      "title": "Den här länken är ofullständig",
+      "body": "En rumslänk slutar med <code>#k=…</code>, nyckeln som krypterar samtalet. Be om hela länken, eller <link>starta ett nytt rum</link>."
+    },
+    "join": {
+      "title": "Gå med i rummet",
+      "body": "Inget konto behövs. Ljud och video krypteras på din enhet med en nyckel som bara de som har den här länken har. PairUX kan inte höra eller se samtalet, och inget spelas in.",
+      "nameLabel": "Ditt namn",
+      "voice": "Röst",
+      "video": "Video"
+    },
+    "copied": "Kopierad",
+    "copyInvite": "Kopiera inbjudningslänk"
+  },
+  "live": {
+    "metadata": {
+      "title": "Live-rum",
+      "description": "Bläddra bland offentliga rum för skärmdelning som pågår just nu på PairUX."
+    },
+    "title": "Live-rum",
+    "intro": "Offentliga rum för skärmdelning som värdar kör just nu. Hoppa in i ett, ingen inbjudan behövs – eller bläddra bland <link>alla kanaler</link> (tidigare och nuvarande).",
+    "empty": {
+      "title": "Inga offentliga rum än",
+      "body": "Var värd för en session och använd <strong>Publicera på /live</strong> för att lista den här.",
+      "cta": "Börja vara värd"
+    },
+    "badgeLive": "Live",
+    "badgeIdle": "Inaktiv",
+    "viewers": "{count, plural, one {# tittare} other {# tittare}}",
+    "untitledRoom": "Namnlöst rum",
+    "anonymous": "Anonym",
+    "joinRoom": "Gå med i rummet",
+    "creators": "Kreatörer",
+    "followers": "{count, plural, one {# följare} other {# följare}}"
+  },
+  "channels": {
+    "metadata": {
+      "title": "Kanaler",
+      "description": "Bläddra bland kreatörers kanaler på PairUX."
+    },
+    "title": "Kanaler",
+    "intro": "Kreatörers kanaler på PairUX. Prenumerera för att få en avisering när de går live – eller se vem som är <link>live just nu</link>.",
+    "empty": {
+      "title": "Inga kanaler än",
+      "body": "Skapa en från din <link>översikt</link>."
+    },
+    "liveNow": "Live nu",
+    "subscribers": "{count, plural, one {# prenumerant} other {# prenumeranter}}",
+    "liveCount": "{count} live",
+    "recordings": "{count, plural, one {# inspelning} other {# inspelningar}}"
+  },
+  "channel": {
+    "notFoundTitle": "Kanalen hittades inte",
+    "defaultDescription": "Kanalen för {name} på PairUX.",
+    "liveNow": "Live nu",
+    "live": "Live",
+    "watching": "{count} tittar",
+    "manage": "Hantera kanal",
+    "streams": "Sändningar",
+    "noStreams": "Inga sändningar än.",
+    "untitledStream": "Namnlös sändning",
+    "recordings": "Inspelningar",
+    "rssTitle": "Prenumerera i en poddapp eller flödesläsare",
+    "recording": "Inspelning",
+    "subscribe": {
+      "subscribe": "Prenumerera",
+      "subscribed": "Prenumererar",
+      "count": "{count, plural, one {# prenumerant} other {# prenumeranter}}"
+    },
+    "share": {
+      "text": "Kolla in {name} på PairUX",
+      "share": "Dela",
+      "shareOn": "Dela på {network}",
+      "copyLink": "Kopiera länk",
+      "copy": "Kopiera",
+      "copied": "Kopierad"
+    }
+  },
+  "profile": {
+    "notFoundTitle": "Profilen hittades inte",
+    "defaultDescription": "Offentliga rum från {name} på PairUX.",
+    "channels": "Kanaler",
+    "live": "Live",
+    "subscribers": "{count, plural, one {# prenumerant} other {# prenumeranter}}",
+    "lives": "Livesändningar",
+    "noLives": "{handle} har inte gått live än.",
+    "liveNow": "Live nu",
+    "untitledRoom": "Namnlöst rum",
+    "joinRoom": "Gå med i rummet",
+    "follow": {
+      "follow": "Följ",
+      "following": "Följer",
+      "count": "{count, plural, one {# följare} other {# följare}}"
+    },
+    "message": {
+      "button": "Meddelande",
+      "title": "Skicka meddelande till {name}",
+      "close": "Stäng",
+      "sent": "Meddelandet har skickats",
+      "sentNote": "{name} meddelas via e-post och push.",
+      "viewConversation": "Visa konversationen",
+      "placeholder": "Skriv ett privat meddelande till {name}…",
+      "cancel": "Avbryt",
+      "send": "Skicka",
+      "sendFailed": "Det gick inte att skicka meddelandet"
+    }
+  },
+  "messages": {
+    "title": "Meddelanden",
+    "conversationTitle": "Konversation",
+    "allMessages": "Alla meddelanden",
+    "empty": {
+      "title": "Inga meddelanden än",
+      "body": "Gå till en kreatörs profil och tryck på <strong>Meddelande</strong> för att starta en konversation.",
+      "cta": "Bläddra bland kreatörer →"
+    },
+    "youPrefix": "Du:",
+    "thread": {
+      "empty": "Inga meddelanden än. Säg hej till {name}.",
+      "placeholder": "Meddelande till {name}…",
+      "send": "Skicka",
+      "sendFailed": "Det gick inte att skicka meddelandet"
+    }
+  }
+}

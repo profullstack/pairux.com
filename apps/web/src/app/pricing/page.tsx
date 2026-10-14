@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { getFormatter, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -16,162 +17,109 @@ const CAP = {
   team: maxListeners('team'),
 };
 
-export const metadata: Metadata = {
-  title: 'Pricing',
-  description:
-    'Simple flat-rate pricing. No per-seat fees. $1/mo for Plus (up to 100 listeners), $12/mo Pro, $49/mo Team. 40-70% cheaper than Zoom, Teams, and other enterprise solutions.',
-  alternates: {
-    canonical: 'https://pairux.com/pricing',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pricing.meta');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: {
+      canonical: 'https://pairux.com/pricing',
+    },
+  };
+}
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'How many people can watch my room?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: `Concurrent listeners per room scale with your plan: Free ${String(CAP.free)}, Plus ${String(CAP.plus)}, Pro ${String(CAP.pro)}, Team ${CAP.team.toLocaleString()}. On top of that, public lives can be watched for free by unlimited guests with no account.`,
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Is the free tier really free?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Yes! 2 participants + up to 20 listeners are completely free, forever — and public lives can be watched for free by unlimited guests with no account. No time limits, no credit card required.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Can I self-host to avoid costs?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Absolutely. PairUX is open source under the MIT license. You can run your own SFU infrastructure if you prefer.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Why are you cheaper than Zoom and Teams?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'We charge per team, not per seat. A 10-person team pays $49/month total with PairUX, vs $220/month with Zoom or Teams.',
-      },
-    },
-  ],
-};
+const FAQ_KEYS = ['capacity', 'free', 'selfHost', 'cheaper'] as const;
 
-const pricingTiers = [
+// Copy for each tier lives under pricing.tiers.<key>; feature lists are
+// pricing.tiers.<key>.features.<featureKey>.
+interface PricingTier {
+  key: 'free' | 'plus' | 'pro' | 'team';
+  price: number;
+  period: 'forever' | 'month';
+  features: readonly string[];
+  ctaHref: string;
+  plan: 'plus' | 'pro' | 'team' | null;
+  highlighted: boolean;
+}
+
+const pricingTiers: PricingTier[] = [
   {
-    name: 'Free',
-    description: 'Perfect for personal use and small teams',
-    price: '$0',
-    priceDetail: 'forever',
+    key: 'free',
+    price: 0,
+    period: 'forever',
     features: [
-      `2 participants + up to ${String(CAP.free)} listeners`,
-      'Unlimited free viewers on public lives',
-      'P2P connections',
-      'Screen sharing',
-      'Remote control',
-      'End-to-end encryption',
-      'Community support',
+      'participants',
+      'publicViewers',
+      'p2p',
+      'screenSharing',
+      'remoteControl',
+      'e2e',
+      'support',
     ],
-    cta: 'Get Started',
     ctaHref: '/download',
     plan: null,
     highlighted: false,
   },
   {
-    name: 'Plus',
-    description: 'Host an audience — teaching, standups, watch-alongs',
-    price: '$1',
-    priceDetail: 'month',
-    features: [
-      `Up to ${String(CAP.plus)} listeners per room`,
-      'SFU relay servers',
-      'Public room in the /live directory',
-      'Screen sharing + voice',
-      'Remote control',
-      'Cancel anytime',
-    ],
-    cta: 'Upgrade to Plus',
+    key: 'plus',
+    price: 1,
+    period: 'month',
+    features: ['listeners', 'sfu', 'liveDirectory', 'screenVoice', 'remoteControl', 'cancel'],
     ctaHref: '/signup',
-    plan: 'plus' as const,
+    plan: 'plus',
     highlighted: true,
   },
   {
-    name: 'Pro',
-    description: 'For professionals and growing teams',
-    price: '$12',
-    priceDetail: 'month',
-    features: [
-      `Up to ${String(CAP.pro)} listeners per room`,
-      'SFU relay servers',
-      'All streaming platforms (YouTube, Twitch, …)',
-      'HD screen sharing (1080p)',
-      'Public room in the /live directory',
-      'AI call analysis',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Pro',
+    key: 'pro',
+    price: 12,
+    period: 'month',
+    features: ['listeners', 'sfu', 'streaming', 'hd', 'liveDirectory', 'callAnalysis', 'support'],
     ctaHref: '/signup',
-    plan: 'pro' as const,
+    plan: 'pro',
     highlighted: false,
   },
   {
-    name: 'Team',
-    description: 'For teams and organizations',
-    price: '$49',
-    priceDetail: 'month',
-    features: [
-      `Up to ${CAP.team.toLocaleString()} listeners per room`,
-      'Dedicated SFU servers',
-      'All streaming platforms',
-      '4K screen sharing',
-      'AI call analysis',
-      'Admin controls',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Team',
+    key: 'team',
+    price: 49,
+    period: 'month',
+    features: ['listeners', 'sfu', 'streaming', 'uhd', 'callAnalysis', 'admin', 'support'],
     ctaHref: '/signup',
-    plan: 'team' as const,
+    plan: 'team',
     highlighted: false,
   },
 ];
 
+// Prices are formatted with the active locale and slotted into pricing.cost.* copy.
 const comparisonData = [
   {
-    plan: 'Free',
-    pairux: '$0',
-    zoom: '$0 (40 min limit)',
-    teams: '$0 (60 min limit)',
+    key: 'free',
+    pairux: { price: 0 },
+    zoom: { msg: 'freeLimit', price: 0, minutes: 40 },
+    teams: { msg: 'freeLimit', price: 0, minutes: 60 },
   },
   {
-    plan: 'Pro / Small Team',
-    pairux: '$12/mo',
-    zoom: '$16/mo/host',
-    teams: '$12.50/mo/user',
+    key: 'pro',
+    pairux: { msg: 'perMonth', price: 12 },
+    zoom: { msg: 'perHost', price: 16 },
+    teams: { msg: 'perUser', price: 12.5 },
   },
   {
-    plan: 'Team / Business',
-    pairux: '$49/mo',
-    zoom: '$22/mo/host',
-    teams: '$22/mo/user',
+    key: 'team',
+    pairux: { msg: 'perMonth', price: 49 },
+    zoom: { msg: 'perHost', price: 22 },
+    teams: { msg: 'perUser', price: 22 },
   },
   {
-    plan: '10-person team',
-    pairux: '$49/mo total',
-    zoom: '$220/mo',
-    teams: '$220/mo',
+    key: 'tenPerson',
+    pairux: { msg: 'perMonthTotal', price: 49 },
+    zoom: { msg: 'perMonth', price: 220 },
+    teams: { msg: 'perMonth', price: 220 },
   },
-];
+] as const;
 
 const competitorComparison = [
   {
-    feature: 'Transparent pricing',
+    feature: 'transparent',
     pairux: true,
     zoom: false,
     teams: false,
@@ -180,7 +128,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'No seat-based fees',
+    feature: 'noSeatFees',
     pairux: true,
     zoom: false,
     teams: false,
@@ -189,7 +137,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'No annual contracts',
+    feature: 'noContracts',
     pairux: true,
     zoom: false,
     teams: false,
@@ -198,7 +146,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'Simple flat-rate plans',
+    feature: 'flatRate',
     pairux: true,
     zoom: false,
     teams: false,
@@ -207,7 +155,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'Open source',
+    feature: 'openSource',
     pairux: true,
     zoom: false,
     teams: false,
@@ -216,7 +164,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'Self-hostable',
+    feature: 'selfHost',
     pairux: true,
     zoom: false,
     teams: false,
@@ -225,7 +173,7 @@ const competitorComparison = [
     jitsi: true,
   },
   {
-    feature: 'Remote control',
+    feature: 'remoteControl',
     pairux: true,
     zoom: true,
     teams: false,
@@ -234,7 +182,7 @@ const competitorComparison = [
     jitsi: false,
   },
   {
-    feature: 'Multi-cursor support',
+    feature: 'multiCursor',
     pairux: true,
     zoom: false,
     teams: false,
@@ -243,7 +191,7 @@ const competitorComparison = [
     jitsi: false,
   },
   {
-    feature: 'No account required (viewers)',
+    feature: 'noAccount',
     pairux: true,
     zoom: false,
     teams: false,
@@ -254,30 +202,46 @@ const competitorComparison = [
 ];
 
 const advantages = [
-  {
-    icon: DollarSign,
-    title: 'No Per-Seat Fees',
-    description: 'One price for your whole team. Add users without adding cost.',
-  },
-  {
-    icon: Zap,
-    title: 'No Lock-in',
-    description: 'No annual contracts or commitments. Cancel anytime.',
-  },
-  {
-    icon: Shield,
-    title: 'Open Source',
-    description: 'Audit the code, self-host, or customize. Your data, your rules.',
-  },
-  {
-    icon: Users,
-    title: 'Developer-Friendly',
-    description: 'CLI install, API access, and automation-ready from day one.',
-  },
-];
+  { icon: DollarSign, key: 'noSeatFees' },
+  { icon: Zap, key: 'noLockIn' },
+  { icon: Shield, key: 'openSource' },
+  { icon: Users, key: 'developer' },
+] as const;
 
 export default async function PricingPage() {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const [t, format] = await Promise.all([getTranslations('pricing'), getFormatter()]);
+  const usd = (amount: number) =>
+    format.number(amount, {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  const caps = {
+    free: format.number(CAP.free),
+    plus: format.number(CAP.plus),
+    pro: format.number(CAP.pro),
+    team: format.number(CAP.team),
+  };
+  const priceCell = (cell: {
+    msg?: 'freeLimit' | 'perMonth' | 'perHost' | 'perUser' | 'perMonthTotal';
+    price: number;
+    minutes?: number;
+  }) =>
+    cell.msg
+      ? t(`cost.cells.${cell.msg}`, { price: usd(cell.price), minutes: cell.minutes ?? 0 })
+      : usd(cell.price);
+  const faqValues = { ...caps, freeCap: caps.free, teamPrice: usd(49), competitorPrice: usd(220) };
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ_KEYS.map((key) => ({
+      '@type': 'Question',
+      name: t(`faq.${key}.question`),
+      acceptedAnswer: { '@type': 'Answer', text: t(`faq.${key}.answer`, faqValues) },
+    })),
+  };
   return (
     <div className="flex min-h-screen flex-col">
       <script
@@ -293,12 +257,9 @@ export default async function PricingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                40–70% Cheaper Than the Big Guys
+                {t('hero.title')}
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Simple flat-rate pricing. No per-seat fees, no annual contracts, no enterprise sales
-                calls.
-              </p>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">{t('hero.subtitle')}</p>
             </div>
           </div>
         </section>
@@ -309,7 +270,7 @@ export default async function PricingPage() {
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {pricingTiers.map((tier) => (
                 <div
-                  key={tier.name}
+                  key={tier.key}
                   className={`rounded-2xl border-2 bg-white p-8 shadow-sm ${
                     tier.highlighted
                       ? 'border-primary-600 ring-primary-600 ring-2 ring-offset-2'
@@ -318,21 +279,25 @@ export default async function PricingPage() {
                 >
                   {tier.highlighted && (
                     <span className="bg-primary-100 text-primary-700 mb-4 inline-block rounded-full px-3 py-1 text-xs font-semibold">
-                      Most Popular
+                      {t('mostPopular')}
                     </span>
                   )}
-                  <h2 className="text-2xl font-bold text-gray-900">{tier.name}</h2>
-                  <p className="mt-2 text-sm text-gray-600">{tier.description}</p>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {t(`tiers.${tier.key}.name`)}
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-600">{t(`tiers.${tier.key}.description`)}</p>
                   <div className="mt-6">
-                    <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
-                    <span className="text-gray-600">/{tier.priceDetail}</span>
+                    <span className="text-4xl font-bold text-gray-900">{usd(tier.price)}</span>
+                    <span className="text-gray-600">{t(`period.${tier.period}`)}</span>
                   </div>
 
                   <ul className="mt-8 space-y-4">
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-3">
                         <Check className="text-accent-600 h-5 w-5 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="text-gray-700">
+                          {t(`tiers.${tier.key}.features.${feature}`, { count: caps[tier.key] })}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -341,7 +306,7 @@ export default async function PricingPage() {
                     <div className="mt-8">
                       <UpgradeButton
                         plan={tier.plan}
-                        label={tier.cta}
+                        label={t(`tiers.${tier.key}.cta`)}
                         className={`block w-full rounded-lg px-4 py-3 text-center font-semibold transition-colors ${
                           tier.highlighted
                             ? 'bg-primary-600 hover:bg-primary-700 text-white'
@@ -358,7 +323,7 @@ export default async function PricingPage() {
                           : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      {tier.cta}
+                      {t(`tiers.${tier.key}.cta`)}
                     </Link>
                   )}
                 </div>
@@ -369,18 +334,14 @@ export default async function PricingPage() {
 
         <section className="border-y border-blue-100 bg-blue-50 py-12">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <p className="text-primary-700 text-sm font-semibold">Included with Pro and Team</p>
-            <h2 className="mt-3 text-2xl font-bold text-gray-900">AI call analysis</h2>
-            <p className="mt-4 leading-relaxed text-gray-600">
-              Turn it on before a call and get a feedback report afterwards: a score, talk time,
-              pace, filler words, what worked, what to practice, and for team syncs the decisions
-              and action items.
-            </p>
+            <p className="text-primary-700 text-sm font-semibold">{t('callAnalysis.eyebrow')}</p>
+            <h2 className="mt-3 text-2xl font-bold text-gray-900">{t('callAnalysis.title')}</h2>
+            <p className="mt-4 leading-relaxed text-gray-600">{t('callAnalysis.description')}</p>
             <Link
               href="/features/call-analysis"
               className="text-primary-600 mt-5 inline-block font-semibold hover:underline"
             >
-              See how call analysis works →
+              {t('callAnalysis.cta')}
             </Link>
           </div>
         </section>
@@ -388,17 +349,15 @@ export default async function PricingPage() {
         {/* Cost Comparison Table */}
         <section className="bg-gray-50 py-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-3xl font-bold text-gray-900">Real Cost Comparison</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
-              Compare our pricing to typical Zoom Webinars and Microsoft Teams costs
-            </p>
+            <h2 className="text-center text-3xl font-bold text-gray-900">{t('cost.title')}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">{t('cost.subtitle')}</p>
 
             <div className="mt-10 overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b-2 border-gray-200">
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      Plan
+                      {t('cost.plan')}
                     </th>
                     <th className="text-primary-600 px-4 py-3 text-left text-sm font-semibold">
                       PairUX
@@ -412,32 +371,34 @@ export default async function PricingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonData.map((row, i) => (
-                    <tr key={i} className="border-b border-gray-100">
-                      <td className="px-4 py-4 text-sm text-gray-700">{row.plan}</td>
-                      <td className="text-primary-600 px-4 py-4 text-sm font-semibold">
-                        {row.pairux}
+                  {comparisonData.map((row) => (
+                    <tr key={row.key} className="border-b border-gray-100">
+                      <td className="px-4 py-4 text-sm text-gray-700">
+                        {t(`cost.rows.${row.key}`)}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-500">{row.zoom}</td>
-                      <td className="px-4 py-4 text-sm text-gray-500">{row.teams}</td>
+                      <td className="text-primary-600 px-4 py-4 text-sm font-semibold">
+                        {priceCell(row.pairux)}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{priceCell(row.zoom)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{priceCell(row.teams)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <p className="mt-6 text-center text-sm text-gray-500">
-              * PairUX charges per team, not per user. No seat-based licensing.
-            </p>
+            <p className="mt-6 text-center text-sm text-gray-500">{t('cost.footnote')}</p>
           </div>
         </section>
 
         {/* Feature Comparison */}
         <section className="py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-3xl font-bold text-gray-900">Feature Comparison</h2>
+            <h2 className="text-center text-3xl font-bold text-gray-900">
+              {t('comparison.title')}
+            </h2>
             <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
-              See how PairUX stacks up against Zoom, Teams, Webex, Google Meet, and Jitsi
+              {t('comparison.subtitle')}
             </p>
 
             <div className="mt-10 overflow-x-auto">
@@ -445,7 +406,7 @@ export default async function PricingPage() {
                 <thead>
                   <tr className="border-b-2 border-gray-200">
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      Feature
+                      {t('comparison.feature')}
                     </th>
                     <th className="text-primary-600 px-4 py-3 text-center text-sm font-semibold">
                       PairUX
@@ -468,9 +429,11 @@ export default async function PricingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {competitorComparison.map((row, i) => (
-                    <tr key={i} className="border-b border-gray-100">
-                      <td className="px-4 py-3 text-sm text-gray-700">{row.feature}</td>
+                  {competitorComparison.map((row) => (
+                    <tr key={row.feature} className="border-b border-gray-100">
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {t(`comparison.rows.${row.feature}`)}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         {row.pairux ? (
                           <Check className="text-accent-600 mx-auto h-5 w-5" />
@@ -525,20 +488,24 @@ export default async function PricingPage() {
         <section className="bg-gray-50 py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <h2 className="text-center text-3xl font-bold text-gray-900">
-              Why PairUX is Different
+              {t('advantages.title')}
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600">
-              Enterprise tools can&apos;t copy this without breaking their pricing models
+              {t('advantages.subtitle')}
             </p>
 
             <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {advantages.map((advantage) => (
-                <div key={advantage.title} className="rounded-xl bg-white p-6 shadow-sm">
+                <div key={advantage.key} className="rounded-xl bg-white p-6 shadow-sm">
                   <div className="bg-primary-100 flex h-12 w-12 items-center justify-center rounded-lg">
                     <advantage.icon className="text-primary-600 h-6 w-6" />
                   </div>
-                  <h3 className="mt-4 font-semibold text-gray-900">{advantage.title}</h3>
-                  <p className="mt-2 text-sm text-gray-600">{advantage.description}</p>
+                  <h3 className="mt-4 font-semibold text-gray-900">
+                    {t(`advantages.items.${advantage.key}.title`)}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    {t(`advantages.items.${advantage.key}.description`)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -548,48 +515,15 @@ export default async function PricingPage() {
         {/* FAQ */}
         <section className="py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-2xl font-bold text-gray-900">
-              Frequently Asked Questions
-            </h2>
+            <h2 className="text-center text-2xl font-bold text-gray-900">{t('faq.title')}</h2>
 
             <div className="mt-10 space-y-6">
-              <div>
-                <h3 className="font-semibold text-gray-900">How many people can watch my room?</h3>
-                <p className="mt-2 text-gray-600">
-                  Concurrent listeners per room scale with your plan: Free {CAP.free}, Plus{' '}
-                  {CAP.plus}, Pro {CAP.pro}, Team {CAP.team.toLocaleString()}. On top of that,
-                  public lives can be watched for free by unlimited guests with no account.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900">Is the free tier really free?</h3>
-                <p className="mt-2 text-gray-600">
-                  Yes! 2 participants + up to 20 listeners are completely free, forever — and public
-                  lives can be watched for free by unlimited guests with no account. No time limits,
-                  no credit card required. Great for pair programming and small demos.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900">Can I self-host to avoid costs?</h3>
-                <p className="mt-2 text-gray-600">
-                  Absolutely. PairUX is open source under the MIT license. You can run your own SFU
-                  infrastructure if you prefer. Great for enterprises with specific security
-                  requirements.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  Why are you cheaper than Zoom and Teams?
-                </h3>
-                <p className="mt-2 text-gray-600">
-                  We charge per team, not per seat. A 10-person team pays $49/month total with
-                  PairUX, vs $220/month with Zoom or Teams. No enterprise sales teams means lower
-                  overhead for you.
-                </p>
-              </div>
+              {FAQ_KEYS.map((key) => (
+                <div key={key}>
+                  <h3 className="font-semibold text-gray-900">{t(`faq.${key}.question`)}</h3>
+                  <p className="mt-2 text-gray-600">{t(`faq.${key}.answerLong`, faqValues)}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -597,25 +531,22 @@ export default async function PricingPage() {
         {/* CTA */}
         <section className="bg-primary-600 py-16">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-white">
-              Ready to save on video infrastructure?
-            </h2>
+            <h2 className="text-3xl font-bold text-white">{t('cta.title')}</h2>
             <p className="text-primary-100 mx-auto mt-4 max-w-2xl">
-              Start free with P2P sessions, or upgrade to Pro for just $12/month. No per-seat fees
-              ever.
+              {t('cta.subtitle', { price: usd(12) })}
             </p>
             <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
               <Link
                 href="/download"
                 className="text-primary-600 hover:bg-primary-50 rounded-lg bg-white px-8 py-3 font-semibold transition-colors"
               >
-                Download Free
+                {t('cta.download')}
               </Link>
               <Link
                 href="/signup"
                 className="hover:bg-primary-700 rounded-lg border-2 border-white px-8 py-3 font-semibold text-white transition-colors"
               >
-                Create Account
+                {t('cta.signup')}
               </Link>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { vi, beforeEach, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import * as React from 'react';
+import type * as NextIntl from 'next-intl';
 
 // Make React available globally for JSX
 globalThis.React = React;
@@ -77,6 +78,88 @@ vi.mock('next/navigation', () => ({
   }),
   usePathname: () => '/test',
 }));
+
+// next-intl: components call useTranslations()/useLocale(), which throw without
+// a NextIntlClientProvider. Tests that care about the locale wrap explicitly
+// with `render` from '@/test/intl'; every other render falls back to the real
+// English messages here, so existing assertions on English copy keep passing
+// without each test (including ones for pages owned by other work) having to
+// add a wrapper.
+vi.mock('next-intl', async (importOriginal) => {
+  const actual = await importOriginal<typeof NextIntl>();
+  const { default: en } = await import('../../messages/en.json');
+  const translatorCache = new Map<string, ReturnType<typeof actual.createTranslator>>();
+  const fallbackTranslator = (namespace?: string) => {
+    const key = namespace ?? '';
+    let translator = translatorCache.get(key);
+    if (!translator) {
+      translator = actual.createTranslator({
+        locale: 'en',
+        messages: en,
+        timeZone: 'UTC',
+        ...(namespace ? { namespace: namespace as never } : {}),
+      });
+      translatorCache.set(key, translator);
+    }
+    return translator;
+  };
+  function withFallback<A extends unknown[], R>(
+    hook: (...args: A) => R,
+    fallback: (...args: A) => R
+  ) {
+    return (...args: A): R => {
+      try {
+        return hook(...args);
+      } catch (error) {
+        if (error instanceof Error && /context|provider/i.test(error.message)) {
+          return fallback(...args);
+        }
+        throw error;
+      }
+    };
+  }
+  return {
+    ...actual,
+    useTranslations: withFallback(actual.useTranslations, (namespace?: string) =>
+      fallbackTranslator(namespace)
+    ) as typeof actual.useTranslations,
+    useLocale: withFallback(actual.useLocale, () => 'en') as typeof actual.useLocale,
+    useMessages: withFallback(actual.useMessages, () => en) as typeof actual.useMessages,
+    useTimeZone: withFallback(actual.useTimeZone, () => 'UTC') as typeof actual.useTimeZone,
+    useNow: withFallback(actual.useNow, () => new Date()) as typeof actual.useNow,
+    useFormatter: withFallback(actual.useFormatter, () =>
+      actual.createFormatter({ locale: 'en', timeZone: 'UTC' })
+    ) as typeof actual.useFormatter,
+  };
+});
+
+// next-intl/server only works inside a Next.js request; server components and
+// route handlers under test get English messages instead.
+vi.mock('next-intl/server', async () => {
+  const { createTranslator, createFormatter } = await import('next-intl');
+  const { default: en } = await import('../../messages/en.json');
+  const getTranslations = (arg?: string | { namespace?: string; locale?: string }) => {
+    const namespace = typeof arg === 'string' ? arg : arg?.namespace;
+    return Promise.resolve(
+      createTranslator({
+        locale: 'en',
+        messages: en,
+        timeZone: 'UTC',
+        ...(namespace ? { namespace: namespace as never } : {}),
+      })
+    );
+  };
+  return {
+    getTranslations,
+    getLocale: () => Promise.resolve('en'),
+    getMessages: () => Promise.resolve(en),
+    getTimeZone: () => Promise.resolve('UTC'),
+    getNow: () => Promise.resolve(new Date()),
+    getFormatter: () => Promise.resolve(createFormatter({ locale: 'en', timeZone: 'UTC' })),
+    getRequestConfig: (fn: unknown) => fn,
+    setRequestLocale: () => undefined,
+  };
+});
 
 // Create a mock Headers-like object
 const createMockHeaders = () => {

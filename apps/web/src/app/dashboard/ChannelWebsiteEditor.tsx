@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Check, Globe, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { normalizeWebsiteUrl, WEBSITE_URL_MAX_LENGTH } from '@/lib/channel-website';
 
 interface ChannelWebsiteEditorProps {
@@ -15,6 +16,7 @@ interface ChannelWebsiteEditorProps {
  * PATCHes /api/channels/[id]; an empty field clears the link.
  */
 export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEditorProps) {
+  const t = useTranslations('dashboard.website');
   const [value, setValue] = useState(initialUrl ?? '');
   const [saved, setSaved] = useState(initialUrl ?? '');
   const [saving, setSaving] = useState(false);
@@ -41,7 +43,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
         error?: string;
       };
       if (!res.ok) {
-        setError(body.error ?? 'Could not save the website.');
+        setError(body.error ?? t('saveFailed'));
         return;
       }
       const next = body.data?.website_url ?? normalized.url ?? '';
@@ -49,7 +51,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
       setSaved(next);
       setJustSaved(true);
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('networkError'));
     } finally {
       setSaving(false);
     }
@@ -63,7 +65,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
         htmlFor={`website-${channelId}`}
         className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-gray-700"
       >
-        <Globe className="h-3.5 w-3.5" /> Website (optional)
+        <Globe className="h-3.5 w-3.5" /> {t('label')}
       </label>
       <div className="flex gap-2">
         <input
@@ -83,7 +85,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
             }
           }}
           maxLength={WEBSITE_URL_MAX_LENGTH}
-          placeholder="example.com"
+          placeholder={t('placeholder')}
           aria-invalid={error ? true : undefined}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
         />
@@ -98,7 +100,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
           ) : justSaved && !dirty ? (
             <Check className="h-3.5 w-3.5 text-green-600" />
           ) : null}
-          {justSaved && !dirty ? 'Saved' : 'Save'}
+          {justSaved && !dirty ? t('saved') : t('save')}
         </button>
       </div>
       {error ? (
@@ -106,9 +108,7 @@ export function ChannelWebsiteEditor({ channelId, initialUrl }: ChannelWebsiteEd
           {error}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-gray-500">
-          Shown on your channel page as an identity link. Leave empty to remove it.
-        </p>
+        <p className="mt-1 text-xs text-gray-500">{t('hint')}</p>
       )}
     </div>
   );

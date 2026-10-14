@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { Radio, Circle, Globe, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -6,11 +7,14 @@ import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { websiteLabel } from '@/lib/channel-website';
 
-export const metadata: Metadata = {
-  title: 'Channels',
-  description: 'Browse creator channels on PairUX.',
-  alternates: { canonical: 'https://pairux.com/channels' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('channels.metadata');
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: 'https://pairux.com/channels' },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +44,7 @@ async function getChannels(): Promise<ChannelDir[]> {
 }
 
 export default async function ChannelsPage() {
-  const channels = await getChannels();
+  const [channels, t] = await Promise.all([getChannels(), getTranslations('channels')]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -54,15 +58,16 @@ export default async function ChannelsPage() {
                 <Radio className="h-6 w-6 text-red-600" />
               </div>
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Channels
+                {t('title')}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Creator channels on PairUX. Subscribe to get notified when they go live — or see
-                who&apos;s{' '}
-                <Link href="/live" className="text-primary-600 font-medium hover:underline">
-                  live right now
-                </Link>
-                .
+                {t.rich('intro', {
+                  link: (chunks) => (
+                    <Link href="/live" className="text-primary-600 font-medium hover:underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </div>
           </div>
@@ -73,13 +78,15 @@ export default async function ChannelsPage() {
             {channels.length === 0 ? (
               <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-10 text-center">
                 <Radio className="mx-auto h-10 w-10 text-gray-300" />
-                <h2 className="mt-4 text-lg font-semibold text-gray-900">No channels yet</h2>
+                <h2 className="mt-4 text-lg font-semibold text-gray-900">{t('empty.title')}</h2>
                 <p className="mt-2 text-sm text-gray-500">
-                  Create one from your{' '}
-                  <Link href="/dashboard" className="text-primary-600 hover:underline">
-                    dashboard
-                  </Link>
-                  .
+                  {t.rich('empty.body', {
+                    link: (chunks) => (
+                      <Link href="/dashboard" className="text-primary-600 hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </div>
             ) : (
@@ -115,23 +122,28 @@ export default async function ChannelsPage() {
                             {c.name}
                           </p>
                           {c.is_live && (
-                            <span className="inline-flex items-center gap-1 font-medium text-red-600">
+                            <span
+                              className="inline-flex items-center gap-1 font-medium text-red-600"
+                              title={t('liveNow')}
+                            >
                               <Circle className="h-2 w-2 animate-pulse fill-current" />
+                              <span className="sr-only">{t('liveNow')}</span>
                             </span>
                           )}
                         </div>
                         <p className="text-primary-600 line-clamp-1 text-xs">@{c.handle}</p>
                         <p className="text-xs text-gray-500">
-                          {c.subscriber_count}{' '}
-                          {c.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
+                          {t('subscribers', { count: c.subscriber_count })}
                           {' · '}
                           {c.live_count > 0 ? (
-                            <span className="font-medium text-red-600">{c.live_count} live</span>
+                            <span className="font-medium text-red-600">
+                              {t('liveCount', { count: c.live_count })}
+                            </span>
                           ) : (
-                            '0 live'
+                            t('liveCount', { count: 0 })
                           )}
                           {' · '}
-                          {c.recording_count} {c.recording_count === 1 ? 'recording' : 'recordings'}
+                          {t('recordings', { count: c.recording_count })}
                         </p>
                         {/* The whole card is a link to /@handle, so the website is a
                             label here (no nested <a>); the channel page links it. */}

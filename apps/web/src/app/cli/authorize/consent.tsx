@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Bot, Loader2, Terminal } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { isLoopbackRedirect } from '@/lib/loopback';
 
 interface Props {
@@ -19,6 +20,7 @@ export function CliAuthorizeConsent({
   redirectUri,
   state,
 }: Props) {
+  const t = useTranslations('cliAuthorize');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState<'allowed' | 'denied' | null>(null);
@@ -40,13 +42,13 @@ export function CliAuthorizeConsent({
       });
       const body = (await res.json()) as { data?: { redirect: string }; error?: string };
       if (!res.ok || !body.data) {
-        setError(body.error ?? 'Could not authorize the CLI');
+        setError(body.error ?? t('errors.authorizeFailed'));
         return;
       }
       setDone('allowed');
       window.location.href = body.data.redirect;
     } catch {
-      setError('Could not reach PairUX. Check your connection and try again.');
+      setError(t('errors.network'));
     } finally {
       setBusy(false);
     }
@@ -70,9 +72,9 @@ export function CliAuthorizeConsent({
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
         <h1 className="text-xl font-semibold text-gray-900">
-          {done === 'allowed' ? 'You can return to your terminal' : 'Sign-in cancelled'}
+          {done === 'allowed' ? t('allowedTitle') : t('deniedTitle')}
         </h1>
-        <p className="mt-2 text-sm text-gray-600">You can close this tab.</p>
+        <p className="mt-2 text-sm text-gray-600">{t('closeTab')}</p>
       </div>
     );
   }
@@ -81,22 +83,25 @@ export function CliAuthorizeConsent({
     <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
       <div className="flex items-center gap-3">
         <Terminal className="text-primary-600 h-8 w-8" aria-hidden="true" />
-        <h1 className="text-xl font-semibold text-gray-900">Authorize {clientName}?</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('title', { clientName })}</h1>
       </div>
       <p className="mt-4 text-gray-600">
-        The PairUX command-line tool on this computer is asking to act as{' '}
-        <strong className="text-gray-900">{email}</strong>.
+        {t.rich('intro', {
+          email,
+          strong: (chunks) => <strong className="text-gray-900">{chunks}</strong>,
+        })}
       </p>
       <ul className="mt-4 space-y-2 text-sm text-gray-600">
         <li className="flex gap-2">
           <Bot className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
-          Agents you start with it join sessions labelled as your agent, so hosts know whose they
-          are.
+          {t('agentsNote')}
         </li>
-        <li>It cannot see your screen, take remote control, or change your account.</li>
+        <li>{t('limitsNote')}</li>
         <li>
-          Signing out with <code className="rounded bg-gray-100 px-1">pairux logout</code> revokes
-          it.
+          {t.rich('revokeNote', {
+            command: 'pairux logout',
+            code: (chunks) => <code className="rounded bg-gray-100 px-1">{chunks}</code>,
+          })}
         </li>
       </ul>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -108,7 +113,7 @@ export function CliAuthorizeConsent({
           className="bg-primary-600 hover:bg-primary-700 inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold text-white disabled:opacity-60"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-          Allow
+          {t('allow')}
         </button>
         <button
           type="button"
@@ -116,7 +121,7 @@ export function CliAuthorizeConsent({
           disabled={busy}
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50"
         >
-          Deny
+          {t('deny')}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -8,10 +9,13 @@ import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import type { DmMessage, DmPartner } from '@pairux/shared-types';
 import { Thread } from './Thread';
 
-export const metadata: Metadata = {
-  title: 'Conversation',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('messages');
+  return {
+    title: t('conversationTitle'),
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +66,7 @@ export default async function ConversationPage({ params }: PageProps) {
     redirect('/messages');
   }
 
-  const messages = await getConversation(addr);
+  const [messages, t] = await Promise.all([getConversation(addr), getTranslations('messages')]);
   const name = partner.display_name;
   // Link the header to the channel page when the partner is a creator, else
   // their profile; some accounts have neither (no link).
@@ -94,7 +98,7 @@ export default async function ConversationPage({ params }: PageProps) {
               className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
-              All messages
+              {t('allMessages')}
             </Link>
 
             <div className="mb-4 flex items-center gap-3">

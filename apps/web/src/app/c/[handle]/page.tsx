@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Radio, Eye, Circle, PlayCircle, Rss, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -73,10 +74,10 @@ const formatDuration = clockDuration;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
-  const ch = await getChannel(handle);
-  if (!ch) return { title: 'Channel not found' };
+  const [ch, t] = await Promise.all([getChannel(handle), getTranslations('channel')]);
+  if (!ch) return { title: t('notFoundTitle') };
   const title = `${ch.name} (@${ch.handle})`;
-  const description = ch.description ?? `${ch.name}'s channel on PairUX.`;
+  const description = ch.description ?? t('defaultDescription', { name: ch.name });
   const url = `https://pairux.com/@${ch.handle}`;
   // og:image — prefer the 6:1 banner, fall back to the square avatar.
   const image = ch.banner_url
@@ -110,11 +111,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function streamWhen(s: ChannelStream): string {
-  if (s.is_live) return 'Live now';
+function streamWhen(s: ChannelStream, locale: string, liveNow: string): string {
+  if (s.is_live) return liveNow;
   const iso = s.published_at ?? s.created_at;
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -129,10 +130,12 @@ export default async function ChannelPage({ params }: PageProps) {
   const channel = await getChannel(handle);
   if (!channel) notFound();
 
-  const [streams, recordings, viewer] = await Promise.all([
+  const [streams, recordings, viewer, t, locale] = await Promise.all([
     getStreams(handle),
     getRecordings(handle),
     getViewer(),
+    getTranslations('channel'),
+    getLocale(),
   ]);
 
   return (
@@ -176,13 +179,13 @@ export default async function ChannelPage({ params }: PageProps) {
                   {channel.is_live && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
                       <Circle className="h-2 w-2 animate-pulse fill-current" />
-                      Live
+                      {t('live')}
                     </span>
                   )}
                   {channel.is_live && (
                     <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                       <Eye className="h-3.5 w-3.5" />
-                      {channel.live_viewers} watching
+                      {t('watching', { count: channel.live_viewers })}
                     </span>
                   )}
                 </div>
@@ -204,7 +207,7 @@ export default async function ChannelPage({ params }: PageProps) {
                   href="/dashboard"
                   className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                 >
-                  Manage channel
+                  {t('manage')}
                 </Link>
               ) : (
                 <div className="flex items-center gap-2">
@@ -229,11 +232,11 @@ export default async function ChannelPage({ params }: PageProps) {
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Radio className="h-5 w-5 text-red-500" />
-              Streams
+              {t('streams')}
             </h2>
             {streams.length === 0 ? (
               <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-500">
-                No streams yet.
+                {t('noStreams')}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -258,17 +261,17 @@ export default async function ChannelPage({ params }: PageProps) {
                         )}
                       </div>
                       <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900">
-                        {s.subject ?? 'Untitled stream'}
+                        {s.subject ?? t('untitledStream')}
                       </h3>
                     </Link>
                     <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
                       {s.is_live ? (
                         <span className="inline-flex items-center gap-1 font-medium text-red-600">
                           <Circle className="h-2 w-2 animate-pulse fill-current" />
-                          Live
+                          {t('live')}
                         </span>
                       ) : (
-                        <span>{streamWhen(s)}</span>
+                        <span>{streamWhen(s, locale, t('liveNow'))}</span>
                       )}
                       {s.is_live && (
                         <span className="inline-flex items-center gap-1">
@@ -290,12 +293,12 @@ export default async function ChannelPage({ params }: PageProps) {
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                   <PlayCircle className="h-5 w-5 text-gray-400" />
-                  Recordings
+                  {t('recordings')}
                 </h2>
                 <a
                   href={`/c/${encodeURIComponent(channel.handle)}/rss.xml`}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                  title="Subscribe in a podcast app or feed reader"
+                  title={t('rssTitle')}
                 >
                   <Rss className="h-3.5 w-3.5 text-orange-500" />
                   RSS
@@ -333,10 +336,10 @@ export default async function ChannelPage({ params }: PageProps) {
                         )}
                       </div>
                       <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900">
-                        {r.subject ?? 'Recording'}
+                        {r.subject ?? t('recording')}
                       </h3>
                       <span className="mt-2 text-xs text-gray-500">
-                        {new Date(r.created_at).toLocaleDateString(undefined, {
+                        {new Date(r.created_at).toLocaleDateString(locale, {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',

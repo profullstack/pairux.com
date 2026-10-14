@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Share2, Copy, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ShareButtonsProps {
   handle: string;
@@ -10,9 +11,10 @@ interface ShareButtonsProps {
 
 /** Share a channel — native share (mobile), the usual socials, and copy link. */
 export function ShareButtons({ handle, name }: ShareButtonsProps) {
+  const tr = useTranslations('channel.share');
   const [copied, setCopied] = useState(false);
   const url = `https://pairux.com/@${handle}`;
-  const text = `Check out ${name} on PairUX`;
+  const text = tr('text', { name });
   const u = encodeURIComponent(url);
   const t = encodeURIComponent(text);
 
@@ -53,10 +55,10 @@ export function ShareButtons({ handle, name }: ShareButtonsProps) {
           type="button"
           onClick={() => void nativeShare()}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          title="Share"
+          title={tr('share')}
         >
           <Share2 className="h-4 w-4" />
-          Share
+          {tr('share')}
         </button>
       )}
       {socials.map((s) => (
@@ -66,7 +68,7 @@ export function ShareButtons({ handle, name }: ShareButtonsProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          title={`Share on ${s.label}`}
+          title={tr('shareOn', { network: s.label })}
         >
           {s.label}
         </a>
@@ -75,10 +77,10 @@ export function ShareButtons({ handle, name }: ShareButtonsProps) {
         type="button"
         onClick={() => void copy()}
         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        title="Copy link"
+        title={tr('copyLink')}
       >
         {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-        {copied ? 'Copied' : 'Copy'}
+        {copied ? tr('copied') : tr('copy')}
       </button>
     </div>
   );

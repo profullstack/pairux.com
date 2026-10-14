@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 
 /**
@@ -11,6 +12,7 @@ export function RecordingNotice({
 }: {
   settings: { analysis?: CallAnalysisSettings | undefined } | null | undefined;
 }) {
+  const t = useTranslations('session.recordingNotice');
   const analysis = settings?.analysis;
   if (analysis?.enabled !== true) return null;
   return (
@@ -20,9 +22,7 @@ export function RecordingNotice({
       className="flex items-center justify-center gap-2 bg-violet-900/70 px-4 py-1.5 text-center text-xs text-violet-100"
     >
       <Sparkles className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-      This call is being recorded for AI analysis by the host
-      {analysis.keepRecording ? ', who will keep the recording' : ''}. Leave the call if you do not
-      want to take part.
+      {analysis.keepRecording ? t('recordedKept') : t('recorded')}
     </div>
   );
 }

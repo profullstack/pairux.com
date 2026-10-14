@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Radio, Eye, Circle, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -94,11 +95,11 @@ async function getUserChannels(username: string): Promise<UserChannel[]> {
   }
 }
 
-function whenLabel(live: CreatorLive): string {
-  if (live.is_live) return 'Live now';
+function whenLabel(live: CreatorLive, locale: string, liveNow: string): string {
+  if (live.is_live) return liveNow;
   const iso = live.published_at ?? live.created_at;
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -110,14 +111,14 @@ function whenLabel(live: CreatorLive): string {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const profile = await getProfile(username);
+  const [profile, t] = await Promise.all([getProfile(username), getTranslations('profile')]);
   if (!profile) {
-    return { title: 'Profile not found' };
+    return { title: t('notFoundTitle') };
   }
   const name = profile.display_name ?? `@${profile.username ?? username}`;
   return {
     title: `${name} (@${profile.username ?? username})`,
-    description: profile.bio ?? `${name}'s public rooms on PairUX.`,
+    description: profile.bio ?? t('defaultDescription', { name }),
     alternates: { canonical: `https://pairux.com/u/${profile.username ?? username}` },
   };
 }
@@ -130,11 +131,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const [lives, followState, channels, viewer] = await Promise.all([
+  const [lives, followState, channels, viewer, t, locale] = await Promise.all([
     getLives(username),
     getFollowState(profile.id),
     getUserChannels(username),
     getViewer(),
+    getTranslations('profile'),
+    getLocale(),
   ]);
 
   const handle = profile.username ?? username;
@@ -183,7 +186,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
                 <Radio className="h-5 w-5 text-red-500" />
-                Channels
+                {t('channels')}
               </h2>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {channels.map((c) => (
@@ -212,10 +215,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
                       {c.is_live && (
                         <span className="inline-flex items-center gap-1 font-medium text-red-600">
                           <Circle className="h-2 w-2 animate-pulse fill-current" />
-                          Live
+                          {t('live')}
                         </span>
                       )}
-                      <span>{c.subscriber_count} subs</span>
+                      <span>{t('subscribers', { count: c.subscriber_count })}</span>
                     </div>
                   </Link>
                 ))}
@@ -228,12 +231,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Radio className="h-5 w-5 text-red-500" />
-              Lives
+              {t('lives')}
             </h2>
 
             {lives.length === 0 ? (
               <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-500">
-                @{handle} hasn&apos;t gone live yet.
+                {t('noLives', { handle: `@${handle}` })}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -256,11 +259,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
                       {live.is_live ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
                           <Circle className="h-2 w-2 animate-pulse fill-current" />
-                          Live now
+                          {t('liveNow')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                          {whenLabel(live)}
+                          {whenLabel(live, locale, t('liveNow'))}
                         </span>
                       )}
                       {live.is_live && (
@@ -274,7 +277,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                       href={`/l/${live.join_code}`}
                       className="text-base font-semibold text-gray-900 hover:underline"
                     >
-                      {live.subject ?? 'Untitled room'}
+                      {live.subject ?? t('untitledRoom')}
                     </Link>
                     {live.description && (
                       <div
@@ -289,7 +292,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                         href={`/join/${live.join_code}`}
                         className="bg-primary-600 hover:bg-primary-700 mt-5 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
                       >
-                        Join room
+                        {t('joinRoom')}
                       </Link>
                     )}
                   </div>

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { render as renderIntl, messagesFor } from '@/test/intl';
 import { SettingsContent } from './settings-content';
 
 // Mock next/link
@@ -44,6 +45,31 @@ describe('SettingsPage', () => {
       expect(screen.getByText('Session Defaults')).toBeInTheDocument();
       expect(screen.getByText('Appearance')).toBeInTheDocument();
       expect(screen.getByText('About')).toBeInTheDocument();
+    });
+
+    it('should render a language section with the language switcher', () => {
+      render(<SettingsContent user={null} />);
+
+      expect(screen.getByRole('heading', { name: 'Language' })).toBeInTheDocument();
+      const switcher = screen.getByLabelText<HTMLSelectElement>('Language');
+      expect(switcher).toHaveAttribute('id', 'language-switcher-settings');
+      expect(switcher.value).toBe('en');
+      expect(screen.getByRole('option', { name: 'Español' })).toBeInTheDocument();
+    });
+
+    it('should render in the active locale', () => {
+      renderIntl(<SettingsContent user={null} />, {
+        locale: 'en',
+        messages: {
+          ...messagesFor('en'),
+          settings: {
+            ...(messagesFor('en').settings as Record<string, unknown>),
+            title: 'Einstellungen',
+          },
+        } as never,
+      });
+
+      expect(screen.getByRole('heading', { level: 1, name: 'Einstellungen' })).toBeInTheDocument();
     });
 
     it('should render header and footer', () => {

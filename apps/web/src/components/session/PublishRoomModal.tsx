@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import Link from 'next/link';
 import { X, Globe, Loader2, Check, Copy, ExternalLink, AtSign } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   sessionId: string;
@@ -32,6 +33,8 @@ export function PublishRoomModal({
   onClose,
   onSaved,
 }: Props) {
+  const t = useTranslations('session.publish');
+  const tc = useTranslations('common');
   const [subject, setSubject] = useState(initialSubject ?? '');
   const [description, setDescription] = useState(initialDescription ?? '');
   const [isPublic, setIsPublic] = useState(initialIsPublic);
@@ -84,7 +87,7 @@ export function PublishRoomModal({
         });
         const json = (await res.json()) as ApiEnvelope<unknown>;
         if (!res.ok) {
-          setError(json.error ?? 'Failed to publish room');
+          setError(json.error ?? t('errors.publishFailed'));
           return;
         }
         setIsPublic(true);
@@ -94,12 +97,12 @@ export function PublishRoomModal({
           description: description.trim() || null,
         });
       } catch {
-        setError('Network error. Please try again.');
+        setError(t('errors.network'));
       } finally {
         setIsSaving(false);
       }
     },
-    [sessionId, subject, description, onSaved]
+    [sessionId, subject, description, onSaved, t]
   );
 
   const handleUnpublish = useCallback(async () => {
@@ -113,7 +116,7 @@ export function PublishRoomModal({
       });
       const json = (await res.json()) as ApiEnvelope<unknown>;
       if (!res.ok) {
-        setError(json.error ?? 'Failed to unpublish room');
+        setError(json.error ?? t('errors.unpublishFailed'));
         return;
       }
       setIsPublic(false);
@@ -123,11 +126,11 @@ export function PublishRoomModal({
         description: description.trim() || null,
       });
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('errors.network'));
     } finally {
       setIsSaving(false);
     }
-  }, [sessionId, subject, description, onSaved]);
+  }, [sessionId, subject, description, onSaved, t]);
 
   const handleSaveUsername = useCallback(async () => {
     setUsernameError(null);
@@ -140,16 +143,16 @@ export function PublishRoomModal({
       });
       const json = (await res.json()) as ApiEnvelope<{ username: string }>;
       if (!res.ok) {
-        setUsernameError(json.error ?? 'Failed to save username');
+        setUsernameError(json.error ?? t('errors.usernameFailed'));
         return;
       }
       setUsername(json.data?.username ?? usernameInput.trim());
     } catch {
-      setUsernameError('Network error. Please try again.');
+      setUsernameError(t('errors.network'));
     } finally {
       setSavingUsername(false);
     }
-  }, [usernameInput]);
+  }, [usernameInput, t]);
 
   const copyProfileLink = useCallback(async () => {
     if (!profileUrl) return;
@@ -172,13 +175,13 @@ export function PublishRoomModal({
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-indigo-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {isPublic ? 'Room is public' : 'Publish to /live'}
+              {isPublic ? t('titlePublic') : t('titlePublish')}
             </h2>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close"
+            aria-label={tc('close')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -195,14 +198,14 @@ export function PublishRoomModal({
             /* ---- Publish form ---- */
             <form onSubmit={(e) => void handlePublish(e)} className="space-y-5">
               <p className="text-sm text-gray-600">
-                Listing your room on{' '}
-                <span className="font-medium text-gray-900">pairux.com/live</span> lets anyone
-                discover and join it — no invite link required.
+                {t.rich('intro', {
+                  strong: (chunks) => <span className="font-medium text-gray-900">{chunks}</span>,
+                })}
               </p>
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Subject <span className="text-red-500">*</span>
+                  {t('subject')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -210,7 +213,7 @@ export function PublishRoomModal({
                   onChange={(e) => {
                     setSubject(e.target.value);
                   }}
-                  placeholder="e.g. Building a Next.js app live"
+                  placeholder={t('subjectPlaceholder')}
                   required
                   minLength={3}
                   maxLength={120}
@@ -220,14 +223,14 @@ export function PublishRoomModal({
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Description <span className="text-gray-400">(optional)</span>
+                  {t('description')} <span className="text-gray-400">{t('optional')}</span>
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => {
                     setDescription(e.target.value);
                   }}
-                  placeholder="What's happening in this room?"
+                  placeholder={t('descriptionPlaceholder')}
                   rows={3}
                   maxLength={500}
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
@@ -240,7 +243,7 @@ export function PublishRoomModal({
                   onClick={onClose}
                   className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
                 >
-                  Cancel
+                  {tc('cancel')}
                 </button>
                 <button
                   type="submit"
@@ -252,7 +255,7 @@ export function PublishRoomModal({
                   ) : (
                     <Globe className="h-4 w-4" />
                   )}
-                  Publish
+                  {t('publish')}
                 </button>
               </div>
             </form>
@@ -262,20 +265,20 @@ export function PublishRoomModal({
               <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
                 <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                 <div className="text-sm text-green-800">
-                  Your room is live in the public directory.
+                  {t('liveNotice')}
                   <Link
                     href="/live"
                     target="_blank"
                     className="ml-1 inline-flex items-center gap-1 font-medium underline hover:text-green-900"
                   >
-                    View /live <ExternalLink className="h-3 w-3" />
+                    {t('viewLive')} <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
 
               {/* Profile link / username claim */}
               <div>
-                <p className="mb-1.5 text-sm font-medium text-gray-700">Your profile link</p>
+                <p className="mb-1.5 text-sm font-medium text-gray-700">{t('profileLink')}</p>
                 {profileUrl ? (
                   <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
                     <Link
@@ -292,11 +295,11 @@ export function PublishRoomModal({
                     >
                       {copied ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-green-600" /> Copied
+                          <Check className="h-3.5 w-3.5 text-green-600" /> {t('copied')}
                         </>
                       ) : (
                         <>
-                          <Copy className="h-3.5 w-3.5" /> Copy
+                          <Copy className="h-3.5 w-3.5" /> {tc('copy')}
                         </>
                       )}
                     </button>
@@ -304,8 +307,10 @@ export function PublishRoomModal({
                 ) : (
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                     <p className="mb-2 text-xs text-gray-500">
-                      Claim a username to get a shareable profile page at{' '}
-                      <span className="font-mono">pairux.com/u/&lt;username&gt;</span>.
+                      {t.rich('claimPrompt', {
+                        path: 'pairux.com/u/<username>',
+                        code: (chunks) => <span className="font-mono">{chunks}</span>,
+                      })}
                     </p>
                     <div className="flex items-center gap-2">
                       <div className="flex flex-1 items-center rounded-lg border border-gray-300 bg-white px-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
@@ -316,7 +321,7 @@ export function PublishRoomModal({
                           onChange={(e) => {
                             setUsernameInput(e.target.value);
                           }}
-                          placeholder="username"
+                          placeholder={t('usernamePlaceholder')}
                           maxLength={30}
                           className="w-full bg-transparent px-1.5 py-2 text-sm focus:outline-none"
                         />
@@ -328,7 +333,7 @@ export function PublishRoomModal({
                         className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                       >
                         {savingUsername && <Loader2 className="h-4 w-4 animate-spin" />}
-                        Claim
+                        {t('claim')}
                       </button>
                     </div>
                     {usernameError && (
@@ -346,14 +351,14 @@ export function PublishRoomModal({
                   className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Make private
+                  {t('makePrivate')}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
                 >
-                  Done
+                  {t('done')}
                 </button>
               </div>
             </div>

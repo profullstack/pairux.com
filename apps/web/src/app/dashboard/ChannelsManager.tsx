@@ -12,6 +12,7 @@ import {
   ImagePlus,
   Sparkles,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { MyChannel } from '@pairux/shared-types';
 import { WorkspacePicker, useMyOrgs, type Workspace } from '@/components/orgs/WorkspacePicker';
 import { RestreamManager } from './RestreamManager';
@@ -72,6 +73,7 @@ function cropImage(file: Blob, tw: number, th: number): Promise<Blob> {
 }
 
 export function ChannelsManager() {
+  const t = useTranslations('dashboard.channels');
   const [channels, setChannels] = useState<MyChannel[] | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -114,7 +116,7 @@ export function ChannelsManager() {
       const b = (await res.json()) as { data?: { image?: string }; error?: string };
       const image = b.data?.image;
       if (!res.ok || !image) {
-        setError(b.error ?? 'Could not generate a banner. Try again.');
+        setError(b.error ?? t('bannerGenerateFailed'));
         return;
       }
       // Decode → normalize to exactly 1500x250 → upload as the channel banner.
@@ -127,12 +129,12 @@ export function ChannelsManager() {
       });
       if (!up.ok) {
         const u = (await up.json()) as { error?: string };
-        setError(u.error ?? 'Generated the banner but could not save it.');
+        setError(u.error ?? t('bannerSaveFailed'));
         return;
       }
       await load();
     } catch {
-      setError('Banner generation failed. Please try again.');
+      setError(t('bannerFailed'));
     } finally {
       setGenBanner(null);
     }
@@ -159,12 +161,12 @@ export function ChannelsManager() {
       });
       if (!res.ok) {
         const b = (await res.json()) as { error?: string };
-        setError(b.error ?? 'Could not upload the image.');
+        setError(b.error ?? t('uploadFailed'));
         return;
       }
       await load();
     } catch {
-      setError('Could not process that image.');
+      setError(t('processFailed'));
     } finally {
       setUploading(null);
     }
@@ -192,7 +194,7 @@ export function ChannelsManager() {
   const create = async () => {
     setError(null);
     if (!/^[A-Za-z0-9_]{3,30}$/.test(handle.trim())) {
-      setError('Handle must be 3-30 letters, numbers, or underscores.');
+      setError(t('handleInvalid'));
       return;
     }
     setCreating(true);
@@ -210,7 +212,7 @@ export function ChannelsManager() {
       });
       const body = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(body.error ?? 'Could not create channel.');
+        setError(body.error ?? t('createFailed'));
         return;
       }
       setHandle('');
@@ -218,7 +220,7 @@ export function ChannelsManager() {
       setDescription('');
       await load();
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('networkError'));
     } finally {
       setCreating(false);
     }
@@ -239,7 +241,7 @@ export function ChannelsManager() {
   if (channels === null) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading your channels…
+        <Loader2 className="h-4 w-4 animate-spin" /> {t('loading')}
       </div>
     );
   }
@@ -247,12 +249,12 @@ export function ChannelsManager() {
   if (needsAuth) {
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center">
-        <p className="text-gray-600">Sign in to manage your channels.</p>
+        <p className="text-gray-600">{t('signInPrompt')}</p>
         <Link
           href="/login?next=/dashboard"
           className="bg-primary-600 hover:bg-primary-700 mt-4 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white"
         >
-          Sign in
+          {t('signIn')}
         </Link>
       </div>
     );
@@ -268,12 +270,7 @@ export function ChannelsManager() {
         onChange={(e) => void onFile(e)}
       />
       <div className="space-y-4">
-        {channels.length === 0 && (
-          <p className="text-sm text-gray-500">
-            You don&apos;t have a channel yet. Create one below — it&apos;s where your public lives
-            live.
-          </p>
-        )}
+        {channels.length === 0 && <p className="text-sm text-gray-500">{t('empty')}</p>}
         {channels.map((ch) => {
           const show = revealed.has(ch.id);
           return (
@@ -289,7 +286,7 @@ export function ChannelsManager() {
                 }}
                 disabled={uploading === `${ch.id}-banner`}
                 className="group relative block aspect-[6/1] w-full overflow-hidden bg-gray-100"
-                title="Upload channel banner (6:1)"
+                title={t('uploadBanner')}
               >
                 {ch.banner_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -302,7 +299,7 @@ export function ChannelsManager() {
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
                     <>
-                      <ImagePlus className="mr-1 h-4 w-4" /> Change banner
+                      <ImagePlus className="mr-1 h-4 w-4" /> {t('changeBanner')}
                     </>
                   )}
                 </span>
@@ -318,7 +315,7 @@ export function ChannelsManager() {
                     setBannerPrompt((p) => ({ ...p, [ch.id]: v }));
                   }}
                   maxLength={300}
-                  placeholder="Optional: describe the banner you want…"
+                  placeholder={t('bannerPromptPlaceholder')}
                   disabled={genBanner === ch.id}
                   className="focus:ring-primary-500 h-8 flex-1 rounded-md border border-gray-300 bg-white px-2.5 text-xs focus:ring-2 focus:outline-none disabled:opacity-50"
                 />
@@ -327,14 +324,14 @@ export function ChannelsManager() {
                   onClick={() => void onGenerateBanner(ch)}
                   disabled={genBanner === ch.id}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-60"
-                  title="Generate a properly-sized 6:1 banner with AI from the current one"
+                  title={t('generateHint')}
                 >
                   {genBanner === ch.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
                     <Sparkles className="h-3.5 w-3.5" />
                   )}
-                  {genBanner === ch.id ? 'Generating…' : 'Generate with AI'}
+                  {genBanner === ch.id ? t('generating') : t('generate')}
                 </button>
               </div>
 
@@ -348,7 +345,7 @@ export function ChannelsManager() {
                       }}
                       disabled={uploading === `${ch.id}-avatar`}
                       className="relative -mt-10 h-14 w-14 overflow-hidden rounded-full border-2 border-white bg-gray-200"
-                      title="Upload avatar (square)"
+                      title={t('uploadAvatar')}
                     >
                       {ch.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -372,13 +369,14 @@ export function ChannelsManager() {
                           className="mt-0.5 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-800"
                           data-testid="channel-shared-badge"
                         >
-                          {ch.team_name ? `${ch.org_name ?? ''} › ${ch.team_name}` : ch.org_name}
-                          {ch.can_manage === false ? ' · you can go live here' : ''}
+                          {ch.team_name
+                            ? t('teamPath', { org: ch.org_name ?? '', team: ch.team_name })
+                            : ch.org_name}
+                          {ch.can_manage === false ? t('canGoLive') : ''}
                         </p>
                       )}
                       <p className="mt-0.5 text-xs text-gray-500">
-                        {ch.subscriber_count}{' '}
-                        {ch.subscriber_count === 1 ? 'subscriber' : 'subscribers'}
+                        {t('subscribers', { count: ch.subscriber_count })}
                       </p>
                     </div>
                   </div>
@@ -386,7 +384,7 @@ export function ChannelsManager() {
                     href={`/@${ch.handle}`}
                     className="text-primary-600 inline-flex items-center gap-1 text-sm hover:underline"
                   >
-                    View <ExternalLink className="h-3.5 w-3.5" />
+                    {t('view')} <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>
 
@@ -394,10 +392,9 @@ export function ChannelsManager() {
 
                 <div className="mt-4 rounded-lg bg-gray-50 p-3">
                   <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-                    <KeyRound className="h-3.5 w-3.5" /> Stream to this channel (OBS / any RTMP
-                    client)
+                    <KeyRound className="h-3.5 w-3.5" /> {t('streamHeading')}
                   </div>
-                  <label className="text-xs text-gray-500">RTMP URL</label>
+                  <label className="text-xs text-gray-500">{t('rtmpUrl')}</label>
                   <div className="mb-2 flex gap-2">
                     <input
                       readOnly
@@ -406,6 +403,7 @@ export function ChannelsManager() {
                     />
                     <button
                       onClick={() => void copy(`url-${ch.id}`, RTMP_INGEST_URL)}
+                      aria-label={t('copy')}
                       className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
                     >
                       {copied === `url-${ch.id}` ? (
@@ -415,7 +413,7 @@ export function ChannelsManager() {
                       )}
                     </button>
                   </div>
-                  <label className="text-xs text-gray-500">Stream key</label>
+                  <label className="text-xs text-gray-500">{t('streamKey')}</label>
                   <div className="flex gap-2">
                     <input
                       readOnly
@@ -434,10 +432,11 @@ export function ChannelsManager() {
                       }}
                       className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
                     >
-                      {show ? 'Hide' : 'Show'}
+                      {show ? t('hide') : t('show')}
                     </button>
                     <button
                       onClick={() => void copy(`key-${ch.id}`, ch.stream_key)}
+                      aria-label={t('copy')}
                       className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
                     >
                       {copied === `key-${ch.id}` ? (
@@ -460,30 +459,30 @@ export function ChannelsManager() {
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5">
         <h3 className="mb-3 flex items-center gap-2 text-base font-semibold text-gray-900">
-          <Plus className="h-4 w-4" /> New channel
+          <Plus className="h-4 w-4" /> {t('newChannel')}
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700">Handle</label>
+            <label className="mb-1 block text-xs font-medium text-gray-700">{t('handle')}</label>
             <input
               value={handle}
               onChange={(e) => {
                 setHandle(e.target.value);
               }}
               maxLength={30}
-              placeholder="mychannel"
+              placeholder={t('handlePlaceholder')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700">Name</label>
+            <label className="mb-1 block text-xs font-medium text-gray-700">{t('name')}</label>
             <input
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
               }}
               maxLength={80}
-              placeholder="My Channel"
+              placeholder={t('namePlaceholder')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>
@@ -493,11 +492,11 @@ export function ChannelsManager() {
           value={owner}
           onChange={setOwner}
           requireManage
-          label="Belongs to (team members can go live on a team channel)"
+          label={t('belongsTo')}
           className="mt-3 text-xs font-medium"
         />
         <label className="mt-3 mb-1 block text-xs font-medium text-gray-700">
-          Description (optional, markdown)
+          {t('descriptionLabel')}
         </label>
         <textarea
           value={description}
@@ -515,7 +514,7 @@ export function ChannelsManager() {
           className="bg-primary-600 hover:bg-primary-700 mt-3 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Create channel
+          {t('create')}
         </button>
       </div>
     </div>

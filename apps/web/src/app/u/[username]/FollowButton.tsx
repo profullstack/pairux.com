@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FollowButtonProps {
   username: string;
@@ -19,6 +20,7 @@ interface FollowResponse {
  * when the creator goes live. Unauthenticated users are sent to login first.
  */
 export function FollowButton({ username, initialFollowing, initialCount }: FollowButtonProps) {
+  const t = useTranslations('profile.follow');
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [count, setCount] = useState(initialCount);
@@ -65,11 +67,9 @@ export function FollowButton({ username, initialFollowing, initialCount }: Follo
         ) : (
           <Bell className="h-4 w-4" />
         )}
-        {following ? 'Following' : 'Follow'}
+        {following ? t('following') : t('follow')}
       </button>
-      <span className="text-sm text-gray-500">
-        {count} {count === 1 ? 'follower' : 'followers'}
-      </span>
+      <span className="text-sm text-gray-500">{t('count', { count })}</span>
     </div>
   );
 }

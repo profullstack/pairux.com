@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
 import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
 import { CallAnalysisOptions, DEFAULT_ANALYSIS } from '@/components/session/CallAnalysisOptions';
@@ -26,6 +27,7 @@ interface ApiResponse<T> {
 const SETTINGS_KEY = 'pairux-web-settings';
 
 export function StartHost({ header }: { header: ReactNode }) {
+  const t = useTranslations('hostStart');
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
@@ -93,8 +95,8 @@ export function StartHost({ header }: { header: ReactNode }) {
         }
         setError(
           res.status === 403 && analysis.enabled
-            ? 'AI call analysis is on the Pro and Team plans. Turn it off, or upgrade on the pricing page.'
-            : (data.error ?? 'Failed to create session')
+            ? t('analysisRequiresPlan')
+            : (data.error ?? t('createFailed'))
         );
         return;
       }
@@ -104,11 +106,11 @@ export function StartHost({ header }: { header: ReactNode }) {
         openSession(data.data.id);
       }
     } catch {
-      setError('Failed to create session. Please try again.');
+      setError(t('createFailedRetry'));
     } finally {
       setIsCreating(false);
     }
-  }, [router, openSession, maxParticipants, allowGuestControl, analysis, workspace]);
+  }, [router, openSession, maxParticipants, allowGuestControl, analysis, workspace, t]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -123,22 +125,20 @@ export function StartHost({ header }: { header: ReactNode }) {
             <div className="bg-primary-100 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl">
               <Monitor className="text-primary-600 h-8 w-8" />
             </div>
-            <h1 className="mt-4 text-2xl font-bold text-gray-900">Share Your Screen</h1>
-            <p className="mt-2 text-gray-600">
-              Start a view-only screen sharing session from your browser
-            </p>
+            <h1 className="mt-4 text-2xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="mt-2 text-gray-600">{t('subtitle')}</p>
           </div>
 
           {/* Settings Card */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Session Settings</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('sessionSettings')}</h2>
               <Link
                 href="/settings"
                 className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
               >
                 <Settings className="h-4 w-4" />
-                Defaults
+                {t('defaults')}
               </Link>
             </div>
 
@@ -154,7 +154,7 @@ export function StartHost({ header }: { header: ReactNode }) {
             <div className="mt-6">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <Users className="h-4 w-4 text-gray-400" />
-                Maximum Viewers
+                {t('maxViewers')}
               </label>
               <select
                 value={maxParticipants}
@@ -163,9 +163,11 @@ export function StartHost({ header }: { header: ReactNode }) {
                 }}
                 className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
-                <option value={2}>2 viewers</option>
-                <option value={5}>5 viewers</option>
-                <option value={10}>10 viewers</option>
+                {[2, 5, 10].map((count) => (
+                  <option key={count} value={count}>
+                    {t('viewers', { count })}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -173,7 +175,7 @@ export function StartHost({ header }: { header: ReactNode }) {
             <div className="mt-6">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <Shield className="h-4 w-4 text-gray-400" />
-                Remote Control
+                {t('remoteControl')}
               </label>
               <div className="mt-2 flex items-center gap-3">
                 <button
@@ -181,19 +183,21 @@ export function StartHost({ header }: { header: ReactNode }) {
                   disabled
                   className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200 transition-colors`}
                 >
-                  <span className="sr-only">Enable guest control</span>
+                  <span className="sr-only">{t('enableGuestControl')}</span>
                   <span
                     className={`inline-block h-5 w-5 translate-x-0 transform rounded-full bg-white shadow ring-0 transition-transform`}
                   />
                 </button>
-                <span className="text-sm text-gray-500">Not available in web sharing</span>
+                <span className="text-sm text-gray-500">{t('notAvailableWeb')}</span>
               </div>
               <p className="mt-2 text-xs text-gray-400">
-                Remote control requires the{' '}
-                <Link href="/download" className="text-primary-600 hover:underline">
-                  desktop app
-                </Link>
-                .
+                {t.rich('remoteControlRequires', {
+                  link: (chunks) => (
+                    <Link href="/download" className="text-primary-600 hover:underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </div>
 
@@ -202,7 +206,7 @@ export function StartHost({ header }: { header: ReactNode }) {
               orgs={orgs}
               value={workspace}
               onChange={setWorkspace}
-              label="Workspace (a team call's report is shared with the team)"
+              label={t('workspaceLabel')}
               className="mt-6 font-medium"
             />
 
@@ -221,11 +225,11 @@ export function StartHost({ header }: { header: ReactNode }) {
               {isCreating ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Creating session...
+                  {t('creating')}
                 </>
               ) : (
                 <>
-                  Start Sharing
+                  {t('startSharing')}
                   <ArrowRight className="h-5 w-5" />
                 </>
               )}
@@ -235,17 +239,19 @@ export function StartHost({ header }: { header: ReactNode }) {
           {/* Info note */}
           <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
             <p className="text-sm text-yellow-800">
-              <strong>Web sharing is view-only.</strong> Viewers can see your screen but cannot
-              control it. For remote control features, use the desktop app.
+              {t.rich('viewOnlyNote', { strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
           </div>
 
           {/* Link to join instead */}
           <p className="mt-6 text-center text-sm text-gray-500">
-            Want to join a session instead?{' '}
-            <Link href="/join" className="text-primary-600 hover:underline">
-              Enter join code
-            </Link>
+            {t.rich('joinInstead', {
+              link: (chunks) => (
+                <Link href="/join" className="text-primary-600 hover:underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
       </main>

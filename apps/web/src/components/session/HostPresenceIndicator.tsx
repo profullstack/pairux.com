@@ -1,6 +1,7 @@
 'use client';
 
 import { UserX, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface HostPresenceIndicatorProps {
   sessionStatus: string;
@@ -15,6 +16,7 @@ export function HostPresenceIndicator({
   sessionStatus,
   currentHostId,
 }: HostPresenceIndicatorProps) {
+  const t = useTranslations('session.hostPresence');
   // Host is present — no overlay
   if (currentHostId) {
     return null;
@@ -31,12 +33,8 @@ export function HostPresenceIndicator({
           <UserX className="h-12 w-12 text-gray-400" />
         )}
         <div>
-          <p className="text-lg font-medium text-white">
-            {isNew ? "Host hasn't joined yet" : 'Host has left'}
-          </p>
-          <p className="mt-1 text-sm text-gray-400">
-            Chat is still available. You&apos;ll be notified when the host returns.
-          </p>
+          <p className="text-lg font-medium text-white">{isNew ? t('notJoined') : t('left')}</p>
+          <p className="mt-1 text-sm text-gray-400">{t('chatAvailable')}</p>
         </div>
       </div>
     </div>

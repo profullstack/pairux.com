@@ -1,13 +1,21 @@
 import type { Metadata } from 'next';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service',
-  description: 'PairUX terms of service and acceptable use policy.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('legal.terms');
+  return { title: t('title'), description: t('description') };
+}
+
+/** Date this document was last revised (YYYY-MM), shown in the reader's language. */
+const LAST_UPDATED = '2025-01';
 
 export default function TermsPage() {
+  const t = useTranslations('legal');
+  const format = useFormatter();
+  const locale = useLocale();
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -17,10 +25,16 @@ export default function TermsPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Terms of Service
+                {t('terms.title')}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                Last updated: January 2025
+                {t('lastUpdated', {
+                  date: format.dateTime(new Date(`${LAST_UPDATED}-01T00:00:00Z`), {
+                    month: 'long',
+                    year: 'numeric',
+                    timeZone: 'UTC',
+                  }),
+                })}
               </p>
             </div>
           </div>
@@ -28,7 +42,12 @@ export default function TermsPage() {
 
         <section className="py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="prose prose-lg max-w-none">
+            {locale !== 'en' && (
+              <p className="mb-8 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+                {t('englishOnly')}
+              </p>
+            )}
+            <div lang="en" className="prose prose-lg max-w-none">
               <h2>1. Acceptance of Terms</h2>
               <p>
                 By accessing or using PairUX, you agree to be bound by these Terms of Service. If

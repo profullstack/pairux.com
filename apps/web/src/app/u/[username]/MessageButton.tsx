@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle, Send, Loader2, X, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface MessageButtonProps {
   /** DM address: a username, or a user id for accounts without one. */
@@ -18,6 +19,7 @@ interface MessageButtonProps {
  * login first; the profile/channel owner never sees this button.
  */
 export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProps) {
+  const t = useTranslations('profile.message');
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState('');
@@ -53,13 +55,13 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
       }
       const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(json.error ?? 'Failed to send message');
+        setError(json.error ?? t('sendFailed'));
         return;
       }
       setSent(true);
       setBody('');
     } catch {
-      setError('Failed to send message');
+      setError(t('sendFailed'));
     } finally {
       setBusy(false);
     }
@@ -73,7 +75,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
       >
         <MessageCircle className="h-4 w-4" />
-        Message
+        {t('button')}
       </button>
 
       {open && (
@@ -90,13 +92,16 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
             }}
           >
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-900">Message {displayName}</h3>
+              <h3 className="text-base font-semibold text-gray-900">
+                {t('title', { name: displayName })}
+              </h3>
               <button
                 type="button"
                 onClick={() => {
                   setOpen(false);
                 }}
                 className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                aria-label={t('close')}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -107,10 +112,8 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                   <Check className="h-6 w-6 text-green-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">Message sent</p>
-                <p className="text-xs text-gray-500">
-                  {displayName} will be notified by email and push.
-                </p>
+                <p className="text-sm font-medium text-gray-900">{t('sent')}</p>
+                <p className="text-xs text-gray-500">{t('sentNote', { name: displayName })}</p>
                 <div className="mt-3 flex gap-2">
                   <button
                     type="button"
@@ -119,7 +122,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                     }}
                     className="text-primary-600 rounded-lg px-3 py-1.5 text-sm font-medium hover:underline"
                   >
-                    View conversation
+                    {t('viewConversation')}
                   </button>
                   <button
                     type="button"
@@ -128,7 +131,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                     }}
                     className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
-                    Close
+                    {t('close')}
                   </button>
                 </div>
               </div>
@@ -142,7 +145,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                   rows={4}
                   maxLength={4000}
                   autoFocus
-                  placeholder={`Write a private message to ${displayName}…`}
+                  placeholder={t('placeholder', { name: displayName })}
                   className="focus:border-primary-500 focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:ring-1 focus:outline-none"
                 />
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
@@ -154,7 +157,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                     }}
                     className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     type="button"
@@ -167,7 +170,7 @@ export function MessageButton({ addr, displayName, isAuthed }: MessageButtonProp
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
-                    Send
+                    {t('send')}
                   </button>
                 </div>
               </>

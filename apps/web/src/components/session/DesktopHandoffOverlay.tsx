@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Loader2, Monitor, Download } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { HandoffState } from '@/hooks/useDesktopHandoff';
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
  * happening, and keep the browser one click away.
  */
 export function DesktopHandoffOverlay({ state, onContinueInBrowser }: Props) {
+  const t = useTranslations('session.handoff');
   if (state === 'idle') return null;
 
   const launched = state === 'launched';
@@ -33,12 +35,10 @@ export function DesktopHandoffOverlay({ state, onContinueInBrowser }: Props) {
         </div>
 
         <h2 className="mt-4 text-base font-semibold text-gray-900">
-          {launched ? 'Opened in the desktop app' : 'Opening the PairUX desktop app…'}
+          {launched ? t('openedTitle') : t('openingTitle')}
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          {launched
-            ? 'Your meeting is running in the desktop app, where guests can be given control.'
-            : 'The desktop app can share control of your screen. The browser can only show it.'}
+          {launched ? t('openedBody') : t('openingBody')}
         </p>
 
         <button
@@ -46,7 +46,7 @@ export function DesktopHandoffOverlay({ state, onContinueInBrowser }: Props) {
           onClick={onContinueInBrowser}
           className="mt-5 w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
-          Continue in this browser
+          {t('continueInBrowser')}
         </button>
 
         <Link
@@ -54,7 +54,7 @@ export function DesktopHandoffOverlay({ state, onContinueInBrowser }: Props) {
           className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
         >
           <Download className="h-3.5 w-3.5" />
-          Don&apos;t have the app? Download it
+          {t('download')}
         </Link>
       </div>
     </div>

@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { isLoopbackRedirect, isValidChallenge } from '@/lib/cli-auth';
 import { CliAuthorizeConsent } from './consent';
 
-export const metadata: Metadata = {
-  title: 'Authorize the PairUX CLI - PairUX',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('cliAuthorize');
+  return { title: t('metaTitle'), robots: { index: false, follow: false } };
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -40,12 +41,15 @@ export default async function CliAuthorizePage({ searchParams }: PageProps) {
     state.length >= 8;
 
   if (!valid) {
+    const t = await getTranslations('cliAuthorize');
     return (
       <main className="mx-auto max-w-md px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">This sign-in link is not valid</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('invalidTitle')}</h1>
         <p className="mt-4 text-gray-600">
-          Run <code className="rounded bg-gray-100 px-1">pairux login</code> again to get a fresh
-          one.
+          {t.rich('invalidBody', {
+            command: 'pairux login',
+            code: (chunks) => <code className="rounded bg-gray-100 px-1">{chunks}</code>,
+          })}
         </p>
       </main>
     );

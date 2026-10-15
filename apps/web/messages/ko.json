@@ -129,27 +129,7 @@
       "submitting": "계정 만드는 중...",
       "haveAccount": "이미 계정이 있으신가요? <link>로그인</link>",
       "page": {
-        "earlyAdopterTitle": "얼리 어답터 보너스",
-        "earlyAdopterBody": "지금 가입하면 모든 충전에 <bold>20% 추가 크레딧</bold>을 드려요!",
-        "waitlistTitle": "대기자 명단 등록",
-        "recommended": "추천",
-        "waitlistBody": "$100 크레딧을 예치해 자리를 확보하고 우선 이용 권한과 특별 혜택을 받으세요.",
-        "perkCredits": "$100 예치 = <semibold>$120 크레딧</semibold> (20% 보너스)",
-        "perkPriority": "출시 시 우선 이용",
-        "perkPricing": "얼리 어답터 요금 영구 고정",
-        "perkCommunity": "전용 Discord/Slack 채널 이용",
-        "paymentMethods": "결제 수단",
-        "payCard": "카드로 결제",
-        "payCardDetail": "Stripe를 통한 Visa, Mastercard, Amex",
-        "payCrypto": "암호화폐로 결제",
-        "payCryptoDetail": "CoinPayPortal을 통한 BTC, ETH, USDC",
-        "comingSoon": "곧 제공 예정",
-        "refundable": "마음이 바뀌면 출시 전까지 예치금을 전액 환불해 드려요.",
-        "orFree": "또는 무료로 가입",
-        "freeTitle": "무료 계정 만들기",
-        "freeBody": "참가자 2명 + 시청자 5명까지 평생 무료로 시작하세요",
-        "creditsTitle": "크레딧 이용 방식",
-        "creditsBody": "PairUX는 크레딧 기반으로 운영돼요. 크레딧은 시청자가 5명을 넘을 때 SFU 릴레이 서버에 사용됩니다. <medium>720p 기준 시청자 1인·1시간당 $0.08</medium>. 무료 요금제의 P2P 연결은 만료되지 않아요."
+        "freeTitle": "무료 계정 만들기"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "링크 공유",
         "description": "협업자에게 참여 링크를 보내세요. 어떤 브라우저에서든 참여할 수 있어요."
       }
-    },
-    "community": {
-      "title": "실제 협업을 위해 만들었어요",
-      "subtitle": "PairUX는 이미 페어 프로그래밍, 디자인 리뷰, 원격 지원에 쓰이고 있어요. 초기 피드백을 모으고 있으니 사용해 보고 의견을 들려주세요.",
-      "testimonials": {
-        "engineer": {
-          "quote": "드디어 제대로 작동하는 Screenhero 대체제가 나왔네요. 동시 제어 기능은 페어 프로그래밍의 판도를 바꿔요.",
-          "role": "소프트웨어 엔지니어"
-        },
-        "techLead": {
-          "quote": "시청자가 아무것도 설치하지 않고 브라우저에서 바로 참여할 수 있어서 빠른 협업 세션에 딱이에요.",
-          "role": "테크 리드"
-        },
-        "contributor": {
-          "quote": "오픈 소스에 종단 간 암호화, 그리고 그냥 잘 돼요. 개발자 커뮤니티에 꼭 필요했던 도구예요.",
-          "role": "오픈 소스 기여자"
-        }
-      },
-      "feedback": "PairUX를 쓰고 계신가요? <link>GitHub에서 경험을 공유해 주세요</link>"
     },
     "callAnalysis": {
       "eyebrow": "신규 · AI 통화 분석",

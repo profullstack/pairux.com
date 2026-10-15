@@ -704,9 +704,12 @@ export function useWebRTC({
       micStreamRef.current = null;
     }
 
-    // Unsubscribe from channel
+    // Leave AND drop the channel. The browser client is a singleton that hands
+    // back an existing channel for the same topic, so a bare unsubscribe()
+    // would make reconnect() re-bind onto a channel that is still leaving,
+    // whose subscribe() is then a silent no-op.
     if (channelRef.current) {
-      void channelRef.current.unsubscribe();
+      void createClient().removeChannel(channelRef.current);
       channelRef.current = null;
     }
 

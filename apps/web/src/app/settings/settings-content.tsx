@@ -40,7 +40,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
   session: {
     defaultMaxParticipants: 5,
-    openInDesktopApp: true,
+    // Opt-in: see prefersDesktopApp in lib/desktopLaunch.
+    openInDesktopApp: false,
   },
   appearance: {
     theme: 'system',

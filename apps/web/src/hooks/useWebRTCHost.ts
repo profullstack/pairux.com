@@ -886,20 +886,63 @@ export function useWebRTCHost({
     [hostId, createPeerConnection, onViewerJoined, removeViewer, requestViewerNegotiation]
   );
 
+  // The channel's event handlers are bound once per hosting lifecycle, so they
+  // read the latest callbacks through this ref instead of capturing them.
+  const channelHandlersRef = useRef({
+    handleSignalMessage,
+    handleViewerJoin,
+    removeViewer,
+    collectStatsAndAdjust,
+  });
+  channelHandlersRef.current = {
+    handleSignalMessage,
+    handleViewerJoin,
+    removeViewer,
+    collectStatsAndAdjust,
+  };
+  // Bumped by every stopHosting. A startHosting still awaiting the mic when the
+  // host stops (or the component unmounts) sees the bump and backs out.
+  const hostingGenerationRef = useRef(0);
+  // True from the first startHosting call until stopHosting. startHosting is
+  // single-flight: callers (the host page's effect) may call it again on any
+  // re-render before isHosting flips, and must not get a second channel.
+  const hostingStartedRef = useRef(false);
+
   // Start hosting (sets up signaling channel and voice -- screen sharing is optional)
+  //
+  // Idempotent and stable on purpose. The browser Supabase client is a
+  // singleton and `supabase.channel(topic)` hands back the EXISTING channel for
+  // a topic it already has. Calling this twice therefore re-bound presence
+  // handlers onto the live channel, and realtime-js answers a presence binding
+  // added to a joined channel by unsubscribing and re-joining it. The host page
+  // re-ran this on every render until isHosting flipped, so prod hosts looped
+  // join -> ok -> phx_close, missed the viewer's presence join, and never sent
+  // an offer: the viewer sat on "Connecting..." forever.
   const startHosting = useCallback(async () => {
+    if (hostingStartedRef.current) return;
+    hostingStartedRef.current = true;
+    const generation = hostingGenerationRef.current;
+    const current = () => hostingGenerationRef.current === generation;
+
     // Capture host microphone before setting up signaling
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({
         audio: VOICE_AUDIO_CONSTRAINTS,
         video: false,
       });
+      if (!current()) {
+        micStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        return;
+      }
       markTrackAsSpeech(micStream.getAudioTracks()[0]);
       hostMicStreamRef.current = micStream;
       setHasMic(true);
       setMicEnabled(true);
       console.log('[WebRTCHost] Host microphone captured');
     } catch (err: unknown) {
+      if (!current()) return;
       console.warn('[WebRTCHost] Could not access microphone, hosting without audio:', err);
       hostMicStreamRef.current = null;
       setHasMic(false);
@@ -920,13 +963,15 @@ export function useWebRTCHost({
     // Subscribe to signaling events
     channel
       .on('broadcast', { event: 'signal' }, ({ payload }) => {
-        void handleSignalMessage(payload as SignalMessage & { targetId?: string });
+        void channelHandlersRef.current.handleSignalMessage(
+          payload as SignalMessage & { targetId?: string }
+        );
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach((presence) => {
           const viewerId = presence.user_id as string;
           if (viewerId && presence.role === 'viewer') {
-            void handleViewerJoin(viewerId);
+            void channelHandlersRef.current.handleViewerJoin(viewerId);
           }
         });
       })
@@ -934,11 +979,12 @@ export function useWebRTCHost({
         leftPresences.forEach((presence) => {
           const viewerId = presence.user_id as string;
           if (viewerId) {
-            removeViewer(viewerId);
+            channelHandlersRef.current.removeViewer(viewerId);
           }
         });
       })
       .subscribe((status: string) => {
+        if (!current() || channelRef.current !== channel) return;
         if (status === 'SUBSCRIBED') {
           setIsHosting(true);
           setError(null);
@@ -950,20 +996,13 @@ export function useWebRTCHost({
             role: 'host',
           });
 
-          // Start adaptive bitrate monitoring
-          statsIntervalRef.current = setInterval(() => {
-            void collectStatsAndAdjust();
+          // Start adaptive bitrate monitoring (once; a rejoin re-fires SUBSCRIBED)
+          statsIntervalRef.current ??= setInterval(() => {
+            void channelHandlersRef.current.collectStatsAndAdjust();
           }, STATS_INTERVAL);
         }
       });
-  }, [
-    sessionId,
-    hostId,
-    handleSignalMessage,
-    handleViewerJoin,
-    removeViewer,
-    collectStatsAndAdjust,
-  ]);
+  }, [sessionId, hostId]);
 
   // Toggle host microphone
   const toggleMic = useCallback(() => {
@@ -1011,9 +1050,13 @@ export function useWebRTCHost({
     mutedViewerIdsRef.current.clear();
     setViewers(new Map());
 
-    // Unsubscribe from channel
+    // Leave AND drop the channel. A bare unsubscribe() leaves it registered on
+    // the singleton client, so the next startHosting would get the same object
+    // back with every old handler still bound.
+    hostingGenerationRef.current++;
+    hostingStartedRef.current = false;
     if (channelRef.current) {
-      void channelRef.current.unsubscribe();
+      void createClient().removeChannel(channelRef.current);
       channelRef.current = null;
     }
 

@@ -129,27 +129,7 @@
       "submitting": "Konto wird erstellt…",
       "haveAccount": "Bereits ein Konto? <link>Anmelden</link>",
       "page": {
-        "earlyAdopterTitle": "Early-Adopter-Bonus",
-        "earlyAdopterBody": "Jetzt registrieren und <bold>20 % Extra-Guthaben</bold> auf jede Einzahlung erhalten!",
-        "waitlistTitle": "Auf die Warteliste",
-        "recommended": "Empfohlen",
-        "waitlistBody": "Sichern Sie sich Ihren Platz mit einer Guthaben-Einzahlung von 100 $ und erhalten Sie bevorzugten Zugang sowie exklusive Vorteile.",
-        "perkCredits": "100 $ Einzahlung = <semibold>120 $ Guthaben</semibold> (20 % Bonus)",
-        "perkPriority": "Bevorzugter Zugang zum Start",
-        "perkPricing": "Dauerhaft garantierte Early-Adopter-Preise",
-        "perkCommunity": "Zugang zu exklusivem Discord-/Slack-Kanal",
-        "paymentMethods": "Zahlungsmethoden",
-        "payCard": "Mit Karte bezahlen",
-        "payCardDetail": "Visa, Mastercard, Amex über Stripe",
-        "payCrypto": "Mit Krypto bezahlen",
-        "payCryptoDetail": "BTC, ETH, USDC über CoinPayPortal",
-        "comingSoon": "Demnächst",
-        "refundable": "Einzahlungen werden vor dem Start vollständig erstattet, falls Sie es sich anders überlegen.",
-        "orFree": "oder kostenlos registrieren",
-        "freeTitle": "Kostenloses Konto erstellen",
-        "freeBody": "Starten Sie mit 2 Teilnehmern + 5 Zuschauern – dauerhaft kostenlos",
-        "creditsTitle": "So funktioniert das Guthaben",
-        "creditsBody": "PairUX nutzt ein Guthabensystem. Guthaben wird für SFU-Relay-Server verwendet, wenn Sie mehr als 5 Zuschauer benötigen. <medium>0,08 $ pro Zuschauerstunde bei 720p</medium>. P2P-Verbindungen im kostenlosen Tarif laufen nie ab."
+        "freeTitle": "Kostenloses Konto erstellen"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Link teilen",
         "description": "Senden Sie den Beitrittslink an Ihr Gegenüber. Der Beitritt funktioniert in jedem Browser."
       }
-    },
-    "community": {
-      "title": "Gemacht für echte Zusammenarbeit",
-      "subtitle": "PairUX wird bereits für Pair-Programming, Design-Reviews und Fernsupport genutzt. Wir sammeln frühes Feedback – probieren Sie es aus und teilen Sie Ihres.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Endlich ein Screenhero-Ersatz, der wirklich funktioniert. Die gleichzeitige Steuerung ist ein Gamechanger fürs Pair-Programming.",
-          "role": "Softwareentwickler"
-        },
-        "techLead": {
-          "quote": "Dass Zuschauer ohne Installation über jeden Browser beitreten können, macht es perfekt für schnelle gemeinsame Sitzungen.",
-          "role": "Tech Lead"
-        },
-        "contributor": {
-          "quote": "Open Source, Ende-zu-Ende-verschlüsselt, und es funktioniert einfach. Genau das hat die Entwickler-Community gebraucht.",
-          "role": "Open-Source-Mitwirkender"
-        }
-      },
-      "feedback": "Sie nutzen PairUX? <link>Teilen Sie Ihre Erfahrungen auf GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Neu · KI-Anrufanalyse",

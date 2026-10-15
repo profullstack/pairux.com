@@ -27,6 +27,7 @@ import type {
   InputEvent,
 } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
+import { reportMediaConnected } from '@/lib/media-connected';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
@@ -334,6 +335,11 @@ function SessionViewerContent({
                 speakerMuted={speakerMuted}
                 onSpeakerMutedChange={setSpeakerMuted}
                 showSpeakerToggle={false}
+                onFirstFrame={() => {
+                  // Signed-in viewer: participantId here is a local id, not a row,
+                  // so the server matches the signed-in user instead.
+                  reportMediaConnected(sessionId, null);
+                }}
                 className="h-full"
               />
             </InputCapture>

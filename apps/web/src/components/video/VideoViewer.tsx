@@ -20,6 +20,12 @@ interface VideoViewerProps {
   showSpeakerToggle?: boolean | undefined;
   /** Playback gain for the remote audio. Above 1.0 makes a quiet talker louder. */
   speakerGain?: number | undefined;
+  /**
+   * Called once, when the first decoded frame from the host is on screen. This
+   * is the "it worked" moment, reported as the session's activation signal; a
+   * connected peer or an attached track can still show nothing.
+   */
+  onFirstFrame?: (() => void) | undefined;
   className?: string;
 }
 
@@ -34,6 +40,7 @@ export function VideoViewer({
   onSpeakerMutedChange,
   showSpeakerToggle = true,
   speakerGain = DEFAULT_REMOTE_AUDIO_GAIN,
+  onFirstFrame,
   className = '',
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -111,6 +118,56 @@ export function VideoViewer({
     },
     [onSpeakerMutedChange, speakerMuted]
   );
+
+  const onFirstFrameRef = useRef(onFirstFrame);
+  onFirstFrameRef.current = onFirstFrame;
+  const firstFrameReportedRef = useRef(false);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !playbackStream || !hasVideoTrack || firstFrameReportedRef.current) return;
+
+    let cancelled = false;
+    const report = (): boolean => {
+      if (cancelled || firstFrameReportedRef.current) return true;
+      if (video.videoWidth === 0) return false;
+      firstFrameReportedRef.current = true;
+      onFirstFrameRef.current?.();
+      return true;
+    };
+
+    // Typed as optional: older Firefox lacks it, whatever lib.dom says.
+    const frameVideo = video as Omit<HTMLVideoElement, 'requestVideoFrameCallback'> & {
+      requestVideoFrameCallback?: HTMLVideoElement['requestVideoFrameCallback'];
+    };
+    const requestFrame = frameVideo.requestVideoFrameCallback?.bind(video);
+    if (requestFrame) {
+      let handle = 0;
+      const onFrame = () => {
+        if (!report()) handle = requestFrame(onFrame);
+      };
+      handle = requestFrame(onFrame);
+      return () => {
+        cancelled = true;
+        video.cancelVideoFrameCallback(handle);
+      };
+    }
+
+    // No requestVideoFrameCallback (older Firefox): the first frame sets the
+    // intrinsic size, which fires 'resize'.
+    const onSizeOrTime = () => {
+      if (report()) {
+        video.removeEventListener('resize', onSizeOrTime);
+        video.removeEventListener('timeupdate', onSizeOrTime);
+      }
+    };
+    video.addEventListener('resize', onSizeOrTime);
+    video.addEventListener('timeupdate', onSizeOrTime);
+    return () => {
+      cancelled = true;
+      video.removeEventListener('resize', onSizeOrTime);
+      video.removeEventListener('timeupdate', onSizeOrTime);
+    };
+  }, [playbackStream, hasVideoTrack]);
 
   // Attach stream to video element
   // On iOS Safari, unmuted autoplay is blocked. We try unmuted first, and if

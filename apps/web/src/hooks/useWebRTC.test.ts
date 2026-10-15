@@ -17,6 +17,7 @@ const mockChannel = {
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     channel: vi.fn(() => mockChannel),
+    removeChannel: vi.fn().mockResolvedValue('ok'),
   }),
 }));
 

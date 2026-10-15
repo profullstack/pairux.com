@@ -36,16 +36,24 @@ export function canLaunchDesktopApp(userAgent: string = navigator.userAgent): bo
   return !/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(userAgent);
 }
 
-/** The user's "open sessions in the desktop app" preference; defaults to on. */
+/**
+ * The user's "open sessions in the desktop app" preference; defaults to OFF.
+ *
+ * The launch below can only guess whether the app took the link (focus loss,
+ * which a browser's own "Open xdg-open?" prompt also causes). Guessing by
+ * default told hosts with no app installed that their meeting had "Opened in
+ * the desktop app". So the browser is the default path, and the desktop
+ * hand-off is for people who have said, in Settings, that they have the app.
+ */
 export function prefersDesktopApp(storage: Storage | undefined = safeStorage()): boolean {
-  if (!storage) return true;
+  if (!storage) return false;
   try {
     const raw = storage.getItem(SETTINGS_KEY);
-    if (!raw) return true;
+    if (!raw) return false;
     const parsed = JSON.parse(raw) as { session?: { openInDesktopApp?: boolean } };
-    return parsed.session?.openInDesktopApp !== false;
+    return parsed.session?.openInDesktopApp === true;
   } catch {
-    return true;
+    return false;
   }
 }
 

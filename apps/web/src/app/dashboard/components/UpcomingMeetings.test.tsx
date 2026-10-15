@@ -171,28 +171,50 @@ describe('UpcomingMeetings', () => {
     );
   });
 
-  it('offers the started meeting to the desktop app first', async () => {
+  // The browser is the default: nothing can tell a page whether pairux:// is
+  // registered, so the desktop hand-off is opt-in (Settings).
+  it('goes straight to the web player by default', async () => {
     await startMeeting();
 
-    expect(navigations).toEqual(['pairux://host/session-1']);
-    expect(screen.getByText('Opening the PairUX desktop app…')).toBeInTheDocument();
+    expect(navigations).toEqual(['/host/session-1']);
+    expect(screen.queryByText('Opening the PairUX desktop app…')).not.toBeInTheDocument();
   });
 
-  it('falls back to the web player when the desktop app does not answer', async () => {
-    await startMeeting();
-
-    await act(async () => {
-      vi.advanceTimersByTime(2000);
+  describe('when the host has opted into the desktop app', () => {
+    beforeEach(() => {
+      localStorage.setItem(
+        'pairux-web-settings',
+        JSON.stringify({ session: { openInDesktopApp: true } })
+      );
     });
 
-    expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
-  });
+    afterEach(() => {
+      localStorage.removeItem('pairux-web-settings');
+    });
 
-  it('lets the host bail out to this browser without waiting', async () => {
-    await startMeeting();
+    it('offers the started meeting to the desktop app first', async () => {
+      await startMeeting();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Continue in this browser' }));
+      expect(navigations).toEqual(['pairux://host/session-1']);
+      expect(screen.getByText('Opening the PairUX desktop app…')).toBeInTheDocument();
+    });
 
-    expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
+    it('falls back to the web player when the desktop app does not answer', async () => {
+      await startMeeting();
+
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+
+      expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
+    });
+
+    it('lets the host bail out to this browser without waiting', async () => {
+      await startMeeting();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Continue in this browser' }));
+
+      expect(navigations).toEqual(['pairux://host/session-1', '/host/session-1']);
+    });
   });
 });

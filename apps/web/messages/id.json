@@ -129,27 +129,7 @@
       "submitting": "Membuat akun...",
       "haveAccount": "Sudah punya akun? <link>Masuk</link>",
       "page": {
-        "earlyAdopterTitle": "Bonus Pengguna Awal",
-        "earlyAdopterBody": "Daftar sekarang dan dapatkan <bold>kredit ekstra 20%</bold> untuk setiap deposit!",
-        "waitlistTitle": "Gabung Daftar Tunggu",
-        "recommended": "Direkomendasikan",
-        "waitlistBody": "Amankan tempat Anda dengan deposit kredit $100 dan dapatkan akses prioritas serta keuntungan eksklusif.",
-        "perkCredits": "Deposit $100 = <semibold>kredit senilai $120</semibold> (bonus 20%)",
-        "perkPriority": "Akses prioritas saat kami meluncur",
-        "perkPricing": "Harga pengguna awal yang terkunci selamanya",
-        "perkCommunity": "Akses eksklusif ke kanal Discord/Slack",
-        "paymentMethods": "Metode Pembayaran",
-        "payCard": "Bayar dengan Kartu",
-        "payCardDetail": "Visa, Mastercard, Amex melalui Stripe",
-        "payCrypto": "Bayar dengan Kripto",
-        "payCryptoDetail": "BTC, ETH, USDC melalui CoinPayPortal",
-        "comingSoon": "Segera Hadir",
-        "refundable": "Deposit dapat dikembalikan sepenuhnya sebelum peluncuran jika Anda berubah pikiran.",
-        "orFree": "atau daftar gratis",
-        "freeTitle": "Buat akun gratis",
-        "freeBody": "Mulai dengan 2 peserta + 5 penonton, gratis selamanya",
-        "creditsTitle": "Cara Kerja Kredit",
-        "creditsBody": "PairUX menggunakan sistem berbasis kredit. Kredit dipakai untuk server relay SFU saat Anda membutuhkan lebih dari 5 penonton. <medium>$0,08 per jam-penonton pada 720p</medium>. Koneksi P2P paket gratis tidak pernah kedaluwarsa."
+        "freeTitle": "Buat akun gratis"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Bagikan Tautannya",
         "description": "Kirim tautan bergabung ke kolaborator Anda. Mereka dapat bergabung dari browser apa pun."
       }
-    },
-    "community": {
-      "title": "Dibuat untuk kolaborasi nyata",
-      "subtitle": "PairUX sudah digunakan untuk pair programming, tinjauan desain, dan dukungan jarak jauh. Kami sedang mengumpulkan masukan awal — cobalah dan bagikan pendapat Anda.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Akhirnya, pengganti Screenhero yang benar-benar berfungsi. Fitur kontrol bersamaan ini mengubah cara kami melakukan pair programming.",
-          "role": "Software Engineer"
-        },
-        "techLead": {
-          "quote": "Penonton bisa bergabung dari browser apa pun tanpa menginstal apa-apa, jadi ini sempurna untuk sesi kolaborasi singkat.",
-          "role": "Tech Lead"
-        },
-        "contributor": {
-          "quote": "Open source, terenkripsi end-to-end, dan langsung berfungsi. Inilah yang dibutuhkan komunitas developer.",
-          "role": "Kontributor Open Source"
-        }
-      },
-      "feedback": "Menggunakan PairUX? <link>Bagikan pengalaman Anda di GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Baru · Analisis panggilan AI",

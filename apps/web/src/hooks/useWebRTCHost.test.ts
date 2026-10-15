@@ -13,9 +13,21 @@ const mockChannel = {
   unsubscribe: vi.fn().mockResolvedValue(undefined),
 };
 
+// Plain arrays rather than vi.fn so restoreAllMocks between tests cannot strip
+// the implementations; tests reset them in beforeEach.
+const channelTopics: string[] = [];
+const removedChannels: unknown[] = [];
+
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
-    channel: vi.fn(() => mockChannel),
+    channel: (topic: string) => {
+      channelTopics.push(topic);
+      return mockChannel;
+    },
+    removeChannel: (channel: unknown) => {
+      removedChannels.push(channel);
+      return Promise.resolve('ok');
+    },
   }),
 }));
 
@@ -138,6 +150,8 @@ describe('useWebRTCHost', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    channelTopics.length = 0;
+    removedChannels.length = 0;
     MockRTCPeerConnection.instances = [];
     mockAmplifyRemoteAudio.mockImplementation((track: MediaStreamTrack) => ({
       stream: {
@@ -302,6 +316,133 @@ describe('useWebRTCHost', () => {
 
       expect(result.current.isHosting).toBe(true);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('startHosting is single-flight', () => {
+    // The host page calls startHosting from an effect that re-runs on every
+    // render until isHosting flips. Each extra call used to re-bind presence
+    // handlers onto the same (singleton-client) channel, which realtime-js
+    // answers by leaving and re-joining it: the prod join/phx_close loop.
+    it('captures the mic and binds the channel once however often it is called', async () => {
+      let resolveMic: (stream: MediaStream) => void = () => undefined;
+      mockGetUserMedia.mockImplementation(
+        () =>
+          new Promise<MediaStream>((resolve) => {
+            resolveMic = resolve;
+          })
+      );
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+      let first!: Promise<void>;
+      await act(async () => {
+        first = result.current.startHosting();
+        void result.current.startHosting();
+        void result.current.startHosting();
+        resolveMic(createMockMicStream());
+        await first;
+        await flushAsyncWork();
+      });
+      // And again once subscribed, the case that tore down a live channel.
+      await act(async () => {
+        await result.current.startHosting();
+      });
+
+      expect(mockGetUserMedia).toHaveBeenCalledTimes(1);
+      expect(channelTopics).toEqual(['session:session-1']);
+      expect(mockChannel.subscribe).toHaveBeenCalledTimes(1);
+      const presenceBindings = mockChannel.on.mock.calls.filter(
+        (call: unknown[]) => call[0] === 'presence'
+      );
+      expect(presenceBindings).toHaveLength(2); // one join + one leave
+      expect(mockChannel.unsubscribe).not.toHaveBeenCalled();
+      expect(result.current.isHosting).toBe(true);
+    });
+
+    it('routes channel events to the latest callbacks without re-binding', async () => {
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+      const firstJoined = vi.fn();
+      const latestJoined = vi.fn();
+      const { result, rerender } = renderHook(
+        ({ onViewerJoined }: { onViewerJoined: (id: string) => void }) =>
+          useWebRTCHost({ ...defaultOptions, onViewerJoined }),
+        { initialProps: { onViewerJoined: firstJoined } }
+      );
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      rerender({ onViewerJoined: latestJoined });
+
+      const joinCall = mockChannel.on.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'presence' && (call[1] as Record<string, string>).event === 'join'
+      );
+      const joinHandler = joinCall![2] as (payload: {
+        newPresences: { user_id: string; role: string }[];
+      }) => void;
+      await act(async () => {
+        joinHandler({ newPresences: [{ user_id: 'viewer-1', role: 'viewer' }] });
+        await flushAsyncWork();
+      });
+
+      expect(latestJoined).toHaveBeenCalledWith('viewer-1');
+      expect(firstJoined).not.toHaveBeenCalled();
+      expect(channelTopics).toHaveLength(1);
+    });
+
+    it('removes the channel on stop so a restart gets a fresh one', async () => {
+      mockChannel.subscribe.mockImplementation((callback: (status: string) => void) => {
+        callback('SUBSCRIBED');
+        return mockChannel;
+      });
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      act(() => {
+        result.current.stopHosting();
+      });
+      expect(removedChannels).toEqual([mockChannel]);
+
+      await act(async () => {
+        await result.current.startHosting();
+      });
+      expect(channelTopics).toHaveLength(2);
+      expect(result.current.isHosting).toBe(true);
+    });
+
+    it('backs out without a channel when stopped while the mic prompt is open', async () => {
+      let resolveMic: (stream: MediaStream) => void = () => undefined;
+      mockGetUserMedia.mockImplementation(
+        () =>
+          new Promise<MediaStream>((resolve) => {
+            resolveMic = resolve;
+          })
+      );
+      const micStream = createMockMicStream();
+      const { result } = renderHook(() => useWebRTCHost(defaultOptions));
+      let pending!: Promise<void>;
+      act(() => {
+        pending = result.current.startHosting();
+      });
+      act(() => {
+        result.current.stopHosting();
+      });
+      await act(async () => {
+        resolveMic(micStream);
+        await pending;
+      });
+
+      expect(channelTopics).toHaveLength(0);
+      expect(micStream._audioTracks[0]?.stop).toHaveBeenCalled();
+      expect(result.current.isHosting).toBe(false);
     });
   });
 

@@ -129,27 +129,7 @@
       "submitting": "アカウントを作成中...",
       "haveAccount": "すでにアカウントをお持ちですか？ <link>ログイン</link>",
       "page": {
-        "earlyAdopterTitle": "アーリーアダプター特典",
-        "earlyAdopterBody": "今すぐ登録すると、入金額に関係なく<bold>クレジットが20%増量</bold>されます！",
-        "waitlistTitle": "ウェイトリストに参加",
-        "recommended": "おすすめ",
-        "waitlistBody": "$100 のクレジットを入金して枠を確保すると、優先アクセスと限定特典を受けられます。",
-        "perkCredits": "$100 の入金で <semibold>$120 分のクレジット</semibold>（20% ボーナス）",
-        "perkPriority": "リリース時の優先アクセス",
-        "perkPricing": "アーリーアダプター価格をずっと固定",
-        "perkCommunity": "限定 Discord/Slack チャンネルへのアクセス",
-        "paymentMethods": "お支払い方法",
-        "payCard": "カードで支払う",
-        "payCardDetail": "Stripe 経由で Visa、Mastercard、Amex",
-        "payCrypto": "暗号資産で支払う",
-        "payCryptoDetail": "CoinPayPortal 経由で BTC、ETH、USDC",
-        "comingSoon": "近日対応",
-        "refundable": "リリース前であれば、気が変わった場合に入金を全額返金できます。",
-        "orFree": "または無料で登録",
-        "freeTitle": "無料アカウントを作成",
-        "freeBody": "参加者2人＋視聴者5人までずっと無料で使えます",
-        "creditsTitle": "クレジットの仕組み",
-        "creditsBody": "PairUX はクレジット制です。視聴者が5人を超える場合に使う SFU リレーサーバーでクレジットを消費します。<medium>720p で視聴者1人1時間あたり $0.08</medium>。無料プランの P2P 接続は期限なく使えます。"
+        "freeTitle": "無料アカウントを作成"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "リンクを共有",
         "description": "参加リンクを共同作業者に送ります。相手はどのブラウザからでも参加できます。"
       }
-    },
-    "community": {
-      "title": "実際の共同作業のために",
-      "subtitle": "PairUX はすでにペアプログラミング、デザインレビュー、リモートサポートで使われています。早期のフィードバックを募集中です。ぜひ試して感想をお聞かせください。",
-      "testimonials": {
-        "engineer": {
-          "quote": "ようやく、ちゃんと使える Screenhero の代わりが見つかりました。同時操作機能はペアプログラミングを一変させます。",
-          "role": "ソフトウェアエンジニア"
-        },
-        "techLead": {
-          "quote": "視聴者が何もインストールせずにブラウザから参加できるので、ちょっとした共同作業にぴったりです。",
-          "role": "テックリード"
-        },
-        "contributor": {
-          "quote": "オープンソースで、エンドツーエンド暗号化され、しかもちゃんと動く。まさに開発者コミュニティが求めていたものです。",
-          "role": "オープンソースコントリビューター"
-        }
-      },
-      "feedback": "PairUX をお使いですか？ <link>GitHub で体験を共有する</link>"
     },
     "callAnalysis": {
       "eyebrow": "新機能 · AI 通話分析",

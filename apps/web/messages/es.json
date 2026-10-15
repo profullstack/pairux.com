@@ -129,27 +129,7 @@
       "submitting": "Creando cuenta...",
       "haveAccount": "¿Ya tienes cuenta? <link>Inicia sesión</link>",
       "page": {
-        "earlyAdopterTitle": "Bono de pionero",
-        "earlyAdopterBody": "¡Regístrate ahora y obtén <bold>un 20 % de créditos extra</bold> en cualquier depósito!",
-        "waitlistTitle": "Únete a la lista de espera",
-        "recommended": "Recomendado",
-        "waitlistBody": "Reserva tu lugar con un depósito de $100 en créditos y obtén acceso prioritario y ventajas exclusivas.",
-        "perkCredits": "Depósito de $100 = <semibold>$120 en créditos</semibold> (20 % de bono)",
-        "perkPriority": "Acceso prioritario en el lanzamiento",
-        "perkPricing": "Precio de pionero garantizado para siempre",
-        "perkCommunity": "Acceso exclusivo a un canal de Discord/Slack",
-        "paymentMethods": "Métodos de pago",
-        "payCard": "Pagar con tarjeta",
-        "payCardDetail": "Visa, Mastercard, Amex mediante Stripe",
-        "payCrypto": "Pagar con cripto",
-        "payCryptoDetail": "BTC, ETH, USDC mediante CoinPayPortal",
-        "comingSoon": "Próximamente",
-        "refundable": "Los depósitos son totalmente reembolsables antes del lanzamiento si cambias de opinión.",
-        "orFree": "o regístrate gratis",
-        "freeTitle": "Crea una cuenta gratuita",
-        "freeBody": "Empieza con 2 participantes + 5 espectadores, gratis para siempre",
-        "creditsTitle": "Cómo funcionan los créditos",
-        "creditsBody": "PairUX usa un sistema de créditos. Los créditos se usan para los servidores de retransmisión SFU cuando necesitas más de 5 espectadores. <medium>$0.08 por espectador-hora a 720p</medium>. Las conexiones P2P del plan gratuito nunca caducan."
+        "freeTitle": "Crea una cuenta gratuita"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Comparte el enlace",
         "description": "Envía el enlace para unirse a tu colaborador. Puede unirse desde cualquier navegador."
       }
-    },
-    "community": {
-      "title": "Creado para colaborar en el mundo real",
-      "subtitle": "PairUX ya se usa para programar en pareja, revisar diseños y dar soporte remoto. Estamos recopilando los primeros comentarios: pruébalo y comparte el tuyo.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Por fin un reemplazo de Screenhero que realmente funciona. El control simultáneo lo cambia todo para programar en pareja.",
-          "role": "Ingeniero de software"
-        },
-        "techLead": {
-          "quote": "Que los espectadores puedan unirse desde cualquier navegador sin instalar nada lo hace perfecto para sesiones de colaboración rápidas.",
-          "role": "Líder técnico"
-        },
-        "contributor": {
-          "quote": "Código abierto, cifrado de extremo a extremo y simplemente funciona. Es justo lo que la comunidad de desarrolladores necesitaba.",
-          "role": "Colaborador de código abierto"
-        }
-      },
-      "feedback": "¿Usas PairUX? <link>Comparte tu experiencia en GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Nuevo · Análisis de llamadas con IA",

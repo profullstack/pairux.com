@@ -129,27 +129,7 @@
       "submitting": "Creating account...",
       "haveAccount": "Already have an account? <link>Sign in</link>",
       "page": {
-        "earlyAdopterTitle": "Early Adopter Bonus",
-        "earlyAdopterBody": "Sign up now and get <bold>20% extra credits</bold> on any deposit!",
-        "waitlistTitle": "Join the Waitlist",
-        "recommended": "Recommended",
-        "waitlistBody": "Reserve your spot with a $100 credit deposit and get priority access plus exclusive perks.",
-        "perkCredits": "$100 deposit = <semibold>$120 in credits</semibold> (20% bonus)",
-        "perkPriority": "Priority access when we launch",
-        "perkPricing": "Locked-in early adopter pricing forever",
-        "perkCommunity": "Exclusive Discord/Slack channel access",
-        "paymentMethods": "Payment Methods",
-        "payCard": "Pay with Card",
-        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
-        "payCrypto": "Pay with Crypto",
-        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
-        "comingSoon": "Coming Soon",
-        "refundable": "Deposits are fully refundable before launch if you change your mind.",
-        "orFree": "or sign up for free",
-        "freeTitle": "Create a free account",
-        "freeBody": "Get started with 2 participants + 5 viewers free forever",
-        "creditsTitle": "How Credits Work",
-        "creditsBody": "PairUX uses a credit-based system. Credits are used for SFU relay servers when you need more than 5 viewers. <medium>$0.08 per viewer-hour at 720p</medium>. Free tier P2P connections never expire."
+        "freeTitle": "Create a free account"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Share the Link",
         "description": "Send the join link to your collaborator. They can join from any browser."
       }
-    },
-    "community": {
-      "title": "Built for real-world collaboration",
-      "subtitle": "PairUX is already being used for pair programming, design reviews, and remote support. We're collecting early feedback — try it and share yours.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Finally, a Screenhero replacement that actually works. The simultaneous control feature is game-changing for pair programming.",
-          "role": "Software Engineer"
-        },
-        "techLead": {
-          "quote": "The fact that viewers can join from any browser without installing anything makes this perfect for quick collaboration sessions.",
-          "role": "Tech Lead"
-        },
-        "contributor": {
-          "quote": "Open source, end-to-end encrypted, and it just works. This is exactly what the developer community needed.",
-          "role": "Open Source Contributor"
-        }
-      },
-      "feedback": "Using PairUX? <link>Share your experience on GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "New · AI call analysis",

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { exchangeCodeAndPersist } from '@/lib/supabase/exchange-code';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await exchangeCodeAndPersist(supabase, code);
 
   if (error) {
     console.error('Password reset code exchange error:', error);

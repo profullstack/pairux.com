@@ -29,6 +29,7 @@ import type {
   InputEvent,
 } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
+import { reportMediaConnected } from '@/lib/media-connected';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
@@ -328,6 +329,9 @@ function GuestViewerContent({
                 speakerMuted={speakerMuted}
                 onSpeakerMutedChange={setSpeakerMuted}
                 showSpeakerToggle={false}
+                onFirstFrame={() => {
+                  reportMediaConnected(session.id, participant.id);
+                }}
                 className="h-full"
               />
             </InputCapture>

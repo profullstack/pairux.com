@@ -129,27 +129,7 @@
       "submitting": "Hesap oluşturuluyor...",
       "haveAccount": "Zaten hesabınız var mı? <link>Giriş yapın</link>",
       "page": {
-        "earlyAdopterTitle": "Erken Kullanıcı Bonusu",
-        "earlyAdopterBody": "Şimdi kaydolun, her yüklemede <bold>%20 ekstra kredi</bold> kazanın!",
-        "waitlistTitle": "Bekleme Listesine Katılın",
-        "recommended": "Önerilen",
-        "waitlistBody": "100 $ kredi yatırarak yerinizi ayırtın; öncelikli erişim ve özel ayrıcalıklar kazanın.",
-        "perkCredits": "100 $ yatırım = <semibold>120 $ kredi</semibold> (%20 bonus)",
-        "perkPriority": "Lansmanda öncelikli erişim",
-        "perkPricing": "Ömür boyu sabit erken kullanıcı fiyatı",
-        "perkCommunity": "Özel Discord/Slack kanalına erişim",
-        "paymentMethods": "Ödeme Yöntemleri",
-        "payCard": "Kartla öde",
-        "payCardDetail": "Stripe üzerinden Visa, Mastercard, Amex",
-        "payCrypto": "Kriptoyla öde",
-        "payCryptoDetail": "CoinPayPortal üzerinden BTC, ETH, USDC",
-        "comingSoon": "Çok Yakında",
-        "refundable": "Fikrinizi değiştirirseniz, yatırdığınız tutar lansmandan önce tamamen iade edilir.",
-        "orFree": "veya ücretsiz kaydolun",
-        "freeTitle": "Ücretsiz hesap oluşturun",
-        "freeBody": "Ömür boyu ücretsiz 2 katılımcı + 5 izleyiciyle başlayın",
-        "creditsTitle": "Krediler Nasıl Çalışır",
-        "creditsBody": "PairUX kredi tabanlı bir sistem kullanır. Krediler, 5’ten fazla izleyiciye ihtiyaç duyduğunuzda SFU aktarma sunucuları için harcanır. <medium>720p’de izleyici-saat başına 0,08 $</medium>. Ücretsiz katmandaki P2P bağlantılarının süresi hiç dolmaz."
+        "freeTitle": "Ücretsiz hesap oluşturun"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Bağlantıyı Paylaşın",
         "description": "Katılım bağlantısını çalışma arkadaşınıza gönderin. Herhangi bir tarayıcıdan katılabilir."
       }
-    },
-    "community": {
-      "title": "Gerçek dünyadaki iş birliği için tasarlandı",
-      "subtitle": "PairUX şimdiden eşli programlama, tasarım incelemeleri ve uzaktan destek için kullanılıyor. Erken geri bildirim topluyoruz; deneyin ve sizinkini paylaşın.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Sonunda gerçekten çalışan bir Screenhero alternatifi. Eşzamanlı kontrol özelliği eşli programlamada oyunun kurallarını değiştiriyor.",
-          "role": "Yazılım Mühendisi"
-        },
-        "techLead": {
-          "quote": "İzleyicilerin hiçbir şey kurmadan herhangi bir tarayıcıdan katılabilmesi, bunu hızlı iş birliği oturumları için mükemmel kılıyor.",
-          "role": "Teknik Lider"
-        },
-        "contributor": {
-          "quote": "Açık kaynak, uçtan uca şifreli ve sorunsuz çalışıyor. Geliştirici topluluğunun tam da ihtiyacı olan şey.",
-          "role": "Açık Kaynak Katkıcısı"
-        }
-      },
-      "feedback": "PairUX kullanıyor musunuz? <link>Deneyiminizi GitHub’da paylaşın</link>"
     },
     "callAnalysis": {
       "eyebrow": "Yeni · Yapay zekâ görüşme analizi",

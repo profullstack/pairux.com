@@ -129,27 +129,7 @@
       "submitting": "Đang tạo tài khoản...",
       "haveAccount": "Đã có tài khoản? <link>Đăng nhập</link>",
       "page": {
-        "earlyAdopterTitle": "Ưu đãi người dùng sớm",
-        "earlyAdopterBody": "Đăng ký ngay và nhận <bold>thêm 20% tín dụng</bold> cho mọi khoản nạp!",
-        "waitlistTitle": "Tham gia danh sách chờ",
-        "recommended": "Khuyên dùng",
-        "waitlistBody": "Giữ chỗ với khoản nạp tín dụng $100 để được ưu tiên truy cập cùng nhiều đặc quyền riêng.",
-        "perkCredits": "Nạp $100 = <semibold>$120 tín dụng</semibold> (thưởng 20%)",
-        "perkPriority": "Ưu tiên truy cập khi ra mắt",
-        "perkPricing": "Giữ nguyên giá ưu đãi người dùng sớm mãi mãi",
-        "perkCommunity": "Truy cập kênh Discord/Slack độc quyền",
-        "paymentMethods": "Phương thức thanh toán",
-        "payCard": "Thanh toán bằng thẻ",
-        "payCardDetail": "Visa, Mastercard, Amex qua Stripe",
-        "payCrypto": "Thanh toán bằng tiền mã hóa",
-        "payCryptoDetail": "BTC, ETH, USDC qua CoinPayPortal",
-        "comingSoon": "Sắp ra mắt",
-        "refundable": "Khoản nạp được hoàn lại toàn bộ trước khi ra mắt nếu bạn đổi ý.",
-        "orFree": "hoặc đăng ký miễn phí",
-        "freeTitle": "Tạo tài khoản miễn phí",
-        "freeBody": "Bắt đầu với 2 người tham gia + 5 người xem, miễn phí mãi mãi",
-        "creditsTitle": "Cách tín dụng hoạt động",
-        "creditsBody": "PairUX dùng hệ thống tín dụng. Tín dụng được dùng cho máy chủ chuyển tiếp SFU khi bạn cần hơn 5 người xem. <medium>$0.08 mỗi người xem mỗi giờ ở 720p</medium>. Kết nối P2P ở gói miễn phí không bao giờ hết hạn."
+        "freeTitle": "Tạo tài khoản miễn phí"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Chia sẻ liên kết",
         "description": "Gửi liên kết tham gia cho cộng sự. Họ có thể tham gia từ bất kỳ trình duyệt nào."
       }
-    },
-    "community": {
-      "title": "Dành cho cộng tác thực tế",
-      "subtitle": "PairUX đã được dùng để lập trình cặp, review thiết kế và hỗ trợ từ xa. Chúng tôi đang thu thập phản hồi sớm — hãy dùng thử và chia sẻ ý kiến của bạn.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Cuối cùng cũng có một sản phẩm thay thế Screenhero thực sự hoạt động. Tính năng điều khiển đồng thời là bước ngoặt cho lập trình cặp.",
-          "role": "Kỹ sư phần mềm"
-        },
-        "techLead": {
-          "quote": "Việc người xem có thể tham gia từ bất kỳ trình duyệt nào mà không cần cài đặt khiến nó hoàn hảo cho những phiên cộng tác nhanh.",
-          "role": "Trưởng nhóm kỹ thuật"
-        },
-        "contributor": {
-          "quote": "Mã nguồn mở, mã hóa đầu cuối và cứ thế hoạt động. Đúng là thứ cộng đồng lập trình viên cần.",
-          "role": "Người đóng góp mã nguồn mở"
-        }
-      },
-      "feedback": "Đang dùng PairUX? <link>Chia sẻ trải nghiệm của bạn trên GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Mới · Phân tích cuộc gọi bằng AI",

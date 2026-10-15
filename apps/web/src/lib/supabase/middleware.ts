@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { exchangeCodeAndPersist } from './exchange-code';
+
+/** Route handlers that own their own `?code=` exchange. */
+export function isAuthRouteHandler(pathname: string): boolean {
+  return pathname === '/auth' || pathname.startsWith('/auth/');
+}
 
 export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
   // When the caller (middleware) passes nonce'd request headers, forward those
@@ -46,10 +52,16 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
   );
 
   // Handle auth code exchange (for password reset, email confirmation, etc.)
+  //
+  // Not under /auth/*: those route handlers (/auth/callback for the email
+  // confirmation link, /auth/reset-password) exchange the code themselves.
+  // Exchanging it here first stripped ?code= and redirected to the bare
+  // /auth/callback, which then bounced every new user who clicked the
+  // confirmation email to /login?error=missing_code.
   const code = request.nextUrl.searchParams.get('code');
-  if (code) {
-    const result = await supabase.auth.exchangeCodeForSession(code);
-    if (!result.error) {
+  if (code && !isAuthRouteHandler(request.nextUrl.pathname)) {
+    const result = await exchangeCodeAndPersist(supabase, code);
+    if (!result.error && result.session) {
       // Code exchanged successfully - redirect to same path without the code
       // Important: Copy cookies from supabaseResponse to the redirect response
       const url = request.nextUrl.clone();
@@ -57,7 +69,7 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
 
       // For password reset flow, pass the access token to the page
       if (request.nextUrl.pathname === '/reset-password') {
-        url.searchParams.set('access_token', result.data.session.access_token);
+        url.searchParams.set('access_token', result.session.access_token);
         url.searchParams.set('type', 'recovery');
       }
 

@@ -40,22 +40,35 @@ function storageWith(value: string | null): Storage {
 }
 
 describe('prefersDesktopApp', () => {
-  it('defaults to on when nothing is stored', () => {
-    expect(prefersDesktopApp(storageWith(null))).toBe(true);
+  // Off unless the user opts in: a browser cannot tell whether pairux:// is
+  // registered, so trying it by default told hosts without the app that their
+  // meeting had "Opened in the desktop app" and left them on a dead overlay.
+  it('defaults to off when nothing is stored', () => {
+    expect(prefersDesktopApp(storageWith(null))).toBe(false);
   });
 
-  it('defaults to on when the setting has never been touched', () => {
-    expect(prefersDesktopApp(storageWith(JSON.stringify({ session: {} })))).toBe(true);
+  it('defaults to off when the setting has never been touched', () => {
+    expect(prefersDesktopApp(storageWith(JSON.stringify({ session: {} })))).toBe(false);
   });
 
-  it('is off once the user turns it off', () => {
+  it('is on once the user turns it on', () => {
+    expect(
+      prefersDesktopApp(storageWith(JSON.stringify({ session: { openInDesktopApp: true } })))
+    ).toBe(true);
+  });
+
+  it('is off when the user turns it off', () => {
     expect(
       prefersDesktopApp(storageWith(JSON.stringify({ session: { openInDesktopApp: false } })))
     ).toBe(false);
   });
 
   it('survives corrupt settings', () => {
-    expect(prefersDesktopApp(storageWith('not json'))).toBe(true);
+    expect(prefersDesktopApp(storageWith('not json'))).toBe(false);
+  });
+
+  it('is off without storage', () => {
+    expect(prefersDesktopApp(undefined)).toBe(false);
   });
 });
 

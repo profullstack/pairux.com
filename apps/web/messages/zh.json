@@ -129,27 +129,7 @@
       "submitting": "正在创建账户...",
       "haveAccount": "已有账户？<link>登录</link>",
       "page": {
-        "earlyAdopterTitle": "早期用户福利",
-        "earlyAdopterBody": "立即注册，任意充值均可获得<bold>额外 20% 额度</bold>！",
-        "waitlistTitle": "加入候补名单",
-        "recommended": "推荐",
-        "waitlistBody": "预存 $100 额度即可锁定名额，享受优先体验和专属福利。",
-        "perkCredits": "预存 $100 = <semibold>$120 额度</semibold>（赠送 20%）",
-        "perkPriority": "正式上线时优先体验",
-        "perkPricing": "永久锁定早期用户价格",
-        "perkCommunity": "专属 Discord/Slack 频道",
-        "paymentMethods": "支付方式",
-        "payCard": "银行卡支付",
-        "payCardDetail": "通过 Stripe 支持 Visa、Mastercard、Amex",
-        "payCrypto": "加密货币支付",
-        "payCryptoDetail": "通过 CoinPayPortal 支持 BTC、ETH、USDC",
-        "comingSoon": "即将推出",
-        "refundable": "上线前如改变主意，预存款可全额退还。",
-        "orFree": "或免费注册",
-        "freeTitle": "创建免费账户",
-        "freeBody": "永久免费支持 2 名参与者 + 5 名观看者",
-        "creditsTitle": "额度说明",
-        "creditsBody": "PairUX 采用额度计费。当观看者超过 5 人时，额度用于 SFU 中继服务器。<medium>720p 下每观看者每小时 $0.08</medium>。免费版 P2P 连接永不过期。"
+        "freeTitle": "创建免费账户"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "分享链接",
         "description": "将加入链接发送给协作者。对方可以从任意浏览器加入。"
       }
-    },
-    "community": {
-      "title": "为真实协作场景打造",
-      "subtitle": "PairUX 已被用于结对编程、设计评审和远程支持。我们正在收集早期反馈 —— 欢迎试用并分享您的体验。",
-      "testimonials": {
-        "engineer": {
-          "quote": "终于有了真正好用的 Screenhero 替代品。同时控制功能彻底改变了结对编程的体验。",
-          "role": "软件工程师"
-        },
-        "techLead": {
-          "quote": "观看者无需安装任何东西就能从浏览器加入，非常适合快速协作。",
-          "role": "技术负责人"
-        },
-        "contributor": {
-          "quote": "开源、端到端加密，而且开箱即用。这正是开发者社区所需要的。",
-          "role": "开源贡献者"
-        }
-      },
-      "feedback": "正在使用 PairUX？<link>在 GitHub 上分享您的体验</link>"
     },
     "callAnalysis": {
       "eyebrow": "新功能 · AI 通话分析",

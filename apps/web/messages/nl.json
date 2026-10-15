@@ -129,27 +129,7 @@
       "submitting": "Account aanmaken...",
       "haveAccount": "Heb je al een account? <link>Inloggen</link>",
       "page": {
-        "earlyAdopterTitle": "Early-adopterbonus",
-        "earlyAdopterBody": "Registreer je nu en krijg <bold>20% extra tegoed</bold> bij elke storting!",
-        "waitlistTitle": "Op de wachtlijst",
-        "recommended": "Aanbevolen",
-        "waitlistBody": "Reserveer je plek met een storting van $100 aan tegoed en krijg voorrang plus exclusieve voordelen.",
-        "perkCredits": "$100 storting = <semibold>$120 aan tegoed</semibold> (20% bonus)",
-        "perkPriority": "Voorrang bij de lancering",
-        "perkPricing": "Voor altijd vaste early-adopterprijzen",
-        "perkCommunity": "Toegang tot een exclusief Discord-/Slack-kanaal",
-        "paymentMethods": "Betaalmethoden",
-        "payCard": "Betalen met kaart",
-        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
-        "payCrypto": "Betalen met crypto",
-        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
-        "comingSoon": "Binnenkort",
-        "refundable": "Stortingen worden vóór de lancering volledig terugbetaald als je van gedachten verandert.",
-        "orFree": "of registreer gratis",
-        "freeTitle": "Maak een gratis account aan",
-        "freeBody": "Begin met 2 deelnemers + 5 kijkers, voor altijd gratis",
-        "creditsTitle": "Zo werkt tegoed",
-        "creditsBody": "PairUX werkt met tegoed. Tegoed wordt gebruikt voor SFU-relayservers als je meer dan 5 kijkers nodig hebt. <medium>$0,08 per kijkeruur bij 720p</medium>. Gratis P2P-verbindingen verlopen nooit."
+        "freeTitle": "Maak een gratis account aan"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Deel de link",
         "description": "Stuur de deelnamelink naar je collega. Die kan deelnemen vanuit elke browser."
       }
-    },
-    "community": {
-      "title": "Gemaakt voor samenwerking in de praktijk",
-      "subtitle": "PairUX wordt al gebruikt voor pair-programmen, designreviews en ondersteuning op afstand. We verzamelen vroege feedback: probeer het en deel de jouwe.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Eindelijk een vervanger voor Screenhero die echt werkt. Gelijktijdige bediening verandert pair-programmen compleet.",
-          "role": "Software engineer"
-        },
-        "techLead": {
-          "quote": "Dat kijkers vanuit elke browser kunnen meedoen zonder iets te installeren, maakt dit perfect voor snelle samenwerksessies.",
-          "role": "Tech lead"
-        },
-        "contributor": {
-          "quote": "Open source, end-to-end versleuteld en het werkt gewoon. Precies wat de developercommunity nodig had.",
-          "role": "Opensourcebijdrager"
-        }
-      },
-      "feedback": "Gebruik je PairUX? <link>Deel je ervaring op GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Nieuw · AI-gespreksanalyse",

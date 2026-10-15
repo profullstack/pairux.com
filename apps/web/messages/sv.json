@@ -129,27 +129,7 @@
       "submitting": "Skapar konto…",
       "haveAccount": "Har du redan ett konto? <link>Logga in</link>",
       "page": {
-        "earlyAdopterTitle": "Bonus för tidiga användare",
-        "earlyAdopterBody": "Registrera dig nu och få <bold>20 % extra krediter</bold> på varje insättning!",
-        "waitlistTitle": "Ställ dig i kön",
-        "recommended": "Rekommenderas",
-        "waitlistBody": "Säkra din plats med en insättning på 100 $ i krediter och få förtur plus exklusiva förmåner.",
-        "perkCredits": "100 $ insättning = <semibold>120 $ i krediter</semibold> (20 % bonus)",
-        "perkPriority": "Förtur när vi lanserar",
-        "perkPricing": "Låst pris för tidiga användare för alltid",
-        "perkCommunity": "Tillgång till exklusiv Discord/Slack-kanal",
-        "paymentMethods": "Betalningsmetoder",
-        "payCard": "Betala med kort",
-        "payCardDetail": "Visa, Mastercard, Amex via Stripe",
-        "payCrypto": "Betala med krypto",
-        "payCryptoDetail": "BTC, ETH, USDC via CoinPayPortal",
-        "comingSoon": "Kommer snart",
-        "refundable": "Insättningar återbetalas i sin helhet före lanseringen om du ångrar dig.",
-        "orFree": "eller registrera dig gratis",
-        "freeTitle": "Skapa ett gratiskonto",
-        "freeBody": "Kom igång med 2 deltagare + 5 tittare, gratis för alltid",
-        "creditsTitle": "Så fungerar krediter",
-        "creditsBody": "PairUX använder ett kreditbaserat system. Krediter används för SFU-reläservrar när du behöver fler än 5 tittare. <medium>0,08 $ per tittartimme i 720p</medium>. P2P-anslutningar på gratisnivån upphör aldrig."
+        "freeTitle": "Skapa ett gratiskonto"
       }
     },
     "forgot": {
@@ -1280,25 +1260,6 @@
         "title": "Dela länken",
         "description": "Skicka anslutningslänken till din kollega. Hen kan gå med från valfri webbläsare."
       }
-    },
-    "community": {
-      "title": "Byggt för samarbete i verkligheten",
-      "subtitle": "PairUX används redan för parprogrammering, designgranskningar och fjärrsupport. Vi samlar in tidig feedback – testa och berätta vad du tycker.",
-      "testimonials": {
-        "engineer": {
-          "quote": "Äntligen en ersättare för Screenhero som faktiskt fungerar. Samtidig styrning förändrar allt för parprogrammering.",
-          "role": "Mjukvaruutvecklare"
-        },
-        "techLead": {
-          "quote": "Att tittare kan gå med från valfri webbläsare utan att installera något gör det perfekt för snabba samarbetssessioner.",
-          "role": "Teknisk ledare"
-        },
-        "contributor": {
-          "quote": "Öppen källkod, end-to-end-krypterat och det bara fungerar. Precis vad utvecklarcommunityn behövde.",
-          "role": "Bidragsgivare till öppen källkod"
-        }
-      },
-      "feedback": "Använder du PairUX? <link>Dela din upplevelse på GitHub</link>"
     },
     "callAnalysis": {
       "eyebrow": "Nyhet · AI-samtalsanalys",

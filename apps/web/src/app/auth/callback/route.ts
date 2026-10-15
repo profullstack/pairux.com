@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { exchangeCodeAndPersist } from '@/lib/supabase/exchange-code';
 
 export function safeNextPath(next: string | null): string {
   if (!next || !next.startsWith('/') || next.startsWith('//')) {
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
   // Handle code from PKCE flow
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await exchangeCodeAndPersist(supabase, code);
 
     if (error) {
       console.error('Auth callback code exchange error:', error);

@@ -13,7 +13,6 @@ import {
   Zap,
   Shield,
   RefreshCw,
-  Quote,
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -73,8 +72,6 @@ const steps = [
   { number: '2', key: 'start' },
   { number: '3', key: 'share' },
 ] as const;
-
-const testimonials = ['engineer', 'techLead', 'contributor'] as const;
 
 export default async function HomePage() {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
@@ -191,54 +188,6 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Community Section */}
-        <section className="bg-white py-20 sm:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                {t('community.title')}
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-                {t('community.subtitle')}
-              </p>
-            </div>
-
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <div
-                  key={testimonial}
-                  className="relative rounded-2xl border border-gray-200 bg-gray-50 p-8"
-                >
-                  <Quote className="text-primary-200 absolute top-6 right-6 h-8 w-8" />
-                  <p className="text-gray-700 italic">
-                    &ldquo;{t(`community.testimonials.${testimonial}.quote`)}&rdquo;
-                  </p>
-                  <div className="mt-6">
-                    <p className="text-sm text-gray-500">
-                      {t(`community.testimonials.${testimonial}.role`)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-8 text-center text-sm text-gray-500">
-              {t.rich('community.feedback', {
-                link: (chunks) => (
-                  <Link
-                    href="https://github.com/profullstack/pairux.com/issues"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-600 hover:underline"
-                  >
-                    {chunks}
-                  </Link>
-                ),
-              })}
-            </p>
           </div>
         </section>
 

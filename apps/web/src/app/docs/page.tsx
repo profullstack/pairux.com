@@ -471,14 +471,7 @@ rm -f ~/.local/share/icons/hicolor/256x256/apps/pairux.png`}</code>
                     <div className="not-prose rounded-lg bg-gray-50 p-6">
                       <h2 className="text-lg font-semibold text-gray-900">Need more help?</h2>
                       <p className="mt-2 text-gray-600">
-                        If you can&apos;t find what you&apos;re looking for, check out our{' '}
-                        <Link
-                          href="https://github.com/profullstack/pairux.com/discussions"
-                          className="text-primary-600 hover:underline"
-                        >
-                          GitHub Discussions
-                        </Link>{' '}
-                        or{' '}
+                        If you can&apos;t find what you&apos;re looking for, please{' '}
                         <Link
                           href="https://github.com/profullstack/pairux.com/issues"
                           className="text-primary-600 hover:underline"

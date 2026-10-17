@@ -29,6 +29,7 @@ import { VideoPreview } from '@/components/video';
 import { HostParticipantList } from '@/components/participants/HostParticipantList';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import { useParticipants } from '@/components/chat/useParticipants';
+import { HostCapPrompt } from '@/components/billing/HostCapPrompt';
 import { useScreenCapture, type CaptureQuality } from '@/hooks/useScreenCapture';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useCallAnalysisCapture } from '@/hooks/useCallAnalysisCapture';
@@ -56,6 +57,8 @@ interface SessionData {
     allowControl?: boolean;
     maxParticipants?: number;
     analysis?: CallAnalysisSettings;
+    /** Joiners turned away at the plan cap (see lib/room-cap.ts). */
+    capRefusedCount?: number;
   };
   created_at: string;
   session_participants?: SessionParticipant[];
@@ -641,6 +644,16 @@ function HostContent({
           sessionId={sessionId}
           selfId={publisherId}
           participants={translationParticipants}
+        />
+      )}
+      {/* Plan cap reached: the upgrade prompt, for the room's owner only (the
+          payer; a handed-off host or a guest never sees prices) */}
+      {currentUserId === currentSession.host_user_id && (
+        <HostCapPrompt
+          sessionId={sessionId}
+          cap={currentSession.settings.maxParticipants}
+          participants={liveParticipants}
+          initialRefused={currentSession.settings.capRefusedCount}
         />
       )}
       {/* Header */}

@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
 import { useDesktopHandoff } from '@/hooks/useDesktopHandoff';
 import { CallAnalysisOptions, DEFAULT_ANALYSIS } from '@/components/session/CallAnalysisOptions';
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { WorkspacePicker, useMyOrgs, type Workspace } from '@/components/orgs/WorkspacePicker';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 
@@ -31,6 +32,7 @@ export function StartHost({ header }: { header: ReactNode }) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
+  const [needsPro, setNeedsPro] = useState(false);
   const [maxParticipants, setMaxParticipants] = useState(5);
   const [analysis, setAnalysis] = useState<CallAnalysisSettings>(DEFAULT_ANALYSIS);
   const orgs = useMyOrgs();
@@ -69,6 +71,7 @@ export function StartHost({ header }: { header: ReactNode }) {
   const createSession = useCallback(async () => {
     setIsCreating(true);
     setError('');
+    setNeedsPro(false);
 
     try {
       const res = await fetch('/api/sessions', {
@@ -93,11 +96,12 @@ export function StartHost({ header }: { header: ReactNode }) {
           router.push('/login?redirect=/host');
           return;
         }
-        setError(
-          res.status === 403 && analysis.enabled
-            ? t('analysisRequiresPlan')
-            : (data.error ?? t('createFailed'))
-        );
+        if (res.status === 403 && analysis.enabled) {
+          // A Pro feature on a lower plan: the upgrade moment, not an error.
+          setNeedsPro(true);
+          return;
+        }
+        setError(data.error ?? t('createFailed'));
         return;
       }
 
@@ -141,6 +145,20 @@ export function StartHost({ header }: { header: ReactNode }) {
                 {t('defaults')}
               </Link>
             </div>
+
+            {/* AI call analysis needs Pro: name it, price it, one click to checkout */}
+            {needsPro && (
+              <div className="mt-4">
+                <UpgradePrompt
+                  reason="proFeature"
+                  plan="pro"
+                  returnTo="/host"
+                  onDismiss={() => {
+                    setNeedsPro(false);
+                  }}
+                />
+              </div>
+            )}
 
             {/* Error message */}
             {error && (

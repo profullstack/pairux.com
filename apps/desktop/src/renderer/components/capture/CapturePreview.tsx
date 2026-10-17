@@ -39,6 +39,7 @@ import { getElectronAPI } from '@/lib/ipc';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
+import { PlanCapBanner } from '@/components/billing/PlanCapBanner';
 import { StreamControls, StreamIndicator } from '@/components/streaming';
 import { useSession } from '@/hooks/useSession';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
@@ -1607,6 +1608,11 @@ export function CapturePreview({
             <AlertTriangle className="h-4 w-4" />
             Low disk space: {spaceWarning.toFixed(1)} GB remaining
           </div>
+        )}
+
+        {/* Plan cap reached: upgrade prompt for the room's owner (the payer) */}
+        {session && (!currentUserId || currentUserId === session.host_user_id) && (
+          <PlanCapBanner cap={session.settings.maxParticipants} participants={participants} />
         )}
 
         {/* Session info bar */}

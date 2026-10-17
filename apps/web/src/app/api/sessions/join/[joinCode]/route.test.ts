@@ -14,6 +14,16 @@ vi.mock('@/lib/supabase/service', () => ({
   serviceClient: () => mockServiceClient(),
 }));
 
+const mockResolveUserPlan = vi.fn();
+vi.mock('@/lib/orgs', () => ({
+  resolveUserPlan: (...args: unknown[]) => mockResolveUserPlan(...args),
+}));
+
+const mockSendPush = vi.fn().mockResolvedValue({ sent: 1, failed: 0 });
+vi.mock('@/lib/push', () => ({
+  sendPushToUser: (...args: unknown[]) => mockSendPush(...args),
+}));
+
 import { createClient } from '@/lib/supabase/server';
 
 const createParams = (joinCode: string) => ({
@@ -362,7 +372,7 @@ describe('POST /api/sessions/join/[joinCode]', () => {
     const mockSupabase = createMockSupabaseClient({
       rpc: vi.fn().mockResolvedValue({
         data: null,
-        error: { message: 'Session is full' },
+        error: { message: 'Session not found or has ended' },
       }),
     });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
@@ -377,7 +387,7 @@ describe('POST /api/sessions/join/[joinCode]', () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.error).toBe('Session is full');
+    expect(body.error).toBe('Session not found or has ended');
   });
 
   it('converts join code to uppercase', async () => {
@@ -397,6 +407,90 @@ describe('POST /api/sessions/join/[joinCode]', () => {
     expect(mockSupabase.rpc).toHaveBeenCalledWith('join_session', {
       p_join_code: 'ABC123',
       p_display_name: undefined,
+    });
+  });
+
+  describe('when the room is at its plan cap', () => {
+    const room = {
+      id: mockSession.id,
+      host_user_id: 'host-user-id',
+      settings: { maxParticipants: 20 },
+    };
+
+    // Service client: the room lookup by join code, the settings update,
+    // and recordCapRefusal's read + write.
+    function serviceMock() {
+      const updates: unknown[] = [];
+      const from = vi.fn().mockImplementation(() => {
+        const q = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          neq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: room, error: null }),
+          update: vi.fn().mockImplementation((value: unknown) => {
+            updates.push(value);
+            return { eq: vi.fn().mockResolvedValue({ error: null }) };
+          }),
+        };
+        return q;
+      });
+      mockServiceClient.mockReturnValue({ from });
+      return updates;
+    }
+
+    function joinRequest() {
+      return new Request('http://localhost/api/sessions/join/ABC123', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+    }
+
+    it('turns the joiner away politely and tells the host', async () => {
+      const updates = serviceMock();
+      mockResolveUserPlan.mockResolvedValue('free');
+      const mockSupabase = createMockSupabaseClient({
+        rpc: vi.fn().mockResolvedValue({ data: null, error: { message: 'Session is full' } }),
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await POST(joinRequest(), createParams('ABC123'));
+      const body = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(body.error).toMatch(/host's plan has no seats left/);
+      expect(mockSupabase.rpc).toHaveBeenCalledTimes(1);
+      expect(updates).toEqual([
+        {
+          settings: expect.objectContaining({ capRefusedCount: 1, maxParticipants: 20 }),
+        },
+      ]);
+      expect(mockSendPush).toHaveBeenCalledWith(
+        'host-user-id',
+        'participantJoined',
+        expect.objectContaining({ url: `/host/${mockSession.id}` })
+      );
+    });
+
+    it('lifts a stale cap after the host upgraded, then joins', async () => {
+      const updates = serviceMock();
+      mockResolveUserPlan.mockResolvedValue('plus');
+      const joined = { id: 'participant-9', session_id: mockSession.id, user_id: null };
+      const rpc = vi
+        .fn()
+        .mockResolvedValueOnce({ data: null, error: { message: 'Session is full' } })
+        .mockResolvedValueOnce({ data: joined, error: null });
+      const mockSupabase = createMockSupabaseClient({ rpc });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await POST(joinRequest(), createParams('ABC123'));
+
+      expect(response.status).toBe(200);
+      expect(rpc).toHaveBeenCalledTimes(2);
+      expect(updates).toEqual([{ settings: { maxParticipants: 100 } }]);
+      expect(mockSendPush).not.toHaveBeenCalled();
     });
   });
 });

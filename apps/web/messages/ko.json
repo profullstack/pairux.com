@@ -2239,5 +2239,22 @@
     "off": "꺼짐",
     "showOriginal": "원문 보기",
     "unavailable": "채팅 번역을 사용할 수 없습니다."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "방이 가득 찼습니다",
+    "roomFullBody": "{current} 플랜의 {cap}개 좌석이 모두 찼습니다.",
+    "turnedAway": "{count, plural, other {#명이 입장하지 못했습니다.}}",
+    "roomFullLift": "{plan}은(는) 월 {price}에 청취자를 {seats}명까지 늘려 줍니다.",
+    "proFeatureTitle": "AI 통화 분석은 Pro 기능입니다",
+    "proFeatureBody": "{plan}은(는) 월 {price}에 AI 통화 분석, 1080p, 최대 {seats}명의 청취자를 제공합니다.",
+    "cta": "{plan}(으)로 업그레이드: 월 {price}",
+    "starting": "결제를 시작하는 중…",
+    "payNote": "CoinPay로 결제합니다. 결제 1회당 {days}일간 유효하며 자동 갱신되지 않습니다.",
+    "dismiss": "나중에",
+    "page": {
+      "metaTitle": "업그레이드",
+      "starting": "{plan} 결제를 시작하는 중…",
+      "backToPricing": "요금제로 돌아가기"
+    }
   }
 }

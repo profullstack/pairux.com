@@ -2239,5 +2239,22 @@
     "off": "Aus",
     "showOriginal": "Original anzeigen",
     "unavailable": "Die Chat-Übersetzung ist nicht verfügbar."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Dein Raum ist voll",
+    "roomFullBody": "Alle {cap} Plätze in deinem {current}-Tarif sind belegt.",
+    "turnedAway": "{count, plural, one {# Person wurde abgewiesen.} other {# Personen wurden abgewiesen.}}",
+    "roomFullLift": "{plan} erhöht das auf {seats} Zuhörer für {price}/Monat.",
+    "proFeatureTitle": "KI-Gesprächsanalyse ist eine Pro-Funktion",
+    "proFeatureBody": "{plan} bietet KI-Gesprächsanalyse, 1080p und bis zu {seats} Zuhörer für {price}/Monat.",
+    "cta": "Auf {plan} upgraden: {price}/Monat",
+    "starting": "Checkout wird gestartet…",
+    "payNote": "Bezahlt über CoinPay. Jede Zahlung gilt {days} Tage; nichts verlängert sich automatisch.",
+    "dismiss": "Nicht jetzt",
+    "page": {
+      "metaTitle": "Upgrade",
+      "starting": "Dein {plan}-Checkout wird gestartet…",
+      "backToPricing": "Zurück zu den Preisen"
+    }
   }
 }

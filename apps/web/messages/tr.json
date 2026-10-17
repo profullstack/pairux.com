@@ -2239,5 +2239,22 @@
     "off": "Kapalı",
     "showOriginal": "Orijinali göster",
     "unavailable": "Sohbet çevirisi kullanılamıyor."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Odanız dolu",
+    "roomFullBody": "{current} planınızdaki {cap} yerin tamamı dolu.",
+    "turnedAway": "{count, plural, one {# kişi geri çevrildi.} other {# kişi geri çevrildi.}}",
+    "roomFullLift": "{plan} bunu ayda {price} karşılığında {seats} dinleyiciye çıkarır.",
+    "proFeatureTitle": "Yapay zekâ çağrı analizi bir Pro özelliğidir",
+    "proFeatureBody": "{plan}, ayda {price} karşılığında yapay zekâ çağrı analizi, 1080p ve {seats} dinleyiciye kadar sunar.",
+    "cta": "{plan} planına geç: {price}/ay",
+    "starting": "Ödeme başlatılıyor…",
+    "payNote": "CoinPay ile ödenir. Her ödeme {days} gün geçerlidir; hiçbir şey kendiliğinden yenilenmez.",
+    "dismiss": "Şimdi değil",
+    "page": {
+      "metaTitle": "Yükselt",
+      "starting": "{plan} ödemeniz başlatılıyor…",
+      "backToPricing": "Fiyatlara dön"
+    }
   }
 }

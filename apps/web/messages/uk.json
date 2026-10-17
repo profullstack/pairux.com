@@ -2239,5 +2239,22 @@
     "off": "Вимк.",
     "showOriginal": "Показати оригінал",
     "unavailable": "Переклад чату недоступний."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Ваша кімната заповнена",
+    "roomFullBody": "Усі місця ({cap}) на тарифі {current} зайняті.",
+    "turnedAway": "{count, plural, one {# людина не змогла увійти.} few {# людини не змогли увійти.} many {# людей не змогли увійти.} other {# людини не змогли увійти.}}",
+    "roomFullLift": "{plan} збільшує ліміт до {seats} слухачів за {price}/міс.",
+    "proFeatureTitle": "ШІ-аналіз дзвінків доступний на тарифі Pro",
+    "proFeatureBody": "{plan} додає ШІ-аналіз дзвінків, 1080p і до {seats} слухачів за {price}/міс.",
+    "cta": "Перейти на {plan}: {price}/міс.",
+    "starting": "Запуск оплати…",
+    "payNote": "Оплата через CoinPay. Кожен платіж діє {days} дн.; нічого не продовжується саме.",
+    "dismiss": "Не зараз",
+    "page": {
+      "metaTitle": "Підвищити тариф",
+      "starting": "Запуск оплати тарифу {plan}…",
+      "backToPricing": "Назад до цін"
+    }
   }
 }

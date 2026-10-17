@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { LISTENER_CAP, PLAN_PRICE_USD, nextPlan, planForCap } from './database';
 import type {
   SessionStatus,
   ParticipantRole,
@@ -123,5 +124,26 @@ describe('Database Types', () => {
       expect(profile.display_name).toBeNull();
       expect(profile.avatar_url).toBeNull();
     });
+  });
+});
+
+describe('plan upgrade helpers', () => {
+  it('maps each plan to the one that lifts its cap', () => {
+    expect(nextPlan('free')).toBe('plus');
+    expect(nextPlan('plus')).toBe('pro');
+    expect(nextPlan('pro')).toBe('team');
+    expect(nextPlan('team')).toBeNull();
+  });
+
+  it('reads the plan a room was sized for from its cap', () => {
+    expect(planForCap(5)).toBe('free');
+    expect(planForCap(LISTENER_CAP.free)).toBe('free');
+    expect(planForCap(LISTENER_CAP.plus)).toBe('plus');
+    expect(planForCap(LISTENER_CAP.pro)).toBe('pro');
+    expect(planForCap(LISTENER_CAP.team)).toBe('team');
+  });
+
+  it('prices the paid plans as the pricing page does', () => {
+    expect(PLAN_PRICE_USD).toEqual({ plus: 1, pro: 12, team: 49 });
   });
 });

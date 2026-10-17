@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
+import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
 import { createSessionSchema } from '@/lib/validations';
 import { resolveUserPlan } from '@/lib/orgs';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
@@ -94,7 +95,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       // The host's own plan or the plan of any organization they belong to.
       const plan = await resolveUserPlan(svc, user.id);
       if (analysis && !canUseCallAnalysis(plan)) {
-        return errorResponse('AI call analysis is available on Pro and Team plans', 403);
+        return errorResponse(ANALYSIS_REQUIRES_PRO, 403);
       }
 
       // Created through the caller's own client rather than the service one:

@@ -2239,5 +2239,22 @@
     "off": "Desligado",
     "showOriginal": "Mostrar original",
     "unavailable": "A tradução do chat não está disponível."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Sua sala está cheia",
+    "roomFullBody": "Todas as {cap} vagas do seu plano {current} estão ocupadas.",
+    "turnedAway": "{count, plural, one {# pessoa foi recusada.} other {# pessoas foram recusadas.}}",
+    "roomFullLift": "{plan} aumenta para {seats} ouvintes por {price}/mês.",
+    "proFeatureTitle": "A análise de chamadas com IA é um recurso Pro",
+    "proFeatureBody": "{plan} inclui análise de chamadas com IA, 1080p e até {seats} ouvintes por {price}/mês.",
+    "cta": "Mudar para {plan}: {price}/mês",
+    "starting": "Iniciando o pagamento…",
+    "payNote": "Pago com CoinPay. Cada pagamento cobre {days} dias; nada renova sozinho.",
+    "dismiss": "Agora não",
+    "page": {
+      "metaTitle": "Fazer upgrade",
+      "starting": "Iniciando o pagamento do {plan}…",
+      "backToPricing": "Voltar aos preços"
+    }
   }
 }

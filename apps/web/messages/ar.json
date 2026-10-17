@@ -2239,5 +2239,22 @@
     "off": "إيقاف",
     "showOriginal": "عرض الأصل",
     "unavailable": "ترجمة الدردشة غير متاحة."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "غرفتك ممتلئة",
+    "roomFullBody": "جميع المقاعد ({cap}) في خطة {current} مشغولة.",
+    "turnedAway": "{count, plural, zero {لم يُرفض أحد.} one {رُفض شخص واحد.} two {رُفض شخصان.} few {رُفض # أشخاص.} many {رُفض # شخصًا.} other {رُفض # شخص.}}",
+    "roomFullLift": "ترفع {plan} الحد إلى {seats} مستمع مقابل {price} شهريًا.",
+    "proFeatureTitle": "تحليل المكالمات بالذكاء الاصطناعي ميزة Pro",
+    "proFeatureBody": "تضيف {plan} تحليل المكالمات بالذكاء الاصطناعي ودقة 1080p وحتى {seats} مستمع مقابل {price} شهريًا.",
+    "cta": "الترقية إلى {plan}: {price} شهريًا",
+    "starting": "جارٍ بدء الدفع…",
+    "payNote": "الدفع عبر CoinPay. كل دفعة تغطي {days} يومًا؛ لا شيء يتجدد تلقائيًا.",
+    "dismiss": "ليس الآن",
+    "page": {
+      "metaTitle": "ترقية",
+      "starting": "جارٍ بدء الدفع لخطة {plan}…",
+      "backToPricing": "العودة إلى الأسعار"
+    }
   }
 }

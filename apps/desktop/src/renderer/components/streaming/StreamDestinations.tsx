@@ -9,7 +9,7 @@ import { isPaidPlatform } from '../../../shared/entitlements';
 
 function openUpgrade(): void {
   if (!isElectron()) return;
-  void getElectronAPI().invoke('auth:openExternal', '/pricing');
+  void getElectronAPI().invoke('auth:openExternal', '/upgrade/pro');
 }
 
 interface StreamDestinationsProps {

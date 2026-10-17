@@ -2239,5 +2239,22 @@
     "off": "Off",
     "showOriginal": "Show original",
     "unavailable": "Chat translation is unavailable."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Your room is full",
+    "roomFullBody": "All {cap} seats on your {current} plan are taken.",
+    "turnedAway": "{count, plural, one {# person was turned away.} other {# people were turned away.}}",
+    "roomFullLift": "{plan} raises it to {seats} listeners for {price}/month.",
+    "proFeatureTitle": "AI call analysis is a Pro feature",
+    "proFeatureBody": "{plan} adds AI call analysis, 1080p and up to {seats} listeners for {price}/month.",
+    "cta": "Upgrade to {plan}: {price}/mo",
+    "starting": "Starting checkout…",
+    "payNote": "Paid with CoinPay. Each payment covers {days} days; nothing renews on its own.",
+    "dismiss": "Not now",
+    "page": {
+      "metaTitle": "Upgrade",
+      "starting": "Starting your {plan} checkout…",
+      "backToPricing": "Back to pricing"
+    }
   }
 }

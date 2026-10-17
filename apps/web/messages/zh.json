@@ -765,7 +765,6 @@
     "yourPlan": "您的套餐",
     "freePlan": "免费版",
     "current": "当前",
-    "freePlanSummary": "2 名参与者，仅限 P2P",
     "upgradePlan": "升级套餐",
     "comingSoon": "即将推出",
     "comingSoonButton": "即将推出",
@@ -1183,8 +1182,6 @@
     "subtitle": "从浏览器开始一个仅供观看的屏幕共享会话",
     "sessionSettings": "会话设置",
     "defaults": "默认设置",
-    "maxViewers": "最大观看人数",
-    "viewers": "{count, plural, other {# 名观看者}}",
     "remoteControl": "远程控制",
     "enableGuestControl": "允许访客控制",
     "notAvailableWeb": "网页共享不支持",
@@ -1339,7 +1336,6 @@
         "cta": "开始使用",
         "features": {
           "participants": "2 名参与者 + 最多 {count} 名听众",
-          "publicViewers": "公开直播的免费观看人数不限",
           "p2p": "P2P 连接",
           "screenSharing": "屏幕共享",
           "remoteControl": "远程控制",
@@ -1352,7 +1348,7 @@
         "description": "面向观众 —— 教学、站会、一起观看",
         "cta": "升级到 Plus",
         "features": {
-          "listeners": "每个房间最多 {count} 名听众",
+          "listeners": "每个房间最多 {count} 名参与者和 {count} 名听众",
           "sfu": "SFU 中继服务器",
           "liveDirectory": "在 /live 目录中展示公开房间",
           "screenVoice": "屏幕共享 + 语音",
@@ -1365,7 +1361,7 @@
         "description": "适合专业人士和成长中的团队",
         "cta": "升级到 Pro",
         "features": {
-          "listeners": "每个房间最多 {count} 名听众",
+          "listeners": "每个房间最多 {count} 名参与者和 {count} 名听众",
           "sfu": "SFU 中继服务器",
           "streaming": "支持所有直播平台（YouTube、Twitch……）",
           "hd": "高清屏幕共享（1080p）",
@@ -1379,7 +1375,7 @@
         "description": "适合团队和组织",
         "cta": "升级到 Team",
         "features": {
-          "listeners": "每个房间最多 {count} 名听众",
+          "listeners": "每个房间最多 {count} 名参与者和 {count} 名听众",
           "sfu": "专用 SFU 服务器",
           "streaming": "支持所有直播平台",
           "uhd": "4K 屏幕共享",
@@ -1461,13 +1457,13 @@
       "title": "常见问题",
       "capacity": {
         "question": "我的房间可以容纳多少人观看？",
-        "answer": "每个房间的同时在线听众数随套餐提升：Free {free}，Plus {plus}，Pro {pro}，Team {team}。此外，公开直播可供无限访客免费观看，无需账户。",
-        "answerLong": "每个房间的同时在线听众数随套餐提升：Free {free}，Plus {plus}，Pro {pro}，Team {team}。此外，公开直播可供无限访客免费观看，无需账户。"
+        "answer": "Free 房间可容纳 2 名参与者（你和另一位可以发言或接管控制的人），以及最多 {free} 名只看只听的听众。Plus 将两者都提高到 {plus}，Pro 提高到 {pro}，Team 提高到 {team}。",
+        "answerLong": "Free 房间可容纳 2 名参与者（你和另一位可以发言或接管控制的人），以及最多 {free} 名只看只听的听众。Plus 将两者都提高到 {plus}，Pro 提高到 {pro}，Team 提高到 {team}。"
       },
       "free": {
         "question": "免费版真的免费吗？",
-        "answer": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费 —— 公开直播还可供无限访客免费观看，无需账户。没有时间限制，无需信用卡。",
-        "answerLong": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费 —— 公开直播还可供无限访客免费观看，无需账户。没有时间限制，无需信用卡。非常适合结对编程和小型演示。"
+        "answer": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费。没有时间限制，无需信用卡。",
+        "answerLong": "是的！2 名参与者 + 最多 {freeCap} 名听众永久完全免费。没有时间限制，无需信用卡。非常适合结对编程和小型演示。"
       },
       "selfHost": {
         "question": "可以自托管来节省费用吗？",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "你的 {current} 方案的 {cap} 个席位已全部占满。",
     "turnedAway": "{count, plural, other {# 人被拒之门外。}}",
     "roomFullLift": "{plan} 每月 {price}，可将上限提高到 {seats} 名听众。",
+    "participantsFullBody": "你的 {current} 方案最多允许 {cap} 名参与者（包括你），席位已全部占满。",
+    "participantsFullLift": "{plan} 每月 {price}，可将参与者上限提高到 {seats} 名。",
     "proFeatureTitle": "AI 通话分析是 Pro 功能",
     "proFeatureBody": "{plan} 每月 {price}，包含 AI 通话分析、1080p 和最多 {seats} 名听众。",
     "cta": "升级到 {plan}：每月 {price}",

@@ -765,7 +765,6 @@
     "yourPlan": "Twój plan",
     "freePlan": "Plan darmowy",
     "current": "Bieżący",
-    "freePlanSummary": "2 uczestników, tylko P2P",
     "upgradePlan": "Zmień plan na wyższy",
     "comingSoon": "Wkrótce",
     "comingSoonButton": "Wkrótce",
@@ -1183,8 +1182,6 @@
     "subtitle": "Rozpocznij z przeglądarki sesję udostępniania ekranu tylko do oglądania",
     "sessionSettings": "Ustawienia sesji",
     "defaults": "Domyślne",
-    "maxViewers": "Maksymalna liczba widzów",
-    "viewers": "{count, plural, one {# widz} few {# widzów} many {# widzów} other {# widza}}",
     "remoteControl": "Zdalne sterowanie",
     "enableGuestControl": "Pozwól gościom sterować",
     "notAvailableWeb": "Niedostępne przy udostępnianiu z przeglądarki",
@@ -1339,7 +1336,6 @@
         "cta": "Zacznij",
         "features": {
           "participants": "2 uczestników + do {count} słuchaczy",
-          "publicViewers": "Nielimitowani darmowi widzowie publicznych transmisji",
           "p2p": "Połączenia P2P",
           "screenSharing": "Udostępnianie ekranu",
           "remoteControl": "Zdalne sterowanie",
@@ -1352,7 +1348,7 @@
         "description": "Nadawaj dla publiczności – nauka, standupy, wspólne oglądanie",
         "cta": "Przejdź na Plus",
         "features": {
-          "listeners": "Do {count} słuchaczy na pokój",
+          "listeners": "Do {count} uczestników i {count} słuchaczy na pokój",
           "sfu": "Serwery przekaźnikowe SFU",
           "liveDirectory": "Publiczny pokój w katalogu /live",
           "screenVoice": "Udostępnianie ekranu + głos",
@@ -1365,7 +1361,7 @@
         "description": "Dla profesjonalistów i rosnących zespołów",
         "cta": "Przejdź na Pro",
         "features": {
-          "listeners": "Do {count} słuchaczy na pokój",
+          "listeners": "Do {count} uczestników i {count} słuchaczy na pokój",
           "sfu": "Serwery przekaźnikowe SFU",
           "streaming": "Wszystkie platformy streamingowe (YouTube, Twitch, …)",
           "hd": "Udostępnianie ekranu w HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Dla zespołów i organizacji",
         "cta": "Przejdź na Team",
         "features": {
-          "listeners": "Do {count} słuchaczy na pokój",
+          "listeners": "Do {count} uczestników i {count} słuchaczy na pokój",
           "sfu": "Dedykowane serwery SFU",
           "streaming": "Wszystkie platformy streamingowe",
           "uhd": "Udostępnianie ekranu w 4K",
@@ -1461,13 +1457,13 @@
       "title": "Najczęściej zadawane pytania",
       "capacity": {
         "question": "Ile osób może oglądać mój pokój?",
-        "answer": "Liczba jednoczesnych słuchaczy w pokoju zależy od planu: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Dodatkowo publiczne transmisje mogą oglądać za darmo nieograniczeni goście bez konta.",
-        "answerLong": "Liczba jednoczesnych słuchaczy w pokoju zależy od planu: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Dodatkowo publiczne transmisje mogą oglądać za darmo nieograniczeni goście bez konta."
+        "answer": "Pokój Free mieści 2 uczestników (Ciebie i jeszcze jedną osobę, która może mówić lub przejąć sterowanie) oraz do {free} słuchaczy, którzy oglądają i słuchają. Plus zwiększa oba limity do {plus}, Pro do {pro}, a Team do {team}.",
+        "answerLong": "Pokój Free mieści 2 uczestników (Ciebie i jeszcze jedną osobę, która może mówić lub przejąć sterowanie) oraz do {free} słuchaczy, którzy oglądają i słuchają. Plus zwiększa oba limity do {plus}, Pro do {pro}, a Team do {team}."
       },
       "free": {
         "question": "Czy darmowy plan jest naprawdę darmowy?",
-        "answer": "Tak! 2 uczestników + do {freeCap} słuchaczy całkowicie za darmo, na zawsze – a publiczne transmisje mogą oglądać za darmo nieograniczeni goście bez konta. Bez limitów czasu, bez karty kredytowej.",
-        "answerLong": "Tak! 2 uczestników + do {freeCap} słuchaczy całkowicie za darmo, na zawsze – a publiczne transmisje mogą oglądać za darmo nieograniczeni goście bez konta. Bez limitów czasu, bez karty kredytowej. Świetne do programowania w parach i małych demo."
+        "answer": "Tak! 2 uczestników + do {freeCap} słuchaczy całkowicie za darmo, na zawsze. Bez limitów czasu, bez karty kredytowej.",
+        "answerLong": "Tak! 2 uczestników + do {freeCap} słuchaczy całkowicie za darmo, na zawsze. Bez limitów czasu, bez karty kredytowej. Świetne do programowania w parach i małych demo."
       },
       "selfHost": {
         "question": "Czy mogę hostować samodzielnie, by uniknąć kosztów?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Wszystkie miejsca ({cap}) w planie {current} są zajęte.",
     "turnedAway": "{count, plural, one {# osoba nie mogła dołączyć.} few {# osoby nie mogły dołączyć.} many {# osób nie mogło dołączyć.} other {# osoby nie mogły dołączyć.}}",
     "roomFullLift": "{plan} zwiększa limit do {seats} słuchaczy za {price}/mies.",
+    "participantsFullBody": "Plan {current} pozwala na {cap} uczestników, łącznie z Tobą, i wszystkie miejsca są zajęte.",
+    "participantsFullLift": "{plan} zwiększa limit do {seats} uczestników za {price}/mies.",
     "proFeatureTitle": "Analiza rozmów AI to funkcja Pro",
     "proFeatureBody": "{plan} daje analizę rozmów AI, 1080p i do {seats} słuchaczy za {price}/mies.",
     "cta": "Przejdź na {plan}: {price}/mies.",

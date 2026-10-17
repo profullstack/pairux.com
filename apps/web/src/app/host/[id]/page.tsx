@@ -37,7 +37,7 @@ import type { CallAnalysisSettings } from '@pairux/shared-types';
 import { useWebRTCHost, type ViewerConnection } from '@/hooks/useWebRTCHost';
 import { useWebRTCHostSFU } from '@/hooks/useWebRTCHostSFU';
 import { useAudioMixer } from '@/hooks/useAudioMixer';
-import type { SessionParticipant } from '@pairux/shared-types';
+import type { SeatKind, SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
 import { PublishRoomModal } from '@/components/session/PublishRoomModal';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
@@ -56,9 +56,11 @@ interface SessionData {
     quality?: string;
     allowControl?: boolean;
     maxParticipants?: number;
+    maxListeners?: number;
     analysis?: CallAnalysisSettings;
     /** Joiners turned away at the plan cap (see lib/room-cap.ts). */
     capRefusedCount?: number;
+    capRefusedKind?: SeatKind;
   };
   created_at: string;
   session_participants?: SessionParticipant[];
@@ -651,9 +653,13 @@ function HostContent({
       {currentUserId === currentSession.host_user_id && (
         <HostCapPrompt
           sessionId={sessionId}
+          hostUserId={currentSession.host_user_id}
+          mode={currentSession.mode}
           cap={currentSession.settings.maxParticipants}
+          listenerCap={currentSession.settings.maxListeners}
           participants={liveParticipants}
           initialRefused={currentSession.settings.capRefusedCount}
+          initialRefusedKind={currentSession.settings.capRefusedKind}
         />
       )}
       {/* Header */}

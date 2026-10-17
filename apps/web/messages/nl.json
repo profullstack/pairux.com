@@ -765,7 +765,6 @@
     "yourPlan": "Je abonnement",
     "freePlan": "Gratis abonnement",
     "current": "Huidig",
-    "freePlanSummary": "2 deelnemers, alleen P2P",
     "upgradePlan": "Abonnement upgraden",
     "comingSoon": "Binnenkort",
     "comingSoonButton": "Binnenkort",
@@ -1183,8 +1182,6 @@
     "subtitle": "Start vanuit je browser een sessie waarin anderen alleen meekijken",
     "sessionSettings": "Sessie-instellingen",
     "defaults": "Standaardwaarden",
-    "maxViewers": "Maximaal aantal kijkers",
-    "viewers": "{count, plural, one {# kijker} other {# kijkers}}",
     "remoteControl": "Bediening op afstand",
     "enableGuestControl": "Bediening door gasten toestaan",
     "notAvailableWeb": "Niet beschikbaar bij delen via het web",
@@ -1339,7 +1336,6 @@
         "cta": "Aan de slag",
         "features": {
           "participants": "2 deelnemers + tot {count} luisteraars",
-          "publicViewers": "Onbeperkt gratis kijkers bij openbare livestreams",
           "p2p": "P2P-verbindingen",
           "screenSharing": "Schermdelen",
           "remoteControl": "Bediening op afstand",
@@ -1352,7 +1348,7 @@
         "description": "Voor een publiek: lesgeven, stand-ups, samen kijken",
         "cta": "Upgraden naar Plus",
         "features": {
-          "listeners": "Tot {count} luisteraars per ruimte",
+          "listeners": "Tot {count} deelnemers en {count} luisteraars per ruimte",
           "sfu": "SFU-relayservers",
           "liveDirectory": "Openbare ruimte in de /live-directory",
           "screenVoice": "Schermdelen + spraak",
@@ -1365,7 +1361,7 @@
         "description": "Voor professionals en groeiende teams",
         "cta": "Upgraden naar Pro",
         "features": {
-          "listeners": "Tot {count} luisteraars per ruimte",
+          "listeners": "Tot {count} deelnemers en {count} luisteraars per ruimte",
           "sfu": "SFU-relayservers",
           "streaming": "Alle streamingplatforms (YouTube, Twitch, …)",
           "hd": "Schermdelen in HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Voor teams en organisaties",
         "cta": "Upgraden naar Team",
         "features": {
-          "listeners": "Tot {count} luisteraars per ruimte",
+          "listeners": "Tot {count} deelnemers en {count} luisteraars per ruimte",
           "sfu": "Dedicated SFU-servers",
           "streaming": "Alle streamingplatforms",
           "uhd": "Schermdelen in 4K",
@@ -1461,13 +1457,13 @@
       "title": "Veelgestelde vragen",
       "capacity": {
         "question": "Hoeveel mensen kunnen in mijn ruimte meekijken?",
-        "answer": "Het aantal gelijktijdige luisteraars per ruimte hangt af van je abonnement: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Daarnaast kunnen onbeperkt veel gasten zonder account gratis naar openbare livestreams kijken.",
-        "answerLong": "Het aantal gelijktijdige luisteraars per ruimte hangt af van je abonnement: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Daarnaast kunnen onbeperkt veel gasten zonder account gratis naar openbare livestreams kijken."
+        "answer": "Een Free-ruimte biedt plaats aan 2 deelnemers (jij en nog iemand die kan praten of de besturing kan overnemen) en tot {free} luisteraars die kijken en luisteren. Plus verhoogt beide naar {plus}, Pro naar {pro} en Team naar {team}.",
+        "answerLong": "Een Free-ruimte biedt plaats aan 2 deelnemers (jij en nog iemand die kan praten of de besturing kan overnemen) en tot {free} luisteraars die kijken en luisteren. Plus verhoogt beide naar {plus}, Pro naar {pro} en Team naar {team}."
       },
       "free": {
         "question": "Is de gratis versie echt gratis?",
-        "answer": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis, en onbeperkt veel gasten zonder account kunnen gratis naar openbare livestreams kijken. Geen tijdslimiet, geen creditcard nodig.",
-        "answerLong": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis, en onbeperkt veel gasten zonder account kunnen gratis naar openbare livestreams kijken. Geen tijdslimiet, geen creditcard nodig. Ideaal voor pair-programmen en kleine demo’s."
+        "answer": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis. Geen tijdslimiet, geen creditcard nodig.",
+        "answerLong": "Ja! 2 deelnemers + tot {freeCap} luisteraars zijn voor altijd helemaal gratis. Geen tijdslimiet, geen creditcard nodig. Ideaal voor pair-programmen en kleine demo’s."
       },
       "selfHost": {
         "question": "Kan ik zelf hosten om kosten te besparen?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Alle {cap} plaatsen van je {current}-abonnement zijn bezet.",
     "turnedAway": "{count, plural, one {# persoon is geweigerd.} other {# personen zijn geweigerd.}}",
     "roomFullLift": "{plan} verhoogt dat naar {seats} luisteraars voor {price}/maand.",
+    "participantsFullBody": "Je {current}-abonnement staat {cap} deelnemers toe, jijzelf inbegrepen, en alle plaatsen zijn bezet.",
+    "participantsFullLift": "{plan} verhoogt dat naar {seats} deelnemers voor {price}/maand.",
     "proFeatureTitle": "AI-gespreksanalyse is een Pro-functie",
     "proFeatureBody": "{plan} voegt AI-gespreksanalyse, 1080p en tot {seats} luisteraars toe voor {price}/maand.",
     "cta": "Upgraden naar {plan}: {price}/maand",

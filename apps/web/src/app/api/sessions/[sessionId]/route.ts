@@ -1,5 +1,39 @@
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
+import { serviceClient } from '@/lib/supabase/service';
+
+/** Seats in use and the owner's caps right now (session_seat_usage). */
+export interface RoomCapacity {
+  plan: 'free' | 'plus' | 'pro' | 'team';
+  participant_cap: number;
+  listener_cap: number;
+  participants: number;
+  listeners: number;
+}
+
+/**
+ * The room's capacity, for its owner only (it names their plan). The host's
+ * upgrade prompt polls this; null for anyone else or on any failure.
+ */
+async function capacityFor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  sessionId: string,
+  hostUserId: string | undefined
+): Promise<RoomCapacity | null> {
+  try {
+    const { user } = await getAuthenticatedUser(supabase);
+    if (!user || !hostUserId || user.id !== hostUserId) return null;
+    const { data } = (await serviceClient().rpc(
+      'session_seat_usage' as never,
+      {
+        p_session_id: sessionId,
+      } as never
+    )) as { data: RoomCapacity[] | null };
+    return data?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 interface RouteParams {
   params: Promise<{ sessionId: string }>;
@@ -26,7 +60,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return errorResponse(error.message, 400);
     }
 
-    return successResponse(data);
+    const capacity = await capacityFor(
+      supabase,
+      sessionId,
+      (data as { host_user_id?: string }).host_user_id
+    );
+    return successResponse(capacity ? { ...(data as object), capacity } : data);
   } catch (error) {
     return handleApiError(error);
   }

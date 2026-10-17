@@ -765,7 +765,6 @@
     "yourPlan": "Ihr Tarif",
     "freePlan": "Kostenloser Tarif",
     "current": "Aktuell",
-    "freePlanSummary": "2 Teilnehmer, nur P2P",
     "upgradePlan": "Tarif upgraden",
     "comingSoon": "Demnächst",
     "comingSoonButton": "Demnächst",
@@ -1183,8 +1182,6 @@
     "subtitle": "Starten Sie aus Ihrem Browser eine Bildschirmfreigabe nur zum Ansehen",
     "sessionSettings": "Sitzungseinstellungen",
     "defaults": "Standardwerte",
-    "maxViewers": "Maximale Zuschauerzahl",
-    "viewers": "{count, plural, one {# Zuschauer} other {# Zuschauer}}",
     "remoteControl": "Fernsteuerung",
     "enableGuestControl": "Steuerung durch Gäste erlauben",
     "notAvailableWeb": "Bei der Web-Freigabe nicht verfügbar",
@@ -1339,7 +1336,6 @@
         "cta": "Loslegen",
         "features": {
           "participants": "2 Teilnehmer + bis zu {count} Zuhörer",
-          "publicViewers": "Unbegrenzt kostenlose Zuschauer bei öffentlichen Livestreams",
           "p2p": "P2P-Verbindungen",
           "screenSharing": "Bildschirmfreigabe",
           "remoteControl": "Fernsteuerung",
@@ -1352,7 +1348,7 @@
         "description": "Für ein Publikum – Unterricht, Stand-ups, gemeinsames Zuschauen",
         "cta": "Auf Plus upgraden",
         "features": {
-          "listeners": "Bis zu {count} Zuhörer pro Raum",
+          "listeners": "Bis zu {count} Teilnehmer und {count} Zuhörer pro Raum",
           "sfu": "SFU-Relay-Server",
           "liveDirectory": "Öffentlicher Raum im /live-Verzeichnis",
           "screenVoice": "Bildschirmfreigabe + Sprache",
@@ -1365,7 +1361,7 @@
         "description": "Für Profis und wachsende Teams",
         "cta": "Auf Pro upgraden",
         "features": {
-          "listeners": "Bis zu {count} Zuhörer pro Raum",
+          "listeners": "Bis zu {count} Teilnehmer und {count} Zuhörer pro Raum",
           "sfu": "SFU-Relay-Server",
           "streaming": "Alle Streaming-Plattformen (YouTube, Twitch, …)",
           "hd": "HD-Bildschirmfreigabe (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Für Teams und Organisationen",
         "cta": "Auf Team upgraden",
         "features": {
-          "listeners": "Bis zu {count} Zuhörer pro Raum",
+          "listeners": "Bis zu {count} Teilnehmer und {count} Zuhörer pro Raum",
           "sfu": "Dedizierte SFU-Server",
           "streaming": "Alle Streaming-Plattformen",
           "uhd": "4K-Bildschirmfreigabe",
@@ -1461,13 +1457,13 @@
       "title": "Häufig gestellte Fragen",
       "capacity": {
         "question": "Wie viele Personen können in meinem Raum zuschauen?",
-        "answer": "Die Zahl gleichzeitiger Zuhörer pro Raum richtet sich nach Ihrem Tarif: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Zusätzlich können öffentliche Livestreams von beliebig vielen Gästen ohne Konto kostenlos angesehen werden.",
-        "answerLong": "Die Zahl gleichzeitiger Zuhörer pro Raum richtet sich nach Ihrem Tarif: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Zusätzlich können öffentliche Livestreams von beliebig vielen Gästen ohne Konto kostenlos angesehen werden."
+        "answer": "Ein Free-Raum fasst 2 Teilnehmer (dich und eine weitere Person, die sprechen oder die Steuerung übernehmen kann) und bis zu {free} Zuhörer, die zusehen und zuhören. Plus erhöht beides auf {plus}, Pro auf {pro} und Team auf {team}.",
+        "answerLong": "Ein Free-Raum fasst 2 Teilnehmer (dich und eine weitere Person, die sprechen oder die Steuerung übernehmen kann) und bis zu {free} Zuhörer, die zusehen und zuhören. Plus erhöht beides auf {plus}, Pro auf {pro} und Team auf {team}."
       },
       "free": {
         "question": "Ist der kostenlose Tarif wirklich kostenlos?",
-        "answer": "Ja! 2 Teilnehmer + bis zu {freeCap} Zuhörer sind dauerhaft komplett kostenlos – und öffentliche Livestreams können von beliebig vielen Gästen ohne Konto kostenlos angesehen werden. Keine Zeitlimits, keine Kreditkarte erforderlich.",
-        "answerLong": "Ja! 2 Teilnehmer + bis zu {freeCap} Zuhörer sind dauerhaft komplett kostenlos – und öffentliche Livestreams können von beliebig vielen Gästen ohne Konto kostenlos angesehen werden. Keine Zeitlimits, keine Kreditkarte erforderlich. Ideal für Pair-Programming und kleine Demos."
+        "answer": "Ja! 2 Teilnehmer + bis zu {freeCap} Zuhörer sind dauerhaft komplett kostenlos. Keine Zeitlimits, keine Kreditkarte erforderlich.",
+        "answerLong": "Ja! 2 Teilnehmer + bis zu {freeCap} Zuhörer sind dauerhaft komplett kostenlos. Keine Zeitlimits, keine Kreditkarte erforderlich. Ideal für Pair-Programming und kleine Demos."
       },
       "selfHost": {
         "question": "Kann ich selbst hosten, um Kosten zu sparen?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Alle {cap} Plätze in deinem {current}-Tarif sind belegt.",
     "turnedAway": "{count, plural, one {# Person wurde abgewiesen.} other {# Personen wurden abgewiesen.}}",
     "roomFullLift": "{plan} erhöht das auf {seats} Zuhörer für {price}/Monat.",
+    "participantsFullBody": "Dein {current}-Tarif erlaubt {cap} Teilnehmer, dich eingeschlossen, und alle Plätze sind belegt.",
+    "participantsFullLift": "{plan} erhöht das auf {seats} Teilnehmer für {price}/Monat.",
     "proFeatureTitle": "KI-Gesprächsanalyse ist eine Pro-Funktion",
     "proFeatureBody": "{plan} bietet KI-Gesprächsanalyse, 1080p und bis zu {seats} Zuhörer für {price}/Monat.",
     "cta": "Auf {plan} upgraden: {price}/Monat",

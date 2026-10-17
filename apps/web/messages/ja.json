@@ -765,7 +765,6 @@
     "yourPlan": "ご利用中のプラン",
     "freePlan": "無料プラン",
     "current": "現在のプラン",
-    "freePlanSummary": "参加者2人、P2P のみ",
     "upgradePlan": "プランをアップグレード",
     "comingSoon": "近日公開",
     "comingSoonButton": "近日公開",
@@ -1183,8 +1182,6 @@
     "subtitle": "ブラウザから閲覧専用の画面共有セッションを開始します",
     "sessionSettings": "セッション設定",
     "defaults": "デフォルト",
-    "maxViewers": "最大視聴者数",
-    "viewers": "{count, plural, other {視聴者 #人}}",
     "remoteControl": "リモート操作",
     "enableGuestControl": "ゲストの操作を有効にする",
     "notAvailableWeb": "Web での共有では利用できません",
@@ -1339,7 +1336,6 @@
         "cta": "始める",
         "features": {
           "participants": "参加者2人＋リスナー最大{count}人",
-          "publicViewers": "公開ライブは無料で視聴者数無制限",
           "p2p": "P2P 接続",
           "screenSharing": "画面共有",
           "remoteControl": "リモート操作",
@@ -1352,7 +1348,7 @@
         "description": "講義、朝会、一緒に観る会など、聴衆のいる配信に",
         "cta": "Plus にアップグレード",
         "features": {
-          "listeners": "1ルームあたりリスナー最大{count}人",
+          "listeners": "1ルームあたり参加者最大{count}人＋リスナー最大{count}人",
           "sfu": "SFU リレーサーバー",
           "liveDirectory": "/live ディレクトリに公開ルームを掲載",
           "screenVoice": "画面共有＋音声",
@@ -1365,7 +1361,7 @@
         "description": "プロフェッショナルと成長中のチーム向け",
         "cta": "Pro にアップグレード",
         "features": {
-          "listeners": "1ルームあたりリスナー最大{count}人",
+          "listeners": "1ルームあたり参加者最大{count}人＋リスナー最大{count}人",
           "sfu": "SFU リレーサーバー",
           "streaming": "すべての配信プラットフォーム（YouTube、Twitch など）",
           "hd": "HD 画面共有（1080p）",
@@ -1379,7 +1375,7 @@
         "description": "チームと組織向け",
         "cta": "Team にアップグレード",
         "features": {
-          "listeners": "1ルームあたりリスナー最大{count}人",
+          "listeners": "1ルームあたり参加者最大{count}人＋リスナー最大{count}人",
           "sfu": "専用 SFU サーバー",
           "streaming": "すべての配信プラットフォーム",
           "uhd": "4K 画面共有",
@@ -1461,13 +1457,13 @@
       "title": "よくある質問",
       "capacity": {
         "question": "ルームは何人まで視聴できますか？",
-        "answer": "1ルームあたりの同時リスナー数はプランによって異なります：Free {free}人、Plus {plus}人、Pro {pro}人、Team {team}人。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。",
-        "answerLong": "1ルームあたりの同時リスナー数はプランによって異なります：Free {free}人、Plus {plus}人、Pro {pro}人、Team {team}人。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。"
+        "answer": "Freeのルームは参加者2人（あなたと、話したり操作を引き継いだりできるもう1人）と、視聴するリスナー最大{free}人まで入れます。Plusでは両方が{plus}人、Proでは{pro}人、Teamでは{team}人になります。",
+        "answerLong": "Freeのルームは参加者2人（あなたと、話したり操作を引き継いだりできるもう1人）と、視聴するリスナー最大{free}人まで入れます。Plusでは両方が{plus}人、Proでは{pro}人、Teamでは{team}人になります。"
       },
       "free": {
         "question": "無料プランは本当に無料ですか？",
-        "answer": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。時間制限もクレジットカードの登録も不要です。",
-        "answerLong": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。さらに公開ライブは、アカウントのないゲストが人数無制限で無料視聴できます。時間制限もクレジットカードの登録も不要です。ペアプログラミングや小規模なデモに最適です。"
+        "answer": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。時間制限もクレジットカードの登録も不要です。",
+        "answerLong": "はい！参加者2人＋リスナー最大{freeCap}人までずっと完全無料です。時間制限もクレジットカードの登録も不要です。ペアプログラミングや小規模なデモに最適です。"
       },
       "selfHost": {
         "question": "セルフホストで費用を抑えられますか？",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "{current}プランの{cap}席がすべて埋まっています。",
     "turnedAway": "{count, plural, other {#人が参加できませんでした。}}",
     "roomFullLift": "{plan}なら月額{price}で{seats}人のリスナーまで増やせます。",
+    "participantsFullBody": "{current}プランの参加者はあなたを含めて{cap}人までで、すべての席が埋まっています。",
+    "participantsFullLift": "{plan}なら月額{price}で参加者を{seats}人まで増やせます。",
     "proFeatureTitle": "AI通話分析はProの機能です",
     "proFeatureBody": "{plan}なら月額{price}でAI通話分析、1080p、最大{seats}人のリスナーが使えます。",
     "cta": "{plan}にアップグレード：月額{price}",

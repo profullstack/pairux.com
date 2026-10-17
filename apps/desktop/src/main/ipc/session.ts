@@ -295,5 +295,32 @@ export function registerSessionHandlers(): void {
     }
   );
 
+  // Keep this viewer's plan seat: a row that stops pinging frees its seat after
+  // 3 minutes, so a closed app never holds a Free room's second seat.
+  ipcMain.handle(
+    'session:presence',
+    async (
+      _event,
+      args: { sessionId: string }
+    ): Promise<{ success: true; seat: string } | { success: false; error: string }> => {
+      try {
+        const headers = await getAuthHeaders();
+        if (!headers) return { success: false, error: 'Not authenticated' };
+        const response = await apiFetch(`${API_BASE_URL}/api/sessions/${args.sessionId}/presence`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({}),
+        });
+        const data = (await response.json()) as ApiResponse<{ seat: string }>;
+        if (!response.ok || !data.data) {
+          return { success: false, error: data.error ?? 'Presence ping failed' };
+        }
+        return { success: true, seat: data.data.seat };
+      } catch (err) {
+        return { success: false, error: formatNetworkError(err) };
+      }
+    }
+  );
+
   console.log('[Session] Session IPC handlers registered');
 }

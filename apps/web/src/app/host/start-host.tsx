@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Users, Settings } from 'lucide-react';
+import { Monitor, Loader2, AlertCircle, ArrowRight, Shield, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { DesktopHandoffOverlay } from '@/components/session/DesktopHandoffOverlay';
@@ -24,16 +24,12 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Settings key (same as in settings page)
-const SETTINGS_KEY = 'pairux-web-settings';
-
 export function StartHost({ header }: { header: ReactNode }) {
   const t = useTranslations('hostStart');
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [needsPro, setNeedsPro] = useState(false);
-  const [maxParticipants, setMaxParticipants] = useState(5);
   const [analysis, setAnalysis] = useState<CallAnalysisSettings>(DEFAULT_ANALYSIS);
   const orgs = useMyOrgs();
   const [workspace, setWorkspace] = useState<Workspace>({});
@@ -51,23 +47,6 @@ export function StartHost({ header }: { header: ReactNode }) {
     },
   });
 
-  // Load settings from localStorage on mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings) as {
-          session?: { defaultMaxParticipants?: number };
-        };
-        if (parsed.session?.defaultMaxParticipants) {
-          setMaxParticipants(parsed.session.defaultMaxParticipants);
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  }, []);
-
   const createSession = useCallback(async () => {
     setIsCreating(true);
     setError('');
@@ -81,7 +60,6 @@ export function StartHost({ header }: { header: ReactNode }) {
         },
         body: JSON.stringify({
           allowGuestControl,
-          maxParticipants,
           ...(analysis.enabled ? { analysis } : {}),
           ...(workspace.orgId ? { orgId: workspace.orgId } : {}),
           ...(workspace.teamId ? { teamId: workspace.teamId } : {}),
@@ -114,7 +92,7 @@ export function StartHost({ header }: { header: ReactNode }) {
     } finally {
       setIsCreating(false);
     }
-  }, [router, openSession, maxParticipants, allowGuestControl, analysis, workspace, t]);
+  }, [router, openSession, allowGuestControl, analysis, workspace, t]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -168,26 +146,8 @@ export function StartHost({ header }: { header: ReactNode }) {
               </div>
             )}
 
-            {/* Max participants */}
-            <div className="mt-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <Users className="h-4 w-4 text-gray-400" />
-                {t('maxViewers')}
-              </label>
-              <select
-                value={maxParticipants}
-                onChange={(e) => {
-                  setMaxParticipants(Number(e.target.value));
-                }}
-                className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                {[2, 5, 10].map((count) => (
-                  <option key={count} value={count}>
-                    {t('viewers', { count })}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Room size comes from your plan (Free: 2 participants + 20
+                listeners); the server ignores any number sent from here. */}
 
             {/* Guest control toggle - disabled for web hosting */}
             <div className="mt-6">

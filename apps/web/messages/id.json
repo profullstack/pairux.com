@@ -765,7 +765,6 @@
     "yourPlan": "Paket Anda",
     "freePlan": "Paket Gratis",
     "current": "Saat ini",
-    "freePlanSummary": "2 peserta, hanya P2P",
     "upgradePlan": "Tingkatkan Paket",
     "comingSoon": "Segera hadir",
     "comingSoonButton": "Segera Hadir",
@@ -1183,8 +1182,6 @@
     "subtitle": "Mulai sesi berbagi layar khusus tonton dari browser Anda",
     "sessionSettings": "Pengaturan Sesi",
     "defaults": "Bawaan",
-    "maxViewers": "Penonton Maksimum",
-    "viewers": "{count, plural, other {# penonton}}",
     "remoteControl": "Kontrol Jarak Jauh",
     "enableGuestControl": "Aktifkan kontrol tamu",
     "notAvailableWeb": "Tidak tersedia saat berbagi lewat web",
@@ -1339,7 +1336,6 @@
         "cta": "Mulai",
         "features": {
           "participants": "2 peserta + hingga {count} pendengar",
-          "publicViewers": "Penonton gratis tanpa batas di siaran live publik",
           "p2p": "Koneksi P2P",
           "screenSharing": "Berbagi layar",
           "remoteControl": "Kontrol jarak jauh",
@@ -1352,7 +1348,7 @@
         "description": "Jadi host untuk audiens — mengajar, standup, nonton bareng",
         "cta": "Tingkatkan ke Plus",
         "features": {
-          "listeners": "Hingga {count} pendengar per ruang",
+          "listeners": "Hingga {count} peserta dan {count} pendengar per ruang",
           "sfu": "Server relay SFU",
           "liveDirectory": "Ruang publik di direktori /live",
           "screenVoice": "Berbagi layar + suara",
@@ -1365,7 +1361,7 @@
         "description": "Untuk profesional dan tim yang berkembang",
         "cta": "Tingkatkan ke Pro",
         "features": {
-          "listeners": "Hingga {count} pendengar per ruang",
+          "listeners": "Hingga {count} peserta dan {count} pendengar per ruang",
           "sfu": "Server relay SFU",
           "streaming": "Semua platform streaming (YouTube, Twitch, …)",
           "hd": "Berbagi layar HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Untuk tim dan organisasi",
         "cta": "Tingkatkan ke Team",
         "features": {
-          "listeners": "Hingga {count} pendengar per ruang",
+          "listeners": "Hingga {count} peserta dan {count} pendengar per ruang",
           "sfu": "Server SFU khusus",
           "streaming": "Semua platform streaming",
           "uhd": "Berbagi layar 4K",
@@ -1461,13 +1457,13 @@
       "title": "Pertanyaan yang Sering Diajukan",
       "capacity": {
         "question": "Berapa banyak orang yang dapat menonton ruang saya?",
-        "answer": "Jumlah pendengar bersamaan per ruang mengikuti paket Anda: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Selain itu, siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun.",
-        "answerLong": "Jumlah pendengar bersamaan per ruang mengikuti paket Anda: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Selain itu, siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun."
+        "answer": "Ruang Free menampung 2 peserta (Anda dan satu orang lain yang bisa berbicara atau mengambil kendali) serta hingga {free} pendengar yang menonton dan mendengarkan. Plus menaikkan keduanya menjadi {plus}, Pro menjadi {pro}, dan Team menjadi {team}.",
+        "answerLong": "Ruang Free menampung 2 peserta (Anda dan satu orang lain yang bisa berbicara atau mengambil kendali) serta hingga {free} pendengar yang menonton dan mendengarkan. Plus menaikkan keduanya menjadi {plus}, Pro menjadi {pro}, dan Team menjadi {team}."
       },
       "free": {
         "question": "Apakah paket gratis benar-benar gratis?",
-        "answer": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya — dan siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun. Tanpa batas waktu, tanpa kartu kredit.",
-        "answerLong": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya — dan siaran live publik dapat ditonton gratis oleh tamu tanpa batas tanpa akun. Tanpa batas waktu, tanpa kartu kredit. Cocok untuk pair programming dan demo kecil."
+        "answer": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya. Tanpa batas waktu, tanpa kartu kredit.",
+        "answerLong": "Ya! 2 peserta + hingga {freeCap} pendengar sepenuhnya gratis, selamanya. Tanpa batas waktu, tanpa kartu kredit. Cocok untuk pair programming dan demo kecil."
       },
       "selfHost": {
         "question": "Bisakah saya meng-host sendiri untuk menghemat biaya?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Semua {cap} kursi di paket {current} Anda sudah terisi.",
     "turnedAway": "{count, plural, other {# orang ditolak masuk.}}",
     "roomFullLift": "{plan} menaikkannya menjadi {seats} pendengar seharga {price}/bulan.",
+    "participantsFullBody": "Paket {current} Anda mengizinkan {cap} peserta, termasuk Anda, dan semua kursi sudah terisi.",
+    "participantsFullLift": "{plan} menaikkannya menjadi {seats} peserta seharga {price}/bulan.",
     "proFeatureTitle": "Analisis panggilan AI adalah fitur Pro",
     "proFeatureBody": "{plan} menambahkan analisis panggilan AI, 1080p, dan hingga {seats} pendengar seharga {price}/bulan.",
     "cta": "Upgrade ke {plan}: {price}/bln",

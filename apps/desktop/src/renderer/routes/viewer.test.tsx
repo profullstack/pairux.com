@@ -503,13 +503,14 @@ describe('ViewerPage', () => {
   });
 
   it('refreshes participant list immediately on presence change', async () => {
-    mockInvoke
-      .mockResolvedValueOnce({
+    // session:get answers in order; the 30 s seat ping (session:presence) has its own answer.
+    const sessionGets = [
+      {
         success: true,
         session: makeSession(),
         participants: makeParticipants(),
-      })
-      .mockResolvedValueOnce({
+      },
+      {
         success: true,
         session: makeSession(),
         participants: [
@@ -528,7 +529,14 @@ describe('ViewerPage', () => {
             left_at: null,
           } satisfies SessionParticipant,
         ],
-      });
+      },
+    ];
+    let lastGet = sessionGets[0];
+    mockInvoke.mockImplementation((channel: string) => {
+      if (channel === 'session:presence') return Promise.resolve({ success: true, seat: 'ok' });
+      lastGet = sessionGets.shift() ?? lastGet;
+      return Promise.resolve(lastGet);
+    });
 
     renderWithRouter();
 

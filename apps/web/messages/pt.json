@@ -765,7 +765,6 @@
     "yourPlan": "Seu plano",
     "freePlan": "Plano gratuito",
     "current": "Atual",
-    "freePlanSummary": "2 participantes, somente P2P",
     "upgradePlan": "Fazer upgrade",
     "comingSoon": "Em breve",
     "comingSoonButton": "Em breve",
@@ -1183,8 +1182,6 @@
     "subtitle": "Inicie pelo navegador uma sessão de compartilhamento de tela somente para visualização",
     "sessionSettings": "Configurações da sessão",
     "defaults": "Padrões",
-    "maxViewers": "Máximo de espectadores",
-    "viewers": "{count, plural, one {# espectador} other {# espectadores}}",
     "remoteControl": "Controle remoto",
     "enableGuestControl": "Permitir controle pelo convidado",
     "notAvailableWeb": "Indisponível no compartilhamento pela web",
@@ -1339,7 +1336,6 @@
         "cta": "Começar",
         "features": {
           "participants": "2 participantes + até {count} ouvintes",
-          "publicViewers": "Espectadores gratuitos ilimitados em lives públicas",
           "p2p": "Conexões P2P",
           "screenSharing": "Compartilhamento de tela",
           "remoteControl": "Controle remoto",
@@ -1352,7 +1348,7 @@
         "description": "Receba um público: aulas, dailies, sessões para assistir junto",
         "cta": "Assinar o Plus",
         "features": {
-          "listeners": "Até {count} ouvintes por sala",
+          "listeners": "Até {count} participantes e {count} ouvintes por sala",
           "sfu": "Servidores de retransmissão SFU",
           "liveDirectory": "Sala pública no diretório /live",
           "screenVoice": "Compartilhamento de tela + voz",
@@ -1365,7 +1361,7 @@
         "description": "Para profissionais e equipes em crescimento",
         "cta": "Assinar o Pro",
         "features": {
-          "listeners": "Até {count} ouvintes por sala",
+          "listeners": "Até {count} participantes e {count} ouvintes por sala",
           "sfu": "Servidores de retransmissão SFU",
           "streaming": "Todas as plataformas de streaming (YouTube, Twitch, …)",
           "hd": "Compartilhamento de tela em HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Para equipes e organizações",
         "cta": "Assinar o Team",
         "features": {
-          "listeners": "Até {count} ouvintes por sala",
+          "listeners": "Até {count} participantes e {count} ouvintes por sala",
           "sfu": "Servidores SFU dedicados",
           "streaming": "Todas as plataformas de streaming",
           "uhd": "Compartilhamento de tela em 4K",
@@ -1461,13 +1457,13 @@
       "title": "Perguntas frequentes",
       "capacity": {
         "question": "Quantas pessoas podem assistir à minha sala?",
-        "answer": "O número de ouvintes simultâneos por sala depende do seu plano: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Além disso, as lives públicas podem ser assistidas gratuitamente por convidados ilimitados, sem conta.",
-        "answerLong": "O número de ouvintes simultâneos por sala depende do seu plano: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Além disso, as lives públicas podem ser assistidas gratuitamente por convidados ilimitados, sem conta."
+        "answer": "Uma sala Free comporta 2 participantes (você e mais uma pessoa que pode falar ou assumir o controle) e até {free} ouvintes que assistem e escutam. O Plus aumenta ambos para {plus}, o Pro para {pro} e o Team para {team}.",
+        "answerLong": "Uma sala Free comporta 2 participantes (você e mais uma pessoa que pode falar ou assumir o controle) e até {free} ouvintes que assistem e escutam. O Plus aumenta ambos para {plus}, o Pro para {pro} e o Team para {team}."
       },
       "free": {
         "question": "O plano gratuito é mesmo gratuito?",
-        "answer": "Sim! 2 participantes + até {freeCap} ouvintes são totalmente gratuitos, para sempre, e as lives públicas podem ser assistidas gratuitamente por convidados ilimitados, sem conta. Sem limite de tempo e sem cartão de crédito.",
-        "answerLong": "Sim! 2 participantes + até {freeCap} ouvintes são totalmente gratuitos, para sempre, e as lives públicas podem ser assistidas gratuitamente por convidados ilimitados, sem conta. Sem limite de tempo e sem cartão de crédito. Ótimo para pair programming e pequenas demos."
+        "answer": "Sim! 2 participantes + até {freeCap} ouvintes são totalmente gratuitos, para sempre. Sem limite de tempo e sem cartão de crédito.",
+        "answerLong": "Sim! 2 participantes + até {freeCap} ouvintes são totalmente gratuitos, para sempre. Sem limite de tempo e sem cartão de crédito. Ótimo para pair programming e pequenas demos."
       },
       "selfHost": {
         "question": "Posso hospedar por conta própria para evitar custos?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Todas as {cap} vagas do seu plano {current} estão ocupadas.",
     "turnedAway": "{count, plural, one {# pessoa foi recusada.} other {# pessoas foram recusadas.}}",
     "roomFullLift": "{plan} aumenta para {seats} ouvintes por {price}/mês.",
+    "participantsFullBody": "Seu plano {current} permite {cap} participantes, incluindo você, e todas as vagas estão ocupadas.",
+    "participantsFullLift": "{plan} aumenta para {seats} participantes por {price}/mês.",
     "proFeatureTitle": "A análise de chamadas com IA é um recurso Pro",
     "proFeatureBody": "{plan} inclui análise de chamadas com IA, 1080p e até {seats} ouvintes por {price}/mês.",
     "cta": "Mudar para {plan}: {price}/mês",

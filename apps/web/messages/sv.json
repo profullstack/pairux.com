@@ -765,7 +765,6 @@
     "yourPlan": "Din plan",
     "freePlan": "Gratisplan",
     "current": "Aktuell",
-    "freePlanSummary": "2 deltagare, endast P2P",
     "upgradePlan": "Uppgradera plan",
     "comingSoon": "Kommer snart",
     "comingSoonButton": "Kommer snart",
@@ -1183,8 +1182,6 @@
     "subtitle": "Starta en skärmdelningssession för enbart visning från din webbläsare",
     "sessionSettings": "Sessionsinställningar",
     "defaults": "Standard",
-    "maxViewers": "Max antal tittare",
-    "viewers": "{count, plural, one {# tittare} other {# tittare}}",
     "remoteControl": "Fjärrstyrning",
     "enableGuestControl": "Låt gäster styra",
     "notAvailableWeb": "Inte tillgängligt vid delning via webben",
@@ -1339,7 +1336,6 @@
         "cta": "Kom igång",
         "features": {
           "participants": "2 deltagare + upp till {count} lyssnare",
-          "publicViewers": "Obegränsat antal gratis tittare på offentliga livesändningar",
           "p2p": "P2P-anslutningar",
           "screenSharing": "Skärmdelning",
           "remoteControl": "Fjärrstyrning",
@@ -1352,7 +1348,7 @@
         "description": "Ha en publik – undervisning, stand-ups, titta tillsammans",
         "cta": "Uppgradera till Plus",
         "features": {
-          "listeners": "Upp till {count} lyssnare per rum",
+          "listeners": "Upp till {count} deltagare och {count} lyssnare per rum",
           "sfu": "SFU-reläservrar",
           "liveDirectory": "Offentligt rum i /live-katalogen",
           "screenVoice": "Skärmdelning + röst",
@@ -1365,7 +1361,7 @@
         "description": "För yrkesverksamma och växande team",
         "cta": "Uppgradera till Pro",
         "features": {
-          "listeners": "Upp till {count} lyssnare per rum",
+          "listeners": "Upp till {count} deltagare och {count} lyssnare per rum",
           "sfu": "SFU-reläservrar",
           "streaming": "Alla strömningsplattformar (YouTube, Twitch, …)",
           "hd": "Skärmdelning i HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "För team och organisationer",
         "cta": "Uppgradera till Team",
         "features": {
-          "listeners": "Upp till {count} lyssnare per rum",
+          "listeners": "Upp till {count} deltagare och {count} lyssnare per rum",
           "sfu": "Dedikerade SFU-servrar",
           "streaming": "Alla strömningsplattformar",
           "uhd": "Skärmdelning i 4K",
@@ -1461,13 +1457,13 @@
       "title": "Vanliga frågor",
       "capacity": {
         "question": "Hur många kan titta på mitt rum?",
-        "answer": "Antalet samtidiga lyssnare per rum beror på din plan: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Dessutom kan offentliga livesändningar ses gratis av obegränsat antal gäster utan konto.",
-        "answerLong": "Antalet samtidiga lyssnare per rum beror på din plan: Gratis {free}, Plus {plus}, Pro {pro}, Team {team}. Dessutom kan offentliga livesändningar ses gratis av obegränsat antal gäster utan konto."
+        "answer": "Ett Free-rum rymmer 2 deltagare (du och en person till som kan prata eller ta över styrningen) och upp till {free} lyssnare som tittar och lyssnar. Plus höjer båda till {plus}, Pro till {pro} och Team till {team}.",
+        "answerLong": "Ett Free-rum rymmer 2 deltagare (du och en person till som kan prata eller ta över styrningen) och upp till {free} lyssnare som tittar och lyssnar. Plus höjer båda till {plus}, Pro till {pro} och Team till {team}."
       },
       "free": {
         "question": "Är gratisnivån verkligen gratis?",
-        "answer": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid – och offentliga livesändningar kan ses gratis av obegränsat antal gäster utan konto. Inga tidsgränser och inget kreditkort krävs.",
-        "answerLong": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid – och offentliga livesändningar kan ses gratis av obegränsat antal gäster utan konto. Inga tidsgränser och inget kreditkort krävs. Perfekt för parprogrammering och små demos."
+        "answer": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid. Inga tidsgränser och inget kreditkort krävs.",
+        "answerLong": "Ja! 2 deltagare + upp till {freeCap} lyssnare är helt gratis, för alltid. Inga tidsgränser och inget kreditkort krävs. Perfekt för parprogrammering och små demos."
       },
       "selfHost": {
         "question": "Kan jag drifta själv för att slippa kostnader?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Alla {cap} platser i din {current}-plan är upptagna.",
     "turnedAway": "{count, plural, one {# person nekades.} other {# personer nekades.}}",
     "roomFullLift": "{plan} höjer det till {seats} lyssnare för {price}/månad.",
+    "participantsFullBody": "Din {current}-plan tillåter {cap} deltagare, du själv inräknad, och alla platser är upptagna.",
+    "participantsFullLift": "{plan} höjer det till {seats} deltagare för {price}/månad.",
     "proFeatureTitle": "AI-samtalsanalys är en Pro-funktion",
     "proFeatureBody": "{plan} ger AI-samtalsanalys, 1080p och upp till {seats} lyssnare för {price}/månad.",
     "cta": "Uppgradera till {plan}: {price}/mån",

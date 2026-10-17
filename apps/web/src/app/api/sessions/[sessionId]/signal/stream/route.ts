@@ -118,15 +118,39 @@ export async function GET(
 
     const iceServers = await getIceServers();
 
+    // A viewer on this stream is in the room: keep their plan seat (see
+    // claim_session_seat). The desktop and mobile apps sign over this stream,
+    // so their seats stay held without a separate ping. Best effort.
+    const seatRowId =
+      participantId && z.string().uuid().safeParse(participantId).success ? participantId : null;
+    const holdSeat = () => {
+      if (isHost) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+        const pending = (supabase.rpc as any)('claim_session_seat', {
+          p_session_id: sessionId,
+          p_participant_id: seatRowId,
+        });
+        void Promise.resolve(pending).catch(() => {
+          // The next heartbeat tries again.
+        });
+      } catch {
+        // Best effort, as above.
+      }
+    };
+
     const stream = new ReadableStream({
       start(controller) {
         // Send initial connection event (includes ICE servers so clients get TURN config)
         const connectEvent = `event: connected\ndata: ${JSON.stringify({ sessionId, subscriberId, isHost, iceServers })}\n\n`;
         controller.enqueue(encoder.encode(connectEvent));
 
+        holdSeat();
+
         // Set up heartbeat to keep connection alive
         heartbeatInterval = setInterval(() => {
           if (!isStreamClosed) {
+            holdSeat();
             try {
               const heartbeat = `event: heartbeat\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`;
               controller.enqueue(encoder.encode(heartbeat));

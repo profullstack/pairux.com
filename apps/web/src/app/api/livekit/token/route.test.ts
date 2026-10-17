@@ -7,11 +7,6 @@ const mockAddGrant = vi.fn();
 const mockToJwt = vi.fn().mockResolvedValue('mock-jwt-token');
 const mockAccessTokenCtor = vi.fn();
 
-vi.mock('@/lib/orgs', () => ({
-  // Org-aware plan lookup: these tests exercise personal (free) accounts.
-  resolveUserPlan: () => Promise.resolve('free'),
-  canUseWorkspace: () => Promise.resolve({ orgId: null, teamId: null }),
-}));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
   getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
@@ -217,84 +212,86 @@ describe('POST /api/livekit/token', () => {
     expect(body.error).toBe('Sign in to join this room');
   });
 
-  it('returns 403 when the room is over the owner plan listener cap', async () => {
+  describe('plan seats (claim_session_seat)', () => {
+    // A non-owner with a live participant row, plus whatever the seat claim says.
+    function seatedClient(seat: string, session: unknown, rowId = 'participant-1') {
+      const sessionQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: session, error: null }),
+      };
+      const participantQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: rowId }, error: null }),
+      };
+      const rpc = vi.fn().mockResolvedValue({ data: seat, error: null });
+      const mockFrom = vi.fn((table: string) => {
+        if (table === 'sessions') return sessionQuery;
+        if (table === 'session_participants') return participantQuery;
+        throw new Error(`Unexpected table ${table}`);
+      });
+      const client = createMockSupabaseClient({ from: mockFrom, rpc });
+      vi.mocked(createClient).mockResolvedValue(client as never);
+      vi.mocked(serviceClient).mockReturnValue(client as never);
+      return rpc;
+    }
+
     const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
-    const sessionQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
-    };
-    const participantQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      is: vi.fn().mockReturnThis(),
-      not: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
-      // The head:true count query is awaited directly (no .single()).
-      then: (resolve: (v: unknown) => void) => resolve({ count: 21, data: null, error: null }),
-    };
-    const profileQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { plan: 'free', plan_expires_at: null },
-        error: null,
-      }),
-    };
-    const mockFrom = vi.fn((table: string) => {
-      if (table === 'sessions') return sessionQuery;
-      if (table === 'session_participants') return participantQuery;
-      if (table === 'profiles') return profileQuery;
-      throw new Error(`Unexpected table ${table}`);
+
+    it('admits a participant who is still in the call', async () => {
+      const rpc = seatedClient('ok', otherOwnerSession);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await POST(createRequest({ ...validBody, isHost: false }));
+
+      expect(response.status).toBe(200);
+      expect(rpc).toHaveBeenCalledWith('claim_session_seat', {
+        p_session_id: validBody.sessionId,
+        p_participant_id: 'participant-1',
+      });
     });
-    useClient(createMockSupabaseClient({ from: mockFrom }));
-    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
-    const response = await POST(createRequest({ ...validBody, isHost: false }));
-    const body = await response.json();
+    it('turns a signed-in joiner away when the participant seats are taken', async () => {
+      seatedClient('participants', otherOwnerSession);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
-    expect(response.status).toBe(403);
-    expect(body.error).toContain('This room is full');
-  });
+      const response = await POST(createRequest({ ...validBody, isHost: false }));
+      const body = await response.json();
 
-  it('lets the joiner take the last seat (their own row is in the count)', async () => {
-    const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
-    const sessionQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
-    };
-    const participantQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      is: vi.fn().mockReturnThis(),
-      not: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
-      // The head:true count query is awaited directly (no .single()).
-      then: (resolve: (v: unknown) => void) => resolve({ count: 20, data: null, error: null }),
-    };
-    const profileQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { plan: 'free', plan_expires_at: null },
-        error: null,
-      }),
-    };
-    const mockFrom = vi.fn((table: string) => {
-      if (table === 'sessions') return sessionQuery;
-      if (table === 'session_participants') return participantQuery;
-      if (table === 'profiles') return profileQuery;
-      throw new Error(`Unexpected table ${table}`);
+      expect(response.status).toBe(403);
+      expect(body.error).toContain('This room is full');
+      expect(mockAddGrant).not.toHaveBeenCalled();
     });
-    useClient(createMockSupabaseClient({ from: mockFrom }));
-    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
-    const response = await POST(createRequest({ ...validBody, isHost: false }));
-    const body = await response.json();
+    it('turns a guest away when the listener seats are taken', async () => {
+      const rpc = seatedClient(
+        'listeners',
+        { ...sfuSession, host_user_id: 'owner-x', current_host_id: 'owner-x', is_public: true },
+        validBody.participantId
+      );
+      mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
-    expect(response.status).toBe(200);
-    expect(body.data.token).toBe('mock-jwt-token');
+      const response = await POST(createRequest({ ...validBody, isHost: false }));
+
+      expect(response.status).toBe(403);
+      expect(rpc).toHaveBeenCalledWith('claim_session_seat', {
+        p_session_id: validBody.sessionId,
+        p_participant_id: validBody.participantId,
+      });
+    });
+
+    it('never checks seats for the host', async () => {
+      const rpc = vi.fn();
+      useClient(createMockSupabaseClient({ from: sessionOnly(sfuSession).from, rpc }));
+      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+      const response = await POST(createRequest(validBody));
+
+      expect(response.status).toBe(200);
+      expect(rpc).not.toHaveBeenCalled();
+    });
   });
 
   it('returns 404 for nonexistent session', async () => {

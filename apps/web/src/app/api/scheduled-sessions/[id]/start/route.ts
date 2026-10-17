@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
+import { canUseCallAnalysis, maxListeners, participantCap } from '@pairux/shared-types';
 import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
 import { createSessionSchema } from '@/lib/validations';
 import { resolveUserPlan } from '@/lib/orgs';
@@ -105,7 +105,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         p_settings: {
           quality: 'medium',
           allowControl: false,
-          maxParticipants: maxListeners(plan),
+          maxParticipants: participantCap(plan),
+          maxListeners: maxListeners(plan),
           ...(analysis ? { analysis } : {}),
         },
         p_mode: 'p2p',

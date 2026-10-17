@@ -14,11 +14,6 @@ vi.mock('@/lib/supabase/service', () => ({
   serviceClient: () => mockServiceClient(),
 }));
 
-const mockResolveUserPlan = vi.fn();
-vi.mock('@/lib/orgs', () => ({
-  resolveUserPlan: (...args: unknown[]) => mockResolveUserPlan(...args),
-}));
-
 const mockSendPush = vi.fn().mockResolvedValue({ sent: 1, failed: 0 });
 vi.mock('@/lib/push', () => ({
   sendPushToUser: (...args: unknown[]) => mockSendPush(...args),
@@ -66,6 +61,11 @@ describe('GET /api/sessions/join/[joinCode]', () => {
 
     const mockSupabase = createMockSupabaseClient({ from: mockFrom });
     vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{ participants: 2, listeners: 7, participant_cap: 2, listener_cap: 20 }],
+      error: null,
+    });
+    mockServiceClient.mockReturnValue({ rpc });
 
     const request = new Request('http://localhost/api/sessions/join/ABC123');
     const response = await GET(request, createParams('ABC123'));
@@ -73,7 +73,10 @@ describe('GET /api/sessions/join/[joinCode]', () => {
 
     expect(response.status).toBe(200);
     expect(body.data.join_code).toBe('ABC123');
+    // The seats join_session counts (host included), not raw rows.
+    expect(rpc).toHaveBeenCalledWith('session_seat_usage', { p_session_id: mockSession.id });
     expect(body.data.participant_count).toBe(2);
+    expect(body.data.listener_count).toBe(7);
   });
 
   it('converts join code to uppercase', async () => {
@@ -414,45 +417,41 @@ describe('POST /api/sessions/join/[joinCode]', () => {
     const room = {
       id: mockSession.id,
       host_user_id: 'host-user-id',
-      settings: { maxParticipants: 20 },
+      settings: { maxParticipants: 2 },
     };
 
-    // Service client: the room lookup by join code, the settings update,
-    // and recordCapRefusal's read + write.
+    // Service client: the room lookup by join code, then recordCapRefusal's
+    // read + write.
     function serviceMock() {
       const updates: unknown[] = [];
-      const from = vi.fn().mockImplementation(() => {
-        const q = {
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          neq: vi.fn().mockReturnThis(),
-          maybeSingle: vi.fn().mockResolvedValue({ data: room, error: null }),
-          update: vi.fn().mockImplementation((value: unknown) => {
-            updates.push(value);
-            return { eq: vi.fn().mockResolvedValue({ error: null }) };
-          }),
-        };
-        return q;
-      });
+      const from = vi.fn().mockImplementation(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: room, error: null }),
+        update: vi.fn().mockImplementation((value: unknown) => {
+          updates.push(value);
+          return { eq: vi.fn().mockResolvedValue({ error: null }) };
+        }),
+      }));
       mockServiceClient.mockReturnValue({ from });
       return updates;
     }
 
-    function joinRequest() {
+    function joinRequest(body: Record<string, unknown> = {}) {
       return new Request('http://localhost/api/sessions/join/ABC123', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify(body),
       });
     }
 
-    it('turns the joiner away politely and tells the host', async () => {
+    it('turns the third participant of a Free room away politely and tells the host', async () => {
       const updates = serviceMock();
-      mockResolveUserPlan.mockResolvedValue('free');
-      const mockSupabase = createMockSupabaseClient({
-        rpc: vi.fn().mockResolvedValue({ data: null, error: { message: 'Session is full' } }),
-      });
-      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+      const rpc = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Session is full (participants)' } });
+      vi.mocked(createClient).mockResolvedValue(createMockSupabaseClient({ rpc }) as never);
       mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
 
       const response = await POST(joinRequest(), createParams('ABC123'));
@@ -460,10 +459,15 @@ describe('POST /api/sessions/join/[joinCode]', () => {
 
       expect(response.status).toBe(403);
       expect(body.error).toMatch(/host's plan has no seats left/);
-      expect(mockSupabase.rpc).toHaveBeenCalledTimes(1);
+      // join_session reads the owner's plan live, so there is nothing to retry.
+      expect(rpc).toHaveBeenCalledTimes(1);
       expect(updates).toEqual([
         {
-          settings: expect.objectContaining({ capRefusedCount: 1, maxParticipants: 20 }),
+          settings: expect.objectContaining({
+            capRefusedCount: 1,
+            capRefusedKind: 'participants',
+            maxParticipants: 2,
+          }),
         },
       ]);
       expect(mockSendPush).toHaveBeenCalledWith(
@@ -473,24 +477,34 @@ describe('POST /api/sessions/join/[joinCode]', () => {
       );
     });
 
-    it('lifts a stale cap after the host upgraded, then joins', async () => {
+    it('turns an anonymous guest away the same way (guests take seats too)', async () => {
       const updates = serviceMock();
-      mockResolveUserPlan.mockResolvedValue('plus');
-      const joined = { id: 'participant-9', session_id: mockSession.id, user_id: null };
       const rpc = vi
         .fn()
-        .mockResolvedValueOnce({ data: null, error: { message: 'Session is full' } })
-        .mockResolvedValueOnce({ data: joined, error: null });
-      const mockSupabase = createMockSupabaseClient({ rpc });
-      vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
-      mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+        .mockResolvedValue({ data: null, error: { message: 'Session is full (participants)' } });
+      vi.mocked(createClient).mockResolvedValue(createMockSupabaseClient({ rpc }) as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
 
-      const response = await POST(joinRequest(), createParams('ABC123'));
+      const response = await POST(joinRequest({ displayName: 'Guest' }), createParams('ABC123'));
 
-      expect(response.status).toBe(200);
-      expect(rpc).toHaveBeenCalledTimes(2);
-      expect(updates).toEqual([{ settings: { maxParticipants: 100 } }]);
-      expect(mockSendPush).not.toHaveBeenCalled();
+      expect(response.status).toBe(403);
+      expect(updates).toHaveLength(1);
+    });
+
+    it('records a full listener section as such', async () => {
+      const updates = serviceMock();
+      const rpc = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Session is full (listeners)' } });
+      vi.mocked(createClient).mockResolvedValue(createMockSupabaseClient({ rpc }) as never);
+      mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+      const response = await POST(joinRequest({ displayName: 'Guest' }), createParams('ABC123'));
+
+      expect(response.status).toBe(403);
+      expect(updates).toEqual([
+        { settings: expect.objectContaining({ capRefusedKind: 'listeners' }) },
+      ]);
     });
   });
 });

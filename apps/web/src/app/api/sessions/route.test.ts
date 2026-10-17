@@ -47,7 +47,9 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: false,
-        maxParticipants: 20,
+        // Free: 2 participants (the host is one) + 20 listeners.
+        maxParticipants: 2,
+        maxListeners: 20,
       },
       p_mode: 'p2p',
     });
@@ -76,7 +78,9 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: true,
-        maxParticipants: 20,
+        // Free: 2 participants (the host is one) + 20 listeners.
+        maxParticipants: 2,
+        maxListeners: 20,
       },
       p_mode: 'p2p',
     });
@@ -104,7 +108,9 @@ describe('POST /api/sessions', () => {
       p_settings: {
         quality: 'medium',
         allowControl: false,
-        maxParticipants: 20,
+        // Free: 2 participants (the host is one) + 20 listeners.
+        maxParticipants: 2,
+        maxListeners: 20,
       },
       p_mode: 'sfu',
     });

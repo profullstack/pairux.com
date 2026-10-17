@@ -57,6 +57,8 @@ export type {
   PlanPaymentInsert,
   PlanPaymentUpdate,
   Database,
+  SeatKind,
+  SeatUsage,
 } from './database.js';
 
 // Database value exports (functions/helpers)
@@ -64,6 +66,12 @@ export {
   effectivePlan,
   maxListeners,
   LISTENER_CAP,
+  PARTICIPANT_CAP,
+  participantCap,
+  SEAT_PRESENCE_SECONDS,
+  holdsSeat,
+  seatKindFor,
+  seatUsage,
   PLAN_PRICE_USD,
   nextPlan,
   planForCap,

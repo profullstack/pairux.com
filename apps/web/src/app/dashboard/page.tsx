@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
+import { maxListeners } from '@pairux/shared-types';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { DashboardClient } from './components/DashboardClient';
@@ -37,6 +38,8 @@ const stats = [
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
+  // The free plan line is the /pricing one, with the enforced caps.
+  const tFree = useTranslations('pricing.tiers.free.features');
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
@@ -105,7 +108,9 @@ export default function DashboardPage() {
                       {t('current')}
                     </span>
                   </div>
-                  <p className="text-primary-600 mt-1 text-sm">{t('freePlanSummary')}</p>
+                  <p className="text-primary-600 mt-1 text-sm">
+                    {tFree('participants', { count: maxListeners('free') })}
+                  </p>
                 </div>
               </div>
 

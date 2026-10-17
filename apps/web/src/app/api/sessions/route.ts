@@ -1,4 +1,4 @@
-import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
+import { canUseCallAnalysis, maxListeners, participantCap } from '@pairux/shared-types';
 import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
 import { serviceClient } from '@/lib/supabase/service';
 import { canUseWorkspace, resolveUserPlan } from '@/lib/orgs';
@@ -21,12 +21,11 @@ export async function POST(request: Request) {
       return errorResponse('Authentication required', 401);
     }
 
-    // Size the room to the owner's plan cap (Free 20 listeners; Plus 100;
-    // Pro/Team more). Baking the cap into settings.maxParticipants means the
-    // join_session RPC enforces it on every join. A lapsed paid plan falls back
-    // to free via effectivePlan(). We use the full plan cap rather than the
-    // client-requested value (clients hardcode a low default), so every room
-    // holds up to the owner's plan capacity.
+    // Size the room to the owner's plan (Free: 2 participants, the host
+    // included, + 20 listeners; Plus 100 + 100; Pro/Team more). join_session
+    // enforces the plan's caps live on every join; settings.maxParticipants
+    // and maxListeners are the display copy. A lapsed paid plan falls back to
+    // free. The client-requested value is ignored (clients hardcode a default).
     // The owner's own plan or the plan of any organization they belong to.
     const svc = serviceClient();
     const plan = await resolveUserPlan(svc, user.id);
@@ -34,8 +33,7 @@ export async function POST(request: Request) {
     // Workspace: a personal call, or one that belongs to an org or a team.
     const workspace = await canUseWorkspace(svc, user.id, settings.orgId, settings.teamId);
     if (!workspace) return errorResponse('You are not a member of that organization or team', 403);
-    const cap = maxListeners(plan);
-    const maxParticipants = cap;
+    const maxParticipants = participantCap(plan);
 
     // AI call analysis is chosen here, before the call exists, and is fixed for
     // the session's life. It is a Pro/Team feature.
@@ -51,6 +49,7 @@ export async function POST(request: Request) {
         quality: 'medium',
         allowControl: settings.allowGuestControl,
         maxParticipants,
+        maxListeners: maxListeners(plan),
         ...(analysis ? { analysis } : {}),
       },
       p_mode: settings.mode,

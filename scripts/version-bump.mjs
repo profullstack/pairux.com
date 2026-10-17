@@ -47,11 +47,15 @@ export const PACKAGES_TO_UPDATE = [
  * Packages deliberately left out: their versions mean something else.
  *
  * - packages/remote-input is published to npm on its own cadence
+ * - packages/embed is published to npm as @profullstack/pairux-embed on its own cadence
+ * - packages/meeting-translation is a private library whose version is not a release number
  * - packages/ai-core and apps/mobile are not part of the app release yet
  */
 export const INDEPENDENTLY_VERSIONED = [
   'apps/mobile/package.json',
   'packages/ai-core/package.json',
+  'packages/embed/package.json',
+  'packages/meeting-translation/package.json',
   'packages/remote-input/package.json',
 ];
 

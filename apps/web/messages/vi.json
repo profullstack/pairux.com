@@ -765,7 +765,6 @@
     "yourPlan": "Gói của bạn",
     "freePlan": "Gói miễn phí",
     "current": "Hiện tại",
-    "freePlanSummary": "2 người tham gia, chỉ P2P",
     "upgradePlan": "Nâng cấp gói",
     "comingSoon": "Sắp ra mắt",
     "comingSoonButton": "Sắp ra mắt",
@@ -1183,8 +1182,6 @@
     "subtitle": "Bắt đầu phiên chia sẻ màn hình chỉ xem từ trình duyệt",
     "sessionSettings": "Cài đặt phiên",
     "defaults": "Mặc định",
-    "maxViewers": "Số người xem tối đa",
-    "viewers": "{count, plural, other {# người xem}}",
     "remoteControl": "Điều khiển từ xa",
     "enableGuestControl": "Cho phép khách điều khiển",
     "notAvailableWeb": "Không khả dụng khi chia sẻ trên web",
@@ -1339,7 +1336,6 @@
         "cta": "Bắt đầu",
         "features": {
           "participants": "2 người tham gia + tối đa {count} người nghe",
-          "publicViewers": "Không giới hạn người xem miễn phí với buổi phát trực tiếp công khai",
           "p2p": "Kết nối P2P",
           "screenSharing": "Chia sẻ màn hình",
           "remoteControl": "Điều khiển từ xa",
@@ -1352,7 +1348,7 @@
         "description": "Chủ trì cho khán giả — giảng dạy, họp đứng, xem cùng nhau",
         "cta": "Nâng cấp lên Plus",
         "features": {
-          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "listeners": "Tối đa {count} người tham gia và {count} người nghe mỗi phòng",
           "sfu": "Máy chủ chuyển tiếp SFU",
           "liveDirectory": "Phòng công khai trong danh bạ /live",
           "screenVoice": "Chia sẻ màn hình + thoại",
@@ -1365,7 +1361,7 @@
         "description": "Cho người làm chuyên nghiệp và nhóm đang phát triển",
         "cta": "Nâng cấp lên Pro",
         "features": {
-          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "listeners": "Tối đa {count} người tham gia và {count} người nghe mỗi phòng",
           "sfu": "Máy chủ chuyển tiếp SFU",
           "streaming": "Mọi nền tảng phát trực tiếp (YouTube, Twitch, …)",
           "hd": "Chia sẻ màn hình HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Cho nhóm và tổ chức",
         "cta": "Nâng cấp lên Team",
         "features": {
-          "listeners": "Tối đa {count} người nghe mỗi phòng",
+          "listeners": "Tối đa {count} người tham gia và {count} người nghe mỗi phòng",
           "sfu": "Máy chủ SFU riêng",
           "streaming": "Mọi nền tảng phát trực tiếp",
           "uhd": "Chia sẻ màn hình 4K",
@@ -1461,13 +1457,13 @@
       "title": "Câu hỏi thường gặp",
       "capacity": {
         "question": "Bao nhiêu người có thể xem phòng của tôi?",
-        "answer": "Số người nghe đồng thời mỗi phòng tăng theo gói của bạn: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Ngoài ra, buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản.",
-        "answerLong": "Số người nghe đồng thời mỗi phòng tăng theo gói của bạn: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Ngoài ra, buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản."
+        "answer": "Phòng Free chứa 2 người tham gia (bạn và một người khác có thể nói hoặc nhận quyền điều khiển) và tối đa {free} người nghe chỉ xem và nghe. Plus nâng cả hai lên {plus}, Pro lên {pro} và Team lên {team}.",
+        "answerLong": "Phòng Free chứa 2 người tham gia (bạn và một người khác có thể nói hoặc nhận quyền điều khiển) và tối đa {free} người nghe chỉ xem và nghe. Plus nâng cả hai lên {plus}, Pro lên {pro} và Team lên {team}."
       },
       "free": {
         "question": "Gói miễn phí có thực sự miễn phí?",
-        "answer": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi — và buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản. Không giới hạn thời gian, không cần thẻ tín dụng.",
-        "answerLong": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi — và buổi phát trực tiếp công khai có thể được xem miễn phí bởi không giới hạn khách mà không cần tài khoản. Không giới hạn thời gian, không cần thẻ tín dụng. Rất phù hợp cho lập trình cặp và các buổi demo nhỏ."
+        "answer": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi. Không giới hạn thời gian, không cần thẻ tín dụng.",
+        "answerLong": "Có! 2 người tham gia + tối đa {freeCap} người nghe hoàn toàn miễn phí, mãi mãi. Không giới hạn thời gian, không cần thẻ tín dụng. Rất phù hợp cho lập trình cặp và các buổi demo nhỏ."
       },
       "selfHost": {
         "question": "Tôi có thể tự lưu trữ để tránh chi phí không?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Tất cả {cap} chỗ trong gói {current} của bạn đã kín.",
     "turnedAway": "{count, plural, other {# người đã bị từ chối.}}",
     "roomFullLift": "{plan} nâng lên {seats} người nghe với {price}/tháng.",
+    "participantsFullBody": "Gói {current} của bạn cho phép {cap} người tham gia, tính cả bạn, và mọi chỗ đã kín.",
+    "participantsFullLift": "{plan} nâng lên {seats} người tham gia với {price}/tháng.",
     "proFeatureTitle": "Phân tích cuộc gọi bằng AI là tính năng Pro",
     "proFeatureBody": "{plan} có phân tích cuộc gọi bằng AI, 1080p và tới {seats} người nghe với {price}/tháng.",
     "cta": "Nâng cấp lên {plan}: {price}/tháng",

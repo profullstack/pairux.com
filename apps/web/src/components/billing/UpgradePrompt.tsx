@@ -2,7 +2,7 @@
 
 import { useFormatter, useTranslations } from 'next-intl';
 import { Sparkles, Users, X } from 'lucide-react';
-import type { Plan } from '@pairux/shared-types';
+import type { Plan, SeatKind } from '@pairux/shared-types';
 import { PLANS, TERM_DAYS, type PaidPlan } from '@/lib/plans';
 import { useCheckout } from './useCheckout';
 
@@ -13,7 +13,9 @@ interface UpgradePromptProps {
   plan: PaidPlan;
   /** The host's current plan (roomFull only). */
   currentPlan?: Plan;
-  /** Seats on the current plan (roomFull only). */
+  /** Which seats ran out (roomFull only): talking participants or listeners. */
+  seats?: SeatKind;
+  /** Seats of that kind on the current plan (roomFull only). */
   cap?: number;
   /** How many joiners have been turned away so far (roomFull only). */
   refused?: number;
@@ -33,6 +35,7 @@ export function UpgradePrompt({
   reason,
   plan,
   currentPlan = 'free',
+  seats: seatKind = 'participants',
   cap,
   refused = 0,
   returnTo,
@@ -52,7 +55,8 @@ export function UpgradePrompt({
     minimumFractionDigits: Number.isInteger(def.priceUsd) ? 0 : 2,
     maximumFractionDigits: 2,
   });
-  const seats = format.number(def.listeners);
+  const listenerSeats = format.number(def.listeners);
+  const roomFullListeners = reason === 'roomFull' && seatKind === 'listeners';
 
   const dark = tone === 'dark';
   const Icon = reason === 'roomFull' ? Users : Sparkles;
@@ -85,7 +89,7 @@ export function UpgradePrompt({
           </p>
           <p className={`mt-1 text-sm ${dark ? 'text-gray-300' : 'text-gray-700'}`}>
             {reason === 'roomFull'
-              ? t('roomFullBody', {
+              ? t(roomFullListeners ? 'roomFullBody' : 'participantsFullBody', {
                   cap: format.number(cap ?? 0),
                   current: tiers(`${currentPlan}.name`),
                 })
@@ -94,9 +98,15 @@ export function UpgradePrompt({
               ? ` ${t('turnedAway', { count: refused })}`
               : null}
             {reason === 'roomFull' ? ' ' : null}
-            {reason === 'roomFull'
-              ? t('roomFullLift', { plan: planName, seats, price })
-              : t('proFeatureBody', { plan: planName, seats, price })}
+            {reason !== 'roomFull'
+              ? t('proFeatureBody', { plan: planName, seats: listenerSeats, price })
+              : roomFullListeners
+                ? t('roomFullLift', { plan: planName, seats: listenerSeats, price })
+                : t('participantsFullLift', {
+                    plan: planName,
+                    seats: format.number(def.participants),
+                    price,
+                  })}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button

@@ -5,12 +5,13 @@
  * Renewal = pay again; the webhook extends profiles.plan_expires_at.
  * Prices mirror the public /pricing page.
  *
- * plus  = $1/mo audience tier — host rooms with up to 100 listeners.
- * pro/team = plus larger rooms and every streaming platform.
+ * free  = 2 participants (the host is one) + 20 listeners.
+ * plus  = $1/mo audience tier — 100 participants + 100 listeners per room.
+ * pro/team = larger rooms and every streaming platform.
  */
 
 import type { Plan } from '@pairux/shared-types';
-import { PLAN_PRICE_USD, maxListeners } from '@pairux/shared-types';
+import { PLAN_PRICE_USD, maxListeners, participantCap } from '@pairux/shared-types';
 
 export type PaidPlan = Exclude<Plan, 'free'>;
 
@@ -18,6 +19,8 @@ export interface PlanDef {
   id: PaidPlan;
   label: string;
   priceUsd: number;
+  /** Max concurrent participants, the host included (mirrors PARTICIPANT_CAP). */
+  participants: number;
   /** Max concurrent listeners this plan can host (mirrors LISTENER_CAP). */
   listeners: number;
 }
@@ -30,18 +33,21 @@ export const PLANS: Record<PaidPlan, PlanDef> = {
     id: 'plus',
     label: 'PairUX Plus',
     priceUsd: PLAN_PRICE_USD.plus,
+    participants: participantCap('plus'),
     listeners: maxListeners('plus'),
   },
   pro: {
     id: 'pro',
     label: 'PairUX Pro',
     priceUsd: PLAN_PRICE_USD.pro,
+    participants: participantCap('pro'),
     listeners: maxListeners('pro'),
   },
   team: {
     id: 'team',
     label: 'PairUX Team',
     priceUsd: PLAN_PRICE_USD.team,
+    participants: participantCap('team'),
     listeners: maxListeners('team'),
   },
 };

@@ -765,7 +765,6 @@
     "yourPlan": "Il tuo piano",
     "freePlan": "Piano gratuito",
     "current": "Attuale",
-    "freePlanSummary": "2 partecipanti, solo P2P",
     "upgradePlan": "Passa a un piano superiore",
     "comingSoon": "In arrivo",
     "comingSoonButton": "In arrivo",
@@ -1183,8 +1182,6 @@
     "subtitle": "Avvia dal browser una sessione di condivisione dello schermo di sola visione",
     "sessionSettings": "Impostazioni della sessione",
     "defaults": "Predefinite",
-    "maxViewers": "Numero massimo di spettatori",
-    "viewers": "{count, plural, one {# spettatore} other {# spettatori}}",
     "remoteControl": "Controllo remoto",
     "enableGuestControl": "Abilita il controllo degli ospiti",
     "notAvailableWeb": "Non disponibile nella condivisione web",
@@ -1339,7 +1336,6 @@
         "cta": "Inizia ora",
         "features": {
           "participants": "2 partecipanti + fino a {count} ascoltatori",
-          "publicViewers": "Spettatori gratuiti illimitati nelle dirette pubbliche",
           "p2p": "Connessioni P2P",
           "screenSharing": "Condivisione dello schermo",
           "remoteControl": "Controllo remoto",
@@ -1352,7 +1348,7 @@
         "description": "Ospita un pubblico: lezioni, stand-up, visioni di gruppo",
         "cta": "Passa a Plus",
         "features": {
-          "listeners": "Fino a {count} ascoltatori per stanza",
+          "listeners": "Fino a {count} partecipanti e {count} ascoltatori per stanza",
           "sfu": "Server di relay SFU",
           "liveDirectory": "Stanza pubblica nella directory /live",
           "screenVoice": "Condivisione dello schermo + voce",
@@ -1365,7 +1361,7 @@
         "description": "Per professionisti e team in crescita",
         "cta": "Passa a Pro",
         "features": {
-          "listeners": "Fino a {count} ascoltatori per stanza",
+          "listeners": "Fino a {count} partecipanti e {count} ascoltatori per stanza",
           "sfu": "Server di relay SFU",
           "streaming": "Tutte le piattaforme di streaming (YouTube, Twitch, …)",
           "hd": "Condivisione dello schermo in HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Per team e organizzazioni",
         "cta": "Passa a Team",
         "features": {
-          "listeners": "Fino a {count} ascoltatori per stanza",
+          "listeners": "Fino a {count} partecipanti e {count} ascoltatori per stanza",
           "sfu": "Server SFU dedicati",
           "streaming": "Tutte le piattaforme di streaming",
           "uhd": "Condivisione dello schermo in 4K",
@@ -1461,13 +1457,13 @@
       "title": "Domande frequenti",
       "capacity": {
         "question": "Quante persone possono guardare la mia stanza?",
-        "answer": "Gli ascoltatori simultanei per stanza dipendono dal piano: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Inoltre, le dirette pubbliche possono essere guardate gratis da un numero illimitato di ospiti senza account.",
-        "answerLong": "Gli ascoltatori simultanei per stanza dipendono dal piano: Free {free}, Plus {plus}, Pro {pro}, Team {team}. Inoltre, le dirette pubbliche possono essere guardate gratis da un numero illimitato di ospiti senza account."
+        "answer": "Una stanza Free ospita 2 partecipanti (tu e un’altra persona che può parlare o prendere il controllo) e fino a {free} ascoltatori che guardano e ascoltano. Plus porta entrambi a {plus}, Pro a {pro} e Team a {team}.",
+        "answerLong": "Una stanza Free ospita 2 partecipanti (tu e un’altra persona che può parlare o prendere il controllo) e fino a {free} ascoltatori che guardano e ascoltano. Plus porta entrambi a {plus}, Pro a {pro} e Team a {team}."
       },
       "free": {
         "question": "Il piano gratuito è davvero gratuito?",
-        "answer": "Sì! 2 partecipanti + fino a {freeCap} ascoltatori sono completamente gratuiti, per sempre, e le dirette pubbliche possono essere guardate gratis da un numero illimitato di ospiti senza account. Nessun limite di tempo, nessuna carta di credito richiesta.",
-        "answerLong": "Sì! 2 partecipanti + fino a {freeCap} ascoltatori sono completamente gratuiti, per sempre, e le dirette pubbliche possono essere guardate gratis da un numero illimitato di ospiti senza account. Nessun limite di tempo, nessuna carta di credito richiesta. Ideale per pair programming e piccole demo."
+        "answer": "Sì! 2 partecipanti + fino a {freeCap} ascoltatori sono completamente gratuiti, per sempre. Nessun limite di tempo, nessuna carta di credito richiesta.",
+        "answerLong": "Sì! 2 partecipanti + fino a {freeCap} ascoltatori sono completamente gratuiti, per sempre. Nessun limite di tempo, nessuna carta di credito richiesta. Ideale per pair programming e piccole demo."
       },
       "selfHost": {
         "question": "Posso ospitarlo in proprio per evitare i costi?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Tutti i {cap} posti del tuo piano {current} sono occupati.",
     "turnedAway": "{count, plural, one {# persona è stata respinta.} other {# persone sono state respinte.}}",
     "roomFullLift": "{plan} lo porta a {seats} ascoltatori per {price}/mese.",
+    "participantsFullBody": "Il tuo piano {current} consente {cap} partecipanti, te compreso, e tutti i posti sono occupati.",
+    "participantsFullLift": "{plan} lo porta a {seats} partecipanti per {price}/mese.",
     "proFeatureTitle": "L'analisi delle chiamate con IA è una funzione Pro",
     "proFeatureBody": "{plan} aggiunge l'analisi delle chiamate con IA, 1080p e fino a {seats} ascoltatori per {price}/mese.",
     "cta": "Passa a {plan}: {price}/mese",

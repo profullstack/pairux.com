@@ -10,6 +10,8 @@ import { maxListeners } from '@pairux/shared-types';
 
 // Listener capacity per tier — single source of truth (LISTENER_CAP), so the
 // pricing copy always ascends and can't drift out of sync with enforcement.
+// Paid tiers hold as many participants as listeners (PARTICIPANT_CAP); Free
+// holds 2 participants, the "2" in the free tier copy (asserted in tests).
 const CAP = {
   free: maxListeners('free'),
   plus: maxListeners('plus'),
@@ -47,15 +49,7 @@ const pricingTiers: PricingTier[] = [
     key: 'free',
     price: 0,
     period: 'forever',
-    features: [
-      'participants',
-      'publicViewers',
-      'p2p',
-      'screenSharing',
-      'remoteControl',
-      'e2e',
-      'support',
-    ],
+    features: ['participants', 'p2p', 'screenSharing', 'remoteControl', 'e2e', 'support'],
     ctaHref: '/download',
     plan: null,
     highlighted: false,

@@ -3,9 +3,7 @@ import { serviceClient } from '@/lib/supabase/service';
 import { guestJoinSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
-import { maxListeners } from '@pairux/shared-types';
-import { resolveUserPlan } from '@/lib/orgs';
-import { ROOM_FULL_MESSAGE, isRoomFullError, recordCapRefusal } from '@/lib/room-cap';
+import { ROOM_FULL_MESSAGE, isRoomFullError, recordCapRefusal, roomFullKind } from '@/lib/room-cap';
 
 // Joining performs database work and can trigger a host notification. Bound it
 // by source IP and room code so a shared public link cannot be used to fan out
@@ -90,16 +88,32 @@ export async function GET(request: Request, { params }: RouteParams) {
       created_at: string;
     };
 
-    // Get participant count
-    const { count } = await supabase
-      .from('session_participants')
-      .select('*', { count: 'exact', head: true })
-      .eq('session_id', sessionData.id)
-      .is('left_at', null);
+    // Seats as join_session counts them: participants (the host included) and
+    // listeners, against the owner's plan right now.
+    let participantCount = 1;
+    let listenerCount = 0;
+    try {
+      const { data: usage } = (await serviceClient().rpc(
+        'session_seat_usage' as never,
+        {
+          p_session_id: sessionData.id,
+        } as never
+      )) as {
+        data: { participants: number; listeners: number }[] | null;
+      };
+      const row = usage?.[0];
+      if (row) {
+        participantCount = row.participants;
+        listenerCount = row.listeners;
+      }
+    } catch (usageError) {
+      console.warn('[Join] seat usage lookup failed', usageError);
+    }
 
     return successResponse({
       ...sessionData,
-      participant_count: count ?? 0,
+      participant_count: participantCount,
+      listener_count: listenerCount,
     });
   } catch (error) {
     return handleApiError(error);
@@ -146,48 +160,28 @@ export async function POST(request: Request, { params }: RouteParams) {
         p_join_code: joinCode.toUpperCase(),
         p_display_name: displayName,
       });
-    let { data, error } = await joinSession();
+    const { data, error } = await joinSession();
 
-    // The room is at its plan cap. If the owner has since upgraded, the cap
-    // baked into the room is stale: lift it to the new plan and try again.
-    // Otherwise the joiner is told politely and the host gets the upgrade
-    // prompt (see lib/room-cap.ts).
+    // The room has no seat of the joiner's kind left on the owner's plan
+    // (join_session reads the plan live, so an upgrade counts at once). The
+    // joiner is told politely and the host gets the upgrade prompt (see
+    // lib/room-cap.ts).
     if (error && isRoomFullError(error.message)) {
+      const kind = roomFullKind(error.message);
       try {
         const svc = serviceClient();
         const { data: room } = (await svc
           .from('sessions')
-          .select('id, host_user_id, settings')
+          .select('id')
           .eq('join_code', joinCode.toUpperCase())
           .neq('status', 'ended')
-          .maybeSingle()) as {
-          data: {
-            id: string;
-            host_user_id: string;
-            settings: Record<string, unknown> | null;
-          } | null;
-        };
-        if (room) {
-          const cap = maxListeners(await resolveUserPlan(svc as never, room.host_user_id));
-          const baked = Number(room.settings?.maxParticipants ?? 0);
-          if (cap > baked) {
-            await svc
-              .from('sessions')
-              .update({ settings: { ...(room.settings ?? {}), maxParticipants: cap } } as never)
-              .eq('id', room.id);
-            ({ data, error } = await joinSession());
-          }
-          if (error && isRoomFullError(error.message)) {
-            await recordCapRefusal(svc, room.id);
-          }
-        }
+          .maybeSingle()) as { data: { id: string } | null };
+        if (room) await recordCapRefusal(svc, room.id, kind);
       } catch (capError) {
         // Never let the upgrade bookkeeping turn a "room full" into a 500.
         console.warn('[Join] room-full handling failed', capError);
       }
-      if (error && isRoomFullError(error.message)) {
-        return errorResponse(ROOM_FULL_MESSAGE, 403);
-      }
+      return errorResponse(ROOM_FULL_MESSAGE, 403);
     }
 
     if (error) {

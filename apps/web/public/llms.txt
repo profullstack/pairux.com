@@ -22,11 +22,12 @@ Made by Profullstack, Inc. Contact: hello@pairux.com
 
 ## Pricing Summary
 
-- **Free** ($0/forever): 2 participants + 5 viewers, P2P, screen sharing, remote control, E2E encryption, community support
-- **Pro** ($12/month): 10 participants + 50 viewers, 100 viewer-hours/month included, SFU relay, HD 1080p, priority support
-- **Team** ($49/month): Unlimited participants, 500 viewer-hours/month included, dedicated SFU, 4K screen sharing, admin controls
+- **Free** ($0/forever): 2 participants (the host and one other person who can talk or take control) + up to 20 listeners, screen sharing, remote control, E2E encryption, community support
+- **Plus** ($1/month): up to 100 participants and 100 listeners per room, public room in the /live directory
+- **Pro** ($12/month): up to 500 participants and 500 listeners per room, all streaming platforms, HD 1080p, AI call analysis, priority support
+- **Team** ($49/month): up to 2000 participants and 2000 listeners per room, 4K screen sharing, AI call analysis, admin controls
 
-Overage rates: $0.08/hr (720p), $0.12/hr (1080p), $0.20/hr (4K).
+A participant is the host, anyone signed in, or a guest in a peer-to-peer room. A listener is a guest in a relayed (SFU) room, who watches and listens only.
 
 ## Key Differentiators
 

@@ -125,6 +125,17 @@ export function ViewerPage() {
 
     void loadSession();
 
+    // Hold this viewer's plan seat while the call is open (every 30 s).
+    const holdSeat = () => {
+      void getElectronAPI()
+        .invoke('session:presence', { sessionId })
+        .catch(() => {
+          // Best effort: the next tick tries again.
+        });
+    };
+    holdSeat();
+    const seatInterval = setInterval(holdSeat, 30_000);
+
     // Poll for participant updates every 5 seconds
     const interval = setInterval(() => {
       void loadSession();
@@ -132,6 +143,7 @@ export function ViewerPage() {
 
     return () => {
       clearInterval(interval);
+      clearInterval(seatInterval);
     };
   }, [sessionId, navigate]);
 

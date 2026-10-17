@@ -765,7 +765,6 @@
     "yourPlan": "Planınız",
     "freePlan": "Ücretsiz Plan",
     "current": "Mevcut",
-    "freePlanSummary": "2 katılımcı, yalnızca P2P",
     "upgradePlan": "Planı Yükselt",
     "comingSoon": "Çok yakında",
     "comingSoonButton": "Çok Yakında",
@@ -1183,8 +1182,6 @@
     "subtitle": "Tarayıcınızdan yalnızca izlemeye açık bir ekran paylaşımı oturumu başlatın",
     "sessionSettings": "Oturum Ayarları",
     "defaults": "Varsayılanlar",
-    "maxViewers": "Maksimum İzleyici",
-    "viewers": "{count, plural, one {# izleyici} other {# izleyici}}",
     "remoteControl": "Uzaktan Kontrol",
     "enableGuestControl": "Misafir kontrolünü etkinleştir",
     "notAvailableWeb": "Web paylaşımında kullanılamaz",
@@ -1339,7 +1336,6 @@
         "cta": "Başlayın",
         "features": {
           "participants": "2 katılımcı + {count} dinleyiciye kadar",
-          "publicViewers": "Herkese açık canlı yayınlarda sınırsız ücretsiz izleyici",
           "p2p": "P2P bağlantılar",
           "screenSharing": "Ekran paylaşımı",
           "remoteControl": "Uzaktan kontrol",
@@ -1352,7 +1348,7 @@
         "description": "Bir kitleye ev sahipliği yapın: dersler, günlük toplantılar, birlikte izleme",
         "cta": "Plus’a Yükselt",
         "features": {
-          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "listeners": "Oda başına {count} katılımcı ve {count} dinleyiciye kadar",
           "sfu": "SFU aktarma sunucuları",
           "liveDirectory": "/live dizininde herkese açık oda",
           "screenVoice": "Ekran paylaşımı + ses",
@@ -1365,7 +1361,7 @@
         "description": "Profesyoneller ve büyüyen ekipler için",
         "cta": "Pro’ya Yükselt",
         "features": {
-          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "listeners": "Oda başına {count} katılımcı ve {count} dinleyiciye kadar",
           "sfu": "SFU aktarma sunucuları",
           "streaming": "Tüm yayın platformları (YouTube, Twitch, …)",
           "hd": "HD ekran paylaşımı (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Ekipler ve kuruluşlar için",
         "cta": "Team’e Yükselt",
         "features": {
-          "listeners": "Oda başına {count} dinleyiciye kadar",
+          "listeners": "Oda başına {count} katılımcı ve {count} dinleyiciye kadar",
           "sfu": "Özel SFU sunucuları",
           "streaming": "Tüm yayın platformları",
           "uhd": "4K ekran paylaşımı",
@@ -1461,13 +1457,13 @@
       "title": "Sık Sorulan Sorular",
       "capacity": {
         "question": "Odamı kaç kişi izleyebilir?",
-        "answer": "Oda başına eşzamanlı dinleyici sayısı planınıza göre değişir: Ücretsiz {free}, Plus {plus}, Pro {pro}, Team {team}. Bunun da ötesinde, herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir.",
-        "answerLong": "Oda başına eşzamanlı dinleyici sayısı planınıza göre değişir: Ücretsiz {free}, Plus {plus}, Pro {pro}, Team {team}. Bunun da ötesinde, herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir."
+        "answer": "Free bir oda 2 katılımcı (siz ve konuşabilen ya da kontrolü devralabilen bir kişi daha) ile izleyip dinleyen {free} dinleyiciye kadar alır. Plus ikisini de {plus}, Pro {pro}, Team ise {team} kişiye çıkarır.",
+        "answerLong": "Free bir oda 2 katılımcı (siz ve konuşabilen ya da kontrolü devralabilen bir kişi daha) ile izleyip dinleyen {free} dinleyiciye kadar alır. Plus ikisini de {plus}, Pro {pro}, Team ise {team} kişiye çıkarır."
       },
       "free": {
         "question": "Ücretsiz katman gerçekten ücretsiz mi?",
-        "answer": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir; ayrıca herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir. Süre sınırı yok, kredi kartı gerekmez.",
-        "answerLong": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir; ayrıca herkese açık canlı yayınlar hesabı olmayan sınırsız sayıda misafir tarafından ücretsiz izlenebilir. Süre sınırı yok, kredi kartı gerekmez. Eşli programlama ve küçük demolar için ideal."
+        "answer": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir. Süre sınırı yok, kredi kartı gerekmez.",
+        "answerLong": "Evet! 2 katılımcı + {freeCap} dinleyiciye kadar tamamen ve süresiz ücretsizdir. Süre sınırı yok, kredi kartı gerekmez. Eşli programlama ve küçük demolar için ideal."
       },
       "selfHost": {
         "question": "Maliyetten kaçınmak için kendi sunucumda barındırabilir miyim?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "{current} planınızdaki {cap} yerin tamamı dolu.",
     "turnedAway": "{count, plural, one {# kişi geri çevrildi.} other {# kişi geri çevrildi.}}",
     "roomFullLift": "{plan} bunu ayda {price} karşılığında {seats} dinleyiciye çıkarır.",
+    "participantsFullBody": "{current} planınız siz dahil {cap} katılımcıya izin veriyor ve tüm yerler dolu.",
+    "participantsFullLift": "{plan} bunu ayda {price} karşılığında {seats} katılımcıya çıkarır.",
     "proFeatureTitle": "Yapay zekâ çağrı analizi bir Pro özelliğidir",
     "proFeatureBody": "{plan}, ayda {price} karşılığında yapay zekâ çağrı analizi, 1080p ve {seats} dinleyiciye kadar sunar.",
     "cta": "{plan} planına geç: {price}/ay",

@@ -765,7 +765,6 @@
     "yourPlan": "Votre offre",
     "freePlan": "Offre gratuite",
     "current": "Actuelle",
-    "freePlanSummary": "2 participants, P2P uniquement",
     "upgradePlan": "Changer d’offre",
     "comingSoon": "Bientôt disponible",
     "comingSoonButton": "Bientôt disponible",
@@ -1183,8 +1182,6 @@
     "subtitle": "Démarrez une session de partage d’écran en lecture seule depuis votre navigateur",
     "sessionSettings": "Paramètres de la session",
     "defaults": "Valeurs par défaut",
-    "maxViewers": "Nombre maximal de spectateurs",
-    "viewers": "{count, plural, one {# spectateur} other {# spectateurs}}",
     "remoteControl": "Contrôle à distance",
     "enableGuestControl": "Autoriser le contrôle par les invités",
     "notAvailableWeb": "Non disponible pour le partage web",
@@ -1339,7 +1336,6 @@
         "cta": "Commencer",
         "features": {
           "participants": "2 participants + jusqu’à {count} auditeurs",
-          "publicViewers": "Spectateurs gratuits illimités sur les directs publics",
           "p2p": "Connexions P2P",
           "screenSharing": "Partage d’écran",
           "remoteControl": "Contrôle à distance",
@@ -1352,7 +1348,7 @@
         "description": "Accueillez un public : cours, standups, visionnages en groupe",
         "cta": "Passer à Plus",
         "features": {
-          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "listeners": "Jusqu’à {count} participants et {count} auditeurs par salle",
           "sfu": "Serveurs relais SFU",
           "liveDirectory": "Salle publique dans l’annuaire /live",
           "screenVoice": "Partage d’écran + voix",
@@ -1365,7 +1361,7 @@
         "description": "Pour les professionnels et les équipes en croissance",
         "cta": "Passer à Pro",
         "features": {
-          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "listeners": "Jusqu’à {count} participants et {count} auditeurs par salle",
           "sfu": "Serveurs relais SFU",
           "streaming": "Toutes les plateformes de streaming (YouTube, Twitch, …)",
           "hd": "Partage d’écran HD (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "Pour les équipes et les organisations",
         "cta": "Passer à Team",
         "features": {
-          "listeners": "Jusqu’à {count} auditeurs par salle",
+          "listeners": "Jusqu’à {count} participants et {count} auditeurs par salle",
           "sfu": "Serveurs SFU dédiés",
           "streaming": "Toutes les plateformes de streaming",
           "uhd": "Partage d’écran en 4K",
@@ -1461,13 +1457,13 @@
       "title": "Questions fréquentes",
       "capacity": {
         "question": "Combien de personnes peuvent regarder ma salle ?",
-        "answer": "Le nombre d’auditeurs simultanés par salle dépend de votre offre : Gratuit {free}, Plus {plus}, Pro {pro}, Team {team}. En plus, les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte.",
-        "answerLong": "Le nombre d’auditeurs simultanés par salle dépend de votre offre : Gratuit {free}, Plus {plus}, Pro {pro}, Team {team}. En plus, les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte."
+        "answer": "Une salle Free accueille 2 participants (vous et une autre personne qui peut parler ou prendre le contrôle) et jusqu’à {free} auditeurs qui regardent et écoutent. Plus porte les deux à {plus}, Pro à {pro} et Team à {team}.",
+        "answerLong": "Une salle Free accueille 2 participants (vous et une autre personne qui peut parler ou prendre le contrôle) et jusqu’à {free} auditeurs qui regardent et écoutent. Plus porte les deux à {plus}, Pro à {pro} et Team à {team}."
       },
       "free": {
         "question": "L’offre gratuite est-elle vraiment gratuite ?",
-        "answer": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours, et les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte. Sans limite de temps, sans carte bancaire.",
-        "answerLong": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours, et les directs publics peuvent être regardés gratuitement par un nombre illimité d’invités, sans compte. Sans limite de temps, sans carte bancaire. Idéal pour le pair programming et les petites démos."
+        "answer": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours. Sans limite de temps, sans carte bancaire.",
+        "answerLong": "Oui ! 2 participants + jusqu’à {freeCap} auditeurs sont entièrement gratuits, pour toujours. Sans limite de temps, sans carte bancaire. Idéal pour le pair programming et les petites démos."
       },
       "selfHost": {
         "question": "Puis-je auto-héberger PairUX pour éviter les coûts ?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "Les {cap} places de votre offre {current} sont occupées.",
     "turnedAway": "{count, plural, one {# personne a été refusée.} other {# personnes ont été refusées.}}",
     "roomFullLift": "{plan} passe à {seats} auditeurs pour {price}/mois.",
+    "participantsFullBody": "Votre offre {current} permet {cap} participants, vous compris, et toutes les places sont prises.",
+    "participantsFullLift": "{plan} passe à {seats} participants pour {price}/mois.",
     "proFeatureTitle": "L'analyse d'appel par IA est une fonction Pro",
     "proFeatureBody": "{plan} ajoute l'analyse d'appel par IA, le 1080p et jusqu'à {seats} auditeurs pour {price}/mois.",
     "cta": "Passer à {plan} : {price}/mois",

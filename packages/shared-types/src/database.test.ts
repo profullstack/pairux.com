@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { LISTENER_CAP, PLAN_PRICE_USD, nextPlan, planForCap } from './database';
+import {
+  LISTENER_CAP,
+  PARTICIPANT_CAP,
+  PLAN_PRICE_USD,
+  SEAT_PRESENCE_SECONDS,
+  holdsSeat,
+  nextPlan,
+  planForCap,
+  seatKindFor,
+  seatUsage,
+} from './database';
 import type {
   SessionStatus,
   ParticipantRole,
@@ -136,14 +146,81 @@ describe('plan upgrade helpers', () => {
   });
 
   it('reads the plan a room was sized for from its cap', () => {
-    expect(planForCap(5)).toBe('free');
-    expect(planForCap(LISTENER_CAP.free)).toBe('free');
-    expect(planForCap(LISTENER_CAP.plus)).toBe('plus');
-    expect(planForCap(LISTENER_CAP.pro)).toBe('pro');
-    expect(planForCap(LISTENER_CAP.team)).toBe('team');
+    expect(planForCap(PARTICIPANT_CAP.free)).toBe('free');
+    expect(planForCap(PARTICIPANT_CAP.plus)).toBe('plus');
+    expect(planForCap(PARTICIPANT_CAP.pro)).toBe('pro');
+    expect(planForCap(PARTICIPANT_CAP.team)).toBe('team');
+  });
+
+  it('caps Free at 2 participants and 20 listeners; paid plans keep their limits', () => {
+    expect(PARTICIPANT_CAP).toEqual({ free: 2, plus: 100, pro: 500, team: 2000 });
+    expect(LISTENER_CAP).toEqual({ free: 20, plus: 100, pro: 500, team: 2000 });
   });
 
   it('prices the paid plans as the pricing page does', () => {
     expect(PLAN_PRICE_USD).toEqual({ plus: 1, pro: 12, team: 49 });
+  });
+});
+
+describe('seat counting', () => {
+  const now = Date.parse('2026-10-17T12:00:00Z');
+  const seen = (secondsAgo: number): string => new Date(now - secondsAgo * 1000).toISOString();
+  const windowSeconds: number = SEAT_PRESENCE_SECONDS;
+  const host = 'host-user';
+  interface Row {
+    user_id: string | null;
+    left_at: string | null;
+    last_seen_at: string | null;
+    kind: 'human' | 'agent';
+  }
+  const row = (over: Partial<Row> = {}): Row => ({
+    user_id: null,
+    left_at: null,
+    last_seen_at: seen(10),
+    kind: 'human',
+    ...over,
+  });
+
+  it('signed-in joiners are participants in any mode; anonymous guests only in P2P', () => {
+    expect(seatKindFor(true, 'sfu')).toBe('participants');
+    expect(seatKindFor(true, 'p2p')).toBe('participants');
+    expect(seatKindFor(false, 'p2p')).toBe('participants');
+    expect(seatKindFor(false, 'sfu')).toBe('listeners');
+  });
+
+  it('always counts the host as one participant, present or not', () => {
+    expect(seatUsage([], { hostUserId: host, mode: 'p2p' }, now)).toEqual({
+      participants: 1,
+      listeners: 0,
+    });
+    expect(
+      seatUsage([row({ user_id: host })], { hostUserId: host, mode: 'p2p' }, now).participants
+    ).toBe(1);
+  });
+
+  it('counts an anonymous P2P guest as a participant, so Free is full at host + 1', () => {
+    const usage = seatUsage([row()], { hostUserId: host, mode: 'p2p' }, now);
+    expect(usage).toEqual({ participants: 2, listeners: 0 });
+    expect(usage.participants >= PARTICIPANT_CAP.free).toBe(true);
+  });
+
+  it('counts anonymous SFU guests as listeners and signed-in SFU joiners as participants', () => {
+    const usage = seatUsage(
+      [row(), row(), row({ user_id: 'u2' })],
+      { hostUserId: host, mode: 'sfu' },
+      now
+    );
+    expect(usage).toEqual({ participants: 2, listeners: 2 });
+  });
+
+  it('frees the seat of a row that left, went quiet, or is an agent', () => {
+    const rows = [
+      row({ left_at: seen(5) }),
+      row({ last_seen_at: seen(windowSeconds + 1) }),
+      row({ last_seen_at: null }),
+      row({ kind: 'agent' }),
+    ];
+    expect(seatUsage(rows, { hostUserId: host, mode: 'p2p' }, now).participants).toBe(1);
+    expect(holdsSeat(row({ last_seen_at: seen(windowSeconds - 1) }), now)).toBe(true);
   });
 });

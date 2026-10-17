@@ -28,6 +28,7 @@ import type {
 } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
 import { reportMediaConnected } from '@/lib/media-connected';
+import { useSeatPresence } from '@/hooks/useSeatPresence';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
@@ -69,6 +70,8 @@ interface ApiResponse<T> {
 
 export default function SessionViewerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params);
+  // Hold this viewer's seat while the page is open (see useSeatPresence).
+  useSeatPresence(sessionId);
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

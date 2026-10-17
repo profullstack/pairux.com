@@ -244,6 +244,12 @@ export interface IPCChannels {
     return: { success: true; participant: SessionParticipant } | { success: false; error: string };
   };
 
+  // "Still here": keeps this viewer's plan seat (see /api/sessions/<id>/presence)
+  'session:presence': {
+    args: { sessionId: string };
+    return: { success: true; seat: string } | { success: false; error: string };
+  };
+
   // Scheduled meeting channels
   'meetings:list': {
     args: undefined;

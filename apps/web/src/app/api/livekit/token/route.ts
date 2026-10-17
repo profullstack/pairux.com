@@ -1,14 +1,13 @@
-import { resolveUserPlan } from '@/lib/orgs';
 import { z } from 'zod';
 import { AccessToken } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
-import { maxListeners } from '@pairux/shared-types';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getIceServers } from '@/lib/ice-servers';
 import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
 import { ROOM_FULL_MESSAGE, recordCapRefusal } from '@/lib/room-cap';
+import type { SeatKind } from '@pairux/shared-types';
 
 // A token is valid for 24 hours, so legitimate clients never need to mint
 // them rapidly. These limits protect the database and LiveKit from connection
@@ -96,6 +95,7 @@ export async function POST(request: Request) {
     //    join_session); subscribe-only, never publishes.
     let isParticipant = false;
     let isGuest = false;
+    let seatRowId: string | null = null;
     if (!isSessionOwner) {
       if (user) {
         const { data: participant } = await svc
@@ -109,6 +109,7 @@ export async function POST(request: Request) {
         if (!isParticipant) {
           return errorResponse('Not authorized for this session', 403);
         }
+        seatRowId = (participant as unknown as { id: string }).id;
       } else {
         if (!session.is_public || !session.current_host_id) {
           return errorResponse('Sign in to join this room', 401);
@@ -125,31 +126,30 @@ export async function POST(request: Request) {
           return errorResponse('Not authorized for this session', 403);
         }
         isGuest = true;
+        seatRowId = participantId;
       }
     }
 
-    // Enforce the owner's plan cap on AUTHENTICATED joiners only. Watch-only
-    // GUESTS are unlimited (they only subscribe), so they neither hit the cap
-    // nor count toward it — the occupancy count excludes guests (user_id NULL).
-    // The host always gets in. A lapsed paid plan falls back to the free cap.
-    if (!isSessionOwner && !isGuest) {
-      // Includes the plan of any organization the owner belongs to.
-      const ownerPlan = await resolveUserPlan(svc as never, session.host_user_id);
-      const cap = maxListeners(ownerPlan);
-
-      const { count } = await svc
-        .from('session_participants')
-        .select('id', { count: 'exact', head: true })
-        .eq('session_id', sessionId)
-        .is('left_at', null)
-        .not('user_id', 'is', null);
-
-      // The joiner's own live row is already in this count (checked above),
-      // so the room is over its cap only when the count EXCEEDS it.
-      const occupancy = count ?? 0;
-      if (occupancy > cap) {
-        await recordCapRefusal(svc, sessionId);
+    // Seats on the owner's plan, right now: a signed-in joiner takes a
+    // participant seat (Free: 2, the host's included), a guest here takes a
+    // listener seat (SFU tokens for guests are subscribe-only; Free: 20).
+    // join_session already seated this row; claim_session_seat only refuses a
+    // row that went quiet and finds the room full meanwhile, so nobody still
+    // in the call is ever cut off by a token refresh. The host always gets in.
+    if (seatRowId) {
+      const { data: seat } = (await svc.rpc(
+        'claim_session_seat' as never,
+        {
+          p_session_id: sessionId,
+          p_participant_id: seatRowId,
+        } as never
+      )) as { data: string | null };
+      if (seat === 'participants' || seat === 'listeners') {
+        await recordCapRefusal(svc, sessionId, seat satisfies SeatKind);
         return errorResponse(ROOM_FULL_MESSAGE, 403);
+      }
+      if (seat === 'gone') {
+        return errorResponse('Not authorized for this session', 403);
       }
     }
 

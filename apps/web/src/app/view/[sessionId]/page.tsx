@@ -30,6 +30,7 @@ import type {
 } from '@pairux/shared-types';
 import { VideoViewer } from '@/components/video';
 import { reportMediaConnected } from '@/lib/media-connected';
+import { useSeatPresence } from '@/hooks/useSeatPresence';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebRTCSFU } from '@/hooks/useWebRTCSFU';
 import { ControlRequestButton, ControlStatusIndicator, InputCapture } from '@/components/control';
@@ -76,6 +77,8 @@ export default function GuestSessionViewerPage({
   const { sessionId } = use(params);
   const searchParams = useSearchParams();
   const participantId = searchParams.get('p');
+  // Hold this guest's seat while the page is open (see useSeatPresence).
+  useSeatPresence(participantId ? sessionId : null, participantId);
 
   const [session, setSession] = useState<SessionData | null>(null);
   const [participant, setParticipant] = useState<Participant | null>(null);

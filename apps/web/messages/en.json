@@ -765,7 +765,6 @@
     "yourPlan": "Your Plan",
     "freePlan": "Free Plan",
     "current": "Current",
-    "freePlanSummary": "2 participants, P2P only",
     "upgradePlan": "Upgrade Plan",
     "comingSoon": "Coming soon",
     "comingSoonButton": "Coming Soon",
@@ -1183,8 +1182,6 @@
     "subtitle": "Start a view-only screen sharing session from your browser",
     "sessionSettings": "Session Settings",
     "defaults": "Defaults",
-    "maxViewers": "Maximum Viewers",
-    "viewers": "{count, plural, one {# viewer} other {# viewers}}",
     "remoteControl": "Remote Control",
     "enableGuestControl": "Enable guest control",
     "notAvailableWeb": "Not available in web sharing",
@@ -1339,7 +1336,6 @@
         "cta": "Get Started",
         "features": {
           "participants": "2 participants + up to {count} listeners",
-          "publicViewers": "Unlimited free viewers on public lives",
           "p2p": "P2P connections",
           "screenSharing": "Screen sharing",
           "remoteControl": "Remote control",
@@ -1352,7 +1348,7 @@
         "description": "Host an audience — teaching, standups, watch-alongs",
         "cta": "Upgrade to Plus",
         "features": {
-          "listeners": "Up to {count} listeners per room",
+          "listeners": "Up to {count} participants and {count} listeners per room",
           "sfu": "SFU relay servers",
           "liveDirectory": "Public room in the /live directory",
           "screenVoice": "Screen sharing + voice",
@@ -1365,7 +1361,7 @@
         "description": "For professionals and growing teams",
         "cta": "Upgrade to Pro",
         "features": {
-          "listeners": "Up to {count} listeners per room",
+          "listeners": "Up to {count} participants and {count} listeners per room",
           "sfu": "SFU relay servers",
           "streaming": "All streaming platforms (YouTube, Twitch, …)",
           "hd": "HD screen sharing (1080p)",
@@ -1379,7 +1375,7 @@
         "description": "For teams and organizations",
         "cta": "Upgrade to Team",
         "features": {
-          "listeners": "Up to {count} listeners per room",
+          "listeners": "Up to {count} participants and {count} listeners per room",
           "sfu": "Dedicated SFU servers",
           "streaming": "All streaming platforms",
           "uhd": "4K screen sharing",
@@ -1461,13 +1457,13 @@
       "title": "Frequently Asked Questions",
       "capacity": {
         "question": "How many people can watch my room?",
-        "answer": "Concurrent listeners per room scale with your plan: Free {free}, Plus {plus}, Pro {pro}, Team {team}. On top of that, public lives can be watched for free by unlimited guests with no account.",
-        "answerLong": "Concurrent listeners per room scale with your plan: Free {free}, Plus {plus}, Pro {pro}, Team {team}. On top of that, public lives can be watched for free by unlimited guests with no account."
+        "answer": "A Free room holds 2 participants (you and one other person who can talk or take control) and up to {free} listeners who watch and listen. Plus raises both to {plus}, Pro to {pro} and Team to {team}.",
+        "answerLong": "A Free room holds 2 participants (you and one other person who can talk or take control) and up to {free} listeners who watch and listen. Plus raises both to {plus}, Pro to {pro} and Team to {team}."
       },
       "free": {
         "question": "Is the free tier really free?",
-        "answer": "Yes! 2 participants + up to {freeCap} listeners are completely free, forever — and public lives can be watched for free by unlimited guests with no account. No time limits, no credit card required.",
-        "answerLong": "Yes! 2 participants + up to {freeCap} listeners are completely free, forever — and public lives can be watched for free by unlimited guests with no account. No time limits, no credit card required. Great for pair programming and small demos."
+        "answer": "Yes! 2 participants + up to {freeCap} listeners are completely free, forever. No time limits, no credit card required.",
+        "answerLong": "Yes! 2 participants + up to {freeCap} listeners are completely free, forever. No time limits, no credit card required. Great for pair programming and small demos."
       },
       "selfHost": {
         "question": "Can I self-host to avoid costs?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "All {cap} seats on your {current} plan are taken.",
     "turnedAway": "{count, plural, one {# person was turned away.} other {# people were turned away.}}",
     "roomFullLift": "{plan} raises it to {seats} listeners for {price}/month.",
+    "participantsFullBody": "Your {current} plan allows {cap} participants, you included, and every seat is taken.",
+    "participantsFullLift": "{plan} raises it to {seats} participants for {price}/month.",
     "proFeatureTitle": "AI call analysis is a Pro feature",
     "proFeatureBody": "{plan} adds AI call analysis, 1080p and up to {seats} listeners for {price}/month.",
     "cta": "Upgrade to {plan}: {price}/mo",

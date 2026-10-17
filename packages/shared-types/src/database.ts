@@ -27,7 +27,13 @@ export type ControlState = 'view-only' | 'requested' | 'granted';
 export interface SessionSettings {
   quality?: 'low' | 'medium' | 'high';
   allowControl?: boolean;
+  /** The owner's participant cap, host included (display copy; enforced in SQL). */
   maxParticipants?: number;
+  /** The owner's listener cap (display copy; enforced in SQL). */
+  maxListeners?: number;
+  /** Joiners turned away at the plan cap, and which seats had run out. */
+  capRefusedCount?: number;
+  capRefusedKind?: SeatKind;
   /** Agents may join by join code unless the host sets this to false. */
   allowAgents?: boolean;
   /**
@@ -67,17 +73,41 @@ export function canUseCallAnalysis(plan: Plan): boolean {
   return plan === 'pro' || plan === 'team';
 }
 
-// Billing plan. Free = P2P + 20 listeners, YouTube-only streaming.
-// plus = $1/mo audience tier (up to 100 listeners). pro/team unlock all
-// streaming platforms and larger rooms.
+// Billing plan. Free = 2 participants + 20 listeners, YouTube-only streaming.
+// plus = $1/mo audience tier (100 participants + 100 listeners). pro/team
+// unlock all streaming platforms and larger rooms.
 export type Plan = 'free' | 'plus' | 'pro' | 'team';
 
 /**
- * Max concurrent listeners (read-only SFU subscribers) a room owner on each
- * plan may host. Single source of truth for the capacity gate; enforced at
- * session-create, the join_session RPC (via settings.maxParticipants), and the
- * LiveKit token mint. Always resolve against effectivePlan() so a lapsed paid
- * plan falls back to the free cap.
+ * Who takes which seat in a room (the rule join_session, the LiveKit token
+ * mint and the host's upgrade prompt all apply; see seatUsage below):
+ *
+ *  - PARTICIPANT: someone who can be heard or take control. The host (always
+ *    one seat, held for them even while they reconnect), every signed-in
+ *    joiner (their SFU token may publish), and every anonymous guest in a P2P
+ *    room (a direct connection to the host: microphone, can be handed control).
+ *  - LISTENER: an anonymous guest in an SFU room. Their LiveKit token is
+ *    subscribe-only, so they watch and listen and nothing else.
+ *
+ * Agents have their own limit (5 per room) and take neither kind of seat.
+ */
+export const PARTICIPANT_CAP: Record<Plan, number> = {
+  free: 2,
+  plus: 100,
+  pro: 500,
+  team: 2000,
+};
+
+/** Max concurrent participants (host included) in a room owned on this plan. */
+export function participantCap(plan: Plan): number {
+  return PARTICIPANT_CAP[plan];
+}
+
+/**
+ * Max concurrent listeners (watch-only SFU guests) a room owner on each plan
+ * may host. Enforced by join_session and the LiveKit token mint. Always
+ * resolve against the owner's effective plan so a lapsed paid plan falls back
+ * to the free caps.
  */
 export const LISTENER_CAP: Record<Plan, number> = {
   free: 20,
@@ -91,6 +121,52 @@ export function maxListeners(plan: Plan): number {
 }
 
 /**
+ * A seat is held while its row has been seen recently. Clients ping every
+ * 30 s (POST /api/sessions/<id>/presence, or the signaling stream), so a
+ * closed tab that never said goodbye frees its seat within this window.
+ * Mirrors SEAT_PRESENCE in the join_session migration.
+ */
+export const SEAT_PRESENCE_SECONDS = 180;
+
+export type SeatKind = 'participants' | 'listeners';
+
+export interface SeatUsage {
+  /** Participants in the room, the host's seat included. */
+  participants: number;
+  listeners: number;
+}
+
+type SeatRow = Pick<SessionParticipant, 'user_id' | 'left_at' | 'last_seen_at'> & {
+  kind?: ParticipantKind | undefined;
+};
+
+/** True while a row holds a seat: still in the room and seen recently. */
+export function holdsSeat(row: SeatRow, now: number = Date.now()): boolean {
+  if (row.left_at || row.kind === 'agent' || !row.last_seen_at) return false;
+  return now - new Date(row.last_seen_at).getTime() < SEAT_PRESENCE_SECONDS * 1000;
+}
+
+/** Which kind of seat a joiner takes. */
+export function seatKindFor(signedIn: boolean, mode: string | null | undefined): SeatKind {
+  return signedIn || mode !== 'sfu' ? 'participants' : 'listeners';
+}
+
+/** Seats taken in a room, counted the way join_session counts them. */
+export function seatUsage(
+  rows: readonly SeatRow[],
+  room: { hostUserId: string | null | undefined; mode: string | null | undefined },
+  now: number = Date.now()
+): SeatUsage {
+  const usage: SeatUsage = { participants: 1, listeners: 0 };
+  for (const row of rows) {
+    if (row.user_id && row.user_id === room.hostUserId) continue;
+    if (!holdsSeat(row, now)) continue;
+    usage[seatKindFor(Boolean(row.user_id), room.mode)] += 1;
+  }
+  return usage;
+}
+
+/**
  * Monthly price per paid plan in USD (one CoinPay payment = one term). Mirrors
  * the public /pricing page; the web checkout charges exactly this.
  */
@@ -100,7 +176,7 @@ export const PLAN_PRICE_USD: Record<Exclude<Plan, 'free'>, number> = {
   team: 49,
 };
 
-/** The plan that lifts a plan's listener cap, or null when there is none. */
+/** The plan that lifts a plan's caps, or null when there is none. */
 export function nextPlan(plan: Plan): Exclude<Plan, 'free'> | null {
   if (plan === 'free') return 'plus';
   if (plan === 'plus') return 'pro';
@@ -110,13 +186,12 @@ export function nextPlan(plan: Plan): Exclude<Plan, 'free'> | null {
 
 /**
  * The plan a room was sized for, from its settings.maxParticipants (POST
- * /api/sessions bakes in the owner's plan cap). Older rooms carry smaller
- * hand-picked caps; anything at or under the free cap reads as free.
+ * /api/sessions and join_session keep it at the owner's participant cap).
  */
 export function planForCap(cap: number): Plan {
   const plans: Plan[] = ['free', 'plus', 'pro', 'team'];
   for (const plan of plans) {
-    if (cap <= LISTENER_CAP[plan]) return plan;
+    if (cap <= PARTICIPANT_CAP[plan]) return plan;
   }
   return 'team';
 }

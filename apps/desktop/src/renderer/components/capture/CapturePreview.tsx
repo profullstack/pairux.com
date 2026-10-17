@@ -1612,7 +1612,13 @@ export function CapturePreview({
 
         {/* Plan cap reached: upgrade prompt for the room's owner (the payer) */}
         {session && (!currentUserId || currentUserId === session.host_user_id) && (
-          <PlanCapBanner cap={session.settings.maxParticipants} participants={participants} />
+          <PlanCapBanner
+            cap={session.settings.maxParticipants}
+            listenerCap={session.settings.maxListeners}
+            hostUserId={session.host_user_id}
+            mode={session.mode}
+            participants={participants}
+          />
         )}
 
         {/* Session info bar */}

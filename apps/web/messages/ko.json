@@ -765,7 +765,6 @@
     "yourPlan": "내 요금제",
     "freePlan": "무료 요금제",
     "current": "현재",
-    "freePlanSummary": "참가자 2명, P2P 전용",
     "upgradePlan": "요금제 업그레이드",
     "comingSoon": "곧 제공 예정",
     "comingSoonButton": "곧 제공 예정",
@@ -1183,8 +1182,6 @@
     "subtitle": "브라우저에서 보기 전용 화면 공유 세션을 시작하세요",
     "sessionSettings": "세션 설정",
     "defaults": "기본값",
-    "maxViewers": "최대 시청자 수",
-    "viewers": "{count, plural, other {시청자 #명}}",
     "remoteControl": "원격 제어",
     "enableGuestControl": "게스트 제어 허용",
     "notAvailableWeb": "웹 공유에서는 사용할 수 없어요",
@@ -1339,7 +1336,6 @@
         "cta": "시작하기",
         "features": {
           "participants": "참가자 2명 + 청취자 최대 {count}명",
-          "publicViewers": "공개 라이브 무료 시청자 무제한",
           "p2p": "P2P 연결",
           "screenSharing": "화면 공유",
           "remoteControl": "원격 제어",
@@ -1352,7 +1348,7 @@
         "description": "청중과 함께 — 강의, 스탠드업, 함께 보기",
         "cta": "Plus로 업그레이드",
         "features": {
-          "listeners": "방당 청취자 최대 {count}명",
+          "listeners": "방당 참가자 최대 {count}명 + 청취자 최대 {count}명",
           "sfu": "SFU 릴레이 서버",
           "liveDirectory": "/live 디렉터리에 공개 방 등록",
           "screenVoice": "화면 공유 + 음성",
@@ -1365,7 +1361,7 @@
         "description": "전문가 및 성장하는 팀용",
         "cta": "Pro로 업그레이드",
         "features": {
-          "listeners": "방당 청취자 최대 {count}명",
+          "listeners": "방당 참가자 최대 {count}명 + 청취자 최대 {count}명",
           "sfu": "SFU 릴레이 서버",
           "streaming": "모든 스트리밍 플랫폼(YouTube, Twitch 등)",
           "hd": "HD 화면 공유(1080p)",
@@ -1379,7 +1375,7 @@
         "description": "팀 및 조직용",
         "cta": "Team으로 업그레이드",
         "features": {
-          "listeners": "방당 청취자 최대 {count}명",
+          "listeners": "방당 참가자 최대 {count}명 + 청취자 최대 {count}명",
           "sfu": "전용 SFU 서버",
           "streaming": "모든 스트리밍 플랫폼",
           "uhd": "4K 화면 공유",
@@ -1461,13 +1457,13 @@
       "title": "자주 묻는 질문",
       "capacity": {
         "question": "내 방은 몇 명이 시청할 수 있나요?",
-        "answer": "방당 동시 청취자 수는 요금제에 따라 달라요. Free {free}명, Plus {plus}명, Pro {pro}명, Team {team}명. 여기에 더해 공개 라이브는 계정 없는 게스트가 인원 제한 없이 무료로 시청할 수 있어요.",
-        "answerLong": "방당 동시 청취자 수는 요금제에 따라 달라요. Free {free}명, Plus {plus}명, Pro {pro}명, Team {team}명. 여기에 더해 공개 라이브는 계정 없는 게스트가 인원 제한 없이 무료로 시청할 수 있어요."
+        "answer": "Free 방에는 참가자 2명(회원님과, 말하거나 제어권을 넘겨받을 수 있는 다른 한 명)과 보고 듣는 청취자 최대 {free}명이 들어올 수 있어요. Plus는 둘 다 {plus}명, Pro는 {pro}명, Team은 {team}명으로 늘려 줍니다.",
+        "answerLong": "Free 방에는 참가자 2명(회원님과, 말하거나 제어권을 넘겨받을 수 있는 다른 한 명)과 보고 듣는 청취자 최대 {free}명이 들어올 수 있어요. Plus는 둘 다 {plus}명, Pro는 {pro}명, Team은 {team}명으로 늘려 줍니다."
       },
       "free": {
         "question": "무료 요금제는 정말 무료인가요?",
-        "answer": "네! 참가자 2명 + 청취자 최대 {freeCap}명까지 평생 완전 무료예요. 공개 라이브는 계정 없는 게스트가 인원 제한 없이 무료로 시청할 수 있어요. 시간 제한도, 신용카드도 필요 없어요.",
-        "answerLong": "네! 참가자 2명 + 청취자 최대 {freeCap}명까지 평생 완전 무료예요. 공개 라이브는 계정 없는 게스트가 인원 제한 없이 무료로 시청할 수 있어요. 시간 제한도, 신용카드도 필요 없어요. 페어 프로그래밍과 소규모 데모에 제격이에요."
+        "answer": "네! 참가자 2명 + 청취자 최대 {freeCap}명까지 평생 완전 무료예요. 시간 제한도, 신용카드도 필요 없어요.",
+        "answerLong": "네! 참가자 2명 + 청취자 최대 {freeCap}명까지 평생 완전 무료예요. 시간 제한도, 신용카드도 필요 없어요. 페어 프로그래밍과 소규모 데모에 제격이에요."
       },
       "selfHost": {
         "question": "비용을 아끼려고 자체 호스팅할 수 있나요?",
@@ -2245,6 +2241,8 @@
     "roomFullBody": "{current} 플랜의 {cap}개 좌석이 모두 찼습니다.",
     "turnedAway": "{count, plural, other {#명이 입장하지 못했습니다.}}",
     "roomFullLift": "{plan}은(는) 월 {price}에 청취자를 {seats}명까지 늘려 줍니다.",
+    "participantsFullBody": "{current} 플랜은 회원님을 포함해 참가자 {cap}명까지 허용하며, 모든 좌석이 찼습니다.",
+    "participantsFullLift": "{plan}은(는) 월 {price}에 참가자를 {seats}명까지 늘려 줍니다.",
     "proFeatureTitle": "AI 통화 분석은 Pro 기능입니다",
     "proFeatureBody": "{plan}은(는) 월 {price}에 AI 통화 분석, 1080p, 최대 {seats}명의 청취자를 제공합니다.",
     "cta": "{plan}(으)로 업그레이드: 월 {price}",

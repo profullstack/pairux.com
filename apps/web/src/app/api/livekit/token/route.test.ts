@@ -217,7 +217,47 @@ describe('POST /api/livekit/token', () => {
     expect(body.error).toBe('Sign in to join this room');
   });
 
-  it('returns 403 when the room is at the owner plan listener cap', async () => {
+  it('returns 403 when the room is over the owner plan listener cap', async () => {
+    const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
+    const sessionQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: otherOwnerSession, error: null }),
+    };
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'participant-1' }, error: null }),
+      // The head:true count query is awaited directly (no .single()).
+      then: (resolve: (v: unknown) => void) => resolve({ count: 21, data: null, error: null }),
+    };
+    const profileQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { plan: 'free', plan_expires_at: null },
+        error: null,
+      }),
+    };
+    const mockFrom = vi.fn((table: string) => {
+      if (table === 'sessions') return sessionQuery;
+      if (table === 'session_participants') return participantQuery;
+      if (table === 'profiles') return profileQuery;
+      throw new Error(`Unexpected table ${table}`);
+    });
+    useClient(createMockSupabaseClient({ from: mockFrom }));
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toContain('This room is full');
+  });
+
+  it('lets the joiner take the last seat (their own row is in the count)', async () => {
     const otherOwnerSession = { ...sfuSession, host_user_id: 'other-user-id' };
     const sessionQuery = {
       select: vi.fn().mockReturnThis(),
@@ -253,8 +293,8 @@ describe('POST /api/livekit/token', () => {
     const response = await POST(createRequest({ ...validBody, isHost: false }));
     const body = await response.json();
 
-    expect(response.status).toBe(403);
-    expect(body.error).toContain('Room is full');
+    expect(response.status).toBe(200);
+    expect(body.data.token).toBe('mock-jwt-token');
   });
 
   it('returns 404 for nonexistent session', async () => {

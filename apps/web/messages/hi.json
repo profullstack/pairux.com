@@ -2239,5 +2239,22 @@
     "off": "बंद",
     "showOriginal": "मूल दिखाएँ",
     "unavailable": "चैट अनुवाद उपलब्ध नहीं है।"
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "आपका रूम भर गया है",
+    "roomFullBody": "आपके {current} प्लान की सभी {cap} सीटें भरी हैं।",
+    "turnedAway": "{count, plural, one {# व्यक्ति को लौटा दिया गया।} other {# लोगों को लौटा दिया गया।}}",
+    "roomFullLift": "{plan} इसे {price}/माह में {seats} श्रोताओं तक बढ़ाता है।",
+    "proFeatureTitle": "AI कॉल विश्लेषण एक Pro सुविधा है",
+    "proFeatureBody": "{plan} में {price}/माह में AI कॉल विश्लेषण, 1080p और {seats} श्रोताओं तक मिलते हैं।",
+    "cta": "{plan} पर अपग्रेड करें: {price}/माह",
+    "starting": "चेकआउट शुरू हो रहा है…",
+    "payNote": "CoinPay से भुगतान। हर भुगतान {days} दिन का है; कुछ भी अपने आप रिन्यू नहीं होता।",
+    "dismiss": "अभी नहीं",
+    "page": {
+      "metaTitle": "अपग्रेड",
+      "starting": "आपका {plan} चेकआउट शुरू हो रहा है…",
+      "backToPricing": "कीमतों पर वापस जाएँ"
+    }
   }
 }

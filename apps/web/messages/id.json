@@ -2239,5 +2239,22 @@
     "off": "Nonaktif",
     "showOriginal": "Lihat asli",
     "unavailable": "Terjemahan chat tidak tersedia."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Ruangan Anda penuh",
+    "roomFullBody": "Semua {cap} kursi di paket {current} Anda sudah terisi.",
+    "turnedAway": "{count, plural, other {# orang ditolak masuk.}}",
+    "roomFullLift": "{plan} menaikkannya menjadi {seats} pendengar seharga {price}/bulan.",
+    "proFeatureTitle": "Analisis panggilan AI adalah fitur Pro",
+    "proFeatureBody": "{plan} menambahkan analisis panggilan AI, 1080p, dan hingga {seats} pendengar seharga {price}/bulan.",
+    "cta": "Upgrade ke {plan}: {price}/bln",
+    "starting": "Memulai pembayaran…",
+    "payNote": "Dibayar lewat CoinPay. Setiap pembayaran berlaku {days} hari; tidak ada yang diperpanjang otomatis.",
+    "dismiss": "Nanti saja",
+    "page": {
+      "metaTitle": "Upgrade",
+      "starting": "Memulai pembayaran {plan} Anda…",
+      "backToPricing": "Kembali ke harga"
+    }
   }
 }

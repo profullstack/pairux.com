@@ -2239,5 +2239,22 @@
     "off": "关",
     "showOriginal": "显示原文",
     "unavailable": "聊天翻译不可用。"
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "你的房间已满",
+    "roomFullBody": "你的 {current} 方案的 {cap} 个席位已全部占满。",
+    "turnedAway": "{count, plural, other {# 人被拒之门外。}}",
+    "roomFullLift": "{plan} 每月 {price}，可将上限提高到 {seats} 名听众。",
+    "proFeatureTitle": "AI 通话分析是 Pro 功能",
+    "proFeatureBody": "{plan} 每月 {price}，包含 AI 通话分析、1080p 和最多 {seats} 名听众。",
+    "cta": "升级到 {plan}：每月 {price}",
+    "starting": "正在开始结账…",
+    "payNote": "通过 CoinPay 支付。每次付款有效 {days} 天，不会自动续费。",
+    "dismiss": "以后再说",
+    "page": {
+      "metaTitle": "升级",
+      "starting": "正在开始 {plan} 结账…",
+      "backToPricing": "返回价格页"
+    }
   }
 }

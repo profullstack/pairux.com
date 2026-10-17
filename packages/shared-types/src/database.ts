@@ -90,6 +90,37 @@ export function maxListeners(plan: Plan): number {
   return LISTENER_CAP[plan];
 }
 
+/**
+ * Monthly price per paid plan in USD (one CoinPay payment = one term). Mirrors
+ * the public /pricing page; the web checkout charges exactly this.
+ */
+export const PLAN_PRICE_USD: Record<Exclude<Plan, 'free'>, number> = {
+  plus: 1,
+  pro: 12,
+  team: 49,
+};
+
+/** The plan that lifts a plan's listener cap, or null when there is none. */
+export function nextPlan(plan: Plan): Exclude<Plan, 'free'> | null {
+  if (plan === 'free') return 'plus';
+  if (plan === 'plus') return 'pro';
+  if (plan === 'pro') return 'team';
+  return null;
+}
+
+/**
+ * The plan a room was sized for, from its settings.maxParticipants (POST
+ * /api/sessions bakes in the owner's plan cap). Older rooms carry smaller
+ * hand-picked caps; anything at or under the free cap reads as free.
+ */
+export function planForCap(cap: number): Plan {
+  const plans: Plan[] = ['free', 'plus', 'pro', 'team'];
+  for (const plan of plans) {
+    if (cap <= LISTENER_CAP[plan]) return plan;
+  }
+  return 'team';
+}
+
 // Profile table
 export interface Profile {
   id: string;

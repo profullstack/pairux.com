@@ -2239,5 +2239,22 @@
     "off": "Tắt",
     "showOriginal": "Xem bản gốc",
     "unavailable": "Không thể dịch tin nhắn lúc này."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Phòng của bạn đã đầy",
+    "roomFullBody": "Tất cả {cap} chỗ trong gói {current} của bạn đã kín.",
+    "turnedAway": "{count, plural, other {# người đã bị từ chối.}}",
+    "roomFullLift": "{plan} nâng lên {seats} người nghe với {price}/tháng.",
+    "proFeatureTitle": "Phân tích cuộc gọi bằng AI là tính năng Pro",
+    "proFeatureBody": "{plan} có phân tích cuộc gọi bằng AI, 1080p và tới {seats} người nghe với {price}/tháng.",
+    "cta": "Nâng cấp lên {plan}: {price}/tháng",
+    "starting": "Đang bắt đầu thanh toán…",
+    "payNote": "Thanh toán qua CoinPay. Mỗi lần thanh toán dùng được {days} ngày; không tự gia hạn.",
+    "dismiss": "Để sau",
+    "page": {
+      "metaTitle": "Nâng cấp",
+      "starting": "Đang bắt đầu thanh toán gói {plan}…",
+      "backToPricing": "Quay lại bảng giá"
+    }
   }
 }

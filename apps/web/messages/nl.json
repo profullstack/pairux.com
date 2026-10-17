@@ -2239,5 +2239,22 @@
     "off": "Uit",
     "showOriginal": "Origineel tonen",
     "unavailable": "Chatvertaling is niet beschikbaar."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Je ruimte is vol",
+    "roomFullBody": "Alle {cap} plaatsen van je {current}-abonnement zijn bezet.",
+    "turnedAway": "{count, plural, one {# persoon is geweigerd.} other {# personen zijn geweigerd.}}",
+    "roomFullLift": "{plan} verhoogt dat naar {seats} luisteraars voor {price}/maand.",
+    "proFeatureTitle": "AI-gespreksanalyse is een Pro-functie",
+    "proFeatureBody": "{plan} voegt AI-gespreksanalyse, 1080p en tot {seats} luisteraars toe voor {price}/maand.",
+    "cta": "Upgraden naar {plan}: {price}/maand",
+    "starting": "Afrekenen wordt gestart…",
+    "payNote": "Betaald via CoinPay. Elke betaling dekt {days} dagen; niets verlengt automatisch.",
+    "dismiss": "Niet nu",
+    "page": {
+      "metaTitle": "Upgraden",
+      "starting": "Je {plan}-betaling wordt gestart…",
+      "backToPricing": "Terug naar prijzen"
+    }
   }
 }

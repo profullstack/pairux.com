@@ -1,4 +1,5 @@
 import { canUseCallAnalysis, maxListeners } from '@pairux/shared-types';
+import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
 import { serviceClient } from '@/lib/supabase/service';
 import { canUseWorkspace, resolveUserPlan } from '@/lib/orgs';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     // the session's life. It is a Pro/Team feature.
     const analysis = settings.analysis?.enabled ? settings.analysis : undefined;
     if (analysis && !canUseCallAnalysis(plan)) {
-      return errorResponse('AI call analysis is available on Pro and Team plans', 403);
+      return errorResponse(ANALYSIS_REQUIRES_PRO, 403);
     }
 
     // Create session using RPC function

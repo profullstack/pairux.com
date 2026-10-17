@@ -2239,5 +2239,22 @@
     "off": "Wył.",
     "showOriginal": "Pokaż oryginał",
     "unavailable": "Tłumaczenie czatu jest niedostępne."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Twój pokój jest pełny",
+    "roomFullBody": "Wszystkie miejsca ({cap}) w planie {current} są zajęte.",
+    "turnedAway": "{count, plural, one {# osoba nie mogła dołączyć.} few {# osoby nie mogły dołączyć.} many {# osób nie mogło dołączyć.} other {# osoby nie mogły dołączyć.}}",
+    "roomFullLift": "{plan} zwiększa limit do {seats} słuchaczy za {price}/mies.",
+    "proFeatureTitle": "Analiza rozmów AI to funkcja Pro",
+    "proFeatureBody": "{plan} daje analizę rozmów AI, 1080p i do {seats} słuchaczy za {price}/mies.",
+    "cta": "Przejdź na {plan}: {price}/mies.",
+    "starting": "Uruchamianie płatności…",
+    "payNote": "Płatność przez CoinPay. Każda płatność obejmuje {days} dni; nic nie odnawia się samo.",
+    "dismiss": "Nie teraz",
+    "page": {
+      "metaTitle": "Ulepsz plan",
+      "starting": "Uruchamianie płatności za {plan}…",
+      "backToPricing": "Wróć do cennika"
+    }
   }
 }

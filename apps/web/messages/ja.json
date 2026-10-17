@@ -2239,5 +2239,22 @@
     "off": "オフ",
     "showOriginal": "原文を表示",
     "unavailable": "チャット翻訳は利用できません。"
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "ルームが満員です",
+    "roomFullBody": "{current}プランの{cap}席がすべて埋まっています。",
+    "turnedAway": "{count, plural, other {#人が参加できませんでした。}}",
+    "roomFullLift": "{plan}なら月額{price}で{seats}人のリスナーまで増やせます。",
+    "proFeatureTitle": "AI通話分析はProの機能です",
+    "proFeatureBody": "{plan}なら月額{price}でAI通話分析、1080p、最大{seats}人のリスナーが使えます。",
+    "cta": "{plan}にアップグレード：月額{price}",
+    "starting": "決済を開始しています…",
+    "payNote": "CoinPayで支払い。1回の支払いで{days}日間有効、自動更新はありません。",
+    "dismiss": "後で",
+    "page": {
+      "metaTitle": "アップグレード",
+      "starting": "{plan}の決済を開始しています…",
+      "backToPricing": "料金ページに戻る"
+    }
   }
 }

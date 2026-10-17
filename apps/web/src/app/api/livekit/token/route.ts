@@ -8,6 +8,7 @@ import { serviceClient } from '@/lib/supabase/service';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { getIceServers } from '@/lib/ice-servers';
 import { FixedWindowRateLimiter, getClientIp } from '@/lib/rate-limit';
+import { ROOM_FULL_MESSAGE, recordCapRefusal } from '@/lib/room-cap';
 
 // A token is valid for 24 hours, so legitimate clients never need to mint
 // them rapidly. These limits protect the database and LiveKit from connection
@@ -143,9 +144,12 @@ export async function POST(request: Request) {
         .is('left_at', null)
         .not('user_id', 'is', null);
 
+      // The joiner's own live row is already in this count (checked above),
+      // so the room is over its cap only when the count EXCEEDS it.
       const occupancy = count ?? 0;
-      if (occupancy >= cap) {
-        return errorResponse(`Room is full (${String(occupancy)}/${String(cap)} listeners)`, 403);
+      if (occupancy > cap) {
+        await recordCapRefusal(svc, sessionId);
+        return errorResponse(ROOM_FULL_MESSAGE, 403);
       }
     }
 

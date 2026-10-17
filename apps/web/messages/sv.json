@@ -2239,5 +2239,22 @@
     "off": "Av",
     "showOriginal": "Visa original",
     "unavailable": "Chattöversättning är inte tillgänglig."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Ditt rum är fullt",
+    "roomFullBody": "Alla {cap} platser i din {current}-plan är upptagna.",
+    "turnedAway": "{count, plural, one {# person nekades.} other {# personer nekades.}}",
+    "roomFullLift": "{plan} höjer det till {seats} lyssnare för {price}/månad.",
+    "proFeatureTitle": "AI-samtalsanalys är en Pro-funktion",
+    "proFeatureBody": "{plan} ger AI-samtalsanalys, 1080p och upp till {seats} lyssnare för {price}/månad.",
+    "cta": "Uppgradera till {plan}: {price}/mån",
+    "starting": "Startar betalningen…",
+    "payNote": "Betalas via CoinPay. Varje betalning gäller {days} dagar; inget förnyas automatiskt.",
+    "dismiss": "Inte nu",
+    "page": {
+      "metaTitle": "Uppgradera",
+      "starting": "Startar betalningen för {plan}…",
+      "backToPricing": "Tillbaka till priser"
+    }
   }
 }

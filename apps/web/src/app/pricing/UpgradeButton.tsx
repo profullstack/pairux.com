@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useCheckout } from '@/components/billing/useCheckout';
 
 interface UpgradeButtonProps {
   plan: 'plus' | 'pro' | 'team';
@@ -10,58 +9,20 @@ interface UpgradeButtonProps {
   className: string;
 }
 
-interface CheckoutResponse {
-  data?: { checkout_url?: string | null };
-  error?: string;
-}
-
 /**
- * Starts a CoinPay checkout for the multistream plugin and redirects to the
- * hosted payment page. Unauthenticated users are sent to login first. The
- * CoinPay webhook grants the plan once payment confirms.
+ * Starts a CoinPay checkout for the plan and redirects to the hosted payment
+ * page. Unauthenticated users are sent to login first. The CoinPay webhook
+ * grants the plan once payment confirms.
  */
 export function UpgradeButton({ plan, label, className }: UpgradeButtonProps) {
   const t = useTranslations('pricing.upgrade');
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleClick = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // Pay in USDC on Polygon (low fees, settles to the merchant wallet).
-        // Card requires Stripe Connect onboarding — add once that's completed.
-        body: JSON.stringify({ plan, currency: 'usdc_pol' }),
-      });
-
-      if (res.status === 401) {
-        router.push(`/login?next=${encodeURIComponent('/pricing')}`);
-        return;
-      }
-
-      const body = (await res.json()) as CheckoutResponse;
-      if (!res.ok || !body.data?.checkout_url) {
-        setError(body.error ?? t('checkoutFailed'));
-        return;
-      }
-
-      window.location.href = body.data.checkout_url;
-    } catch {
-      setError(t('networkError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { start, loading, error } = useCheckout();
 
   return (
     <>
       <button
         type="button"
-        onClick={() => void handleClick()}
+        onClick={() => void start(plan, '/pricing')}
         disabled={loading}
         className={`${className} disabled:cursor-not-allowed disabled:opacity-60`}
       >

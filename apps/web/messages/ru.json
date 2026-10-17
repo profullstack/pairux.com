@@ -2239,5 +2239,22 @@
     "off": "Выкл.",
     "showOriginal": "Показать оригинал",
     "unavailable": "Перевод чата недоступен."
+  },
+  "upgradePrompt": {
+    "roomFullTitle": "Ваша комната заполнена",
+    "roomFullBody": "Все места ({cap}) на тарифе {current} заняты.",
+    "turnedAway": "{count, plural, one {# человек не смог войти.} few {# человека не смогли войти.} many {# человек не смогли войти.} other {# человека не смогли войти.}}",
+    "roomFullLift": "{plan} увеличивает лимит до {seats} слушателей за {price}/мес.",
+    "proFeatureTitle": "ИИ-анализ звонков доступен на тарифе Pro",
+    "proFeatureBody": "{plan} добавляет ИИ-анализ звонков, 1080p и до {seats} слушателей за {price}/мес.",
+    "cta": "Перейти на {plan}: {price}/мес.",
+    "starting": "Запуск оплаты…",
+    "payNote": "Оплата через CoinPay. Каждый платёж действует {days} дн.; ничего не продлевается само.",
+    "dismiss": "Не сейчас",
+    "page": {
+      "metaTitle": "Повысить тариф",
+      "starting": "Запуск оплаты тарифа {plan}…",
+      "backToPricing": "Назад к ценам"
+    }
   }
 }

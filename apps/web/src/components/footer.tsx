@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Footer as PfsFooter } from '@profullstack/footer/react';
 import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -30,8 +31,7 @@ function TwitterIcon({ className }: { className?: string }) {
 }
 
 // The links people need, one row. Message keys live under footer.links.*.
-// Network links (search, ring, publish) come from the pit.world footer the
-// root layout renders after this one.
+// The pit.world network footer follows this one (root layout, last in <body>).
 const footerLinks = [
   { key: 'features', href: '/features' },
   { key: 'pricing', href: '/pricing' },
@@ -80,30 +80,23 @@ export function Footer() {
             ))}
           </nav>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p>
-            &copy; {new Date().getFullYear()}{' '}
-            <a href="https://profullstack.com/" className="hover:text-gray-900">
-              Profullstack, Inc.
-            </a>{' '}
-            {t('license')}
-          </p>
-          <div className="flex items-center gap-4">
-            {socialLinks.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 transition-colors hover:text-gray-900"
-              >
-                <span className="sr-only">{item.name}</span>
-                <item.icon className="h-5 w-5" />
-              </Link>
-            ))}
-            <LanguageSwitcher id="language-switcher-footer" />
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {socialLinks.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 transition-colors hover:text-gray-900"
+            >
+              <span className="sr-only">{item.name}</span>
+              <item.icon className="h-5 w-5" />
+            </Link>
+          ))}
+          <LanguageSwitcher id="language-switcher-footer" />
         </div>
+        {/* Copyright + Profullstack ring, from @profullstack/footer */}
+        <PfsFooter site="https://pairux.com/" tagline={t('license')} />
       </div>
     </footer>
   );

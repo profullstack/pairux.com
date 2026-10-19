@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Footer as PfsFooter } from '@profullstack/footer/react';
 import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -30,56 +29,19 @@ function TwitterIcon({ className }: { className?: string }) {
   );
 }
 
-// Internal links carry a message key (footer.links.*); package-manager names
-// under `install` are proper nouns and stay as written.
-const footerLinks = {
-  product: [
-    { key: 'features', href: '/features' },
-    { key: 'useCases', href: '/use-cases' },
-    { key: 'download', href: '/download' },
-    { key: 'pricing', href: '/pricing' },
-    { key: 'changelog', href: '/changelog' },
-  ],
-  install: [
-    {
-      name: 'Homebrew (macOS)',
-      href: 'https://github.com/profullstack/homebrew-pairux',
-      external: true,
-    },
-    {
-      name: 'Scoop (Windows)',
-      href: 'https://github.com/profullstack/scoop-pairux',
-      external: true,
-    },
-    {
-      name: 'WinGet (Windows)',
-      href: 'https://github.com/profullstack/pairux.com/releases',
-      external: true,
-    },
-    {
-      name: 'Chocolatey (Windows)',
-      href: 'https://github.com/profullstack/pairux.com/releases',
-      external: true,
-    },
-    { name: 'AUR (Arch)', href: 'https://aur.archlinux.org/packages/pairux-bin', external: true },
-    { name: 'APT (Debian)', href: 'https://github.com/profullstack/pairux-apt', external: true },
-    { name: 'RPM (Fedora)', href: 'https://github.com/profullstack/pairux-rpm', external: true },
-    { name: 'Gentoo', href: 'https://github.com/profullstack/gentoo-pairux', external: true },
-    { name: 'Nix', href: 'https://github.com/profullstack/pairux-nix', external: true },
-  ],
-  resources: [
-    { key: 'documentation', href: '/docs' },
-    { key: 'faq', href: '/docs#faq' },
-    { key: 'systemRequirements', href: '/docs#requirements' },
-    { key: 'troubleshooting', href: '/docs#troubleshooting' },
-  ],
-  company: [
-    { key: 'about', href: '/about' },
-    { key: 'blog', href: '/blog' },
-    { key: 'privacy', href: '/privacy' },
-    { key: 'terms', href: '/terms' },
-  ],
-};
+// The links people need, one row. Message keys live under footer.links.*.
+// Network links (search, ring, publish) come from the pit.world footer the
+// root layout renders after this one.
+const footerLinks = [
+  { key: 'features', href: '/features' },
+  { key: 'pricing', href: '/pricing' },
+  { key: 'download', href: '/download' },
+  { key: 'documentation', href: '/docs' },
+  { key: 'blog', href: '/blog' },
+  { key: 'about', href: '/about' },
+  { key: 'privacy', href: '/privacy' },
+  { key: 'terms', href: '/terms' },
+];
 
 const socialLinks = [
   {
@@ -102,107 +64,45 @@ const socialLinks = [
 export function Footer() {
   const t = useTranslations('footer');
   return (
-    <footer className="border-t border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
-          {/* Brand */}
-          <div className="col-span-2 lg:col-span-1">
-            <Logo size="lg" />
-            <p className="mt-4 text-sm text-gray-600">{t('tagline')}</p>
-            <div className="mt-6 flex gap-4">
-              {socialLinks.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 transition-colors hover:text-gray-900"
-                >
-                  <span className="sr-only">{item.name}</span>
-                  <item.icon className="h-5 w-5" />
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Product links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">{t('sections.product')}</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.product.map((item) => (
-                <li key={item.key}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    {t(`links.${item.key}`)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Install links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">{t('sections.install')}</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.install.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">{t('sections.resources')}</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.resources.map((item) => (
-                <li key={item.key}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    {t(`links.${item.key}`)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">{t('sections.company')}</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.company.map((item) => (
-                <li key={item.key}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
-                  >
-                    {t(`links.${item.key}`)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <footer className="border-t border-gray-200 bg-gray-50 text-sm text-gray-600">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Logo size="sm" />
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+            {footerLinks.map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="transition-colors hover:text-gray-900"
+              >
+                {t(`links.${item.key}`)}
+              </Link>
+            ))}
+          </nav>
         </div>
-
-        <div className="mt-10 flex justify-end">
-          <LanguageSwitcher id="language-switcher-footer" showLabel />
-        </div>
-
-        {/* Bottom bar: copyright + Profullstack ring, from @profullstack/footer */}
-        <div className="mt-8">
-          <PfsFooter site="https://pairux.com/" tagline={t('license')} />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p>
+            &copy; {new Date().getFullYear()}{' '}
+            <a href="https://profullstack.com/" className="hover:text-gray-900">
+              Profullstack, Inc.
+            </a>{' '}
+            {t('license')}
+          </p>
+          <div className="flex items-center gap-4">
+            {socialLinks.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 transition-colors hover:text-gray-900"
+              >
+                <span className="sr-only">{item.name}</span>
+                <item.icon className="h-5 w-5" />
+              </Link>
+            ))}
+            <LanguageSwitcher id="language-switcher-footer" />
+          </div>
         </div>
       </div>
     </footer>

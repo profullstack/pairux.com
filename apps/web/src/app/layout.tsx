@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { localeDirection, ogLocale } from '@/i18n/locales';
 import { PWAInstallButton } from '@/components/pwa';
+import { PitFooter } from '@/components/pit-footer';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -166,6 +167,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           src="https://crawlproof.com/stats.js"
           strategy="afterInteractive"
         />
+        <PitFooter />
       </body>
     </html>
   );

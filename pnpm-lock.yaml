@@ -384,8 +384,8 @@ importers:
         specifier: ^0.1.3
         version: 0.1.3(@supabase/ssr@0.5.2(@supabase/supabase-js@2.91.0))(next@16.3.8(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@profullstack/x402-gateway':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.10.1
+        version: 0.10.1
       '@serwist/next':
         specifier: ^9.5.0
         version: 9.5.0(next@16.3.8(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
@@ -2995,8 +2995,8 @@ packages:
       react:
         optional: true
 
-  '@profullstack/x402-gateway@0.7.0':
-    resolution: {integrity: sha512-xsZRWHdOD9Y9EuRS4PsRmykVS2geOu/luY0jBlliOF3SEgxiLhgmx7ks+2jOUtGlq+cIfSonnk5eEObRGCOJ9w==}
+  '@profullstack/x402-gateway@0.10.1':
+    resolution: {integrity: sha512-YF/P3GRbb/8dAHIhDT2R7yHSAK+olrT4/zAWLzf5aF9Na8o1/rJCdP+k6UnGepyQ9RQ2qL9p5diRVwb18Zt4VA==}
     engines: {node: '>=20.11'}
 
   '@radix-ui/react-compose-refs@1.0.0':
@@ -12140,7 +12140,7 @@ snapshots:
       next: 16.3.8(@types/node@22.19.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
 
-  '@profullstack/x402-gateway@0.7.0':
+  '@profullstack/x402-gateway@0.10.1':
     dependencies:
       '@profullstack/keys': 0.1.0
 

@@ -32,6 +32,8 @@ function buildCsp(nonce: string, embeddable: boolean): string {
     "img-src 'self' data: blob: https:",
     `media-src 'self' blob: ${mediaOrigin()}`,
     "connect-src 'self' https: wss: https://crawlproof.com",
+    // The home page ad.network unit is an iframe to crawlproof's ad frame.
+    "frame-src 'self' https://crawlproof.com",
     // /embed/* is the public player — any site may frame it. That is the whole
     // point of the surface, and it is safe because the page is read-only: it
     // renders a <video> plus outbound links, and performs no authenticated

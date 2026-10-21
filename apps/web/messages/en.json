@@ -1367,7 +1367,8 @@
           "hd": "HD screen sharing (1080p)",
           "liveDirectory": "Public room in the /live directory",
           "callAnalysis": "AI call analysis",
-          "support": "Priority support"
+          "support": "Priority support",
+          "translation": "Live meeting translation"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "4K screen sharing",
           "callAnalysis": "AI call analysis",
           "admin": "Admin controls",
-          "support": "Priority support"
+          "support": "Priority support",
+          "translation": "Live meeting translation"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Start free with P2P sessions, or upgrade to Pro for just {price}/month. No per-seat fees ever.",
       "download": "Download Free",
       "signup": "Create Account"
-    }
+    },
+    "payMethods": "Pay with USDC, USDT, BTC, ETH, SOL and other coins, or PayPal. Each payment covers 31 days and nothing renews on its own."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "in use by {count}",
     "on": "On",
     "off": "Off",
-    "paidGuest": "Live translation is a paid feature. Ask the host to get a translation pass.",
-    "paidHost": "Live translation is a paid feature. Buy a pass below so everyone in your meetings can hear and read each other in their own language.",
+    "paidGuest": "Live translation is a Pro feature. Ask the host to upgrade to Pro.",
+    "paidHost": "Live translation is included with Pro. Upgrade so everyone in your meetings can hear and read each other in their own language.",
     "hearEveryoneIn": "Hear everyone in",
     "nobodyElse": "Nobody else is speaking in this meeting yet.",
     "speaks": "{name} speaks",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Upgrade",
       "starting": "Starting your {plan} checkout…",
-      "backToPricing": "Back to pricing"
+      "backToPricing": "Back to pricing",
+      "chooseTitle": "How would you like to pay for {plan}?",
+      "chooseNote": "{price} covers {days} days. Nothing renews on its own, and we email you before it ends.",
+      "paid": "Thanks! Your {plan} plan turns on as soon as the payment confirms, usually within a few minutes.",
+      "toDashboard": "Go to your dashboard"
     }
   }
 }

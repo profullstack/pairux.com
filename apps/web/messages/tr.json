@@ -1367,7 +1367,8 @@
           "hd": "HD ekran paylaşımı (1080p)",
           "liveDirectory": "/live dizininde herkese açık oda",
           "callAnalysis": "Yapay zekâ görüşme analizi",
-          "support": "Öncelikli destek"
+          "support": "Öncelikli destek",
+          "translation": "Canlı toplantı çevirisi"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "4K ekran paylaşımı",
           "callAnalysis": "Yapay zekâ görüşme analizi",
           "admin": "Yönetici kontrolleri",
-          "support": "Öncelikli destek"
+          "support": "Öncelikli destek",
+          "translation": "Canlı toplantı çevirisi"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "P2P oturumlarla ücretsiz başlayın veya yalnızca {price}/ay karşılığında Pro’ya yükseltin. Kişi başı ücret asla yok.",
       "download": "Ücretsiz İndir",
       "signup": "Hesap Oluştur"
-    }
+    },
+    "payMethods": "USDC, USDT, BTC, ETH, SOL ve diğer coinlerle ya da PayPal ile öde. Her ödeme 31 günü kapsar ve hiçbir şey kendiliğinden yenilenmez."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "{count} kişi kullanıyor",
     "on": "Açık",
     "off": "Kapalı",
-    "paidGuest": "Canlı çeviri ücretli bir özelliktir. Toplantı sahibinden bir çeviri paketi almasını isteyin.",
-    "paidHost": "Canlı çeviri ücretli bir özelliktir. Toplantılarınızdaki herkes birbirini kendi dilinde duyup okuyabilsin diye aşağıdan bir paket satın alın.",
+    "paidGuest": "Canlı çeviri bir Pro özelliğidir. Toplantı sahibinden Pro'ya geçmesini iste.",
+    "paidHost": "Canlı çeviri Pro'ya dahildir. Toplantılarındaki herkes birbirini kendi dilinde duyup okuyabilsin diye Pro'ya geç.",
     "hearEveryoneIn": "Herkesi şu dilde dinle",
     "nobodyElse": "Bu toplantıda henüz başka konuşan yok.",
     "speaks": "{name} şu dili konuşuyor",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Yükselt",
       "starting": "{plan} ödemeniz başlatılıyor…",
-      "backToPricing": "Fiyatlara dön"
+      "backToPricing": "Fiyatlara dön",
+      "chooseTitle": "{plan} için nasıl ödemek istersin?",
+      "chooseNote": "{price}, {days} günü kapsar. Hiçbir şey kendiliğinden yenilenmez ve bitmeden önce sana e-posta göndeririz.",
+      "paid": "Teşekkürler! {plan} planın ödeme onaylanır onaylanmaz, genellikle birkaç dakika içinde açılır.",
+      "toDashboard": "Panele git"
     }
   }
 }

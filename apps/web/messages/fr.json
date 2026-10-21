@@ -1367,7 +1367,8 @@
           "hd": "Partage d’écran HD (1080p)",
           "liveDirectory": "Salle publique dans l’annuaire /live",
           "callAnalysis": "Analyse d’appels par IA",
-          "support": "Support prioritaire"
+          "support": "Support prioritaire",
+          "translation": "Traduction des réunions en direct"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Partage d’écran en 4K",
           "callAnalysis": "Analyse d’appels par IA",
           "admin": "Contrôles d’administration",
-          "support": "Support prioritaire"
+          "support": "Support prioritaire",
+          "translation": "Traduction des réunions en direct"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Commencez gratuitement avec des sessions P2P, ou passez à Pro pour seulement {price}/mois. Jamais de frais par utilisateur.",
       "download": "Télécharger gratuitement",
       "signup": "Créer un compte"
-    }
+    },
+    "payMethods": "Payez en USDC, USDT, BTC, ETH, SOL et d'autres cryptos, ou avec PayPal. Chaque paiement couvre 31 jours et rien ne se renouvelle automatiquement."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "utilisée par {count}",
     "on": "Activée",
     "off": "Désactivée",
-    "paidGuest": "La traduction en direct est une fonctionnalité payante. Demandez à l'hôte d'acheter un pass de traduction.",
-    "paidHost": "La traduction en direct est une fonctionnalité payante. Achetez un pass ci-dessous pour que chacun dans vos réunions puisse entendre et lire les autres dans sa propre langue.",
+    "paidGuest": "La traduction en direct est une fonctionnalité Pro. Demandez à l'hôte de passer à Pro.",
+    "paidHost": "La traduction en direct est incluse avec Pro. Passez à Pro pour que chacun dans vos réunions entende et lise les autres dans sa propre langue.",
     "hearEveryoneIn": "Entendre tout le monde en",
     "nobodyElse": "Personne d'autre ne parle encore dans cette réunion.",
     "speaks": "{name} parle",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Mettre à niveau",
       "starting": "Lancement du paiement {plan}…",
-      "backToPricing": "Retour aux tarifs"
+      "backToPricing": "Retour aux tarifs",
+      "chooseTitle": "Comment voulez-vous payer {plan} ?",
+      "chooseNote": "{price} couvre {days} jours. Rien ne se renouvelle automatiquement, et nous vous écrivons avant la fin.",
+      "paid": "Merci ! Votre forfait {plan} s'active dès que le paiement est confirmé, en général en quelques minutes.",
+      "toDashboard": "Aller au tableau de bord"
     }
   }
 }

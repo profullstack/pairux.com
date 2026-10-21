@@ -6,6 +6,7 @@ import { UpgradeCheckout } from './UpgradeCheckout';
 
 interface UpgradePageProps {
   params: Promise<{ plan: string }>;
+  searchParams: Promise<{ payment?: string }>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,9 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * starts the checkout as soon as it loads (signed-out buyers log in first and
  * come straight back).
  */
-export default async function UpgradePage({ params }: UpgradePageProps) {
+export default async function UpgradePage({ params, searchParams }: UpgradePageProps) {
   const { plan } = await params;
+  const { payment } = await searchParams;
   const def = getPlanDef(plan);
   if (!def) notFound();
-  return <UpgradeCheckout plan={def.id} />;
+  return <UpgradeCheckout plan={def.id} paid={payment === 'success'} />;
 }

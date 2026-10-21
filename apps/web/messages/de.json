@@ -1367,7 +1367,8 @@
           "hd": "HD-Bildschirmfreigabe (1080p)",
           "liveDirectory": "Öffentlicher Raum im /live-Verzeichnis",
           "callAnalysis": "KI-Anrufanalyse",
-          "support": "Priorisierter Support"
+          "support": "Priorisierter Support",
+          "translation": "Live-Übersetzung in Meetings"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "4K-Bildschirmfreigabe",
           "callAnalysis": "KI-Anrufanalyse",
           "admin": "Admin-Steuerung",
-          "support": "Priorisierter Support"
+          "support": "Priorisierter Support",
+          "translation": "Live-Übersetzung in Meetings"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Starten Sie kostenlos mit P2P-Sitzungen oder upgraden Sie für nur {price}/Monat auf Pro. Niemals Gebühren pro Platz.",
       "download": "Kostenlos herunterladen",
       "signup": "Konto erstellen"
-    }
+    },
+    "payMethods": "Bezahle mit USDC, USDT, BTC, ETH, SOL und anderen Coins oder mit PayPal. Jede Zahlung deckt 31 Tage ab und verlängert sich nicht automatisch."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "von {count} genutzt",
     "on": "An",
     "off": "Aus",
-    "paidGuest": "Die Live-Übersetzung ist eine kostenpflichtige Funktion. Bitte den Gastgeber, einen Übersetzungspass zu kaufen.",
-    "paidHost": "Die Live-Übersetzung ist eine kostenpflichtige Funktion. Kaufe unten einen Pass, damit sich alle in deinen Meetings in ihrer eigenen Sprache hören und lesen können.",
+    "paidGuest": "Live-Übersetzung ist eine Pro-Funktion. Bitte den Host, auf Pro upzugraden.",
+    "paidHost": "Live-Übersetzung ist in Pro enthalten. Upgrade, damit sich alle in deinen Meetings in ihrer eigenen Sprache hören und lesen können.",
     "hearEveryoneIn": "Alle hören auf",
     "nobodyElse": "In diesem Meeting spricht noch niemand sonst.",
     "speaks": "{name} spricht",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Upgrade",
       "starting": "Dein {plan}-Checkout wird gestartet…",
-      "backToPricing": "Zurück zu den Preisen"
+      "backToPricing": "Zurück zu den Preisen",
+      "chooseTitle": "Wie möchtest du {plan} bezahlen?",
+      "chooseNote": "{price} deckt {days} Tage ab. Nichts verlängert sich automatisch, und wir schreiben dir vor dem Ablauf eine E-Mail.",
+      "paid": "Danke! Dein {plan}-Plan wird aktiv, sobald die Zahlung bestätigt ist, meist innerhalb weniger Minuten.",
+      "toDashboard": "Zum Dashboard"
     }
   }
 }

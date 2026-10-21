@@ -99,6 +99,27 @@ describe('SupabaseTranslationMeter', () => {
     expect(db.calls).toEqual([]);
   });
 
+  it('Pro and Team hosts get translation in every meeting, unmetered', async () => {
+    for (const plan of ['pro', 'team']) {
+      const db = fakeDb({ rpcs: { user_effective_plan: plan } });
+      const meter = new SupabaseTranslationMeter(db);
+      expect(await meter.funded('host', 'meeting')).toBe(true);
+      await expect(meter.begin('host', 'meeting')).resolves.toBeUndefined();
+      expect(await meter.reserve('host', 'voice', 100, 'meeting')).toBe('');
+      expect(db.calls.map((call) => call.name)).toEqual(['user_effective_plan']);
+    }
+  });
+
+  it('Free and Plus hosts are sent to Pro', async () => {
+    const meter = new SupabaseTranslationMeter(
+      fakeDb({ rpcs: { user_effective_plan: 'plus', translation_free_active: false } })
+    );
+    await expect(meter.require('host', 'meeting')).rejects.toMatchObject({
+      status: 402,
+      message: expect.stringContaining('/upgrade/pro'),
+    });
+  });
+
   it('a database failure is a 503, not a free pass', async () => {
     const db = { ...fakeDb({}), rpc: async () => ({ data: null, error: { message: 'down' } }) };
     const meter = new SupabaseTranslationMeter(db);

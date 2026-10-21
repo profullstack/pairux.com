@@ -1367,7 +1367,8 @@
           "hd": "Chia sẻ màn hình HD (1080p)",
           "liveDirectory": "Phòng công khai trong danh bạ /live",
           "callAnalysis": "Phân tích cuộc gọi bằng AI",
-          "support": "Hỗ trợ ưu tiên"
+          "support": "Hỗ trợ ưu tiên",
+          "translation": "Dịch cuộc họp trực tiếp"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Chia sẻ màn hình 4K",
           "callAnalysis": "Phân tích cuộc gọi bằng AI",
           "admin": "Công cụ quản trị",
-          "support": "Hỗ trợ ưu tiên"
+          "support": "Hỗ trợ ưu tiên",
+          "translation": "Dịch cuộc họp trực tiếp"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Bắt đầu miễn phí với phiên P2P, hoặc nâng cấp lên Pro chỉ với {price}/tháng. Không bao giờ tính phí theo người dùng.",
       "download": "Tải xuống miễn phí",
       "signup": "Tạo tài khoản"
-    }
+    },
+    "payMethods": "Thanh toán bằng USDC, USDT, BTC, ETH, SOL và các coin khác, hoặc PayPal. Mỗi lần thanh toán dùng được 31 ngày và không tự gia hạn."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "{count} người đang dùng",
     "on": "Bật",
     "off": "Tắt",
-    "paidGuest": "Dịch trực tiếp là tính năng trả phí. Hãy nhờ người chủ trì mua gói dịch.",
-    "paidHost": "Dịch trực tiếp là tính năng trả phí. Hãy mua gói bên dưới để mọi người trong cuộc họp của bạn có thể nghe và đọc lời nhau bằng ngôn ngữ của mình.",
+    "paidGuest": "Dịch trực tiếp là tính năng Pro. Hãy nhờ chủ phòng nâng cấp lên Pro.",
+    "paidHost": "Dịch trực tiếp có trong gói Pro. Nâng cấp để mọi người trong cuộc họp nghe và đọc nhau bằng ngôn ngữ của mình.",
     "hearEveryoneIn": "Nghe mọi người bằng",
     "nobodyElse": "Chưa có ai khác nói trong cuộc họp này.",
     "speaks": "{name} nói tiếng",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Nâng cấp",
       "starting": "Đang bắt đầu thanh toán gói {plan}…",
-      "backToPricing": "Quay lại bảng giá"
+      "backToPricing": "Quay lại bảng giá",
+      "chooseTitle": "Bạn muốn thanh toán {plan} bằng cách nào?",
+      "chooseNote": "{price} dùng được {days} ngày. Không có gì tự gia hạn, và chúng tôi sẽ email cho bạn trước khi hết hạn.",
+      "paid": "Cảm ơn bạn! Gói {plan} sẽ bật ngay khi thanh toán được xác nhận, thường trong vài phút.",
+      "toDashboard": "Đến bảng điều khiển"
     }
   }
 }

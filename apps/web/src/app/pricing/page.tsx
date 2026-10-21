@@ -67,7 +67,16 @@ const pricingTiers: PricingTier[] = [
     key: 'pro',
     price: 12,
     period: 'month',
-    features: ['listeners', 'sfu', 'streaming', 'hd', 'liveDirectory', 'callAnalysis', 'support'],
+    features: [
+      'listeners',
+      'sfu',
+      'streaming',
+      'hd',
+      'liveDirectory',
+      'callAnalysis',
+      'translation',
+      'support',
+    ],
     ctaHref: '/signup',
     plan: 'pro',
     highlighted: false,
@@ -76,7 +85,16 @@ const pricingTiers: PricingTier[] = [
     key: 'team',
     price: 49,
     period: 'month',
-    features: ['listeners', 'sfu', 'streaming', 'uhd', 'callAnalysis', 'admin', 'support'],
+    features: [
+      'listeners',
+      'sfu',
+      'streaming',
+      'uhd',
+      'callAnalysis',
+      'translation',
+      'admin',
+      'support',
+    ],
     ctaHref: '/signup',
     plan: 'team',
     highlighted: false,
@@ -323,6 +341,9 @@ export default async function PricingPage() {
                 </div>
               ))}
             </div>
+            <p className="mt-8 text-center text-sm text-gray-500" data-testid="pricing-pay-methods">
+              {t('payMethods')}
+            </p>
           </div>
         </section>
 

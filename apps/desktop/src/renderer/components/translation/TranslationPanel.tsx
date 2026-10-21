@@ -9,9 +9,9 @@ const TEXT: Record<string, string> = {
   inUseBy: 'in use by {count}',
   on: 'On',
   off: 'Off',
-  paidGuest: 'Live translation is a paid feature. Ask the host to get a translation pass.',
+  paidGuest: 'Live translation is a Pro feature. Ask the host to upgrade to Pro.',
   paidHost:
-    'Live translation is a paid feature. Buy a pass below so everyone in your meetings can hear and read each other in their own language.',
+    'Live translation is included with Pro. Upgrade so everyone in your meetings can hear and read each other in their own language.',
   hearEveryoneIn: 'Hear everyone in',
   nobodyElse: 'Nobody else is speaking in this meeting yet.',
   speaks: '{name} speaks',
@@ -27,6 +27,7 @@ const TEXT: Record<string, string> = {
   credit: 'Credit {amount} until {date}.',
   passDay: 'Day pass',
   passMonth: 'Month pass',
+  passPro: 'Upgrade to Pro',
   checkoutUnavailable: 'Checkout is unavailable.',
   privacy:
     'Speech you choose to translate is sent to ElevenLabs (recognition and voices) and Anthropic (translation). Nothing is recorded or stored.',
@@ -286,8 +287,13 @@ export function TranslationPanel({
                     }}
                     className="bg-blue-600 hover:bg-blue-500 rounded px-2 py-1 text-white disabled:opacity-50"
                   >
-                    {pass.id === 'translation_month' ? t('passMonth') : t('passDay')} ·{' '}
-                    {money(pass.priceUsd * 1_000_000)}
+                    {pass.id === 'pro'
+                      ? t('passPro')
+                      : pass.id === 'translation_month'
+                        ? t('passMonth')
+                        : t('passDay')}{' '}
+                    · {money(pass.priceUsd * 1_000_000)}
+                    {pass.id === 'pro' ? '/mo' : ''}
                   </button>
                 ))}
               </div>

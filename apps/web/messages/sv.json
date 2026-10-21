@@ -1367,7 +1367,8 @@
           "hd": "Skärmdelning i HD (1080p)",
           "liveDirectory": "Offentligt rum i /live-katalogen",
           "callAnalysis": "AI-samtalsanalys",
-          "support": "Prioriterad support"
+          "support": "Prioriterad support",
+          "translation": "Liveöversättning av möten"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Skärmdelning i 4K",
           "callAnalysis": "AI-samtalsanalys",
           "admin": "Administratörskontroller",
-          "support": "Prioriterad support"
+          "support": "Prioriterad support",
+          "translation": "Liveöversättning av möten"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Börja gratis med P2P-sessioner, eller uppgradera till Pro för bara {price}/månad. Aldrig några avgifter per plats.",
       "download": "Ladda ner gratis",
       "signup": "Skapa konto"
-    }
+    },
+    "payMethods": "Betala med USDC, USDT, BTC, ETH, SOL och andra mynt, eller med PayPal. Varje betalning täcker 31 dagar och inget förnyas automatiskt."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "används av {count}",
     "on": "På",
     "off": "Av",
-    "paidGuest": "Livetolkning är en betalfunktion. Be värden att köpa ett tolkpass.",
-    "paidHost": "Livetolkning är en betalfunktion. Köp ett pass nedan så att alla i dina möten kan höra och läsa varandra på sitt eget språk.",
+    "paidGuest": "Liveöversättning är en Pro-funktion. Be värden att uppgradera till Pro.",
+    "paidHost": "Liveöversättning ingår i Pro. Uppgradera så att alla i dina möten kan höra och läsa varandra på sitt eget språk.",
     "hearEveryoneIn": "Hör alla på",
     "nobodyElse": "Ingen annan pratar i mötet ännu.",
     "speaks": "{name} talar",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Uppgradera",
       "starting": "Startar betalningen för {plan}…",
-      "backToPricing": "Tillbaka till priser"
+      "backToPricing": "Tillbaka till priser",
+      "chooseTitle": "Hur vill du betala för {plan}?",
+      "chooseNote": "{price} täcker {days} dagar. Inget förnyas automatiskt, och vi mejlar dig innan det tar slut.",
+      "paid": "Tack! Din {plan}-plan aktiveras så snart betalningen bekräftas, oftast inom några minuter.",
+      "toDashboard": "Till din instrumentpanel"
     }
   }
 }

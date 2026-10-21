@@ -3,18 +3,33 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import type { PaidPlan } from '@/lib/plans';
+import { upgradePath, type PaidPlan } from '@/lib/plans';
+
+export interface CheckoutMethodOption {
+  id: string;
+  label: string;
+}
 
 interface CheckoutResponse {
-  data?: { checkout_url?: string | null };
+  data?: {
+    checkout_url?: string | null;
+    choose_method?: boolean;
+    methods?: CheckoutMethodOption[];
+  };
   error?: string;
 }
 
 interface UseCheckoutResult {
-  /** Start a CoinPay checkout for `plan`; signed-out buyers go to login, then `returnTo`. */
-  start: (plan: PaidPlan, returnTo: string) => Promise<void>;
+  /**
+   * Start a CoinPay checkout for `plan`; signed-out buyers go to login, then
+   * `returnTo`. With no `method`, CoinPay's hosted checkout is used when it is
+   * offered; otherwise the buyer picks a coin or PayPal on /upgrade/<plan>.
+   */
+  start: (plan: PaidPlan, returnTo: string, method?: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  /** Set when the buyer has to pick how to pay (only /upgrade/<plan> shows it). */
+  methods: CheckoutMethodOption[] | null;
 }
 
 /**
@@ -28,18 +43,17 @@ export function useCheckout(): UseCheckoutResult {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [methods, setMethods] = useState<CheckoutMethodOption[] | null>(null);
 
   const start = useCallback(
-    async (plan: PaidPlan, returnTo: string) => {
+    async (plan: PaidPlan, returnTo: string, method?: string) => {
       setLoading(true);
       setError(null);
       try {
         const res = await fetch('/api/billing/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // Pay in USDC on Polygon (low fees, settles to the merchant wallet).
-          // Card requires Stripe Connect onboarding — add once that's completed.
-          body: JSON.stringify({ plan, currency: 'usdc_pol' }),
+          body: JSON.stringify(method ? { plan, method } : { plan }),
         });
 
         // LoginForm reads ?redirect= (the old ?next= was ignored, so signed-out
@@ -50,6 +64,15 @@ export function useCheckout(): UseCheckoutResult {
         }
 
         const body = (await res.json()) as CheckoutResponse;
+        if (res.ok && body.data?.choose_method) {
+          const picker = upgradePath(plan);
+          if (typeof window !== 'undefined' && window.location.pathname !== picker) {
+            router.push(picker);
+            return;
+          }
+          setMethods(body.data.methods ?? []);
+          return;
+        }
         if (!res.ok || !body.data?.checkout_url) {
           setError(body.error ?? t('checkoutFailed'));
           return;
@@ -65,5 +88,5 @@ export function useCheckout(): UseCheckoutResult {
     [router, t]
   );
 
-  return { start, loading, error };
+  return { start, loading, error, methods };
 }

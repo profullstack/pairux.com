@@ -151,35 +151,10 @@ describe('HostCapPrompt', () => {
     expect(screen.queryByTestId('upgrade-prompt')).toBeNull();
   });
 
-  it('starts the CoinPay checkout for the next plan in one click', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ data: { checkout_url: 'https://coinpayportal.com/pay/x' } }),
-    });
-    const assign = vi.fn();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: {
-        get href() {
-          return 'http://localhost/host/s1';
-        },
-        set href(url: string) {
-          assign(url);
-        },
-      },
-    });
-
+  it('opens the one-click checkout for the next plan in a new tab, keeping the call', () => {
     freeRoom(signedIn(1));
-    fireEvent.click(screen.getByTestId('upgrade-prompt-cta'));
-
-    await waitFor(() => {
-      expect(assign).toHaveBeenCalledWith('https://coinpayportal.com/pay/x');
-    });
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/billing/checkout',
-      expect.objectContaining({ body: JSON.stringify({ plan: 'plus', currency: 'usdc_pol' }) })
-    );
+    const cta = screen.getByTestId('upgrade-prompt-cta');
+    expect(cta.getAttribute('href')).toBe('/upgrade/plus');
   });
 
   it('can be dismissed', () => {

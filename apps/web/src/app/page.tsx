@@ -19,12 +19,9 @@ import { Footer } from '@/components/footer';
 import { RotatingText } from '@/components/RotatingText';
 
 // ad.network publisher claim for pairux.com. The meta tag lets ad.network
-// verify ownership from the server-rendered HTML. The home page unit is a plain
-// iframe to crawlproof's ad frame (not ad.js): the per-request CSP in
-// middleware.ts has no frame-src for srcdoc frames to inherit, so it allows
-// https://crawlproof.com in frame-src instead.
+// verify ownership from the server-rendered HTML. The home page carries no ad
+// unit.
 const AD_NETWORK_CODE = 'dYMbKXer6PUc3meh';
-const HOME_AD_SLOT = 'f90b82f7-5e16-4419-b7b5-81723ca35c66';
 
 // generateMetadata so the root layout's `other` tags (msapplication-*) are
 // kept: a static `other` here would replace them rather than merge.
@@ -142,24 +139,6 @@ export default async function HomePage() {
           <div className="bg-primary-100/50 absolute -top-40 -right-40 h-80 w-80 rounded-full blur-3xl" />
           <div className="bg-accent-100/50 absolute -bottom-40 -left-40 h-80 w-80 rounded-full blur-3xl" />
         </section>
-
-        {/* ad.network home page unit */}
-        <aside
-          data-ad-network={AD_NETWORK_CODE}
-          data-cp-ad=""
-          data-slot={HOME_AD_SLOT}
-          data-format="banner_300x250"
-          className="flex justify-center bg-white pt-12"
-        >
-          <iframe
-            src={`https://crawlproof.com/api/ads/frame?slot=${HOME_AD_SLOT}&format=banner_300x250`}
-            width={300}
-            height={250}
-            loading="lazy"
-            style={{ border: 0 }}
-            title="Advertisement"
-          />
-        </aside>
 
         {/* Features Grid */}
         <section className="bg-white py-20 sm:py-28">

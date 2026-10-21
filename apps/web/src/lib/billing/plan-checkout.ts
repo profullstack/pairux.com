@@ -6,6 +6,8 @@ import {
   createCheckoutSession,
   createCryptoPayment,
   createPaypalPayment,
+  CoinPayError,
+  markChainRefused,
   methodsFor,
   paymentMetadata,
   PAYPAL_METHOD,
@@ -112,13 +114,18 @@ export async function startPlanCheckout(input: {
     paymentId = paid.id;
     checkoutUrl = paid.payUrl;
   } else {
+    const chain = input.method;
     const paid = await createCryptoPayment(cfg, {
       amountUsd: input.plan.priceUsd,
-      chain: input.method,
+      chain,
       description,
       metadata,
       redirectUrl: successUrl,
       cancelUrl: back,
+    }).catch((error: unknown) => {
+      // A 400 on a coin CoinPay lists means it cannot take it right now: stop offering it.
+      if (error instanceof CoinPayError && error.status === 400) markChainRefused(chain);
+      throw error;
     });
     rail = 'crypto';
     paymentId = paid.id;

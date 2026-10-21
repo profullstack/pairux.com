@@ -6,6 +6,7 @@ import {
   createCryptoPayment,
   createPaypalPayment,
   FALLBACK_CHAINS,
+  markChainRefused,
   methodsFor,
   normalizeMethod,
   paymentMetadata,
@@ -60,9 +61,12 @@ describe('coinpay client', () => {
     expect(normalizeMethod('doge')).toBe('DOGE');
     expect(normalizeMethod('card')).toBeNull();
     expect(normalizeMethod('SHIB')).toBeNull();
-    for (const c of ['BTC', 'BCH', 'ETH', 'POL', 'SOL', 'DOGE', 'XRP', 'ADA', 'BNB', 'USDC_BASE']) {
+    for (const c of ['BTC', 'BCH', 'ETH', 'POL', 'SOL', 'DOGE', 'XRP', 'ADA', 'BNB', 'USDT_POL']) {
       expect(FALLBACK_CHAINS).toContain(c);
     }
+    // Listed by CoinPay, refused at create.
+    expect(FALLBACK_CHAINS).not.toContain('USDC_BASE');
+    expect(FALLBACK_CHAINS).not.toContain('USDT_TRON');
   });
 
   it('offers what CoinPay reports active, PayPal second, and falls back when it cannot answer', async () => {
@@ -81,6 +85,12 @@ describe('coinpay client', () => {
     expect(methodsFor(chains)).toEqual(['USDC_POL', 'PAYPAL', 'BTC']);
     await availableChains(cfg, ok as unknown as typeof fetch, 2000);
     expect(ok).toHaveBeenCalledOnce();
+    markChainRefused('BTC', 2000);
+    expect(await availableChains(cfg, ok as unknown as typeof fetch, 3000)).toEqual(['USDC_POL']);
+    expect(await availableChains(cfg, ok as unknown as typeof fetch, 2000 + 3_600_001)).toEqual([
+      'USDC_POL',
+      'BTC',
+    ]);
     resetCoinpayCaches();
     const down = (async () => json({}, 502)) as unknown as typeof fetch;
     expect(await availableChains(cfg, down)).toEqual([...FALLBACK_CHAINS]);

@@ -55,9 +55,16 @@ export const CHECKOUT_CHAINS = [
 ] as const;
 export type CheckoutChain = (typeof CHECKOUT_CHAINS)[number];
 
+/**
+ * Listed by CoinPay but refused at create time, so never offered:
+ * USDT_TRON is off until CoinPay has TRON wallets, and USDC_BASE answers
+ * "400 Unsupported blockchain for fee estimation: BASE" (2026-10-21).
+ */
+const NOT_OFFERED: ReadonlySet<CheckoutChain> = new Set(['USDT_TRON', 'USDC_BASE']);
+
 /** Offered when CoinPay cannot be asked: the coins the business was last seen to accept. */
 export const FALLBACK_CHAINS: readonly CheckoutChain[] = CHECKOUT_CHAINS.filter(
-  (c) => c !== 'USDT_TRON'
+  (c) => !NOT_OFFERED.has(c)
 );
 export const DEFAULT_CHAIN: CheckoutChain = 'USDC_POL';
 
@@ -160,6 +167,18 @@ export function paymentMetadata(input: {
 let chainsCache: { at: number; chains: CheckoutChain[] } | null = null;
 const CHAINS_TTL_MS = 10 * 60_000;
 
+/** Coins CoinPay refused at create time, hidden for an hour: its list and its create disagree. */
+const refusedUntil = new Map<CheckoutChain, number>();
+const REFUSED_TTL_MS = 60 * 60_000;
+
+export function markChainRefused(chain: CheckoutChain, nowMs: number = Date.now()): void {
+  refusedUntil.set(chain, nowMs + REFUSED_TTL_MS);
+}
+
+function offered(chains: readonly CheckoutChain[], nowMs: number): CheckoutChain[] {
+  return chains.filter((c) => !NOT_OFFERED.has(c) && (refusedUntil.get(c) ?? 0) <= nowMs);
+}
+
 /**
  * The coins CoinPay reports active for the business, kept to the ones we know,
  * in our order. Any failure answers FALLBACK_CHAINS: a coin that was just
@@ -171,8 +190,9 @@ export async function availableChains(
   fetchImpl: typeof fetch = fetch,
   nowMs: number = Date.now()
 ): Promise<CheckoutChain[]> {
-  if (!cfg) return [...FALLBACK_CHAINS];
-  if (chainsCache && nowMs - chainsCache.at < CHAINS_TTL_MS) return chainsCache.chains;
+  if (!cfg) return offered(FALLBACK_CHAINS, nowMs);
+  if (chainsCache && nowMs - chainsCache.at < CHAINS_TTL_MS)
+    return offered(chainsCache.chains, nowMs);
   try {
     const res = await fetchImpl(`${cfg.apiUrl}/supported-coins?active_only=true`, {
       headers: { Authorization: `Bearer ${cfg.apiKey}` },
@@ -188,11 +208,11 @@ export async function availableChains(
         .map((c) => (c.symbol ?? '').toUpperCase())
     );
     const chains = CHECKOUT_CHAINS.filter((c) => active.has(c));
-    if (!res.ok || chains.length === 0) return [...FALLBACK_CHAINS];
+    if (!res.ok || chains.length === 0) return offered(FALLBACK_CHAINS, nowMs);
     chainsCache = { at: nowMs, chains };
-    return chains;
+    return offered(chains, nowMs);
   } catch {
-    return [...FALLBACK_CHAINS];
+    return offered(FALLBACK_CHAINS, nowMs);
   }
 }
 
@@ -205,6 +225,7 @@ const SESSIONS_RETRY_MS = 10 * 60_000;
 export function resetCoinpayCaches(): void {
   chainsCache = null;
   sessionsUnsupportedUntil = 0;
+  refusedUntil.clear();
 }
 
 export interface CheckoutSession {

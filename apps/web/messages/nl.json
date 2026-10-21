@@ -1367,7 +1367,8 @@
           "hd": "Schermdelen in HD (1080p)",
           "liveDirectory": "Openbare ruimte in de /live-directory",
           "callAnalysis": "AI-gespreksanalyse",
-          "support": "Ondersteuning met voorrang"
+          "support": "Ondersteuning met voorrang",
+          "translation": "Live vertaling van meetings"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Schermdelen in 4K",
           "callAnalysis": "AI-gespreksanalyse",
           "admin": "Beheerdersinstellingen",
-          "support": "Ondersteuning met voorrang"
+          "support": "Ondersteuning met voorrang",
+          "translation": "Live vertaling van meetings"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Begin gratis met P2P-sessies of upgrade naar Pro voor maar {price}/maand. Nooit kosten per gebruiker.",
       "download": "Gratis downloaden",
       "signup": "Account aanmaken"
-    }
+    },
+    "payMethods": "Betaal met USDC, USDT, BTC, ETH, SOL en andere munten, of met PayPal. Elke betaling dekt 31 dagen en niets verlengt automatisch."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "in gebruik door {count}",
     "on": "Aan",
     "off": "Uit",
-    "paidGuest": "Live vertaling is een betaalde functie. Vraag de host om een vertaalpas.",
-    "paidHost": "Live vertaling is een betaalde functie. Koop hieronder een pas zodat iedereen in je meetings elkaar in de eigen taal kan horen en lezen.",
+    "paidGuest": "Live vertaling is een Pro-functie. Vraag de host om naar Pro te upgraden.",
+    "paidHost": "Live vertaling zit bij Pro. Upgrade zodat iedereen in je meetings elkaar in de eigen taal hoort en leest.",
     "hearEveryoneIn": "Iedereen horen in",
     "nobodyElse": "Er spreekt nog niemand anders in deze meeting.",
     "speaks": "{name} spreekt",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Upgraden",
       "starting": "Je {plan}-betaling wordt gestart…",
-      "backToPricing": "Terug naar prijzen"
+      "backToPricing": "Terug naar prijzen",
+      "chooseTitle": "Hoe wil je {plan} betalen?",
+      "chooseNote": "{price} dekt {days} dagen. Niets verlengt automatisch, en we mailen je voordat het afloopt.",
+      "paid": "Bedankt! Je {plan}-abonnement wordt actief zodra de betaling bevestigd is, meestal binnen een paar minuten.",
+      "toDashboard": "Naar je dashboard"
     }
   }
 }

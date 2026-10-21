@@ -3,8 +3,7 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { Sparkles, Users, X } from 'lucide-react';
 import type { Plan, SeatKind } from '@pairux/shared-types';
-import { PLANS, TERM_DAYS, type PaidPlan } from '@/lib/plans';
-import { useCheckout } from './useCheckout';
+import { PLANS, TERM_DAYS, upgradePath, type PaidPlan } from '@/lib/plans';
 
 interface UpgradePromptProps {
   /** Which limit was hit: the room's seat cap, or a Pro-only feature. */
@@ -19,8 +18,8 @@ interface UpgradePromptProps {
   cap?: number;
   /** How many joiners have been turned away so far (roomFull only). */
   refused?: number;
-  /** Where a signed-out buyer comes back to after login. */
-  returnTo: string;
+  /** Where a signed-out buyer comes back to after login (kept for callers; /upgrade/<plan> handles it). */
+  returnTo?: string;
   onDismiss?: () => void;
   /** 'dark' on the host call screen, 'light' on regular pages. */
   tone?: 'dark' | 'light';
@@ -38,14 +37,12 @@ export function UpgradePrompt({
   seats: seatKind = 'participants',
   cap,
   refused = 0,
-  returnTo,
   onDismiss,
   tone = 'light',
 }: UpgradePromptProps) {
   const t = useTranslations('upgradePrompt');
   const tiers = useTranslations('pricing.tiers');
   const format = useFormatter();
-  const { start, loading, error } = useCheckout();
 
   const def = PLANS[plan];
   const planName = tiers(`${plan}.name`);
@@ -109,20 +106,22 @@ export function UpgradePrompt({
                   })}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => void start(plan, returnTo)}
-              disabled={loading}
+            {/* /upgrade/<plan> starts the checkout on load (signed-out buyers log
+                in and come back). In a call it opens in a new tab so the call
+                keeps running. */}
+            <a
+              href={upgradePath(plan)}
+              target={dark ? '_blank' : undefined}
+              rel={dark ? 'noopener noreferrer' : undefined}
               data-testid="upgrade-prompt-cta"
-              className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-amber-400"
             >
-              {loading ? t('starting') : t('cta', { plan: planName, price })}
-            </button>
+              {t('cta', { plan: planName, price })}
+            </a>
             <span className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>
               {t('payNote', { days: TERM_DAYS })}
             </span>
           </div>
-          {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
         </div>
       </div>
     </div>

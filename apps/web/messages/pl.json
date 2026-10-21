@@ -1367,7 +1367,8 @@
           "hd": "Udostępnianie ekranu w HD (1080p)",
           "liveDirectory": "Publiczny pokój w katalogu /live",
           "callAnalysis": "Analiza rozmów AI",
-          "support": "Priorytetowe wsparcie"
+          "support": "Priorytetowe wsparcie",
+          "translation": "Tłumaczenie spotkań na żywo"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Udostępnianie ekranu w 4K",
           "callAnalysis": "Analiza rozmów AI",
           "admin": "Narzędzia administratora",
-          "support": "Priorytetowe wsparcie"
+          "support": "Priorytetowe wsparcie",
+          "translation": "Tłumaczenie spotkań na żywo"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Zacznij za darmo z sesjami P2P lub przejdź na Pro za jedyne {price}/mies. Nigdy żadnych opłat za stanowisko.",
       "download": "Pobierz za darmo",
       "signup": "Załóż konto"
-    }
+    },
+    "payMethods": "Zapłać w USDC, USDT, BTC, ETH, SOL i innych monetach albo przez PayPal. Każda płatność obejmuje 31 dni i nic nie odnawia się samo."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "używane przez {count}",
     "on": "Wł.",
     "off": "Wył.",
-    "paidGuest": "Tłumaczenie na żywo to płatna funkcja. Poproś gospodarza o karnet tłumaczenia.",
-    "paidHost": "Tłumaczenie na żywo to płatna funkcja. Kup karnet poniżej, aby wszyscy na Twoich spotkaniach mogli słyszeć i czytać się nawzajem we własnym języku.",
+    "paidGuest": "Tłumaczenie na żywo to funkcja Pro. Poproś gospodarza o przejście na Pro.",
+    "paidHost": "Tłumaczenie na żywo jest w planie Pro. Przejdź na Pro, aby wszyscy na Twoich spotkaniach słyszeli i czytali się nawzajem we własnym języku.",
     "hearEveryoneIn": "Słuchaj wszystkich po",
     "nobodyElse": "Nikt inny jeszcze nie mówi na tym spotkaniu.",
     "speaks": "{name} mówi po",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Ulepsz plan",
       "starting": "Uruchamianie płatności za {plan}…",
-      "backToPricing": "Wróć do cennika"
+      "backToPricing": "Wróć do cennika",
+      "chooseTitle": "Jak chcesz zapłacić za {plan}?",
+      "chooseNote": "{price} obejmuje {days} dni. Nic nie odnawia się samo, a przed końcem wyślemy Ci e-mail.",
+      "paid": "Dziękujemy! Plan {plan} włączy się, gdy płatność zostanie potwierdzona, zwykle w ciągu kilku minut.",
+      "toDashboard": "Przejdź do panelu"
     }
   }
 }

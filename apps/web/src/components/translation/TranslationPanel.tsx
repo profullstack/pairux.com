@@ -48,6 +48,7 @@ export function TranslationPanel({
   className?: string;
 }) {
   const t = useTranslations('meetingTranslation');
+  const upgrade = useTranslations('upgradePrompt');
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [buying, setBuying] = useState<string | null>(null);
@@ -255,8 +256,12 @@ export function TranslationPanel({
                     }}
                     className="bg-primary-600 hover:bg-primary-500 rounded px-2 py-1 text-white disabled:opacity-50"
                   >
-                    {pass.id === 'translation_month' ? t('passMonth') : t('passDay')} ·{' '}
-                    {money(pass.priceUsd * 1_000_000)}
+                    {pass.id === 'pro'
+                      ? upgrade('cta', {
+                          plan: 'Pro',
+                          price: money(pass.priceUsd * 1_000_000),
+                        })
+                      : `${pass.id === 'translation_month' ? t('passMonth') : t('passDay')} · ${money(pass.priceUsd * 1_000_000)}`}
                   </button>
                 ))}
               </div>

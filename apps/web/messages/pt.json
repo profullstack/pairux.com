@@ -1367,7 +1367,8 @@
           "hd": "Compartilhamento de tela em HD (1080p)",
           "liveDirectory": "Sala pública no diretório /live",
           "callAnalysis": "Análise de chamadas com IA",
-          "support": "Suporte prioritário"
+          "support": "Suporte prioritário",
+          "translation": "Tradução de reuniões ao vivo"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Compartilhamento de tela em 4K",
           "callAnalysis": "Análise de chamadas com IA",
           "admin": "Controles de administrador",
-          "support": "Suporte prioritário"
+          "support": "Suporte prioritário",
+          "translation": "Tradução de reuniões ao vivo"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Comece grátis com sessões P2P ou assine o Pro por apenas {price}/mês. Nunca cobramos por usuário.",
       "download": "Baixar grátis",
       "signup": "Criar conta"
-    }
+    },
+    "payMethods": "Pague com USDC, USDT, BTC, ETH, SOL e outras moedas, ou com PayPal. Cada pagamento cobre 31 dias e nada é renovado automaticamente."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "em uso por {count}",
     "on": "Ligada",
     "off": "Desligada",
-    "paidGuest": "A tradução ao vivo é um recurso pago. Peça ao anfitrião um passe de tradução.",
-    "paidHost": "A tradução ao vivo é um recurso pago. Compre um passe abaixo para que todos nas suas reuniões possam ouvir e ler uns aos outros no próprio idioma.",
+    "paidGuest": "A tradução ao vivo é um recurso do Pro. Peça ao anfitrião para fazer upgrade para o Pro.",
+    "paidHost": "A tradução ao vivo está incluída no Pro. Faça upgrade para que todos nas suas reuniões se ouçam e se leiam no próprio idioma.",
     "hearEveryoneIn": "Ouvir todos em",
     "nobodyElse": "Ninguém mais está falando nesta reunião ainda.",
     "speaks": "{name} fala",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Fazer upgrade",
       "starting": "Iniciando o pagamento do {plan}…",
-      "backToPricing": "Voltar aos preços"
+      "backToPricing": "Voltar aos preços",
+      "chooseTitle": "Como você quer pagar o {plan}?",
+      "chooseNote": "{price} cobre {days} dias. Nada é renovado automaticamente, e enviamos um e-mail antes de acabar.",
+      "paid": "Obrigado! Seu plano {plan} é ativado assim que o pagamento for confirmado, normalmente em poucos minutos.",
+      "toDashboard": "Ir para o painel"
     }
   }
 }

@@ -1367,7 +1367,8 @@
           "hd": "Berbagi layar HD (1080p)",
           "liveDirectory": "Ruang publik di direktori /live",
           "callAnalysis": "Analisis panggilan AI",
-          "support": "Dukungan prioritas"
+          "support": "Dukungan prioritas",
+          "translation": "Terjemahan rapat langsung"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "Berbagi layar 4K",
           "callAnalysis": "Analisis panggilan AI",
           "admin": "Kontrol admin",
-          "support": "Dukungan prioritas"
+          "support": "Dukungan prioritas",
+          "translation": "Terjemahan rapat langsung"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "Mulai gratis dengan sesi P2P, atau tingkatkan ke Pro hanya {price}/bulan. Tidak pernah ada biaya per pengguna.",
       "download": "Unduh Gratis",
       "signup": "Buat Akun"
-    }
+    },
+    "payMethods": "Bayar dengan USDC, USDT, BTC, ETH, SOL dan koin lain, atau PayPal. Setiap pembayaran berlaku 31 hari dan tidak ada yang diperpanjang otomatis."
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "dipakai {count} orang",
     "on": "Aktif",
     "off": "Nonaktif",
-    "paidGuest": "Terjemahan langsung adalah fitur berbayar. Minta host membeli pass terjemahan.",
-    "paidHost": "Terjemahan langsung adalah fitur berbayar. Beli pass di bawah agar semua orang di rapat Anda bisa saling mendengar dan membaca dalam bahasa mereka sendiri.",
+    "paidGuest": "Terjemahan langsung adalah fitur Pro. Minta host untuk upgrade ke Pro.",
+    "paidHost": "Terjemahan langsung termasuk dalam Pro. Upgrade agar semua orang di rapat Anda bisa saling mendengar dan membaca dalam bahasa masing-masing.",
     "hearEveryoneIn": "Dengarkan semua orang dalam",
     "nobodyElse": "Belum ada orang lain yang berbicara di rapat ini.",
     "speaks": "{name} berbicara dalam",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "Upgrade",
       "starting": "Memulai pembayaran {plan} Anda…",
-      "backToPricing": "Kembali ke harga"
+      "backToPricing": "Kembali ke harga",
+      "chooseTitle": "Bagaimana Anda ingin membayar {plan}?",
+      "chooseNote": "{price} berlaku {days} hari. Tidak ada yang diperpanjang otomatis, dan kami mengirim email sebelum berakhir.",
+      "paid": "Terima kasih! Paket {plan} Anda aktif begitu pembayaran terkonfirmasi, biasanya dalam beberapa menit.",
+      "toDashboard": "Ke dasbor Anda"
     }
   }
 }

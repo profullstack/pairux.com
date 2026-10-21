@@ -1367,7 +1367,8 @@
           "hd": "HD 画面共有（1080p）",
           "liveDirectory": "/live ディレクトリに公開ルームを掲載",
           "callAnalysis": "AI 通話分析",
-          "support": "優先サポート"
+          "support": "優先サポート",
+          "translation": "会議のライブ翻訳"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "4K 画面共有",
           "callAnalysis": "AI 通話分析",
           "admin": "管理者機能",
-          "support": "優先サポート"
+          "support": "優先サポート",
+          "translation": "会議のライブ翻訳"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "P2P セッションで無料で始めるか、月額わずか {price} で Pro にアップグレード。シート単位の料金は一切ありません。",
       "download": "無料でダウンロード",
       "signup": "アカウントを作成"
-    }
+    },
+    "payMethods": "USDC、USDT、BTC、ETH、SOL などのコイン、または PayPal で支払えます。1回の支払いで31日間使え、自動更新はありません。"
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "{count} 人が使用中",
     "on": "オン",
     "off": "オフ",
-    "paidGuest": "ライブ翻訳は有料機能です。ホストに翻訳パスの購入を依頼してください。",
-    "paidHost": "ライブ翻訳は有料機能です。下からパスを購入すると、会議の全員がそれぞれの言語で互いの声を聞き、読めるようになります。",
+    "paidGuest": "ライブ翻訳は Pro の機能です。ホストに Pro へのアップグレードを依頼してください。",
+    "paidHost": "ライブ翻訳は Pro に含まれます。アップグレードすると、会議の全員がお互いを自分の言語で聞いて読めます。",
     "hearEveryoneIn": "全員を次の言語で聞く",
     "nobodyElse": "この会議ではまだ他に誰も話していません。",
     "speaks": "{name} の話す言語",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "アップグレード",
       "starting": "{plan}の決済を開始しています…",
-      "backToPricing": "料金ページに戻る"
+      "backToPricing": "料金ページに戻る",
+      "chooseTitle": "{plan} の支払い方法を選んでください",
+      "chooseNote": "{price} で {days} 日間使えます。自動更新はなく、期限前にメールでお知らせします。",
+      "paid": "ありがとうございます。支払いが確認されると {plan} プランが有効になります。通常は数分です。",
+      "toDashboard": "ダッシュボードへ"
     }
   }
 }

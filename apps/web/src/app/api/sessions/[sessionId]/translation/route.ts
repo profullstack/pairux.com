@@ -1,6 +1,6 @@
 import { authorizeMeetingCaller, MeetingAccessError } from '@/lib/translation/access';
 import { TRANSLATION_LANGUAGES } from '@/lib/translation/languages';
-import { TRANSLATION_PASSES } from '@/lib/translation/meter';
+import { TRANSLATION_OFFER } from '@/lib/translation/meter';
 import { translationRuntime } from '@/lib/translation/server';
 import { errorResponse, handleApiError, successResponse } from '@/lib/api';
 
@@ -26,13 +26,13 @@ export async function GET(request: Request, { params }: RouteParams) {
       isHost: caller.isHost,
       // Clients tap and upload remote tracks only while someone is listening.
       listening: runtime?.rooms.get(sessionId)?.size ?? 0,
-      // Paid feature: everyone in the meeting can see whether the host's pass covers it.
+      // Pro feature: everyone in the meeting can see whether the host's plan covers it.
       funded: runtime
         ? (await runtime.meter.funded(caller.hostUserId, sessionId)) ||
           (await runtime.meter.isAdmin(caller.userId))
         : false,
       access,
-      passes: caller.isHost ? TRANSLATION_PASSES : [],
+      passes: caller.isHost ? TRANSLATION_OFFER : [],
     });
   } catch (error) {
     if (error instanceof MeetingAccessError) return errorResponse(error.message, error.status);

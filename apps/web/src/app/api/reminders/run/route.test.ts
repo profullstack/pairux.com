@@ -7,6 +7,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
  */
 
 const runMeetingReminders = vi.fn();
+vi.mock('@/lib/plan-renewal', () => ({
+  runPlanRenewalReminders: () =>
+    Promise.resolve({ renewalEmails: 0, renewalSkipped: 0, renewalErrors: [] }),
+}));
 vi.mock('@/lib/meeting-reminders-runner', () => ({
   runMeetingReminders: (...args: unknown[]) => runMeetingReminders(...args),
 }));

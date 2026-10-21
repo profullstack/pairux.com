@@ -1367,7 +1367,8 @@
           "hd": "高清屏幕共享（1080p）",
           "liveDirectory": "在 /live 目录中展示公开房间",
           "callAnalysis": "AI 通话分析",
-          "support": "优先支持"
+          "support": "优先支持",
+          "translation": "会议实时翻译"
         }
       },
       "team": {
@@ -1381,7 +1382,8 @@
           "uhd": "4K 屏幕共享",
           "callAnalysis": "AI 通话分析",
           "admin": "管理员控制",
-          "support": "优先支持"
+          "support": "优先支持",
+          "translation": "会议实时翻译"
         }
       }
     },
@@ -1481,7 +1483,8 @@
       "subtitle": "从免费的 P2P 会话开始，或以每月仅 {price} 升级到 Pro。永远不按席位收费。",
       "download": "免费下载",
       "signup": "创建账户"
-    }
+    },
+    "payMethods": "可用 USDC、USDT、BTC、ETH、SOL 等币种或 PayPal 支付。每次付款可用 31 天，不会自动续费。"
   },
   "download": {
     "meta": {
@@ -2209,8 +2212,8 @@
     "inUseBy": "{count} 人正在使用",
     "on": "开",
     "off": "关",
-    "paidGuest": "实时翻译是付费功能。请让主持人购买翻译通行证。",
-    "paidHost": "实时翻译是付费功能。在下方购买通行证后，会议中的每个人都能用自己的语言听到和读到彼此的发言。",
+    "paidGuest": "实时翻译是 Pro 功能。请让主持人升级到 Pro。",
+    "paidHost": "实时翻译包含在 Pro 中。升级后，会议中的每个人都能用自己的语言听到和读到彼此。",
     "hearEveryoneIn": "用以下语言收听所有人",
     "nobodyElse": "这个会议里还没有其他人发言。",
     "speaks": "{name} 说的语言",
@@ -2252,7 +2255,11 @@
     "page": {
       "metaTitle": "升级",
       "starting": "正在开始 {plan} 结账…",
-      "backToPricing": "返回价格页"
+      "backToPricing": "返回价格页",
+      "chooseTitle": "你想用什么方式支付 {plan}？",
+      "chooseNote": "{price} 可用 {days} 天。不会自动续费，到期前我们会发邮件提醒你。",
+      "paid": "谢谢！付款确认后你的 {plan} 套餐会立即开通，通常只需几分钟。",
+      "toDashboard": "前往控制台"
     }
   }
 }

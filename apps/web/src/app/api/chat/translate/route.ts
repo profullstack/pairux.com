@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       return errorResponse('Too many translation requests. Try again shortly.', 429);
     const runtime = translationRuntime();
     if (!runtime) return errorResponse('Translation is not configured on this server.', 503);
-    // Paid feature: chat translation rides on the host's translation pass.
+    // Pro feature: chat translation rides on the host's plan (Pro or Team).
     if (!(await runtime.meter.isAdmin(caller.userId)))
       await runtime.meter.require(caller.hostUserId, body.sessionId);
     const { texts } = await runtime.translator.translate(

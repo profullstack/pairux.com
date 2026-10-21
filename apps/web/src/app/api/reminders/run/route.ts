@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 
 import { runMeetingReminders } from '@/lib/meeting-reminders-runner';
+import { runPlanRenewalReminders } from '@/lib/plan-renewal';
 
 /**
  * The tick that sends meeting reminders.
@@ -54,11 +55,18 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const summary = await runMeetingReminders();
+    // Paid-plan renewal reminders ride the same tick; a failure there must not
+    // hide the meeting summary.
+    const renewals = await runPlanRenewalReminders().catch((err: unknown) => ({
+      renewalEmails: 0,
+      renewalSkipped: 0,
+      renewalErrors: [err instanceof Error ? err.message : String(err)],
+    }));
 
     // Errors inside the run are reported rather than thrown: one meeting whose
     // host has been deleted should not make the whole tick look like a failure,
     // and pg_cron's log is the only place anybody will see this.
-    return NextResponse.json({ ok: true, ...summary });
+    return NextResponse.json({ ok: true, ...summary, ...renewals });
   } catch (err) {
     console.error('[reminders] run failed:', err);
     return NextResponse.json(

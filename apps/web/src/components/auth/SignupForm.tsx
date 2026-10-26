@@ -3,17 +3,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, User, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { ProfileFields } from '@profullstack/profile/react';
+import type { ProfileField } from '@profullstack/profile';
 import { trackSignup } from '@/lib/analytics';
+
+// Email has its own input below; the shared package renders the other five.
+const PROFILE_FIELDS: ProfileField[] = [
+  'first_name',
+  'last_name',
+  'company_domain',
+  'job_title',
+  'linkedin_url',
+];
 
 export function SignupForm() {
   const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [profile, setProfile] = useState<Partial<Record<ProfileField, string | null>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProfileField, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -22,13 +33,23 @@ export function SignupForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
     setLoading(true);
 
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, confirmPassword, firstName, lastName }),
+        body: JSON.stringify({
+          email,
+          password,
+          confirmPassword,
+          firstName: profile.first_name ?? '',
+          lastName: profile.last_name ?? '',
+          company_domain: profile.company_domain ?? '',
+          job_title: profile.job_title ?? '',
+          linkedin_url: profile.linkedin_url ?? '',
+        }),
       });
 
       const data = await res.json();
@@ -79,50 +100,13 @@ export function SignupForm() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-            {t('signup.firstName')}
-          </label>
-          <div className="relative mt-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <User className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => {
-                setFirstName(e.target.value);
-              }}
-              required
-              autoComplete="given-name"
-              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-              placeholder={t('signup.firstNamePlaceholder')}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-            {t('signup.lastName')}
-          </label>
-          <div className="relative mt-1">
-            <input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => {
-                setLastName(e.target.value);
-              }}
-              required
-              autoComplete="family-name"
-              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:outline-none"
-              placeholder={t('signup.lastNamePlaceholder')}
-            />
-          </div>
-        </div>
-      </div>
+      <ProfileFields
+        fields={PROFILE_FIELDS}
+        idPrefix="signup-"
+        values={profile}
+        onChange={setProfile}
+        errors={fieldErrors}
+      />
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">

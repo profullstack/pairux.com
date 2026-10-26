@@ -6,6 +6,19 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
+const upsert = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/supabase/service', () => ({
+  serviceClient: () => ({
+    auth: {},
+    from: (table: string) => ({
+      upsert: (row: Record<string, unknown>, opts: unknown) => {
+        upsert(table, row, opts);
+        return { select: () => ({ single: async () => ({ data: row, error: null }) }) };
+      },
+    }),
+  }),
+}));
+
 import { createClient } from '@/lib/supabase/server';
 
 describe('POST /api/auth/signup', () => {
@@ -218,5 +231,94 @@ describe('POST /api/auth/signup', () => {
 
     expect(response.status).toBe(500);
     expect(body.error).toBe('Failed to create user');
+  });
+
+  it('stores the profile fields on public.profiles for a new account', async () => {
+    const newUser = { ...mockUser, identities: [{ id: 'identity' }] };
+    const signUp = vi
+      .fn()
+      .mockResolvedValue({ data: { user: newUser, session: null }, error: null });
+    vi.mocked(createClient).mockResolvedValue(
+      createMockSupabaseClient({ auth: { signUp } }) as never
+    );
+
+    const response = await POST(
+      new Request('http://localhost/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'Password123',
+          confirmPassword: 'Password123',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          company_domain: 'https://www.Acme.com/about',
+          job_title: 'CTO',
+          linkedin_url: 'in/ada-lovelace',
+        }),
+      })
+    );
+
+    expect(response.status).toBe(201);
+    expect(
+      (signUp.mock.calls[0] as [{ options: { data: unknown } }])[0].options.data
+    ).toMatchObject({
+      company_domain: 'acme.com',
+      job_title: 'CTO',
+    });
+    expect(upsert).toHaveBeenCalledTimes(1);
+    const [table, row, opts] = upsert.mock.calls[0] as [string, unknown, unknown];
+    expect(table).toBe('profiles');
+    expect(opts).toEqual({ onConflict: 'id' });
+    expect(row).toMatchObject({
+      id: 'test-user-id',
+      email: 'test@example.com',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      company_domain: 'acme.com',
+      job_title: 'CTO',
+      linkedin_url: 'https://www.linkedin.com/in/ada-lovelace',
+    });
+  });
+
+  it('does not write a profile for an already-registered address', async () => {
+    upsert.mockClear();
+    const mockSupabase = createMockSupabaseClient();
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never);
+    const response = await POST(
+      new Request('http://localhost/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'Password123',
+          confirmPassword: 'Password123',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+        }),
+      })
+    );
+    expect(response.status).toBe(201);
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects a link in a name field with a field error', async () => {
+    vi.mocked(createClient).mockResolvedValue(createMockSupabaseClient() as never);
+    const response = await POST(
+      new Request('http://localhost/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'Password123',
+          confirmPassword: 'Password123',
+          firstName: 'http://spam.example',
+          lastName: 'Lovelace',
+        }),
+      })
+    );
+    const body = await response.json();
+    expect(response.status).toBe(400);
+    expect(body.fieldErrors.first_name).toBeTruthy();
   });
 });

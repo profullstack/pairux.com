@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated */
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { sameOriginPath } from '@/lib/safe-redirect';
 import { exchangeCodeAndPersist } from '@/lib/supabase/exchange-code';
 import { INVITE_COOKIE, cookieFrom, onSignedIn, refFromRequest } from '@/lib/credits';
 
@@ -27,11 +28,7 @@ async function afterSignIn(
 }
 
 export function safeNextPath(next: string | null): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//')) {
-    return '/dashboard';
-  }
-
-  return next;
+  return sameOriginPath(next) ?? '/dashboard';
 }
 
 export async function GET(request: NextRequest) {

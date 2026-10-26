@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
-    "@profullstack/footer": "^0.2.6",
+    "@profullstack/footer": "^0.4.0",
     "hono": "^4.13.14"
   },
   "devDependencies": {

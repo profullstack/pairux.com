@@ -2261,5 +2261,60 @@
       "paid": "Bedankt! Je {plan}-abonnement wordt actief zodra de betaling bevestigd is, meestal binnen een paar minuten.",
       "toDashboard": "Naar je dashboard"
     }
+  },
+  "credits": {
+    "billingTitle": "Abonnement en facturatie",
+    "planName": "{plan}-abonnement",
+    "current": "Huidig",
+    "activeUntil": "Actief tot {date}",
+    "seePlans": "Abonnementen bekijken",
+    "haveACode": "Heb je een code?",
+    "redeem": "Inwisselen",
+    "redeeming": "Bezig met inwisselen...",
+    "redeemFailed": "De code kon niet worden ingewisseld. Probeer het opnieuw.",
+    "inviteLink": "Nodig iemand uit (jullie krijgen allebei Pro-dagen)",
+    "invites": {
+      "title": "Uitnodigingen",
+      "subtitle": "Uitnodigingen zijn schaars: elk account heeft er drie. Stuur er een naar iemand die je op PairUX wilt hebben.",
+      "loading": "Laden...",
+      "loadFailed": "Uitnodigingen konden niet worden geladen.",
+      "createFailed": "De uitnodiging kon niet worden gemaakt.",
+      "revokeFailed": "De uitnodiging kon niet worden ingetrokken.",
+      "left": "Nog {left} van {total} uitnodigingen over",
+      "explain": "Als iemand nieuw via jouw uitnodiging lid wordt en het e-mailadres bevestigt, krijgen jullie allebei {days} dagen PairUX Pro.",
+      "notePlaceholder": "Voor wie is het? (alleen jij ziet dit)",
+      "create": "Uitnodiging maken",
+      "noneLeft": "Je hebt al je uitnodigingen gebruikt.",
+      "unlocks": "Uitnodigingen worden op {date} ontgrendeld, een week nadat je lid werd.",
+      "locked": "Uitnodigingen zijn nog niet beschikbaar voor dit account.",
+      "shownOnce": "Je uitnodigingslink (wordt één keer getoond, kopieer hem nu):",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd",
+      "sent": "Verstuurde uitnodigingen",
+      "noNote": "Uitnodiging",
+      "expires": "verloopt op {date}",
+      "withdraw": "Intrekken",
+      "status": {
+        "open": "Open",
+        "used": "Lid geworden",
+        "expired": "Verlopen",
+        "revoked": "Ingetrokken"
+      },
+      "bonus": {
+        "granted": "elk {days} dagen Pro",
+        "pending": "bonus wacht op bevestiging van het e-mailadres",
+        "denied": "geen bonus"
+      },
+      "refTitle": "Je verwijzingslink",
+      "refExplain": "Een open link zonder limiet. Aanmeldingen via deze link worden aan jou toegeschreven."
+    },
+    "landing": {
+      "title": "Je bent uitgenodigd voor PairUX",
+      "body": "Iemand wil je op PairUX hebben: schermdelen met afstandsbediening, vergaderingen en livestreams. Word lid met deze uitnodiging en jullie krijgen allebei dagen PairUX Pro.",
+      "accept": "Uitnodiging accepteren",
+      "signup": "Maak je gratis account",
+      "login": "Ik heb al een account",
+      "failed": "De uitnodiging kon niet worden geaccepteerd."
+    }
   }
 }

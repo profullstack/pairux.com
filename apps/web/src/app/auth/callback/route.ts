@@ -2,6 +2,29 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { exchangeCodeAndPersist } from '@/lib/supabase/exchange-code';
+import { INVITE_COOKIE, cookieFrom, onSignedIn, refFromRequest } from '@/lib/credits';
+
+/**
+ * A confirmed sign-in: accept a pending /i/<code> invite, record a ?ref=
+ * attribution and settle any invite bonus held for email confirmation.
+ * Never blocks the redirect on failure.
+ */
+async function afterSignIn(
+  request: NextRequest,
+  response: NextResponse,
+  userId: string | undefined
+) {
+  if (!userId) return;
+  try {
+    await onSignedIn(userId, {
+      inviteCode: cookieFrom(request, INVITE_COOKIE),
+      refCode: refFromRequest(request),
+    });
+    if (request.cookies.get(INVITE_COOKIE)) response.cookies.delete(INVITE_COOKIE);
+  } catch (err) {
+    console.error('[auth/callback] invite settle failed', err);
+  }
+}
 
 export function safeNextPath(next: string | null): string {
   if (!next || !next.startsWith('/') || next.startsWith('//')) {
@@ -46,7 +69,7 @@ export async function GET(request: NextRequest) {
   // Handle token_hash from direct email links
   if (tokenHash && type) {
     const otpType = type as 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email';
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: otpType,
     });
@@ -56,17 +79,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
     }
 
+    await afterSignIn(request, response, data.user?.id);
     return response;
   }
 
   // Handle code from PKCE flow
   if (code) {
-    const { error } = await exchangeCodeAndPersist(supabase, code);
+    const { session, error } = await exchangeCodeAndPersist(supabase, code);
 
     if (error) {
       console.error('Auth callback code exchange error:', error);
       return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
     }
+
+    await afterSignIn(request, response, session?.user.id);
   }
 
   return response;

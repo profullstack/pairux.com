@@ -58,6 +58,7 @@ describe('SignupForm', () => {
           company_domain: '',
           job_title: '',
           linkedin_url: '',
+          invite: '',
         }),
       });
     });

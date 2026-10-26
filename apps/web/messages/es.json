@@ -2261,5 +2261,60 @@
       "paid": "¡Gracias! Tu plan {plan} se activa en cuanto se confirme el pago, normalmente en unos minutos.",
       "toDashboard": "Ir a tu panel"
     }
+  },
+  "credits": {
+    "billingTitle": "Plan y facturación",
+    "planName": "Plan {plan}",
+    "current": "Actual",
+    "activeUntil": "Activo hasta el {date}",
+    "seePlans": "Ver planes",
+    "haveACode": "¿Tienes un código?",
+    "redeem": "Canjear",
+    "redeeming": "Canjeando...",
+    "redeemFailed": "No se pudo canjear el código. Inténtalo de nuevo.",
+    "inviteLink": "Invita a alguien (ambos obtenéis días de Pro)",
+    "invites": {
+      "title": "Invitaciones",
+      "subtitle": "Las invitaciones son escasas: cada cuenta tiene tres. Envía una a alguien que quieras en PairUX.",
+      "loading": "Cargando...",
+      "loadFailed": "No se pudieron cargar las invitaciones.",
+      "createFailed": "No se pudo crear la invitación.",
+      "revokeFailed": "No se pudo retirar la invitación.",
+      "left": "Te quedan {left} de {total} invitaciones",
+      "explain": "Cuando alguien nuevo se une con tu invitación y confirma su correo, ambos obtenéis {days} días de PairUX Pro.",
+      "notePlaceholder": "¿Para quién es? (solo tú lo ves)",
+      "create": "Crear invitación",
+      "noneLeft": "Has usado todas tus invitaciones.",
+      "unlocks": "Las invitaciones se desbloquean el {date}, una semana después de que te unieras.",
+      "locked": "Las invitaciones aún no están disponibles para esta cuenta.",
+      "shownOnce": "Tu enlace de invitación (se muestra una sola vez, cópialo ahora):",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "sent": "Invitaciones que enviaste",
+      "noNote": "Invitación",
+      "expires": "caduca el {date}",
+      "withdraw": "Retirar",
+      "status": {
+        "open": "Abierta",
+        "used": "Se unió",
+        "expired": "Caducada",
+        "revoked": "Retirada"
+      },
+      "bonus": {
+        "granted": "{days} días de Pro cada uno",
+        "pending": "el bono espera la confirmación de su correo",
+        "denied": "sin bono"
+      },
+      "refTitle": "Tu enlace de referido",
+      "refExplain": "Un enlace abierto y sin límite. Los registros que lleguen por él se te acreditan."
+    },
+    "landing": {
+      "title": "Te han invitado a PairUX",
+      "body": "Alguien quiere verte en PairUX: pantalla compartida con control remoto, reuniones y transmisiones en vivo. Únete con esta invitación y ambos obtenéis días de PairUX Pro.",
+      "accept": "Aceptar invitación",
+      "signup": "Crea tu cuenta gratis",
+      "login": "Ya tengo una cuenta",
+      "failed": "No se pudo aceptar la invitación."
+    }
   }
 }

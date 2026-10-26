@@ -2261,5 +2261,60 @@
       "paid": "谢谢！付款确认后你的 {plan} 套餐会立即开通，通常只需几分钟。",
       "toDashboard": "前往控制台"
     }
+  },
+  "credits": {
+    "billingTitle": "套餐与账单",
+    "planName": "{plan}套餐",
+    "current": "当前",
+    "activeUntil": "有效期至 {date}",
+    "seePlans": "查看套餐",
+    "haveACode": "有兑换码吗？",
+    "redeem": "兑换",
+    "redeeming": "兑换中...",
+    "redeemFailed": "无法兑换该兑换码，请重试。",
+    "inviteLink": "邀请好友（双方都获得 Pro 天数）",
+    "invites": {
+      "title": "邀请",
+      "subtitle": "邀请名额有限：每个账号有三个。发给你想拉进 PairUX 的人吧。",
+      "loading": "加载中...",
+      "loadFailed": "无法加载邀请。",
+      "createFailed": "无法创建邀请。",
+      "revokeFailed": "无法撤回邀请。",
+      "left": "剩余 {left} / {total} 个邀请",
+      "explain": "新用户通过你的邀请加入并确认邮箱后，你们双方都将获得 {days} 天 PairUX Pro。",
+      "notePlaceholder": "发给谁？（仅你可见）",
+      "create": "创建邀请",
+      "noneLeft": "你已用完所有邀请。",
+      "unlocks": "邀请将于 {date} 解锁，即你加入一周后。",
+      "locked": "此账号暂时无法使用邀请。",
+      "shownOnce": "你的邀请链接（仅显示一次，请立即复制）：",
+      "copy": "复制",
+      "copied": "已复制",
+      "sent": "你发出的邀请",
+      "noNote": "邀请",
+      "expires": "{date} 到期",
+      "withdraw": "撤回",
+      "status": {
+        "open": "未使用",
+        "used": "已加入",
+        "expired": "已过期",
+        "revoked": "已撤回"
+      },
+      "bonus": {
+        "granted": "双方各 {days} 天 Pro",
+        "pending": "奖励等待对方确认邮箱",
+        "denied": "无奖励"
+      },
+      "refTitle": "你的推荐链接",
+      "refExplain": "不限次数的公开链接。通过它注册的用户会记在你名下。"
+    },
+    "landing": {
+      "title": "你收到了 PairUX 邀请",
+      "body": "有人想邀请你使用 PairUX：支持远程控制的屏幕共享、会议和直播。通过此邀请加入，你们双方都将获得 PairUX Pro 天数。",
+      "accept": "接受邀请",
+      "signup": "创建免费账号",
+      "login": "我已有账号",
+      "failed": "无法接受邀请。"
+    }
   }
 }

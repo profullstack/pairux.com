@@ -115,4 +115,43 @@ export class PairuxClient {
       method: 'DELETE',
     });
   }
+
+  /** Redeem a credit code (adds days of a paid plan). */
+  redeem(code: string) {
+    return this.request<{
+      plan: string;
+      days: number;
+      effectivePlan: string;
+      planExpiresAt: string | null;
+      message: string;
+    }>('/api/credits/redeem', { method: 'POST', body: JSON.stringify({ code }) }, true);
+  }
+
+  invites() {
+    return this.request<InvitesOverview>('/api/invites', {}, true);
+  }
+
+  createInvite(note: string) {
+    return this.request<{ id: string; code: string; url: string; expiresAt: number | null }>(
+      '/api/invites',
+      { method: 'POST', body: JSON.stringify({ note }) },
+      true
+    );
+  }
+}
+
+export interface InvitesOverview {
+  quota: { total: number; used: number; left: number };
+  invites: {
+    id: string;
+    status: string;
+    note: string;
+    usedByName?: string | null;
+    bonus?: string;
+    expiresAt: number | null;
+  }[];
+  canInvite: boolean;
+  unlocksAt: string | null;
+  bonusDays: number;
+  refLink: string;
 }

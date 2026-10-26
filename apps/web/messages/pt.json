@@ -2261,5 +2261,60 @@
       "paid": "Obrigado! Seu plano {plan} é ativado assim que o pagamento for confirmado, normalmente em poucos minutos.",
       "toDashboard": "Ir para o painel"
     }
+  },
+  "credits": {
+    "billingTitle": "Plano e cobrança",
+    "planName": "Plano {plan}",
+    "current": "Atual",
+    "activeUntil": "Ativo até {date}",
+    "seePlans": "Ver planos",
+    "haveACode": "Tem um código?",
+    "redeem": "Resgatar",
+    "redeeming": "Resgatando...",
+    "redeemFailed": "Não foi possível resgatar o código. Tente de novo.",
+    "inviteLink": "Convide alguém (vocês dois ganham dias de Pro)",
+    "invites": {
+      "title": "Convites",
+      "subtitle": "Os convites são raros: cada conta tem três. Envie um para alguém que você quer no PairUX.",
+      "loading": "Carregando...",
+      "loadFailed": "Não foi possível carregar os convites.",
+      "createFailed": "Não foi possível criar o convite.",
+      "revokeFailed": "Não foi possível cancelar o convite.",
+      "left": "{left} de {total} convites restantes",
+      "explain": "Quando uma pessoa nova entra pelo seu convite e confirma o e-mail, vocês dois ganham {days} dias de PairUX Pro.",
+      "notePlaceholder": "Para quem é? (só você vê isso)",
+      "create": "Criar convite",
+      "noneLeft": "Você usou todos os seus convites.",
+      "unlocks": "Os convites são liberados em {date}, uma semana depois que você entrou.",
+      "locked": "Os convites ainda não estão disponíveis para esta conta.",
+      "shownOnce": "Seu link de convite (exibido uma vez, copie agora):",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "sent": "Convites que você enviou",
+      "noNote": "Convite",
+      "expires": "expira em {date}",
+      "withdraw": "Cancelar",
+      "status": {
+        "open": "Aberto",
+        "used": "Entrou",
+        "expired": "Expirado",
+        "revoked": "Cancelado"
+      },
+      "bonus": {
+        "granted": "{days} dias de Pro para cada um",
+        "pending": "o bônus aguarda a confirmação do e-mail",
+        "denied": "sem bônus"
+      },
+      "refTitle": "Seu link de indicação",
+      "refExplain": "Um link aberto e sem limite. Os cadastros feitos por ele são creditados a você."
+    },
+    "landing": {
+      "title": "Você foi convidado para o PairUX",
+      "body": "Alguém quer você no PairUX: compartilhamento de tela com controle remoto, reuniões e transmissões ao vivo. Entre com este convite e vocês dois ganham dias de PairUX Pro.",
+      "accept": "Aceitar convite",
+      "signup": "Crie sua conta grátis",
+      "login": "Já tenho uma conta",
+      "failed": "Não foi possível aceitar o convite."
+    }
   }
 }

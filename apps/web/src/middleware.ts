@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 import { CORS_HEADERS } from '@/lib/cors';
 
+/** @profullstack/affiliates REF_COOKIE (the @profullstack/referrals cookie). */
+const REF_COOKIE_NAME = 'referral_code';
+
 // Content-Security-Policy is built per-request here (not in next.config) so it
 // can carry a fresh script nonce — that lets us drop 'unsafe-inline' from
 // script-src. Next.js reads the nonce from the request's CSP header and applies
@@ -85,6 +88,19 @@ export async function middleware(request: NextRequest) {
 
   const response = await updateSession(request, requestHeaders);
   response.headers.set('content-security-policy', csp);
+
+  // ?ref=<affiliate code>: first touch wins, kept in @profullstack/referrals'
+  // cookie name so a signup is attributed once (lib/credits.ts onSignedIn).
+  const ref = request.nextUrl.searchParams.get('ref');
+  if (ref && /^[A-Za-z0-9_-]{4,40}$/.test(ref) && !request.cookies.get(REF_COOKIE_NAME)) {
+    response.cookies.set(REF_COOKIE_NAME, ref, {
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60,
+      sameSite: 'lax',
+      secure: request.nextUrl.protocol === 'https:',
+      httpOnly: true,
+    });
+  }
 
   // Add CORS headers for API routes
   if (pathname.startsWith('/api/')) {

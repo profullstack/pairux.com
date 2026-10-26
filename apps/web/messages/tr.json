@@ -2261,5 +2261,60 @@
       "paid": "Teşekkürler! {plan} planın ödeme onaylanır onaylanmaz, genellikle birkaç dakika içinde açılır.",
       "toDashboard": "Panele git"
     }
+  },
+  "credits": {
+    "billingTitle": "Plan ve faturalandırma",
+    "planName": "{plan} planı",
+    "current": "Geçerli",
+    "activeUntil": "{date} tarihine kadar aktif",
+    "seePlans": "Planları gör",
+    "haveACode": "Kodun var mı?",
+    "redeem": "Kullan",
+    "redeeming": "Kullanılıyor...",
+    "redeemFailed": "Kod kullanılamadı. Tekrar dene.",
+    "inviteLink": "Birini davet et (ikiniz de Pro günleri kazanırsınız)",
+    "invites": {
+      "title": "Davetler",
+      "subtitle": "Davetler kısıtlı: her hesapta üç tane var. PairUX'te görmek istediğin birine gönder.",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Davetler yüklenemedi.",
+      "createFailed": "Davet oluşturulamadı.",
+      "revokeFailed": "Davet geri çekilemedi.",
+      "left": "{total} davetten {left} tanesi kaldı",
+      "explain": "Yeni biri davetinle katılıp e-postasını doğruladığında ikiniz de {days} gün PairUX Pro kazanırsınız.",
+      "notePlaceholder": "Kimin için? (sadece sen görürsün)",
+      "create": "Davet oluştur",
+      "noneLeft": "Tüm davetlerini kullandın.",
+      "unlocks": "Davetler {date} tarihinde açılır, katılmandan bir hafta sonra.",
+      "locked": "Bu hesap için davetler henüz kullanılamıyor.",
+      "shownOnce": "Davet bağlantın (bir kez gösterilir, şimdi kopyala):",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "sent": "Gönderdiğin davetler",
+      "noNote": "Davet",
+      "expires": "{date} tarihinde sona erer",
+      "withdraw": "Geri çek",
+      "status": {
+        "open": "Açık",
+        "used": "Katıldı",
+        "expired": "Süresi doldu",
+        "revoked": "Geri çekildi"
+      },
+      "bonus": {
+        "granted": "her birine {days} gün Pro",
+        "pending": "bonus, e-postanın doğrulanmasını bekliyor",
+        "denied": "bonus yok"
+      },
+      "refTitle": "Yönlendirme bağlantın",
+      "refExplain": "Sınırsız açık bir bağlantı. Bu bağlantıdan gelen kayıtlar sana yazılır."
+    },
+    "landing": {
+      "title": "PairUX'e davetlisin",
+      "body": "Biri seni PairUX'te görmek istiyor: uzaktan kontrollü ekran paylaşımı, toplantılar ve canlı yayınlar. Bu davetle katıl, ikiniz de PairUX Pro günleri kazanın.",
+      "accept": "Daveti kabul et",
+      "signup": "Ücretsiz hesabını oluştur",
+      "login": "Zaten hesabım var",
+      "failed": "Davet kabul edilemedi."
+    }
   }
 }

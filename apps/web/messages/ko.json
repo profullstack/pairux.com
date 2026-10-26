@@ -2261,5 +2261,60 @@
       "paid": "감사합니다! 결제가 확인되면 {plan} 플랜이 바로 켜집니다. 보통 몇 분이면 됩니다.",
       "toDashboard": "대시보드로 이동"
     }
+  },
+  "credits": {
+    "billingTitle": "요금제 및 결제",
+    "planName": "{plan} 요금제",
+    "current": "현재",
+    "activeUntil": "{date}까지 이용 가능",
+    "seePlans": "요금제 보기",
+    "haveACode": "코드가 있나요?",
+    "redeem": "등록",
+    "redeeming": "등록 중...",
+    "redeemFailed": "코드를 등록하지 못했습니다. 다시 시도해 주세요.",
+    "inviteLink": "친구 초대하기 (둘 다 Pro 기간을 받아요)",
+    "invites": {
+      "title": "초대",
+      "subtitle": "초대장은 수량이 한정되어 있어요. 계정당 3장씩 주어집니다. PairUX에서 함께하고 싶은 사람에게 보내 보세요.",
+      "loading": "불러오는 중...",
+      "loadFailed": "초대를 불러오지 못했습니다.",
+      "createFailed": "초대를 만들지 못했습니다.",
+      "revokeFailed": "초대를 취소하지 못했습니다.",
+      "left": "초대장 {total}장 중 {left}장 남음",
+      "explain": "새로운 사람이 내 초대로 가입하고 이메일을 인증하면, 둘 다 PairUX Pro {days}일을 받아요.",
+      "notePlaceholder": "누구에게 보내나요? (나만 볼 수 있어요)",
+      "create": "초대 만들기",
+      "noneLeft": "초대장을 모두 사용했습니다.",
+      "unlocks": "초대는 {date}에 열립니다. 가입 후 일주일 뒤예요.",
+      "locked": "이 계정은 아직 초대를 사용할 수 없습니다.",
+      "shownOnce": "내 초대 링크 (한 번만 표시되니 지금 복사하세요):",
+      "copy": "복사",
+      "copied": "복사됨",
+      "sent": "보낸 초대",
+      "noNote": "초대",
+      "expires": "{date} 만료",
+      "withdraw": "취소",
+      "status": {
+        "open": "대기 중",
+        "used": "가입함",
+        "expired": "만료됨",
+        "revoked": "취소됨"
+      },
+      "bonus": {
+        "granted": "각각 Pro {days}일",
+        "pending": "이메일 인증을 기다리는 중이에요",
+        "denied": "보너스 없음"
+      },
+      "refTitle": "내 추천 링크",
+      "refExplain": "횟수 제한 없는 공개 링크입니다. 이 링크로 가입한 사람은 내 실적으로 집계돼요."
+    },
+    "landing": {
+      "title": "PairUX에 초대받으셨어요",
+      "body": "누군가 PairUX에서 함께하길 원해요. 원격 제어가 되는 화면 공유, 미팅, 라이브 스트림을 사용할 수 있어요. 이 초대로 가입하면 둘 다 PairUX Pro 기간을 받아요.",
+      "accept": "초대 수락",
+      "signup": "무료 계정 만들기",
+      "login": "이미 계정이 있어요",
+      "failed": "초대를 수락하지 못했습니다."
+    }
   }
 }

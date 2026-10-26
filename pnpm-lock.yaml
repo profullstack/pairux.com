@@ -379,6 +379,9 @@ importers:
       '@pairux/meeting-translation':
         specifier: workspace:*
         version: link:../../packages/meeting-translation
+      '@profullstack/affiliates':
+        specifier: ^0.2.0
+        version: 0.2.0(react@19.3.1)
       '@profullstack/autoblog':
         specifier: github:profullstack/autoblog#75e54af
         version: https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af
@@ -387,7 +390,7 @@ importers:
         version: 1.0.3
       '@profullstack/footer':
         specifier: latest
-        version: 0.2.6(react@19.3.1)
+        version: 0.3.1(react@19.3.1)
       '@profullstack/live-translate':
         specifier: ^0.3.0
         version: 0.3.0
@@ -400,6 +403,9 @@ importers:
       '@profullstack/profile':
         specifier: 0.1.6
         version: 0.1.6(react@19.3.1)
+      '@profullstack/redeem-credits':
+        specifier: ^0.2.0
+        version: 0.2.0
       '@profullstack/stack':
         specifier: ^0.5.0
         version: 0.5.0(@supabase/ssr@0.12.7(@supabase/supabase-js@2.118.0(@opentelemetry/api@1.10.0)))(next@16.4.3(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
@@ -2110,7 +2116,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -2783,16 +2789,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.5':
     resolution: {integrity: sha512-LbqtPtMPTJUcg4XoPP2jsU1wc8flBcGyKTerKsIfK9cD7nBHROnO0QksbrsbSWEpLym8T8fRtuU7XEY83l6Z2Q==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.5':
     resolution: {integrity: sha512-uxaXEcRKnFObAljsoR6tLOBUU1dJ2sctloG6gFgCBGN7+k6Jdv6jZfOuNjd/fpdq2C5WPMm0rtn9EE7h5J3Jcg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.5':
     resolution: {integrity: sha512-yqC87zvmFcDPwFrRU40DYhN0xmEVM3aSkOuyF0IX+y1x+HWSu/i0PNklATpPBhGid3QVb/TOHuVoaraMrUFCNw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.6':
@@ -2806,6 +2815,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.6':
     resolution: {integrity: sha512-aI/WCX7gE1HFGPH3EZP/UWqpNMM1NMoM/EkXqp7pKMgXFCi8e5+o5p+jd/QOYpmALv9bQg7+s69nI7FONbMqDg==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.6':
@@ -2926,6 +2936,11 @@ packages:
   '@posthog/types@1.416.1':
     resolution: {integrity: sha512-PG06HE2axHNyyZ9CKSSHKSW4pWfQwEtPA1dewFqIwggcIgk1BsQ+tHSNqvZz+IvE2WnBZ8OcOkF9SWI55VxQfA==}
 
+  '@profullstack/affiliates@0.2.0':
+    resolution: {integrity: sha512-fbP5uiS8Pa5g8mk5WFD79U4Cj7BUPH6Qy0tQP7ZXE9gfxHOHirHASmZ/rAk8MqnmzGOZTuwq9WwOHbmoFV2TSA==}
+    engines: {node: '>=22.13'}
+    hasBin: true
+
   '@profullstack/autoblog@https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af':
     resolution: {tarball: https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af}
     version: 0.4.0
@@ -2936,6 +2951,16 @@ packages:
 
   '@profullstack/footer@0.2.6':
     resolution: {integrity: sha512-BKwbDszAc7e0mYIBiPjgr/5WS8WyDt8IW718s/zW/8pCWOIB1BGwSNs6fmImRSo5kqIjQKUVbXp22jZQ5GEipA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      react: '>=18'
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  '@profullstack/footer@0.3.1':
+    resolution: {integrity: sha512-uiiCgEuOZAFd4UKpOUIhAseVLTXp+tbGF9kosYDuW2M/+/A3QcWtUCu9lYGSNfOUnvnlscqrLjJC2uYZlJmufQ==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -2975,6 +3000,11 @@ packages:
         optional: true
       react:
         optional: true
+
+  '@profullstack/redeem-credits@0.2.0':
+    resolution: {integrity: sha512-JLowb7mWYfouIK7O522tuPPhvLjQjhdEfm6g3xEYrlNLGzLhrIADDhrYldBlGHfiVBWUFX7wefLuCSLF9fnyog==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   '@profullstack/referrals@0.1.0':
     resolution: {integrity: sha512-u66SdBVpsv3kc0N+NWISPoYD5vjCERyv5wfD07iSkZwQeC2IA+ihX5jNA4e7Xr+Y4AUvxLycG+3b4VaROqzgRg==}
@@ -12264,11 +12294,21 @@ snapshots:
 
   '@posthog/types@1.416.1': {}
 
+  '@profullstack/affiliates@0.2.0(react@19.3.1)':
+    dependencies:
+      '@profullstack/referrals': 0.1.0(react@19.3.1)
+    transitivePeerDependencies:
+      - react
+
   '@profullstack/autoblog@https://codeload.github.com/profullstack/autoblog/tar.gz/75e54af': {}
 
   '@profullstack/emailer@1.0.3': {}
 
   '@profullstack/footer@0.2.6(react@19.3.1)':
+    optionalDependencies:
+      react: 19.3.1
+
+  '@profullstack/footer@0.3.1(react@19.3.1)':
     optionalDependencies:
       react: 19.3.1
 
@@ -12283,6 +12323,8 @@ snapshots:
   '@profullstack/profile@0.1.6(react@19.3.1)':
     optionalDependencies:
       react: 19.3.1
+
+  '@profullstack/redeem-credits@0.2.0': {}
 
   '@profullstack/referrals@0.1.0(react@19.3.1)':
     optionalDependencies:

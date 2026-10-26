@@ -164,7 +164,7 @@ if /I "%~1"=="update" goto :update
 if /I "%~1"=="upgrade" goto :update
 if /I "%~1"=="uninstall" goto :uninstall
 if /I "%~1"=="remove" goto :uninstall
-for %%C in (login logout whoami join listen say who status leave) do if /I "%~1"=="%%C" goto :agent
+for %%C in (login logout whoami join listen say who status leave room redeem invites) do if /I "%~1"=="%%C" goto :agent
 goto :run
 
 :help
@@ -184,6 +184,8 @@ echo   join CODE             Join a session as an agent (--name, --client)
 echo   listen [--json]       Follow chat and who is here; keeps the agent present
 echo   say MESSAGE           Post in the session chat
 echo   who ^| status ^| leave  Roster, this agent, leave the session
+echo   redeem CODE           Redeem a credit code (adds days of a paid plan)
+echo   invites [create]      Your invites and referral link
 exit /b 0
 
 :version

@@ -1,23 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  Check,
-  Clock,
-  Monitor,
-  Users,
-  CreditCard,
-  BarChart3,
-  Settings,
-  Bell,
-  Radio,
-} from 'lucide-react';
+import { Check, Clock, Monitor, Users, BarChart3, Settings, Bell, Radio } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
-import { maxListeners } from '@pairux/shared-types';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { DashboardClient } from './components/DashboardClient';
 import { ChannelsManager } from './ChannelsManager';
+import { PlanBillingCard } from '@/components/credits/PlanBillingCard';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.metadata');
@@ -38,8 +28,6 @@ const stats = [
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
-  // The free plan line is the /pricing one, with the enforced caps.
-  const tFree = useTranslations('pricing.tiers.free.features');
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
@@ -98,21 +86,8 @@ export default function DashboardPage() {
 
             {/* Right Column - Plan & Settings */}
             <div className="space-y-6">
-              {/* Current Plan */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <h2 className="text-lg font-semibold text-gray-900">{t('yourPlan')}</h2>
-                <div className="border-primary-200 bg-primary-50 mt-4 rounded-lg border-2 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-primary-700 font-semibold">{t('freePlan')}</span>
-                    <span className="bg-primary-100 text-primary-700 rounded-full px-2 py-0.5 text-xs font-medium">
-                      {t('current')}
-                    </span>
-                  </div>
-                  <p className="text-primary-600 mt-1 text-sm">
-                    {tFree('participants', { count: maxListeners('free') })}
-                  </p>
-                </div>
-              </div>
+              {/* Plan, end date, "Have a code?" and invites */}
+              <PlanBillingCard />
 
               {/* Upgrade Options (Greyed Out) */}
               <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -156,21 +131,6 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Billing (Greyed Out) */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6 opacity-50 grayscale">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-gray-400" />
-                  <h2 className="text-lg font-semibold text-gray-900">{t('billing')}</h2>
-                </div>
-                <p className="mt-2 text-sm text-gray-500">{t('noPaymentMethod')}</p>
-                <button
-                  disabled
-                  className="mt-4 w-full cursor-not-allowed rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-400"
-                >
-                  {t('addPaymentMethod')}
-                </button>
               </div>
 
               {/* Settings Links */}

@@ -778,6 +778,8 @@ case "\${1-}" in
         echo "  listen [--json]       Follow chat and who is here; keeps the agent present"
         echo "  say <message>         Post in the session chat"
         echo "  who | status | leave  Roster, this agent, leave the session"
+        echo "  redeem <CODE>         Redeem a credit code (adds days of a paid plan)"
+        echo "  invites [create]      Your invites and referral link"
         exit 0
         ;;
     -v|--version)
@@ -989,6 +991,8 @@ case "\${1-}" in
         echo "  listen [--json]       Follow chat and who is here; keeps the agent present"
         echo "  say <message>         Post in the session chat"
         echo "  who | status | leave  Roster, this agent, leave the session"
+        echo "  redeem <CODE>         Redeem a credit code (adds days of a paid plan)"
+        echo "  invites [create]      Your invites and referral link"
         exit 0
         ;;
     -v|--version)

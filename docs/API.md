@@ -1513,6 +1513,27 @@ export interface ControlRevokeMessage {
 
 ---
 
+### Credit Codes and Invites API
+
+Every route takes the web session cookie, a Supabase access token (`Authorization: Bearer <jwt>`, desktop and mobile) or a `pairux login` CLI token (`Bearer pux_at_...`). Responses are `{ data }` or `{ error, reason? }`.
+
+A **credit code** (`CR-XXXX-XXXX-XXXX-XXXX`) adds days of a paid plan to `profiles.plan` / `plan_expires_at`, the same columns a CoinPay payment extends. Codes grant Pro unless they were minted for Plus or Team. A smaller plan while a bigger one is running adds the days and keeps the bigger plan. Codes are stored only as sha256 hashes.
+
+An **invite** (`INV-XXXX-XXXX-XXXX`): every account gets 3, from 7 days old. Each works once and expires after 30 days. When an account at most 7 days old joins on one and its email is confirmed, both people get 7 days of Pro. There is no bonus when both addresses are the same mailbox (case, `+tag` and Gmail dots ignored) or once the inviter has had 10 bonuses in 30 days.
+
+| Method   | Path                           | Body                                                       | What it does                                                                                        |
+| -------- | ------------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| GET      | `/api/credits`                 |                                                            | Plan, effective plan, end date and the grants codes/invites gave                                    |
+| POST     | `/api/credits/redeem`          | `{ code }`                                                 | Redeem a code; 400 with `reason` = `invalid`, `expired`, `used_up`, `already_redeemed` or `revoked` |
+| GET      | `/api/invites`                 |                                                            | Quota, invites sent (status and bonus), `refLink` (`/?ref=<code>`)                                  |
+| POST     | `/api/invites`                 | `{ note? }`                                                | Create an invite; the code and its `/i/<code>` URL are returned once                                |
+| DELETE   | `/api/invites/{id}`            |                                                            | Withdraw an unused invite (refunds the slot)                                                        |
+| POST     | `/api/invites/accept`          | `{ code }`                                                 | Join on an invite; `bonus` = `granted`, `pending` (email not confirmed) or `denied`                 |
+| GET/POST | `/api/admin/credit-codes`      | `{ days, plan?, label?, maxRedemptions?, expiresInDays? }` | Admins: list or mint codes                                                                          |
+| DELETE   | `/api/admin/credit-codes/{id}` |                                                            | Admins: revoke a code                                                                               |
+
+CLI: `pairux redeem <code>`, `pairux invites`, `pairux invites create [--note <text>]`.
+
 ## Error Handling
 
 ### Error Codes

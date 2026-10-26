@@ -2261,5 +2261,60 @@
       "paid": "ありがとうございます。支払いが確認されると {plan} プランが有効になります。通常は数分です。",
       "toDashboard": "ダッシュボードへ"
     }
+  },
+  "credits": {
+    "billingTitle": "プランと請求",
+    "planName": "{plan}プラン",
+    "current": "現在のプラン",
+    "activeUntil": "{date}まで有効",
+    "seePlans": "プランを見る",
+    "haveACode": "コードをお持ちですか？",
+    "redeem": "使う",
+    "redeeming": "適用中...",
+    "redeemFailed": "コードを適用できませんでした。もう一度お試しください。",
+    "inviteLink": "友だちを招待（お互いにProの日数がもらえます）",
+    "invites": {
+      "title": "招待",
+      "subtitle": "招待は数に限りがあり、各アカウントに3件です。PairUXに誘いたい人に送りましょう。",
+      "loading": "読み込み中...",
+      "loadFailed": "招待を読み込めませんでした。",
+      "createFailed": "招待を作成できませんでした。",
+      "revokeFailed": "招待を取り消せませんでした。",
+      "left": "招待の残り：{left}／{total}件",
+      "explain": "新しい人があなたの招待で参加してメールを確認すると、お互いに{days}日分のPairUX Proがもらえます。",
+      "notePlaceholder": "誰への招待ですか？（あなただけに表示されます）",
+      "create": "招待を作成",
+      "noneLeft": "招待をすべて使い切りました。",
+      "unlocks": "招待は{date}に利用可能になります（参加から1週間後）。",
+      "locked": "このアカウントではまだ招待を利用できません。",
+      "shownOnce": "あなたの招待リンク（表示は1回のみです。今すぐコピーしてください）：",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "sent": "送信した招待",
+      "noNote": "招待",
+      "expires": "{date}に期限切れ",
+      "withdraw": "取り消す",
+      "status": {
+        "open": "未使用",
+        "used": "参加済み",
+        "expired": "期限切れ",
+        "revoked": "取り消し済み"
+      },
+      "bonus": {
+        "granted": "それぞれ{days}日分のPro",
+        "pending": "メール確認後にボーナスが付与されます",
+        "denied": "ボーナスなし"
+      },
+      "refTitle": "あなたの紹介リンク",
+      "refExplain": "回数無制限の公開リンクです。このリンク経由の登録はあなたの実績になります。"
+    },
+    "landing": {
+      "title": "PairUXに招待されました",
+      "body": "誰かがあなたをPairUXに誘っています。リモート操作つきの画面共有、ミーティング、ライブ配信が使えます。この招待から参加すると、お互いにPairUX Proの日数がもらえます。",
+      "accept": "招待を受ける",
+      "signup": "無料アカウントを作成",
+      "login": "アカウントをお持ちの方",
+      "failed": "招待を受けられませんでした。"
+    }
   }
 }

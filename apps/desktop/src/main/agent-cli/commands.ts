@@ -69,6 +69,9 @@ Usage:
   pairux leave                       Leave the session
   pairux room                        Print a link to a fresh anonymous room: end-to-end
                                      encrypted voice/video, no account needed to join
+  pairux redeem <CODE>               Redeem a credit code (adds days of a paid plan)
+  pairux invites [--json]            Your invites left, invites sent and referral link
+  pairux invites create [--note <s>] Create an invite link (3 per account)
 
 Environment:
   PAIRUX_API_URL        default https://pairux.com
@@ -200,6 +203,50 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
         const { tokens: _dropped, ...rest2 } = config;
         await persist(rest2);
         deps.out('Signed out.');
+        return 0;
+      }
+
+      case 'redeem': {
+        const code = rest.join(' ').trim();
+        if (!code) throw new UsageError('Usage: pairux redeem <CODE>');
+        if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+        const r = await client.redeem(code);
+        deps.out(r.message);
+        if (r.planExpiresAt) {
+          deps.out(`Plan: ${r.effectivePlan}, active until ${r.planExpiresAt.slice(0, 10)}.`);
+        }
+        return 0;
+      }
+
+      case 'invites': {
+        if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+        const { values, positionals } = parseArgs({
+          args: rest,
+          allowPositionals: true,
+          options: { note: { type: 'string' }, json: { type: 'boolean', default: false } },
+        });
+        if (positionals[0] === 'create') {
+          const inv = await client.createInvite(values.note ?? '');
+          deps.out(values.json ? JSON.stringify(inv) : `Invite link (shown once): ${inv.url}`);
+          return 0;
+        }
+        if (positionals[0]) throw new UsageError('Usage: pairux invites [create [--note <text>]]');
+        const o = await client.invites();
+        if (values.json) {
+          deps.out(JSON.stringify(o));
+          return 0;
+        }
+        deps.out(`${String(o.quota.left)} of ${String(o.quota.total)} invites left.`);
+        deps.out(
+          `Someone new who joins on your invite and confirms their email gets ${String(o.bonusDays)} days of Pro, and so do you.`
+        );
+        if (!o.canInvite && o.unlocksAt) deps.out(`Invites unlock on ${o.unlocksAt.slice(0, 10)}.`);
+        for (const i of o.invites) {
+          const who = i.usedByName ? ` by ${i.usedByName}` : '';
+          const bonus = i.bonus ? ` (bonus ${i.bonus})` : '';
+          deps.out(`  ${i.status}${who}${bonus}${i.note ? `  ${i.note}` : ''}`);
+        }
+        deps.out(`Referral link: ${o.refLink}`);
         return 0;
       }
 

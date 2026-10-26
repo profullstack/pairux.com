@@ -4,6 +4,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { NextResponse } from 'next/server';
 import { validateProfile, saveSignupProfile } from '@profullstack/profile';
 import { profileStore } from '@/lib/profile';
+import { INVITE_COOKIE, cookieFrom, onSignedIn, refFromRequest } from '@/lib/credits';
 
 function optional(body: unknown, key: string): string {
   const v = (body as Record<string, unknown> | null)?.[key];
@@ -76,6 +77,18 @@ export async function POST(request: Request) {
         });
       } catch (e) {
         console.error('[signup] profile save failed', e);
+      }
+      // An invite from /i/<code> (cookie, or `invite` in the body) is spent on
+      // the new account now; both bonuses wait for the email confirmation
+      // (settled in /auth/callback). ?ref= is recorded first-touch.
+      try {
+        const fromBody = optional(body, 'invite');
+        await onSignedIn(data.user.id, {
+          inviteCode: fromBody !== '' ? fromBody : cookieFrom(request, INVITE_COOKIE),
+          refCode: refFromRequest(request),
+        });
+      } catch (e) {
+        console.error('[signup] invite/ref failed', e);
       }
     }
 

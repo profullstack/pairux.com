@@ -7,7 +7,7 @@ interface RouteParams {
   params: Promise<{ sessionId: string }>;
 }
 
-const Body = z.object({ channelId: z.string().uuid() });
+const Body = z.object({ channelId: z.guid() });
 
 // PATCH /api/sessions/[sessionId]/channel — assign the live to one of my channels
 export async function PATCH(request: Request, { params }: RouteParams) {

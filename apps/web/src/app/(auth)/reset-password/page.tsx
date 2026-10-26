@@ -66,7 +66,7 @@ function ResetPasswordForm() {
     verifyToken();
   }, [searchParams]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     setError('');
 

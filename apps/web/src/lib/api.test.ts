@@ -72,7 +72,7 @@ describe('api utilities', () => {
 
     it('handles ZodError with formatted message', async () => {
       const schema = z.object({
-        email: z.string().email(),
+        email: z.email(),
         password: z.string().min(8),
       });
 

@@ -19,8 +19,7 @@ export async function Header() {
 
     if (supabaseUser) {
       const metadata = supabaseUser.user_metadata as
-        | { first_name?: string; last_name?: string }
-        | undefined;
+        { first_name?: string; last_name?: string } | undefined;
       user = {
         id: supabaseUser.id,
         email: supabaseUser.email ?? '',

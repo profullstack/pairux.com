@@ -3,10 +3,10 @@ import { renderHook } from '@testing-library/react';
 import { useAutoStopServerStream } from './useAutoStopServerStream';
 
 describe('useAutoStopServerStream', () => {
-  let stop: ReturnType<typeof vi.fn>;
+  let stop: ReturnType<typeof vi.fn<() => Promise<unknown>>>;
 
   beforeEach(() => {
-    stop = vi.fn();
+    stop = vi.fn<() => Promise<unknown>>();
   });
 
   it('stops the egress when hosting ends while a server stream is running', () => {

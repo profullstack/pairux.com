@@ -18,7 +18,7 @@ export function EmailComposer() {
   const [result, setResult] = useState<SendResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError(null);
     setResult(null);

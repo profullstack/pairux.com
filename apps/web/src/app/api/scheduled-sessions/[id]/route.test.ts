@@ -424,8 +424,7 @@ describe('PATCH /api/scheduled-sessions/[id]', () => {
 
       // The code did not change, so retained invitees must not be told that it did.
       const updateCall = mockSendMeetingUpdate.mock.calls[0]?.[0] as
-        | { codeChanged: boolean }
-        | undefined;
+        { codeChanged: boolean } | undefined;
       expect(updateCall?.codeChanged ?? false).toBe(false);
     });
   });

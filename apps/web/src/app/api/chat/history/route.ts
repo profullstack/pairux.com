@@ -4,10 +4,10 @@ import { z } from 'zod';
 
 // Query params schema
 const querySchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID'),
+  sessionId: z.guid('Invalid session ID'),
   limit: z.coerce.number().min(1).max(100).default(100),
-  before: z.string().datetime().optional(),
-  recipientId: z.string().uuid().optional(), // For DM threads - filter to messages with this recipient
+  before: z.iso.datetime().optional(),
+  recipientId: z.guid().optional(), // For DM threads - filter to messages with this recipient
 });
 
 // GET /api/chat/history - Get chat history for a session

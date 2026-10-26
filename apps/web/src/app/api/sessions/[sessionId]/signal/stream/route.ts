@@ -38,7 +38,7 @@ export async function GET(
 
     if (!parseResult.success) {
       return new Response(
-        JSON.stringify({ error: parseResult.error.errors[0]?.message ?? 'Invalid parameters' }),
+        JSON.stringify({ error: parseResult.error.issues[0]?.message ?? 'Invalid parameters' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
       );
     }
@@ -122,7 +122,7 @@ export async function GET(
     // claim_session_seat). The desktop and mobile apps sign over this stream,
     // so their seats stay held without a separate ping. Best effort.
     const seatRowId =
-      participantId && z.string().uuid().safeParse(participantId).success ? participantId : null;
+      participantId && z.guid().safeParse(participantId).success ? participantId : null;
     const holdSeat = () => {
       if (isHost) return;
       try {

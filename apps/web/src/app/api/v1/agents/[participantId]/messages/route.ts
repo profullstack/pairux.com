@@ -17,10 +17,7 @@ const messagesByAgent = new FixedWindowRateLimiter(10, 60_000);
  */
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const participantId = z
-      .string()
-      .uuid()
-      .parse((await params).participantId);
+    const participantId = z.guid().parse((await params).participantId);
     const { content } = agentMessageSchema.parse(await request.json().catch(() => ({})));
 
     if (!messagesByAgent.check(participantId).success) {

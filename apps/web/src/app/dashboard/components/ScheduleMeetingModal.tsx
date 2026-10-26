@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, type FormEvent } from 'react';
+import { useEffect, useState, useRef, type SyntheticEvent } from 'react';
 import { X, Calendar, Clock, Users, Plus, Trash2, Loader2, Repeat, Radio } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { MyChannel } from '@pairux/shared-types';
@@ -178,7 +178,7 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
     });
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
     setError(null);
 

@@ -16,9 +16,9 @@ const tokenRequestsByIp = new FixedWindowRateLimiter(60, 60_000);
 const tokenRequestsByParticipant = new FixedWindowRateLimiter(20, 60_000);
 
 const tokenRequestSchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID'),
+  sessionId: z.guid('Invalid session ID'),
   participantName: z.string().min(1).max(50),
-  participantId: z.string().uuid('Invalid participant ID'),
+  participantId: z.guid('Invalid participant ID'),
   isHost: z.boolean(),
 });
 

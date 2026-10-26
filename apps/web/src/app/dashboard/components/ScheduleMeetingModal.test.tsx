@@ -41,8 +41,7 @@ function mockFetchOk(channels: unknown[] = CHANNELS) {
 /** The save request — the first call that is not the channel list. */
 function saveCall(fetchMock: ReturnType<typeof vi.fn>) {
   return fetchMock.mock.calls.find((c) => c[0] !== '/api/channels') as
-    | [string, { method: string; body: string }]
-    | undefined;
+    [string, { method: string; body: string }] | undefined;
 }
 
 function lastRequestBody(fetchMock: ReturnType<typeof vi.fn>) {

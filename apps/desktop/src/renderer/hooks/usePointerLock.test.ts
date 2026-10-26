@@ -170,9 +170,7 @@ describe('usePointerLock', () => {
     });
 
     act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
-      );
+      document.dispatchEvent(new MouseEvent('mousemove', { movementX: 100, movementY: 50 }));
     });
 
     expect(onMove).toHaveBeenCalledWith(0.6, 0.6, true);
@@ -196,9 +194,7 @@ describe('usePointerLock', () => {
     });
 
     act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('mousemove'), { movementX: 0, movementY: -5000 })
-      );
+      document.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: -5000 }));
     });
 
     expect(result.current.positionRef.current.y).toBe(0);
@@ -216,9 +212,7 @@ describe('usePointerLock', () => {
     onMove.mockClear();
 
     act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 100 })
-      );
+      document.dispatchEvent(new MouseEvent('mousemove', { movementX: 100, movementY: 100 }));
     });
 
     expect(onMove).not.toHaveBeenCalled();

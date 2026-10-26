@@ -87,7 +87,7 @@ export function ChatMessageInput({
   }, []);
 
   const handleSubmit = useCallback(
-    async (e?: React.FormEvent) => {
+    async (e?: React.SyntheticEvent) => {
       e?.preventDefault();
 
       const trimmedContent = content.trim();
@@ -161,7 +161,7 @@ export function ChatMessageInput({
   );
 
   const handleFormSubmit = useCallback(
-    (e: React.FormEvent) => {
+    (e: React.SyntheticEvent) => {
       void handleSubmit(e);
     },
     [handleSubmit]

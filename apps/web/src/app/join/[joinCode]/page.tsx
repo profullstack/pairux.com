@@ -175,7 +175,7 @@ export default function JoinPage({ params }: { params: Promise<{ joinCode: strin
     };
   }, [scheduled, joinCode]);
 
-  async function handleJoin(e: React.FormEvent) {
+  async function handleJoin(e: React.SyntheticEvent) {
     e.preventDefault();
 
     setError('');

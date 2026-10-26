@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 // Mock the electron API with the correct property name
 const mockElectronAPI = {

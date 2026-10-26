@@ -27,9 +27,7 @@ export interface ParticipantLeftNotification {
 }
 
 export type Notification =
-  | ControlRequestNotification
-  | ParticipantJoinedNotification
-  | ParticipantLeftNotification;
+  ControlRequestNotification | ParticipantJoinedNotification | ParticipantLeftNotification;
 
 // Input type for adding notifications (without id and timestamp)
 export type NotificationInput =

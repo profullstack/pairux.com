@@ -28,7 +28,7 @@ const mockUseWebRTC = {
 };
 
 // Capture the options each WebRTC hook is called with so we can assert the
-// participantId is a valid UUID (the token/signal routes require z.uuid()).
+// participantId is a valid UUID (the token/signal routes require z.guid()).
 const { mockUseWebRTCFn, mockUseWebRTCSFUFn } = vi.hoisted(() => ({
   mockUseWebRTCFn: vi.fn(),
   mockUseWebRTCSFUFn: vi.fn(),

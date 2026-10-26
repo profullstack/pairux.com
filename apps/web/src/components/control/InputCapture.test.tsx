@@ -155,9 +155,7 @@ describe('InputCapture pointer lock', () => {
     });
 
     act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
-      );
+      document.dispatchEvent(new MouseEvent('mousemove', { movementX: 100, movementY: 50 }));
     });
 
     onInputEvent.mockClear();
@@ -183,9 +181,7 @@ describe('InputCapture pointer lock', () => {
     });
 
     act(() => {
-      document.dispatchEvent(
-        Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
-      );
+      document.dispatchEvent(new MouseEvent('pointermove', { movementX: 100, movementY: 50 }));
     });
 
     onInputEvent.mockClear();
@@ -218,12 +214,8 @@ describe('InputCapture pointer lock', () => {
     const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
     try {
       act(() => {
-        document.dispatchEvent(
-          Object.assign(new MouseEvent('pointermove'), { movementX: 100, movementY: 50 })
-        );
-        document.dispatchEvent(
-          Object.assign(new MouseEvent('mousemove'), { movementX: 100, movementY: 50 })
-        );
+        document.dispatchEvent(new MouseEvent('pointermove', { movementX: 100, movementY: 50 }));
+        document.dispatchEvent(new MouseEvent('mousemove', { movementX: 100, movementY: 50 }));
       });
     } finally {
       now.mockRestore();

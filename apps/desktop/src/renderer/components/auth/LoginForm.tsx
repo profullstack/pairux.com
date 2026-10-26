@@ -46,14 +46,14 @@ export function LoginForm() {
     void loadRememberedCredentials();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
 
     // Validate input
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      setError(result.error.errors[0].message);
+      setError(result.error.issues[0].message);
       return;
     }
 

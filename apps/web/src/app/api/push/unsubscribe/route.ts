@@ -3,7 +3,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 import { z } from 'zod';
 
 const unsubscribeSchema = z.object({
-  endpoint: z.string().url('Invalid endpoint URL'),
+  endpoint: z.url('Invalid endpoint URL'),
 });
 
 // POST /api/push/unsubscribe - Remove a push subscription

@@ -11,7 +11,7 @@ const passwordSchema = z
 
 export const signupSchema = z
   .object({
-    email: z.string().email('Please enter a valid email address'),
+    email: z.email('Please enter a valid email address'),
     password: passwordSchema,
     confirmPassword: z.string(),
     firstName: z
@@ -29,12 +29,12 @@ export const signupSchema = z
   });
 
 export const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
 });
 
 export const resetPasswordSchema = z
@@ -87,8 +87,8 @@ export const createSessionSchema = z.object({
     .optional(),
   // Workspace: an organization (and optionally one of its teams) the call
   // belongs to. Omitted = a personal call.
-  orgId: z.string().uuid().optional(),
-  teamId: z.string().uuid().optional(),
+  orgId: z.guid().optional(),
+  teamId: z.guid().optional(),
   // AI call analysis, decided before the call starts. Turning it on keeps the
   // recording by default.
   analysis: z
@@ -102,30 +102,30 @@ export const createSessionSchema = z.object({
 
 // Chat message schema
 export const sendChatMessageSchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID'),
+  sessionId: z.guid('Invalid session ID'),
   content: z
     .string()
     .min(1, 'Message cannot be empty')
     .max(500, 'Message must be less than 500 characters'),
-  participantId: z.string().uuid('Invalid participant ID').optional(),
-  recipientId: z.string().uuid('Invalid recipient ID').optional(), // For DMs
+  participantId: z.guid('Invalid participant ID').optional(),
+  recipientId: z.guid('Invalid recipient ID').optional(), // For DMs
 });
 
 // Chat history query schema
 export const chatHistorySchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID'),
+  sessionId: z.guid('Invalid session ID'),
   limit: z.coerce.number().min(1).max(100).default(100),
-  before: z.string().datetime().optional(), // For pagination - get messages before this timestamp
+  before: z.iso.datetime().optional(), // For pagination - get messages before this timestamp
 });
 
 // Push subscription schema
 export const pushSubscriptionSchema = z.object({
-  endpoint: z.string().url('Invalid endpoint URL'),
+  endpoint: z.url('Invalid endpoint URL'),
   keys: z.object({
     p256dh: z.string().min(1, 'p256dh key is required'),
     auth: z.string().min(1, 'Auth key is required'),
   }),
-  participantId: z.string().uuid('Invalid participant ID').optional(),
+  participantId: z.guid('Invalid participant ID').optional(),
 });
 
 // Notification preferences schema
@@ -150,17 +150,17 @@ const recurrenceFields = {
 
 // The channel a meeting broadcasts on when it goes live; null = no channel.
 const meetingChannelField = {
-  channelId: z.string().uuid('Invalid channel').nullable().optional(),
+  channelId: z.guid('Invalid channel').nullable().optional(),
 };
 
 // Schedule a meeting
 export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-  scheduledAt: z.string().datetime('Invalid date/time'),
+  scheduledAt: z.iso.datetime('Invalid date/time'),
   durationMinutes: z.number().int().min(15).max(MAX_SCHEDULED_MEETING_DURATION_MINUTES).default(60),
   inviteeEmails: z
-    .array(z.string().email('Invalid email address'))
+    .array(z.email('Invalid email address'))
     .max(50, 'Maximum 50 invitees')
     .optional(),
   ...recurrenceFields,
@@ -175,8 +175,8 @@ export const updateScheduledMeetingSchema = z
   .object({
     title: z.string().min(1, 'Title is required').max(120).optional(),
     description: z.string().max(500).optional(),
-    scheduled_at: z.string().datetime('Invalid date/time').optional(),
-    scheduledAt: z.string().datetime('Invalid date/time').optional(),
+    scheduled_at: z.iso.datetime('Invalid date/time').optional(),
+    scheduledAt: z.iso.datetime('Invalid date/time').optional(),
     duration_minutes: z
       .number()
       .int()
@@ -190,7 +190,7 @@ export const updateScheduledMeetingSchema = z
       .max(MAX_SCHEDULED_MEETING_DURATION_MINUTES)
       .optional(),
     inviteeEmails: z
-      .array(z.string().email('Invalid email address'))
+      .array(z.email('Invalid email address'))
       .max(50, 'Maximum 50 invitees')
       .optional(),
     ...recurrenceFields,

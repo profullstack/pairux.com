@@ -71,7 +71,7 @@ export default function DevicesPage() {
     for (const device of devices) void refresh(device);
   }, [devices, refresh]);
 
-  const addDevice = (event: React.FormEvent) => {
+  const addDevice = (event: React.SyntheticEvent) => {
     event.preventDefault();
     const url = normalizeDeviceUrl(input);
     if (!url) {

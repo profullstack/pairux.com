@@ -68,8 +68,9 @@ const socialLinks = [
  * script-src 'nonce-...'.
  */
 async function RingFooter({ tagline }: { tagline: string }) {
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
-  return <PfsFooter site="https://pairux.com/" tagline={tagline} nonce={nonce} />;
+  const nonce = (await headers()).get('x-nonce');
+  // exactOptionalPropertyTypes: pass nonce only when there is one.
+  return <PfsFooter site="https://pairux.com/" tagline={tagline} {...(nonce ? { nonce } : {})} />;
 }
 
 export function Footer() {

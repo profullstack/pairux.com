@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { Footer as PfsFooter } from '@profullstack/footer/react';
 import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/Logo';
@@ -61,6 +62,17 @@ const socialLinks = [
   },
 ];
 
+/**
+ * The ring footer with the request's CSP nonce (middleware sets x-nonce), so the
+ * newsletter form's inline script (@profullstack/footer 0.4.0) runs under
+ * script-src 'nonce-...'.
+ */
+async function RingFooter({ tagline }: { tagline: string }) {
+  const nonce = (await headers()).get('x-nonce');
+  // exactOptionalPropertyTypes: pass nonce only when there is one.
+  return <PfsFooter site="https://pairux.com/" tagline={tagline} {...(nonce ? { nonce } : {})} />;
+}
+
 export function Footer() {
   const t = useTranslations('footer');
   return (
@@ -96,7 +108,7 @@ export function Footer() {
           <LanguageSwitcher id="language-switcher-footer" />
         </div>
         {/* Copyright + Profullstack ring, from @profullstack/footer */}
-        <PfsFooter site="https://pairux.com/" tagline={t('license')} />
+        <RingFooter tagline={t('license')} />
       </div>
     </footer>
   );

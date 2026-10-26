@@ -44,7 +44,8 @@ function buildCsp(nonce: string, embeddable: boolean): string {
     // path keeps the restrictive list.
     embeddable ? 'frame-ancestors *' : "frame-ancestors 'self' chrome-extension:",
     "base-uri 'self'",
-    "form-action 'self'",
+    // The footer's newsletter form posts to pit.world when script is off.
+    "form-action 'self' https://pit.world",
   ].join('; ');
 }
 

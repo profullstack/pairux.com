@@ -2261,5 +2261,60 @@
       "paid": "Cảm ơn bạn! Gói {plan} sẽ bật ngay khi thanh toán được xác nhận, thường trong vài phút.",
       "toDashboard": "Đến bảng điều khiển"
     }
+  },
+  "credits": {
+    "billingTitle": "Gói và thanh toán",
+    "planName": "Gói {plan}",
+    "current": "Hiện tại",
+    "activeUntil": "Có hiệu lực đến {date}",
+    "seePlans": "Xem các gói",
+    "haveACode": "Bạn có mã không?",
+    "redeem": "Đổi mã",
+    "redeeming": "Đang đổi mã...",
+    "redeemFailed": "Không thể đổi mã. Vui lòng thử lại.",
+    "inviteLink": "Mời bạn bè (cả hai cùng nhận ngày Pro)",
+    "invites": {
+      "title": "Lời mời",
+      "subtitle": "Lời mời có hạn: mỗi tài khoản có ba lượt. Hãy gửi cho người bạn muốn cùng dùng PairUX.",
+      "loading": "Đang tải...",
+      "loadFailed": "Không thể tải lời mời.",
+      "createFailed": "Không thể tạo lời mời.",
+      "revokeFailed": "Không thể thu hồi lời mời.",
+      "left": "Còn {left} trên {total} lời mời",
+      "explain": "Khi người mới tham gia bằng lời mời của bạn và xác nhận email, cả hai cùng nhận {days} ngày PairUX Pro.",
+      "notePlaceholder": "Gửi cho ai? (chỉ bạn thấy)",
+      "create": "Tạo lời mời",
+      "noneLeft": "Bạn đã dùng hết lời mời.",
+      "unlocks": "Lời mời sẽ mở vào {date}, một tuần sau khi bạn tham gia.",
+      "locked": "Tài khoản này chưa thể dùng lời mời.",
+      "shownOnce": "Liên kết mời của bạn (chỉ hiện một lần, hãy sao chép ngay):",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "sent": "Lời mời bạn đã gửi",
+      "noNote": "Lời mời",
+      "expires": "hết hạn {date}",
+      "withdraw": "Thu hồi",
+      "status": {
+        "open": "Đang mở",
+        "used": "Đã tham gia",
+        "expired": "Hết hạn",
+        "revoked": "Đã thu hồi"
+      },
+      "bonus": {
+        "granted": "mỗi người {days} ngày Pro",
+        "pending": "thưởng đang chờ xác nhận email của họ",
+        "denied": "không có thưởng"
+      },
+      "refTitle": "Liên kết giới thiệu của bạn",
+      "refExplain": "Một liên kết mở, không giới hạn. Các lượt đăng ký qua liên kết này được tính cho bạn."
+    },
+    "landing": {
+      "title": "Bạn được mời dùng PairUX",
+      "body": "Có người muốn bạn dùng PairUX: chia sẻ màn hình có điều khiển từ xa, cuộc họp và phát trực tiếp. Tham gia bằng lời mời này để cả hai cùng nhận ngày PairUX Pro.",
+      "accept": "Chấp nhận lời mời",
+      "signup": "Tạo tài khoản miễn phí",
+      "login": "Tôi đã có tài khoản",
+      "failed": "Không thể chấp nhận lời mời."
+    }
   }
 }

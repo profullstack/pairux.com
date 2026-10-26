@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { IntegrationsManager } from './integrations-form';
 import { EmailComposer } from './email-composer';
+import { CreditCodesAdmin } from './credit-codes';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.meta');
@@ -96,6 +97,17 @@ export default async function AdminPage() {
               </p>
             </div>
             <IntegrationsManager initial={integrations as any} />
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Credit codes</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                A code adds days of a paid plan when someone redeems it on their dashboard (or with{' '}
+                <code>pairux redeem</code>).
+              </p>
+            </div>
+            <CreditCodesAdmin />
           </section>
 
           <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">

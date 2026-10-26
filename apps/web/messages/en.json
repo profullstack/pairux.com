@@ -2261,5 +2261,60 @@
       "paid": "Thanks! Your {plan} plan turns on as soon as the payment confirms, usually within a few minutes.",
       "toDashboard": "Go to your dashboard"
     }
+  },
+  "credits": {
+    "billingTitle": "Plan & billing",
+    "planName": "{plan} plan",
+    "current": "Current",
+    "activeUntil": "Active until {date}",
+    "seePlans": "See plans",
+    "haveACode": "Have a code?",
+    "redeem": "Redeem",
+    "redeeming": "Redeeming...",
+    "redeemFailed": "Could not redeem the code. Try again.",
+    "inviteLink": "Invite someone (you both get Pro days)",
+    "invites": {
+      "title": "Invites",
+      "subtitle": "Invites are scarce: every account gets three. Send one to someone you want on PairUX.",
+      "loading": "Loading...",
+      "loadFailed": "Could not load invites.",
+      "createFailed": "Could not create the invite.",
+      "revokeFailed": "Could not withdraw the invite.",
+      "left": "{left} of {total} invites left",
+      "explain": "When someone new joins on your invite and confirms their email, you both get {days} days of PairUX Pro.",
+      "notePlaceholder": "Who is it for? (only you see this)",
+      "create": "Create invite",
+      "noneLeft": "You have used all your invites.",
+      "unlocks": "Invites unlock on {date}, a week after you joined.",
+      "locked": "Invites are not available for this account yet.",
+      "shownOnce": "Your invite link (shown once, copy it now):",
+      "copy": "Copy",
+      "copied": "Copied",
+      "sent": "Invites you sent",
+      "noNote": "Invite",
+      "expires": "expires {date}",
+      "withdraw": "Withdraw",
+      "status": {
+        "open": "Open",
+        "used": "Joined",
+        "expired": "Expired",
+        "revoked": "Withdrawn"
+      },
+      "bonus": {
+        "granted": "{days} days of Pro each",
+        "pending": "bonus waits for their email confirmation",
+        "denied": "no bonus"
+      },
+      "refTitle": "Your referral link",
+      "refExplain": "An open link with no limit. Signups that come through it are credited to you."
+    },
+    "landing": {
+      "title": "You're invited to PairUX",
+      "body": "Someone wants you on PairUX: screen sharing with remote control, meetings and live streams. Join on this invite and you both get days of PairUX Pro.",
+      "accept": "Accept invite",
+      "signup": "Create your free account",
+      "login": "I already have an account",
+      "failed": "Could not accept the invite."
+    }
   }
 }

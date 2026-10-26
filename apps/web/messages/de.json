@@ -2261,5 +2261,60 @@
       "paid": "Danke! Dein {plan}-Plan wird aktiv, sobald die Zahlung bestätigt ist, meist innerhalb weniger Minuten.",
       "toDashboard": "Zum Dashboard"
     }
+  },
+  "credits": {
+    "billingTitle": "Tarif und Abrechnung",
+    "planName": "Tarif {plan}",
+    "current": "Aktuell",
+    "activeUntil": "Aktiv bis {date}",
+    "seePlans": "Tarife ansehen",
+    "haveACode": "Du hast einen Code?",
+    "redeem": "Einlösen",
+    "redeeming": "Wird eingelöst...",
+    "redeemFailed": "Der Code konnte nicht eingelöst werden. Versuche es erneut.",
+    "inviteLink": "Lade jemanden ein (ihr beide bekommt Pro-Tage)",
+    "invites": {
+      "title": "Einladungen",
+      "subtitle": "Einladungen sind knapp: Jedes Konto hat drei. Schicke eine an jemanden, den du bei PairUX dabeihaben möchtest.",
+      "loading": "Wird geladen...",
+      "loadFailed": "Einladungen konnten nicht geladen werden.",
+      "createFailed": "Die Einladung konnte nicht erstellt werden.",
+      "revokeFailed": "Die Einladung konnte nicht zurückgezogen werden.",
+      "left": "Noch {left} von {total} Einladungen übrig",
+      "explain": "Wenn jemand Neues über deine Einladung beitritt und die E-Mail-Adresse bestätigt, bekommt ihr beide {days} Tage PairUX Pro.",
+      "notePlaceholder": "Für wen ist sie? (nur du siehst das)",
+      "create": "Einladung erstellen",
+      "noneLeft": "Du hast alle deine Einladungen verbraucht.",
+      "unlocks": "Einladungen werden am {date} freigeschaltet, eine Woche nach deiner Anmeldung.",
+      "locked": "Einladungen sind für dieses Konto noch nicht verfügbar.",
+      "shownOnce": "Dein Einladungslink (wird nur einmal angezeigt, kopiere ihn jetzt):",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "sent": "Von dir gesendete Einladungen",
+      "noNote": "Einladung",
+      "expires": "läuft am {date} ab",
+      "withdraw": "Zurückziehen",
+      "status": {
+        "open": "Offen",
+        "used": "Beigetreten",
+        "expired": "Abgelaufen",
+        "revoked": "Zurückgezogen"
+      },
+      "bonus": {
+        "granted": "je {days} Tage Pro",
+        "pending": "Bonus wartet auf die Bestätigung der E-Mail-Adresse",
+        "denied": "kein Bonus"
+      },
+      "refTitle": "Dein Empfehlungslink",
+      "refExplain": "Ein offener Link ohne Limit. Anmeldungen darüber werden dir gutgeschrieben."
+    },
+    "landing": {
+      "title": "Du bist zu PairUX eingeladen",
+      "body": "Jemand möchte dich bei PairUX dabeihaben: Bildschirmfreigabe mit Fernsteuerung, Meetings und Livestreams. Tritt mit dieser Einladung bei und ihr bekommt beide Tage PairUX Pro.",
+      "accept": "Einladung annehmen",
+      "signup": "Kostenloses Konto erstellen",
+      "login": "Ich habe schon ein Konto",
+      "failed": "Die Einladung konnte nicht angenommen werden."
+    }
   }
 }

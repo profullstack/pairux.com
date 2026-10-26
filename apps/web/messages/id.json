@@ -2261,5 +2261,60 @@
       "paid": "Terima kasih! Paket {plan} Anda aktif begitu pembayaran terkonfirmasi, biasanya dalam beberapa menit.",
       "toDashboard": "Ke dasbor Anda"
     }
+  },
+  "credits": {
+    "billingTitle": "Paket dan penagihan",
+    "planName": "Paket {plan}",
+    "current": "Saat ini",
+    "activeUntil": "Aktif hingga {date}",
+    "seePlans": "Lihat paket",
+    "haveACode": "Punya kode?",
+    "redeem": "Tukar",
+    "redeeming": "Menukar...",
+    "redeemFailed": "Kode tidak dapat ditukar. Coba lagi.",
+    "inviteLink": "Undang seseorang (kalian berdua dapat hari Pro)",
+    "invites": {
+      "title": "Undangan",
+      "subtitle": "Undangan terbatas: setiap akun mendapat tiga. Kirim satu ke orang yang ingin kamu ajak ke PairUX.",
+      "loading": "Memuat...",
+      "loadFailed": "Undangan tidak dapat dimuat.",
+      "createFailed": "Undangan tidak dapat dibuat.",
+      "revokeFailed": "Undangan tidak dapat ditarik.",
+      "left": "Sisa {left} dari {total} undangan",
+      "explain": "Saat orang baru bergabung lewat undanganmu dan mengonfirmasi email, kalian berdua mendapat {days} hari PairUX Pro.",
+      "notePlaceholder": "Untuk siapa? (hanya kamu yang melihat)",
+      "create": "Buat undangan",
+      "noneLeft": "Kamu sudah memakai semua undanganmu.",
+      "unlocks": "Undangan terbuka pada {date}, seminggu setelah kamu bergabung.",
+      "locked": "Undangan belum tersedia untuk akun ini.",
+      "shownOnce": "Tautan undanganmu (hanya tampil sekali, salin sekarang):",
+      "copy": "Salin",
+      "copied": "Tersalin",
+      "sent": "Undangan yang kamu kirim",
+      "noNote": "Undangan",
+      "expires": "kedaluwarsa {date}",
+      "withdraw": "Tarik",
+      "status": {
+        "open": "Terbuka",
+        "used": "Bergabung",
+        "expired": "Kedaluwarsa",
+        "revoked": "Ditarik"
+      },
+      "bonus": {
+        "granted": "masing-masing {days} hari Pro",
+        "pending": "bonus menunggu konfirmasi email mereka",
+        "denied": "tanpa bonus"
+      },
+      "refTitle": "Tautan referralmu",
+      "refExplain": "Tautan terbuka tanpa batas. Pendaftaran lewat tautan ini dikreditkan kepadamu."
+    },
+    "landing": {
+      "title": "Kamu diundang ke PairUX",
+      "body": "Seseorang ingin kamu ada di PairUX: berbagi layar dengan kontrol jarak jauh, rapat, dan siaran langsung. Bergabunglah lewat undangan ini dan kalian berdua dapat hari PairUX Pro.",
+      "accept": "Terima undangan",
+      "signup": "Buat akun gratismu",
+      "login": "Saya sudah punya akun",
+      "failed": "Undangan tidak dapat diterima."
+    }
   }
 }

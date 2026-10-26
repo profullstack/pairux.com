@@ -49,6 +49,8 @@ export function SignupForm() {
           company_domain: profile.company_domain ?? '',
           job_title: profile.job_title ?? '',
           linkedin_url: profile.linkedin_url ?? '',
+          // /i/<code> sends people here with ?invite= (the cookie carries it too).
+          invite: new URLSearchParams(window.location.search).get('invite') ?? '',
         }),
       });
 

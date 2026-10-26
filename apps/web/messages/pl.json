@@ -2261,5 +2261,60 @@
       "paid": "Dziękujemy! Plan {plan} włączy się, gdy płatność zostanie potwierdzona, zwykle w ciągu kilku minut.",
       "toDashboard": "Przejdź do panelu"
     }
+  },
+  "credits": {
+    "billingTitle": "Plan i płatności",
+    "planName": "Plan {plan}",
+    "current": "Obecny",
+    "activeUntil": "Aktywny do {date}",
+    "seePlans": "Zobacz plany",
+    "haveACode": "Masz kod?",
+    "redeem": "Zrealizuj",
+    "redeeming": "Realizowanie...",
+    "redeemFailed": "Nie udało się zrealizować kodu. Spróbuj ponownie.",
+    "inviteLink": "Zaproś kogoś (oboje dostaniecie dni Pro)",
+    "invites": {
+      "title": "Zaproszenia",
+      "subtitle": "Zaproszeń jest mało: każde konto ma trzy. Wyślij jedno komuś, kogo chcesz zobaczyć w PairUX.",
+      "loading": "Ładowanie...",
+      "loadFailed": "Nie udało się wczytać zaproszeń.",
+      "createFailed": "Nie udało się utworzyć zaproszenia.",
+      "revokeFailed": "Nie udało się wycofać zaproszenia.",
+      "left": "Pozostało zaproszeń: {left} z {total}",
+      "explain": "Gdy ktoś nowy dołączy z Twojego zaproszenia i potwierdzi e-mail, oboje dostaniecie {days} dni PairUX Pro.",
+      "notePlaceholder": "Dla kogo? (widzisz to tylko Ty)",
+      "create": "Utwórz zaproszenie",
+      "noneLeft": "Wykorzystano wszystkie zaproszenia.",
+      "unlocks": "Zaproszenia odblokują się {date}, tydzień po dołączeniu.",
+      "locked": "Zaproszenia nie są jeszcze dostępne dla tego konta.",
+      "shownOnce": "Twój link z zaproszeniem (pokazany raz, skopiuj go teraz):",
+      "copy": "Kopiuj",
+      "copied": "Skopiowano",
+      "sent": "Wysłane zaproszenia",
+      "noNote": "Zaproszenie",
+      "expires": "wygasa {date}",
+      "withdraw": "Wycofaj",
+      "status": {
+        "open": "Otwarte",
+        "used": "Dołączył(a)",
+        "expired": "Wygasło",
+        "revoked": "Wycofane"
+      },
+      "bonus": {
+        "granted": "po {days} dni Pro",
+        "pending": "bonus czeka na potwierdzenie e-maila",
+        "denied": "brak bonusu"
+      },
+      "refTitle": "Twój link polecający",
+      "refExplain": "Otwarty link bez limitu. Rejestracje z tego linku są zaliczane Tobie."
+    },
+    "landing": {
+      "title": "Masz zaproszenie do PairUX",
+      "body": "Ktoś chce Cię w PairUX: udostępnianie ekranu ze zdalnym sterowaniem, spotkania i transmisje na żywo. Dołącz z tym zaproszeniem, a oboje dostaniecie dni PairUX Pro.",
+      "accept": "Przyjmij zaproszenie",
+      "signup": "Utwórz darmowe konto",
+      "login": "Mam już konto",
+      "failed": "Nie udało się przyjąć zaproszenia."
+    }
   }
 }

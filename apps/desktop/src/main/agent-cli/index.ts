@@ -1,5 +1,5 @@
 /**
- * `pairux login|logout|whoami|join|listen|say|who|status|leave|room`
+ * `pairux login|logout|whoami|join|listen|say|who|status|leave|room|redeem|invites`
  *
  * The installed `pairux` launcher passes any argument it does not handle
  * itself (update, uninstall, --help, --version) straight to the app, the same
@@ -22,6 +22,8 @@ export const AGENT_COMMANDS = new Set([
   'status',
   'leave',
   'room',
+  'redeem',
+  'invites',
 ]);
 
 /**

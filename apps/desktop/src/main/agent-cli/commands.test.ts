@@ -442,3 +442,99 @@ describe('pairux room', () => {
     expect(out[1]).not.toBe(out[0]);
   });
 });
+
+describe('pairux redeem / invites', () => {
+  async function signIn(d: Deps) {
+    await (
+      await import('./config')
+    ).saveConfig(
+      {
+        tokens: {
+          accessToken: 'pux_at_x',
+          refreshToken: 'pux_rt_x',
+          expiresAt: Date.now() + 3_600_000,
+        },
+      },
+      d.configPath
+    );
+  }
+
+  it('redeems a code with the access token', async () => {
+    const d = deps((call) =>
+      call.path === '/api/credits/redeem'
+        ? {
+            status: 200,
+            body: {
+              data: {
+                plan: 'pro',
+                days: 30,
+                effectivePlan: 'pro',
+                planExpiresAt: '2026-11-25T00:00:00.000Z',
+                message: 'Code redeemed: 30 days of PairUX Pro.',
+              },
+            },
+          }
+        : { status: 404, body: { error: 'nope' } }
+    );
+    await signIn(d);
+    expect(await run(['redeem', 'CR-AAAA-BBBB-CCCC-DDDD'], d)).toBe(0);
+    expect(calls[0].auth).toBe('Bearer pux_at_x');
+    expect(JSON.parse(calls[0].body ?? '{}')).toEqual({ code: 'CR-AAAA-BBBB-CCCC-DDDD' });
+    expect(out).toEqual([
+      'Code redeemed: 30 days of PairUX Pro.',
+      'Plan: pro, active until 2026-11-25.',
+    ]);
+  });
+
+  it('asks to sign in before redeeming', async () => {
+    const d = deps(() => ({ status: 500, body: {} }));
+    expect(await run(['redeem', 'CR-1'], d)).not.toBe(0);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('creates an invite and lists invites', async () => {
+    const d = deps((call) =>
+      call.method === 'POST'
+        ? {
+            status: 201,
+            body: {
+              data: {
+                id: 'i1',
+                code: 'INV-1',
+                url: 'https://pairux.test/i/INV-1',
+                expiresAt: null,
+              },
+            },
+          }
+        : {
+            status: 200,
+            body: {
+              data: {
+                quota: { total: 3, used: 1, left: 2 },
+                invites: [
+                  {
+                    id: 'i1',
+                    status: 'used',
+                    note: 'Ada',
+                    usedByName: '@ada',
+                    bonus: 'granted',
+                    expiresAt: null,
+                  },
+                ],
+                canInvite: true,
+                unlocksAt: null,
+                bonusDays: 7,
+                refLink: 'https://pairux.test/?ref=ABC',
+              },
+            },
+          }
+    );
+    await signIn(d);
+    expect(await run(['invites', 'create', '--note', 'Ada'], d)).toBe(0);
+    expect(out[0]).toBe('Invite link (shown once): https://pairux.test/i/INV-1');
+    expect(await run(['invites'], d)).toBe(0);
+    expect(out).toContain('2 of 3 invites left.');
+    expect(out).toContain('  used by @ada (bonus granted)  Ada');
+    expect(out.at(-1)).toBe('Referral link: https://pairux.test/?ref=ABC');
+  });
+});

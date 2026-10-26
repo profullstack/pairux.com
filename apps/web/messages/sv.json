@@ -2261,5 +2261,60 @@
       "paid": "Tack! Din {plan}-plan aktiveras så snart betalningen bekräftas, oftast inom några minuter.",
       "toDashboard": "Till din instrumentpanel"
     }
+  },
+  "credits": {
+    "billingTitle": "Plan och fakturering",
+    "planName": "{plan}-plan",
+    "current": "Nuvarande",
+    "activeUntil": "Aktiv till {date}",
+    "seePlans": "Se planer",
+    "haveACode": "Har du en kod?",
+    "redeem": "Lös in",
+    "redeeming": "Löser in...",
+    "redeemFailed": "Det gick inte att lösa in koden. Försök igen.",
+    "inviteLink": "Bjud in någon (ni får båda Pro-dagar)",
+    "invites": {
+      "title": "Inbjudningar",
+      "subtitle": "Inbjudningar är sällsynta: varje konto får tre. Skicka en till någon du vill ha på PairUX.",
+      "loading": "Laddar...",
+      "loadFailed": "Det gick inte att ladda inbjudningarna.",
+      "createFailed": "Det gick inte att skapa inbjudan.",
+      "revokeFailed": "Det gick inte att dra tillbaka inbjudan.",
+      "left": "{left} av {total} inbjudningar kvar",
+      "explain": "När någon ny går med via din inbjudan och bekräftar sin e-post får ni båda {days} dagar PairUX Pro.",
+      "notePlaceholder": "Vem gäller det? (bara du ser detta)",
+      "create": "Skapa inbjudan",
+      "noneLeft": "Du har använt alla dina inbjudningar.",
+      "unlocks": "Inbjudningar låses upp {date}, en vecka efter att du gick med.",
+      "locked": "Inbjudningar är inte tillgängliga för det här kontot ännu.",
+      "shownOnce": "Din inbjudningslänk (visas en gång, kopiera den nu):",
+      "copy": "Kopiera",
+      "copied": "Kopierad",
+      "sent": "Inbjudningar du skickat",
+      "noNote": "Inbjudan",
+      "expires": "går ut {date}",
+      "withdraw": "Dra tillbaka",
+      "status": {
+        "open": "Öppen",
+        "used": "Gick med",
+        "expired": "Utgången",
+        "revoked": "Tillbakadragen"
+      },
+      "bonus": {
+        "granted": "{days} dagar Pro var",
+        "pending": "bonusen väntar på bekräftelse av e-posten",
+        "denied": "ingen bonus"
+      },
+      "refTitle": "Din värvningslänk",
+      "refExplain": "En öppen länk utan gräns. Registreringar via den krediteras dig."
+    },
+    "landing": {
+      "title": "Du är inbjuden till PairUX",
+      "body": "Någon vill ha dig på PairUX: skärmdelning med fjärrstyrning, möten och livesändningar. Gå med via den här inbjudan så får ni båda dagar med PairUX Pro.",
+      "accept": "Acceptera inbjudan",
+      "signup": "Skapa ditt kostnadsfria konto",
+      "login": "Jag har redan ett konto",
+      "failed": "Det gick inte att acceptera inbjudan."
+    }
   }
 }

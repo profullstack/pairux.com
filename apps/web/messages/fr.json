@@ -2261,5 +2261,60 @@
       "paid": "Merci ! Votre forfait {plan} s'active dès que le paiement est confirmé, en général en quelques minutes.",
       "toDashboard": "Aller au tableau de bord"
     }
+  },
+  "credits": {
+    "billingTitle": "Forfait et facturation",
+    "planName": "Forfait {plan}",
+    "current": "Actuel",
+    "activeUntil": "Actif jusqu'au {date}",
+    "seePlans": "Voir les forfaits",
+    "haveACode": "Vous avez un code ?",
+    "redeem": "Utiliser",
+    "redeeming": "Validation...",
+    "redeemFailed": "Impossible d'utiliser le code. Réessayez.",
+    "inviteLink": "Invitez quelqu'un (vous gagnez tous les deux des jours Pro)",
+    "invites": {
+      "title": "Invitations",
+      "subtitle": "Les invitations sont rares : chaque compte en a trois. Envoyez-en une à quelqu'un que vous voulez voir sur PairUX.",
+      "loading": "Chargement...",
+      "loadFailed": "Impossible de charger les invitations.",
+      "createFailed": "Impossible de créer l'invitation.",
+      "revokeFailed": "Impossible de retirer l'invitation.",
+      "left": "{left} invitations restantes sur {total}",
+      "explain": "Quand une nouvelle personne rejoint grâce à votre invitation et confirme son e-mail, vous obtenez tous les deux {days} jours de PairUX Pro.",
+      "notePlaceholder": "Pour qui ? (vous seul le voyez)",
+      "create": "Créer une invitation",
+      "noneLeft": "Vous avez utilisé toutes vos invitations.",
+      "unlocks": "Les invitations se débloquent le {date}, une semaine après votre inscription.",
+      "locked": "Les invitations ne sont pas encore disponibles pour ce compte.",
+      "shownOnce": "Votre lien d'invitation (affiché une seule fois, copiez-le maintenant) :",
+      "copy": "Copier",
+      "copied": "Copié",
+      "sent": "Invitations envoyées",
+      "noNote": "Invitation",
+      "expires": "expire le {date}",
+      "withdraw": "Retirer",
+      "status": {
+        "open": "Ouverte",
+        "used": "Inscrit",
+        "expired": "Expirée",
+        "revoked": "Retirée"
+      },
+      "bonus": {
+        "granted": "{days} jours de Pro chacun",
+        "pending": "le bonus attend la confirmation de son e-mail",
+        "denied": "pas de bonus"
+      },
+      "refTitle": "Votre lien de parrainage",
+      "refExplain": "Un lien ouvert et sans limite. Les inscriptions qui passent par lui vous sont créditées."
+    },
+    "landing": {
+      "title": "Vous êtes invité sur PairUX",
+      "body": "Quelqu'un vous attend sur PairUX : partage d'écran avec contrôle à distance, réunions et diffusions en direct. Rejoignez-nous avec cette invitation et vous gagnez tous les deux des jours de PairUX Pro.",
+      "accept": "Accepter l'invitation",
+      "signup": "Créer votre compte gratuit",
+      "login": "J'ai déjà un compte",
+      "failed": "Impossible d'accepter l'invitation."
+    }
   }
 }

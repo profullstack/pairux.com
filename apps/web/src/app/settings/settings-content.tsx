@@ -8,6 +8,7 @@ import { HeaderClient } from '@/components/header-client';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import { YouTubeConnect } from './youtube-connect';
+import { ProfileCard } from '@/components/profile/ProfileCard';
 import type { UserData } from '@/components/header';
 import type { RecordingQuality } from '@/hooks/useRecording';
 import type { CaptureQuality } from '@/hooks/useScreenCapture';
@@ -167,6 +168,8 @@ export function SettingsContent({
                 )}
               </div>
             </div>
+
+            {user && <ProfileCard />}
 
             {/* Recording Settings */}
             <div className="rounded-xl border border-gray-200 bg-white">

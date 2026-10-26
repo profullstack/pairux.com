@@ -24,6 +24,7 @@
     "@profullstack/live-translate": "^0.2.1",
     "@profullstack/notifications": "0.1.0",
     "@profullstack/pairux-embed": "workspace:*",
+    "@profullstack/profile": "0.1.3",
     "@profullstack/stack": "^0.1.3",
     "@profullstack/x402-gateway": "^0.11.0",
     "@serwist/next": "^9.5.0",

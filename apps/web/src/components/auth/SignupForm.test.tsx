@@ -21,6 +21,7 @@ describe('SignupForm', () => {
 
     expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/job title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
@@ -54,6 +55,9 @@ describe('SignupForm', () => {
           confirmPassword: 'Password123',
           firstName: 'Test',
           lastName: 'User',
+          company_domain: '',
+          job_title: '',
+          linkedin_url: '',
         }),
       });
     });

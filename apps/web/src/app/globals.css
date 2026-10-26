@@ -173,3 +173,46 @@
 .prose blockquote {
   @apply border-primary-500 my-6 rounded-r-lg border-l-4 bg-gray-50 py-4 pr-4 pl-6 text-gray-700 italic;
 }
+
+/* @profullstack/profile fields: same look as the signup inputs. */
+.pfs-profile {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+.pfs-profile__row label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+.pfs-profile__row input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--color-gray-900);
+  background: #fff;
+}
+.pfs-profile__row input::placeholder {
+  color: var(--color-gray-400);
+}
+.pfs-profile__row input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 1px var(--color-primary-500);
+}
+.pfs-profile__optional {
+  color: var(--color-gray-400);
+  font-weight: 400;
+}
+.pfs-profile__error {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-red-600);
+}

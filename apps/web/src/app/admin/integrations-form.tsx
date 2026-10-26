@@ -41,7 +41,7 @@ export function IntegrationsManager({ initial }: { initial: Integration[] }) {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const webhookUrl = `${origin}/api/webhooks/autoblog`;
 
-  const onCreate = (e: React.FormEvent) => {
+  const onCreate = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError(null);
     setJustCreatedToken(null);

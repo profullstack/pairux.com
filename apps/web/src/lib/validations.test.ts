@@ -43,7 +43,7 @@ describe('signupSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]!.message).toContain('uppercase');
+      expect(result.error.issues[0]!.message).toContain('uppercase');
     }
   });
 
@@ -57,7 +57,7 @@ describe('signupSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]!.message).toContain('number');
+      expect(result.error.issues[0]!.message).toContain('number');
     }
   });
 
@@ -71,7 +71,7 @@ describe('signupSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]!.message).toContain('8 characters');
+      expect(result.error.issues[0]!.message).toContain('8 characters');
     }
   });
 
@@ -85,7 +85,7 @@ describe('signupSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]!.message).toContain('Passwords do not match');
+      expect(result.error.issues[0]!.message).toContain('Passwords do not match');
     }
   });
 

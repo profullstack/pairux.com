@@ -13,10 +13,7 @@ import { WaylandYdotoolInputBackend } from './backends/waylandYdotool.js';
 import type { DisplayServer, InputBackend, Platform } from './types.js';
 
 export type InputBackendKind =
-  | 'nut-js'
-  | 'wayland-portal'
-  | 'wayland-ydotool'
-  | 'wayland-unsupported';
+  'nut-js' | 'wayland-portal' | 'wayland-ydotool' | 'wayland-unsupported';
 
 export interface InputBackendSelection {
   kind: InputBackendKind;

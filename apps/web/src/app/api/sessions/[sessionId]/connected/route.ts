@@ -9,7 +9,7 @@ interface RouteParams {
 const bodySchema = z.object({
   // Guests send their participant row id. Signed-in viewers may send a local
   // id that is not a row; mark_media_connected then falls back to their user.
-  participantId: z.string().uuid().optional(),
+  participantId: z.guid().optional(),
 });
 
 /**
@@ -23,7 +23,7 @@ const bodySchema = z.object({
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { sessionId } = await params;
-    if (!z.string().uuid().safeParse(sessionId).success) {
+    if (!z.guid().safeParse(sessionId).success) {
       return errorResponse('Invalid session id', 400);
     }
     const body: unknown = await request.json().catch(() => ({}));

@@ -52,7 +52,7 @@ export default function JoinInputPage() {
     void fetchUser();
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     const code = parseJoinInput(input);
 

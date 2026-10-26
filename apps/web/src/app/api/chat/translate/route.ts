@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 
 const asksByCaller = new FixedWindowRateLimiter(60, 60_000);
 const Body = z.object({
-  sessionId: z.string().uuid(),
-  participantId: z.string().uuid().optional(),
+  sessionId: z.guid(),
+  participantId: z.guid().optional(),
   to: z.string().refine(isTranslationLanguage, 'Unsupported language'),
   messages: z
     .array(z.object({ id: z.string().min(1).max(64), content: z.string().min(1).max(500) }))

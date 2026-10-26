@@ -23,7 +23,7 @@ const availabilitySchema = z.unknown().transform((value, ctx): WeeklyAvailabilit
     return normalizeAvailability(value);
   } catch (error) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: error instanceof Error ? error.message : 'invalid availability',
     });
     return z.NEVER;
@@ -82,7 +82,7 @@ export const bookRequestSchema = z.object({
     .trim()
     .min(1, 'Your name is required')
     .max(80, 'Name must be under 80 characters'),
-  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
+  email: z.string().trim().toLowerCase().pipe(z.email('Please enter a valid email address')),
   notes: z.string().trim().max(1000, 'Notes must be under 1000 characters').optional(),
   /** The guest's zone, echoed into the confirmation so times read right for them. */
   timezone: z.string().refine(isValidTimezone, 'Unknown timezone').optional(),

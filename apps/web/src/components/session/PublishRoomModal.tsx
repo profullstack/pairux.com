@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, type SyntheticEvent } from 'react';
 import Link from 'next/link';
 import { X, Globe, Loader2, Check, Copy, ExternalLink, AtSign } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -71,7 +71,7 @@ export function PublishRoomModal({
   const profileUrl = username ? `${origin}/u/${username}` : null;
 
   const handlePublish = useCallback(
-    async (e: FormEvent) => {
+    async (e: SyntheticEvent) => {
       e.preventDefault();
       setError(null);
       setIsSaving(true);

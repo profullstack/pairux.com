@@ -604,10 +604,7 @@ pc.ondatachannel = (event) => {
 ```typescript
 // All data channel messages
 type DataChannelMessage =
-  | InputEventMessage
-  | ControlRequestMessage
-  | ControlResponseMessage
-  | PingMessage;
+  InputEventMessage | ControlRequestMessage | ControlResponseMessage | PingMessage;
 
 interface InputEventMessage {
   type: 'input';
@@ -683,12 +680,7 @@ stateDiagram-v2
 
 ```typescript
 type ConnectionState =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'failed'
-  | 'disconnected';
+  'idle' | 'connecting' | 'connected' | 'reconnecting' | 'failed' | 'disconnected';
 
 class ConnectionManager {
   private state: ConnectionState = 'idle';

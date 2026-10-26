@@ -346,11 +346,12 @@ async function canAcceptSession(): Promise<boolean> {
 ```
 
 **SFU Options for MVP:**
-| Option | Pros | Cons |
-|--------|------|------|
-| LiveKit Cloud | Managed, easy setup | Cost scales with usage |
-| Self-hosted LiveKit | Full control, predictable cost | Ops overhead |
-| mediasoup | Lightweight, flexible | More DIY required |
+
+| Option              | Pros                           | Cons                   |
+| ------------------- | ------------------------------ | ---------------------- |
+| LiveKit Cloud       | Managed, easy setup            | Cost scales with usage |
+| Self-hosted LiveKit | Full control, predictable cost | Ops overhead           |
+| mediasoup           | Lightweight, flexible          | More DIY required      |
 
 ### Scaled Implementation
 

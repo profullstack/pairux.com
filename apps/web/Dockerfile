@@ -14,7 +14,7 @@
 # binary copied in, the same pattern icemap.app runs in production.
 # ===========================================
 
-FROM oven/bun:1.4.0-alpine AS bun
+FROM oven/bun:1.4.4-alpine AS bun
 
 # Stage 1: Dependencies
 FROM node:24-alpine AS deps

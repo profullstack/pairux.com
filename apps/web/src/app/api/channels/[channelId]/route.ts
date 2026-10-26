@@ -11,8 +11,8 @@ interface RouteParams {
 const Body = z.object({
   name: z.string().trim().max(80).optional(),
   description: z.string().trim().max(500).optional(),
-  avatar_url: z.string().url().max(600).optional(),
-  banner_url: z.string().url().max(600).optional(),
+  avatar_url: z.url().max(600).optional(),
+  banner_url: z.url().max(600).optional(),
   // Free text from the owner; normalized below. '' (or null) clears it.
   website_url: z.string().max(2048).nullable().optional(),
 });

@@ -20,9 +20,9 @@ interface RouteParams {
 const invitesByOrg = new FixedWindowRateLimiter(50, 60 * 60 * 1000);
 
 const bodySchema = z.object({
-  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
+  email: z.string().trim().toLowerCase().pipe(z.email('Enter a valid email address')),
   role: z.enum(['admin', 'member']).default('member'),
-  teamId: z.string().uuid().optional(),
+  teamId: z.guid().optional(),
 });
 
 /**

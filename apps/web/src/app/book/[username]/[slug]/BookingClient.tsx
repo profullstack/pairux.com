@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import Link from 'next/link';
 import {
   CalendarPlus,
@@ -178,7 +178,7 @@ export function BookingClient({ host, page }: Props) {
   const canGoBack = weekStart !== '' && weekStart > localDate(Date.now(), zone);
   const canGoForward = weekStart !== '' && ymdShift(weekStart, 7) <= lastDay;
 
-  const submit = async (event: FormEvent) => {
+  const submit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!selected) return;
     setSubmitting(true);

@@ -185,6 +185,12 @@ export default tseslint.config(
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-confusing-void-expression': 'off',
       '@typescript-eslint/unbound-method': 'off', // Mock methods in tests
+      // vitest 5 types an untyped vi.fn() as Procedure | Constructable, so an async
+      // mockImplementation reads as a promise passed where void is expected.
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { arguments: false } },
+      ],
     },
   },
 

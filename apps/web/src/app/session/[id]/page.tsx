@@ -158,7 +158,7 @@ interface SessionViewerWrapperProps {
 
 function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   // A real UUID — /api/livekit/token and the signal routes validate
-  // participantId with z.string().uuid(). useId() returns React opaque ids
+  // participantId with z.guid(). useId() returns React opaque ids
   // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
   const [participantId] = useState(() => crypto.randomUUID());
 
@@ -180,7 +180,7 @@ function P2PSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
 
 function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
   // A real UUID — /api/livekit/token and the signal routes validate
-  // participantId with z.string().uuid(). useId() returns React opaque ids
+  // participantId with z.guid(). useId() returns React opaque ids
   // (":r0:"), which the SFU token route rejects ("Invalid participant ID").
   const [participantId] = useState(() => crypto.randomUUID());
 

@@ -253,11 +253,12 @@ stateDiagram-v2
 - Target: 2-8 Mbps for 1080p30
 
 **Quality Presets**:
-| Preset | Resolution | Bitrate | Use Case |
-|--------|------------|---------|----------|
-| Low | 720p | 1-2 Mbps | Poor connection |
-| Medium | 1080p | 2-4 Mbps | Standard |
-| High | 1080p | 4-8 Mbps | Good connection |
+
+| Preset | Resolution | Bitrate  | Use Case        |
+| ------ | ---------- | -------- | --------------- |
+| Low    | 720p       | 1-2 Mbps | Poor connection |
+| Medium | 1080p      | 2-4 Mbps | Standard        |
+| High   | 1080p      | 4-8 Mbps | Good connection |
 
 ### 4.4 RTMP Live Streaming (Desktop App)
 
@@ -302,24 +303,26 @@ interface RTMPEncoderSettings {
 ```
 
 **Default RTMP Settings** (optimized for most platforms):
-| Setting | Default | Notes |
-|---------|---------|-------|
-| Video Codec | H.264 (x264) | Baseline/Main profile for compatibility |
-| Video Bitrate | 4500 kbps | 2500-6000 recommended range |
-| Resolution | 1080p | Match source or downscale |
-| Framerate | 30 fps | 60 fps for gaming content |
-| Keyframe Interval | 2 seconds | Required by most platforms |
-| Audio Codec | AAC | LC profile |
-| Audio Bitrate | 160 kbps | 128-320 range |
-| Audio Sample Rate | 48000 Hz | Standard for streaming |
+
+| Setting           | Default      | Notes                                   |
+| ----------------- | ------------ | --------------------------------------- |
+| Video Codec       | H.264 (x264) | Baseline/Main profile for compatibility |
+| Video Bitrate     | 4500 kbps    | 2500-6000 recommended range             |
+| Resolution        | 1080p        | Match source or downscale               |
+| Framerate         | 30 fps       | 60 fps for gaming content               |
+| Keyframe Interval | 2 seconds    | Required by most platforms              |
+| Audio Codec       | AAC          | LC profile                              |
+| Audio Bitrate     | 160 kbps     | 128-320 range                           |
+| Audio Sample Rate | 48000 Hz     | Standard for streaming                  |
 
 **Popular Platform Presets**:
-| Platform | Ingest URL Pattern | Max Bitrate | Notes |
-|----------|-------------------|-------------|-------|
-| YouTube | rtmp://a.rtmp.youtube.com/live2 | 51 Mbps | Supports 4K |
-| Twitch | rtmp://live.twitch.tv/app | 6000 kbps | 1080p60 max |
-| Facebook | rtmps://live-api-s.facebook.com:443/rtmp | 4000 kbps | Use RTMPS |
-| Custom | User-provided | Varies | Full control |
+
+| Platform | Ingest URL Pattern                       | Max Bitrate | Notes        |
+| -------- | ---------------------------------------- | ----------- | ------------ |
+| YouTube  | rtmp://a.rtmp.youtube.com/live2          | 51 Mbps     | Supports 4K  |
+| Twitch   | rtmp://live.twitch.tv/app                | 6000 kbps   | 1080p60 max  |
+| Facebook | rtmps://live-api-s.facebook.com:443/rtmp | 4000 kbps   | Use RTMPS    |
+| Custom   | User-provided                            | Varies      | Full control |
 
 **UI - RTMP Settings Panel**:
 
@@ -371,11 +374,12 @@ interface RTMPEncoderSettings {
 - Option to require re-entry of stream key each session
 
 **Error Handling**:
-| Error | User Message | Action |
-|-------|--------------|--------|
-| Connection failed | "Cannot connect to streaming server" | Retry with backoff |
-| Auth failed | "Invalid stream key" | Prompt to re-enter |
-| Bandwidth exceeded | "Network too slow for live stream" | Suggest lower bitrate |
+
+| Error               | User Message                          | Action                      |
+| ------------------- | ------------------------------------- | --------------------------- |
+| Connection failed   | "Cannot connect to streaming server"  | Retry with backoff          |
+| Auth failed         | "Invalid stream key"                  | Prompt to re-enter          |
+| Bandwidth exceeded  | "Network too slow for live stream"    | Suggest lower bitrate       |
 | Server disconnected | "Stream interrupted, reconnecting..." | Auto-reconnect (3 attempts) |
 
 ---

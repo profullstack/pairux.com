@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { CalendarCheck, Copy, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -170,7 +170,7 @@ export function BookingPagesManager() {
     setEditing(page);
   };
 
-  const save = async (event: FormEvent) => {
+  const save = async (event: SyntheticEvent) => {
     event.preventDefault();
     setSaving(true);
     setFormError(null);

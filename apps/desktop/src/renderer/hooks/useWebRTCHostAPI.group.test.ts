@@ -62,9 +62,10 @@ class TestPeer {
   ontrack: ((event: { track: MediaStreamTrack }) => void) | null = null;
   onconnectionstatechange: (() => void) | null = null;
   senders: { track: MediaStreamTrack | null; replaceTrack: ReturnType<typeof vi.fn> }[] = [];
-  createOffer = vi.fn(
-    async (): Promise<RTCSessionDescriptionInit> => ({ type: 'offer', sdp: 'local-offer' })
-  );
+  createOffer = vi.fn(async (): Promise<RTCSessionDescriptionInit> => ({
+    type: 'offer',
+    sdp: 'local-offer',
+  }));
   setLocalDescription = vi.fn(async (description: RTCSessionDescriptionInit) => {
     this.localDescription = description;
     this.signalingState = description.type === 'rollback' ? 'stable' : 'have-local-offer';

@@ -27,8 +27,8 @@ const CreateBody = z.object({
   name: z.string().trim().max(80).optional(),
   description: z.string().trim().max(500).optional(),
   // Owned by an organization, or by one of its teams: its members can go live on it.
-  orgId: z.string().uuid().optional(),
-  teamId: z.string().uuid().optional(),
+  orgId: z.guid().optional(),
+  teamId: z.guid().optional(),
 });
 
 // POST /api/channels — create a channel

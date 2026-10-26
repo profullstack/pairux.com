@@ -9,10 +9,10 @@ interface RouteParams {
 }
 
 const putSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.guid(),
   role: z.enum(['lead', 'member']).default('member'),
 });
-const deleteSchema = z.object({ userId: z.string().uuid() });
+const deleteSchema = z.object({ userId: z.guid() });
 
 async function guard(request: Request, params: RouteParams['params']) {
   const { orgId, teamId } = await params;

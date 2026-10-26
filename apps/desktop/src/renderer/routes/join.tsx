@@ -219,7 +219,7 @@ export function JoinPage() {
     };
   }, [scheduled]);
 
-  const handleLookup = async (e: React.FormEvent) => {
+  const handleLookup = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
 
@@ -249,7 +249,7 @@ export function JoinPage() {
     }
   };
 
-  const handleJoin = async (e: React.FormEvent) => {
+  const handleJoin = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!session) return;
 

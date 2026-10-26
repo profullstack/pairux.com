@@ -21,10 +21,11 @@ This document details the technology choices for PairUX and the rationale behind
 - Works well with Turborepo
 
 **Alternatives Considered**:
-| Tool | Rejected Because |
-|------|------------------|
-| npm | Slower, no workspace hoisting control |
-| yarn | Berry complexity, pnpm is faster |
+
+| Tool | Rejected Because                      |
+| ---- | ------------------------------------- |
+| npm  | Slower, no workspace hoisting control |
+| yarn | Berry complexity, pnpm is faster      |
 
 ### Build System: Turborepo
 
@@ -61,11 +62,12 @@ This document details the technology choices for PairUX and the rationale behind
 ```
 
 **Alternatives Considered**:
-| Tool | Rejected Because |
-|------|------------------|
-| Nx | More complex, overkill for this project size |
+
+| Tool  | Rejected Because                              |
+| ----- | --------------------------------------------- |
+| Nx    | More complex, overkill for this project size  |
 | Lerna | Deprecated in favor of native workspace tools |
-| Rush | Microsoft-specific, steeper learning curve |
+| Rush  | Microsoft-specific, steeper learning curve    |
 
 ---
 
@@ -94,11 +96,12 @@ This document details the technology choices for PairUX and the rationale behind
 - `autoUpdater` - App updates
 
 **Alternatives Considered**:
-| Tool | Rejected Because |
-|------|------------------|
-| Tauri | No mature screen capture API, Rust complexity |
-| NW.js | Less active development, smaller ecosystem |
-| Flutter Desktop | No native screen capture, immature |
+
+| Tool            | Rejected Because                              |
+| --------------- | --------------------------------------------- |
+| Tauri           | No mature screen capture API, Rust complexity |
+| NW.js           | Less active development, smaller ecosystem    |
+| Flutter Desktop | No native screen capture, immature            |
 
 ### Input Injection: nut.js
 
@@ -129,11 +132,12 @@ await keyboard.releaseKey(Key.Enter);
 ```
 
 **Alternatives Considered**:
-| Tool | Rejected Because |
-|------|------------------|
-| robotjs | Unmaintained, build issues |
-| node-key-sender | Windows only |
-| Native modules | Too much platform-specific code |
+
+| Tool            | Rejected Because                |
+| --------------- | ------------------------------- |
+| robotjs         | Unmaintained, build issues      |
+| node-key-sender | Windows only                    |
+| Native modules  | Too much platform-specific code |
 
 ### Desktop UI: React + Vite
 
@@ -370,11 +374,12 @@ log-file=/var/log/turnserver.log
 ```
 
 **Alternatives Considered**:
-| Service | Rejected Because |
-|---------|------------------|
+
+| Service     | Rejected Because        |
+| ----------- | ----------------------- |
 | Twilio TURN | Per-minute costs add up |
-| Xirsys | Same cost concerns |
-| Metered.ca | Less control |
+| Xirsys      | Same cost concerns      |
+| Metered.ca  | Less control            |
 
 ---
 
@@ -479,11 +484,12 @@ log-file=/var/log/turnserver.log
 - Multiple output formats
 
 **Output Formats**:
-| Platform | Formats |
-|----------|---------|
-| macOS | DMG, PKG |
-| Windows | MSI, NSIS |
-| Linux | DEB, RPM, AppImage |
+
+| Platform | Formats            |
+| -------- | ------------------ |
+| macOS    | DMG, PKG           |
+| Windows  | MSI, NSIS          |
+| Linux    | DEB, RPM, AppImage |
 
 ---
 

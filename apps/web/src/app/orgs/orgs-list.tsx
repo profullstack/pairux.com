@@ -25,7 +25,7 @@ export function OrgsList({ header }: { header: ReactNode }) {
     void load();
   }, []);
 
-  async function create(e: React.FormEvent) {
+  async function create(e: React.SyntheticEvent) {
     e.preventDefault();
     setBusy(true);
     setError('');

@@ -119,12 +119,7 @@ export interface PongMessage {
 
 // Connection state
 export type ConnectionState =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'failed'
-  | 'disconnected';
+  'idle' | 'connecting' | 'connected' | 'reconnecting' | 'failed' | 'disconnected';
 
 // Quality metrics
 export interface QualityMetrics {

@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // Query params schema
 const querySchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID'),
+  sessionId: z.guid('Invalid session ID'),
 });
 
 // Heartbeat interval (30 seconds)
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
     if (!parseResult.success) {
       return new Response(
-        JSON.stringify({ error: parseResult.error.errors[0]?.message ?? 'Invalid parameters' }),
+        JSON.stringify({ error: parseResult.error.issues[0]?.message ?? 'Invalid parameters' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
       );
     }

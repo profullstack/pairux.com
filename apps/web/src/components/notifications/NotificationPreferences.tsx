@@ -47,10 +47,7 @@ const PREF_KEYS: readonly Exclude<keyof NotificationPrefs, 'pushEnabled' | Remin
 ];
 
 type ReminderKey =
-  | 'meetingReminder1Day'
-  | 'meetingReminder1Hour'
-  | 'meetingReminder15Min'
-  | 'meetingReminder1Min';
+  'meetingReminder1Day' | 'meetingReminder1Hour' | 'meetingReminder15Min' | 'meetingReminder1Min';
 
 /**
  * Meeting reminders, kept out of the list above on purpose.

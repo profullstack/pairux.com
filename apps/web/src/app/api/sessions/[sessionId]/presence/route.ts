@@ -10,7 +10,7 @@ interface RouteParams {
 const bodySchema = z.object({
   // Guests send their participant row id. Signed-in viewers may send a local
   // id that is not a row; claim_session_seat then falls back to their user.
-  participantId: z.string().uuid().optional(),
+  participantId: z.guid().optional(),
 });
 
 // Clients ping every 30 s; this leaves room for a few tabs behind one address.
@@ -30,7 +30,7 @@ const pingsByIpAndSession = new FixedWindowRateLimiter(30, 60_000);
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { sessionId } = await params;
-    if (!z.string().uuid().safeParse(sessionId).success) {
+    if (!z.guid().safeParse(sessionId).success) {
       return errorResponse('Invalid session id', 400);
     }
     const limit = pingsByIpAndSession.check(`${getClientIp(request)}:${sessionId}`);

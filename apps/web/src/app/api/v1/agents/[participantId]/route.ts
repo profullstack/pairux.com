@@ -12,7 +12,7 @@ interface RouteParams {
   params: Promise<{ participantId: string }>;
 }
 
-const idSchema = z.string().uuid('Invalid participant ID');
+const idSchema = z.guid('Invalid participant ID');
 
 interface AgentRow {
   id: string;

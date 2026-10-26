@@ -7,6 +7,8 @@
     "moduleResolution": "Bundler",
     "jsx": "preserve",
     "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
     "incremental": true,
     "plugins": [
       {

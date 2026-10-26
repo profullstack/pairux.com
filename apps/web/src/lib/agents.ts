@@ -32,7 +32,7 @@ export const agentMessageSchema = z.object({
 });
 
 export const agentPollSchema = z.object({
-  after: z.string().datetime({ offset: true }).optional(),
+  after: z.iso.datetime({ offset: true }).optional(),
 });
 
 /** Map a join_session_as_agent exception to an HTTP status. */

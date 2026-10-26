@@ -27,6 +27,7 @@ describe('safeRedirectPath', () => {
     expect(safeRedirectPath(null)).toBe('/dashboard');
     expect(safeRedirectPath('https://evil.example/phish')).toBe('/dashboard');
     expect(safeRedirectPath('//evil.example/phish')).toBe('/dashboard');
+    expect(safeRedirectPath('/\\evil.example/phish')).toBe('/dashboard');
     expect(safeRedirectPath('dashboard')).toBe('/dashboard');
   });
 });

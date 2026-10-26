@@ -7,13 +7,10 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Key } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { trackLogin } from '@/lib/analytics';
+import { sameOriginPath } from '@/lib/safe-redirect';
 
 export function safeRedirectPath(redirect: string | null): string {
-  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
-    return '/dashboard';
-  }
-
-  return redirect;
+  return sameOriginPath(redirect) ?? '/dashboard';
 }
 
 export function LoginForm() {

@@ -11,6 +11,8 @@ describe('safeNextPath', () => {
   it('falls back for external callback targets', () => {
     expect(safeNextPath('https://evil.example/phish')).toBe('/dashboard');
     expect(safeNextPath('//evil.example/phish')).toBe('/dashboard');
+    expect(safeNextPath('/\\evil.example/phish')).toBe('/dashboard');
+    expect(safeNextPath('/\t/evil.example/phish')).toBe('/dashboard');
   });
 
   it('falls back for missing or relative callback targets', () => {

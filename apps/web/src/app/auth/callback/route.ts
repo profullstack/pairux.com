@@ -66,6 +66,10 @@ export async function GET(request: NextRequest) {
     },
   });
 
+  // The account GoTrue verified, from either flow below. Only a verified id
+  // reaches afterSignIn.
+  let verifiedUserId: string | undefined;
+
   // Handle token_hash from direct email links
   if (tokenHash && type) {
     const otpType = type as 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email';
@@ -79,12 +83,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
     }
 
-    await afterSignIn(request, response, data.user?.id);
-    return response;
-  }
-
-  // Handle code from PKCE flow
-  if (code) {
+    verifiedUserId = data.user?.id;
+  } else if (code) {
+    // Handle code from PKCE flow
     const { session, error } = await exchangeCodeAndPersist(supabase, code);
 
     if (error) {
@@ -92,8 +93,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
     }
 
-    await afterSignIn(request, response, session?.user.id);
+    verifiedUserId = session?.user.id;
   }
+
+  if (verifiedUserId) await afterSignIn(request, response, verifiedUserId);
 
   return response;
 }

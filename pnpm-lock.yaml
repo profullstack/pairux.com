@@ -221,6 +221,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.10
         version: 1.19.14(hono@4.12.25)
+      '@profullstack/footer':
+        specifier: ^0.2.6
+        version: 0.2.6(react@19.2.3)
       hono:
         specifier: ^4.12.4
         version: 4.12.25
@@ -370,7 +373,7 @@ importers:
         version: 1.0.3
       '@profullstack/footer':
         specifier: latest
-        version: 0.2.4(react@19.2.3)
+        version: 0.2.6(react@19.2.3)
       '@profullstack/live-translate':
         specifier: ^0.2.1
         version: 0.2.1
@@ -2949,8 +2952,8 @@ packages:
   '@profullstack/emailer@1.0.3':
     resolution: {integrity: sha512-VyAtCcfnSI6LOwJvWogCr3ZNmEsaZw+iuWrqnosLsdcKsbRyCrCmXigMNZJZEjlgYlR+lK//PwNPG+xtCFvWAw==}
 
-  '@profullstack/footer@0.2.4':
-    resolution: {integrity: sha512-2ErIzHJCDA2baP8aK6f7rCHohW4EX+wnp7D1mrVMQTUxRcyZwKzmho96hhEFJndXRBGgxT3H/78BHOeBfLxTzg==}
+  '@profullstack/footer@0.2.6':
+    resolution: {integrity: sha512-BKwbDszAc7e0mYIBiPjgr/5WS8WyDt8IW718s/zW/8pCWOIB1BGwSNs6fmImRSo5kqIjQKUVbXp22jZQ5GEipA==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -12117,7 +12120,7 @@ snapshots:
 
   '@profullstack/emailer@1.0.3': {}
 
-  '@profullstack/footer@0.2.4(react@19.2.3)':
+  '@profullstack/footer@0.2.6(react@19.2.3)':
     optionalDependencies:
       react: 19.2.3
 

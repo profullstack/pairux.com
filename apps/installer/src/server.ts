@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { descriptor, escapeHtml, footerHtml } from '@profullstack/footer';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -107,9 +108,67 @@ app.get('/health', async (c) => {
   });
 });
 
-// Root - service info
+// The site's homepage, as the Profullstack webring and the built.indie / pwamart
+// badges know it.
+const SITE = `${BASE_URL.replace(/\/+$/, '')}/`;
+
+// Browsers (and crawlers such as the ring verifier) get an HTML page with the
+// install commands and the server-rendered Profullstack footer; scripts and
+// `curl` (Accept: */* or application/json) keep getting the JSON service info.
+function wantsHtml(accept: string | undefined): boolean {
+  return /text\/html/i.test(accept ?? '');
+}
+
+async function landingPage(latestVersion: string): Promise<string> {
+  const unix = `curl -fsSL ${BASE_URL}/install.sh | bash`;
+  const windows = `irm ${BASE_URL}/install.ps1 | iex`;
+  const footer = await footerHtml({ site: SITE, name: 'PairUX Installer' });
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Install PairUX</title>
+<meta name="description" content="Install the PairUX desktop app with one command on macOS, Linux or Windows.">
+<link rel="canonical" href="${escapeHtml(SITE)}">
+<style>
+:root{color-scheme:light dark;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+body{margin:0;background:Canvas;color:CanvasText}
+main{max-width:46rem;margin:0 auto;padding:3rem 1rem 2rem}
+h1{font-size:1.75rem;margin:0 0 .25rem}
+h2{font-size:1.05rem;margin:2rem 0 .5rem}
+pre{overflow-x:auto;padding:.75rem 1rem;border-radius:.5rem;background:color-mix(in srgb,CanvasText 8%,Canvas)}
+a{color:inherit}
+.muted{opacity:.75}
+</style>
+</head>
+<body>
+<main>
+<h1>Install PairUX</h1>
+<p class="muted">Latest release: ${escapeHtml(latestVersion)}. <a href="https://pairux.com/">pairux.com</a></p>
+<h2>macOS and Linux</h2>
+<pre><code>${escapeHtml(unix)}</code></pre>
+<h2>Windows (PowerShell)</h2>
+<pre><code>${escapeHtml(windows)}</code></pre>
+<h2>Downloads</h2>
+<p><a href="https://github.com/${escapeHtml(GITHUB_REPO)}/releases">All releases on GitHub</a> &middot; <a href="/api/releases">/api/releases</a> &middot; <a href="/api/version">/api/version</a></p>
+</main>
+${footer}
+</body>
+</html>`;
+}
+
+app.get('/.well-known/openwebring.json', (c) =>
+  c.json(descriptor({ site: SITE, name: 'PairUX Installer' }))
+);
+
+// Root - HTML landing page for browsers, service info JSON for everything else
 app.get('/', async (c) => {
   const latestVersion = await getLatestVersion();
+  c.header('Vary', 'Accept');
+  if (wantsHtml(c.req.header('accept'))) {
+    return c.html(await landingPage(latestVersion));
+  }
   return c.json({
     name: 'PairUX Installer Service',
     version: getPackageVersion(),

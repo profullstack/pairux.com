@@ -2,6 +2,7 @@ import { authorizeMeetingCaller, MeetingAccessError } from '@/lib/translation/ac
 import { TRANSLATION_LANGUAGES } from '@/lib/translation/languages';
 import { TRANSLATION_OFFER } from '@/lib/translation/meter';
 import { translationRuntime } from '@/lib/translation/server';
+import { copilotRuntime } from '@/lib/copilot/runtime';
 import { errorResponse, handleApiError, successResponse } from '@/lib/api';
 
 export const runtime = 'nodejs';
@@ -21,11 +22,13 @@ export async function GET(request: Request, { params }: RouteParams) {
     const runtime = translationRuntime();
     const access = runtime && caller.isHost ? await runtime.meter.access(caller.hostUserId) : null;
     return successResponse({
-      available: Boolean(runtime),
+      // The copilot rides on the same uploads, so clients feed whenever it listens.
+      available: Boolean(runtime) || (copilotRuntime()?.listening(sessionId) ?? 0) > 0,
       languages: TRANSLATION_LANGUAGES.map(([code, name]) => ({ code, name })),
       isHost: caller.isHost,
       // Clients tap and upload remote tracks only while someone is listening.
-      listening: runtime?.rooms.get(sessionId)?.size ?? 0,
+      listening:
+        (runtime?.rooms.get(sessionId)?.size ?? 0) + (copilotRuntime()?.listening(sessionId) ?? 0),
       // Pro feature: everyone in the meeting can see whether the host's plan covers it.
       funded: runtime
         ? (await runtime.meter.funded(caller.hostUserId, sessionId)) ||

@@ -2316,5 +2316,142 @@
       "login": "Saya sudah punya akun",
       "failed": "Undangan tidak dapat diterima."
     }
+  },
+  "copilot": {
+    "title": "Kopilot AI",
+    "listeningFor": "Kopilot AI sedang mendengarkan untuk {names}",
+    "consent": "Beri tahu semua orang bahwa kopilot AI sedang mendengarkan; kopilot menyalin apa yang diucapkan.",
+    "open": "Buka kopilot AI",
+    "close": "Tutup",
+    "proOnly": "Kopilot AI ikut dalam panggilan Anda, mencatat, menyarankan pertanyaan, dan menulis tindak lanjut Anda. Fitur ini bagian dari PairUX Pro.",
+    "upgrade": "Upgrade ke Pro",
+    "signIn": "Masuk untuk menggunakan kopilot AI.",
+    "role": "Apa peran Anda dalam rapat ini?",
+    "listensFor": "Memperhatikan",
+    "mode": "Model",
+    "modes": {
+      "auto": "Model gratis, cloud berbayar sebagai cadangan",
+      "free": "Hanya model gratis yang di-host sendiri",
+      "byok": "Kunci API saya sendiri",
+      "cloud": "Cloud kualitas terbaik (bayar sesuai pemakaian)"
+    },
+    "pricingNote": "Model gratis berjalan di server kami tanpa biaya. Model cloud dibayar sesuai pemakaian dengan biaya penyedia + 10%, atau gratis dengan kunci Anda sendiri.",
+    "settings": "Kunci dan saldo",
+    "start": "Mulai kopilot",
+    "stop": "Hentikan dan tulis tindak lanjut",
+    "stopping": "Menulis tindak lanjut…",
+    "live": "Mendengarkan",
+    "providers": "Suara: {stt} · AI: {llm}",
+    "waiting": "menunggu",
+    "recap": "Ringkas 30 dtk terakhir",
+    "recapTitle": "30 detik terakhir",
+    "suggested": "Pertanyaan yang disarankan",
+    "jump": "Tunjukkan letaknya",
+    "dismiss": "Abaikan",
+    "tabs": {
+      "notes": "Catatan",
+      "questions": "Pertanyaan",
+      "transcript": "Transkrip",
+      "ask": "Tanya"
+    },
+    "summary": "Ringkasan",
+    "keyPoints": "Poin utama",
+    "decisions": "Keputusan",
+    "actionItems": "Tindakan",
+    "figures": "Angka dan tanggal penting",
+    "owner": "Penanggung jawab: {owner}",
+    "nothingYet": "Belum ada apa-apa. Catatan muncul saat orang berbicara.",
+    "noQuestions": "Belum ada pertanyaan terbuka.",
+    "answered": "Terjawab",
+    "noTranscript": "Belum ada yang terdengar. Ucapan muncul di sini beberapa detik setelah diucapkan.",
+    "askPlaceholder": "Tanya secara pribadi: “Berapa anggarannya tadi?”",
+    "askSend": "Tanya",
+    "askHint": "Hanya Anda yang melihat ini. Jawaban berasal dari apa yang telah diucapkan.",
+    "followUps": "Tindak lanjut",
+    "message": "Pesan ringkasan",
+    "copy": "Salin",
+    "copied": "Disalin",
+    "review": "Tinjauan percakapan",
+    "focusArea": "Area fokus",
+    "talkListen": "Anda berbicara {you}% dari waktu",
+    "questionsResolved": "{answered} dari {asked} pertanyaan terjawab",
+    "clarity": {
+      "clear": "Tindak lanjut sudah jelas",
+      "partial": "Tindak lanjut sebagian jelas",
+      "unclear": "Tindak lanjut belum jelas"
+    },
+    "thin": "Transkrip terlalu pendek untuk meninjau percakapan ini secara adil.",
+    "fullReport": "Buka catatan lengkap",
+    "restart": "Mulai lagi",
+    "roles": {
+      "general": {
+        "label": "Umum",
+        "meetings": "Rapat apa pun."
+      },
+      "sales": {
+        "label": "Penjualan",
+        "meetings": "Panggilan discovery, demo, dan tindak lanjut."
+      },
+      "recruiter": {
+        "label": "Perekrut",
+        "meetings": "Penyaringan, wawancara, dan diskusi kandidat."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "Wawancara pengguna, perencanaan, dan sinkronisasi dengan pemangku kepentingan."
+      },
+      "founder": {
+        "label": "Pendiri",
+        "meetings": "Panggilan pelanggan, obrolan dengan investor, dan rapat mitra."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-in, perpanjangan, dan eskalasi."
+      },
+      "engineer": {
+        "label": "Engineer",
+        "meetings": "Kebutuhan, standup, tinjauan desain, dan 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Catatan kopilot AI",
+    "listIntro": "Catatan, tindak lanjut, dan tinjauan dari setiap rapat yang diikuti kopilot AI Anda.",
+    "settingsLink": "Kunci dan saldo",
+    "loadError": "Tidak dapat memuat catatan kopilot Anda.",
+    "empty": "Belum ada catatan kopilot. Mulai kopilot AI dari panel di rapat mana pun.",
+    "live": "langsung",
+    "untitled": "Rapat tanpa judul",
+    "reportTitle": "Catatan kopilot AI",
+    "back": "Semua catatan kopilot",
+    "noFollowUps": "Tidak ada tindak lanjut yang ditulis.",
+    "rewriteFollowUps": "Tulis ulang tindak lanjut",
+    "noReview": "Belum ada tinjauan.",
+    "rewriteReview": "Tulis ulang tinjauan",
+    "settingsTitle": "Pengaturan kopilot AI",
+    "topupPending": "Terima kasih! Saldo Anda muncul di sini setelah pembayaran dikonfirmasi.",
+    "saved": "Tersimpan.",
+    "checkoutUnavailable": "Checkout sedang tidak tersedia. Coba lagi sebentar lagi.",
+    "defaultRole": "Peran default",
+    "keysTitle": "Kunci API Anda sendiri",
+    "keysIntro": "Gunakan kunci Anda sendiri dan kami tidak akan pernah menagih Anda untuk AI. Kunci dienkripsi, tidak pernah ditampilkan lagi, dan hanya digunakan oleh kopilot Anda.",
+    "keysDisabled": "Kunci sendiri belum diaktifkan di server ini.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Diatur (…{last4})",
+    "keyNotSet": "Belum diatur",
+    "keyPlaceholder": "Tempel kunci",
+    "saveKey": "Simpan",
+    "removeKey": "Hapus",
+    "walletTitle": "Saldo bayar sesuai pemakaian: {balance}",
+    "walletIntro": "Hanya dipakai saat model cloud berjalan dengan kunci kami: biaya penyedia + 10%. Model gratis dan kunci Anda sendiri tidak dikenai biaya.",
+    "addCredit": "Tambah {amount}",
+    "usageWhen": "Kapan",
+    "usageWhat": "Apa",
+    "usageCharge": "Biaya",
+    "refunded": "dikembalikan"
   }
 }

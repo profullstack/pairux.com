@@ -2316,5 +2316,142 @@
       "login": "Ho già un account",
       "failed": "Impossibile accettare l'invito."
     }
+  },
+  "copilot": {
+    "title": "Copilota IA",
+    "listeningFor": "Il copilota IA sta ascoltando per {names}",
+    "consent": "Avvisa tutti che un copilota IA sta ascoltando; trascrive ciò che viene detto.",
+    "open": "Apri il copilota IA",
+    "close": "Chiudi",
+    "proOnly": "Il copilota IA partecipa alla tua chiamata, prende appunti, suggerisce domande e scrive i tuoi follow-up. Fa parte di PairUX Pro.",
+    "upgrade": "Passa a Pro",
+    "signIn": "Accedi per usare il copilota IA.",
+    "role": "Qual è il tuo ruolo in questa riunione?",
+    "listensFor": "Presta attenzione a",
+    "mode": "Modelli",
+    "modes": {
+      "auto": "Modelli gratuiti, cloud a pagamento come riserva",
+      "free": "Solo modelli gratuiti self-hosted",
+      "byok": "Le mie chiavi API",
+      "cloud": "Cloud di qualità migliore (a consumo)"
+    },
+    "pricingNote": "I modelli gratuiti girano sui nostri server senza costi. I modelli cloud sono a consumo al costo del fornitore + 10%, oppure gratuiti con le tue chiavi.",
+    "settings": "Chiavi e credito",
+    "start": "Avvia il copilota",
+    "stop": "Ferma e scrivi i follow-up",
+    "stopping": "Scrittura dei follow-up…",
+    "live": "In ascolto",
+    "providers": "Voce: {stt} · IA: {llm}",
+    "waiting": "in attesa",
+    "recap": "Riepiloga ultimi 30 s",
+    "recapTitle": "Ultimi 30 secondi",
+    "suggested": "Domanda suggerita",
+    "jump": "Mostra dove",
+    "dismiss": "Ignora",
+    "tabs": {
+      "notes": "Note",
+      "questions": "Domande",
+      "transcript": "Trascrizione",
+      "ask": "Chiedi"
+    },
+    "summary": "Riepilogo",
+    "keyPoints": "Punti chiave",
+    "decisions": "Decisioni",
+    "actionItems": "Azioni da fare",
+    "figures": "Cifre e date chiave",
+    "owner": "Responsabile: {owner}",
+    "nothingYet": "Ancora niente. Le note compaiono mentre le persone parlano.",
+    "noQuestions": "Ancora nessuna domanda aperta.",
+    "answered": "Risposta data",
+    "noTranscript": "Non si è ancora sentito nessuno. Il parlato compare qui pochi secondi dopo.",
+    "askPlaceholder": "Chiedi in privato: «Qual era il budget?»",
+    "askSend": "Chiedi",
+    "askHint": "Lo vedi solo tu. Le risposte si basano su ciò che è stato detto.",
+    "followUps": "Follow-up",
+    "message": "Messaggio di riepilogo",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "review": "Analisi della conversazione",
+    "focusArea": "Area su cui lavorare",
+    "talkListen": "Hai parlato per il {you}% del tempo",
+    "questionsResolved": "{answered} domande su {asked} con risposta",
+    "clarity": {
+      "clear": "I follow-up sono chiari",
+      "partial": "I follow-up sono chiari solo in parte",
+      "unclear": "I follow-up non sono chiari"
+    },
+    "thin": "La trascrizione è troppo breve per valutare questa conversazione in modo equo.",
+    "fullReport": "Apri le note complete",
+    "restart": "Ricomincia",
+    "roles": {
+      "general": {
+        "label": "Generale",
+        "meetings": "Qualsiasi riunione."
+      },
+      "sales": {
+        "label": "Vendite",
+        "meetings": "Call conoscitive, demo e follow-up."
+      },
+      "recruiter": {
+        "label": "Recruiter",
+        "meetings": "Screening, colloqui e debrief sui candidati."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "Interviste agli utenti, pianificazione e allineamenti con gli stakeholder."
+      },
+      "founder": {
+        "label": "Founder",
+        "meetings": "Call con clienti, chiacchierate con investitori e incontri con partner."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-in, rinnovi ed escalation."
+      },
+      "engineer": {
+        "label": "Ingegnere",
+        "meetings": "Requisiti, standup, design review e 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Note del copilota IA",
+    "listIntro": "Note, follow-up e analisi di ogni riunione a cui ha partecipato il tuo copilota IA.",
+    "settingsLink": "Chiavi e credito",
+    "loadError": "Impossibile caricare le note del copilota.",
+    "empty": "Ancora nessuna nota del copilota. Avvia il copilota IA dal pannello in qualsiasi riunione.",
+    "live": "dal vivo",
+    "untitled": "Riunione senza titolo",
+    "reportTitle": "Note del copilota IA",
+    "back": "Tutte le note del copilota",
+    "noFollowUps": "Non è stato scritto alcun follow-up.",
+    "rewriteFollowUps": "Riscrivi i follow-up",
+    "noReview": "Ancora nessuna analisi.",
+    "rewriteReview": "Riscrivi l'analisi",
+    "settingsTitle": "Impostazioni del copilota IA",
+    "topupPending": "Grazie! Il tuo credito comparirà qui appena il pagamento sarà confermato.",
+    "saved": "Salvato.",
+    "checkoutUnavailable": "Il checkout non è disponibile al momento. Riprova tra poco.",
+    "defaultRole": "Ruolo predefinito",
+    "keysTitle": "Le tue chiavi API",
+    "keysIntro": "Usa le tue chiavi e non ti addebiteremo mai nulla per l'IA. Le chiavi sono cifrate, non vengono più mostrate e sono usate solo dal tuo copilota.",
+    "keysDisabled": "Le chiavi personali non sono ancora attive su questo server.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Impostata (…{last4})",
+    "keyNotSet": "Non impostata",
+    "keyPlaceholder": "Incolla una chiave",
+    "saveKey": "Salva",
+    "removeKey": "Rimuovi",
+    "walletTitle": "Credito a consumo: {balance}",
+    "walletIntro": "Usato solo quando un modello cloud gira con le nostre chiavi: costo del fornitore + 10%. I modelli gratuiti e le tue chiavi non costano nulla.",
+    "addCredit": "Aggiungi {amount}",
+    "usageWhen": "Quando",
+    "usageWhat": "Cosa",
+    "usageCharge": "Addebito",
+    "refunded": "rimborsato"
   }
 }

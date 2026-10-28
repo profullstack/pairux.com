@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+/* The shared AI copilot panel lives in a workspace package. */
+@source '../../../../packages/meeting-copilot/src';
 
 /* Custom theme configuration */
 @theme {

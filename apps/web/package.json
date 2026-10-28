@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@pairux/meeting-copilot": "workspace:*",
     "@pairux/meeting-translation": "workspace:*",
     "@profullstack/affiliates": "^0.2.0",
     "@profullstack/autoblog": "github:profullstack/autoblog#75e54af",

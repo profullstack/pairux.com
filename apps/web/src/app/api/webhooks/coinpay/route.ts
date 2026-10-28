@@ -4,6 +4,7 @@ import { verifyCoinPayWebhook } from '@profullstack/stack/coinpay';
 import { asText, PAYMENT_PROPERTY, readCoinpayWebhook } from '@/lib/coinpay-client';
 import { getPlanDef, TERM_DAYS } from '@/lib/plans';
 import { translationPass } from '@/lib/translation/meter';
+import { copilotTopup } from '@/lib/copilot/pricing';
 import { serviceClient } from '@/lib/supabase/service';
 
 export const runtime = 'nodejs';
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
   // plan payment that names an account and a plan we sell.
   if (!payment && event.settled) {
     const meta = event.metadata;
-    const plan = getPlanDef(asText(meta.plan));
+    const plan = getPlanDef(asText(meta.plan)) ?? copilotTopup(asText(meta.plan));
     const userId = asText(meta.account_id) || asText(meta.user_id);
     if (plan && userId && (asText(meta.property) || PAYMENT_PROPERTY) === PAYMENT_PROPERTY) {
       const key = event.paymentId ?? event.sessionId ?? '';
@@ -101,6 +102,19 @@ export async function POST(request: NextRequest) {
   }
 
   if (!event.settled) return NextResponse.json({ received: true });
+
+  if (String(payment.plan).startsWith('copilot_credit_')) {
+    // Pay-as-you-go copilot credit: marked credited and added in one statement.
+    const { error: creditError } = await supabase.rpc('copilot_credit_payment', {
+      p_payment_id: rowKey,
+      p_status: event.status,
+    });
+    if (creditError) {
+      console.error('[coinpay webhook] copilot_credit_payment failed:', creditError);
+      return NextResponse.json({ error: 'Credit failed' }, { status: 500 });
+    }
+    return NextResponse.json({ received: true });
+  }
 
   if (String(payment.plan).startsWith('translation_')) {
     // Legacy prepaid translation credit: marked credited and added in one statement.

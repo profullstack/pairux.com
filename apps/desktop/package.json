@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",
+    "@pairux/meeting-copilot": "workspace:*",
     "@pairux/meeting-translation": "workspace:*",
     "@profullstack/remote-input": "workspace:*",
     "@radix-ui/react-label": "^2.1.17",

@@ -2316,5 +2316,142 @@
       "login": "我已有账号",
       "failed": "无法接受邀请。"
     }
+  },
+  "copilot": {
+    "title": "AI 副驾驶",
+    "listeningFor": "AI 副驾驶正在为 {names} 聆听",
+    "consent": "请告知所有人 AI 副驾驶正在聆听；它会转录大家所说的话。",
+    "open": "打开 AI 副驾驶",
+    "close": "关闭",
+    "proOnly": "AI 副驾驶会加入你的通话，记录笔记、建议问题并撰写跟进内容。它包含在 PairUX Pro 中。",
+    "upgrade": "升级到 Pro",
+    "signIn": "登录后即可使用 AI 副驾驶。",
+    "role": "你在这个会议中是什么角色？",
+    "listensFor": "关注重点",
+    "mode": "模型",
+    "modes": {
+      "auto": "免费模型，付费云端作为后备",
+      "free": "仅使用免费的自托管模型",
+      "byok": "我自己的 API 密钥",
+      "cloud": "最佳质量云端（按用量付费）"
+    },
+    "pricingNote": "免费模型在我们的服务器上运行，不收费。云端模型按用量付费，价格为服务商成本 + 10%；使用你自己的密钥则免费。",
+    "settings": "密钥和余额",
+    "start": "启动副驾驶",
+    "stop": "停止并撰写跟进",
+    "stopping": "正在撰写跟进…",
+    "live": "正在聆听",
+    "providers": "语音：{stt} · AI：{llm}",
+    "waiting": "等待中",
+    "recap": "回顾最近 30 秒",
+    "recapTitle": "最近 30 秒",
+    "suggested": "建议的问题",
+    "jump": "显示位置",
+    "dismiss": "忽略",
+    "tabs": {
+      "notes": "笔记",
+      "questions": "问题",
+      "transcript": "文字记录",
+      "ask": "提问"
+    },
+    "summary": "摘要",
+    "keyPoints": "要点",
+    "decisions": "决定",
+    "actionItems": "待办事项",
+    "figures": "关键数字和日期",
+    "owner": "负责人：{owner}",
+    "nothingYet": "暂无内容。大家开始说话后，笔记会显示在这里。",
+    "noQuestions": "暂无未解决的问题。",
+    "answered": "已回答",
+    "noTranscript": "还没有听到任何人说话。发言会在几秒后显示在这里。",
+    "askPlaceholder": "私下提问：“预算是多少来着？”",
+    "askSend": "提问",
+    "askHint": "只有你能看到。回答基于会议中说过的内容。",
+    "followUps": "跟进",
+    "message": "回顾消息",
+    "copy": "复制",
+    "copied": "已复制",
+    "review": "对话复盘",
+    "focusArea": "改进重点",
+    "talkListen": "你的发言时间占 {you}%",
+    "questionsResolved": "{asked} 个问题中已回答 {answered} 个",
+    "clarity": {
+      "clear": "跟进内容清晰",
+      "partial": "跟进内容部分清晰",
+      "unclear": "跟进内容不清晰"
+    },
+    "thin": "文字记录太短，无法公正地复盘这次对话。",
+    "fullReport": "打开完整笔记",
+    "restart": "重新开始",
+    "roles": {
+      "general": {
+        "label": "通用",
+        "meetings": "任何会议。"
+      },
+      "sales": {
+        "label": "销售",
+        "meetings": "需求挖掘电话、演示和跟进。"
+      },
+      "recruiter": {
+        "label": "招聘",
+        "meetings": "初筛、面试和候选人复盘。"
+      },
+      "product": {
+        "label": "产品经理",
+        "meetings": "用户访谈、规划和干系人同步。"
+      },
+      "founder": {
+        "label": "创始人",
+        "meetings": "客户电话、投资人沟通和合作伙伴会议。"
+      },
+      "success": {
+        "label": "客户成功",
+        "meetings": "定期回访、续约和问题升级。"
+      },
+      "engineer": {
+        "label": "工程师",
+        "meetings": "需求讨论、站会、设计评审和一对一。"
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI 副驾驶笔记",
+    "listIntro": "AI 副驾驶参加过的每场会议的笔记、跟进和复盘。",
+    "settingsLink": "密钥和余额",
+    "loadError": "无法加载你的副驾驶笔记。",
+    "empty": "还没有副驾驶笔记。在任何会议中从面板启动 AI 副驾驶。",
+    "live": "进行中",
+    "untitled": "未命名会议",
+    "reportTitle": "AI 副驾驶笔记",
+    "back": "所有副驾驶笔记",
+    "noFollowUps": "没有撰写跟进内容。",
+    "rewriteFollowUps": "重写跟进",
+    "noReview": "暂无复盘。",
+    "rewriteReview": "重写复盘",
+    "settingsTitle": "AI 副驾驶设置",
+    "topupPending": "谢谢！付款确认后，余额会显示在这里。",
+    "saved": "已保存。",
+    "checkoutUnavailable": "结账暂时不可用，请稍后再试。",
+    "defaultRole": "默认角色",
+    "keysTitle": "你自己的 API 密钥",
+    "keysIntro": "使用你自己的密钥，我们绝不会向你收取 AI 费用。密钥经过加密，不会再次显示，且仅供你的副驾驶使用。",
+    "keysDisabled": "此服务器尚未启用自有密钥。",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "已设置（…{last4}）",
+    "keyNotSet": "未设置",
+    "keyPlaceholder": "粘贴密钥",
+    "saveKey": "保存",
+    "removeKey": "移除",
+    "walletTitle": "按用量付费余额：{balance}",
+    "walletIntro": "仅在云端模型使用我们的密钥运行时扣费：服务商成本 + 10%。免费模型和你自己的密钥不产生任何费用。",
+    "addCredit": "充值 {amount}",
+    "usageWhen": "时间",
+    "usageWhat": "项目",
+    "usageCharge": "费用",
+    "refunded": "已退款"
   }
 }

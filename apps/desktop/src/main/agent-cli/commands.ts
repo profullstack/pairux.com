@@ -11,6 +11,7 @@
  *   pairux who                   who is in the session
  *   pairux leave
  *   pairux room                  link to a fresh anonymous E2EE room
+ *   pairux copilot ...           your AI meeting copilot (see ./copilot.ts)
  *
  * Every command takes its I/O through `Deps`, so tests drive it end to end
  * against a fake server without touching the network, the terminal or ~/.
@@ -30,6 +31,8 @@ import {
 } from './auth';
 import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api';
 import { newRoomLink } from './room';
+import { COPILOT_HELP, runCopilot } from './copilot';
+import { UsageError } from './errors';
 
 const MAX_MESSAGE = 500;
 
@@ -44,6 +47,8 @@ export interface Deps {
   readStdin: () => Promise<string | null>;
   /** Tests stop `listen` after N polls; production runs until 410 or Ctrl-C. */
   maxPolls?: number;
+  /** Tests stop `copilot watch` after N stream connections; production reconnects. */
+  maxStreams?: number;
   login?: typeof listenForCallback;
   /** The app version, for the User-Agent and `pairux version`. */
   version?: string;
@@ -72,6 +77,9 @@ Usage:
   pairux redeem <CODE>               Redeem a credit code (adds days of a paid plan)
   pairux invites [--json]            Your invites left, invites sent and referral link
   pairux invites create [--note <s>] Create an invite link (3 per account)
+  pairux copilot <command>           Your AI meeting copilot (Pro/Team): live notes,
+                                     suggested questions, recaps, follow-ups, review.
+                                     \`pairux copilot help\` lists its commands.
 
 Environment:
   PAIRUX_API_URL        default https://pairux.com
@@ -104,8 +112,6 @@ function describe(p: RosterEntry): string {
   const client = p.agent_client ? ` · ${p.agent_client}` : '';
   return `${p.display_name}${tags ? ` (${tags}${client})` : ''}`;
 }
-
-class UsageError extends Error {}
 
 export async function run(argv: string[], deps: Deps): Promise<number> {
   const [command, ...rest] = argv;
@@ -419,6 +425,15 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
           if (values.once || (deps.maxPolls !== undefined && polls >= deps.maxPolls)) return 0;
           await deps.sleep(intervalMs);
         }
+      }
+
+      case 'copilot': {
+        if (!rest[0] || ['help', '--help', '-h'].includes(rest[0])) {
+          deps.out(COPILOT_HELP);
+          return 0;
+        }
+        if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+        return await runCopilot(rest, { deps, client, config });
       }
 
       case 'leave': {

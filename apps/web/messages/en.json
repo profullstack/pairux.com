@@ -2316,5 +2316,142 @@
       "login": "I already have an account",
       "failed": "Could not accept the invite."
     }
+  },
+  "copilot": {
+    "title": "AI copilot",
+    "listeningFor": "AI copilot is listening for {names}",
+    "consent": "Let everyone know an AI copilot is listening; it transcribes what is said.",
+    "open": "Open AI copilot",
+    "close": "Close",
+    "proOnly": "The AI copilot sits in your call, takes notes, suggests questions and writes your follow-ups. It is part of PairUX Pro.",
+    "upgrade": "Upgrade to Pro",
+    "signIn": "Sign in to use the AI copilot.",
+    "role": "Who are you in this meeting?",
+    "listensFor": "Listens for",
+    "mode": "Models",
+    "modes": {
+      "auto": "Free models, paid cloud as fallback",
+      "free": "Free self-hosted models only",
+      "byok": "My own API keys",
+      "cloud": "Best quality cloud (pay as you go)"
+    },
+    "pricingNote": "Free models run on our servers at no cost. Cloud models are pay as you go at provider cost + 10%, or free with your own keys.",
+    "settings": "Keys and credit",
+    "start": "Start copilot",
+    "stop": "Stop and write follow-ups",
+    "stopping": "Writing follow-ups…",
+    "live": "Listening",
+    "providers": "Speech: {stt} · AI: {llm}",
+    "waiting": "waiting",
+    "recap": "Recap last 30 s",
+    "recapTitle": "Last 30 seconds",
+    "suggested": "Suggested question",
+    "jump": "Show where",
+    "dismiss": "Dismiss",
+    "tabs": {
+      "notes": "Notes",
+      "questions": "Questions",
+      "transcript": "Transcript",
+      "ask": "Ask"
+    },
+    "summary": "Summary",
+    "keyPoints": "Key points",
+    "decisions": "Decisions",
+    "actionItems": "Action items",
+    "figures": "Key figures and dates",
+    "owner": "Owner: {owner}",
+    "nothingYet": "Nothing yet. Notes appear as people talk.",
+    "noQuestions": "No open questions yet.",
+    "answered": "Answered",
+    "noTranscript": "Nobody has been heard yet. Speech appears here a few seconds after it is said.",
+    "askPlaceholder": "Ask privately: “What was the budget again?”",
+    "askSend": "Ask",
+    "askHint": "Only you see this. Answers come from what was said.",
+    "followUps": "Follow-ups",
+    "message": "Recap message",
+    "copy": "Copy",
+    "copied": "Copied",
+    "review": "Conversation review",
+    "focusArea": "Focus area",
+    "talkListen": "You talked {you}% of the time",
+    "questionsResolved": "{answered} of {asked} questions answered",
+    "clarity": {
+      "clear": "Follow-ups are clear",
+      "partial": "Follow-ups are partly clear",
+      "unclear": "Follow-ups are unclear"
+    },
+    "thin": "The transcript is too short to review this conversation fairly.",
+    "fullReport": "Open full notes",
+    "restart": "Start again",
+    "roles": {
+      "general": {
+        "label": "General",
+        "meetings": "Any meeting."
+      },
+      "sales": {
+        "label": "Sales",
+        "meetings": "Discovery calls, demos and follow-ups."
+      },
+      "recruiter": {
+        "label": "Recruiter",
+        "meetings": "Screens, interviews and candidate debriefs."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "User interviews, planning and stakeholder syncs."
+      },
+      "founder": {
+        "label": "Founder",
+        "meetings": "Customer calls, investor chats and partner meetings."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-ins, renewals and escalations."
+      },
+      "engineer": {
+        "label": "Engineer",
+        "meetings": "Requirements, standups, design reviews and 1:1s."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI copilot notes",
+    "listIntro": "Notes, follow-ups and reviews from every meeting your AI copilot sat in.",
+    "settingsLink": "Keys and credit",
+    "loadError": "Could not load your copilot notes.",
+    "empty": "No copilot notes yet. Start the AI copilot from the panel in any meeting.",
+    "live": "live",
+    "untitled": "Untitled meeting",
+    "reportTitle": "AI copilot notes",
+    "back": "All copilot notes",
+    "noFollowUps": "No follow-ups were written.",
+    "rewriteFollowUps": "Rewrite follow-ups",
+    "noReview": "No review yet.",
+    "rewriteReview": "Rewrite review",
+    "settingsTitle": "AI copilot settings",
+    "topupPending": "Thanks! Your credit appears here once the payment confirms.",
+    "saved": "Saved.",
+    "checkoutUnavailable": "Checkout is unavailable right now. Try again shortly.",
+    "defaultRole": "Default role",
+    "keysTitle": "Your own API keys",
+    "keysIntro": "Use your own keys and we never charge you for AI. Keys are encrypted, never shown again, and used only by your copilot.",
+    "keysDisabled": "Own keys are not enabled on this server yet.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Set (…{last4})",
+    "keyNotSet": "Not set",
+    "keyPlaceholder": "Paste a key",
+    "saveKey": "Save",
+    "removeKey": "Remove",
+    "walletTitle": "Pay-as-you-go credit: {balance}",
+    "walletIntro": "Only used when a cloud model runs on our keys: provider cost + 10%. Free models and your own keys cost nothing.",
+    "addCredit": "Add {amount}",
+    "usageWhen": "When",
+    "usageWhat": "What",
+    "usageCharge": "Charge",
+    "refunded": "refunded"
   }
 }

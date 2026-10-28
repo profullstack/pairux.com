@@ -1,0 +1,44 @@
+{
+  "name": "@pairux/meeting-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./roles": {
+      "types": "./dist/roles.d.ts",
+      "import": "./dist/roles.js"
+    },
+    "./strings": {
+      "types": "./dist/strings.d.ts",
+      "import": "./dist/strings.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "lucide-react": "^1.61.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "lucide-react": "^1.61.0"
+  }
+}

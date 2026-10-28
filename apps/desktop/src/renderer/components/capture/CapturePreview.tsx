@@ -43,6 +43,7 @@ import { PlanCapBanner } from '@/components/billing/PlanCapBanner';
 import { StreamControls, StreamIndicator } from '@/components/streaming';
 import { useSession } from '@/hooks/useSession';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
+import { MeetingCopilot } from '@/components/copilot/MeetingCopilot';
 import { useRecording, formatDuration, type RecordingQuality } from '@/hooks/useRecording';
 import { useCamera } from '@/hooks/useCamera';
 import { useScreenCameraCompositor, type BubbleGeometry } from '@/hooks/useScreenCameraCompositor';
@@ -1340,6 +1341,9 @@ export function CapturePreview({
           selfId={currentUserId ?? session.id}
           participants={translationParticipants}
         />
+      )}
+      {isSFU && isHosting && session.id && (
+        <MeetingCopilot sessionId={session.id} selfId={currentUserId ?? ''} />
       )}
       {/* Main content */}
       <div className="flex flex-1 flex-col gap-4">

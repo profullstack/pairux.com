@@ -2316,5 +2316,142 @@
       "login": "이미 계정이 있어요",
       "failed": "초대를 수락하지 못했습니다."
     }
+  },
+  "copilot": {
+    "title": "AI 코파일럿",
+    "listeningFor": "AI 코파일럿이 {names} 님을 위해 듣고 있습니다",
+    "consent": "AI 코파일럿이 듣고 있다는 사실을 모두에게 알려 주세요. 말한 내용을 텍스트로 기록합니다.",
+    "open": "AI 코파일럿 열기",
+    "close": "닫기",
+    "proOnly": "AI 코파일럿은 통화에 함께하며 메모를 작성하고, 질문을 제안하고, 후속 메시지를 써 줍니다. PairUX Pro에 포함되어 있습니다.",
+    "upgrade": "Pro로 업그레이드",
+    "signIn": "AI 코파일럿을 사용하려면 로그인하세요.",
+    "role": "이 회의에서 내 역할은 무엇인가요?",
+    "listensFor": "주목하는 내용",
+    "mode": "모델",
+    "modes": {
+      "auto": "무료 모델, 필요 시 유료 클라우드",
+      "free": "무료 자체 호스팅 모델만",
+      "byok": "내 API 키",
+      "cloud": "최고 품질 클라우드(사용한 만큼 지불)"
+    },
+    "pricingNote": "무료 모델은 저희 서버에서 비용 없이 실행됩니다. 클라우드 모델은 제공업체 비용 + 10%로 사용한 만큼 지불하거나, 내 키를 쓰면 무료입니다.",
+    "settings": "키와 크레딧",
+    "start": "코파일럿 시작",
+    "stop": "중지하고 후속 메시지 작성",
+    "stopping": "후속 메시지 작성 중…",
+    "live": "듣는 중",
+    "providers": "음성: {stt} · AI: {llm}",
+    "waiting": "대기 중",
+    "recap": "최근 30초 요약",
+    "recapTitle": "최근 30초",
+    "suggested": "추천 질문",
+    "jump": "위치 보기",
+    "dismiss": "닫기",
+    "tabs": {
+      "notes": "메모",
+      "questions": "질문",
+      "transcript": "대화록",
+      "ask": "물어보기"
+    },
+    "summary": "요약",
+    "keyPoints": "핵심 내용",
+    "decisions": "결정 사항",
+    "actionItems": "할 일",
+    "figures": "주요 수치와 날짜",
+    "owner": "담당: {owner}",
+    "nothingYet": "아직 내용이 없습니다. 대화가 진행되면 메모가 표시됩니다.",
+    "noQuestions": "아직 열린 질문이 없습니다.",
+    "answered": "답변됨",
+    "noTranscript": "아직 아무도 말하지 않았습니다. 발언은 몇 초 후 여기에 표시됩니다.",
+    "askPlaceholder": "비공개로 물어보기: “예산이 얼마였죠?”",
+    "askSend": "물어보기",
+    "askHint": "나만 볼 수 있습니다. 답변은 대화 내용을 바탕으로 합니다.",
+    "followUps": "후속 메시지",
+    "message": "요약 메시지",
+    "copy": "복사",
+    "copied": "복사됨",
+    "review": "대화 리뷰",
+    "focusArea": "개선할 점",
+    "talkListen": "내가 말한 시간: {you}%",
+    "questionsResolved": "질문 {asked}개 중 {answered}개 답변됨",
+    "clarity": {
+      "clear": "후속 메시지가 명확합니다",
+      "partial": "후속 메시지가 일부만 명확합니다",
+      "unclear": "후속 메시지가 명확하지 않습니다"
+    },
+    "thin": "대화록이 너무 짧아 이 대화를 공정하게 리뷰할 수 없습니다.",
+    "fullReport": "전체 메모 열기",
+    "restart": "다시 시작",
+    "roles": {
+      "general": {
+        "label": "일반",
+        "meetings": "모든 회의."
+      },
+      "sales": {
+        "label": "영업",
+        "meetings": "니즈 파악 통화, 데모, 후속 미팅."
+      },
+      "recruiter": {
+        "label": "채용 담당자",
+        "meetings": "사전 스크리닝, 면접, 후보자 디브리핑."
+      },
+      "product": {
+        "label": "프로덕트 매니저",
+        "meetings": "사용자 인터뷰, 기획, 이해관계자 미팅."
+      },
+      "founder": {
+        "label": "창업자",
+        "meetings": "고객 통화, 투자자 미팅, 파트너 회의."
+      },
+      "success": {
+        "label": "고객 성공",
+        "meetings": "정기 점검, 갱신, 에스컬레이션."
+      },
+      "engineer": {
+        "label": "엔지니어",
+        "meetings": "요구사항, 스탠드업, 설계 리뷰, 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI 코파일럿 메모",
+    "listIntro": "AI 코파일럿이 함께한 모든 회의의 메모, 후속 메시지, 리뷰입니다.",
+    "settingsLink": "키와 크레딧",
+    "loadError": "코파일럿 메모를 불러오지 못했습니다.",
+    "empty": "아직 코파일럿 메모가 없습니다. 아무 회의에서나 패널로 AI 코파일럿을 시작하세요.",
+    "live": "진행 중",
+    "untitled": "제목 없는 회의",
+    "reportTitle": "AI 코파일럿 메모",
+    "back": "모든 코파일럿 메모",
+    "noFollowUps": "작성된 후속 메시지가 없습니다.",
+    "rewriteFollowUps": "후속 메시지 다시 쓰기",
+    "noReview": "아직 리뷰가 없습니다.",
+    "rewriteReview": "리뷰 다시 쓰기",
+    "settingsTitle": "AI 코파일럿 설정",
+    "topupPending": "감사합니다! 결제가 확인되면 여기에 크레딧이 표시됩니다.",
+    "saved": "저장되었습니다.",
+    "checkoutUnavailable": "지금은 결제를 이용할 수 없습니다. 잠시 후 다시 시도하세요.",
+    "defaultRole": "기본 역할",
+    "keysTitle": "내 API 키",
+    "keysIntro": "내 키를 사용하면 AI 비용이 청구되지 않습니다. 키는 암호화되며 다시 표시되지 않고 내 코파일럿만 사용합니다.",
+    "keysDisabled": "이 서버에서는 아직 내 키 사용이 활성화되지 않았습니다.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "설정됨(…{last4})",
+    "keyNotSet": "설정 안 됨",
+    "keyPlaceholder": "키 붙여넣기",
+    "saveKey": "저장",
+    "removeKey": "삭제",
+    "walletTitle": "사용량 기반 크레딧: {balance}",
+    "walletIntro": "클라우드 모델이 저희 키로 실행될 때만 사용됩니다: 제공업체 비용 + 10%. 무료 모델과 내 키는 비용이 들지 않습니다.",
+    "addCredit": "{amount} 충전",
+    "usageWhen": "일시",
+    "usageWhat": "항목",
+    "usageCharge": "요금",
+    "refunded": "환불됨"
   }
 }

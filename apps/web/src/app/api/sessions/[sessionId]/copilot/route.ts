@@ -2,6 +2,9 @@ import { isCopilotMode, isCopilotRole, type CopilotStatus } from '@pairux/meetin
 import { errorResponse, successResponse } from '@/lib/api';
 import { authorizeCopilotCaller } from '@/lib/copilot/access';
 import { COPILOT_REQUIRES_PRO } from '@/lib/copilot/account';
+import { loadSealWith, migrateLegacyCopilotKeys } from '@/lib/copilot/keys';
+import { serviceClient } from '@/lib/supabase/service';
+import { base64ToBytes, openPrivateKey, wipe } from '@/lib/sealed/crypto';
 import { body, copilotError, runtimeOrThrow } from '@/lib/copilot/http';
 import { copilotRuntime } from '@/lib/copilot/runtime';
 import { upgradePath } from '@/lib/plans';
@@ -39,9 +42,10 @@ export async function GET(request: Request, { params }: RouteParams) {
       };
       return successResponse(status);
     }
-    const [eligible, settings] = await Promise.all([
+    const [eligible, settings, seal] = await Promise.all([
       runtime.accounts.eligible(caller.userId),
-      runtime.accounts.settingsFor(caller.userId),
+      runtime.accounts.settingsFor(caller.userId, sessionId),
+      loadSealWith(serviceClient(), caller.userId),
     ]);
     // A copilot left live by a redeploy resumes as soon as its owner looks.
     const mine =
@@ -55,11 +59,42 @@ export async function GET(request: Request, { params }: RouteParams) {
       mine,
       mode: settings.mode,
       role: settings.role,
+      ownKeys: { state: settings.keysState, userId: caller.userId, seal },
     };
     return successResponse(status);
   } catch (error) {
     return copilotError(error);
   }
+}
+
+/**
+ * Unlock the caller's own keys for this meeting with the data key their
+ * browser derived from the key passphrase (never the passphrase itself). The
+ * opened private key stays in this process's memory until the copilot stops.
+ */
+async function unlockForMeeting(
+  runtime: NonNullable<ReturnType<typeof copilotRuntime>>,
+  sessionId: string,
+  userId: string,
+  dekB64: string,
+  ttlSeconds: unknown
+): Promise<Response | null> {
+  const db = serviceClient();
+  const seal = await loadSealWith(db, userId);
+  if (!seal) return errorResponse('Set a key passphrase in Settings first.', 409);
+  let dek: Uint8Array | null = null;
+  let privateKey: CryptoKey;
+  try {
+    dek = base64ToBytes(dekB64);
+    privateKey = await openPrivateKey(dek, seal, userId);
+  } catch {
+    return errorResponse('Wrong key passphrase.', 403);
+  } finally {
+    wipe(dek);
+  }
+  await migrateLegacyCopilotKeys(db, userId, seal.public_key);
+  await runtime.unlockKeys(sessionId, userId, privateKey, ttlSeconds);
+  return null;
 }
 
 async function recoverIfLive(
@@ -75,7 +110,9 @@ async function recoverIfLive(
 }
 
 // POST /api/sessions/:id/copilot — start (or resume) the caller's copilot.
-// Body: { participantId, role, mode }.
+// Body: { participantId, role, mode, dek? }. `dek` (base64, derived in the
+// browser from the key passphrase) unlocks the caller's own keys for this
+// meeting only; without it a caller with sealed keys runs on free models.
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { sessionId } = await params;
@@ -89,7 +126,17 @@ export async function POST(request: Request, { params }: RouteParams) {
     if (caller.sessionStatus === 'ended') return errorResponse('This meeting has ended.', 400);
     if (!(await runtime.accounts.eligible(caller.userId)))
       return errorResponse(COPILOT_REQUIRES_PRO, 403);
-    const settings = await runtime.accounts.settingsFor(caller.userId);
+    if (typeof input.dek === 'string' && input.dek) {
+      const refused = await unlockForMeeting(
+        runtime,
+        sessionId,
+        caller.userId,
+        input.dek,
+        input.ttl_seconds
+      );
+      if (refused) return refused;
+    }
+    const settings = await runtime.accounts.settingsFor(caller.userId, sessionId);
     const role = isCopilotRole(input.role) ? input.role : settings.role;
     const mode = isCopilotMode(input.mode) ? input.mode : settings.mode;
     // Remember the choice for next time (and for the CLI).

@@ -2401,6 +2401,15 @@
       "unclear": "跟进内容不清晰"
     },
     "thin": "文字记录太短，无法公正地复盘这次对话。",
+    "ownKeys": {
+      "locked": "你自己的 API 密钥已锁定。输入密钥口令即可在本次会议中使用。",
+      "lockedLive": "你自己的 API 密钥已锁定，因此助手正在使用免费模型。解锁后即可切换回来。",
+      "secret": "密钥口令或恢复密钥",
+      "unlock": "解锁密钥",
+      "note": "PairUX 仅在本次会议期间把解锁的密钥保存在内存中，助手停止时即丢弃。",
+      "legacy": "已保存的密钥需要先设置密钥口令才能使用。请在“密钥和额度”中设置。",
+      "webOnly": "你自己的 API 密钥已锁定。请在 pairux.com 上启动助手以解锁。"
+    },
     "fullReport": "打开完整笔记",
     "restart": "重新开始",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "结账暂时不可用，请稍后再试。",
     "defaultRole": "默认角色",
     "keysTitle": "你自己的 API 密钥",
-    "keysIntro": "使用你自己的密钥，我们绝不会向你收取 AI 费用。密钥经过加密，不会再次显示，且仅供你的副驾驶使用。",
-    "keysDisabled": "此服务器尚未启用自有密钥。",
+    "keysIntro": "使用你自己的密钥，我们绝不收取 AI 费用。密钥用只有你知道的口令封存，PairUX 无法打开；你每次只为一场会议解锁。如果口令和恢复密钥都丢失，请重新输入密钥。",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC 是负责回答的命令：提示词通过 stdin 传入，它打印的内容就是回复。",
       "connectApi": "或者自己调用 API",
       "connectApiHint": "每次调用都以 Bearer 令牌发送密钥。用返回的游标轮询转录。"
-    }
+    },
+    "passphraseFirst": "保存密钥前请先设置密钥口令。它与 YouTube 自动直播使用同一口令。",
+    "passphraseLegacy": "你已保存的密钥正等待迁移到你自己的口令下。设置口令即可继续使用。",
+    "passphrase": "密钥口令（至少 {min} 个字符）",
+    "passphraseRepeat": "再次输入口令",
+    "passphraseShort": "请至少使用 {min} 个字符。",
+    "passphraseMismatch": "两次输入的口令不一致。",
+    "passphraseSet": "设置口令",
+    "recoveryTitle": "恢复密钥（仅显示一次）。请妥善保管：",
+    "recoverySaved": "我已保存"
   }
 }

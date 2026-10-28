@@ -7,6 +7,8 @@ import {
 } from '@pairux/meeting-copilot';
 import { getElectronAPI } from '@/lib/ipc';
 import { API_BASE_URL } from '../../../shared/config';
+// The web app's seal v2 client code (WebCrypto only): own keys unlock here too.
+import { dataKeyFromSecret } from '../../../../../web/src/lib/sealed/unlock-secret';
 
 // Ask the main process for the token once a minute.
 let cached: { token: string | null; until: number } = { token: null, until: 0 };
@@ -25,6 +27,7 @@ const DESKTOP: MeetingCopilotEnvironment = {
   openUrl: (url) => {
     void getElectronAPI().invoke('auth:openExternal', url);
   },
+  unlockKeys: dataKeyFromSecret,
 };
 
 // The desktop app is not localized: the panel's English strings.

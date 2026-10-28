@@ -19,6 +19,11 @@ export interface ProviderContext {
   sessionId: string;
   mode: CopilotMode;
   keys: CopilotKeys;
+  /**
+   * The owner has own keys saved but they are not unlocked for this meeting:
+   * free models only, never our paid provider in their place.
+   */
+  keysLocked?: boolean;
   admin: boolean;
 }
 

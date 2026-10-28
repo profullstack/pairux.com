@@ -152,6 +152,21 @@ export interface CopilotStatus {
   mine: CopilotState | null;
   mode: CopilotMode;
   role: CopilotRole;
+  /**
+   * The caller's own API keys for this meeting (absent for guests). Keys are
+   * sealed under the owner's key passphrase; to use them the client derives the
+   * data key from it with `seal` and sends it with Start. `legacy` keys need a
+   * key passphrase set in Settings first.
+   */
+  ownKeys?: CopilotOwnKeys;
+}
+
+export interface CopilotOwnKeys {
+  state: 'none' | 'unlocked' | 'locked' | 'legacy';
+  /** The caller's user id (bound into the seal). */
+  userId: string;
+  /** The caller's seal record (ciphertext only), or null before a passphrase is set. */
+  seal: unknown;
 }
 
 /** Where an invite to one of your agents stands. */

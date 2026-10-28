@@ -2401,6 +2401,15 @@
       "unclear": "Follow-ups are unclear"
     },
     "thin": "The transcript is too short to review this conversation fairly.",
+    "ownKeys": {
+      "locked": "Your own API keys are locked. Enter your key passphrase to use them in this meeting.",
+      "lockedLive": "Your own API keys are locked, so the copilot is on free models. Unlock them to switch back.",
+      "secret": "Key passphrase or recovery key",
+      "unlock": "Unlock keys",
+      "note": "PairUX keeps the unlocked key in memory for this meeting only and drops it when the copilot stops.",
+      "legacy": "Your saved keys need a key passphrase before they can be used. Set one in Keys and credit.",
+      "webOnly": "Your own API keys are locked. Start the copilot on pairux.com to unlock them."
+    },
     "fullReport": "Open full notes",
     "restart": "Start again",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Checkout is unavailable right now. Try again shortly.",
     "defaultRole": "Default role",
     "keysTitle": "Your own API keys",
-    "keysIntro": "Use your own keys and we never charge you for AI. Keys are encrypted, never shown again, and used only by your copilot.",
-    "keysDisabled": "Own keys are not enabled on this server yet.",
+    "keysIntro": "Use your own keys and we never charge you for AI. Keys are sealed under a key passphrase only you know, so PairUX cannot open them; you unlock them one meeting at a time. Lose the passphrase and the recovery key and you re-enter your keys.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC is the command that answers: the prompt arrives on stdin, the reply is what it prints.",
       "connectApi": "Or call the API yourself",
       "connectApiHint": "Every call sends the key as a Bearer token. Poll the transcript with the cursor it returns."
-    }
+    },
+    "passphraseFirst": "Set a key passphrase before saving keys. It is the same passphrase as YouTube auto go-live.",
+    "passphraseLegacy": "Your saved keys are waiting to move under your own key passphrase. Set one to keep using them.",
+    "passphrase": "Key passphrase ({min}+ characters)",
+    "passphraseRepeat": "Repeat passphrase",
+    "passphraseShort": "Use at least {min} characters.",
+    "passphraseMismatch": "The two passphrases differ.",
+    "passphraseSet": "Set passphrase",
+    "recoveryTitle": "Recovery key (shown once). Keep it somewhere safe:",
+    "recoverySaved": "I saved it"
   }
 }

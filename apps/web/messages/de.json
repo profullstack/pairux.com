@@ -2401,6 +2401,15 @@
       "unclear": "Follow-ups sind unklar"
     },
     "thin": "Das Transkript ist zu kurz, um dieses Gespräch fair zu bewerten.",
+    "ownKeys": {
+      "locked": "Deine eigenen API-Schlüssel sind gesperrt. Gib deine Schlüssel-Passphrase ein, um sie in diesem Meeting zu nutzen.",
+      "lockedLive": "Deine eigenen API-Schlüssel sind gesperrt, daher nutzt der Copilot kostenlose Modelle. Entsperre sie, um zurückzuwechseln.",
+      "secret": "Schlüssel-Passphrase oder Wiederherstellungsschlüssel",
+      "unlock": "Schlüssel entsperren",
+      "note": "PairUX hält den entsperrten Schlüssel nur für dieses Meeting im Arbeitsspeicher und verwirft ihn, wenn der Copilot stoppt.",
+      "legacy": "Deine gespeicherten Schlüssel brauchen eine Schlüssel-Passphrase, bevor sie genutzt werden können. Lege sie unter Schlüssel und Guthaben fest.",
+      "webOnly": "Deine eigenen API-Schlüssel sind gesperrt. Starte den Copilot auf pairux.com, um sie zu entsperren."
+    },
     "fullReport": "Vollständige Notizen öffnen",
     "restart": "Neu starten",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Der Checkout ist gerade nicht verfügbar. Versuch es gleich noch einmal.",
     "defaultRole": "Standardrolle",
     "keysTitle": "Deine eigenen API-Schlüssel",
-    "keysIntro": "Mit deinen eigenen Schlüsseln berechnen wir dir nie etwas für KI. Schlüssel werden verschlüsselt, nie wieder angezeigt und nur von deinem Copilot verwendet.",
-    "keysDisabled": "Eigene Schlüssel sind auf diesem Server noch nicht aktiviert.",
+    "keysIntro": "Mit deinen eigenen Schlüsseln berechnen wir dir nie etwas für KI. Die Schlüssel sind mit einer Passphrase versiegelt, die nur du kennst, daher kann PairUX sie nicht öffnen; du entsperrst sie jeweils für ein Meeting. Verlierst du Passphrase und Wiederherstellungsschlüssel, gibst du deine Schlüssel neu ein.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC ist der Befehl, der antwortet: Der Prompt kommt über stdin, die Antwort ist seine Ausgabe.",
       "connectApi": "Oder ruf die API selbst auf",
       "connectApiHint": "Jeder Aufruf sendet den Schlüssel als Bearer-Token. Frag das Transkript mit dem zurückgegebenen Cursor ab."
-    }
+    },
+    "passphraseFirst": "Lege eine Schlüssel-Passphrase fest, bevor du Schlüssel speicherst. Es ist dieselbe Passphrase wie für YouTube Auto-Go-Live.",
+    "passphraseLegacy": "Deine gespeicherten Schlüssel warten darauf, unter deine eigene Schlüssel-Passphrase zu wechseln. Lege eine fest, um sie weiter zu nutzen.",
+    "passphrase": "Schlüssel-Passphrase ({min}+ Zeichen)",
+    "passphraseRepeat": "Passphrase wiederholen",
+    "passphraseShort": "Verwende mindestens {min} Zeichen.",
+    "passphraseMismatch": "Die beiden Passphrasen unterscheiden sich.",
+    "passphraseSet": "Passphrase festlegen",
+    "recoveryTitle": "Wiederherstellungsschlüssel (nur einmal angezeigt). Bewahre ihn sicher auf:",
+    "recoverySaved": "Ich habe ihn gespeichert"
   }
 }

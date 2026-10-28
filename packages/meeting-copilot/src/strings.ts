@@ -91,6 +91,17 @@ export const COPILOT_STRINGS_EN = {
     unclear: 'Follow-ups are unclear',
   },
   thin: 'The transcript is too short to review this conversation fairly.',
+  ownKeys: {
+    locked: 'Your own API keys are locked. Enter your key passphrase to use them in this meeting.',
+    lockedLive:
+      'Your own API keys are locked, so the copilot is on free models. Unlock them to switch back.',
+    secret: 'Key passphrase or recovery key',
+    unlock: 'Unlock keys',
+    note: 'PairUX keeps the unlocked key in memory for this meeting only and drops it when the copilot stops.',
+    legacy:
+      'Your saved keys need a key passphrase before they can be used. Set one in Keys and credit.',
+    webOnly: 'Your own API keys are locked. Start the copilot on pairux.com to unlock them.',
+  },
   fullReport: 'Open full notes',
   restart: 'Start again',
   roles: {

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import {
   isCopilotMode,
   isCopilotRole,
@@ -9,6 +8,14 @@ import {
 import { serviceClient } from '@/lib/supabase/service';
 import { resolveUserPlan, type Db } from '@/lib/orgs';
 import { PLANS, upgradePath } from '@/lib/plans';
+import { isSealedValue, openWithPrivateKey, sealToPublicKey } from '@/lib/sealed/crypto';
+import {
+  COPILOT_SEAL_VERSION,
+  copilotPrivateKey,
+  isLegacyValue,
+  keyField,
+  loadSealWith,
+} from './keys';
 
 /** Plans that include the copilot (own plan or an org's). */
 const COPILOT_PLANS = new Set(['pro', 'team']);
@@ -20,56 +27,45 @@ export type KeyProvider = (typeof KEY_PROVIDERS)[number];
 export const isKeyProvider = (value: unknown): value is KeyProvider =>
   typeof value === 'string' && (KEY_PROVIDERS as readonly string[]).includes(value);
 
-/** The owner's own keys, decrypted, for this process only. */
+/** The owner's own keys, opened for one meeting while it is unlocked. */
 export type CopilotKeys = Partial<Record<KeyProvider, string>>;
+
+/**
+ * Where the owner's own keys stand for one meeting:
+ *   none      no own keys saved
+ *   unlocked  sealed keys, unlocked for this meeting (opened in `keys`)
+ *   locked    sealed keys, not unlocked: free models only until they unlock
+ *   legacy    keys still under the old server key: set a key passphrase to move them
+ */
+export type OwnKeysState = 'none' | 'unlocked' | 'locked' | 'legacy';
 
 export interface CopilotSettings {
   mode: CopilotMode;
   role: CopilotRole;
   keys: CopilotKeys;
+  keysState: OwnKeysState;
 }
 /** What the API returns: never key material, only whether a key is set and its last 4. */
 export interface PublicCopilotSettings {
   mode: CopilotMode;
   role: CopilotRole;
   keys: Record<KeyProvider, { set: boolean; last4: string | null }>;
+  /** Has the owner set a key passphrase (needed to save or use own keys)? */
+  passphraseSet: boolean;
+  /** Keys still under the old server key, waiting for the owner's passphrase. */
+  legacyKeys: number;
 }
 
-// --- BYOK encryption (AES-256-GCM, key derived from COPILOT_KEYS_SECRET) ---
+// --- BYOK: sealed to the owner (lib/copilot/keys.ts); no server key opens them ---
 
-function secretKey(): Buffer {
-  const secret = process.env.COPILOT_KEYS_SECRET ?? '';
-  if (secret.length < 32)
-    throw new Error('COPILOT_KEYS_SECRET is not set (32+ characters); own keys are disabled.');
-  return createHash('sha256').update(`pairux-copilot-keys:${secret}`).digest();
-}
-export const byokAvailable = (): boolean => (process.env.COPILOT_KEYS_SECRET ?? '').length >= 32;
+/** Own keys need no server secret any more: they are sealed to the owner's key passphrase. */
+export const byokAvailable = (): boolean => true;
 
-/** The full 128-bit GCM tag; a shorter one is refused (truncated tags enable forgeries). */
-const TAG_BYTES = 16;
-
-/** v1.<iv>.<tag>.<ciphertext>, base64url. */
-export function sealKey(plain: string, key: Buffer = secretKey()): string {
-  const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: TAG_BYTES });
-  const body = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
-  return ['v1', iv, cipher.getAuthTag(), body]
-    .map((part) => (typeof part === 'string' ? part : part.toString('base64url')))
-    .join('.');
-}
-export function openKey(sealed: string, key: Buffer = secretKey()): string {
-  const [version, iv, tag, body] = sealed.split('.');
-  if (version !== 'v1' || !iv || !tag || !body) throw new Error('Unreadable stored key.');
-  const authTag = Buffer.from(tag, 'base64url');
-  if (authTag.length !== TAG_BYTES) throw new Error('Unreadable stored key.');
-  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64url'), {
-    authTagLength: TAG_BYTES,
-  });
-  decipher.setAuthTag(authTag);
-  return Buffer.concat([
-    decipher.update(Buffer.from(body, 'base64url')),
-    decipher.final(),
-  ]).toString('utf8');
+/** Saving a key before the owner has set a key passphrase. */
+export class KeyPassphraseRequiredError extends Error {
+  constructor() {
+    super('Set a key passphrase first: your keys are sealed under it and PairUX cannot open them.');
+  }
 }
 
 /** A plausible key for each provider: rejects pasted junk before it is stored. */
@@ -118,32 +114,56 @@ export class CopilotAccounts {
     return pro;
   }
 
-  async settingsFor(userId: string): Promise<CopilotSettings> {
-    const cached = this.settings.get(userId);
+  /**
+   * Mode, role and, for a meeting the owner unlocked, their opened own keys.
+   * Without `sessionId` (or while locked) no key is opened.
+   */
+  async settingsFor(userId: string, sessionId = ''): Promise<CopilotSettings> {
+    const cacheKey = `${userId}:${sessionId}`;
+    const cached = this.settings.get(cacheKey);
     if (cached && cached.until > Date.now()) return cached.value;
     const { data } = await this.db
       .from('copilot_settings')
       .select('mode, role, anthropic_key, openai_key, elevenlabs_key')
       .eq('user_id', userId)
       .maybeSingle();
+    const privateKey = copilotPrivateKey(userId, sessionId);
     const keys: CopilotKeys = {};
+    let sealed = 0;
+    let legacy = 0;
     for (const provider of KEY_PROVIDERS) {
-      const sealed = data?.[`${provider}_key`];
-      if (typeof sealed === 'string' && sealed && byokAvailable()) {
-        try {
-          keys[provider] = openKey(sealed);
-        } catch (error) {
-          console.error(`[copilot] stored ${provider} key could not be opened:`, error);
-        }
+      const stored: unknown = data?.[`${provider}_key`];
+      if (isLegacyValue(stored)) legacy++;
+      if (!isSealedValue(stored)) continue;
+      sealed++;
+      if (!privateKey) continue;
+      try {
+        keys[provider] = await openWithPrivateKey(privateKey, stored, userId, keyField(provider));
+      } catch {
+        console.error(`[copilot] stored ${provider} key could not be opened`);
       }
     }
+    const keysState: OwnKeysState = Object.keys(keys).length
+      ? 'unlocked'
+      : sealed
+        ? 'locked'
+        : legacy
+          ? 'legacy'
+          : 'none';
     const value: CopilotSettings = {
       mode: isCopilotMode(data?.mode) ? data.mode : 'auto',
       role: isCopilotRole(data?.role) ? data.role : 'general',
       keys,
+      keysState,
     };
-    this.settings.set(userId, { value, until: Date.now() + 30_000 });
+    this.settings.set(cacheKey, { value, until: Date.now() + 30_000 });
     return value;
+  }
+
+  /** Drop cached settings (and any opened keys in them) for an owner. */
+  forget(userId: string): void {
+    for (const key of [...this.settings.keys()])
+      if (key.startsWith(`${userId}:`)) this.settings.delete(key);
   }
 
   async publicSettings(userId: string): Promise<PublicCopilotSettings> {
@@ -155,15 +175,20 @@ export class CopilotAccounts {
       .eq('user_id', userId)
       .maybeSingle();
     const keys = {} as PublicCopilotSettings['keys'];
-    for (const provider of KEY_PROVIDERS)
+    let legacyKeys = 0;
+    for (const provider of KEY_PROVIDERS) {
       keys[provider] = {
         set: Boolean(data?.[`${provider}_key`]),
         last4: data?.[`${provider}_last4`] ?? null,
       };
+      if (isLegacyValue(data?.[`${provider}_key`])) legacyKeys++;
+    }
     return {
       mode: isCopilotMode(data?.mode) ? data.mode : 'auto',
       role: isCopilotRole(data?.role) ? data.role : 'general',
       keys,
+      passphraseSet: Boolean(await loadSealWith(this.db, userId)),
+      legacyKeys,
     };
   }
 
@@ -179,20 +204,30 @@ export class CopilotAccounts {
     const row: Record<string, unknown> = { user_id: userId, updated_at: new Date().toISOString() };
     if (patch.mode) row.mode = patch.mode;
     if (patch.role) row.role = patch.role;
+    const adding = KEY_PROVIDERS.some((provider) => Boolean(patch.keys?.[provider]));
+    // A new key is sealed to the owner's public key right here; we keep no way to open it.
+    const seal = adding ? await loadSealWith(this.db, userId) : null;
+    if (adding && !seal) throw new KeyPassphraseRequiredError();
     for (const provider of KEY_PROVIDERS) {
       const value = patch.keys?.[provider];
       if (value === undefined) continue;
       if (value === null || value === '') {
         row[`${provider}_key`] = null;
         row[`${provider}_last4`] = null;
-      } else {
-        row[`${provider}_key`] = sealKey(value);
+      } else if (seal) {
+        row[`${provider}_key`] = await sealToPublicKey(
+          seal.public_key,
+          value,
+          userId,
+          keyField(provider)
+        );
         row[`${provider}_last4`] = value.slice(-4);
+        row.seal_version = COPILOT_SEAL_VERSION;
       }
     }
     const { error } = await this.db.from('copilot_settings').upsert(row, { onConflict: 'user_id' });
     if (error) throw new Error(`Saving copilot settings failed: ${String(error.message)}`);
-    this.settings.delete(userId);
+    this.forget(userId);
     return this.publicSettings(userId);
   }
 

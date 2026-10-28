@@ -2401,6 +2401,15 @@
       "unclear": "Takip mesajları net değil"
     },
     "thin": "Döküm, bu görüşmeyi adil biçimde değerlendirmek için çok kısa.",
+    "ownKeys": {
+      "locked": "Kendi API anahtarlarınız kilitli. Bu toplantıda kullanmak için anahtar parolanızı girin.",
+      "lockedLive": "Kendi API anahtarlarınız kilitli, bu yüzden yardımcı ücretsiz modelleri kullanıyor. Geri dönmek için kilidi açın.",
+      "secret": "Anahtar parolası veya kurtarma anahtarı",
+      "unlock": "Anahtarların kilidini aç",
+      "note": "PairUX açılan anahtarı yalnızca bu toplantı için bellekte tutar ve yardımcı durunca siler.",
+      "legacy": "Kayıtlı anahtarlarınızın kullanılabilmesi için bir anahtar parolası gerekiyor. Anahtarlar ve kredi bölümünden belirleyin.",
+      "webOnly": "Kendi API anahtarlarınız kilitli. Kilidi açmak için yardımcıyı pairux.com üzerinde başlatın."
+    },
     "fullReport": "Tüm notları aç",
     "restart": "Baştan başla",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Ödeme şu anda kullanılamıyor. Birazdan tekrar dene.",
     "defaultRole": "Varsayılan rol",
     "keysTitle": "Kendi API anahtarların",
-    "keysIntro": "Kendi anahtarlarını kullan, yapay zekâ için senden asla ücret almayalım. Anahtarlar şifrelenir, bir daha asla gösterilmez ve yalnızca yardımcı pilotun tarafından kullanılır.",
-    "keysDisabled": "Kendi anahtarların bu sunucuda henüz etkin değil.",
+    "keysIntro": "Kendi anahtarlarınızla yapay zekâ için asla ücret almayız. Anahtarlar yalnızca sizin bildiğiniz bir parolayla mühürlenir, bu yüzden PairUX onları açamaz; her toplantı için ayrı açarsınız. Parolayı ve kurtarma anahtarını kaybederseniz anahtarlarınızı yeniden girersiniz.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC yanıt veren komuttur: istem stdin üzerinden gelir, yanıt komutun yazdırdığıdır.",
       "connectApi": "Ya da API’yi kendiniz çağırın",
       "connectApiHint": "Her çağrı anahtarı Bearer belirteci olarak gönderir. Transkripti dönen imleçle yoklayın."
-    }
+    },
+    "passphraseFirst": "Anahtar kaydetmeden önce bir anahtar parolası belirleyin. YouTube otomatik canlı yayın ile aynı paroladır.",
+    "passphraseLegacy": "Kayıtlı anahtarlarınız kendi parolanıza taşınmayı bekliyor. Kullanmaya devam etmek için bir parola belirleyin.",
+    "passphrase": "Anahtar parolası ({min}+ karakter)",
+    "passphraseRepeat": "Parolayı tekrarlayın",
+    "passphraseShort": "En az {min} karakter kullanın.",
+    "passphraseMismatch": "İki parola farklı.",
+    "passphraseSet": "Parolayı belirle",
+    "recoveryTitle": "Kurtarma anahtarı (bir kez gösterilir). Güvenli bir yerde saklayın:",
+    "recoverySaved": "Kaydettim"
   }
 }

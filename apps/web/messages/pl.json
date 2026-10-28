@@ -2401,6 +2401,15 @@
       "unclear": "Follow-upy są niejasne"
     },
     "thin": "Transkrypcja jest za krótka, aby rzetelnie ocenić tę rozmowę.",
+    "ownKeys": {
+      "locked": "Twoje klucze API są zablokowane. Wpisz hasło kluczy, aby użyć ich na tym spotkaniu.",
+      "lockedLive": "Twoje klucze API są zablokowane, więc copilot korzysta z darmowych modeli. Odblokuj je, aby wrócić do swoich kluczy.",
+      "secret": "Hasło kluczy lub klucz odzyskiwania",
+      "unlock": "Odblokuj klucze",
+      "note": "PairUX trzyma odblokowany klucz w pamięci tylko na czas tego spotkania i usuwa go, gdy copilot się zatrzyma.",
+      "legacy": "Zapisane klucze wymagają hasła, zanim będzie można ich użyć. Ustaw je w sekcji Klucze i środki.",
+      "webOnly": "Twoje klucze API są zablokowane. Uruchom copilota na pairux.com, aby je odblokować."
+    },
     "fullReport": "Otwórz pełne notatki",
     "restart": "Zacznij od nowa",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za chwilę.",
     "defaultRole": "Domyślna rola",
     "keysTitle": "Twoje własne klucze API",
-    "keysIntro": "Używaj własnych kluczy, a nigdy nie obciążymy Cię za AI. Klucze są szyfrowane, nigdy więcej nie są wyświetlane i używa ich tylko Twój copilot.",
-    "keysDisabled": "Własne klucze nie są jeszcze włączone na tym serwerze.",
+    "keysIntro": "Z własnymi kluczami nigdy nie pobieramy opłat za AI. Klucze są zapieczętowane hasłem, które znasz tylko Ty, więc PairUX nie może ich otworzyć; odblokowujesz je na jedno spotkanie. Jeśli zgubisz hasło i klucz odzyskiwania, wpiszesz klucze ponownie.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC to polecenie, które odpowiada: prompt trafia na stdin, a odpowiedź to to, co wypisze.",
       "connectApi": "Albo wywołaj API samodzielnie",
       "connectApiHint": "Każde wywołanie wysyła klucz jako token Bearer. Pobieraj transkrypcję ze zwróconym kursorem."
-    }
+    },
+    "passphraseFirst": "Ustaw hasło kluczy przed zapisaniem kluczy. To samo hasło co dla automatycznej transmisji na YouTube.",
+    "passphraseLegacy": "Zapisane klucze czekają na przeniesienie pod Twoje hasło. Ustaw je, aby dalej z nich korzystać.",
+    "passphrase": "Hasło kluczy ({min}+ znaków)",
+    "passphraseRepeat": "Powtórz hasło",
+    "passphraseShort": "Użyj co najmniej {min} znaków.",
+    "passphraseMismatch": "Hasła się różnią.",
+    "passphraseSet": "Ustaw hasło",
+    "recoveryTitle": "Klucz odzyskiwania (pokazywany raz). Przechowuj go w bezpiecznym miejscu:",
+    "recoverySaved": "Zapisałem go"
   }
 }

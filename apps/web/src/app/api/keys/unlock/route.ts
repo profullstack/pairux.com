@@ -3,6 +3,8 @@ import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { base64ToBytes, clampUnlockTtlSeconds, openPrivateKey, wipe } from '@/lib/sealed/crypto';
 import { unlockOwner } from '@/lib/sealed/unlockStore';
 import { loadSeal } from '@/lib/sealed/vault';
+import { migrateLegacyCopilotKeys } from '@/lib/copilot/keys';
+import { serviceClient } from '@/lib/supabase/service';
 
 /** POST /api/keys/unlock { dek, ttl_seconds? }: the data key, never the passphrase. Memory only. */
 export async function POST(request: Request) {
@@ -17,6 +19,12 @@ export async function POST(request: Request) {
   try {
     const key = await openPrivateKey(dek, seal, user.id);
     const { expiresAt } = unlockOwner(user.id, key, clampUnlockTtlSeconds(body.ttl_seconds));
+    // One-shot: copilot keys still under the old server key move to this seal.
+    await migrateLegacyCopilotKeys(serviceClient(), user.id, seal.public_key).catch(
+      (error: unknown) => {
+        console.error('[keys] copilot key migration failed:', error);
+      }
+    );
     return NextResponse.json({ data: { ok: true, expiresAt: new Date(expiresAt).toISOString() } });
   } catch {
     return NextResponse.json({ error: 'wrong key' }, { status: 403 });

@@ -2401,6 +2401,15 @@
       "unclear": "I follow-up non sono chiari"
     },
     "thin": "La trascrizione è troppo breve per valutare questa conversazione in modo equo.",
+    "ownKeys": {
+      "locked": "Le tue chiavi API sono bloccate. Inserisci la passphrase per usarle in questa riunione.",
+      "lockedLive": "Le tue chiavi API sono bloccate, quindi il copilota usa i modelli gratuiti. Sbloccale per tornare alle tue chiavi.",
+      "secret": "Passphrase o chiave di recupero",
+      "unlock": "Sblocca chiavi",
+      "note": "PairUX tiene la chiave sbloccata in memoria solo per questa riunione e la elimina quando il copilota si ferma.",
+      "legacy": "Le chiavi salvate richiedono una passphrase prima di poter essere usate. Impostala in Chiavi e credito.",
+      "webOnly": "Le tue chiavi API sono bloccate. Avvia il copilota su pairux.com per sbloccarle."
+    },
     "fullReport": "Apri le note complete",
     "restart": "Ricomincia",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Il checkout non è disponibile al momento. Riprova tra poco.",
     "defaultRole": "Ruolo predefinito",
     "keysTitle": "Le tue chiavi API",
-    "keysIntro": "Usa le tue chiavi e non ti addebiteremo mai nulla per l'IA. Le chiavi sono cifrate, non vengono più mostrate e sono usate solo dal tuo copilota.",
-    "keysDisabled": "Le chiavi personali non sono ancora attive su questo server.",
+    "keysIntro": "Con le tue chiavi non ti addebitiamo mai l’IA. Le chiavi sono sigillate con una passphrase che conosci solo tu, quindi PairUX non può aprirle; le sblocchi una riunione alla volta. Se perdi la passphrase e la chiave di recupero, reinserisci le chiavi.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC è il comando che risponde: il prompt arriva su stdin, la risposta è ciò che stampa.",
       "connectApi": "Oppure chiama tu l’API",
       "connectApiHint": "Ogni chiamata invia la chiave come token Bearer. Interroga la trascrizione con il cursore restituito."
-    }
+    },
+    "passphraseFirst": "Imposta una passphrase prima di salvare le chiavi. È la stessa della diretta automatica su YouTube.",
+    "passphraseLegacy": "Le chiavi salvate aspettano di passare sotto la tua passphrase. Impostane una per continuare a usarle.",
+    "passphrase": "Passphrase ({min}+ caratteri)",
+    "passphraseRepeat": "Ripeti la passphrase",
+    "passphraseShort": "Usa almeno {min} caratteri.",
+    "passphraseMismatch": "Le due passphrase sono diverse.",
+    "passphraseSet": "Imposta passphrase",
+    "recoveryTitle": "Chiave di recupero (mostrata una sola volta). Conservala al sicuro:",
+    "recoverySaved": "L’ho salvata"
   }
 }

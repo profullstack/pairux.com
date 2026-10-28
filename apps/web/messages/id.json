@@ -2401,6 +2401,15 @@
       "unclear": "Tindak lanjut belum jelas"
     },
     "thin": "Transkrip terlalu pendek untuk meninjau percakapan ini secara adil.",
+    "ownKeys": {
+      "locked": "Kunci API Anda terkunci. Masukkan frasa sandi kunci untuk memakainya di rapat ini.",
+      "lockedLive": "Kunci API Anda terkunci, jadi kopilot memakai model gratis. Buka kuncinya untuk kembali.",
+      "secret": "Frasa sandi atau kunci pemulihan",
+      "unlock": "Buka kunci",
+      "note": "PairUX menyimpan kunci yang terbuka di memori hanya untuk rapat ini dan membuangnya saat kopilot berhenti.",
+      "legacy": "Kunci yang tersimpan perlu frasa sandi sebelum bisa dipakai. Atur di Kunci dan kredit.",
+      "webOnly": "Kunci API Anda terkunci. Mulai kopilot di pairux.com untuk membukanya."
+    },
     "fullReport": "Buka catatan lengkap",
     "restart": "Mulai lagi",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Checkout sedang tidak tersedia. Coba lagi sebentar lagi.",
     "defaultRole": "Peran default",
     "keysTitle": "Kunci API Anda sendiri",
-    "keysIntro": "Gunakan kunci Anda sendiri dan kami tidak akan pernah menagih Anda untuk AI. Kunci dienkripsi, tidak pernah ditampilkan lagi, dan hanya digunakan oleh kopilot Anda.",
-    "keysDisabled": "Kunci sendiri belum diaktifkan di server ini.",
+    "keysIntro": "Dengan kunci sendiri kami tidak pernah menagih AI. Kunci disegel dengan frasa sandi yang hanya Anda ketahui, jadi PairUX tidak bisa membukanya; Anda membukanya per rapat. Jika frasa sandi dan kunci pemulihan hilang, masukkan ulang kunci Anda.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC adalah perintah yang menjawab: prompt masuk lewat stdin, jawabannya adalah apa yang dicetak.",
       "connectApi": "Atau panggil API sendiri",
       "connectApiHint": "Setiap panggilan mengirim kunci sebagai token Bearer. Periksa transkrip dengan kursor yang dikembalikan."
-    }
+    },
+    "passphraseFirst": "Atur frasa sandi sebelum menyimpan kunci. Sama dengan frasa sandi siaran otomatis YouTube.",
+    "passphraseLegacy": "Kunci tersimpan Anda menunggu dipindahkan ke frasa sandi Anda sendiri. Atur satu agar tetap bisa dipakai.",
+    "passphrase": "Frasa sandi ({min}+ karakter)",
+    "passphraseRepeat": "Ulangi frasa sandi",
+    "passphraseShort": "Gunakan minimal {min} karakter.",
+    "passphraseMismatch": "Kedua frasa sandi berbeda.",
+    "passphraseSet": "Atur frasa sandi",
+    "recoveryTitle": "Kunci pemulihan (ditampilkan sekali). Simpan di tempat aman:",
+    "recoverySaved": "Sudah saya simpan"
   }
 }

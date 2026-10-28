@@ -2401,6 +2401,15 @@
       "unclear": "Los seguimientos no están claros"
     },
     "thin": "La transcripción es demasiado corta para analizar esta conversación de forma justa.",
+    "ownKeys": {
+      "locked": "Tus claves de API están bloqueadas. Introduce tu frase de contraseña para usarlas en esta reunión.",
+      "lockedLive": "Tus claves de API están bloqueadas, así que el copiloto usa modelos gratuitos. Desbloquéalas para volver a ellas.",
+      "secret": "Frase de contraseña o clave de recuperación",
+      "unlock": "Desbloquear claves",
+      "note": "PairUX guarda la clave desbloqueada en memoria solo para esta reunión y la descarta cuando el copiloto se detiene.",
+      "legacy": "Tus claves guardadas necesitan una frase de contraseña antes de poder usarse. Configúrala en Claves y crédito.",
+      "webOnly": "Tus claves de API están bloqueadas. Inicia el copiloto en pairux.com para desbloquearlas."
+    },
     "fullReport": "Abrir notas completas",
     "restart": "Empezar de nuevo",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "El pago no está disponible ahora mismo. Inténtalo de nuevo en breve.",
     "defaultRole": "Rol predeterminado",
     "keysTitle": "Tus propias claves de API",
-    "keysIntro": "Usa tus propias claves y nunca te cobraremos por la IA. Las claves se cifran, no se vuelven a mostrar y solo las usa tu copiloto.",
-    "keysDisabled": "Las claves propias aún no están habilitadas en este servidor.",
+    "keysIntro": "Con tus propias claves nunca te cobramos la IA. Las claves están selladas con una frase de contraseña que solo tú conoces, así que PairUX no puede abrirlas; las desbloqueas reunión a reunión. Si pierdes la frase y la clave de recuperación, vuelves a introducir tus claves.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC es el comando que responde: el prompt llega por stdin y la respuesta es lo que imprime.",
       "connectApi": "O llama a la API tú mismo",
       "connectApiHint": "Cada llamada envía la clave como token Bearer. Consulta la transcripción con el cursor que devuelve."
-    }
+    },
+    "passphraseFirst": "Configura una frase de contraseña antes de guardar claves. Es la misma frase que la emisión automática en YouTube.",
+    "passphraseLegacy": "Tus claves guardadas esperan pasar a tu propia frase de contraseña. Configura una para seguir usándolas.",
+    "passphrase": "Frase de contraseña ({min}+ caracteres)",
+    "passphraseRepeat": "Repite la frase",
+    "passphraseShort": "Usa al menos {min} caracteres.",
+    "passphraseMismatch": "Las dos frases no coinciden.",
+    "passphraseSet": "Configurar frase",
+    "recoveryTitle": "Clave de recuperación (se muestra una vez). Guárdala en un lugar seguro:",
+    "recoverySaved": "Ya la guardé"
   }
 }

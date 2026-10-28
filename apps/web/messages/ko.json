@@ -2401,6 +2401,15 @@
       "unclear": "후속 메시지가 명확하지 않습니다"
     },
     "thin": "대화록이 너무 짧아 이 대화를 공정하게 리뷰할 수 없습니다.",
+    "ownKeys": {
+      "locked": "내 API 키가 잠겨 있습니다. 이 회의에서 사용하려면 키 암호 문구를 입력하세요.",
+      "lockedLive": "내 API 키가 잠겨 있어 코파일럿이 무료 모델을 사용 중입니다. 다시 전환하려면 잠금을 해제하세요.",
+      "secret": "암호 문구 또는 복구 키",
+      "unlock": "키 잠금 해제",
+      "note": "PairUX는 잠금 해제된 키를 이 회의 동안만 메모리에 보관하고 코파일럿이 멈추면 삭제합니다.",
+      "legacy": "저장된 키를 사용하려면 먼저 키 암호 문구가 필요합니다. 키 및 크레딧에서 설정하세요.",
+      "webOnly": "내 API 키가 잠겨 있습니다. 잠금을 해제하려면 pairux.com에서 코파일럿을 시작하세요."
+    },
     "fullReport": "전체 메모 열기",
     "restart": "다시 시작",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "지금은 결제를 이용할 수 없습니다. 잠시 후 다시 시도하세요.",
     "defaultRole": "기본 역할",
     "keysTitle": "내 API 키",
-    "keysIntro": "내 키를 사용하면 AI 비용이 청구되지 않습니다. 키는 암호화되며 다시 표시되지 않고 내 코파일럿만 사용합니다.",
-    "keysDisabled": "이 서버에서는 아직 내 키 사용이 활성화되지 않았습니다.",
+    "keysIntro": "내 키를 사용하면 AI 요금이 청구되지 않습니다. 키는 나만 아는 암호 문구로 봉인되어 PairUX가 열 수 없으며, 회의마다 잠금을 해제합니다. 암호 문구와 복구 키를 모두 잃으면 키를 다시 입력하세요.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC는 응답하는 명령입니다. 프롬프트는 stdin으로 들어오고, 출력한 내용이 답변이 됩니다.",
       "connectApi": "또는 API를 직접 호출하세요",
       "connectApiHint": "모든 호출은 키를 Bearer 토큰으로 보냅니다. 반환된 커서로 전사를 조회하세요."
-    }
+    },
+    "passphraseFirst": "키를 저장하기 전에 키 암호 문구를 설정하세요. YouTube 자동 라이브와 같은 암호 문구입니다.",
+    "passphraseLegacy": "저장된 키가 내 암호 문구로 옮겨지기를 기다리고 있습니다. 계속 사용하려면 설정하세요.",
+    "passphrase": "암호 문구({min}자 이상)",
+    "passphraseRepeat": "암호 문구 다시 입력",
+    "passphraseShort": "{min}자 이상 입력하세요.",
+    "passphraseMismatch": "두 암호 문구가 다릅니다.",
+    "passphraseSet": "암호 문구 설정",
+    "recoveryTitle": "복구 키(한 번만 표시). 안전한 곳에 보관하세요:",
+    "recoverySaved": "저장했습니다"
   }
 }

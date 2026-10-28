@@ -16,6 +16,12 @@ export interface MeetingCopilotEnvironment {
   headers?: () => HeadersInit | Promise<HeadersInit>;
   /** Open a link (Electron sends it to the system browser). */
   openUrl?: (url: string) => void;
+  /**
+   * Derive the data key (base64) from the key passphrase or recovery key and
+   * the caller's seal, locally (WebCrypto). Only the data key is sent, with
+   * Start, to unlock the caller's own API keys for this meeting.
+   */
+  unlockKeys?: (seal: unknown, secret: string, userId: string) => Promise<string>;
 }
 
 /**
@@ -130,20 +136,25 @@ export function useMeetingCopilot({
     }
   }, []);
 
+  // Start (or resume) the copilot; `secret` (key passphrase or recovery key)
+  // unlocks the caller's own keys for this meeting. It never leaves the client.
   const start = useCallback(
-    (role: CopilotRole, mode: CopilotMode) =>
+    (role: CopilotRole, mode: CopilotMode, secret = '') =>
       act(async () => {
+        const own = status?.ownKeys;
+        const unlock = envRef.current.unlockKeys;
+        const dek = secret && own?.seal && unlock ? await unlock(own.seal, secret, own.userId) : '';
         const started = await json<CopilotState>(
           await api(base, {
             method: 'POST',
-            body: JSON.stringify({ participantId: selfId, role, mode }),
+            body: JSON.stringify({ participantId: selfId, role, mode, ...(dek ? { dek } : {}) }),
           })
         );
         setState(started);
         void refresh();
         return started;
       }),
-    [act, api, base, json, refresh, selfId]
+    [act, api, base, json, refresh, selfId, status?.ownKeys]
   );
 
   const stop = useCallback(
@@ -230,6 +241,8 @@ export function useMeetingCopilot({
     setQuestion,
     open,
     refresh,
+    /** Can this app unlock own keys here (it supplied `unlockKeys`)? */
+    canUnlockKeys: Boolean(env.unlockKeys),
   };
 }
 export type MeetingCopilot = ReturnType<typeof useMeetingCopilot>;

@@ -2401,6 +2401,15 @@
       "unclear": "Les suivis ne sont pas clairs"
     },
     "thin": "La transcription est trop courte pour analyser équitablement cette conversation.",
+    "ownKeys": {
+      "locked": "Vos clés API sont verrouillées. Saisissez votre phrase secrète pour les utiliser dans cette réunion.",
+      "lockedLive": "Vos clés API sont verrouillées, le copilote utilise donc les modèles gratuits. Déverrouillez-les pour revenir à vos clés.",
+      "secret": "Phrase secrète ou clé de récupération",
+      "unlock": "Déverrouiller les clés",
+      "note": "PairUX garde la clé déverrouillée en mémoire pour cette réunion uniquement et l’efface quand le copilote s’arrête.",
+      "legacy": "Vos clés enregistrées ont besoin d’une phrase secrète avant de pouvoir servir. Définissez-la dans Clés et crédit.",
+      "webOnly": "Vos clés API sont verrouillées. Démarrez le copilote sur pairux.com pour les déverrouiller."
+    },
     "fullReport": "Ouvrir les notes complètes",
     "restart": "Recommencer",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Le paiement est indisponible pour le moment. Réessayez dans un instant.",
     "defaultRole": "Rôle par défaut",
     "keysTitle": "Vos propres clés API",
-    "keysIntro": "Utilisez vos propres clés et nous ne vous facturerons jamais l'IA. Les clés sont chiffrées, ne sont plus jamais affichées et ne servent qu'à votre copilote.",
-    "keysDisabled": "Les clés personnelles ne sont pas encore activées sur ce serveur.",
+    "keysIntro": "Avec vos propres clés, nous ne vous facturons jamais l’IA. Les clés sont scellées par une phrase secrète que vous seul connaissez, PairUX ne peut donc pas les ouvrir ; vous les déverrouillez réunion par réunion. Si vous perdez la phrase et la clé de récupération, vous saisissez à nouveau vos clés.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC est la commande qui répond : le prompt arrive sur stdin, la réponse est ce qu’elle affiche.",
       "connectApi": "Ou appelez l’API vous-même",
       "connectApiHint": "Chaque appel envoie la clé comme jeton Bearer. Interrogez la transcription avec le curseur renvoyé."
-    }
+    },
+    "passphraseFirst": "Définissez une phrase secrète avant d’enregistrer des clés. C’est la même que pour le direct automatique YouTube.",
+    "passphraseLegacy": "Vos clés enregistrées attendent de passer sous votre propre phrase secrète. Définissez-en une pour continuer à les utiliser.",
+    "passphrase": "Phrase secrète ({min}+ caractères)",
+    "passphraseRepeat": "Répétez la phrase",
+    "passphraseShort": "Utilisez au moins {min} caractères.",
+    "passphraseMismatch": "Les deux phrases diffèrent.",
+    "passphraseSet": "Définir la phrase",
+    "recoveryTitle": "Clé de récupération (affichée une seule fois). Conservez-la en lieu sûr :",
+    "recoverySaved": "Je l’ai enregistrée"
   }
 }

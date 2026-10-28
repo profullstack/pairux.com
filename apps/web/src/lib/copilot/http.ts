@@ -1,3 +1,4 @@
+import { KeyPassphraseRequiredError } from './account';
 import { errorResponse, handleApiError } from '@/lib/api';
 import { CopilotAccessError, authorizeCopilotCaller } from './access';
 import { CopilotAgent } from './agent';
@@ -7,6 +8,7 @@ import { CopilotBusyError, copilotRuntime, type CopilotRuntime } from './runtime
 /** Every copilot route answers its own errors the same way. */
 export function copilotError(error: unknown) {
   if (error instanceof CopilotAccessError) return errorResponse(error.message, error.status);
+  if (error instanceof KeyPassphraseRequiredError) return errorResponse(error.message, 409);
   if (error instanceof CopilotBusyError) return errorResponse(error.message, 503);
   if (error instanceof CopilotLlmError) return errorResponse(error.message, 503);
   return handleApiError(error);

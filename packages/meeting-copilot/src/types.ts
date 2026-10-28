@@ -154,6 +154,26 @@ export interface CopilotStatus {
   role: CopilotRole;
 }
 
+/** Where an invite to one of your agents stands. */
+export type AgentInviteStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'left';
+
+/** One of your (or your orgs') agents, as GET /api/sessions/:id/agents lists it. */
+export interface MeetingAgent {
+  id: string;
+  name: string;
+  handle: string;
+  description: string | null;
+  online: boolean;
+  invite: { id: string; status: AgentInviteStatus } | null;
+}
+
+/** How any other agent joins this meeting (join code, CLI command, API). */
+export interface AnyAgentJoin {
+  joinCode: string;
+  command: string;
+  api: string;
+}
+
 export const emptyNotes = (): CopilotNotes => ({
   summary: '',
   keyPoints: [],

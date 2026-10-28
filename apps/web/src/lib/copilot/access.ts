@@ -33,9 +33,19 @@ export async function authorizeCopilotCaller(
   sessionId: string,
   participantId = ''
 ): Promise<CopilotCaller> {
-  if (!UUID.test(sessionId)) throw new CopilotAccessError('Invalid meeting.', 400);
   const user = await requestUser(request);
   if (!user) throw new CopilotAccessError('Sign in to use the AI copilot.', 401);
+  return authorizeUserInMeeting(user.id, sessionId, participantId);
+}
+
+/** The same rule for a user already known (MCP, CLI): host or live participant. */
+export async function authorizeUserInMeeting(
+  userId: string,
+  sessionId: string,
+  participantId = ''
+): Promise<CopilotCaller> {
+  if (!UUID.test(sessionId)) throw new CopilotAccessError('Invalid meeting.', 400);
+  const user = { id: userId };
   const db = serviceClient() as any;
   const { data: session } = await db
     .from('sessions')

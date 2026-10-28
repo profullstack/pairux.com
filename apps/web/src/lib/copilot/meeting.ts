@@ -12,6 +12,9 @@ import type { CopilotAgent } from './agent';
 import type { CopilotVoice } from './voice';
 
 /** The copilot room only transcribes; it never asks for a translation. */
+/** Transcript lines kept in memory for invited agents (about an hour of talk). */
+const MAX_TAP_LINES = 2000;
+
 const NO_TRANSLATION: TextTranslator = {
   translate: () => Promise.reject(new SpeechError('The copilot does not translate.', 400)),
 };
@@ -28,6 +31,14 @@ export interface MeetingParticipant {
  */
 export class CopilotMeeting {
   readonly agents = new Map<string, CopilotAgent>();
+  /**
+   * Invited agents reading the transcript (participant id -> name and payer).
+   * They keep the room listening without a copilot of their own.
+   */
+  readonly taps = new Map<string, { name: string; payer: string }>();
+  /** The transcript for taps: a window of recent lines and the count of all lines ever heard. */
+  private readonly lines: TranscriptLine[] = [];
+  private heard = 0;
   private readonly room: RoomTranslator;
   private readonly names = new Map<string, string>();
   private listener: RoomListener | null = null;
@@ -67,7 +78,7 @@ export class CopilotMeeting {
    */
   async resync(participants: MeetingParticipant[]): Promise<void> {
     for (const one of participants) this.names.set(one.id, one.name);
-    if (!this.liveAgents().length) {
+    if (!this.liveAgents().length && !this.taps.size) {
       this.stopListening();
       return;
     }
@@ -122,6 +133,10 @@ export class CopilotMeeting {
         until: Math.round(event.line.until),
         ...(event.line.language ? { language: event.line.language } : {}),
       };
+      this.lines.push(line);
+      this.heard++;
+      if (this.lines.length > MAX_TAP_LINES)
+        this.lines.splice(0, this.lines.length - MAX_TAP_LINES);
       for (const agent of this.liveAgents()) {
         agent.setSttProvider(this.voice.current);
         agent.onLine(line);
@@ -133,6 +148,17 @@ export class CopilotMeeting {
       for (const agent of this.liveAgents())
         agent.notice(`Could not hear ${who}: ${this.voice.problem || event.error}`);
     }
+  }
+
+  /**
+   * Lines heard after `cursor` (a count of lines heard, 0 = the start) and the
+   * cursor to pass next time. A reader that fell behind the window gets the
+   * oldest lines still kept.
+   */
+  linesSince(cursor: number): { lines: TranscriptLine[]; cursor: number } {
+    const first = this.heard - this.lines.length;
+    const from = Math.max(0, Math.min(this.lines.length, cursor - first));
+    return { lines: this.lines.slice(from), cursor: this.heard };
   }
 
   private stopListening(): void {

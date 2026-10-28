@@ -53,12 +53,69 @@ export class CopilotRuntime {
     return ctx;
   }
 
-  /** The copilot room's transcription is billed to its first live owner. */
+  /**
+   * The copilot room's transcription is billed to its first live owner. A
+   * room kept open only for invited agents runs on the free models.
+   */
   private payerContext(sessionId: string): ProviderContext {
     const meeting = this.meetings.get(sessionId);
     const payer = meeting?.liveAgents()[0];
     const ctx = payer ? this.contexts.get(`${sessionId}:${payer.userId}`) : undefined;
-    return ctx ?? { userId: '', sessionId, mode: 'free', keys: {}, admin: false };
+    if (ctx) return ctx;
+    const tap = meeting?.taps.values().next().value;
+    return { userId: tap?.payer ?? '', sessionId, mode: 'free', keys: {}, admin: false };
+  }
+
+  private meetingFor(sessionId: string, payer: string): CopilotMeeting {
+    let meeting = this.meetings.get(sessionId);
+    if (!meeting) {
+      if (this.meetings.size >= MAX_MEETINGS)
+        throw new CopilotBusyError(
+          'The copilot is busy in too many meetings right now. Try again in a few minutes.'
+        );
+      const voice = new CopilotVoice(
+        this.accounts,
+        () => this.payerContext(sessionId),
+        () => this.oursVoice()
+      );
+      meeting = new CopilotMeeting(sessionId, voice, payer);
+      this.meetings.set(sessionId, meeting);
+    }
+    return meeting;
+  }
+
+  /**
+   * An invited agent reads the meeting's transcript: the room listens (free
+   * models) while any copilot or tap is open. `payer` is the inviter.
+   */
+  async tap(sessionId: string, participantId: string, name: string, payer: string): Promise<void> {
+    const meeting = this.meetingFor(sessionId, payer);
+    meeting.taps.set(participantId, { name, payer });
+    await meeting.resync(await this.participants(sessionId));
+    this.sweeper ??= setInterval(() => void this.sweep(), SWEEP_MS);
+  }
+
+  async untap(sessionId: string, participantId: string): Promise<void> {
+    const meeting = this.meetings.get(sessionId);
+    if (!meeting?.taps.delete(participantId)) return;
+    await this.closeIfIdle(sessionId);
+  }
+
+  transcriptSince(sessionId: string, participantId: string, cursor: number) {
+    const meeting = this.meetings.get(sessionId);
+    if (!meeting?.taps.has(participantId)) return null;
+    return meeting.linesSince(cursor);
+  }
+
+  private async closeIfIdle(sessionId: string): Promise<void> {
+    const meeting = this.meetings.get(sessionId);
+    if (!meeting) return;
+    if (!meeting.liveAgents().length && !meeting.taps.size) {
+      meeting.close();
+      this.meetings.delete(sessionId);
+    } else {
+      await meeting.resync(await this.participants(sessionId));
+    }
   }
 
   get(sessionId: string, userId: string): CopilotAgent | undefined {
@@ -66,11 +123,14 @@ export class CopilotRuntime {
     return agent?.live ? agent : undefined;
   }
 
-  /** Whose copilots are listening in a meeting (shown to everyone). */
+  /** Whose copilots, and which invited agents, are listening (shown to everyone). */
   active(sessionId: string): { name: string }[] {
-    return (this.meetings.get(sessionId)?.liveAgents() ?? []).map((agent) => ({
-      name: agent.ownerName || 'A participant',
-    }));
+    const meeting = this.meetings.get(sessionId);
+    if (!meeting) return [];
+    return [
+      ...meeting.liveAgents().map((agent) => ({ name: agent.ownerName || 'A participant' })),
+      ...[...meeting.taps.values()].map((tap) => ({ name: tap.name })),
+    ];
   }
 
   listening(sessionId: string): number {
@@ -137,16 +197,7 @@ export class CopilotRuntime {
         'The copilot is busy in too many meetings right now. Try again in a few minutes.'
       );
     const stored = await this.store.open(input);
-    let meeting = this.meetings.get(input.sessionId);
-    if (!meeting) {
-      const voice = new CopilotVoice(
-        this.accounts,
-        () => this.payerContext(input.sessionId),
-        () => this.oursVoice()
-      );
-      meeting = new CopilotMeeting(input.sessionId, voice, input.userId);
-      this.meetings.set(input.sessionId, meeting);
-    }
+    const meeting = this.meetingFor(input.sessionId, input.userId);
     await this.context(input.sessionId, input.userId, stored.state.mode);
     const agent: CopilotAgent = new CopilotAgent(stored.state, input.userId, stored.participantId, {
       llm: this.llm,
@@ -174,12 +225,7 @@ export class CopilotRuntime {
     const state = await agent.finish();
     meeting.agents.delete(userId);
     this.contexts.delete(`${sessionId}:${userId}`);
-    if (!meeting.liveAgents().length) {
-      meeting.close();
-      this.meetings.delete(sessionId);
-    } else {
-      await meeting.resync(await this.participants(sessionId));
-    }
+    await this.closeIfIdle(sessionId);
     return state;
   }
 
@@ -235,6 +281,17 @@ export class CopilotRuntime {
           const abandoned = !agent.subscribers.size && now - agent.lastSeen > ABANDONED_MS;
           if (ended || abandoned) await this.stop(sessionId, agent.userId);
           else if (agent.subscribers.size) agent.lastSeen = now;
+        }
+        const tapped = [...meeting.taps.keys()];
+        if (tapped.length) {
+          const { data: present } = await this.db
+            .from('session_participants')
+            .select('id')
+            .in('id', tapped)
+            .is('left_at', null);
+          const here = new Set(((present ?? []) as { id: string }[]).map((row) => row.id));
+          for (const id of tapped) if (ended || !here.has(id)) meeting.taps.delete(id);
+          await this.closeIfIdle(sessionId);
         }
         const still = this.meetings.get(sessionId);
         if (still) {

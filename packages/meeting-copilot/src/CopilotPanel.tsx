@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Check, Copy, MessageSquare, Square, Timer, X } from 'lucide-react';
+import { Bot, Check, Copy, MessageSquare, Square, Timer, Users, X } from 'lucide-react';
 import {
   COPILOT_ROLES,
   COPILOT_MODES,
   type CopilotMode,
   type CopilotRole,
   type CopilotState,
+  type MeetingAgent,
 } from './types.js';
 import type { CopilotT } from './strings.js';
 import type { MeetingCopilot } from './useMeetingCopilot.js';
+import type { MeetingAgents } from './useMeetingAgents.js';
 
-type Tab = 'notes' | 'questions' | 'transcript' | 'ask';
+type Tab = 'notes' | 'questions' | 'transcript' | 'ask' | 'agents';
 
 const section = 'text-[11px] font-semibold uppercase tracking-wide text-gray-400';
 const button =
@@ -49,8 +51,151 @@ function CopyButton({ text, t }: { text: string; t: CopilotT }) {
   );
 }
 
-/** The picker shown before the copilot starts. */
+/** One agent you can invite, with where its invite stands. */
+function AgentRow({
+  agent,
+  agents,
+  t,
+}: {
+  agent: MeetingAgent;
+  agents: MeetingAgents;
+  t: CopilotT;
+}) {
+  const status = agent.invite?.status;
+  const open = status === 'pending' || status === 'accepted';
+  return (
+    <li className="flex items-center justify-between gap-2 text-xs">
+      <span className="min-w-0 truncate" title={agent.description ?? undefined}>
+        <span
+          role="img"
+          aria-label={agent.online ? t('agents.online') : t('agents.offline')}
+          className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${agent.online ? 'bg-green-400' : 'bg-gray-600'}`}
+        />
+        <span className="font-medium text-gray-100">{agent.name}</span>{' '}
+        <span className="text-gray-400">@{agent.handle}</span>
+      </span>
+      <span className="flex shrink-0 items-center gap-1">
+        {status === 'pending' && (
+          <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[11px] text-amber-200">
+            {t('agents.invited')}
+          </span>
+        )}
+        {status === 'accepted' && (
+          <span className="rounded bg-green-500/15 px-1.5 py-0.5 text-[11px] text-green-300">
+            {t('agents.inMeeting')}
+          </span>
+        )}
+        {status && !open && (
+          <span className="text-[11px] text-gray-500">{t(`agents.${status}`)}</span>
+        )}
+        {!open && (
+          <button
+            type="button"
+            className={button}
+            disabled={agents.busy}
+            onClick={() => void agents.invite(agent.id)}
+          >
+            {status ? t('agents.reinvite') : t('agents.invite')}
+          </button>
+        )}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * Invite your own agents (and your orgs') into the meeting, or any agent by
+ * join code. Free for everyone; the live transcript for agents needs Pro.
+ */
+function AgentsSection({
+  agents,
+  t,
+  open,
+}: {
+  agents: MeetingAgents;
+  t: CopilotT;
+  open: (url: string) => void;
+}) {
+  if (!agents.agents) return null;
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] text-gray-400">{t('agents.intro')}</p>
+      {agents.error && <p className="text-[11px] text-red-300">{agents.error}</p>}
+      {agents.noTranscript && (
+        <p className="text-[11px] text-amber-300">
+          {t('agents.transcriptNeedsPro', { name: agents.noTranscript })}
+        </p>
+      )}
+      {agents.agents.length ? (
+        <ul className="space-y-1.5">
+          {agents.agents.map((agent) => (
+            <AgentRow key={agent.id} agent={agent} agents={agents} t={t} />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-gray-400">{t('agents.noAgents')}</p>
+      )}
+      {agents.any && (
+        <div className="space-y-1 rounded bg-gray-800/60 p-2">
+          <div className={section}>{t('agents.anyTitle')}</div>
+          <p className="text-[11px] text-gray-400">{t('agents.anyHint')}</p>
+          <p className="text-xs text-gray-200">
+            {t('agents.joinCode', { code: agents.any.joinCode })}
+          </p>
+          <div className="flex items-center gap-1">
+            <code className="min-w-0 flex-1 truncate rounded bg-gray-950 px-1.5 py-1 text-[11px] text-gray-100">
+              {agents.any.command}
+            </code>
+            <CopyButton text={agents.any.command} t={t} />
+          </div>
+        </div>
+      )}
+      <button
+        type="button"
+        className="text-[11px] text-gray-400 underline hover:text-gray-200"
+        onClick={() => {
+          open('/settings/agents');
+        }}
+      >
+        {t('agents.manage')}
+      </button>
+    </div>
+  );
+}
+
+/** The picker shown before the copilot starts, and your agents below it. */
 function StartView({
+  copilot,
+  agents,
+  t,
+  settingsUrl,
+}: {
+  copilot: MeetingCopilot;
+  agents: MeetingAgents | undefined;
+  t: CopilotT;
+  settingsUrl: string;
+}) {
+  const agentsBlock = agents?.agents ? (
+    <div className="space-y-1 border-t border-gray-800 pt-2">
+      <div className={section}>
+        <Users className="mr-1 inline h-3 w-3" />
+        {t('agents.title')}
+      </div>
+      <AgentsSection agents={agents} t={t} open={copilot.open} />
+    </div>
+  ) : null;
+  return (
+    <div className="min-h-0 space-y-3 overflow-y-auto">
+      {copilot.status?.available && (
+        <CopilotStart copilot={copilot} t={t} settingsUrl={settingsUrl} />
+      )}
+      {agentsBlock}
+    </div>
+  );
+}
+
+/** Role and model pickers and the Start button (or the upgrade note). */
+function CopilotStart({
   copilot,
   t,
   settingsUrl,
@@ -409,16 +554,19 @@ function EndedView({
 
 /**
  * The AI copilot for one meeting page. Everyone sees who has a copilot
- * listening; the owner gets the panel.
+ * listening; the owner gets the panel. With `agents`, it also invites your
+ * own agents (or any agent) into the meeting, with or without the copilot.
  */
 export function CopilotPanel({
   copilot,
+  agents,
   t,
   settingsUrl = '/settings/copilot',
   reportUrl = (id) => `/copilot/${id}`,
   className = '',
 }: {
   copilot: MeetingCopilot;
+  agents?: MeetingAgents;
   t: CopilotT;
   settingsUrl?: string;
   reportUrl?: (id: string) => string;
@@ -435,7 +583,7 @@ export function CopilotPanel({
   // A new suggestion opens the panel's attention dot until it is seen.
   const unseen = Boolean(suggestion && suggestion.id !== dismissed && !open);
 
-  if (!status?.available) return null;
+  if (!status?.available && !agents?.agents) return null;
 
   const banner =
     others.length > 0 ? (
@@ -468,6 +616,8 @@ export function CopilotPanel({
     );
 
   const live = state?.status === 'live';
+  const tabs: Tab[] = ['notes', 'questions', 'transcript', 'ask'];
+  if (agents?.agents) tabs.push('agents');
   return (
     <div
       className={`flex max-h-[70vh] w-full flex-col gap-2 rounded-lg bg-gray-900/95 p-3 text-gray-100 shadow-xl ring-1 ring-gray-700 ${className}`}
@@ -498,7 +648,7 @@ export function CopilotPanel({
       {copilot.error && <p className="text-[11px] text-red-300">{copilot.error}</p>}
 
       {!state || (state.status === 'ended' && !state.followUps && !state.review) ? (
-        <StartView copilot={copilot} t={t} settingsUrl={settingsUrl} />
+        <StartView copilot={copilot} agents={agents} t={t} settingsUrl={settingsUrl} />
       ) : state.status === 'ended' ? (
         <div className="min-h-0 overflow-y-auto">
           <EndedView state={state} t={t} copilot={copilot} reportUrl={reportUrl(state.id)} />
@@ -551,7 +701,7 @@ export function CopilotPanel({
             </div>
           )}
           <div className="flex gap-1 border-b border-gray-800 pb-1">
-            {(['notes', 'questions', 'transcript', 'ask'] as const).map((id) => (
+            {tabs.map((id) => (
               <button
                 key={id}
                 type="button"
@@ -562,6 +712,7 @@ export function CopilotPanel({
                 className={`rounded px-2 py-0.5 text-xs ${tab === id ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-100'}`}
               >
                 {id === 'ask' && <MessageSquare className="mr-0.5 inline h-3 w-3" />}
+                {id === 'agents' && <Users className="mr-0.5 inline h-3 w-3" />}
                 {t(`tabs.${id}`)}
                 {id === 'questions' &&
                   state.openQuestions.some((one) => one.status === 'open') &&
@@ -574,6 +725,9 @@ export function CopilotPanel({
             {tab === 'questions' && <QuestionsTab copilot={copilot} state={state} t={t} />}
             {tab === 'transcript' && <TranscriptTab state={state} t={t} highlight={highlight} />}
             {tab === 'ask' && <AskTab copilot={copilot} t={t} />}
+            {tab === 'agents' && agents && (
+              <AgentsSection agents={agents} t={t} open={copilot.open} />
+            )}
           </div>
           <div className="flex justify-between gap-2">
             <button

@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Bot, Loader2, Settings } from 'lucide-react';
+import { Bot, Loader2, Settings, Users } from 'lucide-react';
 
 interface CopilotListItem {
   id: string;
@@ -43,13 +43,22 @@ export function CopilotList({ header }: { header: ReactNode }) {
             <Bot className="h-7 w-7 text-violet-600" aria-hidden="true" />
             {t('listTitle')}
           </h1>
-          <Link
-            href="/settings/copilot"
-            className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-violet-300"
-          >
-            <Settings className="h-4 w-4" aria-hidden="true" />
-            {t('settingsLink')}
-          </Link>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              href="/settings/agents"
+              className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-violet-300"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              {t('agents.link')}
+            </Link>
+            <Link
+              href="/settings/copilot"
+              className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-violet-300"
+            >
+              <Settings className="h-4 w-4" aria-hidden="true" />
+              {t('settingsLink')}
+            </Link>
+          </div>
         </div>
         <p className="mt-2 text-gray-600">{t('listIntro')}</p>
         {error && <p className="mt-8 text-red-600">{error}</p>}

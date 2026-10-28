@@ -1,5 +1,7 @@
 import type { CopilotState } from '@pairux/meeting-copilot/types';
 import { writeFollowUps, writeReview } from './agent';
+import { AccountAgents } from '@/lib/account-agents';
+import { authorizeUserInMeeting } from './access';
 import type { CopilotRuntime } from './runtime';
 
 /**
@@ -66,6 +68,26 @@ export const MCP_TOOLS = [
       type: 'object',
       properties: { id: { type: 'string' } },
       required: ['id'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'agents_list',
+    description:
+      "Your own AI agents (and your orgs') that can be invited into a PairUX meeting, with whether each is online.",
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'agent_invite',
+    description:
+      'Invite one of your agents (by id or @handle) into a meeting you are in. It joins when it picks up the invite.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+        agent: { type: 'string', description: 'Agent id or handle from agents_list.' },
+      },
+      required: ['sessionId', 'agent'],
       additionalProperties: false,
     },
   },
@@ -138,6 +160,42 @@ export async function callMcpTool(
       }
       const seconds = Math.min(300, Math.max(10, Number(args.seconds) || 30));
       return { recap: await agent.recap(seconds), seconds };
+    }
+    case 'agents_list': {
+      const agents = await new AccountAgents().visibleTo(userId);
+      return {
+        agents: agents.map(({ id, name: agentName, handle, description, online }) => ({
+          id,
+          name: agentName,
+          handle,
+          description,
+          online,
+        })),
+      };
+    }
+    case 'agent_invite': {
+      const sessionId = str(args, 'sessionId');
+      const wanted = str(args, 'agent').replace(/^@/, '').toLowerCase();
+      const caller = await authorizeUserInMeeting(userId, sessionId).catch((error: unknown) => {
+        throw new McpToolError(error instanceof Error ? error.message : String(error));
+      });
+      const registry = new AccountAgents();
+      const agent = (await registry.visibleTo(userId)).find(
+        (one) => one.id === wanted || one.handle === wanted
+      );
+      if (!agent) throw new McpToolError('No such agent. Use agents_list.');
+      const transcript = await runtime.accounts.eligible(userId);
+      const invite = await registry.invite({
+        agentId: agent.id,
+        sessionId: caller.sessionId,
+        invitedBy: userId,
+        transcript,
+      });
+      return {
+        invite,
+        agent: { id: agent.id, name: agent.name, online: agent.online },
+        transcript,
+      };
     }
     default:
       throw new McpToolError(`Unknown tool: ${name}`);

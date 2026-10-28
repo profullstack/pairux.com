@@ -1,6 +1,7 @@
 import {
   CopilotPanel,
   copilotTranslator,
+  useMeetingAgents,
   useMeetingCopilot,
   type MeetingCopilotEnvironment,
 } from '@pairux/meeting-copilot';
@@ -29,12 +30,13 @@ const DESKTOP: MeetingCopilotEnvironment = {
 // The desktop app is not localized: the panel's English strings.
 const t = copilotTranslator();
 
-/** The AI copilot in the desktop app (see @pairux/meeting-copilot). */
+/** The AI copilot and your agents in the desktop app (see @pairux/meeting-copilot). */
 export function MeetingCopilot({ sessionId, selfId }: { sessionId: string; selfId: string }) {
   const copilot = useMeetingCopilot({ sessionId, selfId, env: DESKTOP });
+  const agents = useMeetingAgents({ sessionId, selfId, env: DESKTOP });
   return (
     <div className="pointer-events-none fixed bottom-20 right-4 z-40 flex w-[min(24rem,calc(100vw-2rem))] justify-end">
-      <CopilotPanel copilot={copilot} t={t} className="pointer-events-auto" />
+      <CopilotPanel copilot={copilot} agents={agents} t={t} className="pointer-events-auto" />
     </div>
   );
 }

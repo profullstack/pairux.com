@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Bot, KeyRound, Loader2, Wallet } from 'lucide-react';
+import { Bot, KeyRound, Loader2, Users, Wallet } from 'lucide-react';
 import {
   COPILOT_MODES,
   COPILOT_ROLES,
@@ -124,6 +124,13 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
           {t('settingsTitle')}
         </h1>
         <p className="mt-2 text-gray-600">{c('pricingNote')}</p>
+        <Link
+          href="/settings/agents"
+          className="mt-3 inline-flex items-center gap-1 text-sm text-violet-700 hover:underline"
+        >
+          <Users className="h-4 w-4" aria-hidden="true" />
+          {t('agents.link')} →
+        </Link>
         {message && <p className="mt-4 text-green-700">{message}</p>}
         {error && <p className="mt-4 text-red-600">{error}</p>}
         {!settings && !error && <Loader2 className="mt-12 h-6 w-6 animate-spin text-gray-400" />}

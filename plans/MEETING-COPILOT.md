@@ -179,3 +179,41 @@ diarizing several people on one mic, mobile capture.
 - A participant on a client that does not feed audio (mobile) is not transcribed;
   the panel shows who is not being heard.
 - Consent: the notice is shown to everyone; the owner is told to inform people.
+
+## 12. Your own agents (added 2026-10-28)
+
+Anthony: "add the ai copilot the fleet captain (riotcoder) to our account and have that agent join too ... we should
+be able to use pairux's agent or invite our own."
+
+In a meeting, the Agents section of the copilot panel offers three ways in:
+
+1. **PairUX copilot**: the built-in agent above (Pro/Team).
+2. **Your agents**: agents registered on your account or shared with your org (`/settings/agents`), for example
+   riotcoder, Profullstack's fleet captain. One click sends an invite; the agent joins as an agent participant owned by
+   the account and is badged as an agent like any other.
+3. **Any agent**: the join code and `pairux join <CODE> --name "..."` (or `POST /api/v1/agents/join`).
+
+**Registry and keys.** `account_agents` (owner, optional org, name, @handle, description) with a per-agent key
+`pux_ag_<id>_<secret>`, shown once, stored only as a SHA-256 hash, rotate or remove at any time. `agent_invites`
+(pending, accepted, declined, expired after 15 minutes, left).
+
+**Agent protocol.** `GET /api/v1/agent/invites` (Bearer agent key) lists invites and marks the agent online;
+`POST /api/v1/agent/invites/:id {action}` accepts (joins via `join_session_as_agent`, owner = the account) or declines;
+then the existing `/api/v1/agents/:participantId` poll, chat and leave. Messages carry `fromOwner` (sent by the account
+that owns the agent) so an agent can trust its owner more than guests.
+
+**Transcript.** When the inviter is on Pro/Team, the agent also reads the live transcript: the copilot room keeps
+listening for "taps" (free self-hosted speech-to-text only), polled with `?transcriptCursor=N`. Everyone sees the agent
+in the "listening" notice.
+
+**Runner.** `scripts/agent-runner.mjs` (no dependencies) turns any command into a meeting agent: it accepts invites,
+follows chat and transcript, and on `@handle` pipes the meeting and the question to `AGENT_EXEC` (or `AGENT_OWNER_EXEC`
+for the owner's own messages) and posts the reply (split under the 500-character chat limit).
+
+**riotcoder.** Registered on Anthony's account, shared with Profullstack, Inc.; key in vault `riotcoder--prod` and
+`~/.config/riotcoder/pairux.env`. Runs on dev2 as the user service `riotcoder-pairux` with `riotcoder-pairux-reply`:
+guests get Claude Code with no tools (meeting context only); Anthony's own messages get read-only tools (Read, Grep,
+Glob, WebSearch, WebFetch) in `~/src/profullstack`. It never changes anything from a meeting; giving it write access is
+Anthony's call.
+
+**MCP.** `agents_list`, `agent_invite`.

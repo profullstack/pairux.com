@@ -59,4 +59,5 @@ export interface AgentChatMessage {
   content: string;
   message_type: string;
   created_at: string;
+  user_id?: string | null;
 }

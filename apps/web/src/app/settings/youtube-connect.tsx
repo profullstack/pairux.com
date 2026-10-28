@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Radio, Check, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { YouTubeKeys } from './youtube-keys';
 
 interface YtStatus {
   configured: boolean;
@@ -18,6 +19,7 @@ export function YouTubeConnect() {
   const t = useTranslations('settings.youtube');
   const [status, setStatus] = useState<YtStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  const [keysState, setKeysState] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -80,7 +82,7 @@ export function YouTubeConnect() {
               {t('disconnect')}
             </button>
           </div>
-        ) : (
+        ) : keysState === 'setup_required' ? null : (
           <a
             href="/api/youtube/auth"
             className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
@@ -89,6 +91,7 @@ export function YouTubeConnect() {
             {t('connect')}
           </a>
         )}
+        {status?.configured && <YouTubeKeys onChange={setKeysState} />}
       </div>
     </div>
   );

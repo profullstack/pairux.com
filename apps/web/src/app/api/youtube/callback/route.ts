@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import { exchangeCodeForTokens } from '@/lib/youtube';
+import { sealForUser } from '@/lib/sealed/vault';
 
 /** Google redirects here with ?code. Verify state, store the refresh token. */
 export async function GET(request: Request) {
@@ -31,13 +32,18 @@ export async function GET(request: Request) {
       return back('noref');
     }
 
+    // Seal v2: the refresh token is sealed to the user's key and is never
+    // stored in plaintext. No key passphrase yet = no connect.
+    const sealed = await sealForUser(user.id, tokens.refresh_token, 'youtube_refresh_token');
+    if (!sealed) return back('seal_required');
+
     // youtube_credentials isn't in the generated Database types yet (migration
     // ships in this PR), so the typed client infers `never` for the payload.
     await serviceClient()
       .from('youtube_credentials')
       .upsert({
         user_id: user.id,
-        refresh_token: tokens.refresh_token,
+        refresh_token: sealed,
         scope: tokens.scope ?? null,
         updated_at: new Date().toISOString(),
       } as never);

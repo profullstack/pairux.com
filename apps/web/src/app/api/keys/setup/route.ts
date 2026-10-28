@@ -13,6 +13,11 @@ import {
 } from '@/lib/sealed/crypto';
 import { unlockOwner } from '@/lib/sealed/unlockStore';
 import { loadSeal } from '@/lib/sealed/vault';
+import {
+  dropSealedCopilotKeys,
+  lockAllCopilotKeys,
+  migrateLegacyCopilotKeys,
+} from '@/lib/copilot/keys';
 
 /**
  * POST /api/keys/setup { seal, dek, ttl_seconds?, reset? }
@@ -34,10 +39,16 @@ export async function POST(request: Request) {
   try {
     if (!(await verifyDataKey(dek, body.seal, user.id)))
       return NextResponse.json({ error: 'seal does not match the key' }, { status: 400 });
-    if ((await loadSeal(user.id)) && body.reset !== true) {
+    const existing = await loadSeal(user.id);
+    if (existing && body.reset !== true) {
       return NextResponse.json({ error: 'a key passphrase is already set' }, { status: 409 });
     }
     const sb = serviceClient();
+    if (existing) {
+      // A reset: copilot keys sealed to the old key can never open again.
+      lockAllCopilotKeys(user.id);
+      await dropSealedCopilotKeys(sb, user.id);
+    }
     await sb
       .from('user_key_seals' as never)
       .upsert({ user_id: user.id, seal: body.seal, updated_at: new Date().toISOString() } as never);
@@ -64,6 +75,9 @@ export async function POST(request: Request) {
         } as never)
         .eq('user_id', user.id);
     }
+
+    // One-shot: copilot keys still under the old server key move to the new seal.
+    await migrateLegacyCopilotKeys(sb, user.id, body.seal.public_key);
 
     unlockOwner(
       user.id,

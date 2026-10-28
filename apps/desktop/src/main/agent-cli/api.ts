@@ -281,6 +281,8 @@ export interface CopilotSettingsView {
   /** GET only. */
   eligible?: boolean;
   byokAvailable?: boolean;
+  /** Own keys are sealed under a key passphrase set at pairux.com/settings/copilot. */
+  passphraseSet?: boolean;
   balance?: string;
   balanceMicros?: number;
 }

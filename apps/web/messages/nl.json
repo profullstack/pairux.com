@@ -2401,6 +2401,15 @@
       "unclear": "Follow-ups zijn onduidelijk"
     },
     "thin": "Het transcript is te kort om dit gesprek eerlijk te beoordelen.",
+    "ownKeys": {
+      "locked": "Je eigen API-sleutels zijn vergrendeld. Voer je sleutelwachtwoordzin in om ze in deze vergadering te gebruiken.",
+      "lockedLive": "Je eigen API-sleutels zijn vergrendeld, dus de copilot gebruikt gratis modellen. Ontgrendel ze om terug te schakelen.",
+      "secret": "Wachtwoordzin of herstelsleutel",
+      "unlock": "Sleutels ontgrendelen",
+      "note": "PairUX houdt de ontgrendelde sleutel alleen voor deze vergadering in het geheugen en wist hem als de copilot stopt.",
+      "legacy": "Je opgeslagen sleutels hebben een wachtwoordzin nodig voordat ze gebruikt kunnen worden. Stel er een in bij Sleutels en tegoed.",
+      "webOnly": "Je eigen API-sleutels zijn vergrendeld. Start de copilot op pairux.com om ze te ontgrendelen."
+    },
     "fullReport": "Volledige notities openen",
     "restart": "Opnieuw beginnen",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Afrekenen is nu niet beschikbaar. Probeer het zo opnieuw.",
     "defaultRole": "Standaardrol",
     "keysTitle": "Je eigen API-sleutels",
-    "keysIntro": "Gebruik je eigen sleutels en we rekenen nooit iets voor AI. Sleutels worden versleuteld, nooit meer getoond en alleen door je copilot gebruikt.",
-    "keysDisabled": "Eigen sleutels zijn op deze server nog niet ingeschakeld.",
+    "keysIntro": "Met je eigen sleutels rekenen we nooit iets voor AI. Sleutels zijn verzegeld met een wachtwoordzin die alleen jij kent, dus PairUX kan ze niet openen; je ontgrendelt ze per vergadering. Verlies je de wachtwoordzin en de herstelsleutel, dan voer je je sleutels opnieuw in.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC is de opdracht die antwoordt: de prompt komt via stdin, het antwoord is wat hij print.",
       "connectApi": "Of roep de API zelf aan",
       "connectApiHint": "Elke aanroep stuurt de sleutel als Bearer-token. Vraag het transcript op met de cursor die terugkomt."
-    }
+    },
+    "passphraseFirst": "Stel een wachtwoordzin in voordat je sleutels opslaat. Het is dezelfde als voor automatisch live gaan op YouTube.",
+    "passphraseLegacy": "Je opgeslagen sleutels wachten om onder je eigen wachtwoordzin te komen. Stel er een in om ze te blijven gebruiken.",
+    "passphrase": "Wachtwoordzin ({min}+ tekens)",
+    "passphraseRepeat": "Herhaal wachtwoordzin",
+    "passphraseShort": "Gebruik minstens {min} tekens.",
+    "passphraseMismatch": "De twee wachtwoordzinnen verschillen.",
+    "passphraseSet": "Wachtwoordzin instellen",
+    "recoveryTitle": "Herstelsleutel (eenmalig getoond). Bewaar hem op een veilige plek:",
+    "recoverySaved": "Ik heb hem bewaard"
   }
 }

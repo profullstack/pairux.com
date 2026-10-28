@@ -291,6 +291,8 @@ export function formatSettings(s: CopilotSettingsView): string[] {
     );
   }
   if (s.byokAvailable === false) lines.push('  (own keys are not enabled on this server)');
+  if (s.passphraseSet === false)
+    lines.push('  (set a key passphrase at https://pairux.com/settings/copilot to save own keys)');
   if (s.eligible === false) lines.push('The copilot is part of PairUX Pro and Team.');
   if (s.balance !== undefined) lines.push(`Pay-as-you-go balance: ${s.balance}`);
   return lines;

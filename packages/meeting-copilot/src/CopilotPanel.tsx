@@ -194,6 +194,95 @@ function StartView({
   );
 }
 
+/**
+ * The caller's own keys for this meeting: a passphrase box while they are
+ * locked, a pointer to Settings while they still need a passphrase. Shown only
+ * when the chosen models would use own keys.
+ */
+function OwnKeysBox({
+  copilot,
+  mode,
+  t,
+  live,
+  secret,
+  setSecret,
+  onUnlock,
+}: {
+  copilot: MeetingCopilot;
+  mode: CopilotMode;
+  t: CopilotT;
+  live: boolean;
+  secret: string;
+  setSecret: (value: string) => void;
+  onUnlock?: () => void;
+}) {
+  const own = copilot.status?.ownKeys;
+  if (!own || mode === 'free') return null;
+  if (own.state === 'legacy')
+    return <p className="text-[11px] text-amber-300/90">{t('ownKeys.legacy')}</p>;
+  if (own.state !== 'locked') return null;
+  if (!copilot.canUnlockKeys || !own.seal)
+    return <p className="text-[11px] text-amber-300/90">{t('ownKeys.webOnly')}</p>;
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] text-amber-300/90">
+        {t(live ? 'ownKeys.lockedLive' : 'ownKeys.locked')}
+      </p>
+      <div className="flex gap-1">
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={secret}
+          placeholder={t('ownKeys.secret')}
+          onChange={(event) => {
+            setSecret(event.target.value);
+          }}
+          className="min-w-0 flex-1 rounded bg-gray-800 px-2 py-1 text-xs text-gray-100"
+        />
+        {onUnlock && (
+          <button
+            type="button"
+            className={button}
+            disabled={copilot.busy || !secret}
+            onClick={onUnlock}
+          >
+            {t('ownKeys.unlock')}
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-gray-500">{t('ownKeys.note')}</p>
+    </div>
+  );
+}
+
+/** A running copilot whose own keys are locked (e.g. after a restart): unlock in place. */
+function LiveKeysUnlock({
+  copilot,
+  state,
+  t,
+}: {
+  copilot: MeetingCopilot;
+  state: CopilotState;
+  t: CopilotT;
+}) {
+  const [secret, setSecret] = useState('');
+  return (
+    <OwnKeysBox
+      copilot={copilot}
+      mode={state.mode}
+      t={t}
+      live
+      secret={secret}
+      setSecret={setSecret}
+      onUnlock={() => {
+        void copilot.start(state.role, state.mode, secret).then((started) => {
+          if (started) setSecret('');
+        });
+      }}
+    />
+  );
+}
+
 /** Role and model pickers and the Start button (or the upgrade note). */
 function CopilotStart({
   copilot,
@@ -207,6 +296,7 @@ function CopilotStart({
   const status = copilot.status;
   const [role, setRole] = useState<CopilotRole>(status?.role ?? 'general');
   const [mode, setMode] = useState<CopilotMode>(status?.mode ?? 'auto');
+  const [secret, setSecret] = useState('');
   // The saved defaults arrive with the first status poll.
   const savedRole = status?.role;
   const savedMode = status?.mode;
@@ -267,13 +357,25 @@ function CopilotStart({
         </select>
         <span className="block text-[11px] text-gray-400">{t('pricingNote')}</span>
       </label>
+      <OwnKeysBox
+        copilot={copilot}
+        mode={mode}
+        t={t}
+        live={false}
+        secret={secret}
+        setSecret={setSecret}
+      />
       <p className="text-[11px] text-amber-300/90">{t('consent')}</p>
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
           className={primary}
           disabled={copilot.busy}
-          onClick={() => void copilot.start(role, mode)}
+          onClick={() => {
+            void copilot.start(role, mode, secret).then((started) => {
+              if (started) setSecret('');
+            });
+          }}
         >
           {t('start')}
         </button>
@@ -662,6 +764,7 @@ export function CopilotPanel({
             })}
           </p>
           {state.notice && <p className="text-[11px] text-amber-300">{state.notice}</p>}
+          <LiveKeysUnlock copilot={copilot} state={state} t={t} />
           {suggestion && suggestion.id !== dismissed && (
             <div className="rounded bg-violet-900/40 p-2 text-xs ring-1 ring-violet-700">
               <div className={section}>{t('suggested')}</div>

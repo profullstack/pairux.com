@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Bot, KeyRound, Loader2, Users, Wallet } from 'lucide-react';
+import { bytesToBase64, createSeal, wipe, MIN_PASSPHRASE_LENGTH } from '@/lib/sealed/crypto';
 import {
   COPILOT_MODES,
   COPILOT_ROLES,
@@ -19,7 +20,8 @@ interface Settings {
   role: CopilotRole;
   keys: Record<Provider, { set: boolean; last4: string | null }>;
   eligible: boolean;
-  byokAvailable: boolean;
+  passphraseSet: boolean;
+  legacyKeys: number;
   balance: string;
 }
 interface WalletInfo {
@@ -83,6 +85,43 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
       );
       setMessage(t('saved'));
       setDrafts({ anthropic: '', openai: '', elevenlabs: '' });
+      await load();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : String(failure));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // The key passphrase: everything here runs in the browser; the server gets
+  // the seal (ciphertext + public key) and the derived data key, never the passphrase.
+  const [pass, setPass] = useState('');
+  const [pass2, setPass2] = useState('');
+  const [recoveryKey, setRecoveryKey] = useState('');
+  const setPassphrase = async () => {
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      if (pass.length < MIN_PASSPHRASE_LENGTH)
+        throw new Error(t('passphraseShort', { min: MIN_PASSPHRASE_LENGTH }));
+      if (pass !== pass2) throw new Error(t('passphraseMismatch'));
+      const me = await fetch('/api/keys');
+      const { data } = (await me.json()) as { data?: { userId: string } };
+      if (!me.ok || !data) throw new Error(`Request failed (${String(me.status)})`);
+      const made = await createSeal(pass, data.userId);
+      const dek = bytesToBase64(made.dek);
+      wipe(made.dek);
+      const res = await fetch('/api/keys/setup', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ seal: made.seal, dek, ttl_seconds: 3600 }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(body.error ?? `Request failed (${String(res.status)})`);
+      setRecoveryKey(made.recoveryKey);
+      setPass('');
+      setPass2('');
       await load();
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure));
@@ -189,8 +228,57 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
               {t('keysTitle')}
             </h2>
             <p className="mt-1 text-sm text-gray-600">{t('keysIntro')}</p>
-            {!settings.byokAvailable && (
-              <p className="mt-2 text-sm text-amber-700">{t('keysDisabled')}</p>
+            {recoveryKey && (
+              <div className="mt-3 rounded-lg border border-amber-400 p-3 text-sm">
+                <p className="font-medium">{t('recoveryTitle')}</p>
+                <code className="mt-1 block font-mono break-all">{recoveryKey}</code>
+                <button
+                  type="button"
+                  className="mt-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700"
+                  onClick={() => {
+                    setRecoveryKey('');
+                  }}
+                >
+                  {t('recoverySaved')}
+                </button>
+              </div>
+            )}
+            {!settings.passphraseSet && (
+              <div className="mt-3 space-y-2 text-sm">
+                <p className="text-amber-700">
+                  {settings.legacyKeys > 0 ? t('passphraseLegacy') : t('passphraseFirst')}
+                </p>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={pass}
+                  disabled={busy}
+                  placeholder={t('passphrase', { min: MIN_PASSPHRASE_LENGTH })}
+                  onChange={(event) => {
+                    setPass(event.target.value);
+                  }}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                />
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={pass2}
+                  disabled={busy}
+                  placeholder={t('passphraseRepeat')}
+                  onChange={(event) => {
+                    setPass2(event.target.value);
+                  }}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                />
+                <button
+                  type="button"
+                  disabled={busy || !pass}
+                  onClick={() => void setPassphrase()}
+                  className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                >
+                  {t('passphraseSet')}
+                </button>
+              </div>
             )}
             <div className="mt-4 space-y-3">
               {PROVIDERS.map((provider) => (
@@ -207,7 +295,7 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
                     type="password"
                     autoComplete="off"
                     value={drafts[provider]}
-                    disabled={busy || !settings.byokAvailable}
+                    disabled={busy || !settings.passphraseSet}
                     onChange={(event) => {
                       setDrafts((all) => ({ ...all, [provider]: event.target.value }));
                     }}

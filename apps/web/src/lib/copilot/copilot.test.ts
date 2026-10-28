@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createCipheriv, randomBytes } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod/v4';
 import { encodeWav } from '@profullstack/live-translate';
@@ -6,7 +6,8 @@ import { COPILOT_STRINGS_EN } from '@pairux/meeting-copilot/strings';
 import type { TranscriptLine } from '@pairux/meeting-copilot/types';
 import en from '../../../messages/en.json';
 import { isThin, lastSeconds, mergeUpdate, placeholder, talkListen, THIN_WORDS } from './analysis';
-import { openKey, sealKey, validKeyShape, type CopilotAccounts } from './account';
+import { validKeyShape, type CopilotAccounts } from './account';
+import { openLegacyKey } from './keys';
 import { CopilotLlm, CopilotLlmError, boundSchema, extractJson } from './llm';
 import { chargeMicros, claudeCostMicros, scribeCostMicros } from './pricing';
 import { Cooldowns, providerChain, type ProviderContext } from './providers';
@@ -263,8 +264,20 @@ describe('talk/listen and thin transcripts', () => {
   });
 });
 
-describe('BYOK key storage', () => {
+/** A v1 blob as the old server-key code wrote it (only the migration reads these now). */
+function legacySeal(plain: string, key: Buffer): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
+  const body = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
+  return ['v1', ...[iv, cipher.getAuthTag(), body].map((part) => part.toString('base64url'))].join(
+    '.'
+  );
+}
+
+describe('BYOK legacy (v1) blobs', () => {
   const key = randomBytes(32);
+  const sealKey = legacySeal;
+  const openKey = openLegacyKey;
   it('round-trips and refuses a tampered ciphertext', () => {
     const sealed = sealKey('sk-ant-secret-value-1234', key);
     expect(sealed).not.toContain('secret');

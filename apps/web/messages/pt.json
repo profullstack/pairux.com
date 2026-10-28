@@ -2401,6 +2401,15 @@
       "unclear": "Os follow-ups não estão claros"
     },
     "thin": "A transcrição é curta demais para analisar esta conversa de forma justa.",
+    "ownKeys": {
+      "locked": "Suas chaves de API estão bloqueadas. Digite sua frase-senha para usá-las nesta reunião.",
+      "lockedLive": "Suas chaves de API estão bloqueadas, então o copiloto usa modelos gratuitos. Desbloqueie-as para voltar a elas.",
+      "secret": "Frase-senha ou chave de recuperação",
+      "unlock": "Desbloquear chaves",
+      "note": "O PairUX mantém a chave desbloqueada na memória só para esta reunião e a descarta quando o copiloto para.",
+      "legacy": "Suas chaves salvas precisam de uma frase-senha antes de serem usadas. Defina uma em Chaves e crédito.",
+      "webOnly": "Suas chaves de API estão bloqueadas. Inicie o copiloto em pairux.com para desbloqueá-las."
+    },
     "fullReport": "Abrir notas completas",
     "restart": "Recomeçar",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "O checkout está indisponível no momento. Tente novamente em instantes.",
     "defaultRole": "Papel padrão",
     "keysTitle": "Suas próprias chaves de API",
-    "keysIntro": "Use suas próprias chaves e nunca cobraremos pela IA. As chaves são criptografadas, nunca mais exibidas e usadas apenas pelo seu copiloto.",
-    "keysDisabled": "Chaves próprias ainda não estão ativadas neste servidor.",
+    "keysIntro": "Com suas próprias chaves nunca cobramos pela IA. As chaves são seladas com uma frase-senha que só você conhece, então o PairUX não consegue abri-las; você as desbloqueia uma reunião por vez. Se perder a frase e a chave de recuperação, digite suas chaves de novo.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC é o comando que responde: o prompt chega pelo stdin e a resposta é o que ele imprime.",
       "connectApi": "Ou chame a API você mesmo",
       "connectApiHint": "Cada chamada envia a chave como token Bearer. Consulte a transcrição com o cursor retornado."
-    }
+    },
+    "passphraseFirst": "Defina uma frase-senha antes de salvar chaves. É a mesma da transmissão automática no YouTube.",
+    "passphraseLegacy": "Suas chaves salvas aguardam a mudança para sua própria frase-senha. Defina uma para continuar usando-as.",
+    "passphrase": "Frase-senha ({min}+ caracteres)",
+    "passphraseRepeat": "Repita a frase-senha",
+    "passphraseShort": "Use pelo menos {min} caracteres.",
+    "passphraseMismatch": "As duas frases são diferentes.",
+    "passphraseSet": "Definir frase-senha",
+    "recoveryTitle": "Chave de recuperação (mostrada uma vez). Guarde-a em local seguro:",
+    "recoverySaved": "Já guardei"
   }
 }

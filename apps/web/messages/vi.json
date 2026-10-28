@@ -2401,6 +2401,15 @@
       "unclear": "Nội dung theo dõi chưa rõ ràng"
     },
     "thin": "Bản ghi quá ngắn để đánh giá cuộc trò chuyện này một cách công bằng.",
+    "ownKeys": {
+      "locked": "Khóa API của bạn đang bị khóa. Nhập cụm mật khẩu khóa để dùng chúng trong cuộc họp này.",
+      "lockedLive": "Khóa API của bạn đang bị khóa nên trợ lý dùng mô hình miễn phí. Mở khóa để chuyển lại.",
+      "secret": "Cụm mật khẩu hoặc khóa khôi phục",
+      "unlock": "Mở khóa",
+      "note": "PairUX giữ khóa đã mở trong bộ nhớ chỉ cho cuộc họp này và xóa khi trợ lý dừng.",
+      "legacy": "Các khóa đã lưu cần cụm mật khẩu trước khi dùng được. Đặt trong Khóa và tín dụng.",
+      "webOnly": "Khóa API của bạn đang bị khóa. Hãy bắt đầu trợ lý trên pairux.com để mở khóa."
+    },
     "fullReport": "Mở toàn bộ ghi chú",
     "restart": "Bắt đầu lại",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Hiện không thể thanh toán. Vui lòng thử lại sau ít phút.",
     "defaultRole": "Vai trò mặc định",
     "keysTitle": "Khóa API của riêng bạn",
-    "keysIntro": "Dùng khóa của riêng bạn thì chúng tôi không bao giờ tính phí AI. Khóa được mã hóa, không bao giờ hiển thị lại và chỉ trợ lý của bạn sử dụng.",
-    "keysDisabled": "Máy chủ này chưa bật tính năng dùng khóa riêng.",
+    "keysIntro": "Với khóa riêng, chúng tôi không bao giờ tính phí AI. Khóa được niêm phong bằng cụm mật khẩu chỉ bạn biết nên PairUX không thể mở; bạn mở khóa cho từng cuộc họp. Mất cụm mật khẩu và khóa khôi phục thì bạn nhập lại khóa.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC là lệnh trả lời: prompt được đưa vào qua stdin, câu trả lời là những gì lệnh in ra.",
       "connectApi": "Hoặc tự gọi API",
       "connectApiHint": "Mỗi lệnh gọi gửi khóa dưới dạng token Bearer. Lấy bản chép lời bằng con trỏ được trả về."
-    }
+    },
+    "passphraseFirst": "Đặt cụm mật khẩu trước khi lưu khóa. Đây là cùng cụm mật khẩu với tự động phát trực tiếp YouTube.",
+    "passphraseLegacy": "Các khóa đã lưu đang chờ chuyển sang cụm mật khẩu của bạn. Hãy đặt một cụm để tiếp tục dùng.",
+    "passphrase": "Cụm mật khẩu ({min}+ ký tự)",
+    "passphraseRepeat": "Nhập lại cụm mật khẩu",
+    "passphraseShort": "Dùng ít nhất {min} ký tự.",
+    "passphraseMismatch": "Hai cụm mật khẩu khác nhau.",
+    "passphraseSet": "Đặt cụm mật khẩu",
+    "recoveryTitle": "Khóa khôi phục (chỉ hiện một lần). Hãy cất ở nơi an toàn:",
+    "recoverySaved": "Tôi đã lưu"
   }
 }

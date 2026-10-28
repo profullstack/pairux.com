@@ -218,14 +218,14 @@ export class CopilotVoice {
   }
 
   steps(): ProviderStep[] {
-    const { mode, keys } = this.ctx();
+    const { mode, keys, keysLocked } = this.ctx();
     const own: ('elevenlabs' | 'openai')[] = [];
     if (keys.elevenlabs) own.push('elevenlabs');
     if (keys.openai) own.push('openai');
     return providerChain(mode, {
       local: Boolean(LOCAL_STT_URL()),
       own,
-      ours: this.ours()?.available() ? 'elevenlabs' : null,
+      ours: !keysLocked && this.ours()?.available() ? 'elevenlabs' : null,
     });
   }
 

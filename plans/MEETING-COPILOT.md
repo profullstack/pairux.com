@@ -79,9 +79,16 @@ Rates: Claude per MTok as published (Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku
 5.5 $0.10/$0.50); Scribe $0.22 per submitted hour (live-translate
 `translationCost`). Admins are never charged.
 
-**BYOK.** Keys are encrypted at rest (AES-256-GCM, server secret
-`COPILOT_KEYS_SECRET`), never returned (only the last 4 characters), usable only
-by their owner's copilot. Deleting a key deletes the ciphertext.
+**BYOK.** Keys are sealed to the owner (seal v2, `lib/copilot/keys.ts`): each key
+is sealed to the public key of the owner's key passphrase (`user_key_seals`, the
+same passphrase as YouTube auto go-live), so nothing on the server opens them.
+Starting a copilot, the browser derives the data key from the passphrase and sends
+it (never the passphrase); the opened private key stays in process memory for that
+meeting only and is dropped when the copilot stops, on Lock, or on a restart.
+While locked the copilot runs on free models and never bills our paid provider in
+place of the owner's key. Never returned (only the last 4 characters). Legacy v1
+values under `COPILOT_KEYS_SECRET` are re-sealed once in the owner's own request;
+`LEGACY_KEY_MIGRATION=off` ends that.
 
 ## 5. Architecture
 
@@ -155,7 +162,7 @@ diarizing several people on one mic, mobile capture.
 2. Free stack on dev2: compose project `pairux-copilot` (`~/www/pairux.com/docker-compose.copilot.yml`) on the app's
    network: `pairux-copilot-whisper` (speaches, faster-whisper-small int8, 8 CPUs/4 GB) and `pairux-copilot-llm`
    (Ollama, model `pairux-copilot` = qwen2.5:7b with num_ctx 8192 and num_thread 6, 12 CPUs/8 GB).
-3. Env: `COPILOT_STT_URL`, `COPILOT_LLM_URL`, `COPILOT_LLM_MODEL`, `COPILOT_KEYS_SECRET` in vault `pairux-com--prod` and app.env.
+3. Env: `COPILOT_STT_URL`, `COPILOT_LLM_URL`, `COPILOT_LLM_MODEL` (and, until the legacy cutoff, `COPILOT_KEYS_SECRET`) in vault `pairux-com--prod` and app.env.
 4. Web deploy on merge; desktop on the next `v*` tag.
 
 ## 10a. Measured on dev2 (2026-10-28, CPU only, Ryzen 9 7950X3D)

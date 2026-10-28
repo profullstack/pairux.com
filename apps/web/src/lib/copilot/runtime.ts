@@ -5,6 +5,7 @@ import { serviceClient } from '@/lib/supabase/service';
 import { translationRuntime } from '@/lib/translation/server';
 import { CopilotAccounts } from './account';
 import { CopilotAgent, writeFollowUps, writeReview } from './agent';
+import { lockCopilotKeys, unlockCopilotKeys } from './keys';
 import { CopilotLlm } from './llm';
 import { CopilotMeeting, type MeetingParticipant } from './meeting';
 import type { ProviderContext } from './providers';
@@ -45,10 +46,17 @@ export class CopilotRuntime {
 
   async context(sessionId: string, userId: string, mode: CopilotMode): Promise<ProviderContext> {
     const [settings, admin] = await Promise.all([
-      this.accounts.settingsFor(userId),
+      this.accounts.settingsFor(userId, sessionId),
       this.accounts.isAdmin(userId),
     ]);
-    const ctx: ProviderContext = { userId, sessionId, mode, keys: settings.keys, admin };
+    const ctx: ProviderContext = {
+      userId,
+      sessionId,
+      mode,
+      keys: settings.keys,
+      keysLocked: settings.keysState === 'locked' || settings.keysState === 'legacy',
+      admin,
+    };
     this.contexts.set(`${sessionId}:${userId}`, ctx);
     return ctx;
   }
@@ -217,14 +225,41 @@ export class CopilotRuntime {
     return agent;
   }
 
+  /**
+   * The owner unlocked their own keys for this meeting: hold the private key
+   * in memory (TTL) until the copilot stops, and refresh a running copilot.
+   */
+  async unlockKeys(
+    sessionId: string,
+    userId: string,
+    privateKey: CryptoKey,
+    ttlSeconds?: unknown
+  ): Promise<void> {
+    unlockCopilotKeys(userId, sessionId, privateKey, ttlSeconds);
+    this.accounts.forget(userId);
+    const agent = this.get(sessionId, userId);
+    if (agent) await this.context(sessionId, userId, agent.state.mode);
+  }
+
+  /** Drop the meeting's unlock and every opened key of this owner for it. */
+  private dropKeys(sessionId: string, userId: string): void {
+    lockCopilotKeys(userId, sessionId);
+    this.contexts.delete(`${sessionId}:${userId}`);
+    this.accounts.forget(userId);
+  }
+
   /** Stop the owner's copilot: follow-ups and review are written, then it is saved. */
   async stop(sessionId: string, userId: string): Promise<CopilotState | null> {
     const meeting = this.meetings.get(sessionId);
     const agent = meeting?.agents.get(userId);
     if (!meeting || !agent) return null;
-    const state = await agent.finish();
-    meeting.agents.delete(userId);
-    this.contexts.delete(`${sessionId}:${userId}`);
+    let state: CopilotState;
+    try {
+      state = await agent.finish();
+    } finally {
+      meeting.agents.delete(userId);
+      this.dropKeys(sessionId, userId);
+    }
     await this.closeIfIdle(sessionId);
     return state;
   }
@@ -262,7 +297,7 @@ export class CopilotRuntime {
       writeFollowUps(this.llm, ctx, state, stored.participantId).catch(() => null),
       writeReview(this.llm, ctx, state, stored.participantId).catch(() => null),
     ]);
-    this.contexts.delete(`${state.sessionId}:${stored.userId}`);
+    this.dropKeys(state.sessionId, stored.userId);
     await this.store.save(state);
     return state;
   }

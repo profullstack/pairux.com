@@ -43,6 +43,18 @@ export function lockOwner(ownerId: string): boolean {
   return store().delete(ownerId);
 }
 
+/** Drop every unlock whose owner id starts with `prefix` (a user's per-meeting copilot unlocks). */
+export function lockOwnersWithPrefix(prefix: string): number {
+  let n = 0;
+  for (const id of [...store().keys()]) {
+    if (id.startsWith(prefix)) {
+      store().delete(id);
+      n++;
+    }
+  }
+  return n;
+}
+
 /** The owner's private key, or null when locked or expired (an expired entry is dropped). */
 export function privateKeyFor(ownerId: string, now = Date.now()): CryptoKey | null {
   const e = store().get(ownerId);

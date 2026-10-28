@@ -7,6 +7,8 @@ import {
   type KeyProvider,
 } from '@/lib/copilot/account';
 import { body, copilotError, runtimeOrThrow } from '@/lib/copilot/http';
+import { loadSealWith, migrateLegacyCopilotKeys } from '@/lib/copilot/keys';
+import { serviceClient } from '@/lib/supabase/service';
 import { formatUsd } from '@/lib/copilot/pricing';
 import { requestUser } from '@/lib/request-user';
 
@@ -20,6 +22,9 @@ export async function GET(request: Request) {
     const user = await requestUser(request);
     if (!user) return errorResponse('Sign in first.', 401);
     const runtime = runtimeOrThrow();
+    // One-shot: keys still under the old server key move to the owner's seal.
+    const seal = await loadSealWith(serviceClient(), user.id);
+    if (seal) await migrateLegacyCopilotKeys(serviceClient(), user.id, seal.public_key);
     const [settings, eligible, balance] = await Promise.all([
       runtime.accounts.publicSettings(user.id),
       runtime.accounts.eligible(user.id),
@@ -38,7 +43,8 @@ export async function GET(request: Request) {
 }
 
 // PUT /api/copilot/settings — { mode?, role?, keys?: { anthropic?: string|null, ... } }.
-// A key string replaces the stored key; null or "" deletes it.
+// A key string replaces the stored key (sealed at once to the caller's key
+// passphrase, 409 before one is set); null or "" deletes it.
 export async function PUT(request: Request) {
   try {
     const user = await requestUser(request);
@@ -61,7 +67,6 @@ export async function PUT(request: Request) {
       }
       if (typeof value !== 'string' || !validKeyShape(provider, value.trim()))
         return errorResponse(`That does not look like a ${provider} API key.`, 400);
-      if (!byokAvailable()) return errorResponse('Own keys are not enabled on this server.', 503);
       keys[provider] = value.trim();
     }
     const saved = await runtime.accounts.saveSettings(user.id, {

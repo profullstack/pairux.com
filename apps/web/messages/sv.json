@@ -2401,6 +2401,15 @@
       "unclear": "Uppföljningarna är otydliga"
     },
     "thin": "Transkriptionen är för kort för att bedöma samtalet rättvist.",
+    "ownKeys": {
+      "locked": "Dina egna API-nycklar är låsta. Ange din nyckellösenfras för att använda dem i det här mötet.",
+      "lockedLive": "Dina egna API-nycklar är låsta, så copiloten använder gratismodeller. Lås upp dem för att byta tillbaka.",
+      "secret": "Lösenfras eller återställningsnyckel",
+      "unlock": "Lås upp nycklar",
+      "note": "PairUX håller den upplåsta nyckeln i minnet bara för det här mötet och släpper den när copiloten stoppas.",
+      "legacy": "Dina sparade nycklar behöver en lösenfras innan de kan användas. Ange en under Nycklar och kredit.",
+      "webOnly": "Dina egna API-nycklar är låsta. Starta copiloten på pairux.com för att låsa upp dem."
+    },
     "fullReport": "Öppna alla anteckningar",
     "restart": "Börja om",
     "roles": {
@@ -2454,8 +2463,7 @@
     "checkoutUnavailable": "Kassan är inte tillgänglig just nu. Försök igen om en stund.",
     "defaultRole": "Standardroll",
     "keysTitle": "Dina egna API-nycklar",
-    "keysIntro": "Använd dina egna nycklar så debiterar vi dig aldrig för AI. Nycklarna krypteras, visas aldrig igen och används bara av din copilot.",
-    "keysDisabled": "Egna nycklar är inte aktiverade på den här servern än.",
+    "keysIntro": "Med egna nycklar tar vi aldrig betalt för AI. Nycklarna är förseglade med en lösenfras som bara du känner till, så PairUX kan inte öppna dem; du låser upp dem ett möte i taget. Tappar du lösenfrasen och återställningsnyckeln anger du nycklarna igen.",
     "providers": {
       "anthropic": "Anthropic",
       "openai": "OpenAI",
@@ -2507,6 +2515,15 @@
       "connectRunnerHint": "AGENT_EXEC är kommandot som svarar: prompten kommer på stdin och svaret är det som skrivs ut.",
       "connectApi": "Eller anropa API:t själv",
       "connectApiHint": "Varje anrop skickar nyckeln som Bearer-token. Hämta transkriptionen med markören som returneras."
-    }
+    },
+    "passphraseFirst": "Ange en lösenfras innan du sparar nycklar. Det är samma lösenfras som för automatisk YouTube-sändning.",
+    "passphraseLegacy": "Dina sparade nycklar väntar på att flyttas under din egen lösenfras. Ange en för att fortsätta använda dem.",
+    "passphrase": "Lösenfras ({min}+ tecken)",
+    "passphraseRepeat": "Upprepa lösenfrasen",
+    "passphraseShort": "Använd minst {min} tecken.",
+    "passphraseMismatch": "Lösenfraserna skiljer sig åt.",
+    "passphraseSet": "Ange lösenfras",
+    "recoveryTitle": "Återställningsnyckel (visas en gång). Förvara den säkert:",
+    "recoverySaved": "Jag har sparat den"
   }
 }

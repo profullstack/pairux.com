@@ -90,7 +90,7 @@ export class CopilotLlm {
     return providerChain(ctx.mode, {
       local: Boolean(LOCAL_LLM_URL()),
       own,
-      ours: process.env.ANTHROPIC_API_KEY ? 'anthropic' : null,
+      ours: process.env.ANTHROPIC_API_KEY && !ctx.keysLocked ? 'anthropic' : null,
     });
   }
 

@@ -20,7 +20,11 @@ type G = typeof globalThis & { [KEY]?: Map<string, Entry> };
 
 function store(): Map<string, Entry> {
   const g = globalThis as G;
-  return (g[KEY] ??= new Map());
+  const existing: Map<string, Entry> | undefined = g[KEY];
+  if (existing) return existing;
+  const created = new Map<string, Entry>();
+  g[KEY] = created;
+  return created;
 }
 
 export function unlockOwner(

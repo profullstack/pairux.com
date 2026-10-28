@@ -2316,5 +2316,142 @@
       "login": "Jag har redan ett konto",
       "failed": "Det gick inte att acceptera inbjudan."
     }
+  },
+  "copilot": {
+    "title": "AI-copilot",
+    "listeningFor": "AI-copiloten lyssnar för {names}",
+    "consent": "Låt alla veta att en AI-copilot lyssnar; den transkriberar det som sägs.",
+    "open": "Öppna AI-copilot",
+    "close": "Stäng",
+    "proOnly": "AI-copiloten är med i ditt samtal, antecknar, föreslår frågor och skriver dina uppföljningar. Den ingår i PairUX Pro.",
+    "upgrade": "Uppgradera till Pro",
+    "signIn": "Logga in för att använda AI-copiloten.",
+    "role": "Vem är du i det här mötet?",
+    "listensFor": "Lyssnar efter",
+    "mode": "Modeller",
+    "modes": {
+      "auto": "Gratis modeller, betalt moln som reserv",
+      "free": "Endast gratis egenhostade modeller",
+      "byok": "Mina egna API-nycklar",
+      "cloud": "Moln med bäst kvalitet (betala per användning)"
+    },
+    "pricingNote": "Gratis modeller körs kostnadsfritt på våra servrar. Molnmodeller betalas per användning till leverantörens kostnad + 10 %, eller gratis med dina egna nycklar.",
+    "settings": "Nycklar och saldo",
+    "start": "Starta copilot",
+    "stop": "Stoppa och skriv uppföljningar",
+    "stopping": "Skriver uppföljningar…",
+    "live": "Lyssnar",
+    "providers": "Tal: {stt} · AI: {llm}",
+    "waiting": "väntar",
+    "recap": "Sammanfatta senaste 30 s",
+    "recapTitle": "Senaste 30 sekunderna",
+    "suggested": "Föreslagen fråga",
+    "jump": "Visa var",
+    "dismiss": "Avfärda",
+    "tabs": {
+      "notes": "Anteckningar",
+      "questions": "Frågor",
+      "transcript": "Transkription",
+      "ask": "Fråga"
+    },
+    "summary": "Sammanfattning",
+    "keyPoints": "Huvudpunkter",
+    "decisions": "Beslut",
+    "actionItems": "Åtgärder",
+    "figures": "Viktiga siffror och datum",
+    "owner": "Ansvarig: {owner}",
+    "nothingYet": "Inget än. Anteckningar visas medan folk pratar.",
+    "noQuestions": "Inga öppna frågor än.",
+    "answered": "Besvarad",
+    "noTranscript": "Ingen har hörts än. Tal visas här några sekunder efter att det sagts.",
+    "askPlaceholder": "Fråga privat: ”Vad var budgeten nu igen?”",
+    "askSend": "Fråga",
+    "askHint": "Bara du ser det här. Svaren bygger på det som sagts.",
+    "followUps": "Uppföljningar",
+    "message": "Sammanfattningsmeddelande",
+    "copy": "Kopiera",
+    "copied": "Kopierat",
+    "review": "Samtalsanalys",
+    "focusArea": "Fokusområde",
+    "talkListen": "Du pratade {you} % av tiden",
+    "questionsResolved": "{answered} av {asked} frågor besvarade",
+    "clarity": {
+      "clear": "Uppföljningarna är tydliga",
+      "partial": "Uppföljningarna är delvis tydliga",
+      "unclear": "Uppföljningarna är otydliga"
+    },
+    "thin": "Transkriptionen är för kort för att bedöma samtalet rättvist.",
+    "fullReport": "Öppna alla anteckningar",
+    "restart": "Börja om",
+    "roles": {
+      "general": {
+        "label": "Allmänt",
+        "meetings": "Alla typer av möten."
+      },
+      "sales": {
+        "label": "Sälj",
+        "meetings": "Behovsanalyser, demos och uppföljningar."
+      },
+      "recruiter": {
+        "label": "Rekryterare",
+        "meetings": "Screeningar, intervjuer och kandidatgenomgångar."
+      },
+      "product": {
+        "label": "Produktchef",
+        "meetings": "Användarintervjuer, planering och avstämningar med intressenter."
+      },
+      "founder": {
+        "label": "Grundare",
+        "meetings": "Kundsamtal, investerarsamtal och partnermöten."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Avstämningar, förnyelser och eskaleringar."
+      },
+      "engineer": {
+        "label": "Ingenjör",
+        "meetings": "Krav, standups, designgranskningar och 1:1-samtal."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI-copilotens anteckningar",
+    "listIntro": "Anteckningar, uppföljningar och analyser från varje möte din AI-copilot var med på.",
+    "settingsLink": "Nycklar och saldo",
+    "loadError": "Det gick inte att läsa in dina copilot-anteckningar.",
+    "empty": "Inga copilot-anteckningar än. Starta AI-copiloten från panelen i valfritt möte.",
+    "live": "live",
+    "untitled": "Namnlöst möte",
+    "reportTitle": "AI-copilotens anteckningar",
+    "back": "Alla copilot-anteckningar",
+    "noFollowUps": "Inga uppföljningar skrevs.",
+    "rewriteFollowUps": "Skriv om uppföljningar",
+    "noReview": "Ingen analys än.",
+    "rewriteReview": "Skriv om analysen",
+    "settingsTitle": "Inställningar för AI-copilot",
+    "topupPending": "Tack! Ditt saldo visas här när betalningen har bekräftats.",
+    "saved": "Sparat.",
+    "checkoutUnavailable": "Kassan är inte tillgänglig just nu. Försök igen om en stund.",
+    "defaultRole": "Standardroll",
+    "keysTitle": "Dina egna API-nycklar",
+    "keysIntro": "Använd dina egna nycklar så debiterar vi dig aldrig för AI. Nycklarna krypteras, visas aldrig igen och används bara av din copilot.",
+    "keysDisabled": "Egna nycklar är inte aktiverade på den här servern än.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Angiven (…{last4})",
+    "keyNotSet": "Inte angiven",
+    "keyPlaceholder": "Klistra in en nyckel",
+    "saveKey": "Spara",
+    "removeKey": "Ta bort",
+    "walletTitle": "Saldo för betalning per användning: {balance}",
+    "walletIntro": "Används bara när en molnmodell körs med våra nycklar: leverantörens kostnad + 10 %. Gratis modeller och dina egna nycklar kostar ingenting.",
+    "addCredit": "Lägg till {amount}",
+    "usageWhen": "När",
+    "usageWhat": "Vad",
+    "usageCharge": "Belopp",
+    "refunded": "återbetald"
   }
 }

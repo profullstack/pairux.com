@@ -2316,5 +2316,142 @@
       "login": "Mam już konto",
       "failed": "Nie udało się przyjąć zaproszenia."
     }
+  },
+  "copilot": {
+    "title": "Copilot AI",
+    "listeningFor": "Copilot AI słucha dla: {names}",
+    "consent": "Poinformuj wszystkich, że słucha copilot AI; transkrybuje to, co zostało powiedziane.",
+    "open": "Otwórz copilota AI",
+    "close": "Zamknij",
+    "proOnly": "Copilot AI uczestniczy w Twojej rozmowie, robi notatki, podpowiada pytania i pisze wiadomości follow-up. Jest częścią PairUX Pro.",
+    "upgrade": "Przejdź na Pro",
+    "signIn": "Zaloguj się, aby korzystać z copilota AI.",
+    "role": "Kim jesteś na tym spotkaniu?",
+    "listensFor": "Słucha pod kątem",
+    "mode": "Modele",
+    "modes": {
+      "auto": "Darmowe modele, płatna chmura jako rezerwa",
+      "free": "Tylko darmowe modele na własnych serwerach",
+      "byok": "Moje własne klucze API",
+      "cloud": "Chmura o najlepszej jakości (płatność za użycie)"
+    },
+    "pricingNote": "Darmowe modele działają bezpłatnie na naszych serwerach. Modele w chmurze są płatne za użycie po kosztach dostawcy + 10% albo darmowe z Twoimi własnymi kluczami.",
+    "settings": "Klucze i środki",
+    "start": "Uruchom copilota",
+    "stop": "Zatrzymaj i napisz follow-upy",
+    "stopping": "Piszę follow-upy…",
+    "live": "Słucha",
+    "providers": "Mowa: {stt} · AI: {llm}",
+    "waiting": "oczekiwanie",
+    "recap": "Podsumuj ostatnie 30 s",
+    "recapTitle": "Ostatnie 30 sekund",
+    "suggested": "Proponowane pytanie",
+    "jump": "Pokaż gdzie",
+    "dismiss": "Odrzuć",
+    "tabs": {
+      "notes": "Notatki",
+      "questions": "Pytania",
+      "transcript": "Transkrypcja",
+      "ask": "Zapytaj"
+    },
+    "summary": "Podsumowanie",
+    "keyPoints": "Najważniejsze punkty",
+    "decisions": "Decyzje",
+    "actionItems": "Zadania",
+    "figures": "Kluczowe liczby i daty",
+    "owner": "Odpowiedzialny: {owner}",
+    "nothingYet": "Jeszcze nic. Notatki pojawiają się w trakcie rozmowy.",
+    "noQuestions": "Brak otwartych pytań.",
+    "answered": "Odpowiedziano",
+    "noTranscript": "Jeszcze nikogo nie usłyszano. Wypowiedzi pojawiają się tutaj kilka sekund po ich wypowiedzeniu.",
+    "askPlaceholder": "Zapytaj prywatnie: „Jaki był budżet?”",
+    "askSend": "Zapytaj",
+    "askHint": "Widzisz to tylko Ty. Odpowiedzi opierają się na tym, co zostało powiedziane.",
+    "followUps": "Follow-upy",
+    "message": "Wiadomość z podsumowaniem",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "review": "Analiza rozmowy",
+    "focusArea": "Obszar do poprawy",
+    "talkListen": "Twój udział w rozmowie: {you}%",
+    "questionsResolved": "Odpowiedzi na {answered} z {asked} pytań",
+    "clarity": {
+      "clear": "Follow-upy są jasne",
+      "partial": "Follow-upy są częściowo jasne",
+      "unclear": "Follow-upy są niejasne"
+    },
+    "thin": "Transkrypcja jest za krótka, aby rzetelnie ocenić tę rozmowę.",
+    "fullReport": "Otwórz pełne notatki",
+    "restart": "Zacznij od nowa",
+    "roles": {
+      "general": {
+        "label": "Ogólna",
+        "meetings": "Dowolne spotkanie."
+      },
+      "sales": {
+        "label": "Sprzedaż",
+        "meetings": "Rozmowy rozpoznawcze, prezentacje i follow-upy."
+      },
+      "recruiter": {
+        "label": "Rekruter",
+        "meetings": "Rozmowy wstępne, rozmowy kwalifikacyjne i omówienia kandydatów."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "Wywiady z użytkownikami, planowanie i spotkania z interesariuszami."
+      },
+      "founder": {
+        "label": "Założyciel",
+        "meetings": "Rozmowy z klientami, inwestorami i partnerami."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Spotkania kontrolne, odnowienia i eskalacje."
+      },
+      "engineer": {
+        "label": "Inżynier",
+        "meetings": "Wymagania, standupy, przeglądy projektów i spotkania 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Notatki copilota AI",
+    "listIntro": "Notatki, follow-upy i analizy ze wszystkich spotkań, w których uczestniczył Twój copilot AI.",
+    "settingsLink": "Klucze i środki",
+    "loadError": "Nie udało się wczytać notatek copilota.",
+    "empty": "Brak notatek copilota. Uruchom copilota AI z panelu podczas dowolnego spotkania.",
+    "live": "na żywo",
+    "untitled": "Spotkanie bez tytułu",
+    "reportTitle": "Notatki copilota AI",
+    "back": "Wszystkie notatki copilota",
+    "noFollowUps": "Nie napisano żadnych follow-upów.",
+    "rewriteFollowUps": "Napisz follow-upy od nowa",
+    "noReview": "Brak analizy.",
+    "rewriteReview": "Napisz analizę od nowa",
+    "settingsTitle": "Ustawienia copilota AI",
+    "topupPending": "Dziękujemy! Środki pojawią się tutaj po potwierdzeniu płatności.",
+    "saved": "Zapisano.",
+    "checkoutUnavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za chwilę.",
+    "defaultRole": "Domyślna rola",
+    "keysTitle": "Twoje własne klucze API",
+    "keysIntro": "Używaj własnych kluczy, a nigdy nie obciążymy Cię za AI. Klucze są szyfrowane, nigdy więcej nie są wyświetlane i używa ich tylko Twój copilot.",
+    "keysDisabled": "Własne klucze nie są jeszcze włączone na tym serwerze.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Ustawiony (…{last4})",
+    "keyNotSet": "Nieustawiony",
+    "keyPlaceholder": "Wklej klucz",
+    "saveKey": "Zapisz",
+    "removeKey": "Usuń",
+    "walletTitle": "Środki na płatność za użycie: {balance}",
+    "walletIntro": "Używane tylko wtedy, gdy model w chmurze działa na naszych kluczach: koszt dostawcy + 10%. Darmowe modele i Twoje własne klucze nic nie kosztują.",
+    "addCredit": "Dodaj {amount}",
+    "usageWhen": "Kiedy",
+    "usageWhat": "Co",
+    "usageCharge": "Opłata",
+    "refunded": "zwrócono"
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useRef } from 'react';
 import { RecordingNotice } from '@/components/session/RecordingNotice';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
+import { MeetingCopilot } from '@/components/copilot/MeetingCopilot';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -207,6 +208,7 @@ function SFUGuestViewer({ sessionId, session, participant, participantId }: Gues
     <>
       <GuestViewerContent session={session} participant={participant} {...hookResult} />
       <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+      <MeetingCopilot sessionId={sessionId} selfId={participantId} />
     </>
   );
 }

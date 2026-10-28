@@ -2316,5 +2316,142 @@
       "login": "Ya tengo una cuenta",
       "failed": "No se pudo aceptar la invitación."
     }
+  },
+  "copilot": {
+    "title": "Copiloto de IA",
+    "listeningFor": "El copiloto de IA está escuchando para {names}",
+    "consent": "Avisa a todos de que un copiloto de IA está escuchando; transcribe lo que se dice.",
+    "open": "Abrir copiloto de IA",
+    "close": "Cerrar",
+    "proOnly": "El copiloto de IA se une a tu llamada, toma notas, sugiere preguntas y redacta tus seguimientos. Forma parte de PairUX Pro.",
+    "upgrade": "Pásate a Pro",
+    "signIn": "Inicia sesión para usar el copiloto de IA.",
+    "role": "¿Cuál es tu papel en esta reunión?",
+    "listensFor": "Presta atención a",
+    "mode": "Modelos",
+    "modes": {
+      "auto": "Modelos gratuitos, nube de pago como respaldo",
+      "free": "Solo modelos gratuitos autoalojados",
+      "byok": "Mis propias claves de API",
+      "cloud": "Nube de máxima calidad (pago por uso)"
+    },
+    "pricingNote": "Los modelos gratuitos se ejecutan en nuestros servidores sin coste. Los modelos en la nube son de pago por uso al coste del proveedor + 10 %, o gratis con tus propias claves.",
+    "settings": "Claves y saldo",
+    "start": "Iniciar copiloto",
+    "stop": "Detener y redactar seguimientos",
+    "stopping": "Redactando seguimientos…",
+    "live": "Escuchando",
+    "providers": "Voz: {stt} · IA: {llm}",
+    "waiting": "esperando",
+    "recap": "Resumir últimos 30 s",
+    "recapTitle": "Últimos 30 segundos",
+    "suggested": "Pregunta sugerida",
+    "jump": "Mostrar dónde",
+    "dismiss": "Descartar",
+    "tabs": {
+      "notes": "Notas",
+      "questions": "Preguntas",
+      "transcript": "Transcripción",
+      "ask": "Preguntar"
+    },
+    "summary": "Resumen",
+    "keyPoints": "Puntos clave",
+    "decisions": "Decisiones",
+    "actionItems": "Tareas pendientes",
+    "figures": "Cifras y fechas clave",
+    "owner": "Responsable: {owner}",
+    "nothingYet": "Aún no hay nada. Las notas aparecen mientras la gente habla.",
+    "noQuestions": "Aún no hay preguntas abiertas.",
+    "answered": "Respondida",
+    "noTranscript": "Aún no se ha oído a nadie. Lo que se dice aparece aquí unos segundos después.",
+    "askPlaceholder": "Pregunta en privado: «¿Cuál era el presupuesto?»",
+    "askSend": "Preguntar",
+    "askHint": "Solo tú ves esto. Las respuestas se basan en lo que se ha dicho.",
+    "followUps": "Seguimientos",
+    "message": "Mensaje de resumen",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "review": "Análisis de la conversación",
+    "focusArea": "Área de mejora",
+    "talkListen": "Hablaste el {you} % del tiempo",
+    "questionsResolved": "{answered} de {asked} preguntas respondidas",
+    "clarity": {
+      "clear": "Los seguimientos están claros",
+      "partial": "Los seguimientos están claros en parte",
+      "unclear": "Los seguimientos no están claros"
+    },
+    "thin": "La transcripción es demasiado corta para analizar esta conversación de forma justa.",
+    "fullReport": "Abrir notas completas",
+    "restart": "Empezar de nuevo",
+    "roles": {
+      "general": {
+        "label": "General",
+        "meetings": "Cualquier reunión."
+      },
+      "sales": {
+        "label": "Ventas",
+        "meetings": "Llamadas de descubrimiento, demos y seguimientos."
+      },
+      "recruiter": {
+        "label": "Reclutador",
+        "meetings": "Filtros, entrevistas y valoraciones de candidatos."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "Entrevistas con usuarios, planificación y reuniones con stakeholders."
+      },
+      "founder": {
+        "label": "Fundador",
+        "meetings": "Llamadas con clientes, charlas con inversores y reuniones con socios."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Seguimientos, renovaciones y escalados."
+      },
+      "engineer": {
+        "label": "Ingeniero",
+        "meetings": "Requisitos, standups, revisiones de diseño y 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Notas del copiloto de IA",
+    "listIntro": "Notas, seguimientos y análisis de cada reunión en la que estuvo tu copiloto de IA.",
+    "settingsLink": "Claves y saldo",
+    "loadError": "No se pudieron cargar tus notas del copiloto.",
+    "empty": "Aún no hay notas del copiloto. Inicia el copiloto de IA desde el panel en cualquier reunión.",
+    "live": "en vivo",
+    "untitled": "Reunión sin título",
+    "reportTitle": "Notas del copiloto de IA",
+    "back": "Todas las notas del copiloto",
+    "noFollowUps": "No se redactaron seguimientos.",
+    "rewriteFollowUps": "Reescribir seguimientos",
+    "noReview": "Aún no hay análisis.",
+    "rewriteReview": "Reescribir análisis",
+    "settingsTitle": "Ajustes del copiloto de IA",
+    "topupPending": "¡Gracias! Tu saldo aparecerá aquí cuando se confirme el pago.",
+    "saved": "Guardado.",
+    "checkoutUnavailable": "El pago no está disponible ahora mismo. Inténtalo de nuevo en breve.",
+    "defaultRole": "Rol predeterminado",
+    "keysTitle": "Tus propias claves de API",
+    "keysIntro": "Usa tus propias claves y nunca te cobraremos por la IA. Las claves se cifran, no se vuelven a mostrar y solo las usa tu copiloto.",
+    "keysDisabled": "Las claves propias aún no están habilitadas en este servidor.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Configurada (…{last4})",
+    "keyNotSet": "Sin configurar",
+    "keyPlaceholder": "Pega una clave",
+    "saveKey": "Guardar",
+    "removeKey": "Quitar",
+    "walletTitle": "Saldo de pago por uso: {balance}",
+    "walletIntro": "Solo se usa cuando un modelo en la nube funciona con nuestras claves: coste del proveedor + 10 %. Los modelos gratuitos y tus propias claves no cuestan nada.",
+    "addCredit": "Añadir {amount}",
+    "usageWhen": "Cuándo",
+    "usageWhat": "Qué",
+    "usageCharge": "Cargo",
+    "refunded": "reembolsado"
   }
 }

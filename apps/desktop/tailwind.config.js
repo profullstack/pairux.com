@@ -1,7 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
-  content: ['./src/renderer/**/*.{js,ts,jsx,tsx,html}'],
+  content: [
+    './src/renderer/**/*.{js,ts,jsx,tsx,html}',
+    // The shared AI copilot panel.
+    '../../packages/meeting-copilot/src/**/*.{ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {

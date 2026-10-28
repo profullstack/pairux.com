@@ -41,6 +41,7 @@ import type { SeatKind, SessionParticipant } from '@pairux/shared-types';
 import { Logo } from '@/components/Logo';
 import { PublishRoomModal } from '@/components/session/PublishRoomModal';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
+import { MeetingCopilot } from '@/components/copilot/MeetingCopilot';
 
 interface SessionData {
   id: string;
@@ -647,6 +648,9 @@ function HostContent({
           selfId={publisherId}
           participants={translationParticipants}
         />
+      )}
+      {currentSession.mode === 'sfu' && (
+        <MeetingCopilot sessionId={sessionId} selfId={publisherId} />
       )}
       {/* Plan cap reached: the upgrade prompt, for the room's owner only (the
           payer; a handed-off host or a guest never sees prices) */}

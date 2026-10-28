@@ -2316,5 +2316,142 @@
       "login": "Tôi đã có tài khoản",
       "failed": "Không thể chấp nhận lời mời."
     }
+  },
+  "copilot": {
+    "title": "Trợ lý AI",
+    "listeningFor": "Trợ lý AI đang lắng nghe cho {names}",
+    "consent": "Hãy cho mọi người biết có trợ lý AI đang lắng nghe; trợ lý sẽ chép lại những gì được nói.",
+    "open": "Mở trợ lý AI",
+    "close": "Đóng",
+    "proOnly": "Trợ lý AI tham gia cuộc gọi của bạn, ghi chú, gợi ý câu hỏi và soạn nội dung theo dõi. Tính năng này có trong PairUX Pro.",
+    "upgrade": "Nâng cấp lên Pro",
+    "signIn": "Đăng nhập để dùng trợ lý AI.",
+    "role": "Bạn là ai trong cuộc họp này?",
+    "listensFor": "Chú ý đến",
+    "mode": "Mô hình",
+    "modes": {
+      "auto": "Mô hình miễn phí, đám mây trả phí làm dự phòng",
+      "free": "Chỉ mô hình miễn phí tự lưu trữ",
+      "byok": "Khóa API của riêng tôi",
+      "cloud": "Đám mây chất lượng tốt nhất (trả theo mức dùng)"
+    },
+    "pricingNote": "Mô hình miễn phí chạy trên máy chủ của chúng tôi, không tốn phí. Mô hình đám mây trả theo mức dùng với giá nhà cung cấp + 10%, hoặc miễn phí với khóa của riêng bạn.",
+    "settings": "Khóa và số dư",
+    "start": "Bắt đầu trợ lý",
+    "stop": "Dừng và soạn nội dung theo dõi",
+    "stopping": "Đang soạn nội dung theo dõi…",
+    "live": "Đang nghe",
+    "providers": "Giọng nói: {stt} · AI: {llm}",
+    "waiting": "đang chờ",
+    "recap": "Tóm tắt 30 giây qua",
+    "recapTitle": "30 giây vừa qua",
+    "suggested": "Câu hỏi gợi ý",
+    "jump": "Hiện vị trí",
+    "dismiss": "Bỏ qua",
+    "tabs": {
+      "notes": "Ghi chú",
+      "questions": "Câu hỏi",
+      "transcript": "Bản ghi",
+      "ask": "Hỏi"
+    },
+    "summary": "Tóm tắt",
+    "keyPoints": "Ý chính",
+    "decisions": "Quyết định",
+    "actionItems": "Việc cần làm",
+    "figures": "Số liệu và mốc thời gian chính",
+    "owner": "Phụ trách: {owner}",
+    "nothingYet": "Chưa có gì. Ghi chú sẽ xuất hiện khi mọi người nói chuyện.",
+    "noQuestions": "Chưa có câu hỏi nào còn mở.",
+    "answered": "Đã trả lời",
+    "noTranscript": "Chưa nghe thấy ai. Lời nói sẽ xuất hiện ở đây vài giây sau khi được nói.",
+    "askPlaceholder": "Hỏi riêng: “Ngân sách là bao nhiêu nhỉ?”",
+    "askSend": "Hỏi",
+    "askHint": "Chỉ bạn thấy nội dung này. Câu trả lời dựa trên những gì đã được nói.",
+    "followUps": "Nội dung theo dõi",
+    "message": "Tin nhắn tóm tắt",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "review": "Đánh giá cuộc trò chuyện",
+    "focusArea": "Điểm cần cải thiện",
+    "talkListen": "Bạn đã nói {you}% thời gian",
+    "questionsResolved": "Đã trả lời {answered} trên {asked} câu hỏi",
+    "clarity": {
+      "clear": "Nội dung theo dõi rõ ràng",
+      "partial": "Nội dung theo dõi rõ ràng một phần",
+      "unclear": "Nội dung theo dõi chưa rõ ràng"
+    },
+    "thin": "Bản ghi quá ngắn để đánh giá cuộc trò chuyện này một cách công bằng.",
+    "fullReport": "Mở toàn bộ ghi chú",
+    "restart": "Bắt đầu lại",
+    "roles": {
+      "general": {
+        "label": "Chung",
+        "meetings": "Mọi cuộc họp."
+      },
+      "sales": {
+        "label": "Bán hàng",
+        "meetings": "Cuộc gọi khám phá nhu cầu, demo và theo dõi."
+      },
+      "recruiter": {
+        "label": "Tuyển dụng",
+        "meetings": "Sàng lọc, phỏng vấn và trao đổi về ứng viên."
+      },
+      "product": {
+        "label": "Quản lý sản phẩm",
+        "meetings": "Phỏng vấn người dùng, lập kế hoạch và họp với các bên liên quan."
+      },
+      "founder": {
+        "label": "Nhà sáng lập",
+        "meetings": "Gọi với khách hàng, trò chuyện với nhà đầu tư và họp với đối tác."
+      },
+      "success": {
+        "label": "Chăm sóc khách hàng",
+        "meetings": "Kiểm tra định kỳ, gia hạn và xử lý sự cố."
+      },
+      "engineer": {
+        "label": "Kỹ sư",
+        "meetings": "Yêu cầu, họp đứng, đánh giá thiết kế và họp 1:1."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Ghi chú của trợ lý AI",
+    "listIntro": "Ghi chú, nội dung theo dõi và đánh giá từ mọi cuộc họp có trợ lý AI của bạn tham gia.",
+    "settingsLink": "Khóa và số dư",
+    "loadError": "Không tải được ghi chú của trợ lý.",
+    "empty": "Chưa có ghi chú nào của trợ lý. Hãy bắt đầu trợ lý AI từ bảng điều khiển trong bất kỳ cuộc họp nào.",
+    "live": "trực tiếp",
+    "untitled": "Cuộc họp chưa đặt tên",
+    "reportTitle": "Ghi chú của trợ lý AI",
+    "back": "Tất cả ghi chú của trợ lý",
+    "noFollowUps": "Chưa soạn nội dung theo dõi nào.",
+    "rewriteFollowUps": "Soạn lại nội dung theo dõi",
+    "noReview": "Chưa có đánh giá.",
+    "rewriteReview": "Viết lại đánh giá",
+    "settingsTitle": "Cài đặt trợ lý AI",
+    "topupPending": "Cảm ơn bạn! Số dư sẽ hiện ở đây khi thanh toán được xác nhận.",
+    "saved": "Đã lưu.",
+    "checkoutUnavailable": "Hiện không thể thanh toán. Vui lòng thử lại sau ít phút.",
+    "defaultRole": "Vai trò mặc định",
+    "keysTitle": "Khóa API của riêng bạn",
+    "keysIntro": "Dùng khóa của riêng bạn thì chúng tôi không bao giờ tính phí AI. Khóa được mã hóa, không bao giờ hiển thị lại và chỉ trợ lý của bạn sử dụng.",
+    "keysDisabled": "Máy chủ này chưa bật tính năng dùng khóa riêng.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Đã đặt (…{last4})",
+    "keyNotSet": "Chưa đặt",
+    "keyPlaceholder": "Dán khóa",
+    "saveKey": "Lưu",
+    "removeKey": "Xóa",
+    "walletTitle": "Số dư trả theo mức dùng: {balance}",
+    "walletIntro": "Chỉ dùng khi mô hình đám mây chạy bằng khóa của chúng tôi: giá nhà cung cấp + 10%. Mô hình miễn phí và khóa của riêng bạn không tốn gì.",
+    "addCredit": "Nạp {amount}",
+    "usageWhen": "Thời gian",
+    "usageWhat": "Nội dung",
+    "usageCharge": "Phí",
+    "refunded": "đã hoàn tiền"
   }
 }

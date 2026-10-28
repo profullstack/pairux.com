@@ -26,6 +26,14 @@ describe('parseAgentArgv', () => {
     expect(parseAgentArgv(['/opt/PairUX/pairux', 'room'], true)).toEqual(['room']);
   });
 
+  it('runs `pairux copilot ...` headless', () => {
+    expect(parseAgentArgv(['/opt/PairUX/pairux', 'copilot', 'watch', 'ABC123'], true)).toEqual([
+      'copilot',
+      'watch',
+      'ABC123',
+    ]);
+  });
+
   it('leaves normal launches, the daemon and deep links alone', () => {
     expect(parseAgentArgv(['/opt/PairUX/pairux'], true)).toBeNull();
     expect(parseAgentArgv(['/opt/PairUX/pairux', 'daemon'], true)).toBeNull();

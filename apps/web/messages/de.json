@@ -2316,5 +2316,142 @@
       "login": "Ich habe schon ein Konto",
       "failed": "Die Einladung konnte nicht angenommen werden."
     }
+  },
+  "copilot": {
+    "title": "KI-Copilot",
+    "listeningFor": "Der KI-Copilot hört für {names} zu",
+    "consent": "Sag allen Bescheid, dass ein KI-Copilot zuhört; er transkribiert, was gesagt wird.",
+    "open": "KI-Copilot öffnen",
+    "close": "Schließen",
+    "proOnly": "Der KI-Copilot sitzt in deinem Call, schreibt mit, schlägt Fragen vor und verfasst deine Follow-ups. Er ist Teil von PairUX Pro.",
+    "upgrade": "Auf Pro upgraden",
+    "signIn": "Melde dich an, um den KI-Copilot zu nutzen.",
+    "role": "Welche Rolle hast du in diesem Meeting?",
+    "listensFor": "Achtet auf",
+    "mode": "Modelle",
+    "modes": {
+      "auto": "Kostenlose Modelle, bezahlte Cloud als Fallback",
+      "free": "Nur kostenlose selbst gehostete Modelle",
+      "byok": "Meine eigenen API-Schlüssel",
+      "cloud": "Beste Qualität aus der Cloud (nutzungsbasiert)"
+    },
+    "pricingNote": "Kostenlose Modelle laufen ohne Kosten auf unseren Servern. Cloud-Modelle werden nutzungsbasiert zum Anbieterpreis + 10 % abgerechnet oder sind mit deinen eigenen Schlüsseln kostenlos.",
+    "settings": "Schlüssel und Guthaben",
+    "start": "Copilot starten",
+    "stop": "Stoppen und Follow-ups schreiben",
+    "stopping": "Follow-ups werden geschrieben…",
+    "live": "Hört zu",
+    "providers": "Sprache: {stt} · KI: {llm}",
+    "waiting": "wartet",
+    "recap": "Letzte 30 s zusammenfassen",
+    "recapTitle": "Letzte 30 Sekunden",
+    "suggested": "Vorgeschlagene Frage",
+    "jump": "Stelle zeigen",
+    "dismiss": "Verwerfen",
+    "tabs": {
+      "notes": "Notizen",
+      "questions": "Fragen",
+      "transcript": "Transkript",
+      "ask": "Nachfragen"
+    },
+    "summary": "Zusammenfassung",
+    "keyPoints": "Kernpunkte",
+    "decisions": "Entscheidungen",
+    "actionItems": "Aufgaben",
+    "figures": "Wichtige Zahlen und Termine",
+    "owner": "Verantwortlich: {owner}",
+    "nothingYet": "Noch nichts. Notizen erscheinen, während gesprochen wird.",
+    "noQuestions": "Noch keine offenen Fragen.",
+    "answered": "Beantwortet",
+    "noTranscript": "Noch wurde niemand gehört. Gesprochenes erscheint hier wenige Sekunden später.",
+    "askPlaceholder": "Privat fragen: „Wie hoch war nochmal das Budget?“",
+    "askSend": "Fragen",
+    "askHint": "Nur du siehst das. Die Antworten basieren auf dem Gesagten.",
+    "followUps": "Follow-ups",
+    "message": "Zusammenfassungsnachricht",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "review": "Gesprächsanalyse",
+    "focusArea": "Schwerpunkt",
+    "talkListen": "Du hast {you} % der Zeit gesprochen",
+    "questionsResolved": "{answered} von {asked} Fragen beantwortet",
+    "clarity": {
+      "clear": "Follow-ups sind klar",
+      "partial": "Follow-ups sind teilweise klar",
+      "unclear": "Follow-ups sind unklar"
+    },
+    "thin": "Das Transkript ist zu kurz, um dieses Gespräch fair zu bewerten.",
+    "fullReport": "Vollständige Notizen öffnen",
+    "restart": "Neu starten",
+    "roles": {
+      "general": {
+        "label": "Allgemein",
+        "meetings": "Jedes Meeting."
+      },
+      "sales": {
+        "label": "Vertrieb",
+        "meetings": "Discovery-Calls, Demos und Follow-ups."
+      },
+      "recruiter": {
+        "label": "Recruiter",
+        "meetings": "Screenings, Interviews und Kandidaten-Debriefs."
+      },
+      "product": {
+        "label": "Produktmanager",
+        "meetings": "Nutzerinterviews, Planung und Stakeholder-Abstimmungen."
+      },
+      "founder": {
+        "label": "Gründer",
+        "meetings": "Kundengespräche, Investorengespräche und Partnermeetings."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-ins, Verlängerungen und Eskalationen."
+      },
+      "engineer": {
+        "label": "Engineer",
+        "meetings": "Anforderungen, Standups, Design-Reviews und 1:1s."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "KI-Copilot-Notizen",
+    "listIntro": "Notizen, Follow-ups und Analysen aus jedem Meeting, an dem dein KI-Copilot teilgenommen hat.",
+    "settingsLink": "Schlüssel und Guthaben",
+    "loadError": "Deine Copilot-Notizen konnten nicht geladen werden.",
+    "empty": "Noch keine Copilot-Notizen. Starte den KI-Copilot in einem beliebigen Meeting über das Panel.",
+    "live": "live",
+    "untitled": "Unbenanntes Meeting",
+    "reportTitle": "KI-Copilot-Notizen",
+    "back": "Alle Copilot-Notizen",
+    "noFollowUps": "Es wurden keine Follow-ups geschrieben.",
+    "rewriteFollowUps": "Follow-ups neu schreiben",
+    "noReview": "Noch keine Analyse.",
+    "rewriteReview": "Analyse neu schreiben",
+    "settingsTitle": "KI-Copilot-Einstellungen",
+    "topupPending": "Danke! Dein Guthaben erscheint hier, sobald die Zahlung bestätigt ist.",
+    "saved": "Gespeichert.",
+    "checkoutUnavailable": "Der Checkout ist gerade nicht verfügbar. Versuch es gleich noch einmal.",
+    "defaultRole": "Standardrolle",
+    "keysTitle": "Deine eigenen API-Schlüssel",
+    "keysIntro": "Mit deinen eigenen Schlüsseln berechnen wir dir nie etwas für KI. Schlüssel werden verschlüsselt, nie wieder angezeigt und nur von deinem Copilot verwendet.",
+    "keysDisabled": "Eigene Schlüssel sind auf diesem Server noch nicht aktiviert.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Gesetzt (…{last4})",
+    "keyNotSet": "Nicht gesetzt",
+    "keyPlaceholder": "Schlüssel einfügen",
+    "saveKey": "Speichern",
+    "removeKey": "Entfernen",
+    "walletTitle": "Nutzungsbasiertes Guthaben: {balance}",
+    "walletIntro": "Wird nur genutzt, wenn ein Cloud-Modell über unsere Schlüssel läuft: Anbieterpreis + 10 %. Kostenlose Modelle und deine eigenen Schlüssel kosten nichts.",
+    "addCredit": "{amount} aufladen",
+    "usageWhen": "Wann",
+    "usageWhat": "Was",
+    "usageCharge": "Betrag",
+    "refunded": "erstattet"
   }
 }

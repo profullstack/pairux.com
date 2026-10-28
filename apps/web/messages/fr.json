@@ -2316,5 +2316,142 @@
       "login": "J'ai déjà un compte",
       "failed": "Impossible d'accepter l'invitation."
     }
+  },
+  "copilot": {
+    "title": "Copilote IA",
+    "listeningFor": "Le copilote IA écoute pour {names}",
+    "consent": "Prévenez tout le monde qu'un copilote IA écoute ; il transcrit ce qui est dit.",
+    "open": "Ouvrir le copilote IA",
+    "close": "Fermer",
+    "proOnly": "Le copilote IA participe à votre appel, prend des notes, suggère des questions et rédige vos suivis. Il fait partie de PairUX Pro.",
+    "upgrade": "Passer à Pro",
+    "signIn": "Connectez-vous pour utiliser le copilote IA.",
+    "role": "Quel est votre rôle dans cette réunion ?",
+    "listensFor": "À l'écoute de",
+    "mode": "Modèles",
+    "modes": {
+      "auto": "Modèles gratuits, cloud payant en secours",
+      "free": "Uniquement des modèles gratuits auto-hébergés",
+      "byok": "Mes propres clés API",
+      "cloud": "Cloud haute qualité (paiement à l'usage)"
+    },
+    "pricingNote": "Les modèles gratuits tournent sur nos serveurs sans frais. Les modèles cloud sont facturés à l'usage au coût du fournisseur + 10 %, ou gratuits avec vos propres clés.",
+    "settings": "Clés et crédit",
+    "start": "Démarrer le copilote",
+    "stop": "Arrêter et rédiger les suivis",
+    "stopping": "Rédaction des suivis…",
+    "live": "À l'écoute",
+    "providers": "Voix : {stt} · IA : {llm}",
+    "waiting": "en attente",
+    "recap": "Récap des 30 dernières s",
+    "recapTitle": "30 dernières secondes",
+    "suggested": "Question suggérée",
+    "jump": "Montrer où",
+    "dismiss": "Ignorer",
+    "tabs": {
+      "notes": "Notes",
+      "questions": "Questions",
+      "transcript": "Transcription",
+      "ask": "Demander"
+    },
+    "summary": "Résumé",
+    "keyPoints": "Points clés",
+    "decisions": "Décisions",
+    "actionItems": "Actions à mener",
+    "figures": "Chiffres et dates clés",
+    "owner": "Responsable : {owner}",
+    "nothingYet": "Rien pour l'instant. Les notes apparaissent au fil de la conversation.",
+    "noQuestions": "Aucune question ouverte pour l'instant.",
+    "answered": "Répondue",
+    "noTranscript": "Personne n'a encore été entendu. Les paroles apparaissent ici quelques secondes après avoir été prononcées.",
+    "askPlaceholder": "Demandez en privé : « C'était quoi le budget, déjà ? »",
+    "askSend": "Demander",
+    "askHint": "Vous seul voyez ceci. Les réponses s'appuient sur ce qui a été dit.",
+    "followUps": "Suivis",
+    "message": "Message récapitulatif",
+    "copy": "Copier",
+    "copied": "Copié",
+    "review": "Analyse de la conversation",
+    "focusArea": "Axe d'amélioration",
+    "talkListen": "Vous avez parlé {you} % du temps",
+    "questionsResolved": "{answered} questions sur {asked} ont reçu une réponse",
+    "clarity": {
+      "clear": "Les suivis sont clairs",
+      "partial": "Les suivis sont en partie clairs",
+      "unclear": "Les suivis ne sont pas clairs"
+    },
+    "thin": "La transcription est trop courte pour analyser équitablement cette conversation.",
+    "fullReport": "Ouvrir les notes complètes",
+    "restart": "Recommencer",
+    "roles": {
+      "general": {
+        "label": "Général",
+        "meetings": "Toute réunion."
+      },
+      "sales": {
+        "label": "Ventes",
+        "meetings": "Appels de découverte, démos et suivis."
+      },
+      "recruiter": {
+        "label": "Recruteur",
+        "meetings": "Présélections, entretiens et débriefs candidats."
+      },
+      "product": {
+        "label": "Product Manager",
+        "meetings": "Entretiens utilisateurs, planification et points avec les parties prenantes."
+      },
+      "founder": {
+        "label": "Fondateur",
+        "meetings": "Appels clients, échanges avec des investisseurs et réunions partenaires."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Points de suivi, renouvellements et escalades."
+      },
+      "engineer": {
+        "label": "Ingénieur",
+        "meetings": "Exigences, stand-ups, revues de conception et tête-à-tête."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Notes du copilote IA",
+    "listIntro": "Notes, suivis et analyses de chaque réunion à laquelle votre copilote IA a participé.",
+    "settingsLink": "Clés et crédit",
+    "loadError": "Impossible de charger vos notes du copilote.",
+    "empty": "Aucune note du copilote pour l'instant. Démarrez le copilote IA depuis le panneau dans n'importe quelle réunion.",
+    "live": "en direct",
+    "untitled": "Réunion sans titre",
+    "reportTitle": "Notes du copilote IA",
+    "back": "Toutes les notes du copilote",
+    "noFollowUps": "Aucun suivi n'a été rédigé.",
+    "rewriteFollowUps": "Réécrire les suivis",
+    "noReview": "Pas encore d'analyse.",
+    "rewriteReview": "Réécrire l'analyse",
+    "settingsTitle": "Paramètres du copilote IA",
+    "topupPending": "Merci ! Votre crédit apparaîtra ici dès que le paiement sera confirmé.",
+    "saved": "Enregistré.",
+    "checkoutUnavailable": "Le paiement est indisponible pour le moment. Réessayez dans un instant.",
+    "defaultRole": "Rôle par défaut",
+    "keysTitle": "Vos propres clés API",
+    "keysIntro": "Utilisez vos propres clés et nous ne vous facturerons jamais l'IA. Les clés sont chiffrées, ne sont plus jamais affichées et ne servent qu'à votre copilote.",
+    "keysDisabled": "Les clés personnelles ne sont pas encore activées sur ce serveur.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Définie (…{last4})",
+    "keyNotSet": "Non définie",
+    "keyPlaceholder": "Collez une clé",
+    "saveKey": "Enregistrer",
+    "removeKey": "Supprimer",
+    "walletTitle": "Crédit à l'usage : {balance}",
+    "walletIntro": "Utilisé uniquement quand un modèle cloud tourne avec nos clés : coût du fournisseur + 10 %. Les modèles gratuits et vos propres clés ne coûtent rien.",
+    "addCredit": "Ajouter {amount}",
+    "usageWhen": "Quand",
+    "usageWhat": "Quoi",
+    "usageCharge": "Montant",
+    "refunded": "remboursé"
   }
 }

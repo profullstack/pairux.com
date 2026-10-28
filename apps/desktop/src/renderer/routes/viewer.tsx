@@ -22,6 +22,7 @@ import { getElectronAPI } from '@/lib/ipc';
 import { useWebRTCViewerAPI } from '@/hooks/useWebRTCViewerAPI';
 import { useWebRTCViewerSFUAPI } from '@/hooks/useWebRTCViewerSFUAPI';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
+import { MeetingCopilot } from '@/components/copilot/MeetingCopilot';
 import type {
   Session,
   SessionParticipant,
@@ -301,6 +302,7 @@ function SFUViewer({
         hookResult={hookResult}
       />
       <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+      <MeetingCopilot sessionId={sessionId} selfId={participantId} />
     </>
   );
 }

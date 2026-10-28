@@ -61,25 +61,36 @@ export async function checkoutMethods(cfg: CoinPayConfig | null = coinpayConfig(
  * resolve user + plan by payment id even if CoinPay drops the metadata.
  */
 export async function startPlanCheckout(input: {
-  plan: PlanDef;
+  /** A plan, or any other product sold through plan_payments (copilot credit). */
+  plan: Pick<PlanDef, 'label' | 'priceUsd'> & { id: string };
   userId: string;
   email: string | null;
   method: CheckoutMethod | null;
+  /** Defaults to a plan term: "<label>: <price> USD for 31 days". */
+  description?: string;
+  /** Where the buyer lands after paying or cancelling; defaults to /upgrade/<plan>. */
+  returnPath?: string;
+  /** Metadata type; defaults to 'plan'. */
+  type?: string;
 }): Promise<PlanCheckoutResult> {
   const cfg = coinpayConfig();
   if (!cfg) throw new CheckoutError('Checkout is not configured', 503);
 
   const base = appBaseUrl();
-  const back = `${base}${upgradePath(input.plan.id)}`;
+  const back = `${base}${input.returnPath ?? upgradePath(input.plan.id as PlanDef['id'])}`;
   const successUrl = `${back}?payment=success`;
-  const cancelUrl = `${base}/pricing?payment=cancelled`;
+  const cancelUrl = input.returnPath
+    ? `${back}?payment=cancelled`
+    : `${base}/pricing?payment=cancelled`;
   const metadata = paymentMetadata({
     userId: input.userId,
     email: input.email,
     plan: input.plan.id,
-    type: 'plan',
+    type: input.type ?? 'plan',
   });
-  const description = `${input.plan.label}: ${String(input.plan.priceUsd)} USD for 31 days (pairux.com)`;
+  const description =
+    input.description ??
+    `${input.plan.label}: ${String(input.plan.priceUsd)} USD for 31 days (pairux.com)`;
 
   let rail: 'session' | 'crypto' | 'paypal';
   let paymentId: string;

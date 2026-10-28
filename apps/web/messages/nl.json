@@ -2316,5 +2316,142 @@
       "login": "Ik heb al een account",
       "failed": "De uitnodiging kon niet worden geaccepteerd."
     }
+  },
+  "copilot": {
+    "title": "AI-copilot",
+    "listeningFor": "AI-copilot luistert mee voor {names}",
+    "consent": "Laat iedereen weten dat een AI-copilot meeluistert; die schrijft uit wat er gezegd wordt.",
+    "open": "AI-copilot openen",
+    "close": "Sluiten",
+    "proOnly": "De AI-copilot zit in je call, maakt aantekeningen, stelt vragen voor en schrijft je follow-ups. Hij hoort bij PairUX Pro.",
+    "upgrade": "Upgraden naar Pro",
+    "signIn": "Log in om de AI-copilot te gebruiken.",
+    "role": "Wat is jouw rol in deze meeting?",
+    "listensFor": "Let op",
+    "mode": "Modellen",
+    "modes": {
+      "auto": "Gratis modellen, betaalde cloud als terugval",
+      "free": "Alleen gratis zelfgehoste modellen",
+      "byok": "Mijn eigen API-sleutels",
+      "cloud": "Cloud met de beste kwaliteit (betalen naar gebruik)"
+    },
+    "pricingNote": "Gratis modellen draaien kosteloos op onze servers. Cloudmodellen betaal je naar gebruik tegen de kosten van de provider + 10%, of gratis met je eigen sleutels.",
+    "settings": "Sleutels en tegoed",
+    "start": "Copilot starten",
+    "stop": "Stoppen en follow-ups schrijven",
+    "stopping": "Follow-ups schrijven…",
+    "live": "Luistert",
+    "providers": "Spraak: {stt} · AI: {llm}",
+    "waiting": "wachten",
+    "recap": "Laatste 30 s samenvatten",
+    "recapTitle": "Laatste 30 seconden",
+    "suggested": "Voorgestelde vraag",
+    "jump": "Toon waar",
+    "dismiss": "Negeren",
+    "tabs": {
+      "notes": "Notities",
+      "questions": "Vragen",
+      "transcript": "Transcript",
+      "ask": "Vraag"
+    },
+    "summary": "Samenvatting",
+    "keyPoints": "Kernpunten",
+    "decisions": "Besluiten",
+    "actionItems": "Actiepunten",
+    "figures": "Belangrijke cijfers en data",
+    "owner": "Eigenaar: {owner}",
+    "nothingYet": "Nog niets. Notities verschijnen terwijl mensen praten.",
+    "noQuestions": "Nog geen open vragen.",
+    "answered": "Beantwoord",
+    "noTranscript": "Er is nog niemand gehoord. Wat er gezegd wordt, verschijnt hier een paar seconden later.",
+    "askPlaceholder": "Vraag privé: ‘Wat was het budget ook alweer?’",
+    "askSend": "Vragen",
+    "askHint": "Alleen jij ziet dit. Antwoorden komen uit wat er gezegd is.",
+    "followUps": "Follow-ups",
+    "message": "Samenvattingsbericht",
+    "copy": "Kopiëren",
+    "copied": "Gekopieerd",
+    "review": "Gespreksanalyse",
+    "focusArea": "Aandachtspunt",
+    "talkListen": "Je sprak {you}% van de tijd",
+    "questionsResolved": "{answered} van {asked} vragen beantwoord",
+    "clarity": {
+      "clear": "Follow-ups zijn duidelijk",
+      "partial": "Follow-ups zijn deels duidelijk",
+      "unclear": "Follow-ups zijn onduidelijk"
+    },
+    "thin": "Het transcript is te kort om dit gesprek eerlijk te beoordelen.",
+    "fullReport": "Volledige notities openen",
+    "restart": "Opnieuw beginnen",
+    "roles": {
+      "general": {
+        "label": "Algemeen",
+        "meetings": "Elke meeting."
+      },
+      "sales": {
+        "label": "Sales",
+        "meetings": "Discovery calls, demo's en follow-ups."
+      },
+      "recruiter": {
+        "label": "Recruiter",
+        "meetings": "Screenings, sollicitatiegesprekken en kandidaat-debriefs."
+      },
+      "product": {
+        "label": "Productmanager",
+        "meetings": "Gebruikersinterviews, planning en stakeholderoverleg."
+      },
+      "founder": {
+        "label": "Oprichter",
+        "meetings": "Klantgesprekken, gesprekken met investeerders en partnermeetings."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-ins, verlengingen en escalaties."
+      },
+      "engineer": {
+        "label": "Engineer",
+        "meetings": "Requirements, standups, designreviews en 1-op-1's."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI-copilot-notities",
+    "listIntro": "Notities, follow-ups en analyses van elke meeting waar je AI-copilot bij was.",
+    "settingsLink": "Sleutels en tegoed",
+    "loadError": "Je copilot-notities konden niet worden geladen.",
+    "empty": "Nog geen copilot-notities. Start de AI-copilot vanuit het paneel in een meeting.",
+    "live": "live",
+    "untitled": "Naamloze meeting",
+    "reportTitle": "AI-copilot-notities",
+    "back": "Alle copilot-notities",
+    "noFollowUps": "Er zijn geen follow-ups geschreven.",
+    "rewriteFollowUps": "Follow-ups herschrijven",
+    "noReview": "Nog geen analyse.",
+    "rewriteReview": "Analyse herschrijven",
+    "settingsTitle": "Instellingen AI-copilot",
+    "topupPending": "Bedankt! Je tegoed verschijnt hier zodra de betaling is bevestigd.",
+    "saved": "Opgeslagen.",
+    "checkoutUnavailable": "Afrekenen is nu niet beschikbaar. Probeer het zo opnieuw.",
+    "defaultRole": "Standaardrol",
+    "keysTitle": "Je eigen API-sleutels",
+    "keysIntro": "Gebruik je eigen sleutels en we rekenen nooit iets voor AI. Sleutels worden versleuteld, nooit meer getoond en alleen door je copilot gebruikt.",
+    "keysDisabled": "Eigen sleutels zijn op deze server nog niet ingeschakeld.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Ingesteld (…{last4})",
+    "keyNotSet": "Niet ingesteld",
+    "keyPlaceholder": "Plak een sleutel",
+    "saveKey": "Opslaan",
+    "removeKey": "Verwijderen",
+    "walletTitle": "Tegoed voor betalen naar gebruik: {balance}",
+    "walletIntro": "Alleen gebruikt als een cloudmodel op onze sleutels draait: kosten van de provider + 10%. Gratis modellen en je eigen sleutels kosten niets.",
+    "addCredit": "{amount} toevoegen",
+    "usageWhen": "Wanneer",
+    "usageWhat": "Wat",
+    "usageCharge": "Kosten",
+    "refunded": "terugbetaald"
   }
 }

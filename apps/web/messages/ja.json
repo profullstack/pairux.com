@@ -2316,5 +2316,142 @@
       "login": "アカウントをお持ちの方",
       "failed": "招待を受けられませんでした。"
     }
+  },
+  "copilot": {
+    "title": "AI コパイロット",
+    "listeningFor": "AI コパイロットが {names} のために聞き取り中です",
+    "consent": "AI コパイロットが聞き取り中であることを全員に伝えてください。発言内容を文字起こしします。",
+    "open": "AI コパイロットを開く",
+    "close": "閉じる",
+    "proOnly": "AI コパイロットは通話に同席してメモを取り、質問を提案し、フォローアップを作成します。PairUX Pro に含まれています。",
+    "upgrade": "Pro にアップグレード",
+    "signIn": "AI コパイロットを使うにはサインインしてください。",
+    "role": "この会議でのあなたの役割は？",
+    "listensFor": "注目する点",
+    "mode": "モデル",
+    "modes": {
+      "auto": "無料モデル（必要に応じて有料クラウド）",
+      "free": "無料のセルフホストモデルのみ",
+      "byok": "自分の API キー",
+      "cloud": "最高品質のクラウド（従量課金）"
+    },
+    "pricingNote": "無料モデルは当社のサーバーで無料で動作します。クラウドモデルはプロバイダー料金 + 10% の従量課金、または自分のキーを使えば無料です。",
+    "settings": "キーとクレジット",
+    "start": "コパイロットを開始",
+    "stop": "停止してフォローアップを作成",
+    "stopping": "フォローアップを作成中…",
+    "live": "聞き取り中",
+    "providers": "音声: {stt} · AI: {llm}",
+    "waiting": "待機中",
+    "recap": "直近 30 秒を振り返る",
+    "recapTitle": "直近 30 秒",
+    "suggested": "おすすめの質問",
+    "jump": "該当箇所を表示",
+    "dismiss": "閉じる",
+    "tabs": {
+      "notes": "メモ",
+      "questions": "質問",
+      "transcript": "文字起こし",
+      "ask": "たずねる"
+    },
+    "summary": "要約",
+    "keyPoints": "要点",
+    "decisions": "決定事項",
+    "actionItems": "アクションアイテム",
+    "figures": "重要な数字と日付",
+    "owner": "担当: {owner}",
+    "nothingYet": "まだ何もありません。会話が進むとメモが表示されます。",
+    "noQuestions": "未解決の質問はまだありません。",
+    "answered": "回答済み",
+    "noTranscript": "まだ誰の発言も聞き取れていません。発言は数秒後にここに表示されます。",
+    "askPlaceholder": "非公開でたずねる：「予算はいくらだっけ？」",
+    "askSend": "たずねる",
+    "askHint": "これはあなたにだけ表示されます。回答は会話の内容に基づきます。",
+    "followUps": "フォローアップ",
+    "message": "まとめメッセージ",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "review": "会話レビュー",
+    "focusArea": "改善ポイント",
+    "talkListen": "あなたの発言時間は {you}% でした",
+    "questionsResolved": "{asked} 件中 {answered} 件の質問に回答済み",
+    "clarity": {
+      "clear": "フォローアップは明確です",
+      "partial": "フォローアップは一部明確です",
+      "unclear": "フォローアップが不明確です"
+    },
+    "thin": "文字起こしが短すぎるため、この会話を公平にレビューできません。",
+    "fullReport": "メモ全文を開く",
+    "restart": "最初からやり直す",
+    "roles": {
+      "general": {
+        "label": "一般",
+        "meetings": "あらゆる会議。"
+      },
+      "sales": {
+        "label": "営業",
+        "meetings": "ヒアリング、デモ、フォローアップ。"
+      },
+      "recruiter": {
+        "label": "採用担当",
+        "meetings": "書類選考後の面談、面接、候補者の振り返り。"
+      },
+      "product": {
+        "label": "プロダクトマネージャー",
+        "meetings": "ユーザーインタビュー、計画、関係者との打ち合わせ。"
+      },
+      "founder": {
+        "label": "創業者",
+        "meetings": "顧客との通話、投資家との会話、パートナーとの会議。"
+      },
+      "success": {
+        "label": "カスタマーサクセス",
+        "meetings": "定例チェックイン、更新、エスカレーション。"
+      },
+      "engineer": {
+        "label": "エンジニア",
+        "meetings": "要件定義、スタンドアップ、設計レビュー、1on1。"
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "AI コパイロットのメモ",
+    "listIntro": "AI コパイロットが同席したすべての会議のメモ、フォローアップ、レビュー。",
+    "settingsLink": "キーとクレジット",
+    "loadError": "コパイロットのメモを読み込めませんでした。",
+    "empty": "コパイロットのメモはまだありません。会議中のパネルから AI コパイロットを開始してください。",
+    "live": "ライブ",
+    "untitled": "無題の会議",
+    "reportTitle": "AI コパイロットのメモ",
+    "back": "すべてのコパイロットメモ",
+    "noFollowUps": "フォローアップは作成されませんでした。",
+    "rewriteFollowUps": "フォローアップを書き直す",
+    "noReview": "レビューはまだありません。",
+    "rewriteReview": "レビューを書き直す",
+    "settingsTitle": "AI コパイロットの設定",
+    "topupPending": "ありがとうございます。支払いが確認されると、ここにクレジットが表示されます。",
+    "saved": "保存しました。",
+    "checkoutUnavailable": "現在チェックアウトをご利用いただけません。しばらくしてからもう一度お試しください。",
+    "defaultRole": "デフォルトの役割",
+    "keysTitle": "自分の API キー",
+    "keysIntro": "自分のキーを使えば、AI の料金は一切かかりません。キーは暗号化され、二度と表示されず、あなたのコパイロットだけが使用します。",
+    "keysDisabled": "このサーバーでは自分のキーはまだ有効になっていません。",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "設定済み（…{last4}）",
+    "keyNotSet": "未設定",
+    "keyPlaceholder": "キーを貼り付け",
+    "saveKey": "保存",
+    "removeKey": "削除",
+    "walletTitle": "従量課金クレジット: {balance}",
+    "walletIntro": "クラウドモデルが当社のキーで動作するときだけ使われます（プロバイダー料金 + 10%）。無料モデルと自分のキーには料金がかかりません。",
+    "addCredit": "{amount} を追加",
+    "usageWhen": "日時",
+    "usageWhat": "内容",
+    "usageCharge": "料金",
+    "refunded": "返金済み"
   }
 }

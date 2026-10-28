@@ -22,7 +22,9 @@ export default defineConfig({
       // leaving a bare require() for electron-builder to resolve through a
       // pnpm symlink at package time. It is pure JS; the native nut.js binding
       // it loads stays external (and asar-unpacked) as before.
-      externalizeDepsPlugin({ exclude: ['@profullstack/remote-input'] }),
+      // @pairux/meeting-copilot (used by `pairux copilot`) is ESM with
+      // import-only exports, which a CommonJS main chunk cannot require().
+      externalizeDepsPlugin({ exclude: ['@profullstack/remote-input', '@pairux/meeting-copilot'] }),
     ],
     build: {
       outDir: 'dist/main',

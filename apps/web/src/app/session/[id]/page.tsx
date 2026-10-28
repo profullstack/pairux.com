@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useRef, useCallback, useMemo } from 'react';
 import { RecordingNotice } from '@/components/session/RecordingNotice';
 import { MeetingTranslation } from '@/components/translation/MeetingTranslation';
+import { MeetingCopilot } from '@/components/copilot/MeetingCopilot';
 import type { CallAnalysisSettings } from '@pairux/shared-types';
 import Link from 'next/link';
 import {
@@ -198,6 +199,7 @@ function SFUSessionViewer({ sessionId, session }: SessionViewerWrapperProps) {
         {...hookResult}
       />
       <MeetingTranslation sessionId={sessionId} selfId={participantId} participants={remoteAudio} />
+      <MeetingCopilot sessionId={sessionId} selfId={participantId} />
     </>
   );
 }

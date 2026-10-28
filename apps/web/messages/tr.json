@@ -2316,5 +2316,142 @@
       "login": "Zaten hesabım var",
       "failed": "Davet kabul edilemedi."
     }
+  },
+  "copilot": {
+    "title": "Yapay zekâ yardımcı pilotu",
+    "listeningFor": "Yapay zekâ yardımcı pilotu {names} için dinliyor",
+    "consent": "Herkese bir yapay zekâ yardımcı pilotunun dinlediğini bildir; söylenenleri yazıya döker.",
+    "open": "Yapay zekâ yardımcı pilotunu aç",
+    "close": "Kapat",
+    "proOnly": "Yapay zekâ yardımcı pilotu görüşmene katılır, not alır, soru önerir ve takip mesajlarını yazar. PairUX Pro'nun bir parçasıdır.",
+    "upgrade": "Pro'ya geç",
+    "signIn": "Yapay zekâ yardımcı pilotunu kullanmak için giriş yap.",
+    "role": "Bu toplantıdaki rolün ne?",
+    "listensFor": "Dikkat ettiği konular",
+    "mode": "Modeller",
+    "modes": {
+      "auto": "Ücretsiz modeller, yedek olarak ücretli bulut",
+      "free": "Yalnızca ücretsiz, kendi sunucumuzdaki modeller",
+      "byok": "Kendi API anahtarlarım",
+      "cloud": "En kaliteli bulut (kullandıkça öde)"
+    },
+    "pricingNote": "Ücretsiz modeller sunucularımızda ücretsiz çalışır. Bulut modelleri sağlayıcı maliyeti + %10 ile kullandıkça ödenir ya da kendi anahtarlarınla ücretsizdir.",
+    "settings": "Anahtarlar ve bakiye",
+    "start": "Yardımcı pilotu başlat",
+    "stop": "Durdur ve takip mesajlarını yaz",
+    "stopping": "Takip mesajları yazılıyor…",
+    "live": "Dinliyor",
+    "providers": "Konuşma: {stt} · Yapay zekâ: {llm}",
+    "waiting": "bekleniyor",
+    "recap": "Son 30 sn'yi özetle",
+    "recapTitle": "Son 30 saniye",
+    "suggested": "Önerilen soru",
+    "jump": "Yerini göster",
+    "dismiss": "Kapat",
+    "tabs": {
+      "notes": "Notlar",
+      "questions": "Sorular",
+      "transcript": "Döküm",
+      "ask": "Sor"
+    },
+    "summary": "Özet",
+    "keyPoints": "Önemli noktalar",
+    "decisions": "Kararlar",
+    "actionItems": "Yapılacaklar",
+    "figures": "Önemli rakamlar ve tarihler",
+    "owner": "Sorumlu: {owner}",
+    "nothingYet": "Henüz bir şey yok. Notlar insanlar konuştukça görünür.",
+    "noQuestions": "Henüz açık soru yok.",
+    "answered": "Yanıtlandı",
+    "noTranscript": "Henüz kimse duyulmadı. Konuşmalar söylendikten birkaç saniye sonra burada görünür.",
+    "askPlaceholder": "Gizlice sor: “Bütçe neydi?”",
+    "askSend": "Sor",
+    "askHint": "Bunu yalnızca sen görürsün. Yanıtlar söylenenlere dayanır.",
+    "followUps": "Takip mesajları",
+    "message": "Özet mesajı",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "review": "Görüşme değerlendirmesi",
+    "focusArea": "Odak alanı",
+    "talkListen": "Konuşma payın: %{you}",
+    "questionsResolved": "{asked} sorudan {answered} tanesi yanıtlandı",
+    "clarity": {
+      "clear": "Takip mesajları net",
+      "partial": "Takip mesajları kısmen net",
+      "unclear": "Takip mesajları net değil"
+    },
+    "thin": "Döküm, bu görüşmeyi adil biçimde değerlendirmek için çok kısa.",
+    "fullReport": "Tüm notları aç",
+    "restart": "Baştan başla",
+    "roles": {
+      "general": {
+        "label": "Genel",
+        "meetings": "Her türlü toplantı."
+      },
+      "sales": {
+        "label": "Satış",
+        "meetings": "Keşif görüşmeleri, demolar ve takipler."
+      },
+      "recruiter": {
+        "label": "İşe alım uzmanı",
+        "meetings": "Ön elemeler, mülakatlar ve aday değerlendirmeleri."
+      },
+      "product": {
+        "label": "Ürün Yöneticisi",
+        "meetings": "Kullanıcı görüşmeleri, planlama ve paydaş toplantıları."
+      },
+      "founder": {
+        "label": "Kurucu",
+        "meetings": "Müşteri görüşmeleri, yatırımcı sohbetleri ve ortak toplantıları."
+      },
+      "success": {
+        "label": "Müşteri Başarısı",
+        "meetings": "Düzenli görüşmeler, yenilemeler ve eskalasyonlar."
+      },
+      "engineer": {
+        "label": "Mühendis",
+        "meetings": "Gereksinimler, standup'lar, tasarım incelemeleri ve birebir görüşmeler."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Yapay zekâ yardımcı pilotu notları",
+    "listIntro": "Yapay zekâ yardımcı pilotunun katıldığı her toplantıdan notlar, takip mesajları ve değerlendirmeler.",
+    "settingsLink": "Anahtarlar ve bakiye",
+    "loadError": "Yardımcı pilot notların yüklenemedi.",
+    "empty": "Henüz yardımcı pilot notu yok. Herhangi bir toplantıda paneldeki yapay zekâ yardımcı pilotunu başlat.",
+    "live": "canlı",
+    "untitled": "Adsız toplantı",
+    "reportTitle": "Yapay zekâ yardımcı pilotu notları",
+    "back": "Tüm yardımcı pilot notları",
+    "noFollowUps": "Hiç takip mesajı yazılmadı.",
+    "rewriteFollowUps": "Takip mesajlarını yeniden yaz",
+    "noReview": "Henüz değerlendirme yok.",
+    "rewriteReview": "Değerlendirmeyi yeniden yaz",
+    "settingsTitle": "Yapay zekâ yardımcı pilotu ayarları",
+    "topupPending": "Teşekkürler! Bakiyen, ödeme onaylanınca burada görünür.",
+    "saved": "Kaydedildi.",
+    "checkoutUnavailable": "Ödeme şu anda kullanılamıyor. Birazdan tekrar dene.",
+    "defaultRole": "Varsayılan rol",
+    "keysTitle": "Kendi API anahtarların",
+    "keysIntro": "Kendi anahtarlarını kullan, yapay zekâ için senden asla ücret almayalım. Anahtarlar şifrelenir, bir daha asla gösterilmez ve yalnızca yardımcı pilotun tarafından kullanılır.",
+    "keysDisabled": "Kendi anahtarların bu sunucuda henüz etkin değil.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Ayarlı (…{last4})",
+    "keyNotSet": "Ayarlı değil",
+    "keyPlaceholder": "Bir anahtar yapıştır",
+    "saveKey": "Kaydet",
+    "removeKey": "Kaldır",
+    "walletTitle": "Kullandıkça öde bakiyesi: {balance}",
+    "walletIntro": "Yalnızca bir bulut modeli bizim anahtarlarımızla çalıştığında kullanılır: sağlayıcı maliyeti + %10. Ücretsiz modeller ve kendi anahtarların hiçbir ücret gerektirmez.",
+    "addCredit": "{amount} ekle",
+    "usageWhen": "Ne zaman",
+    "usageWhat": "Ne",
+    "usageCharge": "Ücret",
+    "refunded": "iade edildi"
   }
 }

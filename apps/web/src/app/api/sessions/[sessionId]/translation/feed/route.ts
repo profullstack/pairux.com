@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { SpeechError } from '@profullstack/live-translate';
 import { authorizeMeetingCaller, MeetingAccessError } from '@/lib/translation/access';
 import { translationRuntime } from '@/lib/translation/server';
+import { copilotRuntime } from '@/lib/copilot/runtime';
 import { FixedWindowRateLimiter } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -41,15 +42,26 @@ export async function POST(request: Request, { params }: RouteParams) {
     const self = await callerFor(sessionId, client, url.searchParams.get('self') ?? '');
     if (!chunksByClient.check(`${sessionId}:${client}`).success)
       return NextResponse.json({ error: 'Too many audio chunks.' }, { status: 429 });
+    // The same uploads feed live translation and any AI copilot in the meeting.
     const room = translationRuntime()?.rooms.get(sessionId);
-    if (!room || participant === self) return NextResponse.json({ feeder: false, wanted: false });
+    const copilot = copilotRuntime();
+    const copilotListening = (copilot?.listening(sessionId) ?? 0) > 0;
+    if ((!room && !copilotListening) || participant === self)
+      return NextResponse.json({ feeder: false, wanted: false });
     const length = Number(request.headers.get('content-length') ?? 0);
     if (length > MAX_BYTES)
       return NextResponse.json({ error: 'Audio chunk too large.' }, { status: 413 });
     const bytes = new Uint8Array(await request.arrayBuffer());
     if (bytes.length > MAX_BYTES)
       return NextResponse.json({ error: 'Audio chunk too large.' }, { status: 413 });
-    return NextResponse.json(room.feed(participant, client, bytes));
+    const answers = [
+      room?.feed(participant, client, bytes),
+      copilotListening ? copilot?.feed(sessionId, participant, client, bytes) : null,
+    ].filter((answer): answer is { feeder: boolean; wanted: boolean } => Boolean(answer));
+    return NextResponse.json({
+      feeder: answers.some((answer) => answer.feeder),
+      wanted: answers.some((answer) => answer.wanted),
+    });
   } catch (error) {
     if (error instanceof MeetingAccessError || error instanceof SpeechError)
       return NextResponse.json({ error: error.message }, { status: error.status });

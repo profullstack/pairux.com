@@ -2316,5 +2316,142 @@
       "login": "Já tenho uma conta",
       "failed": "Não foi possível aceitar o convite."
     }
+  },
+  "copilot": {
+    "title": "Copiloto de IA",
+    "listeningFor": "O copiloto de IA está ouvindo para {names}",
+    "consent": "Avise a todos que um copiloto de IA está ouvindo; ele transcreve o que é dito.",
+    "open": "Abrir copiloto de IA",
+    "close": "Fechar",
+    "proOnly": "O copiloto de IA participa da sua chamada, faz anotações, sugere perguntas e escreve seus follow-ups. Ele faz parte do PairUX Pro.",
+    "upgrade": "Fazer upgrade para o Pro",
+    "signIn": "Entre para usar o copiloto de IA.",
+    "role": "Qual é o seu papel nesta reunião?",
+    "listensFor": "Presta atenção a",
+    "mode": "Modelos",
+    "modes": {
+      "auto": "Modelos gratuitos, nuvem paga como reserva",
+      "free": "Somente modelos gratuitos auto-hospedados",
+      "byok": "Minhas próprias chaves de API",
+      "cloud": "Nuvem de melhor qualidade (pague pelo uso)"
+    },
+    "pricingNote": "Os modelos gratuitos rodam nos nossos servidores sem custo. Os modelos na nuvem são cobrados pelo uso, ao custo do provedor + 10%, ou gratuitos com suas próprias chaves.",
+    "settings": "Chaves e crédito",
+    "start": "Iniciar copiloto",
+    "stop": "Parar e escrever follow-ups",
+    "stopping": "Escrevendo follow-ups…",
+    "live": "Ouvindo",
+    "providers": "Fala: {stt} · IA: {llm}",
+    "waiting": "aguardando",
+    "recap": "Resumir últimos 30 s",
+    "recapTitle": "Últimos 30 segundos",
+    "suggested": "Pergunta sugerida",
+    "jump": "Mostrar onde",
+    "dismiss": "Dispensar",
+    "tabs": {
+      "notes": "Notas",
+      "questions": "Perguntas",
+      "transcript": "Transcrição",
+      "ask": "Perguntar"
+    },
+    "summary": "Resumo",
+    "keyPoints": "Pontos-chave",
+    "decisions": "Decisões",
+    "actionItems": "Itens de ação",
+    "figures": "Números e datas importantes",
+    "owner": "Responsável: {owner}",
+    "nothingYet": "Nada ainda. As notas aparecem conforme as pessoas falam.",
+    "noQuestions": "Nenhuma pergunta em aberto ainda.",
+    "answered": "Respondida",
+    "noTranscript": "Ninguém foi ouvido ainda. A fala aparece aqui alguns segundos depois de ser dita.",
+    "askPlaceholder": "Pergunte em particular: “Qual era o orçamento mesmo?”",
+    "askSend": "Perguntar",
+    "askHint": "Só você vê isto. As respostas vêm do que foi dito.",
+    "followUps": "Follow-ups",
+    "message": "Mensagem de resumo",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "review": "Análise da conversa",
+    "focusArea": "Ponto de foco",
+    "talkListen": "Você falou {you}% do tempo",
+    "questionsResolved": "{answered} de {asked} perguntas respondidas",
+    "clarity": {
+      "clear": "Os follow-ups estão claros",
+      "partial": "Os follow-ups estão parcialmente claros",
+      "unclear": "Os follow-ups não estão claros"
+    },
+    "thin": "A transcrição é curta demais para analisar esta conversa de forma justa.",
+    "fullReport": "Abrir notas completas",
+    "restart": "Recomeçar",
+    "roles": {
+      "general": {
+        "label": "Geral",
+        "meetings": "Qualquer reunião."
+      },
+      "sales": {
+        "label": "Vendas",
+        "meetings": "Chamadas de descoberta, demos e follow-ups."
+      },
+      "recruiter": {
+        "label": "Recrutador",
+        "meetings": "Triagens, entrevistas e debriefs de candidatos."
+      },
+      "product": {
+        "label": "Gerente de Produto",
+        "meetings": "Entrevistas com usuários, planejamento e alinhamentos com stakeholders."
+      },
+      "founder": {
+        "label": "Fundador",
+        "meetings": "Chamadas com clientes, conversas com investidores e reuniões com parceiros."
+      },
+      "success": {
+        "label": "Customer Success",
+        "meetings": "Check-ins, renovações e escalonamentos."
+      },
+      "engineer": {
+        "label": "Engenheiro",
+        "meetings": "Requisitos, standups, revisões de design e 1:1s."
+      }
+    }
+  },
+  "copilotPages": {
+    "listTitle": "Notas do copiloto de IA",
+    "listIntro": "Notas, follow-ups e análises de todas as reuniões em que seu copiloto de IA participou.",
+    "settingsLink": "Chaves e crédito",
+    "loadError": "Não foi possível carregar suas notas do copiloto.",
+    "empty": "Ainda não há notas do copiloto. Inicie o copiloto de IA pelo painel em qualquer reunião.",
+    "live": "ao vivo",
+    "untitled": "Reunião sem título",
+    "reportTitle": "Notas do copiloto de IA",
+    "back": "Todas as notas do copiloto",
+    "noFollowUps": "Nenhum follow-up foi escrito.",
+    "rewriteFollowUps": "Reescrever follow-ups",
+    "noReview": "Ainda não há análise.",
+    "rewriteReview": "Reescrever análise",
+    "settingsTitle": "Configurações do copiloto de IA",
+    "topupPending": "Obrigado! Seu crédito aparece aqui assim que o pagamento for confirmado.",
+    "saved": "Salvo.",
+    "checkoutUnavailable": "O checkout está indisponível no momento. Tente novamente em instantes.",
+    "defaultRole": "Papel padrão",
+    "keysTitle": "Suas próprias chaves de API",
+    "keysIntro": "Use suas próprias chaves e nunca cobraremos pela IA. As chaves são criptografadas, nunca mais exibidas e usadas apenas pelo seu copiloto.",
+    "keysDisabled": "Chaves próprias ainda não estão ativadas neste servidor.",
+    "providers": {
+      "anthropic": "Anthropic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs"
+    },
+    "keySet": "Definida (…{last4})",
+    "keyNotSet": "Não definida",
+    "keyPlaceholder": "Cole uma chave",
+    "saveKey": "Salvar",
+    "removeKey": "Remover",
+    "walletTitle": "Crédito pré-pago por uso: {balance}",
+    "walletIntro": "Usado apenas quando um modelo na nuvem roda com as nossas chaves: custo do provedor + 10%. Modelos gratuitos e suas próprias chaves não custam nada.",
+    "addCredit": "Adicionar {amount}",
+    "usageWhen": "Quando",
+    "usageWhat": "O quê",
+    "usageCharge": "Cobrança",
+    "refunded": "reembolsado"
   }
 }

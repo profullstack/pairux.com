@@ -273,6 +273,9 @@ describe('BYOK key storage', () => {
     const flipped = [v, iv, tag, `${(body ?? '').slice(0, -2)}AA`].join('.');
     expect(() => openKey(flipped, key)).toThrow();
     expect(() => openKey(sealed, randomBytes(32))).toThrow();
+    // A truncated GCM tag is refused outright.
+    const short = [v, iv, (tag ?? '').slice(0, 8), body].join('.');
+    expect(() => openKey(short, key)).toThrow('Unreadable stored key.');
   });
   it('checks key shapes per provider', () => {
     expect(validKeyShape('anthropic', 'sk-ant-api03-abcdefghijklmnop')).toBe(true);

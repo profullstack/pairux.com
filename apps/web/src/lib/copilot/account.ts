@@ -45,10 +45,13 @@ function secretKey(): Buffer {
 }
 export const byokAvailable = (): boolean => (process.env.COPILOT_KEYS_SECRET ?? '').length >= 32;
 
+/** The full 128-bit GCM tag; a shorter one is refused (truncated tags enable forgeries). */
+const TAG_BYTES = 16;
+
 /** v1.<iv>.<tag>.<ciphertext>, base64url. */
 export function sealKey(plain: string, key: Buffer = secretKey()): string {
   const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: TAG_BYTES });
   const body = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
   return ['v1', iv, cipher.getAuthTag(), body]
     .map((part) => (typeof part === 'string' ? part : part.toString('base64url')))
@@ -57,8 +60,12 @@ export function sealKey(plain: string, key: Buffer = secretKey()): string {
 export function openKey(sealed: string, key: Buffer = secretKey()): string {
   const [version, iv, tag, body] = sealed.split('.');
   if (version !== 'v1' || !iv || !tag || !body) throw new Error('Unreadable stored key.');
-  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64url'));
-  decipher.setAuthTag(Buffer.from(tag, 'base64url'));
+  const authTag = Buffer.from(tag, 'base64url');
+  if (authTag.length !== TAG_BYTES) throw new Error('Unreadable stored key.');
+  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64url'), {
+    authTagLength: TAG_BYTES,
+  });
+  decipher.setAuthTag(authTag);
   return Buffer.concat([
     decipher.update(Buffer.from(body, 'base64url')),
     decipher.final(),

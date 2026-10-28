@@ -5,6 +5,7 @@ import {
   transitionToLive,
   youtubeOAuthConfigured,
 } from '@/lib/youtube';
+import { openForUser } from '@/lib/sealed/vault';
 
 /** How long/often to poll for a broadcast that's ready to go live. */
 const POLL_INTERVAL_MS = 6_000;
@@ -32,8 +33,16 @@ export async function autoTransitionYouTube(userId: string): Promise<void> {
   try {
     if (!youtubeOAuthConfigured()) return;
 
-    const refreshToken = await getRefreshToken(userId);
-    if (!refreshToken) return; // user hasn't connected YouTube
+    const stored = await getRefreshToken(userId);
+    if (!stored) return; // user hasn't connected YouTube
+    // Seal v2: opens only while the user is unlocked; locked = skip, not fail.
+    const refreshToken = await openForUser(userId, stored, 'youtube_refresh_token');
+    if (!refreshToken) {
+      console.warn(
+        `[youtube] auto go-live skipped for user ${userId}: keys locked (unlock in Settings)`
+      );
+      return;
+    }
 
     const accessToken = await refreshAccessToken(refreshToken);
 

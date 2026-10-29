@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Confirm your new password",
       "submit": "Reset password",
       "submitting": "Resetting..."
+    },
+    "coinpay": {
+      "signIn": "Sign in with CoinPay",
+      "signUp": "Sign up with CoinPay",
+      "orEmail": "or use your email",
+      "errors": {
+        "retry": "CoinPay sign-in did not complete. Try again.",
+        "unavailable": "Sign in with CoinPay is not available right now.",
+        "unconfirmed": "Confirm this account's email before signing in with CoinPay.",
+        "linkedElsewhere": "That CoinPay account is already connected to another PairUX account.",
+        "alreadyConnected": "This account is already connected to a different CoinPay account. Disconnect it first."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Connected — {channel}",
       "disconnect": "Disconnect",
       "connect": "Connect YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Sign in to PairUX with your CoinPay account.",
+      "connected": "Connected",
+      "connectedAs": "Connected as {email}",
+      "connect": "Connect CoinPay",
+      "disconnect": "Disconnect",
+      "onlyWayIn": "CoinPay is the only way to sign in to this account, so it cannot be disconnected.",
+      "notConfigured": "Connecting CoinPay is not available right now.",
+      "justConnected": "CoinPay is connected."
     }
   },
   "replay": {

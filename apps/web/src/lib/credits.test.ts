@@ -251,6 +251,17 @@ describe('invites', () => {
     expect(daysLeft('alice')).toBeCloseTo(INVITE_BONUS_PRO_DAYS, 0);
   });
 
+  it('a CoinPay-made account (placeholder address) never counts as confirmed', async () => {
+    const inv = await createInvite('alice', '', deps);
+    addUser('cpuser', { ageDays: 0, email: 'cp-0123abcd@coinpay.pairux.invalid' });
+    expect(await acceptInvite('cpuser', inv.code, deps)).toMatchObject({
+      ok: true,
+      bonus: 'pending',
+    });
+    expect(profile('cpuser').plan).toBe('free');
+    expect(profile('alice').plan).toBe('free');
+  });
+
   it('pays nothing when both addresses are the same mailbox', async () => {
     env.users.get('alice')!.email = 'alice@gmail.com';
     const inv = await createInvite('alice', '', deps);

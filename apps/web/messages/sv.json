@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Bekräfta ditt nya lösenord",
       "submit": "Återställ lösenord",
       "submitting": "Återställer…"
+    },
+    "coinpay": {
+      "signIn": "Logga in med CoinPay",
+      "signUp": "Registrera dig med CoinPay",
+      "orEmail": "eller använd din e-post",
+      "errors": {
+        "retry": "Inloggningen med CoinPay slutfördes inte. Försök igen.",
+        "unavailable": "Inloggning med CoinPay är inte tillgänglig just nu.",
+        "unconfirmed": "Bekräfta kontots e-post innan du loggar in med CoinPay.",
+        "linkedElsewhere": "Det CoinPay-kontot är redan kopplat till ett annat PairUX-konto.",
+        "alreadyConnected": "Det här kontot är redan kopplat till ett annat CoinPay-konto. Koppla från det först."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Ansluten – {channel}",
       "disconnect": "Koppla från",
       "connect": "Anslut YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Logga in på PairUX med ditt CoinPay-konto.",
+      "connected": "Kopplat",
+      "connectedAs": "Kopplat som {email}",
+      "connect": "Koppla CoinPay",
+      "disconnect": "Koppla från",
+      "onlyWayIn": "CoinPay är det enda sättet att logga in på kontot, så det kan inte kopplas från.",
+      "notConfigured": "Det går inte att koppla CoinPay just nu.",
+      "justConnected": "CoinPay är kopplat."
     }
   },
   "replay": {

@@ -27,6 +27,7 @@
  * Clients are built lazily so env vars are read at runtime, not inlined at build.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { isPlaceholderEmail } from './coinpay-signin';
 import { Credits, supabaseStore as creditStore, type Grant } from '@profullstack/redeem-credits';
 import { Affiliates, supabaseStore as affiliateStore } from '@profullstack/affiliates';
 import type { Plan } from '@pairux/shared-types';
@@ -437,7 +438,12 @@ async function emailOf(
   if (error) return { email: null, confirmed: false };
   const u = data.user as { email?: string | null; email_confirmed_at?: string | null } | null;
   if (!u) return { email: null, confirmed: false };
-  return { email: u.email ?? null, confirmed: Boolean(u.email_confirmed_at) };
+  // A CoinPay-made account's address is our own undeliverable placeholder,
+  // confirmed only so a session can be minted for it: not a verified email.
+  return {
+    email: u.email ?? null,
+    confirmed: Boolean(u.email_confirmed_at) && !isPlaceholderEmail(u.email),
+  };
 }
 
 /** Claim a (invite, side) decision; false when one was already recorded. */

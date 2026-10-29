@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Nhập lại mật khẩu mới",
       "submit": "Đặt lại mật khẩu",
       "submitting": "Đang đặt lại..."
+    },
+    "coinpay": {
+      "signIn": "Đăng nhập bằng CoinPay",
+      "signUp": "Đăng ký bằng CoinPay",
+      "orEmail": "hoặc dùng email của bạn",
+      "errors": {
+        "retry": "Đăng nhập bằng CoinPay chưa hoàn tất. Hãy thử lại.",
+        "unavailable": "Hiện không thể đăng nhập bằng CoinPay.",
+        "unconfirmed": "Hãy xác nhận email của tài khoản này trước khi đăng nhập bằng CoinPay.",
+        "linkedElsewhere": "Tài khoản CoinPay đó đã được liên kết với một tài khoản PairUX khác.",
+        "alreadyConnected": "Tài khoản này đã liên kết với một tài khoản CoinPay khác. Hãy ngắt liên kết trước."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Đã kết nối — {channel}",
       "disconnect": "Ngắt kết nối",
       "connect": "Kết nối YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Đăng nhập PairUX bằng tài khoản CoinPay của bạn.",
+      "connected": "Đã liên kết",
+      "connectedAs": "Đã liên kết với {email}",
+      "connect": "Liên kết CoinPay",
+      "disconnect": "Ngắt liên kết",
+      "onlyWayIn": "CoinPay là cách duy nhất để đăng nhập tài khoản này nên không thể ngắt liên kết.",
+      "notConfigured": "Hiện không thể liên kết CoinPay.",
+      "justConnected": "Đã liên kết CoinPay."
     }
   },
   "replay": {

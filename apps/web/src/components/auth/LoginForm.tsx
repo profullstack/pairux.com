@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Key } from 'lucide-react
 import { useTranslations } from 'next-intl';
 import { trackLogin } from '@/lib/analytics';
 import { sameOriginPath } from '@/lib/safe-redirect';
+import { CoinpaySignIn, coinpayErrorKey } from './CoinpaySignIn';
 
 export function safeRedirectPath(redirect: string | null): string {
   return sameOriginPath(redirect) ?? '/dashboard';
@@ -22,7 +23,10 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const coinpayError = coinpayErrorKey(searchParams.get('coinpay'));
+  const [error, setError] = useState(() =>
+    coinpayError ? t(`coinpay.errors.${coinpayError}`) : ''
+  );
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -79,6 +83,8 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <CoinpaySignIn mode="login" next={searchParams.get('redirect') ? redirect : null} />
+
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />

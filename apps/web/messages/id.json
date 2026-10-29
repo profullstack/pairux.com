@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Konfirmasi kata sandi baru Anda",
       "submit": "Atur ulang kata sandi",
       "submitting": "Mengatur ulang..."
+    },
+    "coinpay": {
+      "signIn": "Masuk dengan CoinPay",
+      "signUp": "Daftar dengan CoinPay",
+      "orEmail": "atau gunakan email Anda",
+      "errors": {
+        "retry": "Masuk dengan CoinPay tidak selesai. Coba lagi.",
+        "unavailable": "Masuk dengan CoinPay sedang tidak tersedia.",
+        "unconfirmed": "Konfirmasi email akun ini sebelum masuk dengan CoinPay.",
+        "linkedElsewhere": "Akun CoinPay itu sudah terhubung ke akun PairUX lain.",
+        "alreadyConnected": "Akun ini sudah terhubung ke akun CoinPay lain. Putuskan dulu."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Terhubung — {channel}",
       "disconnect": "Putuskan",
       "connect": "Hubungkan YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Masuk ke PairUX dengan akun CoinPay Anda.",
+      "connected": "Terhubung",
+      "connectedAs": "Terhubung sebagai {email}",
+      "connect": "Hubungkan CoinPay",
+      "disconnect": "Putuskan",
+      "onlyWayIn": "CoinPay adalah satu-satunya cara masuk ke akun ini, jadi tidak bisa diputuskan.",
+      "notConfigured": "Menghubungkan CoinPay sedang tidak tersedia.",
+      "justConnected": "CoinPay terhubung."
     }
   },
   "replay": {

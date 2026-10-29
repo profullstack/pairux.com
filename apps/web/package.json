@@ -21,6 +21,7 @@
     "@pairux/meeting-translation": "workspace:*",
     "@profullstack/affiliates": "^0.2.0",
     "@profullstack/autoblog": "github:profullstack/autoblog#75e54af",
+    "@profullstack/coinpay-onboard": "0.3.1",
     "@profullstack/emailer": "^1.0.3",
     "@profullstack/footer": "latest",
     "@profullstack/live-translate": "^0.3.0",

@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { ProfileFields } from '@profullstack/profile/react';
 import type { ProfileField } from '@profullstack/profile';
 import { trackSignup } from '@/lib/analytics';
+import { CoinpaySignIn } from './CoinpaySignIn';
 
 // Email has its own input below; the shared package renders the other five.
 const PROFILE_FIELDS: ProfileField[] = [
@@ -95,6 +96,8 @@ export function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <CoinpaySignIn mode="signup" />
+
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />

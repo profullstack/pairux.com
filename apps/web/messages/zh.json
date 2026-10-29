@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "再次输入新密码",
       "submit": "重置密码",
       "submitting": "正在重置..."
+    },
+    "coinpay": {
+      "signIn": "使用 CoinPay 登录",
+      "signUp": "使用 CoinPay 注册",
+      "orEmail": "或使用电子邮箱",
+      "errors": {
+        "retry": "CoinPay 登录未完成，请重试。",
+        "unavailable": "CoinPay 登录暂不可用。",
+        "unconfirmed": "使用 CoinPay 登录前，请先验证此账户的电子邮箱。",
+        "linkedElsewhere": "该 CoinPay 账户已关联到另一个 PairUX 账户。",
+        "alreadyConnected": "此账户已关联到另一个 CoinPay 账户，请先解除关联。"
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "已连接 —— {channel}",
       "disconnect": "断开连接",
       "connect": "连接 YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "使用你的 CoinPay 账户登录 PairUX。",
+      "connected": "已关联",
+      "connectedAs": "已关联为 {email}",
+      "connect": "关联 CoinPay",
+      "disconnect": "解除关联",
+      "onlyWayIn": "CoinPay 是登录此账户的唯一方式，因此无法解除关联。",
+      "notConfigured": "暂时无法关联 CoinPay。",
+      "justConnected": "CoinPay 已关联。"
     }
   },
   "replay": {

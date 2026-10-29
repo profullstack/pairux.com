@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "新しいパスワードをもう一度入力",
       "submit": "パスワードをリセット",
       "submitting": "リセット中..."
+    },
+    "coinpay": {
+      "signIn": "CoinPayでサインイン",
+      "signUp": "CoinPayで登録",
+      "orEmail": "またはメールアドレスを使う",
+      "errors": {
+        "retry": "CoinPayでのサインインが完了しませんでした。もう一度お試しください。",
+        "unavailable": "現在CoinPayでのサインインはご利用いただけません。",
+        "unconfirmed": "CoinPayでサインインする前に、このアカウントのメールアドレスを確認してください。",
+        "linkedElsewhere": "そのCoinPayアカウントは別のPairUXアカウントに接続済みです。",
+        "alreadyConnected": "このアカウントは別のCoinPayアカウントに接続済みです。先に接続を解除してください。"
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "接続済み — {channel}",
       "disconnect": "接続を解除",
       "connect": "YouTube に接続"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "CoinPayアカウントでPairUXにサインインします。",
+      "connected": "接続済み",
+      "connectedAs": "{email} として接続済み",
+      "connect": "CoinPayを接続",
+      "disconnect": "接続を解除",
+      "onlyWayIn": "CoinPayがこのアカウントへの唯一のサインイン方法のため、接続を解除できません。",
+      "notConfigured": "現在CoinPayを接続できません。",
+      "justConnected": "CoinPayを接続しました。"
     }
   },
   "replay": {

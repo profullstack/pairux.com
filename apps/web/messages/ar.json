@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "أكّد كلمة المرور الجديدة",
       "submit": "إعادة تعيين كلمة المرور",
       "submitting": "جارٍ إعادة التعيين..."
+    },
+    "coinpay": {
+      "signIn": "تسجيل الدخول باستخدام CoinPay",
+      "signUp": "إنشاء حساب باستخدام CoinPay",
+      "orEmail": "أو استخدم بريدك الإلكتروني",
+      "errors": {
+        "retry": "لم يكتمل تسجيل الدخول عبر CoinPay. حاول مرة أخرى.",
+        "unavailable": "تسجيل الدخول عبر CoinPay غير متاح الآن.",
+        "unconfirmed": "أكّد البريد الإلكتروني لهذا الحساب قبل تسجيل الدخول عبر CoinPay.",
+        "linkedElsewhere": "حساب CoinPay هذا مرتبط بالفعل بحساب PairUX آخر.",
+        "alreadyConnected": "هذا الحساب مرتبط بالفعل بحساب CoinPay مختلف. افصله أولاً."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "متصل: {channel}",
       "disconnect": "قطع الاتصال",
       "connect": "ربط YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "سجّل الدخول إلى PairUX بحساب CoinPay.",
+      "connected": "مرتبط",
+      "connectedAs": "مرتبط باسم {email}",
+      "connect": "ربط CoinPay",
+      "disconnect": "فصل",
+      "onlyWayIn": "CoinPay هو الطريقة الوحيدة لتسجيل الدخول إلى هذا الحساب، لذا لا يمكن فصله.",
+      "notConfigured": "ربط CoinPay غير متاح الآن.",
+      "justConnected": "تم ربط CoinPay."
     }
   },
   "replay": {

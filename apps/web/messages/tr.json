@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Yeni şifrenizi tekrar girin",
       "submit": "Şifreyi sıfırla",
       "submitting": "Sıfırlanıyor..."
+    },
+    "coinpay": {
+      "signIn": "CoinPay ile giriş yap",
+      "signUp": "CoinPay ile kaydol",
+      "orEmail": "veya e-postanı kullan",
+      "errors": {
+        "retry": "CoinPay girişi tamamlanmadı. Tekrar dene.",
+        "unavailable": "CoinPay ile giriş şu anda kullanılamıyor.",
+        "unconfirmed": "CoinPay ile giriş yapmadan önce bu hesabın e-postasını doğrula.",
+        "linkedElsewhere": "Bu CoinPay hesabı zaten başka bir PairUX hesabına bağlı.",
+        "alreadyConnected": "Bu hesap zaten başka bir CoinPay hesabına bağlı. Önce bağlantısını kaldır."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Bağlı: {channel}",
       "disconnect": "Bağlantıyı kes",
       "connect": "YouTube’u bağla"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "CoinPay hesabınla PairUX'a giriş yap.",
+      "connected": "Bağlı",
+      "connectedAs": "{email} olarak bağlı",
+      "connect": "CoinPay'i bağla",
+      "disconnect": "Bağlantıyı kes",
+      "onlyWayIn": "CoinPay bu hesaba girmenin tek yolu, bu yüzden bağlantısı kesilemez.",
+      "notConfigured": "CoinPay bağlama şu anda kullanılamıyor.",
+      "justConnected": "CoinPay bağlandı."
     }
   },
   "replay": {

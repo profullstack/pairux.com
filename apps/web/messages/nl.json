@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Bevestig je nieuwe wachtwoord",
       "submit": "Wachtwoord opnieuw instellen",
       "submitting": "Opnieuw instellen..."
+    },
+    "coinpay": {
+      "signIn": "Inloggen met CoinPay",
+      "signUp": "Registreren met CoinPay",
+      "orEmail": "of gebruik je e-mail",
+      "errors": {
+        "retry": "Inloggen met CoinPay is niet voltooid. Probeer het opnieuw.",
+        "unavailable": "Inloggen met CoinPay is nu niet beschikbaar.",
+        "unconfirmed": "Bevestig het e-mailadres van dit account voordat je inlogt met CoinPay.",
+        "linkedElsewhere": "Dat CoinPay-account is al gekoppeld aan een ander PairUX-account.",
+        "alreadyConnected": "Dit account is al gekoppeld aan een ander CoinPay-account. Ontkoppel het eerst."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Verbonden: {channel}",
       "disconnect": "Verbinding verbreken",
       "connect": "YouTube koppelen"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Log in bij PairUX met je CoinPay-account.",
+      "connected": "Gekoppeld",
+      "connectedAs": "Gekoppeld als {email}",
+      "connect": "CoinPay koppelen",
+      "disconnect": "Ontkoppelen",
+      "onlyWayIn": "CoinPay is de enige manier om in dit account te komen, dus het kan niet worden ontkoppeld.",
+      "notConfigured": "CoinPay koppelen is nu niet beschikbaar.",
+      "justConnected": "CoinPay is gekoppeld."
     }
   },
   "replay": {

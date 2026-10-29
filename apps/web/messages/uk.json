@@ -159,6 +159,18 @@
       "confirmNewPasswordPlaceholder": "Повторіть новий пароль",
       "submit": "Скинути пароль",
       "submitting": "Скидання..."
+    },
+    "coinpay": {
+      "signIn": "Увійти через CoinPay",
+      "signUp": "Зареєструватися через CoinPay",
+      "orEmail": "або скористайтеся email",
+      "errors": {
+        "retry": "Вхід через CoinPay не завершено. Спробуйте ще раз.",
+        "unavailable": "Вхід через CoinPay зараз недоступний.",
+        "unconfirmed": "Підтвердьте email цього акаунта, перш ніж входити через CoinPay.",
+        "linkedElsewhere": "Цей акаунт CoinPay уже прив’язано до іншого акаунта PairUX.",
+        "alreadyConnected": "Цей акаунт уже прив’язано до іншого акаунта CoinPay. Спершу відв’яжіть його."
+      }
     }
   },
   "cliAuthorize": {
@@ -2035,6 +2047,17 @@
       "connectedTo": "Підключено — {channel}",
       "disconnect": "Відключити",
       "connect": "Підключити YouTube"
+    },
+    "coinpay": {
+      "title": "CoinPay",
+      "description": "Входьте в PairUX з акаунтом CoinPay.",
+      "connected": "Прив’язано",
+      "connectedAs": "Прив’язано як {email}",
+      "connect": "Прив’язати CoinPay",
+      "disconnect": "Відв’язати",
+      "onlyWayIn": "CoinPay — єдиний спосіб увійти в цей акаунт, тому його не можна відв’язати.",
+      "notConfigured": "Прив’язка CoinPay зараз недоступна.",
+      "justConnected": "CoinPay прив’язано."
     }
   },
   "replay": {

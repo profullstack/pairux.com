@@ -20,7 +20,7 @@ const options = {
   pwamartHref: 'https://pwamart.com/for?site=https://pairux.com/',
 };
 
-export async function UniversalFooter({ nonce }: { nonce?: string }) {
+export async function UniversalFooter({ nonce }: { nonce?: string | undefined }) {
   const html = await footerHtml({ ...options, ...(nonce ? { nonce } : {}) });
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }

@@ -12,7 +12,11 @@ const options = {
     { label: 'About', href: '/about' },
     { label: 'Privacy', href: '/privacy' },
     { label: 'Terms', href: '/terms' },
-    { label: 'GitHub', href: 'https://github.com/profullstack/pairux.com', rel: 'noopener noreferrer' },
+    {
+      label: 'GitHub',
+      href: 'https://github.com/profullstack/pairux.com',
+      rel: 'noopener noreferrer',
+    },
     { label: 'Discord', href: 'https://discord.gg/U7dEXfBA3s', rel: 'noopener noreferrer' },
     { label: 'X', href: 'https://x.com/profullstackinc', rel: 'noopener noreferrer' },
   ],

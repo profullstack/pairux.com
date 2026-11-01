@@ -52,7 +52,7 @@ export class ScoopPackageManager extends BasePackageManager {
     // Find the Windows installer (NSIS exe)
     const x64Exe = this.findAsset(
       release,
-      (a) => a.name.endsWith('.exe') && a.name.includes('x64')
+      (a) => a.name.startsWith('PairUX.Setup.') && a.name.endsWith('.exe')
     );
 
     // If no x64 specific, find any exe
@@ -65,7 +65,7 @@ export class ScoopPackageManager extends BasePackageManager {
       license: 'MIT',
       url:
         exe?.downloadUrl ??
-        `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`,
+        `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX.Setup.${release.version}.exe`,
       hash: exe?.sha256 ?? 'SHA256_PLACEHOLDER',
       installer: {
         args: ['/S', '/D=$dir'],
@@ -79,7 +79,7 @@ export class ScoopPackageManager extends BasePackageManager {
         github: 'https://github.com/profullstack/pairux.com',
       },
       autoupdate: {
-        url: `https://github.com/profullstack/pairux.com/releases/download/v$version/PairUX-$version-x64.exe`,
+        url: `https://github.com/profullstack/pairux.com/releases/download/v$version/PairUX.Setup.$version.exe`,
       },
     };
 

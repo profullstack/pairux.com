@@ -36,8 +36,8 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
     tagName: `v${version}`,
     assets: [
       {
-        name: `PairUX-${version}-x64.exe`,
-        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x64.exe`,
+        name: `PairUX.Setup.${version}.exe`,
+        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX.Setup.${version}.exe`,
         size: 100000000,
         contentType: 'application/octet-stream',
         sha256: 'ABC123DEF456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789A',
@@ -50,8 +50,8 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
         sha256: 'DEF456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF01',
       },
       {
-        name: `PairUX-${version}-x64.dmg`,
-        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}-x64.dmg`,
+        name: `PairUX-${version}.dmg`,
+        downloadUrl: `https://github.com/profullstack/pairux.com/releases/download/v${version}/PairUX-${version}.dmg`,
         size: 115000000,
         contentType: 'application/octet-stream',
         sha256: 'GHI789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
@@ -66,7 +66,7 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
     ],
     checksums: new Map([
       [
-        `PairUX-${version}-x64.exe`,
+        `PairUX.Setup.${version}.exe`,
         'ABC123DEF456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789A',
       ],
       [
@@ -74,7 +74,7 @@ function createSampleRelease(version = '1.0.0'): ReleaseInfo {
         'DEF456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF01',
       ],
       [
-        `PairUX-${version}-x64.dmg`,
+        `PairUX-${version}.dmg`,
         'GHI789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF012345',
       ],
       [
@@ -135,7 +135,7 @@ describe('WingetPackageManager', () => {
       const manifests = await winget.generateManifest(release);
 
       expect(manifests.installer).toContain(
-        'InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v2.0.0/PairUX-2.0.0-x64.exe'
+        'InstallerUrl: https://github.com/profullstack/pairux.com/releases/download/v2.0.0/PairUX.Setup.2.0.0.exe'
       );
     });
 

@@ -41,7 +41,7 @@ export class WingetPackageManager extends BasePackageManager {
     const x64Sha = x64Exe?.sha256?.toUpperCase() ?? 'SHA256_PLACEHOLDER';
     const downloadUrl =
       x64Exe?.downloadUrl ??
-      `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
+      `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX.Setup.${release.version}.exe`;
 
     // Version manifest
     const versionManifest = `# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.10.0.schema.json

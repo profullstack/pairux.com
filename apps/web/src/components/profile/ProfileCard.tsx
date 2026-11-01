@@ -73,6 +73,7 @@ export function ProfileCard() {
         onChange={setValues}
         errors={errors}
         disabled={!loaded}
+        importOpenProfile
       />
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       <div className="mt-4 flex items-center gap-3">

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Install PairUX on macOS or Linux: the desktop app plus the `pairux` command
-# (launch, update, uninstall, and the agent commands join/listen/say/who).
+# (launch, update, uninstall, and the agent commands join/listen/say/who/voice).
 #
 #   curl -fsSL https://pairux.com/install.sh | sh
 #

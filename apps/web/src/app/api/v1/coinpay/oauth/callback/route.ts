@@ -2,6 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { finishSignIn, sameState } from '@profullstack/coinpay-onboard/oauth';
+import { saveOpenProfileContact } from '@profullstack/profile';
+import { profileStore } from '@/lib/profile';
 import { createClient } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
 import {
@@ -80,6 +82,13 @@ export async function GET(request: NextRequest) {
     return fail('failed');
   }
   if (!result.ok) return fail(result.code);
+  if (pending.mode === 'connect' && claims.openprofile_url) {
+    try {
+      await saveOpenProfileContact(profileStore(), result.userId, claims.openprofile_url);
+    } catch {
+      console.warn('[coinpay] OpenProfile import skipped');
+    }
+  }
   if (pending.mode === 'connect') return go('/settings?coinpay=connected');
 
   const minted = await mintMagicLinkHash(admin, result.userId);

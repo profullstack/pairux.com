@@ -149,6 +149,7 @@ export interface CoinpayClaims {
   sub: string;
   email: string | null;
   name: string | null;
+  openprofile_url?: string;
 }
 
 /** Trim what CoinPay returned to what is stored; the email is contact info only. */
@@ -156,10 +157,17 @@ export function claimsFrom(r: {
   sub: string;
   email: string | null;
   name: string | null;
+  userinfo?: object;
 }): CoinpayClaims {
   const email = typeof r.email === 'string' && r.email.includes('@') ? r.email.slice(0, 320) : null;
   const name = typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 200) : null;
-  return { sub: r.sub, email, name };
+  const openprofileUrl = (r.userinfo as { openprofile_url?: unknown } | undefined)?.openprofile_url;
+  return {
+    sub: r.sub,
+    email,
+    name,
+    ...(typeof openprofileUrl === 'string' ? { openprofile_url: openprofileUrl } : {}),
+  };
 }
 
 export interface IdentityRow {

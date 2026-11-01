@@ -399,7 +399,7 @@ importers:
         version: 1.0.3
       '@profullstack/footer':
         specifier: latest
-        version: 0.5.0(react@19.3.1)
+        version: 0.6.15(react@19.3.1)
       '@profullstack/live-translate':
         specifier: ^0.3.0
         version: 0.3.0
@@ -410,8 +410,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/embed
       '@profullstack/profile':
-        specifier: 0.1.6
-        version: 0.1.6(react@19.3.1)
+        specifier: 0.1.7
+        version: 0.1.7(react@19.3.1)
       '@profullstack/redeem-credits':
         specifier: ^0.2.0
         version: 0.2.0
@@ -3007,8 +3007,8 @@ packages:
       react:
         optional: true
 
-  '@profullstack/footer@0.5.0':
-    resolution: {integrity: sha512-TrllS87nK7J0c/UgYckaFIWVhLOtr6m73XXFSHIuSfOg7NfuWUdwjtsfMXGaZiiUnmMYj3zhGcfzW0DicDwl8w==}
+  '@profullstack/footer@0.6.15':
+    resolution: {integrity: sha512-kkkSG8Xw0VnyzYk76ko0aiIgVT/MXmKkKUiJ5u1DZkeLZcDh0d2GjFShwTcCd8AsQr5fBet39wbzSwPeUYwuWg==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -3033,8 +3033,12 @@ packages:
     resolution: {integrity: sha512-4RSq9C4ghgf/W1YGK6Ai9oMJWWLW2WOSn8cl/J7tbdK/c8nhIr3z3BjQcYJyjGGIMdRuUBGVBAJmp3uAtY28+A==}
     engines: {node: '>=20.11'}
 
-  '@profullstack/profile@0.1.6':
-    resolution: {integrity: sha512-xkn0P3ANz151QJdlBwcBXkHk813qW9qAmuTZKcuvpEZYkyHDC9J9KfvpVSRepfjECzz4ONGHWO5Zwc4BHpfK8g==}
+  '@profullstack/openprofile@0.2.0':
+    resolution: {integrity: sha512-cdFsBbfRXurvy5KqHDNcKXxurK2s/YlfVgnILFRpVl2hq3860rExqDee8IfsFGxw5cPdqGv2fxUxtek1Xy2U5Q==}
+    engines: {node: '>=22'}
+
+  '@profullstack/profile@0.1.7':
+    resolution: {integrity: sha512-N7UkypkkY2JkSBKzmdmyy6+DCoxI048qUZQksEjSRwSIyy4mjU9H1qW4yhZD+LJBhTEupgJv//Uxwhiy2FuGmA==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
@@ -12531,7 +12535,7 @@ snapshots:
     optionalDependencies:
       react: 19.3.1
 
-  '@profullstack/footer@0.5.0(react@19.3.1)':
+  '@profullstack/footer@0.6.15(react@19.3.1)':
     optionalDependencies:
       react: 19.3.1
 
@@ -12543,7 +12547,11 @@ snapshots:
 
   '@profullstack/notifications@0.1.4': {}
 
-  '@profullstack/profile@0.1.6(react@19.3.1)':
+  '@profullstack/openprofile@0.2.0': {}
+
+  '@profullstack/profile@0.1.7(react@19.3.1)':
+    dependencies:
+      '@profullstack/openprofile': 0.2.0
     optionalDependencies:
       react: 19.3.1
 

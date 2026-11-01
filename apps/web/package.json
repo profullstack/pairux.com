@@ -27,7 +27,7 @@
     "@profullstack/live-translate": "^0.3.0",
     "@profullstack/notifications": "0.1.4",
     "@profullstack/pairux-embed": "workspace:*",
-    "@profullstack/profile": "0.1.6",
+    "@profullstack/profile": "0.1.7",
     "@profullstack/redeem-credits": "^0.2.0",
     "@profullstack/stack": "^0.5.0",
     "@profullstack/x402-gateway": "^0.13.1",

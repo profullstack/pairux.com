@@ -44,7 +44,7 @@ export class HomebrewPackageManager extends BasePackageManager {
   }
 
   generateManifest(release: ReleaseInfo): Promise<string> {
-    // Find the DMG assets for arm64 and x64
+    // Find the DMG assets for Apple Silicon and Intel
     const arm64Dmg = this.findAsset(
       release,
       (a) => a.name.includes('arm64') && a.name.endsWith('.dmg')
@@ -69,7 +69,7 @@ export class HomebrewPackageManager extends BasePackageManager {
 
   on_intel do
     sha256 "${x64Sha}"
-    url "https://github.com/profullstack/pairux.com/releases/download/v#{version}/PairUX-#{version}-x64.dmg",
+    url "https://github.com/profullstack/pairux.com/releases/download/v#{version}/PairUX-#{version}.dmg",
         verified: "github.com/profullstack/pairux.com/"
   end
 

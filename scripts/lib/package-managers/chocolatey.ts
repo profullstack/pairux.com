@@ -51,7 +51,7 @@ export class ChocolateyPackageManager extends BasePackageManager {
 
     const downloadUrl =
       exe?.downloadUrl ??
-      `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX-${release.version}-x64.exe`;
+      `https://github.com/profullstack/pairux.com/releases/download/v${release.version}/PairUX.Setup.${release.version}.exe`;
 
     // Get checksum from asset or from checksums map (required for Chocolatey validation - CPMR0073)
     // Note: checksums file may have spaces in filename (e.g., "PairUX Setup 0.1.17.exe")
@@ -59,7 +59,7 @@ export class ChocolateyPackageManager extends BasePackageManager {
     const checksum =
       exe?.sha256 ??
       release.checksums.get(`PairUX Setup ${release.version}.exe`) ??
-      release.checksums.get(`PairUX-${release.version}-x64.exe`) ??
+      release.checksums.get(`PairUX.Setup.${release.version}.exe`) ??
       '';
 
     if (!checksum) {

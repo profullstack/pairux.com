@@ -200,14 +200,10 @@ async function getVersion(requestedVersion?: string): Promise<string> {
  * Fetch release info from GitHub
  */
 async function fetchReleaseInfo(version: string): Promise<ReleaseInfo | null> {
-  const token = process.env.GITHUB_TOKEN;
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'PairUX-Submit-Packages',
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
   try {
     const response = await fetch(

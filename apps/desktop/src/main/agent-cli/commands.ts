@@ -8,6 +8,7 @@
  *   pairux join ABC123 --name "Claude"
  *   pairux listen                follow chat + roster (stays present)
  *   pairux say "Tests pass on my side"
+ *   pairux voice join --json     hear call audio and speak through C0mpute
  *   pairux who                   who is in the session
  *   pairux leave
  *   pairux room                  link to a fresh anonymous E2EE room
@@ -30,6 +31,7 @@ import {
   revoke,
 } from './auth';
 import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api';
+import type { AgentVoiceRunOptions } from './voice-protocol';
 import { newRoomLink } from './room';
 import { COPILOT_HELP, runCopilot } from './copilot';
 import { UsageError } from './errors';
@@ -49,6 +51,8 @@ export interface Deps {
   maxPolls?: number;
   /** Tests stop `copilot watch` after N stream connections; production reconnects. */
   maxStreams?: number;
+  /** Starts the hidden WebRTC renderer used by `pairux voice join`. */
+  startVoice?: (options: AgentVoiceRunOptions) => Promise<number>;
   login?: typeof listenForCallback;
   /** The app version, for the User-Agent and `pairux version`. */
   version?: string;
@@ -72,6 +76,8 @@ Usage:
   pairux who [--json]                List who is in the session
   pairux status [--json]             Show the agent this CLI is running as
   pairux leave                       Leave the session
+  pairux voice join [--json]         Join call audio; stdout is transcripts, stdin speaks
+                                     Each input line is spoken via C0mpute TTS. Send /quit to leave.
   pairux room                        Print a link to a fresh anonymous room: end-to-end
                                      encrypted voice/video, no account needed to join
   pairux redeem <CODE>               Redeem a credit code (adds days of a paid plan)
@@ -86,9 +92,16 @@ Environment:
   PAIRUX_AGENT_NAME     default display name for join
   PAIRUX_AGENT_CLIENT   default --client for join
   PAIRUX_CONFIG_DIR     where config.json lives (default ~/.config/pairux)
+  C0MPUTE_SPEECH_URL    speech gateway; default http://127.0.0.1:8787
+  C0MPUTE_SPEECH_TOKEN  token used by \`c0mpute speech serve\` (required for voice)
+  C0MPUTE_TTS_ENGINE    default kokoro
+  C0MPUTE_TTS_VOICE     default af_sarah
+  C0MPUTE_TTS_LOCALE    default en-US
+  C0MPUTE_STT_LANGUAGE  optional language hint, e.g. en
 
-Agents watch and chat. They cannot see or control anyone's screen, and the
-host can remove them at any time. Docs: https://pairux.com/docs/agents`;
+Agents can follow chat and call audio, and speak into the call. They cannot see
+or control anyone's screen, and the host can remove them at any time.
+Docs: https://pairux.com/docs/agents`;
 
 function defaultName(env: NodeJS.ProcessEnv): string {
   if (env.PAIRUX_AGENT_NAME) return env.PAIRUX_AGENT_NAME;
@@ -315,7 +328,7 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
         deps.out(
           `Joined ${joinCode} as ${joined.displayName}${joined.owned ? ' (your agent)' : ' (anonymous agent)'}.`
         );
-        deps.out('Run `pairux listen` to follow the chat and stay present.');
+        deps.out('Run `pairux listen` for chat or `pairux voice join` to join call audio.');
         return 0;
       }
 
@@ -333,6 +346,60 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
         }
         await client.say(agent.participantId, message);
         return 0;
+      }
+
+      case 'voice': {
+        const [action, ...voiceArgs] = rest;
+        if (!action || ['help', '--help', '-h'].includes(action)) {
+          deps.out(
+            'Usage: pairux voice join [--json]\nJoin the active call as this agent. Each stdin line is spoken with C0mpute TTS; transcript events go to stdout. Send /quit to leave.'
+          );
+          return 0;
+        }
+        if (action !== 'join') throw new UsageError(`Unknown voice command "${action}".`);
+        const { values, positionals } = parseArgs({
+          args: voiceArgs,
+          allowPositionals: true,
+          options: { json: { type: 'boolean', default: false } },
+        });
+        if (positionals.length > 0) throw new UsageError('Usage: pairux voice join [--json]');
+        if (!deps.startVoice) {
+          throw new UsageError(
+            'The PairUX desktop CLI voice runtime is unavailable in this build.'
+          );
+        }
+
+        const agent = requireAgent();
+        const speechToken = deps.env.C0MPUTE_SPEECH_TOKEN;
+        if (!speechToken) {
+          throw new UsageError(
+            'Set C0MPUTE_SPEECH_TOKEN to the token used by `c0mpute speech serve` before joining voice.'
+          );
+        }
+        const livekit = await client.voiceToken(agent.participantId);
+        return await deps.startVoice({
+          participantId: agent.participantId,
+          displayName: agent.displayName,
+          token: livekit.token,
+          url: livekit.url,
+          ...(livekit.iceServers ? { iceServers: livekit.iceServers } : {}),
+          speechUrl: deps.env.C0MPUTE_SPEECH_URL ?? 'http://127.0.0.1:8787',
+          speechToken,
+          ttsEngine: deps.env.C0MPUTE_TTS_ENGINE ?? 'kokoro',
+          ttsVoice: deps.env.C0MPUTE_TTS_VOICE ?? 'af_sarah',
+          ttsLocale: deps.env.C0MPUTE_TTS_LOCALE ?? 'en-US',
+          sttModel: 'base',
+          ...(deps.env.C0MPUTE_STT_LANGUAGE ? { language: deps.env.C0MPUTE_STT_LANGUAGE } : {}),
+          json: values.json,
+          out: deps.out,
+          err: deps.err,
+          heartbeat: async () => {
+            const result = await client.poll(agent.participantId, new Date().toISOString());
+            if (result.session.status === 'ended') {
+              throw new ApiError(410, 'The session has ended');
+            }
+          },
+        });
       }
 
       case 'who':

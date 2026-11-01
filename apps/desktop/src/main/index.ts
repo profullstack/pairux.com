@@ -87,6 +87,10 @@ const isDaemonMode = process.argv.includes('daemon') || process.argv.includes('-
 // by it. See ./agent-cli.
 const agentArgs = parseAgentArgv(process.argv, app.isPackaged);
 if (agentArgs) {
+  if (agentArgs[0] === 'voice') {
+    // The hidden voice renderer has no user gesture to unlock WebAudio.
+    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+  }
   if (process.platform === 'darwin') app.dock?.hide();
   void runAgentCommand(agentArgs, app.getVersion()).then(
     (code) => {

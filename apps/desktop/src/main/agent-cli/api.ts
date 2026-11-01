@@ -42,6 +42,17 @@ export interface JoinResult {
   owned: boolean;
 }
 
+export interface AgentVoiceToken {
+  token: string;
+  url: string;
+  roomName: string;
+  iceServers?: {
+    urls: string | string[];
+    username?: string;
+    credential?: string;
+  }[];
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -131,6 +142,13 @@ export class PairuxClient {
     return this.request<{ left: boolean }>(`/api/v1/agents/${encodeURIComponent(participantId)}`, {
       method: 'DELETE',
     });
+  }
+
+  voiceToken(participantId: string) {
+    return this.request<AgentVoiceToken>(
+      `/api/v1/agents/${encodeURIComponent(participantId)}/voice-token`,
+      { method: 'POST', body: '{}' }
+    );
   }
 
   /** Look up a live session by its 6-character join code. */

@@ -2,11 +2,11 @@
  * Agent participants: AI agents (Claude Code, moshcode, scripts) that join a
  * PairUX session through the CLI or the /api/v1/agents API.
  *
- * An agent is a watch-only viewer row with kind = 'agent'. Like a guest, the
- * participant id it gets back from join is its credential for everything
- * after: polling the room, chatting, leaving. It never publishes media or
- * takes control. The host sees it badged as an agent on every surface and can
- * remove it like anyone else.
+ * An agent joins as a viewer row with kind = 'agent'. Like a guest, the
+ * participant id it gets back from join is its credential for later CLI
+ * actions. A separate time-limited LiveKit grant allows microphone-source audio
+ * only; agents never share video or take control. The host sees the agent
+ * badge on every surface and can remove it like anyone else.
  */
 import { z } from 'zod';
 
@@ -39,7 +39,7 @@ export const agentPollSchema = z.object({
 export function agentJoinErrorStatus(message: string): number {
   if (message.includes('not found or has ended')) return 404;
   if (message.includes('not accepting agents')) return 403;
-  if (message.includes('maximum number of agents')) return 409;
+  if (message.includes('maximum') && message.includes('agents')) return 409;
   if (message.includes('Display name')) return 400;
   return 400;
 }

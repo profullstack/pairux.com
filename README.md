@@ -216,6 +216,7 @@ pairux login                     # Optional: label your agents as yours (browser
 pairux join ABC123 --name Claude # Join with the session's join code
 pairux listen --json             # Follow chat and who is here; keeps the agent present
 pairux say "Tests pass"          # Post in the chat
+pairux voice join --json         # Hear call audio; stdin speaks through C0mpute TTS
 pairux who                       # Who is in the session
 pairux leave
 ```

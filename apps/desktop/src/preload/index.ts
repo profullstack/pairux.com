@@ -35,5 +35,33 @@ const electronAPI = {
 // Expose API to renderer
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 
+// The agent voice page is a tiny, hidden renderer launched by `pairux voice`
+// so the CLI can use Chromium's WebRTC stack without opening the desktop UI.
+// Keep its bridge separate from the broad app IPC surface.
+contextBridge.exposeInMainWorld('agentVoice', {
+  onCommand: (callback: (command: { type: string; payload?: unknown }) => void) => {
+    const connect = (_event: IpcRendererEvent, payload: unknown) => {
+      callback({ type: 'connect', payload });
+    };
+    const speak = (_event: IpcRendererEvent, payload: unknown) => {
+      callback({ type: 'speak', payload });
+    };
+    const stop = () => {
+      callback({ type: 'stop' });
+    };
+    ipcRenderer.on('agent-voice:connect', connect);
+    ipcRenderer.on('agent-voice:speak', speak);
+    ipcRenderer.on('agent-voice:stop', stop);
+    return () => {
+      ipcRenderer.removeListener('agent-voice:connect', connect);
+      ipcRenderer.removeListener('agent-voice:speak', speak);
+      ipcRenderer.removeListener('agent-voice:stop', stop);
+    };
+  },
+  send: (event: unknown) => {
+    ipcRenderer.send('agent-voice:event', event);
+  },
+});
+
 // Type declaration for use in renderer
 export type ElectronAPI = typeof electronAPI;

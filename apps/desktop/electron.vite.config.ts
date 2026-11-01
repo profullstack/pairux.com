@@ -54,6 +54,7 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
+          'agent-voice': resolve(__dirname, 'src/renderer/agent-voice.html'),
         },
       },
     },

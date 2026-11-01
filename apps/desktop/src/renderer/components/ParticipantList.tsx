@@ -179,7 +179,7 @@ export function ParticipantList({
         {activeParticipants.map((participant) => {
           const isCurrentUser = participant.user_id === currentUserId;
           const isParticipantHost = participant.role === 'host';
-          // Agents watch and chat only: no media to mute, no control to grant.
+          // Agents can publish voice but never receive remote control.
           const isAgent = participant.kind === 'agent';
           const hasAnyActions =
             Boolean(onGrantControl) ||

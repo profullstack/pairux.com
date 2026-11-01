@@ -153,7 +153,7 @@ const HostParticipantItem = memo(function HostParticipantItem({
           </span>
         )}
 
-        {/* Agents watch and chat only: the one action is removing them */}
+        {/* Agents can speak but cannot receive remote control. */}
         {canModerateActions && isAgent && onRemoveAgent && (
           <button
             onClick={() => {

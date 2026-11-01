@@ -758,6 +758,15 @@ APP_BIN="\$APP_PATH/Contents/MacOS/PairUX"
 INSTALL_DIR="\$HOME/.pairux"
 BIN_DIR="\$HOME/.local/bin"
 
+version_cmp() {
+    awk -v current="\${1#v}" -v latest="\${2#v}" 'BEGIN {
+        if (current !~ /^[0-9]+\.[0-9]+\.[0-9]+$/ || latest !~ /^[0-9]+\.[0-9]+\.[0-9]+$/) { print "invalid"; exit }
+        split(current, a, "."); split(latest, b, ".");
+        for (i=1; i<=3; i++) { if ((a[i]+0) < (b[i]+0)) { print -1; exit } if ((a[i]+0) > (b[i]+0)) { print 1; exit } }
+        print 0
+    }'
+}
+
 case "\${1-}" in
     -h|--help)
         echo "Usage: pairux [options]"
@@ -810,17 +819,23 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        echo ""
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo "PairUX is already on the latest version."
-            if [ "\$FORCE_UPDATE" -ne 1 ]; then
-                echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+        RELATION=\$(version_cmp "\$VERSION" "\$LATEST")
+        case "\$RELATION" in
+            0)
+                echo "PairUX is already on the latest version."
+                if [ "\$FORCE_UPDATE" -ne 1 ]; then
+                    echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+                    exit 0
+                fi
+                echo "Re-running installer to repair launcher/app integration (--force)..."
+                ;;
+            1)
+                echo "Installed PairUX \$VERSION is newer than \$LATEST; refusing downgrade."
                 exit 0
-            fi
-            echo "Re-running installer to repair launcher/app integration (--force)..."
-        else
-            echo "Updating PairUX to v\$LATEST..."
-        fi
+                ;;
+            -1) echo "Updating PairUX to v\$LATEST..." ;;
+            *) echo "Error: Invalid version from update feed; installer was not run." >&2; exit 1 ;;
+        esac
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
         elif command -v wget >/dev/null 2>&1; then
@@ -834,6 +849,17 @@ case "\${1-}" in
     uninstall|remove)
         echo "Uninstalling PairUX..."
         echo ""
+        systemctl --user disable --now pairux-auto-update.timer >/dev/null 2>&1 || true
+        rm -f "\$HOME/.config/systemd/user/pairux-auto-update.service" "\$HOME/.config/systemd/user/pairux-auto-update.timer"
+        launchctl unload "\$HOME/Library/LaunchAgents/com.profullstack.pairux.auto-update.plist" >/dev/null 2>&1 || true
+        rm -f "\$HOME/Library/LaunchAgents/com.profullstack.pairux.auto-update.plist"
+        if command -v crontab >/dev/null 2>&1; then
+            _cron="\$(crontab -l 2>/dev/null || true)"
+            _filtered="\$(printf '%s\n' "\$_cron" | grep -v '# pairux-auto-update' || true)"
+            if [ "\$_cron" != "\$_filtered" ]; then
+                if [ -n "\$_filtered" ]; then printf '%s\n' "\$_filtered" | crontab - 2>/dev/null || true; else crontab -r 2>/dev/null || true; fi
+            fi
+        fi
 
         # Kill running instances
         pkill -f "PairUX" 2>/dev/null && echo "  Stopped running instance"
@@ -972,6 +998,15 @@ cleanup_stale_appimage_mounts() {
     done
 }
 
+version_cmp() {
+    awk -v current="\${1#v}" -v latest="\${2#v}" 'BEGIN {
+        if (current !~ /^[0-9]+\.[0-9]+\.[0-9]+$/ || latest !~ /^[0-9]+\.[0-9]+\.[0-9]+$/) { print "invalid"; exit }
+        split(current, a, "."); split(latest, b, ".");
+        for (i=1; i<=3; i++) { if ((a[i]+0) < (b[i]+0)) { print -1; exit } if ((a[i]+0) > (b[i]+0)) { print 1; exit } }
+        print 0
+    }'
+}
+
 case "\${1-}" in
     -h|--help)
         echo "Usage: pairux [options]"
@@ -1004,6 +1039,17 @@ case "\${1-}" in
     uninstall|remove)
         echo "Uninstalling PairUX..."
         echo ""
+        systemctl --user disable --now pairux-auto-update.timer >/dev/null 2>&1 || true
+        rm -f "\$HOME/.config/systemd/user/pairux-auto-update.service" "\$HOME/.config/systemd/user/pairux-auto-update.timer"
+        launchctl unload "\$HOME/Library/LaunchAgents/com.profullstack.pairux.auto-update.plist" >/dev/null 2>&1 || true
+        rm -f "\$HOME/Library/LaunchAgents/com.profullstack.pairux.auto-update.plist"
+        if command -v crontab >/dev/null 2>&1; then
+            _cron="\$(crontab -l 2>/dev/null || true)"
+            _filtered="\$(printf '%s\n' "\$_cron" | grep -v '# pairux-auto-update' || true)"
+            if [ "\$_cron" != "\$_filtered" ]; then
+                if [ -n "\$_filtered" ]; then printf '%s\n' "\$_filtered" | crontab - 2>/dev/null || true; else crontab -r 2>/dev/null || true; fi
+            fi
+        fi
 
         # Kill running instances
         pkill -f "PairUX.AppImage" 2>/dev/null && echo "  Stopped running instance"
@@ -1070,17 +1116,23 @@ case "\${1-}" in
         echo "  Current version: \$VERSION"
         echo "  Latest version:  \$LATEST"
 
-        echo ""
-        if [ "\$VERSION" = "\$LATEST" ]; then
-            echo "PairUX is already on the latest version."
-            if [ "\$FORCE_UPDATE" -ne 1 ]; then
-                echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+        RELATION=\$(version_cmp "\$VERSION" "\$LATEST")
+        case "\$RELATION" in
+            0)
+                echo "PairUX is already on the latest version."
+                if [ "\$FORCE_UPDATE" -ne 1 ]; then
+                    echo "Skipping reinstall. Re-run with 'pairux update --force' to reinstall anyway."
+                    exit 0
+                fi
+                echo "Re-running installer to repair launcher/app integration (--force)..."
+                ;;
+            1)
+                echo "Installed PairUX \$VERSION is newer than \$LATEST; refusing downgrade."
                 exit 0
-            fi
-            echo "Re-running installer to repair launcher/app integration (--force)..."
-        else
-            echo "Updating PairUX to v\$LATEST..."
-        fi
+                ;;
+            -1) echo "Updating PairUX to v\$LATEST..." ;;
+            *) echo "Error: Invalid version from update feed; installer was not run." >&2; exit 1 ;;
+        esac
         cleanup_stale_appimage_mounts
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "\$INSTALLER_URL/install.sh" | bash
@@ -1261,6 +1313,70 @@ setup_path() {
     fi
 }
 
+# Install an hourly per-user check. The launcher compares versions before
+# invoking this installer, so an unchanged version is a no-op.
+schedule_auto_update() {
+    if [ "${PAIRUX_NO_AUTOUPDATE:-}" = "1" ]; then
+        info "PAIRUX_NO_AUTOUPDATE=1 — skipping automatic updates"
+        return 0
+    fi
+    case "$1" in
+        linux-*)
+            local unit_dir="$HOME/.config/systemd/user"
+            mkdir -p "$unit_dir"
+            cat > "$unit_dir/pairux-auto-update.service" <<UNIT
+[Unit]
+Description=Check PairUX for updates
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart="$BIN_DIR/pairux" update
+StandardOutput=null
+UNIT
+            cat > "$unit_dir/pairux-auto-update.timer" <<'UNIT'
+[Unit]
+Description=Check PairUX for updates hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+UNIT
+            if systemctl --user daemon-reload >/dev/null 2>&1 && systemctl --user enable --now pairux-auto-update.timer >/dev/null 2>&1; then
+                info "hourly PairUX auto-update enabled (systemd --user)"
+            elif command -v crontab >/dev/null 2>&1; then
+                local existing
+                existing="$(crontab -l 2>/dev/null | grep -v '# pairux-auto-update' || true)"
+                { [ -z "$existing" ] || printf '%s\n' "$existing"; printf '0 * * * * "%s/pairux" update >/dev/null 2>&1 # pairux-auto-update\n' "$BIN_DIR"; } | crontab - >/dev/null 2>&1 \
+                    && info "hourly PairUX auto-update enabled (cron)" || warn "could not schedule automatic updates"
+            else
+                warn "no per-user scheduler available; PairUX auto-update is not scheduled"
+            fi
+            ;;
+        darwin-*)
+            local agents="$HOME/Library/LaunchAgents" plist="$HOME/Library/LaunchAgents/com.profullstack.pairux.auto-update.plist"
+            mkdir -p "$agents"
+            cat > "$plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>com.profullstack.pairux.auto-update</string>
+<key>ProgramArguments</key><array><string>$BIN_DIR/pairux</string><string>update</string></array>
+<key>StartInterval</key><integer>3600</integer>
+<key>RunAtLoad</key><false/>
+</dict></plist>
+PLIST
+            launchctl unload "$plist" >/dev/null 2>&1 || true
+            launchctl load "$plist" >/dev/null 2>&1 && info "hourly PairUX auto-update enabled (launchd)" || warn "could not schedule automatic updates"
+            ;;
+    esac
+}
+
 # Main
 main() {
     print_banner
@@ -1279,6 +1395,7 @@ main() {
 
     install_pairux "$platform" "$version"
     setup_path
+    schedule_auto_update "$platform"
 
     echo ""
     success "Installation complete!"

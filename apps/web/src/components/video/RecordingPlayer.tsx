@@ -1,13 +1,15 @@
 'use client';
 
 /**
- * React's half of the recording player.
+ * The recording player: @profullstack/player, the one player every Profullstack
+ * site uses.
  *
- * Deliberately thin. Everything that decides how the player behaves lives in
- * `@/lib/player`, which has no framework in it, so that genrewatch.com and
- * tipoffwatch.com — Hono JSX with a vanilla client bundle — can use the same
- * player rather than a second one that drifts. This file exists to own a ref, a
- * mount effect and a teardown.
+ * PairUX's hand-rolled player (`src/lib/player`) became that package: the same
+ * control bar, chapters, resume positions, `?t=` deep links, speed, skip,
+ * picture-in-picture, share-at-time and television profile, plus auto-hide,
+ * fullscreen on iPhone and HLS / MPEG-TS when a recording ever needs them. This
+ * file owns a ref, a mount effect and a teardown, and carries readers' saved
+ * positions over from the old storage keys.
  *
  * Two things are read from `window` inside the effect rather than from props or
  * `useSearchParams`: the `?t=` deep link and the share URL. Reading them during
@@ -17,8 +19,40 @@
 
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { createPlayer, parseTimeParam, type Chapter } from '@/lib/player';
-import '@/lib/player/player.css';
+import { createPlayer, parseTimeParam, type Chapter } from '@profullstack/player';
+import '@profullstack/player/player.css';
+
+/**
+ * Old key, new key. PairUX's player filed preferences and resume positions
+ * under `pairux.player.*`; the package files the same shapes under
+ * `profullstack.player.*`. Copied once, never overwriting, so a reader halfway
+ * through a recording does not start it again from zero.
+ */
+const LEGACY_KEYS = [
+  ['pairux.player.prefs', 'profullstack.player.prefs'],
+  ['pairux.player.positions', 'profullstack.player.positions'],
+] as const;
+
+export function migrateLegacyPlayerStorage(storage: Storage | null): void {
+  if (!storage) return;
+  for (const [from, to] of LEGACY_KEYS) {
+    try {
+      const old = storage.getItem(from);
+      if (old !== null && storage.getItem(to) === null) storage.setItem(to, old);
+      if (old !== null) storage.removeItem(from);
+    } catch {
+      // Private windows and blocked storage throw on touch; nothing to carry.
+    }
+  }
+}
+
+function localStorageOrNull(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 interface RecordingPlayerProps {
   src: string;
@@ -51,14 +85,18 @@ export function RecordingPlayer({
     const video = videoRef.current;
     if (!root || !video) return;
 
+    migrateLegacyPlayerStorage(localStorageOrNull());
     const params = new URLSearchParams(window.location.search);
     const startAt = parseTimeParam(params.get('t'));
 
-    const handle = createPlayer(video, root, {
+    const handle = createPlayer(root, {
+      src,
+      media: video,
       mediaId,
       // Spread rather than passed: under exactOptionalPropertyTypes an absent
       // prop and one explicitly set to undefined are different types.
       ...(chapters ? { chapters } : {}),
+      ...(poster ? { poster } : {}),
       startAt,
       shareUrl: shareable
         ? (seconds: number) => {
@@ -83,9 +121,9 @@ export function RecordingPlayer({
     <div ref={rootRef} className={className}>
       <video
         ref={videoRef}
-        // Controls are on until the script that replaces them runs. If it never
-        // runs -- a bundle that failed, JavaScript off -- the reader still gets
-        // a working player rather than a still frame with no way to start it.
+        // Controls are on until the player replaces them. If it never runs --
+        // a bundle that failed, JavaScript off -- the reader still gets a
+        // working player rather than a still frame with no way to start it.
         controls
         playsInline
         preload="metadata"

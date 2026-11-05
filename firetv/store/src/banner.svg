@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#0f172a"/>
+  <g transform="translate(120 230) scale(4.0)">
+    <circle cx="32" cy="32" r="23" fill="#2f1fff"/>
+    <circle cx="23.5" cy="21.5" r="4.6" fill="#ffffff"/>
+    <circle cx="42" cy="26" r="4.2" fill="#ffffff"/>
+    <circle cx="23.5" cy="42.5" r="4.6" fill="#ffffff"/>
+    <path d="M23.5 26.5v11.5" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M28.2 21.5h9.2" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M42 30.4v6.2a5.6 5.6 0 0 1-5.6 5.6h-8.3" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+  </g>
+  <text x="480" y="385" font-family="DejaVu Sans" font-weight="bold" font-size="120" fill="#e2e8f0">PairUX</text>
+  <text x="486" y="462" font-family="DejaVu Sans" font-size="44" fill="#3b82f6">watch a shared screen on your TV</text>
+</svg>

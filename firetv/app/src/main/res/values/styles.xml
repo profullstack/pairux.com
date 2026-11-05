@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="px_bg">#0f172a</color>
+    <color name="px_fg">#e2e8f0</color>
+    <color name="px_accent">#3b82f6</color>
+
+    <style name="PxTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/px_bg</item>
+        <item name="android:colorAccent">@color/px_accent</item>
+        <item name="android:colorPrimary">@color/px_bg</item>
+        <item name="android:colorPrimaryDark">@color/px_bg</item>
+        <item name="android:textColor">@color/px_fg</item>
+    </style>
+
+    <style name="PxDialog" parent="@android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">@color/px_accent</item>
+        <item name="android:background">@color/px_bg</item>
+        <item name="android:textColor">@color/px_fg</item>
+    </style>
+</resources>

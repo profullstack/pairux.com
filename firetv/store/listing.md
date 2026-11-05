@@ -44,9 +44,9 @@ screen sharing, pair programming, remote control, screenhero, collaboration, pai
 
 ## Art
 
-| Slot | File |
-| --- | --- |
-| Icon 512x512 / 114x114 | out/icon-512.png, out/icon-114.png |
-| Fire TV icon 1280x720 | out/firetv-icon-1280x720.png |
+| Slot                         | File                                |
+| ---------------------------- | ----------------------------------- |
+| Icon 512x512 / 114x114       | out/icon-512.png, out/icon-114.png  |
+| Fire TV icon 1280x720        | out/firetv-icon-1280x720.png        |
 | Fire TV background 1920x1080 | out/firetv-background-1920x1080.png |
-| Screenshots 1920x1080 | shots/*.png |
+| Screenshots 1920x1080        | shots/*.png                         |

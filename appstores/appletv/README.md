@@ -8,6 +8,7 @@ have to be built natively in SwiftUI or UIKit against the same API the web app
 uses), plus the same Apple Developer membership and signing as `../ios`.
 
 **Before the first upload**
+
 - tvOS apps are driven by the Siri Remote: focus engine first, no pointer, no
   keyboard beyond the on-screen one.
 - The top shelf image and the layered app icon are required and are unlike any

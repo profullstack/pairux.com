@@ -7,6 +7,7 @@ Fire TV build), an Apple Developer Program membership, a signing certificate and
 provisioning profile, and a Mac or a hosted macOS runner to build and notarise.
 
 **Before the first upload**
+
 - Apple rejects apps that are only a website in a shell unless they offer
   something a browser tab does not: offline, notifications, Handoff, widgets,
   share extensions. Guideline 4.2 is the one that catches these.

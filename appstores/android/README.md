@@ -8,6 +8,7 @@ plain Android app and is the obvious starting point — same WebView, same
 Console developer account, an upload key, and a Play App Signing enrolment.
 
 **Before the first upload**
+
 - Play requires an **App Bundle** (`.aab`), not an APK, and a `targetSdk` that
   meets Play's current floor. The Fire TV build targets 34 for Fire OS; Play
   moves its floor every August, so check it rather than assuming.

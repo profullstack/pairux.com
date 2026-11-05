@@ -1,7 +1,7 @@
 #!/bin/sh
 # Renders the launcher icons, TV banner and Amazon Appstore art.
 # icon.svg and logo-light.svg are PairUX's own artwork, copied from apps/web/public.
-# Runs inside alpine: docker run --rm -v "$PWD/firetv:/w" -w /w alpine:3.20 sh store/render.sh
+# Runs inside alpine: docker run --rm -v "$PWD/appstores/firetv:/w" -w /w alpine:3.20 sh store/render.sh
 set -eu
 apk add --no-cache rsvg-convert imagemagick font-dejavu >/dev/null
 R=app/src/main/res

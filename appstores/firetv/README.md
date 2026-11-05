@@ -26,7 +26,7 @@ sed -n 's/^PX_TV_KEYSTORE_B64=//p' keys/release.env | tr -d '"' | base64 -d > ke
 
 docker run --rm -e OWNER=$(id -u):$(id -g) -e GRADLE_USER_HOME=/gh \
   -v ~/scratch/gradle-home:/gh -v ~/scratch/android-sdk:/sdk -v "$PWD/keys:/keys:ro" \
-  -v "$PWD/firetv:/w" -w /w gradle:8.7-jdk17 sh build.sh
+  -v "$PWD/appstores/firetv:/w" -w /w gradle:8.7-jdk17 sh build.sh
 # -> firetv/dist/pairux.com-firetv.apk (lint + signed release)
 ```
 
@@ -38,7 +38,7 @@ again or installed copies cannot update.
 
 ```sh
 docker run --rm --device /dev/kvm -e OWNER=$(id -u):$(id -g) -v ~/scratch/android-sdk:/sdk \
-  -v "$PWD/firetv:/w" -w /w gradle:8.7-jdk17 bash emulator-test.sh
+  -v "$PWD/appstores/firetv:/w" -w /w gradle:8.7-jdk17 bash emulator-test.sh
 ```
 
 Boots API 30 Android TV (the base of Fire OS 8), installs the APK, drives it with key

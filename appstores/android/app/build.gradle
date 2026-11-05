@@ -1,0 +1,46 @@
+plugins { id 'com.android.application' }
+
+def env = System.getenv()
+
+android {
+    namespace 'com.pairux.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.pairux.app'
+        minSdk 24          // Android 7: what Play still sees in the wild
+        targetSdk 35       // Play raises its floor every August; check before a release
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    // The upload key lives in the vault, never in the repo. build.sh writes it to a
+    // temp file and points these at it. Play re-signs with its own app signing key.
+    signingConfigs {
+        release {
+            if (env.ANDROID_KEYSTORE) {
+                storeFile file(env.ANDROID_KEYSTORE)
+                storePassword env.ANDROID_STORE_PASSWORD
+                keyAlias env.ANDROID_KEY_ALIAS ?: 'pairux'
+                keyPassword env.ANDROID_KEY_PASSWORD ?: env.ANDROID_STORE_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (env.ANDROID_KEYSTORE) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+    }
+}

@@ -18,11 +18,11 @@ word for word. What does not carry over is the art: Play wants its own.
 
 ## Art Play requires
 
-| Slot | Size | File |
-| --- | --- | --- |
-| App icon | 512x512 PNG | `out/icon-512.png` |
-| Feature graphic | 1024x500 PNG, no transparency | `out/feature-1024x500.png` |
-| Phone screenshots | 2-8, min 320px, 16:9 or 9:16 | `shots/` |
+| Slot              | Size                          | File                       |
+| ----------------- | ----------------------------- | -------------------------- |
+| App icon          | 512x512 PNG                   | `out/icon-512.png`         |
+| Feature graphic   | 1024x500 PNG, no transparency | `out/feature-1024x500.png` |
+| Phone screenshots | 2-8, min 320px, 16:9 or 9:16  | `shots/`                   |
 
 Phone screenshots are not the Fire TV ones: those are 1920x1080 landscape of a
 TV layout. Capture the responsive site at phone size instead.

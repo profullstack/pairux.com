@@ -1,0 +1,46 @@
+plugins { id 'com.android.application' }
+
+def env = System.getenv()
+
+android {
+    namespace 'com.pairux.tv'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.pairux.tv'
+        minSdk 22          // Fire OS 5: every Fire TV still in service
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    // The release key lives in the vault, never in the repo. scripts/build.sh
+    // writes it to a temp file and points these variables at it.
+    signingConfigs {
+        release {
+            if (env.PX_TV_KEYSTORE) {
+                storeFile file(env.PX_TV_KEYSTORE)
+                storePassword env.PX_TV_STORE_PASSWORD
+                keyAlias env.PX_TV_KEY_ALIAS ?: 'pairux'
+                keyPassword env.PX_TV_KEY_PASSWORD ?: env.PX_TV_STORE_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (env.PX_TV_KEYSTORE) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+    }
+}

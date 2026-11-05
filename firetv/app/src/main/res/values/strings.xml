@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PairUX</string>
+    <string name="search_hint">Enter a room code</string>
+    <string name="search_go">Search</string>
+</resources>

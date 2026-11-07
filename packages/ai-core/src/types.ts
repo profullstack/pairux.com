@@ -27,7 +27,7 @@ export interface TranscriptInput {
   durationMs?: number;
 }
 
-export type ProviderKind = 'anthropic' | 'ollama';
+export type ProviderKind = 'anthropic' | 'ollama' | 'c0mpute';
 
 export interface SummarizeOptions {
   template?: SessionTemplateId;

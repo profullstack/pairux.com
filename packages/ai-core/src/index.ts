@@ -17,4 +17,5 @@ export * from './complete.js';
 export * from './prompts.js';
 export * from './providers/anthropic.js';
 export * from './providers/ollama.js';
+export * from './providers/c0mpute.js';
 export * from './providers/factory.js';

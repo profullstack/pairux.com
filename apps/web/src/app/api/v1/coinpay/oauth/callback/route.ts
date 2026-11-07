@@ -17,6 +17,7 @@ import {
 } from '@/lib/coinpay-signin';
 import { mintMagicLinkHash, supabaseCoinpayStore } from '@/lib/coinpay-store';
 import { INVITE_COOKIE, cookieFrom, onSignedIn, refFromRequest } from '@/lib/credits';
+import { applyCoinpayPass } from '@/lib/coinpay-pass';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
   if (params.get('error') || !code) return fail('denied');
 
   let claims;
+  let pass: Awaited<ReturnType<typeof finishSignIn>>['pass'] | null = null;
   try {
     const r = await finishSignIn({
       code,
@@ -57,6 +59,7 @@ export async function GET(request: NextRequest) {
       base: cfg.base,
     });
     claims = claimsFrom(r);
+    pass = r.pass;
   } catch (err) {
     console.error('[coinpay] sign-in failed:', err instanceof Error ? err.message : err);
     return fail('failed');
@@ -82,6 +85,12 @@ export async function GET(request: NextRequest) {
     return fail('failed');
   }
   if (!result.ok) return fail(result.code);
+  // Profullstack Pass: Pro until it ends, on the account bound to this sub.
+  try {
+    await applyCoinpayPass(admin, result.userId, pass);
+  } catch (err) {
+    console.error('[coinpay] pass:', err instanceof Error ? err.message : err);
+  }
   if (pending.mode === 'connect' && claims.openprofile_url) {
     try {
       await saveOpenProfileContact(profileStore(), result.userId, claims.openprofile_url);

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { PASS_URL } from '@profullstack/coinpay-onboard/pass';
 import { Check, X, Zap, Shield, Users, DollarSign } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -343,6 +344,15 @@ export default async function PricingPage() {
             </div>
             <p className="mt-8 text-center text-sm text-gray-500" data-testid="pricing-pay-methods">
               {t('payMethods')}
+            </p>
+            <p
+              className="mt-2 text-center text-sm text-gray-500"
+              data-testid="pricing-coinpay-pass"
+            >
+              Deposit $99 in your CoinPay wallet and get a free month:{' '}
+              <a href={PASS_URL} className="underline">
+                CoinPay Pass
+              </a>
             </p>
           </div>
         </section>

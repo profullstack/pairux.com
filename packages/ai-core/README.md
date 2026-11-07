@@ -7,7 +7,7 @@ structured output out.
 ## What it does
 
 - **One interface** — `AiProvider` with `summarizeSession()` and `selectClips()`.
-- **Two drivers** — `anthropic` (managed key **or** BYOK) and `ollama` (fully local).
+- **Three drivers** — `anthropic` (managed key **or** BYOK), `ollama` (fully local) and `c0mpute` (Infernet peer network, OpenAI-compatible). `c0mpute` is opt-in only: a transcript is the users' own conversation and peer nodes are third parties, so nothing selects it by default.
 - **Validated output** — every reply is parsed against Zod schemas (`SessionNote`,
   `ClipCandidate[]`). Malformed output triggers exactly one auto-repair retry, then
   throws `StructuredOutputError` so the caller can fall back to manual mode — the

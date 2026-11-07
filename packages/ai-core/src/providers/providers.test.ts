@@ -125,3 +125,40 @@ describe('createProvider', () => {
     expect(createProvider({ kind: 'ollama', fetchImpl: vi.fn() }).kind).toBe('ollama');
   });
 });
+
+describe('c0mpute provider (opt-in)', () => {
+  it('posts to the OpenAI-compatible endpoint with the key and parses the reply', async () => {
+    const calls: { url: string; init: { headers: Record<string, string>; body: string } }[] = [];
+    const fetchImpl: FetchLike = (url, init) => {
+      calls.push({ url, init });
+      const res: FetchResponseLike = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({ choices: [{ message: { content: NOTE_JSON } }] }),
+      };
+      return Promise.resolve(res);
+    };
+    const provider = createProvider({ kind: 'c0mpute', apiKey: 'ik_live_x', fetchImpl });
+    expect(provider.kind).toBe('c0mpute');
+    expect(provider.model).toBe('huihui_ai/qwen3.5-abliterated:9b');
+    const note = await provider.summarizeSession(input);
+    expect(note.topics).toEqual(['release']);
+    expect(calls[0]?.url).toBe('https://infernetprotocol.com/v1/chat/completions');
+    expect(calls[0]?.init.headers.authorization).toBe('Bearer ik_live_x');
+    expect(calls[0]?.init.body).toContain('ship it');
+  });
+
+  it('surfaces an HTTP failure', async () => {
+    const fetchImpl: FetchLike = () =>
+      Promise.resolve({
+        ok: false,
+        status: 503,
+        statusText: 'no node',
+        json: () => Promise.resolve({}),
+      });
+    await expect(createProvider({ kind: 'c0mpute', fetchImpl }).selectClips(input)).rejects.toThrow(
+      /503/
+    );
+  });
+});

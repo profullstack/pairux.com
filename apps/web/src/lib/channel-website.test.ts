@@ -16,7 +16,7 @@ describe('normalizeWebsiteUrl', () => {
   });
 
   it('adds https:// when the scheme is missing', () => {
-    expect(ok('cigarunderground.org')).toBe('https://cigarunderground.org');
+    expect(ok('cigarunderground.org')).toBe('https://cigarunderground.pwa.pit.world');
     expect(ok('  www.example.com/about  ')).toBe('https://www.example.com/about');
     expect(ok('example.com:8080/x')).toBe('https://example.com:8080/x');
     expect(ok('//example.com')).toBe('https://example.com');
@@ -28,7 +28,7 @@ describe('normalizeWebsiteUrl', () => {
   });
 
   it('drops the bare trailing slash but keeps real paths', () => {
-    expect(ok('https://cigarunderground.org/')).toBe('https://cigarunderground.org');
+    expect(ok('https://cigarunderground.pwa.pit.world/')).toBe('https://cigarunderground.pwa.pit.world');
     expect(ok('https://example.com/blog/')).toBe('https://example.com/blog/');
   });
 
@@ -84,7 +84,7 @@ describe('normalizeWebsiteUrl', () => {
 
 describe('websiteLabel', () => {
   it('shows the hostname without www', () => {
-    expect(websiteLabel('https://cigarunderground.org')).toBe('cigarunderground.org');
+    expect(websiteLabel('https://cigarunderground.pwa.pit.world')).toBe('cigarunderground.org');
     expect(websiteLabel('https://www.example.com/about?x=1')).toBe('example.com');
   });
 

@@ -39,16 +39,16 @@ describe('PATCH /api/channels/[channelId] website_url', () => {
 
   it('normalizes and saves the website for the owner', async () => {
     const rpc = setup({ data: null, error: null });
-    const res = await patch({ website_url: 'cigarunderground.org' });
+    const res = await patch({ website_url: 'cigarunderground.pwa.pit.world' });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
-      data: { ok: true, website_url: 'https://cigarunderground.org' },
+      data: { ok: true, website_url: 'https://cigarunderground.pwa.pit.world' },
     });
     expect(rpc).toHaveBeenCalledWith(
       'update_channel',
       expect.objectContaining({
         p_channel_id: CHANNEL_ID,
-        p_website_url: 'https://cigarunderground.org',
+        p_website_url: 'https://cigarunderground.pwa.pit.world',
       })
     );
   });

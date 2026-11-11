@@ -80,6 +80,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // The OAuth consent page must never be framed (clickjacking an Allow).
+        // middleware.ts also sends frame-ancestors 'none' for it.
+        source: '/oauth/authorize',
+        headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+      },
+      {
         // `curl -fsSL https://pairux.com/install.sh | sh`: serve the installer
         // as a shell script so browsers show it instead of guessing.
         source: '/install.sh',
@@ -87,6 +93,22 @@ const nextConfig: NextConfig = {
           { key: 'Content-Type', value: 'text/x-sh; charset=utf-8' },
           { key: 'Cache-Control', value: 'public, max-age=300' },
         ],
+      },
+    ];
+  },
+
+  // The path-suffixed discovery forms some MCP clients try first
+  // (/.well-known/oauth-protected-resource/api/v1/mcp, RFC 9728 §3.1) answer
+  // the same documents as the bare paths (lib/mcp-oauth.ts).
+  rewrites() {
+    return [
+      {
+        source: '/.well-known/oauth-protected-resource/:path*',
+        destination: '/.well-known/oauth-protected-resource',
+      },
+      {
+        source: '/.well-known/oauth-authorization-server/:path*',
+        destination: '/.well-known/oauth-authorization-server',
       },
     ];
   },

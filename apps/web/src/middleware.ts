@@ -27,7 +27,29 @@ function mediaOrigin(): string {
   }
 }
 
-function buildCsp(nonce: string, embeddable: boolean): string {
+// The OAuth consent page (/oauth/authorize, lib/mcp-oauth.ts) posts its form to
+// /api/oauth/authorize, which answers 303 to the connecting app's redirect_uri
+// (claude.ai, chatgpt.com, a loopback port for Claude Code). Chrome applies
+// form-action to the redirect after a submit too, so that one page allows any
+// https target and loopback; it may never be framed.
+const OAUTH_CONSENT_PATH = '/oauth/authorize';
+
+/**
+ * OAuth discovery, registration, token and revoke are called by ChatGPT and
+ * Claude backends with no session and a 10 s budget: no crawl gateway, no
+ * Supabase session refresh.
+ */
+function isOAuthMachinePath(path: string): boolean {
+  return (
+    path.startsWith('/.well-known/oauth-') ||
+    path.startsWith('/.well-known/openid-configuration') ||
+    path === '/api/oauth/register' ||
+    path === '/api/oauth/token' ||
+    path === '/api/oauth/revoke'
+  );
+}
+
+function buildCsp(nonce: string, embeddable: boolean, consent = false): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://cdn.jsdelivr.net`,
@@ -42,14 +64,22 @@ function buildCsp(nonce: string, embeddable: boolean): string {
     // renders a <video> plus outbound links, and performs no authenticated
     // action, so there is nothing for a framing site to clickjack. Every other
     // path keeps the restrictive list.
-    embeddable ? 'frame-ancestors *' : "frame-ancestors 'self' chrome-extension:",
+    embeddable
+      ? 'frame-ancestors *'
+      : consent
+        ? "frame-ancestors 'none'"
+        : "frame-ancestors 'self' chrome-extension:",
     "base-uri 'self'",
     // The footer's newsletter form posts to pit.world when script is off.
-    "form-action 'self' https://pit.world",
+    consent
+      ? "form-action 'self' https: http://localhost:* http://127.0.0.1:* http://[::1]:*"
+      : "form-action 'self' https://pit.world",
   ].join('; ');
 }
 
 export async function middleware(request: NextRequest) {
+  if (isOAuthMachinePath(request.nextUrl.pathname)) return NextResponse.next();
+
   // Crawl gateway first: AI training crawlers get 402 Payment Required (or the
   // sales page at /crawl) unless they present a paid pass. People, Googlebot
   // and retrieval crawlers fall through to everything below.
@@ -61,7 +91,7 @@ export async function middleware(request: NextRequest) {
   const isEmbed = pathname === '/embed' || pathname.startsWith('/embed/');
 
   const nonce = btoa(crypto.randomUUID());
-  const csp = buildCsp(nonce, isEmbed);
+  const csp = buildCsp(nonce, isEmbed, pathname === OAUTH_CONSENT_PATH);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('content-security-policy', csp);

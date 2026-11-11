@@ -144,7 +144,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} dir={dir} suppressHydrationWarning>
       <head>
         {/* WebMCP (@profullstack/webmcp): site_info and open_page for the AI agent in the
-            visitor's browser. No-op where the browser has no WebMCP. */}
+            visitor's browser. No-op where the browser has no WebMCP. type="module" is
+            already deferred, which this rule does not know. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script
           type="module"
           nonce={nonce}

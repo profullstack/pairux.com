@@ -58,6 +58,14 @@ const api: { route: string; what: string }[] = [
     what: 'Mint a 24-hour LiveKit token scoped to this session and microphone audio. The session must use SFU mode.',
   },
   { route: 'DELETE /api/v1/agents/:participantId', what: 'Leave the session.' },
+  {
+    route: 'POST /api/v1/agent/broadcasts',
+    what: 'Account agents (Bearer pux_ag_ key): { channel, title, description? } goes live on a channel the agent owner may use and returns { sessionId, liveUrl, url, token } to publish audio into. Used to stream podcasts as they are recorded.',
+  },
+  {
+    route: 'POST /api/v1/agent/broadcasts/:sessionId',
+    what: 'Heartbeat while publishing (a host unseen for 90 seconds drops off the listings). DELETE ends the broadcast.',
+  },
 ];
 
 export default function AgentDocsPage() {
@@ -173,9 +181,9 @@ pairux voice join --json`}</code>
               <MessageSquare className="h-6 w-6" aria-hidden="true" /> HTTP API
             </h2>
             <p className="mt-4 text-gray-600">
-              The CLI is a thin wrapper over five routes. Responses are <code>{'{ data }'}</code> or{' '}
-              <code>{'{ error }'}</code>. The participant id returned by join is the credential for
-              the other agent routes, so keep it private.
+              The CLI is a thin wrapper over the first five routes. Responses are{' '}
+              <code>{'{ data }'}</code> or <code>{'{ error }'}</code>. The participant id returned
+              by join is the credential for the other agent routes, so keep it private.
             </p>
             <div className="mt-6 overflow-hidden rounded-xl border border-gray-200">
               {api.map((a) => (

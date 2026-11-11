@@ -142,6 +142,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
+      <head>
+        {/* WebMCP (@profullstack/webmcp): site_info and open_page for the AI agent in the
+            visitor's browser. No-op where the browser has no WebMCP. */}
+        <script
+          type="module"
+          nonce={nonce}
+          data-webmcp=""
+          src="https://cdn.jsdelivr.net/npm/@profullstack/webmcp@0/src/embed.js"
+          data-pages='{"features":"/features","pricing":"/pricing","download":"/download","docs":"/docs","use_cases":"/use-cases","channels":"/channels","blog":"/blog"}'
+        />
+      </head>
       <body className="min-h-screen font-sans">
         <NextIntlClientProvider>
           <script

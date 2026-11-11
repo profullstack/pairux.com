@@ -30,7 +30,7 @@ function mediaOrigin(): string {
 function buildCsp(nonce: string, embeddable: boolean): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st`,
+    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://crawlproof.com https://datafa.st https://cdn.jsdelivr.net`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     `media-src 'self' blob: ${mediaOrigin()}`,

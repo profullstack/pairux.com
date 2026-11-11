@@ -6,7 +6,11 @@ import type { CopilotRuntime } from './runtime';
 
 /**
  * PairUX MCP tools (Streamable HTTP, JSON responses, no SSE): the AI copilot's
- * notes and live asks for agents and editors. Auth is the same Bearer as the
+ * notes and live asks for agents and editors. Every tool carries a title and
+ * readOnly/destructive/idempotent/openWorld annotations (the Claude and
+ * ChatGPT directories require them). copilot_follow_ups overwrites the stored
+ * follow-ups (destructive); agent_invite brings an outside agent into a
+ * meeting (open world). Auth is the same Bearer as the
  * rest of /api/v1 (a `pairux login` CLI token).
  */
 export const MCP_PROTOCOL_VERSION = '2025-06-18';
@@ -16,11 +20,27 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const MCP_TOOLS = [
   {
     name: 'copilot_list',
+    title: 'List copilot sessions',
+    annotations: {
+      title: 'List copilot sessions',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     description: 'List your PairUX AI copilot sessions (newest first) with their one-line summary.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
     name: 'copilot_report',
+    title: 'Read a copilot report',
+    annotations: {
+      title: 'Read a copilot report',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     description:
       'Notes, open questions, key figures, follow-ups and review for one copilot session. Set transcript to include the transcript.',
     inputSchema: {
@@ -35,6 +55,14 @@ export const MCP_TOOLS = [
   },
   {
     name: 'copilot_ask',
+    title: 'Ask the live copilot',
+    annotations: {
+      title: 'Ask the live copilot',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     description:
       'Ask your live copilot a private question about the meeting in progress (answers come only from what was said).',
     inputSchema: {
@@ -49,6 +77,14 @@ export const MCP_TOOLS = [
   },
   {
     name: 'copilot_recap',
+    title: 'Recap the live meeting',
+    annotations: {
+      title: 'Recap the live meeting',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     description: 'What was said in the last N seconds (default 30) of your live copilot meeting.',
     inputSchema: {
       type: 'object',
@@ -62,6 +98,14 @@ export const MCP_TOOLS = [
   },
   {
     name: 'copilot_follow_ups',
+    title: 'Write follow-ups',
+    annotations: {
+      title: 'Write follow-ups',
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
     description:
       'Write (or rewrite) the follow-up action items and recap message for a copilot session.',
     inputSchema: {
@@ -73,12 +117,28 @@ export const MCP_TOOLS = [
   },
   {
     name: 'agents_list',
+    title: 'List your agents',
+    annotations: {
+      title: 'List your agents',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     description:
       "Your own AI agents (and your orgs') that can be invited into a PairUX meeting, with whether each is online.",
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
     name: 'agent_invite',
+    title: 'Invite an agent to a meeting',
+    annotations: {
+      title: 'Invite an agent to a meeting',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     description:
       'Invite one of your agents (by id or @handle) into a meeting you are in. It joins when it picks up the invite.',
     inputSchema: {

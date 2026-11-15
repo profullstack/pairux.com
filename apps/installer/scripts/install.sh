@@ -534,10 +534,11 @@ download_with_progress() {
     fi
 }
 
-# Get latest version from GitHub releases
+# Get latest DESKTOP version from GitHub releases. Never /releases/latest:
+# android-v*/firetv-v* releases can be marked Latest and have no desktop assets.
 get_latest_version() {
     local version
-    version=$(download "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" - 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+    version=$(download "https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50" - 2>/dev/null | grep -o '"tag_name": *"v[0-9][^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
     if [ -z "$version" ]; then
         # The API allows 60 unauthenticated calls an hour per IP. The
@@ -805,7 +806,7 @@ case "\${1-}" in
             fi
         done
 
-        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases?per_page=50" 2>/dev/null | grep -o '"tag_name": *"v[0-9][^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
         if [ -z "\$LATEST" ]; then
             LATEST=\$(curl -fsSI "https://github.com/profullstack/pairux.com/releases/latest" 2>/dev/null | tr -d '\\r' | sed -n 's#^[Ll]ocation: .*/releases/tag/v##p')
@@ -1102,7 +1103,7 @@ case "\${1-}" in
             fi
         done
 
-        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+        LATEST=\$(curl -fsSL "https://api.github.com/repos/profullstack/pairux.com/releases?per_page=50" 2>/dev/null | grep -o '"tag_name": *"v[0-9][^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
         if [ -z "\$LATEST" ]; then
             LATEST=\$(curl -fsSI "https://github.com/profullstack/pairux.com/releases/latest" 2>/dev/null | tr -d '\\r' | sed -n 's#^[Ll]ocation: .*/releases/tag/v##p')

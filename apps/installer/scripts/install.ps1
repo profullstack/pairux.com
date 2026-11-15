@@ -56,7 +56,11 @@ function Get-Platform {
 # Get latest version from GitHub releases
 function Get-LatestVersion {
     try {
-        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$GitHubRepo/releases/latest" -UseBasicParsing
+        # Never /releases/latest: android-v*/firetv-v* releases can be marked
+        # Latest and carry no desktop assets. Take the newest desktop v* tag.
+        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/$GitHubRepo/releases?per_page=50" -UseBasicParsing
+        $release = $releases | Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v\d' } | Select-Object -First 1
+        if (-not $release) { throw "No desktop release found" }
         $version = $release.tag_name -replace '^v', ''
         return $version
     }

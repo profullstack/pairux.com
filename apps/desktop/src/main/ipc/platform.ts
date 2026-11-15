@@ -43,15 +43,23 @@ export function registerPlatformHandlers(): void {
     const current = app.getVersion();
     try {
       const res = await fetch(
-        'https://api.github.com/repos/profullstack/pairux.com/releases/latest',
+        // Not /releases/latest: android-v*/firetv-v* releases can be marked Latest.
+        'https://api.github.com/repos/profullstack/pairux.com/releases?per_page=50',
         {
           headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'pairux-desktop' },
           signal: AbortSignal.timeout(8000),
         }
       );
       if (!res.ok) return { updateAvailable: false, current, latest: null };
-      const data = (await res.json()) as { tag_name?: string };
-      const latest = (data.tag_name ?? '').replace(/^v/, '');
+      const releases = (await res.json()) as {
+        tag_name?: string;
+        draft?: boolean;
+        prerelease?: boolean;
+      }[];
+      const desktop = releases.find(
+        (r) => !r.draft && !r.prerelease && /^v\d+\.\d+\.\d+$/.test(r.tag_name ?? '')
+      );
+      const latest = (desktop?.tag_name ?? '').replace(/^v/, '');
       return {
         updateAvailable: latest !== '' && isNewer(latest, current),
         current,

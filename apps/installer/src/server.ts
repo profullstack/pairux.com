@@ -39,18 +39,32 @@ async function getLatestVersion(): Promise<string> {
   }
 
   try {
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'PairUX-Installer',
-      },
-    });
+    // Never /releases/latest: android-v*/firetv-v* releases can be marked
+    // Latest and carry no desktop assets. Take the newest desktop v* tag.
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`,
+      {
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'PairUX-Installer',
+        },
+      }
+    );
 
     if (response.ok) {
-      const data = (await response.json()) as { tag_name: string };
-      const version = data.tag_name.replace(/^v/, '');
-      cachedVersion = { version, timestamp: Date.now() };
-      return version;
+      const releases = (await response.json()) as {
+        tag_name: string;
+        draft?: boolean;
+        prerelease?: boolean;
+      }[];
+      const desktop = releases.find(
+        (r) => !r.draft && !r.prerelease && /^v\d+\.\d+\.\d+$/.test(r.tag_name)
+      );
+      if (desktop) {
+        const version = desktop.tag_name.replace(/^v/, '');
+        cachedVersion = { version, timestamp: Date.now() };
+        return version;
+      }
     }
   } catch (error) {
     console.error('Failed to fetch version from GitHub:', error);

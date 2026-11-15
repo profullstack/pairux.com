@@ -41,12 +41,15 @@ async function getLatestVersion(): Promise<string> {
   try {
     // Never /releases/latest: android-v*/firetv-v* releases can be marked
     // Latest and carry no desktop assets. Take the newest desktop v* tag.
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`, {
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'PairUX-Installer',
-      },
-    });
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`,
+      {
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'PairUX-Installer',
+        },
+      }
+    );
 
     if (response.ok) {
       const releases = (await response.json()) as {

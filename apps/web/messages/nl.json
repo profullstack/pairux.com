@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Komende streams",
     "publicToggle": "Openbaar tonen",
     "publicHelp": "Toont deze meeting op de kanaalpagina en in de agenda-feed waarop je kunt abonneren."
+  },
+  "checkoutPage": {
+    "cta": "Doorgaan naar betaling",
+    "processor": "Betaal met crypto of PayPal. De betaling wordt verwerkt door CoinPay.",
+    "copilotTitle": "Tegoed voor de AI-copiloot toevoegen",
+    "amount": "Bedrag"
   }
 }

@@ -70,10 +70,13 @@ function buildCsp(nonce: string, embeddable: boolean, consent = false): string {
         ? "frame-ancestors 'none'"
         : "frame-ancestors 'self' chrome-extension:",
     "base-uri 'self'",
-    // The footer's newsletter form posts to pit.world when script is off.
+    // The footer's newsletter form posts to pit.world when script is off. The
+    // checkout pages (/upgrade/<plan>, /settings/copilot/add-credit) post to
+    // this site, which answers 303 to the CoinPay payment page; Chrome applies
+    // form-action to that redirect too.
     consent
       ? "form-action 'self' https: http://localhost:* http://127.0.0.1:* http://[::1]:*"
-      : "form-action 'self' https://pit.world",
+      : "form-action 'self' https://pit.world https://coinpayportal.com",
   ].join('; ');
 }
 

@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Siaran mendatang",
     "publicToggle": "Tampilkan publik",
     "publicHelp": "Menampilkan rapat ini di halaman kanal dan di feed kalender yang bisa dilanggan."
+  },
+  "checkoutPage": {
+    "cta": "Lanjutkan ke pembayaran",
+    "processor": "Bayar dengan kripto atau PayPal. Pembayaran diproses oleh CoinPay.",
+    "copilotTitle": "Tambah kredit kopilot AI",
+    "amount": "Jumlah"
   }
 }

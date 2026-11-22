@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Kommande sändningar",
     "publicToggle": "Visa offentligt",
     "publicHelp": "Visar mötet på kanalsidan och i kanalens prenumerationsbara kalenderflöde."
+  },
+  "checkoutPage": {
+    "cta": "Fortsätt till betalning",
+    "processor": "Betala med krypto eller PayPal. Betalningen hanteras av CoinPay.",
+    "copilotTitle": "Lägg till kredit för AI-copiloten",
+    "amount": "Belopp"
   }
 }

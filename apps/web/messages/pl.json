@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Nadchodzące transmisje",
     "publicToggle": "Pokaż publicznie",
     "publicHelp": "Pokazuje to spotkanie na stronie kanału i w jego subskrybowanym kalendarzu."
+  },
+  "checkoutPage": {
+    "cta": "Przejdź do płatności",
+    "processor": "Zapłać kryptowalutą lub przez PayPal. Płatność obsługuje CoinPay.",
+    "copilotTitle": "Dodaj środki na kopilota AI",
+    "amount": "Kwota"
   }
 }

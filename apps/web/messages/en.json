@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Upcoming streams",
     "publicToggle": "List publicly",
     "publicHelp": "Shows this meeting on the channel page and in its subscribable calendar feed."
+  },
+  "checkoutPage": {
+    "cta": "Continue to payment",
+    "processor": "Pay with crypto or PayPal. Payment is processed by CoinPay.",
+    "copilotTitle": "Add AI copilot credit",
+    "amount": "Amount"
   }
 }

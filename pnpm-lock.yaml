@@ -400,6 +400,9 @@ importers:
       '@profullstack/c0mpute-sealed':
         specifier: ^0.1.0
         version: 0.1.0
+      '@profullstack/checkout':
+        specifier: ^0.1.4
+        version: 0.1.4(react@19.3.1)
       '@profullstack/coinpay-onboard':
         specifier: ^0.5.1
         version: 0.5.1
@@ -3024,6 +3027,15 @@ packages:
   '@profullstack/c0mpute-sealed@0.1.0':
     resolution: {integrity: sha512-BgI/tBkuh4Tr6iHAKLAToeYOjvs7a6l9hdDhq0GZKzd8+hiDLvRazQ/J0OFoTffiNEQy0prKBnMyCsUv4i12Jw==}
     engines: {node: '>=20'}
+
+  '@profullstack/checkout@0.1.4':
+    resolution: {integrity: sha512-F4wQ2Nb0QQo1OxkYk6kZ2pnHJRlpW20RgIn3XWktwU7Wtf6UioBYsc0uzgz03FnTiW+Nqbs0YWW8dOS5cbU1bA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=18'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@profullstack/coinpay-onboard@0.5.1':
     resolution: {integrity: sha512-vuM/1vYvkXP2E/tBcTBZ8JY4K49qtSPPY1N9XRQvIlcy0Sezr+spOf6vYBkRPhasKcFqda44MRLgxPseG9Kvdg==}
@@ -12589,6 +12601,10 @@ snapshots:
     dependencies:
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
+
+  '@profullstack/checkout@0.1.4(react@19.3.1)':
+    optionalDependencies:
+      react: 19.3.1
 
   '@profullstack/coinpay-onboard@0.5.1':
     dependencies:

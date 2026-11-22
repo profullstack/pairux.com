@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Próximas transmissões",
     "publicToggle": "Listar publicamente",
     "publicHelp": "Mostra esta reunião na página do canal e no feed de calendário que pode ser assinado."
+  },
+  "checkoutPage": {
+    "cta": "Continuar para o pagamento",
+    "processor": "Pague com cripto ou PayPal. O pagamento é processado pela CoinPay.",
+    "copilotTitle": "Adicionar crédito para o copiloto de IA",
+    "amount": "Valor"
   }
 }

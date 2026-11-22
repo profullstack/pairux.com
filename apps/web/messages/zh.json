@@ -2751,5 +2751,11 @@
     "upcomingStreams": "即将开始的直播",
     "publicToggle": "公开显示",
     "publicHelp": "在频道页面和可订阅的日历中显示此会议。"
+  },
+  "checkoutPage": {
+    "cta": "继续付款",
+    "processor": "使用加密货币或 PayPal 付款。付款由 CoinPay 处理。",
+    "copilotTitle": "添加 AI 副驾驶额度",
+    "amount": "金额"
   }
 }

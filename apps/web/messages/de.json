@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Kommende Streams",
     "publicToggle": "Öffentlich anzeigen",
     "publicHelp": "Zeigt dieses Meeting auf der Kanalseite und im abonnierbaren Kalender-Feed."
+  },
+  "checkoutPage": {
+    "cta": "Weiter zur Zahlung",
+    "processor": "Zahle mit Krypto oder PayPal. Die Zahlung wird von CoinPay abgewickelt.",
+    "copilotTitle": "Guthaben für den KI-Copilot aufladen",
+    "amount": "Betrag"
   }
 }

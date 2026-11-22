@@ -56,7 +56,7 @@ export function getPlanDef(id: string): PlanDef | null {
   return id === 'plus' || id === 'pro' || id === 'team' ? PLANS[id] : null;
 }
 
-/** One-click checkout for a plan: /upgrade/<plan> starts CoinPay straight away. */
+/** The checkout page for a plan: /upgrade/<plan>, one button to the CoinPay payment page. */
 export function upgradePath(id: PaidPlan): string {
   return `/upgrade/${id}`;
 }

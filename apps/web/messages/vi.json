@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Buổi phát sắp tới",
     "publicToggle": "Hiển thị công khai",
     "publicHelp": "Hiển thị cuộc họp này trên trang kênh và trong lịch có thể đăng ký của kênh."
+  },
+  "checkoutPage": {
+    "cta": "Tiếp tục thanh toán",
+    "processor": "Thanh toán bằng tiền mã hóa hoặc PayPal. Thanh toán do CoinPay xử lý.",
+    "copilotTitle": "Thêm tín dụng cho trợ lý AI",
+    "amount": "Số tiền"
   }
 }

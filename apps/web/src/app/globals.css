@@ -218,3 +218,20 @@
   font-size: 0.875rem;
   color: var(--color-red-600);
 }
+
+/* @profullstack/checkout pages (/upgrade/<plan>, /settings/copilot/add-credit):
+   the site's own blue. Hex first: a custom property holding oklch() is invalid
+   where oklch is not supported, and would leave the button without a colour. */
+.pfc {
+  --pfc-accent: #1d5fbf;
+  --pfc-accent-fg: #ffffff;
+  --pfc-fg: #111827;
+  --pfc-muted: #4b5563;
+  --pfc-border: #d1d5db;
+  --pfc-title-size: 1.5rem;
+}
+@supports (color: oklch(0 0 0)) {
+  .pfc {
+    --pfc-accent: var(--color-primary-600);
+  }
+}

@@ -2751,5 +2751,11 @@
     "upcomingStreams": "Yaklaşan yayınlar",
     "publicToggle": "Herkese açık listele",
     "publicHelp": "Bu toplantıyı kanal sayfasında ve abone olunabilen takvim akışında gösterir."
+  },
+  "checkoutPage": {
+    "cta": "Ödemeye devam et",
+    "processor": "Kripto veya PayPal ile ödeyin. Ödeme CoinPay tarafından işlenir.",
+    "copilotTitle": "Yapay zeka yardımcı pilotu için kredi ekle",
+    "amount": "Tutar"
   }
 }

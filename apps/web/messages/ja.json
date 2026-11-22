@@ -2751,5 +2751,11 @@
     "upcomingStreams": "今後の配信",
     "publicToggle": "公開する",
     "publicHelp": "このミーティングをチャンネルページと購読できるカレンダーフィードに表示します。"
+  },
+  "checkoutPage": {
+    "cta": "お支払いへ進む",
+    "processor": "暗号資産または PayPal でお支払いいただけます。決済は CoinPay が処理します。",
+    "copilotTitle": "AI コパイロットのクレジットを追加",
+    "amount": "金額"
   }
 }

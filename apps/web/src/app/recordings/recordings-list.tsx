@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Download, Film, Loader2, Pencil, Scissors, Trash2 } from 'lucide-react';
+import { Download, Film, Loader2, Lock, Pencil, Scissors, Trash2 } from 'lucide-react';
 import { formatTime } from '@pairux/video-edit';
 import { api, formatBytes, type RecordingItem } from './types';
 
@@ -114,6 +114,13 @@ export function RecordingsList({ header }: { header: ReactNode }) {
                         <Download className="h-4 w-4" aria-hidden="true" />
                         {t('list.download')}
                       </a>
+                      <Link
+                        href={`/recordings/${r.id}/publish`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        <Lock className="h-4 w-4" aria-hidden="true" />
+                        {t('publish.listAction')}
+                      </Link>
                     </>
                   )}
                   {r.parent_recording_id && r.status !== 'processing' && (

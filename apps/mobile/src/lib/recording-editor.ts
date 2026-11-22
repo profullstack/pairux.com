@@ -150,7 +150,16 @@ export function anyProcessing(recordings: Recording[]): boolean {
   return recordings.some((r) => r.status === 'processing' || r.status === 'recording');
 }
 
-/** Deep link that opens the desktop editor on a recording (c0mpute publish lives there). */
+/**
+ * The pairux.com page that publishes a recording to c0mpute private storage.
+ * It encrypts in the browser (WebCrypto) to the user's c0mpute identity, which
+ * React Native cannot do without a crypto polyfill, so the app hands off to it.
+ */
+export function webPublishUrl(baseUrl: string, recordingId: string): string {
+  return `${baseUrl.replace(/\/+$/, '')}/recordings/${encodeURIComponent(recordingId)}/publish`;
+}
+
+/** Deep link that opens the desktop editor on a recording. */
 export function desktopEditLink(playbackUrl: string, title?: string | null): string {
   const t = title?.trim() ? `&title=${encodeURIComponent(title.trim())}` : '';
   return `pairux://edit?url=${encodeURIComponent(playbackUrl)}${t}`;

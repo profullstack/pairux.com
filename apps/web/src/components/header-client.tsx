@@ -14,6 +14,7 @@ import {
   Building2,
   Sparkles,
   Film,
+  DoorOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
@@ -190,6 +191,16 @@ export function HeaderClient({ user }: HeaderClientProps) {
                     {t('recordings')}
                   </Link>
                   <Link
+                    href="/settings/rooms"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <DoorOpen className="h-4 w-4" />
+                    {t('myRooms')}
+                  </Link>
+                  <Link
                     href="/settings"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => {
@@ -335,6 +346,16 @@ export function HeaderClient({ user }: HeaderClientProps) {
                 >
                   <Film className="h-5 w-5" />
                   {t('recordings')}
+                </Link>
+                <Link
+                  href="/settings/rooms"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <DoorOpen className="h-5 w-5" />
+                  {t('myRooms')}
                 </Link>
                 <Link
                   href="/settings"

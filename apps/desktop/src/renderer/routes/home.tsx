@@ -21,6 +21,7 @@ import { ErrorBanner } from '@/components/ui/error-banner';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { StartMeetingModal } from '@/components/StartMeetingModal';
 import { getElectronAPI, isElectron } from '@/lib/ipc';
+import { MyRoomCard } from '@/components/rooms/MyRoomCard';
 import { API_BASE_URL } from '../../shared/config';
 import { useAuthStore } from '@/stores/auth';
 import type { CaptureSource, Session } from '@pairux/shared-types';
@@ -559,6 +560,12 @@ export function HomePage() {
               )}
             </div>
           </div>
+
+          <MyRoomCard
+            onStart={(sessionId) => {
+              void navigate(`/?shareSessionId=${encodeURIComponent(sessionId)}`);
+            }}
+          />
 
           {isWayland && (
             <div className="mb-6 rounded-lg bg-muted p-4">

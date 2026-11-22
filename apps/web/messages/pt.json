@@ -47,7 +47,8 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
     "userFallback": "Usuário",
-    "recordings": "Gravações"
+    "recordings": "Gravações",
+    "myRooms": "Minhas salas"
   },
   "footer": {
     "tagline": "Compartilhamento de tela colaborativo com controle remoto simultâneo. Como o Screenhero, mas open source.",
@@ -2672,5 +2673,40 @@
       "callbackWorking": "Connecting c0mpute…",
       "callbackError": "Could not connect c0mpute: {message}"
     }
+  },
+  "rooms": {
+    "metaTitle": "{slug} · PairUX room",
+    "notFound": "There is no room at this link.",
+    "someone": "the host",
+    "start": "Start my room",
+    "rejoin": "Rejoin my room",
+    "startFailed": "Could not start the room. Try again.",
+    "seePlans": "See plans",
+    "ownerHint": "This is your permanent room. Share the link; people who open it join you when you are here.",
+    "manage": "Manage my rooms",
+    "locked": "{name} has locked this room.",
+    "joining": "Joining…",
+    "waiting": "Waiting for {name} to start…",
+    "waitingHint": "Keep this page open; you will join as soon as they do.",
+    "manageTitle": "My rooms",
+    "manageIntro": "Permanent links that always lead to your call. Your default room is created for you; add more for a team, a client or office hours.",
+    "default": "Default",
+    "lockedShort": "Locked",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "nameLabel": "Name",
+    "slugLabel": "Link",
+    "lockLabel": "Locked (nobody new can join)",
+    "modeLabel": "Call type",
+    "modeP2p": "Peer to peer (small calls)",
+    "modeSfu": "Server (bigger calls, recorded)",
+    "save": "Save",
+    "makeDefault": "Make default",
+    "delete": "Delete",
+    "confirmDelete": "Delete this room? Its link stops working.",
+    "newPlaceholder": "New room name, e.g. Office hours",
+    "add": "Add room",
+    "yourRoom": "Your room",
+    "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
   }
 }

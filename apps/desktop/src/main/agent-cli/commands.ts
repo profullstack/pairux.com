@@ -12,6 +12,7 @@
  *   pairux who                   who is in the session
  *   pairux leave
  *   pairux room                  link to a fresh anonymous E2EE room
+ *   pairux room --mine           your permanent room link; `pairux rooms` manages them
  *   pairux copilot ...           your AI meeting copilot (see ./copilot.ts)
  *
  * Every command takes its I/O through `Deps`, so tests drive it end to end
@@ -33,6 +34,7 @@ import {
 import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './api';
 import type { AgentVoiceRunOptions } from './voice-protocol';
 import { newRoomLink } from './room';
+import { ROOMS_HELP, runMyRoom, runRooms } from './rooms';
 import { COPILOT_HELP, runCopilot } from './copilot';
 import { UsageError } from './errors';
 import { VIDEO_HELP, runEdit, runPublish, runRecordings, type VideoDeps } from './video';
@@ -81,6 +83,9 @@ Usage:
   pairux leave                       Leave the session
   pairux voice join [--json]         Join call audio; stdout is transcripts, stdin speaks
                                      Each input line is spoken via C0mpute TTS. Send /quit to leave.
+  pairux room --mine                 Print your permanent room link (pairux.com/m/<slug>)
+  pairux rooms <command>             Your permanent rooms: list, create, rename, slug,
+                                     default, lock, unlock, rm (\`pairux rooms help\`)
   pairux room                        Print a link to a fresh anonymous room: end-to-end
                                      encrypted voice/video, no account needed to join
   pairux redeem <CODE>               Redeem a credit code (adds days of a paid plan)
@@ -186,8 +191,20 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
         return 0;
 
       case 'room':
+        if (rest.includes('--mine')) {
+          if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+          return await runMyRoom(rest, deps, client);
+        }
         deps.out(newRoomLink(api));
         return 0;
+
+      case 'rooms':
+        if (rest[0] === 'help' || rest[0] === '--help') {
+          deps.out(ROOMS_HELP);
+          return 0;
+        }
+        if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+        return await runRooms(rest, deps, client);
 
       case 'login': {
         const { values } = parseArgs({

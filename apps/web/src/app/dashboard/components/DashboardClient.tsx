@@ -8,6 +8,7 @@ import { RecentSessions } from './RecentSessions';
 import { UpcomingMeetings } from './UpcomingMeetings';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 import { BookingPagesManager } from './BookingPagesManager';
+import { MyRoomCard } from './MyRoomCard';
 
 export function DashboardClient() {
   const t = useTranslations('dashboard');
@@ -29,6 +30,8 @@ export function DashboardClient() {
           onSaved={handleCreated}
         />
       )}
+
+      <MyRoomCard />
 
       {/* Welcome Banner */}
       <div className="from-primary-600 to-primary-700 mb-8 rounded-xl bg-gradient-to-r p-6 text-white shadow-lg">

@@ -164,6 +164,11 @@ export class PairuxClient {
   }
 
   /** Your server recordings and their edits; every call is signed in. */
+  /** Your personal rooms (pairux.com/m/<slug>); every call is signed in. */
+  rooms(): RoomsApi {
+    return new RoomsApi((path, init) => this.request(path, init, true));
+  }
+
   recordings(): RecordingsApi {
     return new RecordingsApi((path, init) => this.request(path, init, true));
   }
@@ -243,6 +248,49 @@ export class RecordingsApi {
 }
 
 /** Signed-in calls to the meeting copilot API. */
+/** A personal room: a permanent link to your call. */
+export interface PersonalRoom {
+  id: string;
+  slug: string;
+  name: string;
+  url: string;
+  is_default: boolean;
+  settings: { mode: 'p2p' | 'sfu'; locked: boolean };
+  current_session_id: string | null;
+  created_at: string;
+}
+
+/** Signed-in calls to /api/v1/me/rooms. */
+export class RoomsApi {
+  constructor(private readonly call: <T>(path: string, init?: RequestInit) => Promise<T>) {}
+
+  async list(): Promise<PersonalRoom[]> {
+    return (await this.call<{ rooms: PersonalRoom[] }>('/api/v1/me/rooms')).rooms;
+  }
+
+  async create(body: { name: string; slug?: string }): Promise<PersonalRoom> {
+    return (
+      await this.call<{ room: PersonalRoom }>('/api/v1/me/rooms', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+    ).room;
+  }
+
+  async update(id: string, patch: Record<string, unknown>): Promise<PersonalRoom> {
+    return (
+      await this.call<{ room: PersonalRoom }>(`/api/v1/me/rooms/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      })
+    ).room;
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.call(`/api/v1/me/rooms/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+}
+
 export class CopilotApi {
   constructor(
     private readonly client: PairuxClient,

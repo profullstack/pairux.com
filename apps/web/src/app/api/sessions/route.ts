@@ -1,12 +1,9 @@
-import { canUseCallAnalysis, maxListeners, participantCap } from '@pairux/shared-types';
-import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
-import { serviceClient } from '@/lib/supabase/service';
-import { canUseWorkspace, resolveUserPlan } from '@/lib/orgs';
+import { createSessionFor } from '@/lib/sessions/create';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { createSessionSchema } from '@/lib/validations';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api';
 
-// POST /api/sessions - Create a new session
+// POST /api/sessions - Create a new session (plan caps: lib/sessions/create.ts)
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json().catch(() => ({}));
@@ -21,59 +18,9 @@ export async function POST(request: Request) {
       return errorResponse('Authentication required', 401);
     }
 
-    // Size the room to the owner's plan (Free: 2 participants, the host
-    // included, + 20 listeners; Plus 100 + 100; Pro/Team more). join_session
-    // enforces the plan's caps live on every join; settings.maxParticipants
-    // and maxListeners are the display copy. A lapsed paid plan falls back to
-    // free. The client-requested value is ignored (clients hardcode a default).
-    // The owner's own plan or the plan of any organization they belong to.
-    const svc = serviceClient();
-    const plan = await resolveUserPlan(svc, user.id);
-
-    // Workspace: a personal call, or one that belongs to an org or a team.
-    const workspace = await canUseWorkspace(svc, user.id, settings.orgId, settings.teamId);
-    if (!workspace) return errorResponse('You are not a member of that organization or team', 403);
-    const maxParticipants = participantCap(plan);
-
-    // AI call analysis is chosen here, before the call exists, and is fixed for
-    // the session's life. It is a Pro/Team feature.
-    const analysis = settings.analysis?.enabled ? settings.analysis : undefined;
-    if (analysis && !canUseCallAnalysis(plan)) {
-      return errorResponse(ANALYSIS_REQUIRES_PRO, 403);
-    }
-
-    // Create session using RPC function
-
-    const rpcParams: Record<string, unknown> = {
-      p_settings: {
-        quality: 'medium',
-        allowControl: settings.allowGuestControl,
-        maxParticipants,
-        maxListeners: maxListeners(plan),
-        ...(analysis ? { analysis } : {}),
-      },
-      p_mode: settings.mode,
-    };
-    if (settings.joinCode) rpcParams.p_join_code = settings.joinCode;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any)('create_session', rpcParams);
-
-    if (error) {
-      console.error('Create session error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-      return errorResponse(error.message, 400);
-    }
-
-    if (workspace.orgId && data && typeof data === 'object' && 'id' in data) {
-      const sessionId = (data as { id: string }).id;
-      await svc
-        .from('sessions')
-        .update({ org_id: workspace.orgId, team_id: workspace.teamId } as never)
-        .eq('id', sessionId);
-      Object.assign(data, { org_id: workspace.orgId, team_id: workspace.teamId });
-    }
-
-    return successResponse(data, 201);
+    const result = await createSessionFor(supabase, user.id, settings);
+    if (!result.ok) return errorResponse(result.error, result.status);
+    return successResponse(result.session, 201);
   } catch (error) {
     return handleApiError(error);
   }

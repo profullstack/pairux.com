@@ -1,5 +1,5 @@
 /**
- * `pairux login|logout|whoami|join|listen|say|who|status|leave|voice|room|redeem|invites|copilot|edit|publish|recordings`
+ * `pairux login|logout|whoami|join|listen|say|who|status|leave|voice|room|rooms|redeem|invites|copilot|edit|publish|recordings`
  *
  * The installed `pairux` launcher passes any argument it does not handle
  * itself (update, uninstall, --help, --version) straight to the app, the same
@@ -47,6 +47,7 @@ export const AGENT_COMMANDS = new Set([
   'leave',
   'voice',
   'room',
+  'rooms',
   'redeem',
   'invites',
   'copilot',

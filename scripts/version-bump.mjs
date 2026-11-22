@@ -48,7 +48,7 @@ export const PACKAGES_TO_UPDATE = [
  *
  * - packages/remote-input is published to npm on its own cadence
  * - packages/embed is published to npm as @profullstack/pairux-embed on its own cadence
- * - packages/meeting-translation and packages/meeting-copilot are private libraries whose versions are not release numbers
+ * - packages/meeting-translation, packages/meeting-copilot and packages/video-edit are private libraries whose versions are not release numbers
  * - packages/ai-core and apps/mobile are not part of the app release yet
  */
 export const INDEPENDENTLY_VERSIONED = [
@@ -58,6 +58,7 @@ export const INDEPENDENTLY_VERSIONED = [
   'packages/meeting-copilot/package.json',
   'packages/meeting-translation/package.json',
   'packages/remote-input/package.json',
+  'packages/video-edit/package.json',
 ];
 
 /**

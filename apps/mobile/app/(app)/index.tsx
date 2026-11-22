@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import type { Session } from '@pairux/shared-types';
 import { sessionApi } from '@/lib/api/sessions';
 import { useAuth } from '@/contexts/AuthContext';
+import { MyRoomCard } from '@/components/MyRoomCard';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -72,6 +73,8 @@ export default function DashboardScreen() {
         </Text>
         <Text className="mt-1 text-primary-100">Share your screen from anywhere</Text>
       </View>
+
+      <MyRoomCard />
 
       {/* Quick actions */}
       <View className="flex-row gap-3 px-4 py-4">

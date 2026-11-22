@@ -113,7 +113,10 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
     }
     if (this.op === 'update') {
       for (const r of matched) Object.assign(r, this.patch);
-      return { data: this.returning ? matched : null, error: null };
+      return {
+        data: this.returning ? (this.mode === 'many' ? matched : (matched[0] ?? null)) : null,
+        error: null,
+      };
     }
     if (this.orderBy) {
       const { column, ascending } = this.orderBy;

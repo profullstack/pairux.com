@@ -8,6 +8,7 @@ import {
   RecordingToolError,
   callRecordingTool,
 } from '@/lib/recording-edits/mcp';
+import { ROOM_TOOLS, ROOM_TOOL_NAMES, callRoomTool } from '@/lib/personal-rooms/mcp';
 import { requestUser } from '@/lib/request-user';
 import { ACCESS_PREFIX, oauthDb, resolveAccessToken, resourceMetadataUrl } from '@/lib/mcp-oauth';
 import { FixedWindowRateLimiter } from '@/lib/rate-limit';
@@ -44,9 +45,9 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
       return reply(id, {
         protocolVersion: MCP_PROTOCOL_VERSION,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'pairux', title: 'PairUX', version: '1.2.0' },
+        serverInfo: { name: 'pairux', title: 'PairUX', version: '1.3.0' },
         instructions:
-          'PairUX: list your meeting copilots, read their notes and follow-ups, and ask a live copilot about the meeting in progress. Edit your recordings: list_recordings, then edit_recording to keep only the parts you want (e.g. "12:30-17:30") with fades and intro/outro title cards; poll get_recording until the edit is ready.',
+          'PairUX: list your meeting copilots, read their notes and follow-ups, and ask a live copilot about the meeting in progress. Edit your recordings: list_recordings, then edit_recording to keep only the parts you want (e.g. "12:30-17:30") with fades and intro/outro title cards; poll get_recording until the edit is ready. get_my_room returns your permanent room link (pairux.com/m/<slug>).',
       });
     case 'ping':
       return reply(id, {});
@@ -54,7 +55,7 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
       // resultType + ttlMs + cacheScope: Claude Code's client (revision
       // 2026-07-28) rejects a list without them ("tools fetch failed").
       return reply(id, {
-        tools: [...MCP_TOOLS, ...RECORDING_TOOLS],
+        tools: [...MCP_TOOLS, ...RECORDING_TOOLS, ...ROOM_TOOLS],
         resultType: 'complete',
         ttlMs: 300_000,
         cacheScope: 'private',
@@ -65,6 +66,19 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
         params.arguments && typeof params.arguments === 'object'
           ? (params.arguments as Record<string, unknown>)
           : {};
+      // Room tools need no copilot either.
+      if (ROOM_TOOL_NAMES.has(name)) {
+        try {
+          const result = await callRoomTool(userId, name);
+          return reply(id, {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            structuredContent: result,
+          });
+        } catch (error) {
+          console.error('[mcp] room tool failed:', error);
+          return failure(id, -32603, 'The tool failed.');
+        }
+      }
       // Recording tools need no copilot, so they work when it is turned off.
       if (RECORDING_TOOL_NAMES.has(name)) {
         try {

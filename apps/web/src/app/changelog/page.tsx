@@ -27,6 +27,16 @@ function formatReleaseMonth(month: string, locale: string): string {
 // Release notes (titles and changes) are published in English only.
 const releases = [
   {
+    version: '0.24.0',
+    date: '2026-11',
+    title: 'Your own permanent room',
+    changes: [
+      'Every account now has a permanent room link, pairux.com/m/<your-name>: share it once, and whoever opens it joins you while you are in the room (and waits for you when you are not)',
+      'Add more rooms (up to 10) for a team, a client or office hours; rename them, change their links, lock them, and pick your default in My rooms',
+      'Start your room from the dashboard, the desktop app or the mobile app; `pairux room --mine` and `pairux rooms` manage them from a terminal, and AI agents get your link over MCP (get_my_room)',
+    ],
+  },
+  {
     version: '0.23.0',
     date: '2026-11',
     title: 'Video editing on every surface',

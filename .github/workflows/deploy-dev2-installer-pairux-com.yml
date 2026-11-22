@@ -15,7 +15,7 @@ on:
         type: string
 
 concurrency:
-  group: deploy-dev2
+  group: deploy-dev2-installer-pairux-com
   cancel-in-progress: false
 
 jobs:

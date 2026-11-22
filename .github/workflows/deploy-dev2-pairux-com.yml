@@ -15,7 +15,10 @@ on:
         type: string
 
 concurrency:
-  group: deploy-dev2
+  # Its own group: sharing `deploy-dev2` with the installer deploy meant every
+  # merge queued both, and GitHub keeps one pending run per group, so the
+  # installer run cancelled the pending web deploy (4 times on 2026-11-22).
+  group: deploy-dev2-pairux-com
   cancel-in-progress: false
 
 jobs:

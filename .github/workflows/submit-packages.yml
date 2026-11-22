@@ -62,7 +62,14 @@ jobs:
       - name: Import GPG key
         if: env.GPG_PRIVATE_KEY != ''
         run: |
-          echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
+          # The secret may be an ASCII-armored key or that key base64-encoded;
+          # every release since 2026-11-01 failed here with
+          # "base64: error: invalid input" on the armored form.
+          if printf '%s' "$GPG_PRIVATE_KEY" | grep -q 'BEGIN PGP PRIVATE KEY BLOCK'; then
+            printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          else
+            printf '%s' "$GPG_PRIVATE_KEY" | tr -d ' \r\n' | base64 -d | gpg --batch --import
+          fi
           # Trust the key
           KEY_ID=$(gpg --list-keys --keyid-format LONG | grep -A1 "^pub" | tail -1 | awk '{print $1}')
           echo "${KEY_ID}:6:" | gpg --import-ownertrust

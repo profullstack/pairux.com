@@ -47,6 +47,7 @@
     "@electron/notarize": "^3.1.2",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@pairux/shared-types": "workspace:*",
+    "@pairux/video-edit": "workspace:*",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.2",

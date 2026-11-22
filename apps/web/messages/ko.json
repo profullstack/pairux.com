@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "예정된 라이브",
+    "subscribe": "캘린더 구독",
+    "subscribeGoogle": "Google 캘린더에 추가",
+    "addToCalendar": "캘린더에 추가",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "{channel}에서 보기",
+    "liveNow": "지금 라이브",
+    "upcomingStreams": "예정된 스트림",
+    "publicToggle": "공개로 표시",
+    "publicHelp": "이 회의를 채널 페이지와 구독 가능한 캘린더 피드에 표시합니다."
   }
 }

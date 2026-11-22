@@ -41,6 +41,11 @@ export async function POST(request: Request) {
       return errorResponse('Channel not found or not yours', 403);
     }
 
+    // Public means listed on the channel page and feed, so it needs a channel.
+    if (input.visibility === 'public' && !input.channelId) {
+      return errorResponse('A public event needs a channel', 400);
+    }
+
     const svc = serviceClient();
 
     // Get host display name for the invite email
@@ -65,6 +70,7 @@ export async function POST(request: Request) {
         duration_minutes: input.durationMinutes,
         join_code: joinCode,
         channel_id: input.channelId ?? null,
+        visibility: input.visibility === 'public' && input.channelId ? 'public' : 'private',
         // A recurring meeting is one row: scheduled_at tracks the next occurrence
         // and the anchor keeps the day of the month stable for monthly series.
         recurrence_freq: input.recurrenceFreq ?? null,

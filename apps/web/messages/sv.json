@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "Kommande live",
+    "subscribe": "Prenumerera på kalendern",
+    "subscribeGoogle": "Lägg till i Google Kalender",
+    "addToCalendar": "Lägg till i kalendern",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Titta på {channel}",
+    "liveNow": "Live nu",
+    "upcomingStreams": "Kommande sändningar",
+    "publicToggle": "Visa offentligt",
+    "publicHelp": "Visar mötet på kanalsidan och i kanalens prenumerationsbara kalenderflöde."
   }
 }

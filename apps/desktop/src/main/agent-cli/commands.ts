@@ -35,6 +35,7 @@ import { ApiError, PairuxClient, type ChatMessage, type RosterEntry } from './ap
 import type { AgentVoiceRunOptions } from './voice-protocol';
 import { newRoomLink } from './room';
 import { ROOMS_HELP, runMyRoom, runRooms } from './rooms';
+import { EVENTS_HELP, runEvents } from './events';
 import { COPILOT_HELP, runCopilot } from './copilot';
 import { UsageError } from './errors';
 import { VIDEO_HELP, runEdit, runPublish, runRecordings, type VideoDeps } from './video';
@@ -86,6 +87,8 @@ Usage:
   pairux room --mine                 Print your permanent room link (pairux.com/m/<slug>)
   pairux rooms <command>             Your permanent rooms: list, create, rename, slug,
                                      default, lock, unlock, rm (\`pairux rooms help\`)
+  pairux events <command>            Live events on your channels: list, add, edit, rm,
+                                     public, private (\`pairux events help\`)
   pairux room                        Print a link to a fresh anonymous room: end-to-end
                                      encrypted voice/video, no account needed to join
   pairux redeem <CODE>               Redeem a credit code (adds days of a paid plan)
@@ -197,6 +200,14 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
         }
         deps.out(newRoomLink(api));
         return 0;
+
+      case 'events':
+        if (rest[0] === 'help' || rest[0] === '--help') {
+          deps.out(EVENTS_HELP);
+          return 0;
+        }
+        if (!config.tokens) throw new UsageError('Sign in first: `pairux login`.');
+        return await runEvents(rest, deps, client);
 
       case 'rooms':
         if (rest[0] === 'help' || rest[0] === '--help') {

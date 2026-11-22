@@ -141,6 +141,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return errorResponse('Channel not found or not yours', 403);
     }
 
+    // Public means listed on the channel page and feed, so it needs a channel.
+    const channelAfter = fields.channel_id !== undefined ? fields.channel_id : existing.channel_id;
+    if (fields.visibility === 'public' && !channelAfter) {
+      return errorResponse('A public event needs a channel', 400);
+    }
+
     let updated = existing;
 
     const recurrenceEdits = recurrenceUpdate(existing, fields);

@@ -2,7 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Radio, Eye, Circle, PlayCircle, Rss, User as UserIcon } from 'lucide-react';
+import {
+  Radio,
+  Eye,
+  Circle,
+  PlayCircle,
+  Rss,
+  CalendarDays,
+  CalendarPlus,
+  User as UserIcon,
+} from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
@@ -12,6 +21,14 @@ import type { Channel, ChannelStream, ChannelRecording } from '@pairux/shared-ty
 import { SubscribeButton } from './SubscribeButton';
 import { ShareButtons } from './ShareButtons';
 import { MessageButton } from '@/app/u/[username]/MessageButton';
+import { UpcomingEvents } from '@/components/live-events/UpcomingEvents';
+import {
+  channelCalendarUrl,
+  googleSubscribeUrl,
+  upcoming,
+  webcalUrl,
+} from '@/lib/live-events/public';
+import { channelEvents } from '@/lib/live-events/read';
 import { ChannelWebsiteLink } from '@/components/channel/ChannelWebsiteLink';
 
 export const dynamic = 'force-dynamic';
@@ -130,13 +147,17 @@ export default async function ChannelPage({ params }: PageProps) {
   const channel = await getChannel(handle);
   if (!channel) notFound();
 
-  const [streams, recordings, viewer, t, locale] = await Promise.all([
+  const [streams, recordings, viewer, t, locale, eventRows, te] = await Promise.all([
     getStreams(handle),
     getRecordings(handle),
     getViewer(),
     getTranslations('channel'),
     getLocale(),
+    channelEvents(handle),
+    getTranslations('events'),
   ]);
+  const events = upcoming(eventRows, new Date());
+  const calendarUrl = channelCalendarUrl(SITE_URL, channel.handle);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -227,6 +248,37 @@ export default async function ChannelPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {events.length > 0 && (
+          <section id="upcoming" className="border-b border-gray-100 py-10">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <CalendarDays className="h-5 w-5 text-indigo-500" />
+                  {te('upcoming')}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={webcalUrl(calendarUrl)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5 text-indigo-500" />
+                    {te('subscribe')}
+                  </a>
+                  <a
+                    href={googleSubscribeUrl(calendarUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    {te('subscribeGoogle')}
+                  </a>
+                </div>
+              </div>
+              <UpcomingEvents items={events} locale={locale} liveNowLabel={te('liveNow')} />
+            </div>
+          </section>
+        )}
 
         <section className="py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">

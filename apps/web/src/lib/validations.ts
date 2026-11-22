@@ -153,6 +153,11 @@ const meetingChannelField = {
   channelId: z.guid('Invalid channel').nullable().optional(),
 };
 
+// Public = listed on the channel page and in its calendar feed. Needs a channel.
+const meetingVisibilityField = {
+  visibility: z.enum(['private', 'public']).optional(),
+};
+
 // Schedule a meeting
 export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
@@ -165,6 +170,7 @@ export const scheduleMeetingSchema = z.object({
     .optional(),
   ...recurrenceFields,
   ...meetingChannelField,
+  ...meetingVisibilityField,
 });
 
 // Edit a scheduled meeting. Accepts either the column names (scheduled_at) or the
@@ -195,6 +201,7 @@ export const updateScheduledMeetingSchema = z
       .optional(),
     ...recurrenceFields,
     ...meetingChannelField,
+    ...meetingVisibilityField,
   })
   .transform((input) => {
     const scheduledAt = input.scheduled_at ?? input.scheduledAt;
@@ -228,11 +235,50 @@ export const updateScheduledMeetingSchema = z
       ...(durationMinutes !== undefined && { duration_minutes: durationMinutes }),
       ...(inviteeEmails !== undefined && { inviteeEmails }),
       ...(input.channelId !== undefined && { channel_id: input.channelId }),
+      ...(input.visibility !== undefined && { visibility: input.visibility }),
       ...recurrence,
     };
   });
 
 export type ScheduleMeetingInput = z.infer<typeof scheduleMeetingSchema>;
+
+// Live events API (/api/v1/events, `pairux events`, MCP): a scheduled meeting
+// listed on a broadcast channel. `channel` is the channel id or its handle.
+const eventRepeat = z.enum(['none', 'daily', 'weekly', 'monthly']);
+const eventChannel = z.string().trim().min(1, 'channel is required').max(64);
+export const liveEventCreateSchema = z.object({
+  title: z.string().trim().min(1, 'title is required').max(120),
+  description: z.string().max(500).optional(),
+  startsAt: z.iso.datetime({ message: 'startsAt must be an ISO date-time', offset: true }),
+  durationMinutes: z.number().int().min(15).max(MAX_SCHEDULED_MEETING_DURATION_MINUTES).default(60),
+  channel: eventChannel,
+  repeat: eventRepeat.default('none'),
+  every: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL).default(1),
+  times: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).default(0),
+  visibility: z.enum(['private', 'public']).default('public'),
+});
+export const liveEventUpdateSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120).optional(),
+    description: z.string().max(500).nullable().optional(),
+    startsAt: z.iso
+      .datetime({ message: 'startsAt must be an ISO date-time', offset: true })
+      .optional(),
+    durationMinutes: z
+      .number()
+      .int()
+      .min(15)
+      .max(MAX_SCHEDULED_MEETING_DURATION_MINUTES)
+      .optional(),
+    channel: eventChannel.optional(),
+    repeat: eventRepeat.optional(),
+    every: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL).optional(),
+    times: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).optional(),
+    visibility: z.enum(['private', 'public']).optional(),
+  })
+  .refine((v) => Object.values(v).some((x) => x !== undefined), 'Nothing to change');
+export type LiveEventCreate = z.infer<typeof liveEventCreateSchema>;
+export type LiveEventUpdate = z.infer<typeof liveEventUpdateSchema>;
 export type UpdateScheduledMeetingInput = z.infer<typeof updateScheduledMeetingSchema>;
 
 // Publish a room to the public /live directory

@@ -9,6 +9,12 @@ import {
   callRecordingTool,
 } from '@/lib/recording-edits/mcp';
 import { ROOM_TOOLS, ROOM_TOOL_NAMES, callRoomTool } from '@/lib/personal-rooms/mcp';
+import {
+  EVENT_TOOLS,
+  EVENT_TOOL_NAMES,
+  EventToolError,
+  callEventTool,
+} from '@/lib/live-events/mcp';
 import { requestUser } from '@/lib/request-user';
 import { ACCESS_PREFIX, oauthDb, resolveAccessToken, resourceMetadataUrl } from '@/lib/mcp-oauth';
 import { FixedWindowRateLimiter } from '@/lib/rate-limit';
@@ -55,7 +61,7 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
       // resultType + ttlMs + cacheScope: Claude Code's client (revision
       // 2026-07-28) rejects a list without them ("tools fetch failed").
       return reply(id, {
-        tools: [...MCP_TOOLS, ...RECORDING_TOOLS, ...ROOM_TOOLS],
+        tools: [...MCP_TOOLS, ...RECORDING_TOOLS, ...ROOM_TOOLS, ...EVENT_TOOLS],
         resultType: 'complete',
         ttlMs: 300_000,
         cacheScope: 'private',
@@ -66,6 +72,21 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
         params.arguments && typeof params.arguments === 'object'
           ? (params.arguments as Record<string, unknown>)
           : {};
+      // Live event tools need no copilot either.
+      if (EVENT_TOOL_NAMES.has(name)) {
+        try {
+          const result = await callEventTool(userId, name, args);
+          return reply(id, {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            structuredContent: result,
+          });
+        } catch (error) {
+          if (error instanceof EventToolError)
+            return reply(id, { content: [{ type: 'text', text: error.message }], isError: true });
+          console.error('[mcp] event tool failed:', error);
+          return failure(id, -32603, 'The tool failed.');
+        }
+      }
       // Room tools need no copilot either.
       if (ROOM_TOOL_NAMES.has(name)) {
         try {

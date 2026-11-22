@@ -169,6 +169,10 @@ export class PairuxClient {
     return new RoomsApi((path, init) => this.request(path, init, true));
   }
 
+  events(): EventsApi {
+    return new EventsApi((path, init) => this.request(path, init, true));
+  }
+
   recordings(): RecordingsApi {
     return new RecordingsApi((path, init) => this.request(path, init, true));
   }
@@ -288,6 +292,48 @@ export class RoomsApi {
 
   async remove(id: string): Promise<void> {
     await this.call(`/api/v1/me/rooms/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+}
+
+/** A live event: a scheduled stream on one of your channels (/api/v1/events). */
+export interface LiveEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  starts_at: string;
+  next_occurrence: string | null;
+  duration_minutes: number;
+  repeat: 'none' | 'daily' | 'weekly' | 'monthly';
+  every: number;
+  times: number;
+  visibility: 'private' | 'public';
+  channel: { handle: string; name: string } | null;
+  invitee_count: number;
+  url: string | null;
+  calendar_url: string | null;
+}
+
+/** Signed-in calls to /api/v1/events. */
+export class EventsApi {
+  constructor(private readonly call: <T>(path: string, init?: RequestInit) => Promise<T>) {}
+
+  list(): Promise<LiveEvent[]> {
+    return this.call<LiveEvent[]>('/api/v1/events');
+  }
+
+  create(body: Record<string, unknown>): Promise<LiveEvent> {
+    return this.call<LiveEvent>('/api/v1/events', { method: 'POST', body: JSON.stringify(body) });
+  }
+
+  update(id: string, patch: Record<string, unknown>): Promise<LiveEvent> {
+    return this.call<LiveEvent>(`/api/v1/events/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.call(`/api/v1/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
 }
 

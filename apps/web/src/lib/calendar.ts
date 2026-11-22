@@ -80,16 +80,25 @@ function foldIcsLine(line: string): string {
  * output.
  */
 export function buildIcs(event: CalendarEvent, now: Date = new Date()): string {
-  const start = new Date(event.startIso);
-  const end = new Date(start.getTime() + event.durationMinutes * 60000);
-  const desc = [event.description, `Join at: ${event.joinUrl}`].filter(Boolean).join('\n\n');
-  const rrule = event.recurrence ? buildRrule(event.recurrence) : null;
-  const uid = event.uid ?? `${event.joinUrl.replace(/[^a-z0-9]/gi, '-')}@pairux.com`;
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//PairUX//EN',
     'METHOD:PUBLISH',
+    ...veventLines(event, now),
+    'END:VCALENDAR',
+  ];
+  return `${lines.map(foldIcsLine).join('\r\n')}\r\n`;
+}
+
+/** The VEVENT block for one event (a series when `recurrence` is set). */
+function veventLines(event: CalendarEvent, now: Date): string[] {
+  const start = new Date(event.startIso);
+  const end = new Date(start.getTime() + event.durationMinutes * 60000);
+  const desc = [event.description, `Join at: ${event.joinUrl}`].filter(Boolean).join('\n\n');
+  const rrule = event.recurrence ? buildRrule(event.recurrence) : null;
+  const uid = event.uid ?? `${event.joinUrl.replace(/[^a-z0-9]/gi, '-')}@pairux.com`;
+  return [
     'BEGIN:VEVENT',
     `UID:${uid}`,
     `DTSTAMP:${fmtIcs(now)}`,
@@ -101,6 +110,32 @@ export function buildIcs(event: CalendarEvent, now: Date = new Date()): string {
     `LOCATION:${escapeIcsText(event.joinUrl)}`,
     `URL:${event.joinUrl}`,
     'END:VEVENT',
+  ];
+}
+
+/**
+ * A subscribable calendar of many events (a channel's live schedule). Calendar
+ * apps poll it, so `uid` must be stable per event: a changed time then moves
+ * the entry instead of adding a second one, and a removed event disappears.
+ */
+export function buildIcsFeed(
+  feed: { name: string; description?: string | null; url?: string | null },
+  events: CalendarEvent[],
+  now: Date = new Date()
+): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//PairUX//EN',
+    'METHOD:PUBLISH',
+    'CALSCALE:GREGORIAN',
+    `X-WR-CALNAME:${escapeIcsText(feed.name)}`,
+    ...(feed.description ? [`X-WR-CALDESC:${escapeIcsText(feed.description)}`] : []),
+    ...(feed.url ? [`URL:${feed.url}`] : []),
+    // Ask subscribers to re-poll hourly (RFC 7986 + the Apple/Outlook extension).
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'X-PUBLISHED-TTL:PT1H',
+    ...events.flatMap((e) => veventLines(e, now)),
     'END:VCALENDAR',
   ];
   return `${lines.map(foldIcsLine).join('\r\n')}\r\n`;

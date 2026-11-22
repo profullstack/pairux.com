@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET } from './route';
+import { GET, POST } from './route';
 import { mockUser } from '@/test/mocks/supabase';
 
 const mockGetAuthenticatedUser = vi.fn();
@@ -154,5 +154,45 @@ describe('GET /api/scheduled-sessions', () => {
     expect(body.data.map((session: ScheduledRow) => session.id)).toEqual(['lapsed']);
     expect(lt).toHaveBeenCalledWith('scheduled_at', '2026-08-14T17:30:00.000Z');
     expect(gte).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/scheduled-sessions visibility', () => {
+  beforeEach(() => {
+    mockGetAuthenticatedUser.mockResolvedValue({ user: mockUser, error: null });
+  });
+
+  it('refuses a public meeting with no channel before writing anything', async () => {
+    const from = vi.fn();
+    mockServiceClient.mockReturnValue({ from });
+    const response = await POST(
+      new Request('http://localhost/api/scheduled-sessions', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: 'Weekly outreach',
+          scheduledAt: '2026-11-25T17:00:00Z',
+          visibility: 'public',
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
+    expect(((await response.json()) as { error: string }).error).toBe(
+      'A public event needs a channel'
+    );
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown visibility value', async () => {
+    const response = await POST(
+      new Request('http://localhost/api/scheduled-sessions', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: 't',
+          scheduledAt: '2026-11-25T17:00:00Z',
+          visibility: 'everyone',
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
   });
 });

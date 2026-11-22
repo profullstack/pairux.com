@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "Sắp phát trực tiếp",
+    "subscribe": "Đăng ký lịch",
+    "subscribeGoogle": "Thêm vào Google Lịch",
+    "addToCalendar": "Thêm vào lịch",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Xem trên {channel}",
+    "liveNow": "Đang trực tiếp",
+    "upcomingStreams": "Buổi phát sắp tới",
+    "publicToggle": "Hiển thị công khai",
+    "publicHelp": "Hiển thị cuộc họp này trên trang kênh và trong lịch có thể đăng ký của kênh."
   }
 }

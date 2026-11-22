@@ -48,6 +48,8 @@ interface ScheduledSession {
   channel_id?: string | null;
   /** The channel this meeting broadcasts on when it goes live. */
   channel?: { handle: string; name: string } | null;
+  /** public = listed on the channel page and its calendar feed (/e/<id>). */
+  visibility?: string | null;
 }
 
 interface ListResponse {
@@ -107,6 +109,7 @@ interface Props {
 export function UpcomingMeetings({ onSchedule }: Props) {
   const t = useTranslations('dashboard.upcoming');
   const tm = useTranslations('meetings');
+  const te = useTranslations('events');
   const locale = useLocale();
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -297,6 +300,17 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                         >
                           <Radio className="h-3 w-3" />@{session.channel.handle}
                         </span>
+                      )}
+                      {session.channel && session.visibility === 'public' && (
+                        <a
+                          href={`/e/${session.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-600 hover:underline"
+                        >
+                          <CalendarPlus className="h-3 w-3" />
+                          {te('publicToggle')}
+                        </a>
                       )}
                       {session.invitee_count > 0 && (
                         <span className="flex items-center gap-1">

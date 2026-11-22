@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "Yaklaşan canlı yayınlar",
+    "subscribe": "Takvime abone ol",
+    "subscribeGoogle": "Google Takvim'e ekle",
+    "addToCalendar": "Takvime ekle",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "{channel} kanalında izle",
+    "liveNow": "Şimdi canlı",
+    "upcomingStreams": "Yaklaşan yayınlar",
+    "publicToggle": "Herkese açık listele",
+    "publicHelp": "Bu toplantıyı kanal sayfasında ve abone olunabilen takvim akışında gösterir."
   }
 }

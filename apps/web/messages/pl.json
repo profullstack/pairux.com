@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Klucz transmisji",
       "save": "Zapisz",
       "cancel": "Anuluj",
-      "add": "Dodaj miejsce docelowe"
+      "add": "Dodaj miejsce docelowe",
+      "c0mputeWatch": "Link do oglądania",
+      "c0mputeManaged": "Zarządzane w Ustawieniach"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay to jedyny sposób logowania na to konto, więc nie można go odłączyć.",
       "notConfigured": "Łączenie CoinPay jest teraz niedostępne.",
       "justConnected": "CoinPay jest połączony."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Retransmituj transmisje na żywo ze swojego kanału do sieci peer-to-peer c0mpute.",
+      "pricing": "Za darmo w PairUX. Za przekaźniki płacisz za GB ze swojego salda c0mpute. Bez salda działa w darmowym planie c0mpute (720p, 25 widzów).",
+      "connect": "Połącz z c0mpute",
+      "pasteToggle": "Wklej zamiast tego klucz API",
+      "keyLabel": "Klucz API c0mpute",
+      "keyHint": "Utwórz klucz z uprawnieniem live:publish na c0mpute.com. Jest używany raz do skonfigurowania transmisji i nie jest zapisywany.",
+      "keySubmit": "Połącz",
+      "connected": "Połączono",
+      "connectedAs": "Połączono jako {account}",
+      "resync": "Dodaj nowe kanały",
+      "disconnect": "Rozłącz",
+      "watchLinks": "Linki do oglądania",
+      "copy": "Kopiuj",
+      "copied": "Skopiowano",
+      "restreamOff": "Retransmisja jest wyłączona dla tego kanału. Włącz ją w panelu.",
+      "tierPaid": "Plan płatny: przekaźniki są rozliczane z salda c0mpute.",
+      "tierFree": "Plan darmowy: 720p, do 25 widzów.",
+      "topUp": "Doładuj w c0mpute",
+      "earn": "Uruchom węzeł c0mpute i zarabiaj na transmisjach",
+      "justConnected": "c0mpute Live jest połączone.",
+      "partial": "Nie udało się skonfigurować niektórych kanałów. Spróbuj ponownie.",
+      "noChannels": "Najpierw utwórz kanał, a potem połącz c0mpute Live.",
+      "scope": "c0mpute nie zaakceptowało tego logowania lub klucza. Wymagane jest uprawnienie live:publish.",
+      "unavailable": "c0mpute Live jest teraz niedostępne.",
+      "keyFormat": "To nie wygląda na klucz API c0mpute. Zaczyna się od c0k_.",
+      "failed": "c0mpute Live nie połączyło się. Spróbuj ponownie."
     }
   },
   "replay": {

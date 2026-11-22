@@ -1,8 +1,9 @@
 /**
  * Entitlements for the paid multistream plugin.
  *
- * Free plan can stream to YouTube only. Pro/team plans unlock every other
- * platform and simultaneous fan-out. This module is the single source of
+ * Free plan can stream to YouTube and to c0mpute Live (free on the PairUX
+ * side: relays bill the user's own c0mpute balance). Pro/team plans unlock
+ * every other platform and simultaneous fan-out. This module is the single source of
  * truth for that rule and is shared by the main-process gate (enforcement)
  * and the renderer UI (lock badges / upgrade prompts).
  */
@@ -11,7 +12,7 @@ import type { Plan } from '@pairux/shared-types';
 import type { StreamPlatform } from '../preload/api';
 
 /** Platforms available on the free plan without an upgrade. */
-export const FREE_PLATFORMS: readonly StreamPlatform[] = ['youtube'];
+export const FREE_PLATFORMS: readonly StreamPlatform[] = ['youtube', 'c0mpute'];
 
 /** Plans that unlock all streaming platforms. */
 const PAID_PLANS: readonly Plan[] = ['pro', 'team'];

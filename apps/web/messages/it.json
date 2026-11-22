@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Chiave di streaming",
       "save": "Salva",
       "cancel": "Annulla",
-      "add": "Aggiungi destinazione"
+      "add": "Aggiungi destinazione",
+      "c0mputeWatch": "Link per guardare",
+      "c0mputeManaged": "Gestito nelle Impostazioni"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay è l'unico modo per accedere a questo account, quindi non può essere scollegato.",
       "notConfigured": "Il collegamento di CoinPay non è disponibile al momento.",
       "justConnected": "CoinPay è collegato."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Ritrasmetti le dirette del tuo canale sulla rete peer-to-peer di c0mpute.",
+      "pricing": "Gratis su PairUX. I relay si pagano per GB dal tuo saldo c0mpute. Senza saldo funziona con il piano gratuito di c0mpute (720p, 25 spettatori).",
+      "connect": "Connetti con c0mpute",
+      "pasteToggle": "Incolla invece una chiave API",
+      "keyLabel": "Chiave API c0mpute",
+      "keyHint": "Crea una chiave con il permesso live:publish su c0mpute.com. Viene usata una sola volta per configurare i tuoi stream e non viene salvata.",
+      "keySubmit": "Connetti",
+      "connected": "Connesso",
+      "connectedAs": "Connesso come {account}",
+      "resync": "Aggiungi nuovi canali",
+      "disconnect": "Disconnetti",
+      "watchLinks": "Link per guardare",
+      "copy": "Copia",
+      "copied": "Copiato",
+      "restreamOff": "La ritrasmissione è disattivata per questo canale. Attivala nella dashboard.",
+      "tierPaid": "Piano a pagamento: i relay vengono addebitati sul tuo saldo c0mpute.",
+      "tierFree": "Piano gratuito: 720p, fino a 25 spettatori.",
+      "topUp": "Ricarica su c0mpute",
+      "earn": "Gestisci un nodo c0mpute e guadagna dagli stream",
+      "justConnected": "c0mpute Live è connesso.",
+      "partial": "Non è stato possibile configurare alcuni canali. Riprova.",
+      "noChannels": "Crea prima un canale, poi connetti c0mpute Live.",
+      "scope": "c0mpute non ha accettato questo accesso o questa chiave. Serve il permesso live:publish.",
+      "unavailable": "c0mpute Live non è disponibile in questo momento.",
+      "keyFormat": "Non sembra una chiave API c0mpute. Inizia con c0k_.",
+      "failed": "c0mpute Live non si è connesso. Riprova."
     }
   },
   "replay": {

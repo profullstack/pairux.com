@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Kunci stream",
       "save": "Simpan",
       "cancel": "Batal",
-      "add": "Tambah tujuan"
+      "add": "Tambah tujuan",
+      "c0mputeWatch": "Tautan tonton",
+      "c0mputeManaged": "Dikelola di Pengaturan"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay adalah satu-satunya cara masuk ke akun ini, jadi tidak bisa diputuskan.",
       "notConfigured": "Menghubungkan CoinPay sedang tidak tersedia.",
       "justConnected": "CoinPay terhubung."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Siarkan ulang siaran langsung kanal Anda ke jaringan peer-to-peer c0mpute.",
+      "pricing": "Gratis di PairUX. Relai dibayar per GB dari saldo c0mpute Anda. Tanpa saldo, siaran berjalan di tingkat gratis c0mpute (720p, 25 penonton).",
+      "connect": "Hubungkan dengan c0mpute",
+      "pasteToggle": "Tempel kunci API saja",
+      "keyLabel": "Kunci API c0mpute",
+      "keyHint": "Buat kunci dengan izin live:publish di c0mpute.com. Kunci dipakai satu kali untuk menyiapkan siaran Anda dan tidak disimpan.",
+      "keySubmit": "Hubungkan",
+      "connected": "Terhubung",
+      "connectedAs": "Terhubung sebagai {account}",
+      "resync": "Tambahkan kanal baru",
+      "disconnect": "Putuskan",
+      "watchLinks": "Tautan tonton",
+      "copy": "Salin",
+      "copied": "Tersalin",
+      "restreamOff": "Siaran ulang nonaktif untuk kanal ini. Aktifkan di dasbor.",
+      "tierPaid": "Tingkat berbayar: relai ditagihkan ke saldo c0mpute Anda.",
+      "tierFree": "Tingkat gratis: 720p, hingga 25 penonton.",
+      "topUp": "Isi saldo di c0mpute",
+      "earn": "Jalankan node c0mpute dan dapatkan penghasilan dari siaran",
+      "justConnected": "c0mpute Live terhubung.",
+      "partial": "Beberapa kanal tidak dapat disiapkan. Coba lagi.",
+      "noChannels": "Buat kanal terlebih dahulu, lalu hubungkan c0mpute Live.",
+      "scope": "c0mpute tidak menerima proses masuk atau kunci itu. Izin live:publish diperlukan.",
+      "unavailable": "c0mpute Live sedang tidak tersedia.",
+      "keyFormat": "Itu tidak tampak seperti kunci API c0mpute. Kunci diawali c0k_.",
+      "failed": "c0mpute Live tidak terhubung. Coba lagi."
     }
   },
   "replay": {

@@ -30,6 +30,7 @@ const PLATFORM_LABELS: Record<StreamPlatform, string> = {
   youtube: 'YouTube',
   twitch: 'Twitch',
   facebook: 'Facebook',
+  c0mpute: 'c0mpute Live',
   custom: 'Custom RTMP',
 };
 
@@ -229,6 +230,7 @@ export function StreamDestinations({
               <option value="youtube">YouTube</option>
               <option value="twitch">Twitch</option>
               <option value="facebook">Facebook</option>
+              <option value="c0mpute">c0mpute Live</option>
               <option value="custom">Custom RTMP</option>
             </select>
           </div>
@@ -289,6 +291,12 @@ export function StreamDestinations({
                 )}
               </Button>
             </div>
+            {platform === 'c0mpute' && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Get this key from pairux.com Settings, under c0mpute Live, or from
+                c0mpute.com/dashboard/live. It starts with c0l_.
+              </p>
+            )}
           </div>
 
           {/* Advanced encoder settings */}

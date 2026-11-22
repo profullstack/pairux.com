@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "مفتاح البث",
       "save": "حفظ",
       "cancel": "إلغاء",
-      "add": "إضافة وجهة"
+      "add": "إضافة وجهة",
+      "c0mputeWatch": "رابط المشاهدة",
+      "c0mputeManaged": "يُدار من الإعدادات"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay هو الطريقة الوحيدة لتسجيل الدخول إلى هذا الحساب، لذا لا يمكن فصله.",
       "notConfigured": "ربط CoinPay غير متاح الآن.",
       "justConnected": "تم ربط CoinPay."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "أعد بث البثوث المباشرة لقناتك على شبكة c0mpute من نظير إلى نظير.",
+      "pricing": "مجاني على PairUX. تُدفع المرحّلات لكل غيغابايت من رصيدك في c0mpute. بدون رصيد يعمل على الفئة المجانية من c0mpute (720p، 25 مشاهدًا).",
+      "connect": "الاتصال عبر c0mpute",
+      "pasteToggle": "الصق مفتاح API بدلًا من ذلك",
+      "keyLabel": "مفتاح API لـ c0mpute",
+      "keyHint": "أنشئ مفتاحًا بصلاحية live:publish على c0mpute.com. يُستخدم مرة واحدة لإعداد بثوثك ولا يُحفظ.",
+      "keySubmit": "اتصال",
+      "connected": "متصل",
+      "connectedAs": "متصل باسم {account}",
+      "resync": "إضافة قنوات جديدة",
+      "disconnect": "قطع الاتصال",
+      "watchLinks": "روابط المشاهدة",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "restreamOff": "إعادة البث متوقفة لهذه القناة. فعّلها من لوحة التحكم.",
+      "tierPaid": "الفئة المدفوعة: تُخصم المرحّلات من رصيدك في c0mpute.",
+      "tierFree": "الفئة المجانية: 720p، حتى 25 مشاهدًا.",
+      "topUp": "اشحن رصيدك في c0mpute",
+      "earn": "شغّل عقدة c0mpute واكسب من البثوث",
+      "justConnected": "تم ربط c0mpute Live.",
+      "partial": "تعذّر إعداد بعض القنوات. حاول مرة أخرى.",
+      "noChannels": "أنشئ قناة أولًا ثم اربط c0mpute Live.",
+      "scope": "لم يقبل c0mpute تسجيل الدخول أو المفتاح. يلزم وجود صلاحية live:publish.",
+      "unavailable": "c0mpute Live غير متاح حاليًا.",
+      "keyFormat": "لا يبدو هذا مفتاح API لـ c0mpute. يبدأ بـ c0k_.",
+      "failed": "لم يتم ربط c0mpute Live. حاول مرة أخرى."
     }
   },
   "replay": {

@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Clé de stream",
       "save": "Enregistrer",
       "cancel": "Annuler",
-      "add": "Ajouter une destination"
+      "add": "Ajouter une destination",
+      "c0mputeWatch": "Lien de visionnage",
+      "c0mputeManaged": "Géré dans les paramètres"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay est le seul moyen d'accéder à ce compte : il ne peut pas être déconnecté.",
       "notConfigured": "La connexion de CoinPay n'est pas disponible pour le moment.",
       "justConnected": "CoinPay est connecté."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Rediffusez les directs de votre chaîne sur le réseau pair à pair c0mpute.",
+      "pricing": "Gratuit sur PairUX. Les relais sont payés au Go depuis votre solde c0mpute. Sans solde, la diffusion passe par l'offre gratuite de c0mpute (720p, 25 spectateurs).",
+      "connect": "Se connecter avec c0mpute",
+      "pasteToggle": "Coller une clé API à la place",
+      "keyLabel": "Clé API c0mpute",
+      "keyHint": "Créez une clé avec l'autorisation live:publish sur c0mpute.com. Elle sert une seule fois à configurer vos flux et n'est pas conservée.",
+      "keySubmit": "Connecter",
+      "connected": "Connecté",
+      "connectedAs": "Connecté en tant que {account}",
+      "resync": "Ajouter de nouvelles chaînes",
+      "disconnect": "Déconnecter",
+      "watchLinks": "Liens de visionnage",
+      "copy": "Copier",
+      "copied": "Copié",
+      "restreamOff": "La rediffusion est désactivée pour cette chaîne. Activez-la dans le tableau de bord.",
+      "tierPaid": "Offre payante : les relais sont facturés sur votre solde c0mpute.",
+      "tierFree": "Offre gratuite : 720p, jusqu'à 25 spectateurs.",
+      "topUp": "Recharger sur c0mpute",
+      "earn": "Faites tourner un nœud c0mpute et gagnez grâce aux flux",
+      "justConnected": "c0mpute Live est connecté.",
+      "partial": "Certaines chaînes n'ont pas pu être configurées. Réessayez.",
+      "noChannels": "Créez d'abord une chaîne, puis connectez c0mpute Live.",
+      "scope": "c0mpute n'a pas accepté cette connexion ou cette clé. L'autorisation live:publish est requise.",
+      "unavailable": "c0mpute Live n'est pas disponible pour le moment.",
+      "keyFormat": "Cela ne ressemble pas à une clé API c0mpute. Elle commence par c0k_.",
+      "failed": "c0mpute Live ne s'est pas connecté. Réessayez."
     }
   },
   "replay": {

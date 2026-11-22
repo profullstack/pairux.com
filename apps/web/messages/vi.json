@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Khóa luồng",
       "save": "Lưu",
       "cancel": "Hủy",
-      "add": "Thêm điểm đến"
+      "add": "Thêm điểm đến",
+      "c0mputeWatch": "Liên kết xem",
+      "c0mputeManaged": "Quản lý trong Cài đặt"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay là cách duy nhất để đăng nhập tài khoản này nên không thể ngắt liên kết.",
       "notConfigured": "Hiện không thể liên kết CoinPay.",
       "justConnected": "Đã liên kết CoinPay."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Phát lại các buổi phát trực tiếp của kênh bạn lên mạng ngang hàng c0mpute.",
+      "pricing": "Miễn phí trên PairUX. Relay được trả theo GB từ số dư c0mpute của bạn. Khi không có số dư, luồng chạy ở gói miễn phí của c0mpute (720p, 25 người xem).",
+      "connect": "Kết nối với c0mpute",
+      "pasteToggle": "Dán khóa API thay thế",
+      "keyLabel": "Khóa API c0mpute",
+      "keyHint": "Tạo khóa có quyền live:publish trên c0mpute.com. Khóa được dùng một lần để thiết lập luồng của bạn và không được lưu.",
+      "keySubmit": "Kết nối",
+      "connected": "Đã kết nối",
+      "connectedAs": "Đã kết nối với tài khoản {account}",
+      "resync": "Thêm kênh mới",
+      "disconnect": "Ngắt kết nối",
+      "watchLinks": "Liên kết xem",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "restreamOff": "Phát lại đang tắt cho kênh này. Hãy bật trong bảng điều khiển.",
+      "tierPaid": "Gói trả phí: relay được trừ vào số dư c0mpute của bạn.",
+      "tierFree": "Gói miễn phí: 720p, tối đa 25 người xem.",
+      "topUp": "Nạp tiền trên c0mpute",
+      "earn": "Chạy một node c0mpute và kiếm tiền từ các luồng phát",
+      "justConnected": "c0mpute Live đã được kết nối.",
+      "partial": "Không thể thiết lập một số kênh. Hãy thử lại.",
+      "noChannels": "Hãy tạo kênh trước, rồi kết nối c0mpute Live.",
+      "scope": "c0mpute không chấp nhận lần đăng nhập hoặc khóa đó. Cần có quyền live:publish.",
+      "unavailable": "c0mpute Live hiện không khả dụng.",
+      "keyFormat": "Có vẻ đó không phải khóa API c0mpute. Khóa bắt đầu bằng c0k_.",
+      "failed": "c0mpute Live chưa kết nối được. Hãy thử lại."
     }
   },
   "replay": {

@@ -9,6 +9,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import { YouTubeConnect } from './youtube-connect';
 import { CoinpayConnect } from './coinpay-connect';
+import { C0mputeConnect } from './c0mpute-connect';
 import { ConnectedApps } from './connected-apps';
 import { ProfileCard } from '@/components/profile/ProfileCard';
 import type { UserData } from '@/components/header';
@@ -122,6 +123,9 @@ export function SettingsContent({
           <div className="space-y-6">
             {/* Sign in with CoinPay (the house master account) */}
             {user && <CoinpayConnect />}
+
+            {/* c0mpute Live: restream channels into the c0mpute p2p network */}
+            {user && <C0mputeConnect />}
 
             {/* AI apps connected to the MCP server over OAuth */}
             {user && <ConnectedApps />}

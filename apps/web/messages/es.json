@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Clave de transmisión",
       "save": "Guardar",
       "cancel": "Cancelar",
-      "add": "Agregar destino"
+      "add": "Agregar destino",
+      "c0mputeWatch": "Enlace para ver",
+      "c0mputeManaged": "Se gestiona en Ajustes"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay es la única forma de entrar a esta cuenta, así que no se puede desconectar.",
       "notConfigured": "Conectar CoinPay no está disponible ahora.",
       "justConnected": "CoinPay está conectado."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Retransmite los directos de tu canal en la red peer-to-peer de c0mpute.",
+      "pricing": "Gratis en PairUX. Los relés se pagan por GB con tu saldo de c0mpute. Sin saldo, funciona en el nivel gratuito de c0mpute (720p, 25 espectadores).",
+      "connect": "Conectar con c0mpute",
+      "pasteToggle": "Pegar una clave de API",
+      "keyLabel": "Clave de API de c0mpute",
+      "keyHint": "Crea una clave con el permiso live:publish en c0mpute.com. Se usa una sola vez para configurar tus transmisiones y no se guarda.",
+      "keySubmit": "Conectar",
+      "connected": "Conectado",
+      "connectedAs": "Conectado como {account}",
+      "resync": "Añadir canales nuevos",
+      "disconnect": "Desconectar",
+      "watchLinks": "Enlaces para ver",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "restreamOff": "La retransmisión está desactivada en este canal. Actívala en el panel.",
+      "tierPaid": "Nivel de pago: los relés se cobran de tu saldo de c0mpute.",
+      "tierFree": "Nivel gratuito: 720p, hasta 25 espectadores.",
+      "topUp": "Recargar en c0mpute",
+      "earn": "Ejecuta un nodo de c0mpute y gana con las transmisiones",
+      "justConnected": "c0mpute Live está conectado.",
+      "partial": "No se pudieron configurar algunos canales. Inténtalo de nuevo.",
+      "noChannels": "Crea primero un canal y luego conecta c0mpute Live.",
+      "scope": "c0mpute no aceptó ese inicio de sesión o esa clave. Necesita el permiso live:publish.",
+      "unavailable": "c0mpute Live no está disponible ahora mismo.",
+      "keyFormat": "Eso no parece una clave de API de c0mpute. Empieza por c0k_.",
+      "failed": "c0mpute Live no se conectó. Inténtalo de nuevo."
     }
   },
   "replay": {

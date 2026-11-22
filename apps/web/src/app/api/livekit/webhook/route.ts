@@ -109,11 +109,18 @@ export async function POST(request: Request): Promise<Response> {
         }
       }
 
-      if (!handledAsHost && UUID_RE.test(identity)) {
+      // A connection replaced by a new one with the same identity (a reconnect or a retried
+      // join) is not a leave. And agents' presence is the agent API's (heartbeat poll, leave,
+      // 2-minute staleness), not LiveKit's: an agent retrying its microphone connection was
+      // being marked left here, and its next poll answered 410, ending a board.saas call.
+      const reason = event.participant.disconnectReason;
+      const replaced = reason === 'DUPLICATE_IDENTITY' || reason === 2;
+      if (!handledAsHost && !replaced && UUID_RE.test(identity)) {
         await svc
           .from('session_participants')
           .update({ left_at: new Date().toISOString(), connection_status: 'disconnected' })
           .eq('id', identity)
+          .eq('kind', 'human')
           .is('left_at', null);
       }
     }

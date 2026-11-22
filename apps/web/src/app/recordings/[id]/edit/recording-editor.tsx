@@ -72,6 +72,7 @@ function toBumper(b: BumperState): Bumper | null {
 
 export function RecordingEditor({ id, header }: { id: string; header: ReactNode }) {
   const t = useTranslations('recordings.editor');
+  const tp = useTranslations('recordings.publish');
   const videoRef = useRef<HTMLVideoElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
 
@@ -629,6 +630,12 @@ export function RecordingEditor({ id, header }: { id: string; header: ReactNode 
                   <Monitor className="h-4 w-4" aria-hidden="true" />
                   {t('desktop.open')}
                 </a>
+                <Link
+                  href={`/recordings/${edit?.status === 'ready' ? edit.id : recording.id}/publish`}
+                  className="mt-3 ml-2 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  {tp('listAction')}
+                </Link>
                 <p className="mt-2 text-xs text-gray-500">
                   {t('desktop.cli')}{' '}
                   <code className="rounded bg-gray-100 px-1">pairux edit --publish c0mpute</code>

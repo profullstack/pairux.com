@@ -5,6 +5,7 @@ import {
   clampFade,
   cutSelection,
   desktopEditLink,
+  webPublishUrl,
   formatBytes,
   initialEditorState,
   keepSelection,
@@ -91,6 +92,11 @@ describe('buildPlan', () => {
 });
 
 describe('misc', () => {
+  it('points publishing at the pairux.com page', () => {
+    expect(webPublishUrl('https://pairux.com/', 'r 1')).toBe(
+      'https://pairux.com/recordings/r%201/publish'
+    );
+  });
   it('builds the desktop deep link', () => {
     expect(desktopEditLink('https://x.test/a b.mp4', 'My cut')).toBe(
       'pairux://edit?url=https%3A%2F%2Fx.test%2Fa%20b.mp4&title=My%20cut'

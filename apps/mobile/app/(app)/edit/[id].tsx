@@ -37,7 +37,9 @@ import {
   type BumperChoice,
   type EditorState,
   type Selection,
+  webPublishUrl,
 } from '@/lib/recording-editor';
+import { API_BASE_URL } from '@/config';
 
 function Stepper({
   label,
@@ -248,6 +250,15 @@ export default function EditRecordingScreen() {
     router.replace('/(app)/recordings');
   }
 
+  async function openPublish() {
+    if (!recording) return;
+    try {
+      await Linking.openURL(webPublishUrl(API_BASE_URL, recording.id));
+    } catch {
+      Alert.alert('Could not open the browser', webPublishUrl(API_BASE_URL, recording.id));
+    }
+  }
+
   async function openInDesktop() {
     if (!recording?.playback_url) return;
     const link = desktopEditLink(recording.playback_url, recording.subject);
@@ -256,7 +267,7 @@ export default function EditRecordingScreen() {
     } catch {
       Alert.alert(
         'PairUX desktop needed',
-        'Private, end-to-end encrypted publishing to c0mpute runs in the PairUX desktop app, which encrypts the file on your computer. Install it from pairux.com/download, then try again.'
+        'Install the PairUX desktop app from pairux.com/download to edit this recording on your computer.'
       );
     }
   }
@@ -481,13 +492,27 @@ export default function EditRecordingScreen() {
       {recording.playback_url ? (
         <TouchableOpacity
           onPress={() => {
-            void openInDesktop();
+            void openPublish();
           }}
           className="mt-4 rounded-xl border border-gray-200 bg-white p-4"
         >
           <Text className="font-medium text-gray-900">Publish privately to c0mpute</Text>
           <Text className="mt-1 text-xs text-gray-500">
-            End-to-end encrypted, keys stay on your computer. Opens in the PairUX desktop app.
+            End-to-end encrypted to your own c0mpute identity; neither PairUX nor c0mpute can watch
+            it. Opens in your browser.
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      {recording.playback_url ? (
+        <TouchableOpacity
+          onPress={() => {
+            void openInDesktop();
+          }}
+          className="mt-3 rounded-xl border border-gray-200 bg-white p-4"
+        >
+          <Text className="font-medium text-gray-900">Open in the desktop app</Text>
+          <Text className="mt-1 text-xs text-gray-500">
+            Edit on your computer with the full editor.
           </Text>
         </TouchableOpacity>
       ) : null}

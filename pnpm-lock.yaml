@@ -397,6 +397,9 @@ importers:
       '@profullstack/autoblog':
         specifier: 0.5.0
         version: 0.5.0
+      '@profullstack/c0mpute-sealed':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@profullstack/coinpay-onboard':
         specifier: ^0.5.1
         version: 0.5.1
@@ -405,7 +408,7 @@ importers:
         version: 1.0.3
       '@profullstack/footer':
         specifier: latest
-        version: 0.6.20(react@19.3.1)
+        version: 0.7.0(react@19.3.1)
       '@profullstack/live-translate':
         specifier: ^0.3.0
         version: 0.3.0
@@ -2164,7 +2167,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -2814,6 +2817,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@noble/curves@1.9.7':
+    resolution: {integrity: sha512-gbKGcRUYIjA3/zCCNaWDciTMFI0dCkvou3TL8Zmy5Nc7sJ47a0jtOeZoTaMxkuqRo9cRhjOdZJXegxYE5FN/xw==}
+    engines: {node: ^14.21.3 || >=16}
+
   '@noble/hashes@1.8.0':
     resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
     engines: {node: ^14.21.3 || >=16}
@@ -2853,16 +2860,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.5':
     resolution: {integrity: sha512-LbqtPtMPTJUcg4XoPP2jsU1wc8flBcGyKTerKsIfK9cD7nBHROnO0QksbrsbSWEpLym8T8fRtuU7XEY83l6Z2Q==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.5':
     resolution: {integrity: sha512-uxaXEcRKnFObAljsoR6tLOBUU1dJ2sctloG6gFgCBGN7+k6Jdv6jZfOuNjd/fpdq2C5WPMm0rtn9EE7h5J3Jcg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.5':
     resolution: {integrity: sha512-yqC87zvmFcDPwFrRU40DYhN0xmEVM3aSkOuyF0IX+y1x+HWSu/i0PNklATpPBhGid3QVb/TOHuVoaraMrUFCNw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.6':
@@ -2876,6 +2886,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.6':
     resolution: {integrity: sha512-aI/WCX7gE1HFGPH3EZP/UWqpNMM1NMoM/EkXqp7pKMgXFCi8e5+o5p+jd/QOYpmALv9bQg7+s69nI7FONbMqDg==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.6':
@@ -3010,6 +3021,10 @@ packages:
     resolution: {integrity: sha512-KewpX0rM55o+7TMYeU35gqZceQFNF6zmo8zDoZRP5zoPU+XqTRcBlv6bZvl9oQHUXKXAsePJVNZKtDNhTrNEfw==}
     engines: {node: '>=18'}
 
+  '@profullstack/c0mpute-sealed@0.1.0':
+    resolution: {integrity: sha512-BgI/tBkuh4Tr6iHAKLAToeYOjvs7a6l9hdDhq0GZKzd8+hiDLvRazQ/J0OFoTffiNEQy0prKBnMyCsUv4i12Jw==}
+    engines: {node: '>=20'}
+
   '@profullstack/coinpay-onboard@0.5.1':
     resolution: {integrity: sha512-vuM/1vYvkXP2E/tBcTBZ8JY4K49qtSPPY1N9XRQvIlcy0Sezr+spOf6vYBkRPhasKcFqda44MRLgxPseG9Kvdg==}
     engines: {node: '>=20'}
@@ -3028,8 +3043,8 @@ packages:
       react:
         optional: true
 
-  '@profullstack/footer@0.6.20':
-    resolution: {integrity: sha512-JEB1hZCKSKRro6EI95JMUM4lBX39DUKk6i5ukcKpgeCo+jxwBYcUGiHBrDTdd0/n46M1ECOG4IrDHjgFNGmvGQ==}
+  '@profullstack/footer@0.7.0':
+    resolution: {integrity: sha512-Xvisf7+VTTy7VsX7UTY0VijybHr+Cx3hxlnNT0ExOHq6i1sUxQ1yM1wjYQJumP86oan93vgBODR6DQ0uZKINoA==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -12364,6 +12379,10 @@ snapshots:
   '@next/swc-win32-x64-msvc@16.4.3':
     optional: true
 
+  '@noble/curves@1.9.7':
+    dependencies:
+      '@noble/hashes': 1.8.0
+
   '@noble/hashes@1.8.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -12566,6 +12585,11 @@ snapshots:
     dependencies:
       '@profullstack/ai-providers': 0.1.0
 
+  '@profullstack/c0mpute-sealed@0.1.0':
+    dependencies:
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
+
   '@profullstack/coinpay-onboard@0.5.1':
     dependencies:
       '@modelcontextprotocol/sdk': 1.32.2(zod@4.6.7)
@@ -12580,7 +12604,7 @@ snapshots:
     optionalDependencies:
       react: 19.3.1
 
-  '@profullstack/footer@0.6.20(react@19.3.1)':
+  '@profullstack/footer@0.7.0(react@19.3.1)':
     optionalDependencies:
       react: 19.3.1
 

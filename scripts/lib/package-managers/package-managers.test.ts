@@ -223,6 +223,30 @@ describe('WingetPackageManager', () => {
       expect(result.message).toContain('Dry run');
     });
 
+    it('should skip a fine-grained token, which cannot open cross-account PRs', async () => {
+      process.env.GITHUB_TOKEN = 'github_pat_test';
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+
+      const result = await winget.submit(createSampleRelease('1.0.0'), false);
+
+      expect(result.status).toBe('skipped');
+      expect(result.message).toContain('WINGET_GITHUB_TOKEN');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should prefer WINGET_GITHUB_TOKEN over GITHUB_TOKEN', async () => {
+      process.env.GITHUB_TOKEN = 'github_pat_test';
+      process.env.WINGET_GITHUB_TOKEN = 'ghp_classic';
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+      mockFetch.mockRejectedValueOnce(new Error('stop'));
+
+      await winget.submit(createSampleRelease('1.0.0'), false).catch(() => undefined);
+
+      const headers = (mockFetch.mock.calls[1]?.[1] as RequestInit).headers as Record<string, string>;
+      expect(headers.Authorization).toBe('Bearer ghp_classic');
+      delete process.env.WINGET_GITHUB_TOKEN;
+    });
+
     it('should fork repo if not exists and create PR', async () => {
       const release = createSampleRelease('1.0.0');
 

@@ -25,6 +25,8 @@ jobs:
   submit-linux:
     runs-on: ubuntu-latest
     name: Submit (Linux)
+    # Android/Fire TV releases (android-v*, firetv-v*) are not desktop versions.
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v')
 
     steps:
       - name: Checkout code
@@ -119,6 +121,7 @@ jobs:
         env:
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           GITHUB_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
           AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
@@ -157,9 +160,11 @@ jobs:
     runs-on: windows-latest
     name: Submit (Chocolatey)
     if: >-
-      github.event.inputs.package_managers == 'all' ||
-      github.event.inputs.package_managers == '' ||
-      contains(github.event.inputs.package_managers, 'chocolatey')
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')) ||
+      (github.event_name != 'release' && (
+        github.event.inputs.package_managers == 'all' ||
+        github.event.inputs.package_managers == '' ||
+        contains(github.event.inputs.package_managers, 'chocolatey')))
 
     steps:
       - name: Checkout code

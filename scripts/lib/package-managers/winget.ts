@@ -21,6 +21,15 @@ export class WingetPackageManager extends BasePackageManager {
     return Promise.resolve(this.config.enabled && !!this.getGitHubToken());
   }
 
+  /**
+   * WinGet opens a cross-account PR (user fork -> microsoft/winget-pkgs), which a
+   * fine-grained token scoped to our org cannot do. WINGET_GITHUB_TOKEN, when set,
+   * is used for WinGet only, so the shared token can stay least-privilege.
+   */
+  protected override getGitHubToken(): string | undefined {
+    return this.config.apiToken ?? process.env.WINGET_GITHUB_TOKEN ?? process.env.GITHUB_TOKEN;
+  }
+
   async checkExisting(version: string): Promise<boolean> {
     try {
       const path = `manifests/p/Profullstack/PairUX/${version}/${PACKAGE_IDENTIFIER}.yaml`;
@@ -188,6 +197,18 @@ ManifestVersion: 1.10.0
         packageManager: this.name,
         status: 'failed',
         message: 'GITHUB_TOKEN required for WinGet submission',
+      };
+    }
+
+    // Fine-grained PATs cannot contribute to repositories outside their resource
+    // owner, so a cross-fork PR to microsoft/winget-pkgs would fail with 403.
+    if (token.startsWith('github_pat_')) {
+      return {
+        packageManager: this.name,
+        status: 'skipped',
+        message:
+          'WinGet needs WINGET_GITHUB_TOKEN (a classic token with public_repo on the fork owner); ' +
+          'fine-grained tokens cannot open PRs on microsoft/winget-pkgs. Submit manually.',
       };
     }
 

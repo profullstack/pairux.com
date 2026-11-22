@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, TrackSource } from 'livekit-server-sdk';
 import type { VideoGrant } from 'livekit-server-sdk';
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { serviceClient } from '@/lib/supabase/service';
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     // Verify session exists and gather what authorization needs.
     const { data: session, error: sessionError } = (await svc
       .from('sessions')
-      .select('id, mode, host_user_id, status, is_public, current_host_id')
+      .select('id, mode, host_user_id, status, is_public, current_host_id, settings')
       .eq('id', sessionId)
       .single()) as {
       data: {
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
         status: string;
         is_public: boolean;
         current_host_id: string | null;
+        settings: { partner?: string; guestsCanSpeak?: boolean } | null;
       } | null;
       error: unknown;
     };
@@ -86,6 +87,11 @@ export async function POST(request: Request) {
     }
 
     const isSessionOwner = Boolean(user) && session.host_user_id === user?.id;
+    // A partner's session (lib/partner-sessions.ts) is joined by its private
+    // link, and its guests may speak: the founder in a board.saas voice meeting
+    // talks to the board without a PairUX account.
+    const partnerRoom = typeof session.settings?.partner === 'string';
+    const guestsCanSpeak = partnerRoom && session.settings?.guestsCanSpeak === true;
 
     // Authorize the joiner:
     //  • owner  → always in (may publish/host).
@@ -111,7 +117,7 @@ export async function POST(request: Request) {
         }
         seatRowId = (participant as unknown as { id: string }).id;
       } else {
-        if (!session.is_public || !session.current_host_id) {
+        if (!partnerRoom && (!session.is_public || !session.current_host_id)) {
           return errorResponse('Sign in to join this room', 401);
         }
         const { data: participant } = await svc
@@ -153,8 +159,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Guests never publish media — watch-only.
+    // Guests never publish media (watch-only), except a microphone in a
+    // partner room that allows it.
     const canPublish = isSessionOwner || isParticipant;
+    const guestMicOnly = isGuest && guestsCanSpeak;
     const effectiveIsHost = isHost && isSessionOwner;
 
     const roomName = `session-${sessionId}`;
@@ -172,7 +180,8 @@ export async function POST(request: Request) {
     const grant: VideoGrant = {
       room: roomName,
       roomJoin: true,
-      canPublish,
+      canPublish: canPublish || guestMicOnly,
+      ...(guestMicOnly ? { canPublishSources: [TrackSource.MICROPHONE] } : {}),
       canSubscribe: true,
       canPublishData: true,
       canUpdateOwnMetadata: true,

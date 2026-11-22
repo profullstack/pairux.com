@@ -48,6 +48,7 @@ export const AGENT_COMMANDS = new Set([
   'voice',
   'room',
   'rooms',
+  'events',
   'redeem',
   'invites',
   'copilot',

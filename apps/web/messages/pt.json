@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "Próximas lives",
+    "subscribe": "Assinar calendário",
+    "subscribeGoogle": "Adicionar ao Google Agenda",
+    "addToCalendar": "Adicionar ao calendário",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Assistir em {channel}",
+    "liveNow": "Ao vivo",
+    "upcomingStreams": "Próximas transmissões",
+    "publicToggle": "Listar publicamente",
+    "publicHelp": "Mostra esta reunião na página do canal e no feed de calendário que pode ser assinado."
   }
 }

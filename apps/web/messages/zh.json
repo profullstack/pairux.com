@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "即将直播",
+    "subscribe": "订阅日历",
+    "subscribeGoogle": "添加到 Google 日历",
+    "addToCalendar": "添加到日历",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "在 {channel} 观看",
+    "liveNow": "正在直播",
+    "upcomingStreams": "即将开始的直播",
+    "publicToggle": "公开显示",
+    "publicHelp": "在频道页面和可订阅的日历中显示此会议。"
   }
 }

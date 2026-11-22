@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildGoogleCalendarUrl,
   buildIcs,
+  buildIcsFeed,
   buildOutlookUrl,
   calendarLinksHtml,
   icsFilename,
@@ -101,5 +102,66 @@ describe('calendarLinksHtml', () => {
     const html = calendarLinksHtml({ ...urls, attached: false });
     expect(html).toContain('Add to calendar');
     expect(html).not.toContain('.ics');
+  });
+});
+
+describe('buildIcsFeed', () => {
+  const now = new Date('2026-11-22T12:00:00Z');
+  const weekly = {
+    title: 'Weekly outreach, live',
+    description: 'Office hours; bring questions',
+    startIso: '2026-11-25T17:00:00Z',
+    durationMinutes: 60,
+    joinUrl: 'https://pairux.com/e/aaaa',
+    uid: 'aaaa@pairux.com',
+    recurrence: { freq: 'weekly' as const, interval: 1, count: 0 },
+  };
+  const once = {
+    ...weekly,
+    title: 'Launch AMA',
+    startIso: '2026-12-01T18:00:00Z',
+    uid: 'bbbb@pairux.com',
+    recurrence: undefined,
+  };
+
+  it('wraps every event in one calendar with a name and an hourly refresh hint', () => {
+    const ics = buildIcsFeed(
+      { name: "Chovy's channel", description: 'Live on PairUX', url: 'https://pairux.com/c/chovy' },
+      [weekly, once],
+      now
+    );
+    expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
+    expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
+    expect(ics).toContain("X-WR-CALNAME:Chovy's channel");
+    expect(ics).toContain('REFRESH-INTERVAL;VALUE=DURATION:PT1H');
+    expect(ics).toContain('UID:aaaa@pairux.com');
+    expect(ics).toContain('UID:bbbb@pairux.com');
+  });
+
+  it('keeps a repeating event as one series and a one-off as a single date', () => {
+    const ics = buildIcsFeed({ name: 'x' }, [weekly, once], now);
+    const blocks = ics.split('BEGIN:VEVENT').slice(1);
+    expect(blocks[0]).toContain('RRULE:FREQ=WEEKLY');
+    expect(blocks[1]).not.toContain('RRULE');
+    expect(blocks[1]).toContain('DTSTART:20261201T180000Z');
+  });
+
+  it('is a valid empty calendar with no events', () => {
+    const ics = buildIcsFeed({ name: 'x' }, [], now);
+    expect(ics).not.toContain('BEGIN:VEVENT');
+    expect(ics).toContain('X-WR-CALNAME:x');
+  });
+
+  it('escapes hostile names and titles so they cannot inject properties', () => {
+    const ics = buildIcsFeed(
+      { name: 'a\nEND:VCALENDAR' },
+      [{ ...once, title: 'x\r\nBEGIN:VALARM;y,z' }],
+      now
+    );
+    // The text may survive escaped inside a value; it must never start a line.
+    expect(ics.match(/^END:VCALENDAR/gm)).toHaveLength(1);
+    expect(ics.match(/^BEGIN:VALARM/gm)).toBeNull();
+    expect(ics).toContain('SUMMARY:x\\nBEGIN:VALARM\\;y\\,z');
   });
 });

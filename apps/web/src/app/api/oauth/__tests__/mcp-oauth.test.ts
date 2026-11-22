@@ -455,7 +455,11 @@ describe('/api/v1/mcp', () => {
     const res = await mcp.POST(rpc('tools/list', t.access_token));
     expect(res.status).toBe(200);
     const body = await rpcResult(res);
-    expect(body.result.tools.length).toBe(12);
+    // 12 copilot/recording/room tools + 4 live event tools.
+    expect(body.result.tools.length).toBe(16);
+    expect(body.result.tools.map((x: { name: string }) => x.name)).toEqual(
+      expect.arrayContaining(['list_events', 'create_event', 'update_event', 'cancel_event'])
+    );
     for (const tool of body.result.tools) {
       expect(tool.title).toBeTruthy();
       expect(typeof tool.annotations.readOnlyHint).toBe('boolean');
@@ -468,7 +472,7 @@ describe('/api/v1/mcp', () => {
   it('the existing pairux CLI token still works', async () => {
     const res = await mcp.POST(rpc('tools/list', OLD_KEY));
     expect(res.status).toBe(200);
-    expect((await rpcResult(res)).result.tools.length).toBe(12);
+    expect((await rpcResult(res)).result.tools.length).toBe(16);
   });
   it('a signed-in PairUX session still works', async () => {
     signedInAs = 'web-user';

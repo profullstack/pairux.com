@@ -2739,5 +2739,17 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "events": {
+    "upcoming": "Скоро в эфире",
+    "subscribe": "Подписаться на календарь",
+    "subscribeGoogle": "Добавить в Google Календарь",
+    "addToCalendar": "Добавить в календарь",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Смотреть на {channel}",
+    "liveNow": "Сейчас в эфире",
+    "upcomingStreams": "Предстоящие трансляции",
+    "publicToggle": "Показывать публично",
+    "publicHelp": "Показывает эту встречу на странице канала и в календаре, на который можно подписаться."
   }
 }

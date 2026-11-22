@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { Radio, Eye, Users, Circle, User as UserIcon } from 'lucide-react';
+import { Radio, Eye, Users, Circle, CalendarDays, User as UserIcon } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { renderDescriptionHtml } from '@/lib/markdown';
 import type { PublicRoom, Creator } from '@pairux/shared-types';
+import { UpcomingEvents } from '@/components/live-events/UpcomingEvents';
+import { upcoming } from '@/lib/live-events/public';
+import { upcomingPublicEvents } from '@/lib/live-events/read';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('live.metadata');
@@ -58,11 +61,15 @@ function hostLabel(room: PublicRoom, anonymous: string): string {
 }
 
 export default async function LivePage() {
-  const [rooms, creators, t] = await Promise.all([
+  const [rooms, creators, t, te, locale, eventRows] = await Promise.all([
     getPublicRooms(),
     getCreators(),
     getTranslations('live'),
+    getTranslations('events'),
+    getLocale(),
+    upcomingPublicEvents(24),
   ]);
+  const events = upcoming(eventRows, new Date()).slice(0, 12);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -90,6 +97,23 @@ export default async function LivePage() {
             </div>
           </div>
         </section>
+
+        {events.length > 0 && (
+          <section id="upcoming" className="pt-12">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <CalendarDays className="h-5 w-5 text-indigo-500" />
+                {te('upcomingStreams')}
+              </h2>
+              <UpcomingEvents
+                items={events}
+                locale={locale}
+                liveNowLabel={te('liveNow')}
+                showChannel
+              />
+            </div>
+          </section>
+        )}
 
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -242,7 +242,10 @@ describe('WingetPackageManager', () => {
 
       await winget.submit(createSampleRelease('1.0.0'), false).catch(() => undefined);
 
-      const headers = (mockFetch.mock.calls[1]?.[1] as RequestInit).headers as Record<string, string>;
+      const headers = (mockFetch.mock.calls[1]?.[1] as RequestInit).headers as Record<
+        string,
+        string
+      >;
       expect(headers.Authorization).toBe('Bearer ghp_classic');
       delete process.env.WINGET_GITHUB_TOKEN;
     });

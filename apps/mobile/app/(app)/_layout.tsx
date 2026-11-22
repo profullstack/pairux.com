@@ -9,6 +9,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     Dashboard: '~',
     Host: '+',
     Join: '>',
+    Recordings: '#',
     Settings: '*',
   };
   return (
@@ -56,10 +57,24 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="recordings"
+        options={{
+          title: 'Recordings',
+          tabBarIcon: ({ focused }) => <TabIcon name="Recordings" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ focused }) => <TabIcon name="Settings" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="edit/[id]"
+        options={{
+          href: null,
+          title: 'Edit recording',
         }}
       />
       {/* Hide session route from tab bar */}

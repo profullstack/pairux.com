@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@pairux/shared-types": "workspace:*",
+    "@pairux/video-edit": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/typography": "^0.5.20",
     "@testing-library/jest-dom": "^7.0.1",

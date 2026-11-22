@@ -3,6 +3,7 @@ import { LoginPage } from './login';
 import { HomePage } from './home';
 import { JoinPage } from './join';
 import { ViewerPage } from './viewer';
+import { EditorPage } from './editor';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
@@ -34,6 +35,11 @@ export const router = createHashRouter([
         // Viewer page for watching a session
         path: 'viewer/:sessionId',
         element: <ViewerPage />,
+      },
+      {
+        // Video editor: trim, intro/outro, fades, export, publish to c0mpute
+        path: 'editor',
+        element: <EditorPage />,
       },
       // Settings is rendered as an overlay (see AppLayout) instead of a sibling
       // route, so opening it does not unmount the active session on Home.

@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { CopilotLlmError } from '@/lib/copilot/llm';
 import { MCP_PROTOCOL_VERSION, MCP_TOOLS, McpToolError, callMcpTool } from '@/lib/copilot/mcp';
 import { copilotRuntime } from '@/lib/copilot/runtime';
+import {
+  RECORDING_TOOLS,
+  RECORDING_TOOL_NAMES,
+  RecordingToolError,
+  callRecordingTool,
+} from '@/lib/recording-edits/mcp';
 import { requestUser } from '@/lib/request-user';
 import { ACCESS_PREFIX, oauthDb, resolveAccessToken, resourceMetadataUrl } from '@/lib/mcp-oauth';
 import { FixedWindowRateLimiter } from '@/lib/rate-limit';
@@ -38,9 +44,9 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
       return reply(id, {
         protocolVersion: MCP_PROTOCOL_VERSION,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'pairux', title: 'PairUX', version: '1.1.0' },
+        serverInfo: { name: 'pairux', title: 'PairUX', version: '1.2.0' },
         instructions:
-          'PairUX AI copilot: list your meeting copilots, read their notes and follow-ups, and ask a live copilot about the meeting in progress.',
+          'PairUX: list your meeting copilots, read their notes and follow-ups, and ask a live copilot about the meeting in progress. Edit your recordings: list_recordings, then edit_recording to keep only the parts you want (e.g. "12:30-17:30") with fades and intro/outro title cards; poll get_recording until the edit is ready.',
       });
     case 'ping':
       return reply(id, {});
@@ -48,19 +54,34 @@ async function handle(message: JsonRpcRequest, userId: string): Promise<object |
       // resultType + ttlMs + cacheScope: Claude Code's client (revision
       // 2026-07-28) rejects a list without them ("tools fetch failed").
       return reply(id, {
-        tools: MCP_TOOLS,
+        tools: [...MCP_TOOLS, ...RECORDING_TOOLS],
         resultType: 'complete',
         ttlMs: 300_000,
         cacheScope: 'private',
       });
     case 'tools/call': {
-      const runtime = copilotRuntime();
-      if (!runtime) return failure(id, -32603, 'The AI copilot is turned off on this server.');
       const name = typeof params.name === 'string' ? params.name : '';
       const args =
         params.arguments && typeof params.arguments === 'object'
           ? (params.arguments as Record<string, unknown>)
           : {};
+      // Recording tools need no copilot, so they work when it is turned off.
+      if (RECORDING_TOOL_NAMES.has(name)) {
+        try {
+          const result = await callRecordingTool(userId, name, args);
+          return reply(id, {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            structuredContent: result,
+          });
+        } catch (error) {
+          if (error instanceof RecordingToolError)
+            return reply(id, { content: [{ type: 'text', text: error.message }], isError: true });
+          console.error('[mcp] recording tool failed:', error);
+          return failure(id, -32603, 'The tool failed.');
+        }
+      }
+      const runtime = copilotRuntime();
+      if (!runtime) return failure(id, -32603, 'The AI copilot is turned off on this server.');
       try {
         const result = await callMcpTool(runtime, userId, name, args);
         return reply(id, {

@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import type { BrowserWindow } from 'electron';
 import { resolve } from 'path';
+import { isAllowedCloudUrl } from './editor/cloud';
 
 /**
  * `pairux://` deep links.
@@ -27,7 +28,10 @@ export function parseDeepLink(raw: string): string | null {
   const match = /^pairux:(?:\/\/)?(.*)$/i.exec(raw.trim());
   if (!match) return null;
 
-  const [rawPath = ''] = match[1].split('?');
+  const rest = match[1];
+  const q = rest.indexOf('?');
+  const rawPath = q === -1 ? rest : rest.slice(0, q);
+  const rawQuery = q === -1 ? '' : rest.slice(q + 1);
   let segments: string[];
   try {
     segments = rawPath
@@ -55,6 +59,19 @@ export function parseDeepLink(raw: string): string | null {
       const code = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (code.length !== 6) return null;
       return `/join?code=${code}`;
+    }
+    case 'edit': {
+      // Open the editor, optionally on a cloud recording the web or mobile app
+      // handed over: `pairux://edit?url=<https playback url>&title=<t>`. Main
+      // checks the URL again before downloading it.
+      const query = new URLSearchParams(rawQuery);
+      const url = query.get('url');
+      if (!url) return '/editor';
+      if (!isAllowedCloudUrl(url)) return null;
+      const title = (query.get('title') ?? '').slice(0, 120);
+      const params = new URLSearchParams({ url });
+      if (title) params.set('title', title);
+      return `/editor?${params.toString()}`;
     }
     case 'view':
     case 'viewer': {

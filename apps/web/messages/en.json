@@ -46,7 +46,8 @@
     "signOut": "Sign out",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "userFallback": "User"
+    "userFallback": "User",
+    "recordings": "Recordings"
   },
   "footer": {
     "tagline": "Collaborative screen sharing with simultaneous remote control. Like Screenhero, but open source.",
@@ -224,6 +225,16 @@
           "d1": "Interview, team sync and presentation modes",
           "d2": "Screen stills reviewed for slides and demos",
           "d3": "Everyone in the call is told it is recorded"
+        }
+      },
+      "videoEditing": {
+        "title": "Video Editing",
+        "description": "Recorded an hour but only need five minutes? Mark what to keep, cut the rest, fade in and out, and add an intro or outro title card. Edit in the desktop app, on the web, on your phone, from the CLI or from an AI agent over MCP.",
+        "details": {
+          "d0": "Keep or cut any ranges; preview the cut before rendering",
+          "d1": "Fade in/out and intro/outro title cards or clips",
+          "d2": "Cloud recordings render on the server; local files on your machine",
+          "d3": "Publish privately to c0mpute storage, end-to-end encrypted"
         }
       },
       "screenSharing": {
@@ -809,7 +820,8 @@
       "startSharing": "Start Sharing",
       "joinSession": "Join Session",
       "scheduleMeeting": "Schedule Meeting",
-      "callAnalyses": "Call Analyses"
+      "callAnalyses": "Call Analyses",
+      "recordings": "Recordings"
     },
     "quickActions": {
       "title": "Quick Actions",
@@ -2548,5 +2560,79 @@
     "passphraseSet": "Set passphrase",
     "recoveryTitle": "Recovery key (shown once). Keep it somewhere safe:",
     "recoverySaved": "I saved it"
+  },
+  "recordings": {
+    "meta": {
+      "listTitle": "Recordings",
+      "editTitle": "Edit recording"
+    },
+    "list": {
+      "title": "Recordings",
+      "intro": "Your session recordings and the edits you have cut from them. Edit one to keep only the part you need, fade it in and out, and add an intro or outro.",
+      "loading": "Loading recordings…",
+      "loadError": "Could not load your recordings.",
+      "empty": "No recordings yet. Sessions you host over the SFU are recorded here automatically.",
+      "untitled": "Untitled recording",
+      "edit": "Edit",
+      "editButton": "Edit",
+      "download": "Download",
+      "delete": "Delete",
+      "confirmDelete": "Delete this edit? The original recording is kept.",
+      "rendering": "Rendering… {percent}%",
+      "stillRecording": "Still recording.",
+      "finishing": "Finishing the recording…",
+      "failed": "Failed"
+    },
+    "editor": {
+      "back": "All recordings",
+      "title": "Edit recording",
+      "loading": "Loading…",
+      "notReady": "This recording is not ready to edit yet.",
+      "untitled": "Untitled recording",
+      "editSuffix": "edit",
+      "thanks": "Thanks for watching",
+      "keptOf": "Keeping {kept} of {total}",
+      "markIn": "Mark in",
+      "markOut": "Mark out",
+      "keepOnly": "Keep only selection",
+      "addSelection": "Add selection",
+      "cutSelection": "Cut selection",
+      "reset": "Reset",
+      "previewCut": "Preview the cut",
+      "shortcuts": "Press I and O to mark in and out at the playhead. Click the timeline to seek.",
+      "ranges": "Kept ranges",
+      "nothingKept": "Nothing is kept. Mark a selection and keep it, or reset.",
+      "start": "Start",
+      "end": "End",
+      "jump": "Jump",
+      "removeRange": "Remove range",
+      "name": "Name",
+      "fadeIn": "Fade in: {seconds}s",
+      "fadeOut": "Fade out: {seconds}s",
+      "intro": "Intro",
+      "outro": "Outro",
+      "bumper": {
+        "none": "None",
+        "title": "Title card",
+        "recording": "One of my recordings",
+        "textPlaceholder": "Title",
+        "subtitlePlaceholder": "Subtitle (optional)",
+        "seconds": "Seconds",
+        "pick": "Pick a recording"
+      },
+      "render": "Render edit",
+      "rendering": "Rendering… {percent}%",
+      "done": "Your edit is ready.",
+      "download": "Download MP4",
+      "editAgain": "Edit this cut further",
+      "failed": "The render failed",
+      "tryAgain": "Change the edit and try again",
+      "desktop": {
+        "title": "Edit and publish from the desktop app",
+        "body": "The PairUX desktop app edits local recordings too, and can publish the result privately to c0mpute storage, end-to-end encrypted with your own key.",
+        "open": "Open in desktop app",
+        "cli": "Or from a terminal:"
+      }
+    }
   }
 }

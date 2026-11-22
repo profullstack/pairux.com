@@ -36,6 +36,7 @@ import {
 import { APP_URL, API_BASE_URL } from '../../../shared/config';
 import { CallAnalysisCapture, type CaptureStatus } from '@/lib/callAnalysisCapture';
 import { getElectronAPI } from '@/lib/ipc';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat';
 import { ParticipantList } from '@/components/ParticipantList';
@@ -156,6 +157,9 @@ export function CapturePreview({
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [speakerGain, setSpeakerGain] = useState(DEFAULT_REMOTE_AUDIO_GAIN);
   const [spaceWarning, setSpaceWarning] = useState<number | null>(null);
+  const navigate = useNavigate();
+  // The file just saved by Stop, offered for editing until dismissed.
+  const [savedRecording, setSavedRecording] = useState<string | null>(null);
   /** Set when the machine is short on memory; the string is what the user reads. */
   const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
@@ -190,6 +194,7 @@ export function CapturePreview({
     },
     onStop: (path, dur) => {
       console.log('[CapturePreview] Recording stopped:', path, `Duration: ${String(dur)}s`);
+      if (path) setSavedRecording(path);
     },
     onError: (err) => {
       console.error('[CapturePreview] Recording error:', err);
@@ -1924,6 +1929,47 @@ export function CapturePreview({
                 : analysisStatus === 'capturing'
                   ? 'AI analysis: recording'
                   : 'AI analysis on'}
+            </div>
+          )}
+
+          {/* Saved recording: offer the editor. Leaving Home ends the session, so ask. */}
+          {savedRecording && !isRecording && (
+            <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-border bg-card/95 px-3 py-2 text-sm shadow-lg backdrop-blur">
+              <span className="text-muted-foreground">Recording saved.</span>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      'Open the recording in the editor? This leaves the current session. You can also edit it later from Edit a Video on the home screen.'
+                    )
+                  ) {
+                    void navigate(`/editor?path=${encodeURIComponent(savedRecording)}`);
+                  }
+                }}
+              >
+                Edit recording
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  void getElectronAPI().invoke('editor:showInFolder', { path: savedRecording })
+                }
+              >
+                Show
+              </Button>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground"
+                title="Dismiss"
+                onClick={() => {
+                  setSavedRecording(null);
+                }}
+              >
+                ×
+              </button>
             </div>
           )}
 

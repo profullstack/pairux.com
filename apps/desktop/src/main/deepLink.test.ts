@@ -58,6 +58,26 @@ describe('parseDeepLink', () => {
     expect(parseDeepLink('pairux://host/..%2F..%2Flogin')).toBeNull();
     expect(parseDeepLink('pairux://viewer/a b')).toBeNull();
   });
+
+  it('opens the editor, optionally on a cloud recording', () => {
+    expect(parseDeepLink('pairux://edit')).toBe('/editor');
+    const url = 'https://supabase.pairux.com/storage/v1/object/public/recordings/s/1.mp4?x=1';
+    const path = parseDeepLink(`pairux://edit?url=${encodeURIComponent(url)}&title=Weekly%20sync`);
+    expect(path).not.toBeNull();
+    const q = new URLSearchParams((path ?? '').split('?')[1]);
+    expect((path ?? '').startsWith('/editor?')).toBe(true);
+    expect(q.get('url')).toBe(url);
+    expect(q.get('title')).toBe('Weekly sync');
+  });
+
+  it('refuses an edit link for a host we do not serve recordings from', () => {
+    expect(
+      parseDeepLink(`pairux://edit?url=${encodeURIComponent('https://evil.example/x.mp4')}`)
+    ).toBeNull();
+    expect(
+      parseDeepLink(`pairux://edit?url=${encodeURIComponent('http://pairux.com/x.mp4')}`)
+    ).toBeNull();
+  });
 });
 
 describe('findDeepLinkArg', () => {

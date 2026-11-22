@@ -163,6 +163,11 @@ export class PairuxClient {
     return new CopilotApi(this, (path, init) => this.request(path, init, true));
   }
 
+  /** Your server recordings and their edits; every call is signed in. */
+  recordings(): RecordingsApi {
+    return new RecordingsApi((path, init) => this.request(path, init, true));
+  }
+
   /** POST to a text/event-stream endpoint, signed in; the body or an ApiError. */
   async openStream(path: string, signal?: AbortSignal): Promise<ReadableStream<Uint8Array>> {
     const init: RequestInit = { method: 'POST', body: '{}', ...(signal ? { signal } : {}) };
@@ -196,6 +201,44 @@ export class PairuxClient {
       { method: 'POST', body: JSON.stringify({ note }) },
       true
     );
+  }
+}
+
+/** A server recording (LiveKit egress) or an edit rendered from one. */
+export interface CloudRecording {
+  id: string;
+  subject: string | null;
+  status: 'recording' | 'processing' | 'ready' | 'failed';
+  duration_seconds: number | null;
+  size_bytes: number | null;
+  playback_url: string | null;
+  created_at: string;
+  parent_recording_id: string | null;
+  edit_progress: number | null;
+  edit_error: string | null;
+}
+
+/** Signed-in calls to /api/v1/recordings. */
+export class RecordingsApi {
+  constructor(private readonly call: <T>(path: string, init?: RequestInit) => Promise<T>) {}
+
+  async list(): Promise<CloudRecording[]> {
+    return (await this.call<{ recordings: CloudRecording[] }>('/api/v1/recordings')).recordings;
+  }
+
+  async get(id: string): Promise<CloudRecording> {
+    return (
+      await this.call<{ recording: CloudRecording }>(`/api/v1/recordings/${encodeURIComponent(id)}`)
+    ).recording;
+  }
+
+  async edit(id: string, plan: unknown, subject?: string): Promise<CloudRecording> {
+    return (
+      await this.call<{ recording: CloudRecording }>(
+        `/api/v1/recordings/${encodeURIComponent(id)}/edits`,
+        { method: 'POST', body: JSON.stringify({ plan, ...(subject ? { subject } : {}) }) }
+      )
+    ).recording;
   }
 }
 

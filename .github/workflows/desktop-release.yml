@@ -328,6 +328,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - name: Checkout verification script
@@ -432,11 +433,19 @@ jobs:
           cat SHA256SUMS.txt
           gh release upload "$TAG" SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
 
+      # Publish with the job's own GITHUB_TOKEN, then start submit-packages by
+      # workflow_dispatch (a GITHUB_TOKEN dispatch DOES start workflows, unlike
+      # the release event). Publishing used to need the PKG_SUBMIT_TOKEN PAT,
+      # and when that PAT died (v0.22.0, v0.23.0) releases stayed drafts.
       - name: Publish release
         env:
-          # PKG_SUBMIT_TOKEN (PAT) so un-drafting emits a release event that
-          # triggers the submit-packages workflow; the default GITHUB_TOKEN
-          # does not trigger other workflows.
-          GH_TOKEN: ${{ secrets.PKG_SUBMIT_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.prepare.outputs.tag }}
-        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+
+      - name: Submit to package managers
+        if: needs.prepare.outputs.prerelease != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: gh workflow run submit-packages.yml --repo "$GITHUB_REPOSITORY" --ref "${{ github.event.repository.default_branch }}" -f version="$VERSION"

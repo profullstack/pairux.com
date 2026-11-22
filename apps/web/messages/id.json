@@ -2740,6 +2740,18 @@
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
   },
+  "events": {
+    "upcoming": "Siaran mendatang",
+    "subscribe": "Berlangganan kalender",
+    "subscribeGoogle": "Tambahkan ke Google Kalender",
+    "addToCalendar": "Tambahkan ke kalender",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Tonton di {channel}",
+    "liveNow": "Sedang live",
+    "upcomingStreams": "Siaran mendatang",
+    "publicToggle": "Tampilkan publik",
+    "publicHelp": "Menampilkan rapat ini di halaman kanal dan di feed kalender yang bisa dilanggan."
+  },
   "checkoutPage": {
     "cta": "Lanjutkan ke pembayaran",
     "processor": "Bayar dengan kripto atau PayPal. Pembayaran diproses oleh CoinPay.",

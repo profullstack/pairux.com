@@ -24,6 +24,7 @@ export interface EditableMeeting {
   recurrence_interval?: number | null;
   recurrence_count?: number | null;
   channel_id?: string | null;
+  visibility?: string | null;
 }
 
 type ChannelOption = Pick<MyChannel, 'id' | 'handle' | 'name' | 'org_name' | 'team_name'>;
@@ -111,6 +112,8 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
     return existing.length > 0 ? existing : [''];
   });
   const [channelId, setChannelId] = useState(meeting?.channel_id ?? '');
+  const [isPublic, setIsPublic] = useState(meeting?.visibility === 'public');
+  const te = useTranslations('events');
   // Every channel the host can go live on: their own plus team and org ones.
   // undefined while loading.
   const [channels, setChannels] = useState<ChannelOption[] | undefined>(undefined);
@@ -209,6 +212,12 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             ...(repeatFreq || isEditing ? { recurrenceFreq: repeatFreq || null } : {}),
             // Same reason: on edit, null is how the channel gets taken off.
             ...(channelId || isEditing ? { channelId: channelId || null } : {}),
+            // Public needs a channel; on edit always send it so unlisting sticks.
+            ...(channelId && isPublic
+              ? { visibility: 'public' }
+              : isEditing
+                ? { visibility: 'private' }
+                : {}),
             ...(repeatFreq
               ? {
                   recurrenceInterval: clamp(repeatInterval, 1, MAX_RECURRENCE_INTERVAL),
@@ -450,6 +459,22 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
             <p className="mt-1.5 text-xs text-gray-400">
               {channels?.length === 0 ? t('noChannelsHint') : t('channelHint')}
             </p>
+            {channelId !== '' && (
+              <label className="mt-3 flex items-start gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => {
+                    setIsPublic(e.target.checked);
+                  }}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>
+                  <span className="font-medium">{te('publicToggle')}</span>
+                  <span className="block text-xs text-gray-500">{te('publicHelp')}</span>
+                </span>
+              </label>
+            )}
           </div>
 
           {/* Description */}

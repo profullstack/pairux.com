@@ -2740,6 +2740,18 @@
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
   },
+  "events": {
+    "upcoming": "今後のライブ",
+    "subscribe": "カレンダーを購読",
+    "subscribeGoogle": "Google カレンダーに追加",
+    "addToCalendar": "カレンダーに追加",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "{channel} で視聴",
+    "liveNow": "ライブ配信中",
+    "upcomingStreams": "今後の配信",
+    "publicToggle": "公開する",
+    "publicHelp": "このミーティングをチャンネルページと購読できるカレンダーフィードに表示します。"
+  },
   "checkoutPage": {
     "cta": "お支払いへ進む",
     "processor": "暗号資産または PayPal でお支払いいただけます。決済は CoinPay が処理します。",

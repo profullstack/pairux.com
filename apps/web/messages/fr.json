@@ -2740,6 +2740,18 @@
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
   },
+  "events": {
+    "upcoming": "Prochains directs",
+    "subscribe": "S'abonner au calendrier",
+    "subscribeGoogle": "Ajouter à Google Agenda",
+    "addToCalendar": "Ajouter au calendrier",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "Regarder sur {channel}",
+    "liveNow": "En direct",
+    "upcomingStreams": "Prochains streams",
+    "publicToggle": "Rendre public",
+    "publicHelp": "Affiche cette réunion sur la page de la chaîne et dans son calendrier auquel on peut s'abonner."
+  },
   "checkoutPage": {
     "cta": "Continuer vers le paiement",
     "processor": "Payez en crypto ou avec PayPal. Le paiement est traité par CoinPay.",

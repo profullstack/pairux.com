@@ -2740,6 +2740,18 @@
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
   },
+  "events": {
+    "upcoming": "आगामी लाइव",
+    "subscribe": "कैलेंडर की सदस्यता लें",
+    "subscribeGoogle": "Google Calendar में जोड़ें",
+    "addToCalendar": "कैलेंडर में जोड़ें",
+    "downloadIcs": "Apple / Outlook (.ics)",
+    "watch": "{channel} पर देखें",
+    "liveNow": "अभी लाइव",
+    "upcomingStreams": "आगामी स्ट्रीम",
+    "publicToggle": "सार्वजनिक रूप से दिखाएँ",
+    "publicHelp": "यह मीटिंग चैनल पेज और उसके सब्सक्राइब किए जा सकने वाले कैलेंडर फ़ीड में दिखती है।"
+  },
   "checkoutPage": {
     "cta": "भुगतान के लिए आगे बढ़ें",
     "processor": "क्रिप्टो या PayPal से भुगतान करें। भुगतान CoinPay द्वारा संसाधित होता है।",

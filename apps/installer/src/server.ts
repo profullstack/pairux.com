@@ -176,6 +176,23 @@ app.get('/.well-known/openwebring.json', (c) =>
   c.json(descriptor({ site: SITE, name: 'PairUX Installer' }))
 );
 
+// The landing page is the one page here; the rest is scripts, JSON and downloads.
+app.get('/robots.txt', (c) =>
+  c.text(
+    `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /download/\n\nSitemap: ${SITE}sitemap.xml\n`,
+    200,
+    { 'Cache-Control': 'public, max-age=3600' }
+  )
+);
+
+app.get('/sitemap.xml', (c) =>
+  c.body(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${escapeHtml(SITE)}</loc></url>\n</urlset>\n`,
+    200,
+    { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
+  )
+);
+
 // Root - HTML landing page for browsers, service info JSON for everything else
 app.get('/', async (c) => {
   const latestVersion = await getLatestVersion();

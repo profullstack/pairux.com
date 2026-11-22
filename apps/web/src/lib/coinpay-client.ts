@@ -21,6 +21,8 @@
  * Modelled on smshub src/lib/coinpay/checkout.ts.
  */
 
+import { COINPAY_UA } from './coinpay-ua';
+
 const DEFAULT_COINPAY_URL = 'https://coinpayportal.com';
 
 /** Every payment carries this, so CoinPay rows map back to the site and account. */
@@ -195,7 +197,7 @@ export async function availableChains(
     return offered(chainsCache.chains, nowMs);
   try {
     const res = await fetchImpl(`${cfg.apiUrl}/supported-coins?active_only=true`, {
-      headers: { Authorization: `Bearer ${cfg.apiKey}` },
+      headers: { Authorization: `Bearer ${cfg.apiKey}`, 'User-Agent': COINPAY_UA },
       signal: AbortSignal.timeout(4000),
       cache: 'no-store',
     });
@@ -257,7 +259,11 @@ export async function createCheckoutSession(
   try {
     const res = await fetchImpl(`${cfg.apiUrl}/checkout/sessions`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${cfg.apiKey}`, 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${cfg.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': COINPAY_UA,
+      },
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
@@ -320,7 +326,11 @@ export async function createCryptoPayment(
 ): Promise<CreatedPayment> {
   const res = await fetchImpl(`${cfg.apiUrl}/payments/create`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${cfg.apiKey}`, 'Content-Type': 'application/json' },
+    headers: {
+        Authorization: `Bearer ${cfg.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': COINPAY_UA,
+      },
     cache: 'no-store',
     body: JSON.stringify({
       business_id: cfg.businessId,
@@ -367,7 +377,11 @@ export async function createPaypalPayment(
 ): Promise<CreatedPayment> {
   const res = await fetchImpl(`${cfg.apiUrl}/paypal/payments/create`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${cfg.apiKey}`, 'Content-Type': 'application/json' },
+    headers: {
+        Authorization: `Bearer ${cfg.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': COINPAY_UA,
+      },
     cache: 'no-store',
     body: JSON.stringify({
       business_id: cfg.businessId,

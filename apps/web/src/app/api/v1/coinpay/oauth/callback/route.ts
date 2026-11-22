@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { finishSignIn, sameState } from '@profullstack/coinpay-onboard/oauth';
+import { coinpayFetch } from '@/lib/coinpay-ua';
 import { saveOpenProfileContact } from '@profullstack/profile';
 import { profileStore } from '@/lib/profile';
 import { createClient } from '@/lib/supabase/server';
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
       clientSecret: cfg.clientSecret,
       redirectUri: redirectUri(cfg),
       base: cfg.base,
+      fetch: coinpayFetch,
     });
     claims = claimsFrom(r);
     pass = r.pass;

@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "ストリームキー",
       "save": "保存",
       "cancel": "キャンセル",
-      "add": "配信先を追加"
+      "add": "配信先を追加",
+      "c0mputeWatch": "視聴リンク",
+      "c0mputeManaged": "設定で管理"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPayがこのアカウントへの唯一のサインイン方法のため、接続を解除できません。",
       "notConfigured": "現在CoinPayを接続できません。",
       "justConnected": "CoinPayを接続しました。"
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "チャンネルのライブを c0mpute のピアツーピアネットワークに再配信します。",
+      "pricing": "PairUX 側は無料です。リレーの料金は GB 単位で c0mpute の残高から支払われます。残高がない場合は c0mpute の無料枠 (720p、視聴者 25 人) で配信されます。",
+      "connect": "c0mpute で接続",
+      "pasteToggle": "代わりに API キーを貼り付ける",
+      "keyLabel": "c0mpute API キー",
+      "keyHint": "c0mpute.com で live:publish 権限のキーを作成してください。ストリームの設定に一度だけ使用され、保存されません。",
+      "keySubmit": "接続",
+      "connected": "接続済み",
+      "connectedAs": "{account} として接続済み",
+      "resync": "新しいチャンネルを追加",
+      "disconnect": "接続を解除",
+      "watchLinks": "視聴リンク",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "restreamOff": "このチャンネルの再配信はオフです。ダッシュボードでオンにしてください。",
+      "tierPaid": "有料枠: リレーの料金は c0mpute の残高から請求されます。",
+      "tierFree": "無料枠: 720p、視聴者 25 人まで。",
+      "topUp": "c0mpute でチャージ",
+      "earn": "c0mpute ノードを運用して配信から収益を得る",
+      "justConnected": "c0mpute Live を接続しました。",
+      "partial": "一部のチャンネルを設定できませんでした。もう一度お試しください。",
+      "noChannels": "先にチャンネルを作成してから c0mpute Live を接続してください。",
+      "scope": "c0mpute がそのサインインまたはキーを受け付けませんでした。live:publish 権限が必要です。",
+      "unavailable": "c0mpute Live は現在ご利用いただけません。",
+      "keyFormat": "c0mpute の API キーではないようです。キーは c0k_ で始まります。",
+      "failed": "c0mpute Live を接続できませんでした。もう一度お試しください。"
     }
   },
   "replay": {

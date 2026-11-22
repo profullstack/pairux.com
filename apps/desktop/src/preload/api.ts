@@ -693,7 +693,7 @@ export interface EditorRecordingFile {
 }
 
 // RTMP Streaming types
-export type StreamPlatform = 'youtube' | 'twitch' | 'facebook' | 'custom';
+export type StreamPlatform = 'youtube' | 'twitch' | 'facebook' | 'c0mpute' | 'custom';
 export type StreamStatus = 'idle' | 'connecting' | 'live' | 'reconnecting' | 'error' | 'stopped';
 
 export interface EncoderSettings {

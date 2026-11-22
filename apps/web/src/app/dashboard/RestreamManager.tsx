@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Loader2, Plus, Trash2, Radio } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ChannelRestreamDestination } from '@pairux/shared-types';
@@ -23,6 +24,10 @@ const PLATFORMS: { value: string; label: string | null; url: string; editable: b
   { value: 'custom', label: null, url: '', editable: true },
 ];
 
+// c0mpute Live destinations are created from Settings (the stream key comes
+// from c0mpute, never typed here), so they are not in the add-destination list.
+const C0MPUTE_PLATFORM = 'c0mpute';
+
 export function RestreamManager({ channelId, initialEnabled }: RestreamManagerProps) {
   const t = useTranslations('dashboard.restream');
   const [enabled, setEnabled] = useState(initialEnabled);
@@ -33,12 +38,29 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
   const [platform, setPlatform] = useState('youtube');
   const [rtmpUrl, setRtmpUrl] = useState(PLATFORMS[0]?.url ?? '');
   const [streamKey, setStreamKey] = useState('');
+  const [c0mputeWatchUrl, setC0mputeWatchUrl] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       const res = await fetch(`/api/channels/${channelId}/restream`);
       const body = (await res.json()) as { data?: { destinations: ChannelRestreamDestination[] } };
-      setDests(body.data?.destinations ?? []);
+      const list = body.data?.destinations ?? [];
+      setDests(list);
+      if (!list.some((d) => d.platform === C0MPUTE_PLATFORM)) {
+        setC0mputeWatchUrl(null);
+        return;
+      }
+      // The watch link lives with the c0mpute Live link, not the destination.
+      try {
+        const st = await fetch('/api/v1/c0mpute/status');
+        const json = (await st.json()) as {
+          data?: { channels?: { channelId: string; watchUrl: string | null }[] };
+        };
+        const url = json.data?.channels?.find((c) => c.channelId === channelId)?.watchUrl;
+        setC0mputeWatchUrl(url?.startsWith('https://') ? url : null);
+      } catch {
+        setC0mputeWatchUrl(null);
+      }
     } catch {
       setDests([]);
     }
@@ -105,6 +127,7 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
       body: JSON.stringify({
         id: d.id,
         platform: d.platform,
+        label: d.label,
         rtmpUrl: d.rtmp_url,
         enabled: !d.enabled,
       }),
@@ -152,8 +175,34 @@ export function RestreamManager({ channelId, initialEnabled }: RestreamManagerPr
               key={d.id}
               className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs"
             >
-              <span className="font-medium text-gray-800 capitalize">{d.platform}</span>
-              <span className="flex-1 truncate text-gray-500">{d.rtmp_url}</span>
+              {d.platform === C0MPUTE_PLATFORM ? (
+                <>
+                  <span className="font-medium text-gray-800">c0mpute Live</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    {c0mputeWatchUrl && (
+                      <a
+                        href={c0mputeWatchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 truncate hover:underline"
+                      >
+                        {t('c0mputeWatch')}
+                      </a>
+                    )}
+                    <Link
+                      href="/settings#c0mpute"
+                      className="truncate text-gray-500 hover:underline"
+                    >
+                      {t('c0mputeManaged')}
+                    </Link>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium text-gray-800 capitalize">{d.platform}</span>
+                  <span className="flex-1 truncate text-gray-500">{d.rtmp_url}</span>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => void toggleDest(d)}

@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "스트림 키",
       "save": "저장",
       "cancel": "취소",
-      "add": "송출 대상 추가"
+      "add": "송출 대상 추가",
+      "c0mputeWatch": "시청 링크",
+      "c0mputeManaged": "설정에서 관리"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay가 이 계정에 로그인하는 유일한 방법이라 연결을 해제할 수 없습니다.",
       "notConfigured": "지금은 CoinPay를 연결할 수 없습니다.",
       "justConnected": "CoinPay가 연결되었습니다."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "채널의 라이브를 c0mpute P2P 네트워크로 재송출합니다.",
+      "pricing": "PairUX에서는 무료입니다. 릴레이 비용은 GB당 c0mpute 잔액에서 결제됩니다. 잔액이 없으면 c0mpute 무료 등급(720p, 시청자 25명)으로 송출됩니다.",
+      "connect": "c0mpute로 연결",
+      "pasteToggle": "대신 API 키 붙여넣기",
+      "keyLabel": "c0mpute API 키",
+      "keyHint": "c0mpute.com에서 live:publish 권한이 있는 키를 만드세요. 스트림 설정에 한 번만 사용되며 저장되지 않습니다.",
+      "keySubmit": "연결",
+      "connected": "연결됨",
+      "connectedAs": "{account} 계정으로 연결됨",
+      "resync": "새 채널 추가",
+      "disconnect": "연결 해제",
+      "watchLinks": "시청 링크",
+      "copy": "복사",
+      "copied": "복사됨",
+      "restreamOff": "이 채널의 재송출이 꺼져 있습니다. 대시보드에서 켜세요.",
+      "tierPaid": "유료 등급: 릴레이 비용이 c0mpute 잔액에서 청구됩니다.",
+      "tierFree": "무료 등급: 720p, 시청자 최대 25명.",
+      "topUp": "c0mpute에서 충전",
+      "earn": "c0mpute 노드를 운영하고 스트림으로 수익 얻기",
+      "justConnected": "c0mpute Live가 연결되었습니다.",
+      "partial": "일부 채널을 설정하지 못했습니다. 다시 시도하세요.",
+      "noChannels": "먼저 채널을 만든 다음 c0mpute Live를 연결하세요.",
+      "scope": "c0mpute가 해당 로그인 또는 키를 수락하지 않았습니다. live:publish 권한이 필요합니다.",
+      "unavailable": "지금은 c0mpute Live를 사용할 수 없습니다.",
+      "keyFormat": "c0mpute API 키가 아닌 것 같습니다. 키는 c0k_로 시작합니다.",
+      "failed": "c0mpute Live가 연결되지 않았습니다. 다시 시도하세요."
     }
   },
   "replay": {

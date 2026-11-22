@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Strömningsnyckel",
       "save": "Spara",
       "cancel": "Avbryt",
-      "add": "Lägg till destination"
+      "add": "Lägg till destination",
+      "c0mputeWatch": "Tittarlänk",
+      "c0mputeManaged": "Hanteras i Inställningar"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay är det enda sättet att logga in på kontot, så det kan inte kopplas från.",
       "notConfigured": "Det går inte att koppla CoinPay just nu.",
       "justConnected": "CoinPay är kopplat."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Vidaresänd din kanals livesändningar till c0mputes peer-to-peer-nätverk.",
+      "pricing": "Gratis hos PairUX. Reläer betalas per GB från ditt c0mpute-saldo. Utan saldo körs det på c0mputes gratisnivå (720p, 25 tittare).",
+      "connect": "Anslut med c0mpute",
+      "pasteToggle": "Klistra in en API-nyckel i stället",
+      "keyLabel": "c0mpute API-nyckel",
+      "keyHint": "Skapa en nyckel med behörigheten live:publish på c0mpute.com. Den används en gång för att ställa in dina strömmar och sparas inte.",
+      "keySubmit": "Anslut",
+      "connected": "Ansluten",
+      "connectedAs": "Ansluten som {account}",
+      "resync": "Lägg till nya kanaler",
+      "disconnect": "Koppla från",
+      "watchLinks": "Tittarlänkar",
+      "copy": "Kopiera",
+      "copied": "Kopierad",
+      "restreamOff": "Vidaresändning är avstängd för den här kanalen. Slå på den i instrumentpanelen.",
+      "tierPaid": "Betalnivå: reläer dras från ditt c0mpute-saldo.",
+      "tierFree": "Gratisnivå: 720p, upp till 25 tittare.",
+      "topUp": "Fyll på hos c0mpute",
+      "earn": "Kör en c0mpute-nod och tjäna på strömmar",
+      "justConnected": "c0mpute Live är anslutet.",
+      "partial": "Vissa kanaler kunde inte ställas in. Försök igen.",
+      "noChannels": "Skapa en kanal först och anslut sedan c0mpute Live.",
+      "scope": "c0mpute godkände inte den inloggningen eller nyckeln. Behörigheten live:publish krävs.",
+      "unavailable": "c0mpute Live är inte tillgängligt just nu.",
+      "keyFormat": "Det ser inte ut som en c0mpute API-nyckel. Den börjar med c0k_.",
+      "failed": "c0mpute Live anslöts inte. Försök igen."
     }
   },
   "replay": {

@@ -47,6 +47,11 @@ export const PLATFORM_DEFAULTS: Record<
     rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/',
     encoderSettings: { videoBitrate: 4000, framerate: 30 },
   },
+  c0mpute: {
+    name: 'c0mpute Live',
+    rtmpUrl: 'rtmp://live.c0mpute.com/live',
+    encoderSettings: { videoBitrate: 3500, framerate: 30 },
+  },
   custom: {
     name: 'Custom RTMP',
     rtmpUrl: '',

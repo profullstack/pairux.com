@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Stream key",
       "save": "Save",
       "cancel": "Cancel",
-      "add": "Add destination"
+      "add": "Add destination",
+      "c0mputeWatch": "Watch link",
+      "c0mputeManaged": "Managed in Settings"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay is the only way to sign in to this account, so it cannot be disconnected.",
       "notConfigured": "Connecting CoinPay is not available right now.",
       "justConnected": "CoinPay is connected."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Restream your channel's lives into the c0mpute peer-to-peer network.",
+      "pricing": "Free on PairUX. Relays are paid per GB from your c0mpute balance. With no balance it runs on c0mpute's free tier (720p, 25 viewers).",
+      "connect": "Connect with c0mpute",
+      "pasteToggle": "Paste an API key instead",
+      "keyLabel": "c0mpute API key",
+      "keyHint": "Create a key with the live:publish scope on c0mpute.com. It is used once to set up your streams and is not stored.",
+      "keySubmit": "Connect",
+      "connected": "Connected",
+      "connectedAs": "Connected as {account}",
+      "resync": "Add new channels",
+      "disconnect": "Disconnect",
+      "watchLinks": "Watch links",
+      "copy": "Copy",
+      "copied": "Copied",
+      "restreamOff": "Restreaming is off for this channel. Turn it on in the dashboard.",
+      "tierPaid": "Paid tier: relays are billed to your c0mpute balance.",
+      "tierFree": "Free tier: 720p, up to 25 viewers.",
+      "topUp": "Top up on c0mpute",
+      "earn": "Run a c0mpute node and earn from streams",
+      "justConnected": "c0mpute Live is connected.",
+      "partial": "Some channels could not be set up. Try again.",
+      "noChannels": "Create a channel first, then connect c0mpute Live.",
+      "scope": "c0mpute did not accept that sign-in or key. It needs the live:publish scope.",
+      "unavailable": "c0mpute Live is not available right now.",
+      "keyFormat": "That does not look like a c0mpute API key. It starts with c0k_.",
+      "failed": "c0mpute Live did not connect. Try again."
     }
   },
   "replay": {

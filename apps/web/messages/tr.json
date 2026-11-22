@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Yayın anahtarı",
       "save": "Kaydet",
       "cancel": "İptal",
-      "add": "Hedef ekle"
+      "add": "Hedef ekle",
+      "c0mputeWatch": "İzleme bağlantısı",
+      "c0mputeManaged": "Ayarlardan yönetilir"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay bu hesaba girmenin tek yolu, bu yüzden bağlantısı kesilemez.",
       "notConfigured": "CoinPay bağlama şu anda kullanılamıyor.",
       "justConnected": "CoinPay bağlandı."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Kanalınızın canlı yayınlarını c0mpute eşler arası ağına yeniden yayınlayın.",
+      "pricing": "PairUX'te ücretsiz. Aktarıcılar GB başına c0mpute bakiyenizden ödenir. Bakiye yoksa c0mpute'un ücretsiz katmanında çalışır (720p, 25 izleyici).",
+      "connect": "c0mpute ile bağlan",
+      "pasteToggle": "Bunun yerine bir API anahtarı yapıştır",
+      "keyLabel": "c0mpute API anahtarı",
+      "keyHint": "c0mpute.com'da live:publish izniyle bir anahtar oluşturun. Yayınlarınızı kurmak için bir kez kullanılır ve saklanmaz.",
+      "keySubmit": "Bağlan",
+      "connected": "Bağlandı",
+      "connectedAs": "{account} olarak bağlandı",
+      "resync": "Yeni kanallar ekle",
+      "disconnect": "Bağlantıyı kes",
+      "watchLinks": "İzleme bağlantıları",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "restreamOff": "Bu kanal için yeniden yayın kapalı. Panelden açın.",
+      "tierPaid": "Ücretli katman: aktarıcılar c0mpute bakiyenizden tahsil edilir.",
+      "tierFree": "Ücretsiz katman: 720p, en fazla 25 izleyici.",
+      "topUp": "c0mpute'ta bakiye yükle",
+      "earn": "Bir c0mpute düğümü çalıştırın ve yayınlardan kazanın",
+      "justConnected": "c0mpute Live bağlandı.",
+      "partial": "Bazı kanallar kurulamadı. Tekrar deneyin.",
+      "noChannels": "Önce bir kanal oluşturun, sonra c0mpute Live'ı bağlayın.",
+      "scope": "c0mpute bu oturumu veya anahtarı kabul etmedi. live:publish izni gerekiyor.",
+      "unavailable": "c0mpute Live şu anda kullanılamıyor.",
+      "keyFormat": "Bu bir c0mpute API anahtarına benzemiyor. c0k_ ile başlar.",
+      "failed": "c0mpute Live bağlanamadı. Tekrar deneyin."
     }
   },
   "replay": {

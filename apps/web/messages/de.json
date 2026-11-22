@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Stream-Schlüssel",
       "save": "Speichern",
       "cancel": "Abbrechen",
-      "add": "Ziel hinzufügen"
+      "add": "Ziel hinzufügen",
+      "c0mputeWatch": "Wiedergabelink",
+      "c0mputeManaged": "Wird in den Einstellungen verwaltet"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay ist der einzige Weg in dieses Konto und kann daher nicht getrennt werden.",
       "notConfigured": "CoinPay kann gerade nicht verbunden werden.",
       "justConnected": "CoinPay ist verbunden."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Übertrage die Livestreams deines Kanals in das Peer-to-Peer-Netzwerk von c0mpute.",
+      "pricing": "Kostenlos bei PairUX. Relays werden pro GB von deinem c0mpute-Guthaben bezahlt. Ohne Guthaben läuft es im kostenlosen Tarif von c0mpute (720p, 25 Zuschauer).",
+      "connect": "Mit c0mpute verbinden",
+      "pasteToggle": "Stattdessen einen API-Schlüssel einfügen",
+      "keyLabel": "c0mpute-API-Schlüssel",
+      "keyHint": "Erstelle auf c0mpute.com einen Schlüssel mit der Berechtigung live:publish. Er wird einmal zum Einrichten deiner Streams verwendet und nicht gespeichert.",
+      "keySubmit": "Verbinden",
+      "connected": "Verbunden",
+      "connectedAs": "Verbunden als {account}",
+      "resync": "Neue Kanäle hinzufügen",
+      "disconnect": "Trennen",
+      "watchLinks": "Wiedergabelinks",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "restreamOff": "Restreaming ist für diesen Kanal aus. Schalte es im Dashboard ein.",
+      "tierPaid": "Bezahltarif: Relays werden von deinem c0mpute-Guthaben abgebucht.",
+      "tierFree": "Kostenloser Tarif: 720p, bis zu 25 Zuschauer.",
+      "topUp": "Bei c0mpute aufladen",
+      "earn": "Betreibe einen c0mpute-Knoten und verdiene an Streams",
+      "justConnected": "c0mpute Live ist verbunden.",
+      "partial": "Einige Kanäle konnten nicht eingerichtet werden. Versuche es erneut.",
+      "noChannels": "Erstelle zuerst einen Kanal und verbinde dann c0mpute Live.",
+      "scope": "c0mpute hat diese Anmeldung oder diesen Schlüssel nicht akzeptiert. Die Berechtigung live:publish wird benötigt.",
+      "unavailable": "c0mpute Live ist gerade nicht verfügbar.",
+      "keyFormat": "Das sieht nicht nach einem c0mpute-API-Schlüssel aus. Er beginnt mit c0k_.",
+      "failed": "c0mpute Live wurde nicht verbunden. Versuche es erneut."
     }
   },
   "replay": {

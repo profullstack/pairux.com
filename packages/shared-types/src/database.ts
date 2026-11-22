@@ -451,7 +451,7 @@ export interface MyChannel {
 // list_channel_restream_destinations). The secret stream_key is never returned.
 export interface ChannelRestreamDestination {
   id: string;
-  platform: string; // 'youtube' | 'twitch' | 'facebook' | 'custom'
+  platform: string; // 'youtube' | 'twitch' | 'facebook' | 'c0mpute' | 'custom'
   label: string | null;
   rtmp_url: string;
   enabled: boolean;

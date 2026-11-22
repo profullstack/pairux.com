@@ -37,6 +37,13 @@ export const PLATFORM_PRESETS: Record<
     rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/',
     encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 4000, framerate: 30 },
   },
+  // c0mpute Live: the stream key (c0l_...) comes from pairux.com Settings ->
+  // c0mpute Live, or from c0mpute.com/dashboard/live. There is no desktop
+  // OAuth: c0mpute only accepts https redirects, not pairux://.
+  c0mpute: {
+    rtmpUrl: 'rtmp://live.c0mpute.com/live',
+    encoderSettings: { ...DEFAULT_ENCODER_SETTINGS, videoBitrate: 3500, framerate: 30 },
+  },
   custom: {
     rtmpUrl: '',
     encoderSettings: { ...DEFAULT_ENCODER_SETTINGS },

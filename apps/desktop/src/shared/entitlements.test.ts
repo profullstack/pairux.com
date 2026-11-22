@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { FREE_PLATFORMS, isPaidPlan, isPaidPlatform, isPlatformAllowed } from './entitlements';
 
 describe('entitlements', () => {
-  it('treats only YouTube as free', () => {
-    expect(FREE_PLATFORMS).toEqual(['youtube']);
+  it('treats only YouTube and c0mpute Live as free', () => {
+    expect(FREE_PLATFORMS).toEqual(['youtube', 'c0mpute']);
     expect(isPaidPlatform('youtube')).toBe(false);
+    expect(isPaidPlatform('c0mpute')).toBe(false);
     expect(isPaidPlatform('twitch')).toBe(true);
     expect(isPaidPlatform('facebook')).toBe(true);
     expect(isPaidPlatform('custom')).toBe(true);
@@ -16,8 +17,9 @@ describe('entitlements', () => {
     expect(isPaidPlan('team')).toBe(true);
   });
 
-  it('allows free plan to stream to YouTube only', () => {
+  it('allows free plan to stream to YouTube and c0mpute Live only', () => {
     expect(isPlatformAllowed('youtube', 'free')).toBe(true);
+    expect(isPlatformAllowed('c0mpute', 'free')).toBe(true);
     expect(isPlatformAllowed('twitch', 'free')).toBe(false);
     expect(isPlatformAllowed('facebook', 'free')).toBe(false);
     expect(isPlatformAllowed('custom', 'free')).toBe(false);

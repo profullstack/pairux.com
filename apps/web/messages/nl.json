@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "Streamsleutel",
       "save": "Opslaan",
       "cancel": "Annuleren",
-      "add": "Bestemming toevoegen"
+      "add": "Bestemming toevoegen",
+      "c0mputeWatch": "Kijklink",
+      "c0mputeManaged": "Beheerd in Instellingen"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay is de enige manier om in dit account te komen, dus het kan niet worden ontkoppeld.",
       "notConfigured": "CoinPay koppelen is nu niet beschikbaar.",
       "justConnected": "CoinPay is gekoppeld."
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "Stream de live-uitzendingen van je kanaal door naar het peer-to-peernetwerk van c0mpute.",
+      "pricing": "Gratis bij PairUX. Relays betaal je per GB uit je c0mpute-saldo. Zonder saldo draait het op het gratis niveau van c0mpute (720p, 25 kijkers).",
+      "connect": "Verbinden met c0mpute",
+      "pasteToggle": "Plak in plaats daarvan een API-sleutel",
+      "keyLabel": "API-sleutel van c0mpute",
+      "keyHint": "Maak op c0mpute.com een sleutel met de bevoegdheid live:publish. Die wordt één keer gebruikt om je streams in te stellen en wordt niet opgeslagen.",
+      "keySubmit": "Verbinden",
+      "connected": "Verbonden",
+      "connectedAs": "Verbonden als {account}",
+      "resync": "Nieuwe kanalen toevoegen",
+      "disconnect": "Verbinding verbreken",
+      "watchLinks": "Kijklinks",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd",
+      "restreamOff": "Restreamen staat uit voor dit kanaal. Zet het aan in het dashboard.",
+      "tierPaid": "Betaald niveau: relays worden van je c0mpute-saldo afgeschreven.",
+      "tierFree": "Gratis niveau: 720p, maximaal 25 kijkers.",
+      "topUp": "Opwaarderen bij c0mpute",
+      "earn": "Draai een c0mpute-node en verdien aan streams",
+      "justConnected": "c0mpute Live is verbonden.",
+      "partial": "Sommige kanalen konden niet worden ingesteld. Probeer het opnieuw.",
+      "noChannels": "Maak eerst een kanaal en verbind daarna c0mpute Live.",
+      "scope": "c0mpute accepteerde die aanmelding of sleutel niet. De bevoegdheid live:publish is nodig.",
+      "unavailable": "c0mpute Live is nu niet beschikbaar.",
+      "keyFormat": "Dat lijkt geen c0mpute-API-sleutel. Die begint met c0k_.",
+      "failed": "c0mpute Live is niet verbonden. Probeer het opnieuw."
     }
   },
   "replay": {

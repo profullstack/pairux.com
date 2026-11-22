@@ -1039,7 +1039,9 @@
       "streamKeyPlaceholder": "推流密钥",
       "save": "保存",
       "cancel": "取消",
-      "add": "添加推流目标"
+      "add": "添加推流目标",
+      "c0mputeWatch": "观看链接",
+      "c0mputeManaged": "在设置中管理"
     }
   },
   "meetings": {
@@ -2071,6 +2073,35 @@
       "onlyWayIn": "CoinPay 是登录此账户的唯一方式，因此无法解除关联。",
       "notConfigured": "暂时无法关联 CoinPay。",
       "justConnected": "CoinPay 已关联。"
+    },
+    "c0mpute": {
+      "title": "c0mpute Live",
+      "description": "将频道的直播转推到 c0mpute 点对点网络。",
+      "pricing": "在 PairUX 上免费。中继按 GB 从你的 c0mpute 余额中支付。没有余额时使用 c0mpute 的免费档 (720p，25 名观众)。",
+      "connect": "使用 c0mpute 连接",
+      "pasteToggle": "改为粘贴 API 密钥",
+      "keyLabel": "c0mpute API 密钥",
+      "keyHint": "在 c0mpute.com 创建带有 live:publish 权限的密钥。它只会使用一次来设置你的直播流，不会被保存。",
+      "keySubmit": "连接",
+      "connected": "已连接",
+      "connectedAs": "已连接为 {account}",
+      "resync": "添加新频道",
+      "disconnect": "断开连接",
+      "watchLinks": "观看链接",
+      "copy": "复制",
+      "copied": "已复制",
+      "restreamOff": "此频道的转推已关闭。请在控制面板中开启。",
+      "tierPaid": "付费档：中继费用从你的 c0mpute 余额中扣除。",
+      "tierFree": "免费档：720p，最多 25 名观众。",
+      "topUp": "在 c0mpute 充值",
+      "earn": "运行 c0mpute 节点，从直播流中赚取收益",
+      "justConnected": "c0mpute Live 已连接。",
+      "partial": "部分频道无法设置。请重试。",
+      "noChannels": "请先创建频道，然后连接 c0mpute Live。",
+      "scope": "c0mpute 未接受该登录或密钥。需要 live:publish 权限。",
+      "unavailable": "c0mpute Live 暂时不可用。",
+      "keyFormat": "这看起来不像 c0mpute API 密钥。密钥以 c0k_ 开头。",
+      "failed": "c0mpute Live 未能连接。请重试。"
     }
   },
   "replay": {

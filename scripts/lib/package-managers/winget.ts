@@ -27,7 +27,11 @@ export class WingetPackageManager extends BasePackageManager {
    * is used for WinGet only, so the shared token can stay least-privilege.
    */
   protected override getGitHubToken(): string | undefined {
-    return this.config.apiToken ?? process.env.WINGET_GITHUB_TOKEN ?? process.env.GITHUB_TOKEN;
+    // An unset Actions secret arrives as an empty string, which `??` would keep.
+    const set = (v: string | undefined): string | undefined => (v === '' ? undefined : v);
+    return (
+      set(this.config.apiToken) ?? set(process.env.WINGET_GITHUB_TOKEN) ?? process.env.GITHUB_TOKEN
+    );
   }
 
   async checkExisting(version: string): Promise<boolean> {

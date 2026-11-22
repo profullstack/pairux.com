@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import {
   Monitor,
+  Scissors,
   MousePointer2,
   Users,
   Lock,
@@ -42,6 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 type FeatureKey =
   | 'callAnalysis'
+  | 'videoEditing'
   | 'screenSharing'
   | 'remoteControl'
   | 'simultaneousInput'
@@ -66,6 +68,7 @@ interface Feature {
 
 const mainFeatures: Feature[] = [
   { key: 'callAnalysis', icon: Sparkles },
+  { key: 'videoEditing', icon: Scissors },
   {
     key: 'screenSharing',
     icon: Monitor,

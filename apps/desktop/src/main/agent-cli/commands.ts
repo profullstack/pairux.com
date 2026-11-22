@@ -35,6 +35,7 @@ import type { AgentVoiceRunOptions } from './voice-protocol';
 import { newRoomLink } from './room';
 import { COPILOT_HELP, runCopilot } from './copilot';
 import { UsageError } from './errors';
+import { VIDEO_HELP, runEdit, runPublish, runRecordings, type VideoDeps } from './video';
 
 const MAX_MESSAGE = 500;
 
@@ -56,6 +57,8 @@ export interface Deps {
   login?: typeof listenForCallback;
   /** The app version, for the User-Agent and `pairux version`. */
   version?: string;
+  /** ffmpeg + c0mpute for `pairux edit` / `publish`; absent where video is unavailable. */
+  video?: VideoDeps;
 }
 
 export const AGENT_HELP = `Agent commands: bring AI agents into PairUX sessions
@@ -172,6 +175,8 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
       case '--help':
       case '-h':
         deps.out(AGENT_HELP);
+        deps.out('');
+        deps.out(VIDEO_HELP);
         return 0;
 
       case 'version':
@@ -493,6 +498,17 @@ export async function run(argv: string[], deps: Deps): Promise<number> {
           await deps.sleep(intervalMs);
         }
       }
+
+      case 'edit':
+      case 'publish': {
+        if (!deps.video) throw new UsageError('Video editing is not available in this build.');
+        return command === 'edit'
+          ? await runEdit(rest, deps, deps.video)
+          : await runPublish(rest, deps, deps.video);
+      }
+
+      case 'recordings':
+        return await runRecordings(rest, deps, client, Boolean(config.tokens));
 
       case 'copilot': {
         if (!rest[0] || ['help', '--help', '-h'].includes(rest[0])) {

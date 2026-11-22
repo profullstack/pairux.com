@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Link2, Loader2, Mic, Radio, Calendar, User as UserIcon } from 'lucide-react';
+import {
+  Users,
+  Link2,
+  Loader2,
+  Mic,
+  Radio,
+  Calendar,
+  Scissors,
+  User as UserIcon,
+} from 'lucide-react';
 import { SourcePicker } from '@/components/capture/SourcePicker';
 import {
   initialIsWaylandGuess,
@@ -516,6 +525,15 @@ export function HomePage() {
               >
                 <Users className="h-4 w-4" />
                 Join a Session
+              </button>
+              <button
+                onClick={() => void navigate('/editor')}
+                disabled={isCapturing || loadingExistingSession}
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+                title="Trim a recording, add an intro and outro, and export"
+              >
+                <Scissors className="h-4 w-4" />
+                Edit a Video
               </button>
               <button
                 onClick={() => {

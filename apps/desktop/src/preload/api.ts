@@ -1,4 +1,5 @@
 import type { CallAnalysisSettings } from '@pairux/shared-types';
+import type { MediaInfo, ProgressUpdate } from '@pairux/video-edit';
 import type {
   CaptureSource,
   Plan,
@@ -416,6 +417,97 @@ export interface IPCChannels {
     return: { success: boolean };
   };
 
+  // Video editor channels
+  'editor:listRecordings': {
+    args: undefined;
+    return: { dir: string; files: EditorRecordingFile[] };
+  };
+
+  'editor:pickFile': {
+    args: { kind: 'video' | 'image' | 'media' };
+    return: { path: string; url: string } | null;
+  };
+
+  'editor:open': {
+    args: { path: string };
+    return:
+      | { success: true; sourcePath: string; editPath: string; url: string; info: MediaInfo }
+      | { success: false; error: string };
+  };
+
+  'editor:probe': {
+    args: { path: string };
+    return: { success: true; info: MediaInfo } | { success: false; error: string };
+  };
+
+  'editor:pickOutput': {
+    args: { format: 'mp4' | 'webm'; suggested?: string };
+    return: { path: string } | null;
+  };
+
+  'editor:render': {
+    args: {
+      plan: unknown;
+      source: string;
+      sourcePath?: string;
+      output?: string | null;
+      quality?: 'fast' | 'balanced' | 'high';
+      sourceDuration?: number | null;
+    };
+    return:
+      | { success: true; output: string; duration: number; size: number; url: string }
+      | { success: false; error: string; cancelled?: boolean };
+  };
+
+  'editor:cancelRender': {
+    args: undefined;
+    return: { cancelled: boolean };
+  };
+
+  'editor:showInFolder': {
+    args: { path: string };
+    return: { success: boolean };
+  };
+
+  'editor:openFile': {
+    args: { path: string };
+    return: { success: boolean };
+  };
+
+  'editor:copyText': {
+    args: { text: string };
+    return: { success: boolean };
+  };
+
+  'editor:c0mputeStatus': {
+    args: undefined;
+    return: { installed: boolean; binary: string | null };
+  };
+
+  'editor:publish': {
+    args: { path: string; password?: string };
+    return:
+      | {
+          success: true;
+          ref: string;
+          link: string | null;
+          capability: string | null;
+          size: number;
+          browserOpenable: boolean;
+        }
+      | { success: false; error: string; cancelled?: boolean; locked?: boolean };
+  };
+
+  'editor:cancelPublish': {
+    args: undefined;
+    return: { cancelled: boolean };
+  };
+
+  'editor:downloadCloud': {
+    args: { url: string; title?: string | null };
+    return: { success: true; path: string } | { success: false; error: string };
+  };
+
   // Tray channels
   'tray:setSession': {
     args: { session: TraySessionInfo | null };
@@ -552,6 +644,9 @@ export interface IPCEvents {
   'recording:stopped': { path: string; duration: number };
   'recording:error': { error: string };
   'recording:space-warning': { availableGb: number };
+  'editor:progress': ProgressUpdate;
+  'editor:publishLine': { line: string };
+  'editor:downloadProgress': { received: number; total: number | null };
 
   // The machine is running out of memory. 'critical' means main has already
   // stopped the recording and any egress, and the renderer must drop capture.
@@ -587,6 +682,14 @@ export interface IPCEvents {
     destinationId: string;
     warning: string | null;
   };
+}
+
+// Video editor types
+export interface EditorRecordingFile {
+  path: string;
+  name: string;
+  size: number;
+  modifiedAt: number;
 }
 
 // RTMP Streaming types

@@ -1,5 +1,5 @@
 /**
- * `pairux login|logout|whoami|join|listen|say|who|status|leave|voice|room|redeem|invites|copilot`
+ * `pairux login|logout|whoami|join|listen|say|who|status|leave|voice|room|redeem|invites|copilot|edit|publish|recordings`
  *
  * The installed `pairux` launcher passes any argument it does not handle
  * itself (update, uninstall, --help, --version) straight to the app, the same
@@ -10,6 +10,30 @@
 import { configPath } from './config';
 import { openBrowser } from './auth';
 import { readAllStdin, run } from './commands';
+import { getFFmpegPath } from '../streaming';
+import type { VideoDeps } from './video';
+import {
+  findC0mpute,
+  probeMedia,
+  publishToC0mpute,
+  remux,
+  renderEdit,
+} from '@pairux/video-edit/node';
+
+/**
+ * ffmpeg (the same binary the app streams with) and the user's c0mpute CLI,
+ * for `pairux edit` / `publish`.
+ */
+function videoDeps(): VideoDeps {
+  return {
+    findFfmpeg: () => getFFmpegPath(),
+    probe: probeMedia,
+    remux,
+    render: renderEdit,
+    findC0mpute: () => findC0mpute(),
+    publish: publishToC0mpute,
+  };
+}
 
 export const AGENT_COMMANDS = new Set([
   'login',
@@ -26,6 +50,9 @@ export const AGENT_COMMANDS = new Set([
   'redeem',
   'invites',
   'copilot',
+  'edit',
+  'publish',
+  'recordings',
 ]);
 
 /**
@@ -57,6 +84,7 @@ export function runAgentCommand(args: string[], version: string): Promise<number
     openBrowser,
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     readStdin: readAllStdin,
+    video: videoDeps(),
     startVoice: async (options) => {
       const { runAgentVoice } = await import('./voice-runtime');
       return runAgentVoice(options);

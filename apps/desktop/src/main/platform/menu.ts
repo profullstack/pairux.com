@@ -14,6 +14,7 @@ export interface MenuCallbacks {
   onEndSession: () => void;
   onLogout: () => void;
   onCheckForUpdates?: () => void;
+  onEditVideo?: () => void;
 }
 
 let menuCallbacks: MenuCallbacks | null = null;
@@ -83,6 +84,11 @@ function buildMacOSMenu(): MenuItemConstructorOptions[] {
         label: 'New Session',
         accelerator: 'Cmd+N',
         click: () => menuCallbacks?.onNewSession(),
+      },
+      {
+        label: 'Edit Video…',
+        accelerator: 'Cmd+E',
+        click: () => menuCallbacks?.onEditVideo?.(),
       },
       { type: 'separator' },
       {
@@ -195,6 +201,11 @@ function buildDefaultMenu(): MenuItemConstructorOptions[] {
         label: 'New Session',
         accelerator: 'Ctrl+N',
         click: () => menuCallbacks?.onNewSession(),
+      },
+      {
+        label: 'Edit Video…',
+        accelerator: 'Ctrl+E',
+        click: () => menuCallbacks?.onEditVideo?.(),
       },
       { type: 'separator' },
       {

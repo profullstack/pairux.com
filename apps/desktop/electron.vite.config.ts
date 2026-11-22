@@ -24,7 +24,9 @@ export default defineConfig({
       // it loads stays external (and asar-unpacked) as before.
       // @pairux/meeting-copilot (used by `pairux copilot`) is ESM with
       // import-only exports, which a CommonJS main chunk cannot require().
-      externalizeDepsPlugin({ exclude: ['@profullstack/remote-input', '@pairux/meeting-copilot', '@pairux/video-edit'] }),
+      externalizeDepsPlugin({
+        exclude: ['@profullstack/remote-input', '@pairux/meeting-copilot', '@pairux/video-edit'],
+      }),
     ],
     build: {
       outDir: 'dist/main',

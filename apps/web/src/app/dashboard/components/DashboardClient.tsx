@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Monitor, Users, Calendar, Sparkles } from 'lucide-react';
+import { Monitor, Users, Calendar, Sparkles, Film } from 'lucide-react';
 import { RecentSessions } from './RecentSessions';
 import { UpcomingMeetings } from './UpcomingMeetings';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
@@ -62,6 +62,13 @@ export function DashboardClient() {
           >
             <Sparkles className="h-4 w-4" />
             {t('welcome.callAnalyses')}
+          </Link>
+          <Link
+            href="/recordings"
+            className="flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-6 py-2 font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+          >
+            <Film className="h-4 w-4" />
+            {t('welcome.recordings')}
           </Link>
         </div>
       </div>

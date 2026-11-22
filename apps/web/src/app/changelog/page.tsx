@@ -27,6 +27,17 @@ function formatReleaseMonth(month: string, locale: string): string {
 // Release notes (titles and changes) are published in English only.
 const releases = [
   {
+    version: '0.23.0',
+    date: '2026-11',
+    title: 'Video editing on every surface',
+    changes: [
+      'Trim a long recording down to the part you need: mark in and out, keep or cut ranges, and preview the cut before rendering',
+      'Fade in and out, and add intro or outro title cards or clips',
+      'Edit cloud recordings on the web (/recordings), in the mobile app, from the CLI and from AI agents over MCP; local recordings edit in the desktop app',
+      'Publish an edit privately to c0mpute storage, end-to-end encrypted with your own key, from the desktop app or `pairux edit --publish c0mpute`',
+    ],
+  },
+  {
     version: '0.9.75',
     date: '2026-08',
     title: 'Trackpad-safe guest pointer capture',

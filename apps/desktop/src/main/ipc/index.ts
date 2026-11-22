@@ -9,6 +9,7 @@ import { registerChatHandlers } from './chat';
 import { registerInputHandlers } from './input';
 import { registerPermissionHandlers } from './permissions';
 import { registerRecordingHandlers } from './recording';
+import { registerEditorHandlers } from './editor';
 import { registerStreamingHandlers } from './streaming';
 import { registerBillingHandlers } from './billing';
 import { registerTrayHandlers } from './tray';
@@ -38,6 +39,9 @@ export function registerIpcHandlers(): void {
 
   // Register recording handlers
   registerRecordingHandlers();
+
+  // Register video editor handlers
+  registerEditorHandlers();
 
   // Register streaming handlers
   registerStreamingHandlers();

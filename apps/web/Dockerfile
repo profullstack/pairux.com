@@ -79,8 +79,9 @@ WORKDIR /app
 
 # libstdc++/libgcc for Bun's musl binary. ffmpeg/ffprobe: AI call analysis
 # joins the uploaded call audio, measures it and cuts it into pieces for
-# transcription (src/lib/call-analysis/media.ts).
-RUN apk add --no-cache libstdc++ libgcc ffmpeg
+# transcription (src/lib/call-analysis/media.ts), and cloud recording edits
+# render with it (src/lib/recording-edits). font-dejavu: edit title cards.
+RUN apk add --no-cache libstdc++ libgcc ffmpeg font-dejavu
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 # Security: Run as non-root user (same uid/gid as the Node image)

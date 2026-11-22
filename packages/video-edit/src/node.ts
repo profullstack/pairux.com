@@ -97,7 +97,10 @@ function lastLine(s: string): string {
   return s.trim().split(/\r?\n/).filter(Boolean).slice(-1)[0] ?? 'unknown error';
 }
 
-export interface RenderOptions extends Omit<CompileInput, 'sourceInfo' | 'introInfo' | 'outroInfo'> {
+export interface RenderOptions extends Omit<
+  CompileInput,
+  'sourceInfo' | 'introInfo' | 'outroInfo'
+> {
   ffmpeg: string;
   sourceInfo?: MediaInfo | undefined;
   onProgress?: ((p: ProgressUpdate) => void) | undefined;
@@ -169,7 +172,13 @@ export async function publishToC0mpute(
   const env: NodeJS.ProcessEnv = { ...process.env };
   if (opts.password) env.C0MPUTE_DM_PASSWORD = opts.password;
   const relay = (s: string) => {
-    for (const line of s.split(/\r?\n/)) if (line.trim()) opts.onLine?.(line.trim());
+    for (const raw of s.split(/\r?\n/)) {
+      // eslint-disable-next-line no-control-regex
+      const line = raw.replace(/\u001b\[[0-9;]*m/g, '').trim();
+      // c0mpute logs its libp2p tracing to stderr too; only its own messages matter here.
+      if (!line || /^\d{4}-\d\d-\d\dT\S+\s+(TRACE|DEBUG|INFO|WARN)\b/.test(line)) continue;
+      opts.onLine?.(line);
+    }
   };
   const put = await run(opts.binary, c0mputePutArgs(file, opts.shareWith), {
     env,

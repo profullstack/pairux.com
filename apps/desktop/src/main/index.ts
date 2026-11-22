@@ -19,6 +19,7 @@ import {
   setDeepLinkWindow,
 } from './deepLink';
 import { parseAgentArgv, runAgentCommand } from './agent-cli';
+import { handleMediaProtocol, registerMediaScheme } from './editor/mediaProtocol';
 
 // Set app name early — used as Wayland app-id for KDE/GNOME icon lookup.
 // Must match the .desktop file name (pairux.desktop) and electron-builder executableName.
@@ -182,6 +183,10 @@ if (process.platform === 'win32') {
 // hosting it in a browser tab, which cannot inject input.
 if (!agentArgs) registerProtocolClient();
 
+// The editor plays local recordings through pairux-media:// (see editor/mediaProtocol.ts);
+// privileged schemes must be declared before 'ready'.
+if (!agentArgs) registerMediaScheme();
+
 // macOS delivers deep links as an event, on a cold start before `whenReady`.
 app.on('open-url', (event, url) => {
   event.preventDefault();
@@ -295,6 +300,7 @@ void app.whenReady().then(async () => {
 
   // Register IPC handlers before creating window
   registerIpcHandlers();
+  handleMediaProtocol();
 
   await createWindow();
 
@@ -376,6 +382,13 @@ void app.whenReady().then(async () => {
     onNewSession: () => {
       if (mainWindow) {
         mainWindow.webContents.send('navigate', '/');
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    },
+    onEditVideo: () => {
+      if (mainWindow) {
+        mainWindow.webContents.send('navigate', '/editor');
         mainWindow.show();
         mainWindow.focus();
       }

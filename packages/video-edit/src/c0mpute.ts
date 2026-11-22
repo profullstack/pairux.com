@@ -32,14 +32,17 @@ export function parsePutOutput(stdout: string): string | null {
   return null;
 }
 
-export function parseLinkOutput(stdout: string): { link: string | null; capability: string | null } {
+export function parseLinkOutput(stdout: string): {
+  link: string | null;
+  capability: string | null;
+} {
   const link = /https:\/\/\S+\/p\/[0-9a-z]+\/?#k=\S+/i.exec(stdout)?.[0] ?? null;
   const capability = /\bc0p1:[0-9a-f]{20}#k=\S+/i.exec(stdout)?.[0] ?? null;
   return { link, capability };
 }
 
 export function c0mputePutArgs(file: string, shareWith: string[] = []): string[] {
-  return ['storage', 'put', file, ...shareWith.flatMap((r) => ['--with', r])];
+  return ['storage', 'put', file, ...shareWith.flatMap((r) => ['--share-with', r])];
 }
 
 export function c0mputeLinkArgs(ref: string): string[] {
@@ -47,12 +50,14 @@ export function c0mputeLinkArgs(ref: string): string[] {
 }
 
 /** Where installers put the binary, after $PATH. */
-export function c0mputeCandidates(home: string, platform: NodeJS.Platform | string): string[] {
+export function c0mputeCandidates(home: string, platform: string): string[] {
   const exe = platform === 'win32' ? 'c0mpute.exe' : 'c0mpute';
   const sep = platform === 'win32' ? '\\' : '/';
   return [
     [home, '.local', 'bin', exe].join(sep),
     [home, '.cargo', 'bin', exe].join(sep),
-    ...(platform === 'win32' ? [] : ['/usr/local/bin/c0mpute', '/opt/homebrew/bin/c0mpute', '/usr/bin/c0mpute']),
+    ...(platform === 'win32'
+      ? []
+      : ['/usr/local/bin/c0mpute', '/opt/homebrew/bin/c0mpute', '/usr/bin/c0mpute']),
   ];
 }

@@ -134,7 +134,8 @@ function checkBumper(value: unknown, label: string): Bumper | null {
       return {
         kind: 'title',
         text: b.text.trim(),
-        subtitle: typeof b.subtitle === 'string' && b.subtitle.trim() ? b.subtitle.trim() : undefined,
+        subtitle:
+          typeof b.subtitle === 'string' && b.subtitle.trim() ? b.subtitle.trim() : undefined,
         duration: duration(),
         background: (b.background as string | undefined) ?? '#0b0b10',
         color: (b.color as string | undefined) ?? '#ffffff',
@@ -204,7 +205,7 @@ export function validatePlan(input: unknown, sourceDuration?: number | null): Ed
       format,
       width: edge(out.width, 'width'),
       height: edge(out.height, 'height'),
-      fps: fps as number | undefined,
+      fps: fps,
     },
   };
 }

@@ -116,7 +116,9 @@ export function compileEdit(plan: EditPlan, input: CompileInput): CompiledEdit {
         `[${String(idx)}:a:0]asetpts=PTS-STARTPTS,${AUDIO_NORM},apad,atrim=duration=${n(d)}[ka${String(i)}]`
       );
     } else {
-      filters.push(`anullsrc=r=48000:cl=stereo,atrim=duration=${n(d)},${AUDIO_NORM}[ka${String(i)}]`);
+      filters.push(
+        `anullsrc=r=48000:cl=stereo,atrim=duration=${n(d)},${AUDIO_NORM}[ka${String(i)}]`
+      );
     }
     mainLabels.push(`[kv${String(i)}][ka${String(i)}]`);
   });
@@ -160,7 +162,16 @@ export function compileEdit(plan: EditPlan, input: CompileInput): CompiledEdit {
       if (info.hasAudio) audioSrc = `[${String(idx)}:a:0]asetpts=PTS-STARTPTS,${AUDIO_NORM}`;
     } else if (b.kind === 'image') {
       duration = b.duration;
-      const idx = addInput('-loop', '1', '-framerate', String(fps), '-t', n(b.duration), '-i', b.source);
+      const idx = addInput(
+        '-loop',
+        '1',
+        '-framerate',
+        String(fps),
+        '-t',
+        n(b.duration),
+        '-i',
+        b.source
+      );
       videoSrc = `[${String(idx)}:v:0]${vnorm}`;
     } else {
       duration = b.duration;
@@ -190,8 +201,7 @@ export function compileEdit(plan: EditPlan, input: CompileInput): CompiledEdit {
     }
     filters.push(`${videoSrc}${vf.length ? ',' + vf.join(',') : ''}[${tag}v]`);
     const audioBase =
-      audioSrc ??
-      `anullsrc=r=48000:cl=stereo,atrim=duration=${n(duration)},${AUDIO_NORM}`;
+      audioSrc ?? `anullsrc=r=48000:cl=stereo,atrim=duration=${n(duration)},${AUDIO_NORM}`;
     const audioPad = audioSrc && duration > 0 ? `,apad,atrim=duration=${n(duration)}` : '';
     filters.push(`${audioBase}${audioPad}${af.length ? ',' + af.join(',') : ''}[${tag}a]`);
     return duration;
@@ -214,17 +224,44 @@ export function compileEdit(plan: EditPlan, input: CompileInput): CompiledEdit {
     filters.push('[mainv]null[outv]', '[maina]anull[outa]');
   }
 
-  const preset = { fast: 'ultrafast', balanced: 'veryfast', high: 'medium' }[input.quality ?? 'balanced'];
+  const preset = { fast: 'ultrafast', balanced: 'veryfast', high: 'medium' }[
+    input.quality ?? 'balanced'
+  ];
   const codec =
     format === 'webm'
       ? [
-          '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '32', '-deadline', 'realtime',
-          '-cpu-used', input.quality === 'high' ? '4' : '8', '-row-mt', '1',
-          '-c:a', 'libopus', '-b:a', '128k',
+          '-c:v',
+          'libvpx-vp9',
+          '-b:v',
+          '0',
+          '-crf',
+          '32',
+          '-deadline',
+          'realtime',
+          '-cpu-used',
+          input.quality === 'high' ? '4' : '8',
+          '-row-mt',
+          '1',
+          '-c:a',
+          'libopus',
+          '-b:a',
+          '128k',
         ]
       : [
-          '-c:v', 'libx264', '-preset', preset, '-crf', '20', '-pix_fmt', 'yuv420p',
-          '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart',
+          '-c:v',
+          'libx264',
+          '-preset',
+          preset,
+          '-crf',
+          '20',
+          '-pix_fmt',
+          'yuv420p',
+          '-c:a',
+          'aac',
+          '-b:a',
+          '160k',
+          '-movflags',
+          '+faststart',
         ];
 
   const args = [

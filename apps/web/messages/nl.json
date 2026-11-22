@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "Doorgaan naar betaling",
+    "processor": "Betaal met crypto of PayPal. De betaling wordt verwerkt door CoinPay.",
+    "copilotTitle": "Tegoed voor de AI-copiloot toevoegen",
+    "amount": "Bedrag"
   }
 }

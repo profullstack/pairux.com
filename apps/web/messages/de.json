@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "Weiter zur Zahlung",
+    "processor": "Zahle mit Krypto oder PayPal. Die Zahlung wird von CoinPay abgewickelt.",
+    "copilotTitle": "Guthaben für den KI-Copilot aufladen",
+    "amount": "Betrag"
   }
 }

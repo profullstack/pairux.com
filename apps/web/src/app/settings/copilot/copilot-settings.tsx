@@ -130,26 +130,6 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
     }
   };
 
-  const topup = async (id: string) => {
-    setBusy(true);
-    setError('');
-    try {
-      const data = await read<{ checkout_url?: string; choose_method?: boolean }>(
-        await fetch('/api/billing/copilot-topup', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ topup: id }),
-        })
-      );
-      if (data.checkout_url) window.location.href = data.checkout_url;
-      else setError(t('checkoutUnavailable'));
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const card = 'mt-6 rounded-xl border border-gray-200 bg-white p-5';
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -335,15 +315,13 @@ export function CopilotSettings({ header }: { header: ReactNode }) {
             <p className="mt-1 text-sm text-gray-600">{t('walletIntro')}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {wallet.topups.map((one) => (
-                <button
+                <Link
                   key={one.id}
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void topup(one.id)}
-                  className="rounded-lg border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-800 hover:bg-violet-100 disabled:opacity-50"
+                  href={`/settings/copilot/add-credit?option=${one.id}`}
+                  className="rounded-lg border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-800 hover:bg-violet-100"
                 >
                   {t('addCredit', { amount: `$${String(one.priceUsd)}` })}
-                </button>
+                </Link>
               ))}
             </div>
             {wallet.usage.length > 0 && (

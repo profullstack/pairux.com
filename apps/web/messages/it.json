@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "Continua al pagamento",
+    "processor": "Paga con criptovalute o PayPal. Il pagamento è elaborato da CoinPay.",
+    "copilotTitle": "Aggiungi credito per il copilota IA",
+    "amount": "Importo"
   }
 }

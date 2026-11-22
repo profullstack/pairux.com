@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "भुगतान के लिए आगे बढ़ें",
+    "processor": "क्रिप्टो या PayPal से भुगतान करें। भुगतान CoinPay द्वारा संसाधित होता है।",
+    "copilotTitle": "AI कोपायलट क्रेडिट जोड़ें",
+    "amount": "राशि"
   }
 }

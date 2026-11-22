@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "Fortsätt till betalning",
+    "processor": "Betala med krypto eller PayPal. Betalningen hanteras av CoinPay.",
+    "copilotTitle": "Lägg till kredit för AI-copiloten",
+    "amount": "Belopp"
   }
 }

@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "继续付款",
+    "processor": "使用加密货币或 PayPal 付款。付款由 CoinPay 处理。",
+    "copilotTitle": "添加 AI 副驾驶额度",
+    "amount": "金额"
   }
 }

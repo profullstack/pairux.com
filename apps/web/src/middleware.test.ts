@@ -45,6 +45,17 @@ describe('middleware', () => {
       expect(await cspFor('/l/TER8XG')).toContain("frame-ancestors 'self' chrome-extension:");
       expect(await cspFor('/embed/TER8XG')).toContain('frame-ancestors *');
     });
+
+    // The checkout form posts here and is redirected (303) to CoinPay; Chrome
+    // blocks that redirect unless form-action lists the payment page's origin.
+    it('lets the checkout pages hand off to the CoinPay payment page', async () => {
+      const formAction = (csp: string) =>
+        csp.split('; ').find((d) => d.startsWith('form-action ')) ?? '';
+      expect(formAction(await cspFor('/upgrade/pro'))).toContain('https://coinpayportal.com');
+      expect(formAction(await cspFor('/settings/copilot/add-credit'))).toContain(
+        'https://coinpayportal.com'
+      );
+    });
   });
 
   describe('CORS preflight', () => {

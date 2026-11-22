@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "المتابعة إلى الدفع",
+    "processor": "ادفع بالعملات الرقمية أو PayPal. تتم معالجة الدفع عبر CoinPay.",
+    "copilotTitle": "إضافة رصيد لمساعد الذكاء الاصطناعي",
+    "amount": "المبلغ"
   }
 }

@@ -2739,5 +2739,11 @@
     "add": "Add room",
     "yourRoom": "Your room",
     "yourRoomHint": "Your permanent link. Anyone who opens it joins your call while you are in it."
+  },
+  "checkoutPage": {
+    "cta": "결제 계속하기",
+    "processor": "암호화폐 또는 PayPal로 결제하세요. 결제는 CoinPay에서 처리합니다.",
+    "copilotTitle": "AI 코파일럿 크레딧 추가",
+    "amount": "금액"
   }
 }

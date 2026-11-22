@@ -17,6 +17,7 @@ vi.mock('@/lib/supabase/service', () => ({
 }));
 
 vi.mock('livekit-server-sdk', () => ({
+  TrackSource: { MICROPHONE: 2 },
   AccessToken: vi.fn().mockImplementation((...args: unknown[]) => {
     mockAccessTokenCtor(...args);
     return {
@@ -188,6 +189,43 @@ describe('POST /api/livekit/token', () => {
     expect(body.data.token).toBe('mock-jwt-token');
     // Guests are watch-only.
     expect(mockAddGrant).toHaveBeenCalledWith(expect.objectContaining({ canPublish: false }));
+  });
+
+  it('lets a guest in a partner room that allows it speak (microphone only)', async () => {
+    const partnerRoom = {
+      ...sfuSession,
+      host_user_id: 'service-owner',
+      current_host_id: 'service-owner',
+      is_public: false,
+      settings: { partner: 'board-saas', guestsCanSpeak: true },
+    };
+    const sessionQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: partnerRoom, error: null }),
+    };
+    const participantQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: { id: validBody.participantId }, error: null }),
+    };
+    const client = createMockSupabaseClient({
+      from: vi.fn((table: string) => (table === 'sessions' ? sessionQuery : participantQuery)),
+    });
+    (client as unknown as { rpc: unknown }).rpc = vi
+      .fn()
+      .mockResolvedValue({ data: 'ok', error: null });
+    useClient(client);
+    mockGetAuthenticatedUser.mockResolvedValue({ user: null, error: null });
+
+    const response = await POST(createRequest({ ...validBody, isHost: false }));
+    expect(response.status).toBe(200);
+    expect(mockAddGrant).toHaveBeenCalledWith(
+      expect.objectContaining({ canPublish: true, canPublishSources: [2] })
+    );
   });
 
   it('rejects a guest on a private room (401)', async () => {

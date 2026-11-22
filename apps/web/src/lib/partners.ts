@@ -12,6 +12,12 @@
  * Configuration, no database: PAIRUX_PARTNERS is JSON
  *   [{ "id": "qrypt", "name": "qrypt.chat", "keySha256": "<hex>", "maxParticipants": 16 }]
  * Only the SHA-256 of a key is stored, so the env never holds a usable key.
+ *
+ * A partner that also names `ownerUserId` (a PairUX service account it runs
+ * as) may open ordinary PairUX sessions through /api/v1/partner/sessions:
+ * rooms people join from the desktop app or the web/PWA with a normal join
+ * link, and that its own agents join as participants (e.g. board.saas voice
+ * board meetings). Seats follow that owner's plan, never the joiner's.
  */
 import { createHash, timingSafeEqual } from 'node:crypto';
 
@@ -20,7 +26,11 @@ export interface Partner {
   name: string;
   keySha256: string;
   maxParticipants: number;
+  /** The PairUX user that owns sessions this partner opens. Unset = no sessions. */
+  ownerUserId?: string;
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{1,30}$/;
 
@@ -44,6 +54,9 @@ export function partnersFromEnv(raw = process.env.PAIRUX_PARTNERS): Partner[] {
             name: typeof p.name === 'string' ? p.name : p.id,
             keySha256: p.keySha256,
             maxParticipants: Number(p.maxParticipants) > 0 ? Number(p.maxParticipants) : 16,
+            ...(typeof p.ownerUserId === 'string' && UUID_RE.test(p.ownerUserId)
+              ? { ownerUserId: p.ownerUserId.toLowerCase() }
+              : {}),
           },
         ]
       : []

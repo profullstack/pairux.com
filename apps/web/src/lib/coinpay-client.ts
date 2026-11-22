@@ -327,10 +327,10 @@ export async function createCryptoPayment(
   const res = await fetchImpl(`${cfg.apiUrl}/payments/create`, {
     method: 'POST',
     headers: {
-        Authorization: `Bearer ${cfg.apiKey}`,
-        'Content-Type': 'application/json',
-        'User-Agent': COINPAY_UA,
-      },
+      Authorization: `Bearer ${cfg.apiKey}`,
+      'Content-Type': 'application/json',
+      'User-Agent': COINPAY_UA,
+    },
     cache: 'no-store',
     body: JSON.stringify({
       business_id: cfg.businessId,
@@ -378,10 +378,10 @@ export async function createPaypalPayment(
   const res = await fetchImpl(`${cfg.apiUrl}/paypal/payments/create`, {
     method: 'POST',
     headers: {
-        Authorization: `Bearer ${cfg.apiKey}`,
-        'Content-Type': 'application/json',
-        'User-Agent': COINPAY_UA,
-      },
+      Authorization: `Bearer ${cfg.apiKey}`,
+      'Content-Type': 'application/json',
+      'User-Agent': COINPAY_UA,
+    },
     cache: 'no-store',
     body: JSON.stringify({
       business_id: cfg.businessId,

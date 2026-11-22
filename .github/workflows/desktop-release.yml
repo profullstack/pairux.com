@@ -330,6 +330,12 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout verification script
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: scripts/verify-rpm.py
+          sparse-checkout-cone-mode: false
+
       - name: Download published release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -388,10 +394,15 @@ jobs:
           # emits zstd rpms for some arches, e.g. aarch64), so it falsely
           # reported "premature end of file" on perfectly valid rpms. libarchive
           # handles every rpm payload compressor (gzip/xz/zstd) uniformly.
+          # Fallback: newer rpmbuild writes the "stripped" cpio payload (magic
+          # 07070X, rpm >= 4.12), which libarchive rejects as "Unrecognized
+          # archive format" (seen on v0.23.0). scripts/verify-rpm.py parses the
+          # headers and fully decompresses the payload instead.
           for rpm in dist/*.rpm; do
             echo "::group::rpm $rpm"
             if bsdtar -tf "$rpm" >/dev/null 2>/tmp/rpm.log; then echo "OK $rpm"
-            else echo "::error::$rpm is corrupt"; tail -20 /tmp/rpm.log; fail=1; fi
+            elif python3 scripts/verify-rpm.py "$rpm" >/tmp/rpm2.log 2>&1; then cat /tmp/rpm2.log
+            else echo "::error::$rpm is corrupt"; tail -20 /tmp/rpm.log /tmp/rpm2.log; fail=1; fi
             echo "::endgroup::"
           done
 

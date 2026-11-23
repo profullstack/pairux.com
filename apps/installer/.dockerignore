@@ -1,0 +1,4 @@
+# Keep secrets out of the image.
+.env
+.env.*
+!.env.example

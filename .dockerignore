@@ -1,0 +1,4 @@
+# Keep secrets out of the image (the Dockerfiles COPY the tree).
+.env
+.env.*
+!.env.example

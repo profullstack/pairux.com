@@ -19,7 +19,8 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, HelpCircle } from 'lucide-react';
+import { QAPanel } from '@/components/qa/QAPanel';
 import type {
   ConnectionState,
   QualityMetrics,
@@ -39,7 +40,7 @@ import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicato
 import { useSessionPresence } from '@/hooks/useSessionPresence';
 import { Logo } from '@/components/Logo';
 
-type SidebarPanel = 'participants' | 'chat' | 'settings' | null;
+type SidebarPanel = 'participants' | 'chat' | 'qa' | 'settings' | null;
 
 interface Participant {
   id: string;
@@ -432,6 +433,20 @@ function SessionViewerContent({
             <button
               type="button"
               onClick={() => {
+                togglePanel('qa');
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activePanel === 'qa'
+                  ? 'bg-blue-700 text-white hover:bg-blue-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <HelpCircle className="h-4 w-4" />
+              Q&amp;A
+            </button>
+            <button
+              type="button"
+              onClick={() => {
                 togglePanel('settings');
               }}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -486,6 +501,15 @@ function SessionViewerContent({
                   setActivePanel(null);
                 }}
                 className="h-full !w-full !border-0"
+              />
+            )}
+
+            {activePanel === 'qa' && (
+              <QAPanel
+                sessionId={sessionId}
+                onClose={() => {
+                  setActivePanel(null);
+                }}
               />
             )}
 

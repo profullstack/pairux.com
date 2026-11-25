@@ -9,6 +9,7 @@ import {
   type AgentChatMessage,
   type AgentRosterEntry,
 } from '@/lib/agents';
+import { listQuestions } from '@/lib/questions';
 
 interface RouteParams {
   params: Promise<{ participantId: string }>;
@@ -85,7 +86,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
     const { data: participants } = (await db
       .from('session_participants')
-      .select('id, display_name, role, kind, agent_client, control_state')
+      .select('id, user_id, display_name, role, kind, agent_client, control_state')
       .eq('session_id', agent.session_id)
       .is('left_at', null)
       .order('joined_at', { ascending: true })) as { data: AgentRosterEntry[] | null };
@@ -136,6 +137,8 @@ export async function GET(request: Request, { params }: RouteParams) {
         fromOwner: Boolean(sender && agent.agent_owner_id && sender === agent.agent_owner_id),
       })),
       transcript,
+      // The room's Q&A queue (open, now answering, answered), newest votes included.
+      questions: await listQuestions(db, agent.session_id),
       serverTime: now.toISOString(),
     });
   } catch (error) {

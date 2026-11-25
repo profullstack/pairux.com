@@ -46,6 +46,8 @@ export function agentJoinErrorStatus(message: string): number {
 
 export interface AgentRosterEntry {
   id: string;
+  /** The signed-in account behind a human row (null for guests): the LiveKit identity of a signed-in caller. */
+  user_id?: string | null;
   display_name: string;
   role: string;
   kind: string;

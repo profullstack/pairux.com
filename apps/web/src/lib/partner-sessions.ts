@@ -24,6 +24,7 @@ import type { serviceClient } from '@/lib/supabase/service';
 import { getUniqueJoinCode } from '@/lib/join-code';
 import { resolveUserPlan } from '@/lib/orgs';
 import type { Partner } from '@/lib/partners';
+import { moderatorIdsFor } from '@/lib/questions';
 
 type ServiceClient = ReturnType<typeof serviceClient>;
 
@@ -44,6 +45,8 @@ export const partnerSessionSchema = z.object({
   guestsCanSpeak: z.boolean().default(true),
   /** Shown to everyone: the partner says it records the call itself. */
   recorded: z.boolean().default(false),
+  /** Users (by PairUX account email) who moderate the room's Q&A: pick the next question, remove one. */
+  moderatorEmails: z.array(z.email()).max(5).default([]),
 });
 export type PartnerSessionInput = z.infer<typeof partnerSessionSchema>;
 
@@ -74,6 +77,7 @@ export async function createPartnerSession(
   const owner = partner.ownerUserId;
   const plan = await resolveUserPlan(db, owner);
   const joinCode = await getUniqueJoinCode(db);
+  const qaModerators = await moderatorIdsFor(db, input.moderatorEmails);
   const now = new Date().toISOString();
 
   const { data: session, error } = (await (db as any)
@@ -97,6 +101,7 @@ export async function createPartnerSession(
         partner: partner.id,
         maxParticipants: participantCap(plan),
         maxListeners: maxListeners(plan),
+        ...(qaModerators.length ? { qaModerators } : {}),
       },
     })
     .select('id, join_code')

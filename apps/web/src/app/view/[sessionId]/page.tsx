@@ -19,7 +19,8 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, HelpCircle } from 'lucide-react';
+import { QAPanel } from '@/components/qa/QAPanel';
 import { HostPresenceIndicator } from '@/components/session/HostPresenceIndicator';
 import { useSessionPresence } from '@/hooks/useSessionPresence';
 import type {
@@ -256,6 +257,7 @@ function GuestViewerContent({
   // Cursors are normalized against the remote screen, which is letterboxed
   // inside the player, so the overlay needs the picture's rectangle.
   const [speakerMuted, setSpeakerMuted] = useState(false);
+  const [qaOpen, setQaOpen] = useState(false);
   const allowControl = session.settings.allowControl ?? false;
   const activeParticipants = session.session_participants.filter((p) => p.role !== 'left');
 
@@ -390,6 +392,21 @@ function GuestViewerContent({
             </button>
             <button
               type="button"
+              onClick={() => {
+                setQaOpen((v) => !v);
+              }}
+              aria-expanded={qaOpen}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                qaOpen
+                  ? 'bg-blue-700 text-white hover:bg-blue-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <HelpCircle className="h-4 w-4" />
+              Q&amp;A
+            </button>
+            <button
+              type="button"
               className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
             >
               <Settings className="h-4 w-4" />
@@ -397,6 +414,19 @@ function GuestViewerContent({
             </button>
           </div>
         </main>
+
+        {/* Q&A: a drawer on every screen size */}
+        {qaOpen && (
+          <div className="fixed inset-y-0 right-0 z-40 w-full max-w-sm border-l border-gray-800 shadow-xl">
+            <QAPanel
+              sessionId={session.id}
+              participantId={participant.id}
+              onClose={() => {
+                setQaOpen(false);
+              }}
+            />
+          </div>
+        )}
 
         {/* Participants sidebar */}
         <aside className="hidden w-64 flex-shrink-0 border-l border-gray-800 bg-gray-900 lg:block">

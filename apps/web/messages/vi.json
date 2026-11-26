@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Cuộc gọi này đang được người chủ trì ghi lại để AI phân tích. Hãy rời cuộc gọi nếu bạn không muốn tham gia.",
-      "recordedKept": "Cuộc gọi này đang được người chủ trì ghi lại để AI phân tích, và người chủ trì sẽ giữ bản ghi. Hãy rời cuộc gọi nếu bạn không muốn tham gia."
+      "recordedKept": "Cuộc gọi này đang được người chủ trì ghi lại để AI phân tích, và người chủ trì sẽ giữ bản ghi. Hãy rời cuộc gọi nếu bạn không muốn tham gia.",
+      "replayPublic": "Cuộc họp này đang được ghi. Bản phát lại sẽ được đăng lên trang kênh của chủ trì sau khi kết thúc. Hãy rời cuộc gọi nếu bạn không muốn tham gia.",
+      "replayPrivate": "Cuộc họp này đang được ghi. Chủ trì sẽ giữ bản phát lại trên kênh của mình, chỉ họ thấy được. Hãy rời cuộc gọi nếu bạn không muốn tham gia."
     },
     "settingsPanel": {
       "title": "Cài đặt phiên",
@@ -2750,7 +2752,23 @@
     "liveNow": "Đang trực tiếp",
     "upcomingStreams": "Buổi phát sắp tới",
     "publicToggle": "Hiển thị công khai",
-    "publicHelp": "Hiển thị cuộc họp này trên trang kênh và trong lịch có thể đăng ký của kênh."
+    "publicHelp": "Hiển thị cuộc họp này trên trang kênh và trong lịch có thể đăng ký của kênh.",
+    "replayLabel": "Phát lại",
+    "replayOff": "Không ghi",
+    "replayPublic": "Ghi và đăng bản phát lại lên kênh",
+    "replayPrivate": "Ghi và giữ bản phát lại riêng tư trên kênh",
+    "replayHelp": "Mỗi buổi đều được ghi. Khi kết thúc, bản phát lại xuất hiện trên trang kênh: cho mọi người, hoặc chỉ bạn và quản trị viên kênh. Mọi người trong cuộc gọi đều được báo là đang ghi.",
+    "replayBadgePublic": "Phát lại công khai",
+    "replayBadgePrivate": "Phát lại riêng tư",
+    "privateSchedule": "Lịch riêng tư",
+    "privateScheduleHelp": "Chỉ bạn thấy được. Không hiển thị công khai hay trong nguồn lịch.",
+    "privateReplays": "Bản phát lại riêng tư",
+    "privateReplaysHelp": "Bản phát lại các cuộc họp riêng tư của bạn. Chỉ bạn và quản trị viên kênh thấy được.",
+    "replayNotFound": "Không tìm thấy bản phát lại",
+    "replayUntitled": "Bản phát lại không tên",
+    "replayDescription": "Bản phát lại từ {channel} trên PairUX.",
+    "replayOn": "Ghi ngày {date}",
+    "replayPrivateNote": "Bản phát lại riêng tư: chỉ bạn và quản trị viên kênh thấy được."
   },
   "checkoutPage": {
     "cta": "Tiếp tục thanh toán",

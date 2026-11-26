@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Cet appel est enregistré par l’hôte pour une analyse par IA. Quittez l’appel si vous ne souhaitez pas y participer.",
-      "recordedKept": "Cet appel est enregistré par l’hôte pour une analyse par IA, et l’hôte conservera l’enregistrement. Quittez l’appel si vous ne souhaitez pas y participer."
+      "recordedKept": "Cet appel est enregistré par l’hôte pour une analyse par IA, et l’hôte conservera l’enregistrement. Quittez l’appel si vous ne souhaitez pas y participer.",
+      "replayPublic": "Cette réunion est enregistrée. La rediffusion sera publiée sur la page de la chaîne de l'hôte à la fin. Quittez l'appel si vous ne souhaitez pas participer.",
+      "replayPrivate": "Cette réunion est enregistrée. L'hôte gardera la rediffusion sur sa chaîne, visible par lui seul. Quittez l'appel si vous ne souhaitez pas participer."
     },
     "settingsPanel": {
       "title": "Paramètres de la session",
@@ -2750,7 +2752,23 @@
     "liveNow": "En direct",
     "upcomingStreams": "Prochains streams",
     "publicToggle": "Rendre public",
-    "publicHelp": "Affiche cette réunion sur la page de la chaîne et dans son calendrier auquel on peut s'abonner."
+    "publicHelp": "Affiche cette réunion sur la page de la chaîne et dans son calendrier auquel on peut s'abonner.",
+    "replayLabel": "Rediffusion",
+    "replayOff": "Ne pas enregistrer",
+    "replayPublic": "Enregistrer et publier la rediffusion sur la chaîne",
+    "replayPrivate": "Enregistrer et garder la rediffusion privée sur la chaîne",
+    "replayHelp": "Chaque séance est enregistrée. À la fin, la rediffusion apparaît sur la page de la chaîne : pour tout le monde, ou seulement pour vous et les gestionnaires de la chaîne. Tous les participants sont prévenus de l'enregistrement.",
+    "replayBadgePublic": "Rediffusion publique",
+    "replayBadgePrivate": "Rediffusion privée",
+    "privateSchedule": "Agenda privé",
+    "privateScheduleHelp": "Vous seul pouvez les voir. Ils ne sont pas listés publiquement ni dans le flux d'agenda.",
+    "privateReplays": "Rediffusions privées",
+    "privateReplaysHelp": "Rediffusions de vos réunions privées. Seuls vous et les gestionnaires de la chaîne pouvez les voir.",
+    "replayNotFound": "Rediffusion introuvable",
+    "replayUntitled": "Rediffusion sans titre",
+    "replayDescription": "Une rediffusion de {channel} sur PairUX.",
+    "replayOn": "Enregistré le {date}",
+    "replayPrivateNote": "Rediffusion privée : seuls vous et les gestionnaires de la chaîne pouvez la voir."
   },
   "checkoutPage": {
     "cta": "Continuer vers le paiement",

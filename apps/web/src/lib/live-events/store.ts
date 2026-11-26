@@ -37,7 +37,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HANDLE = /^@?[A-Za-z0-9_]{3,30}$/;
 
 const SELECT =
-  'id, title, description, scheduled_at, duration_minutes, status, visibility, channel_id, ' +
+  'id, title, description, scheduled_at, duration_minutes, status, visibility, replay_visibility, channel_id, ' +
   'recurrence_freq, recurrence_interval, recurrence_count, occurrences_elapsed, recurrence_anchor_at, updated_at, ' +
   'channel:channels(handle, name, avatar_url), scheduled_session_invitees(id)';
 
@@ -52,6 +52,8 @@ export interface LiveEventView {
   every: number;
   times: number;
   visibility: 'private' | 'public';
+  /** Each occurrence is recorded and the replay shown on the channel page (public) or to its managers (private). */
+  replay: 'off' | 'private' | 'public';
   channel: { handle: string; name: string } | null;
   invitee_count: number;
   /** Public page, when the event is public and on a channel. */
@@ -108,6 +110,10 @@ export function toView(row: any, origin: string, now = new Date()): LiveEventVie
     every: row.recurrence_interval ?? 1,
     times: row.recurrence_count ?? 0,
     visibility: row.visibility === 'public' ? 'public' : 'private',
+    replay:
+      row.replay_visibility === 'public' || row.replay_visibility === 'private'
+        ? row.replay_visibility
+        : 'off',
     channel,
     invitee_count: Array.isArray(row.scheduled_session_invitees)
       ? row.scheduled_session_invitees.length
@@ -178,6 +184,7 @@ export async function createEvent(
       join_code: joinCode,
       channel_id: channel.id,
       visibility: input.visibility,
+      replay_visibility: input.replay,
       recurrence_freq: repeating ? input.repeat : null,
       recurrence_interval: repeating ? input.every : 1,
       recurrence_count: repeating ? input.times : 0,
@@ -211,6 +218,7 @@ export async function updateEvent(
   if (input.channel !== undefined)
     patch.channel_id = (await resolveChannel(svc, userId, input.channel)).id;
   if (input.visibility !== undefined) patch.visibility = input.visibility;
+  if (input.replay !== undefined) patch.replay_visibility = input.replay;
 
   // A new time or a new repeat pattern starts the series over from that time.
   const startsAt =

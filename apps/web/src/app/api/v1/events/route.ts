@@ -13,11 +13,12 @@ const writesByUser = new FixedWindowRateLimiter(60, 60_000);
 
 /**
  * GET  /api/v1/events  your live events (scheduled meetings on a channel)
- * POST /api/v1/events  {title, startsAt, channel, durationMinutes?, repeat?, every?, times?, description?, visibility?}
+ * POST /api/v1/events  {title, startsAt, channel, durationMinutes?, repeat?, every?, times?, description?, visibility?, replay?}
  *
  * Auth: `pairux login` token (Bearer pux_at_...), a Supabase access token, or
  * the web session. `visibility` defaults to public: the event is listed on the
- * channel page and in /c/<handle>/calendar.ics.
+ * channel page and in /c/<handle>/calendar.ics. `replay` (off, private, public;
+ * default off) records each occurrence and shows the replay on the channel page.
  */
 export async function GET(request: Request) {
   try {

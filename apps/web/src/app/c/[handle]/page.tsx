@@ -10,6 +10,7 @@ import {
   Rss,
   CalendarDays,
   CalendarPlus,
+  Lock,
   User as UserIcon,
 } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -28,7 +29,13 @@ import {
   upcoming,
   webcalUrl,
 } from '@/lib/live-events/public';
-import { channelEvents } from '@/lib/live-events/read';
+import {
+  channelEvents,
+  privateChannelEvents,
+  privateChannelRecordings,
+  type PrivateEventRow,
+} from '@/lib/live-events/read';
+import { recordingHref } from '@/lib/live-events/replay';
 import { ChannelWebsiteLink } from '@/components/channel/ChannelWebsiteLink';
 
 export const dynamic = 'force-dynamic';
@@ -142,6 +149,66 @@ function streamWhen(s: ChannelStream, locale: string, liveNow: string): string {
   }
 }
 
+function RecordingGrid({
+  handle,
+  recordings,
+  locale,
+  fallbackTitle,
+}: {
+  handle: string;
+  recordings: ChannelRecording[];
+  locale: string;
+  fallbackTitle: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {recordings.map((r) => {
+        const dur = formatDuration(r.duration_seconds);
+        return (
+          <Link
+            key={r.id}
+            href={recordingHref(handle, r)}
+            className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
+          >
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+              {r.banner_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={r.banner_url}
+                  alt=""
+                  className="h-full w-full object-cover object-center"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <PlayCircle className="h-8 w-8 text-gray-300" />
+                </div>
+              )}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <PlayCircle className="h-10 w-10 text-white/90 drop-shadow" />
+              </span>
+              {dur && (
+                <span className="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                  {dur}
+                </span>
+              )}
+            </div>
+            <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900">
+              {r.subject ?? fallbackTitle}
+            </h3>
+            <span className="mt-2 text-xs text-gray-500">
+              {new Date(r.created_at).toLocaleDateString(locale, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export default async function ChannelPage({ params }: PageProps) {
   const { handle } = await params;
   const channel = await getChannel(handle);
@@ -156,7 +223,15 @@ export default async function ChannelPage({ params }: PageProps) {
     channelEvents(handle),
     getTranslations('events'),
   ]);
-  const events = upcoming(eventRows, new Date());
+  const now = new Date();
+  const events = upcoming(eventRows, now);
+  // The channel's private schedule and private replays, for its managers only
+  // (the RPCs return nothing to anyone else, so this is a shortcut, not the guard).
+  const [privateRows, privateRecordings] = channel.is_owner
+    ? await Promise.all([privateChannelEvents(handle), privateChannelRecordings(handle)])
+    : [[] as PrivateEventRow[], [] as ChannelRecording[]];
+  const privateEvents = upcoming(privateRows, now);
+  const replayOfRow = new Map(privateRows.map((r) => [r.id, r.replay_visibility]));
   const calendarUrl = channelCalendarUrl(SITE_URL, channel.handle);
 
   return (
@@ -280,6 +355,34 @@ export default async function ChannelPage({ params }: PageProps) {
           </section>
         )}
 
+        {channel.is_owner && privateEvents.length > 0 && (
+          <section id="private-schedule" className="border-b border-gray-100 bg-gray-50/60 py-10">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-6">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Lock className="h-5 w-5 text-gray-500" />
+                  {te('privateSchedule')}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">{te('privateScheduleHelp')}</p>
+              </div>
+              <UpcomingEvents
+                items={privateEvents}
+                locale={locale}
+                liveNowLabel={te('liveNow')}
+                hrefFor={() => '/dashboard'}
+                badgeFor={(row) => {
+                  const r = replayOfRow.get(row.id);
+                  return r === 'public'
+                    ? te('replayBadgePublic')
+                    : r === 'private'
+                      ? te('replayBadgePrivate')
+                      : null;
+                }}
+              />
+            </div>
+          </section>
+        )}
+
         <section className="py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
@@ -356,51 +459,32 @@ export default async function ChannelPage({ params }: PageProps) {
                   RSS
                 </a>
               </div>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {recordings.map((r) => {
-                  const dur = formatDuration(r.duration_seconds);
-                  return (
-                    <Link
-                      key={r.id}
-                      href={`/l/${r.join_code}`}
-                      className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
-                    >
-                      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
-                        {r.banner_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={r.banner_url}
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <PlayCircle className="h-8 w-8 text-gray-300" />
-                          </div>
-                        )}
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <PlayCircle className="h-10 w-10 text-white/90 drop-shadow" />
-                        </span>
-                        {dur && (
-                          <span className="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
-                            {dur}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900">
-                        {r.subject ?? t('recording')}
-                      </h3>
-                      <span className="mt-2 text-xs text-gray-500">
-                        {new Date(r.created_at).toLocaleDateString(locale, {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </Link>
-                  );
-                })}
+              <RecordingGrid
+                handle={channel.handle}
+                recordings={recordings}
+                locale={locale}
+                fallbackTitle={t('recording')}
+              />
+            </div>
+          </section>
+        )}
+
+        {channel.is_owner && privateRecordings.length > 0 && (
+          <section id="private-replays" className="border-t border-gray-100 bg-gray-50/60 py-10">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-6">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Lock className="h-5 w-5 text-gray-500" />
+                  {te('privateReplays')}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">{te('privateReplaysHelp')}</p>
               </div>
+              <RecordingGrid
+                handle={channel.handle}
+                recordings={privateRecordings}
+                locale={locale}
+                fallbackTitle={t('recording')}
+              />
             </div>
           </section>
         )}

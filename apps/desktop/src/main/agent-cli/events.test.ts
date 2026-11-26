@@ -164,6 +164,29 @@ describe('pairux events', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('records and publishes replays with --replay, and refuses junk', async () => {
+    await run(
+      [
+        'events',
+        'add',
+        'Office hours',
+        '--at',
+        '2030-01-02T09:00',
+        '--channel',
+        'chovy',
+        '--replay',
+        'public',
+      ],
+      deps()
+    );
+    expect(calls.at(-1)!.body).toMatchObject({ title: 'Office hours', replay: 'public' });
+    await run(['events', 'edit', 'e1', '--replay', 'off'], deps());
+    expect(calls.at(-1)!.body).toEqual({ replay: 'off' });
+    const before = calls.length;
+    expect(await run(['events', 'edit', 'e1', '--replay', 'everyone'], deps())).not.toBe(0);
+    expect(calls).toHaveLength(before);
+  });
+
   it('needs a login', async () => {
     expect(await run(['events'], deps(false))).not.toBe(0);
     expect(calls).toHaveLength(0);

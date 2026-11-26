@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Bu görüşme, oturum sahibi tarafından yapay zekâ analizi için kaydediliyor. Katılmak istemiyorsanız görüşmeden ayrılın.",
-      "recordedKept": "Bu görüşme, kaydı saklayacak olan oturum sahibi tarafından yapay zekâ analizi için kaydediliyor. Katılmak istemiyorsanız görüşmeden ayrılın."
+      "recordedKept": "Bu görüşme, kaydı saklayacak olan oturum sahibi tarafından yapay zekâ analizi için kaydediliyor. Katılmak istemiyorsanız görüşmeden ayrılın.",
+      "replayPublic": "Bu toplantı kaydediliyor. Tekrar, bittikten sonra sunucunun kanal sayfasında yayınlanacak. Katılmak istemiyorsan görüşmeden ayrıl.",
+      "replayPrivate": "Bu toplantı kaydediliyor. Sunucu tekrarı kendi kanalında yalnızca kendisine görünür şekilde saklayacak. Katılmak istemiyorsan görüşmeden ayrıl."
     },
     "settingsPanel": {
       "title": "Oturum Ayarları",
@@ -2750,7 +2752,23 @@
     "liveNow": "Şimdi canlı",
     "upcomingStreams": "Yaklaşan yayınlar",
     "publicToggle": "Herkese açık listele",
-    "publicHelp": "Bu toplantıyı kanal sayfasında ve abone olunabilen takvim akışında gösterir."
+    "publicHelp": "Bu toplantıyı kanal sayfasında ve abone olunabilen takvim akışında gösterir.",
+    "replayLabel": "Tekrar",
+    "replayOff": "Kaydetme",
+    "replayPublic": "Kaydet ve tekrarı kanalda yayınla",
+    "replayPrivate": "Kaydet ve tekrarı kanalda gizli tut",
+    "replayHelp": "Her oturum kaydedilir. Bitince tekrar kanal sayfasında görünür: herkes için ya da yalnızca sen ve kanal yöneticileri için. Görüşmedeki herkese kayıt yapıldığı söylenir.",
+    "replayBadgePublic": "Tekrar herkese açık",
+    "replayBadgePrivate": "Tekrar gizli",
+    "privateSchedule": "Gizli program",
+    "privateScheduleHelp": "Bunları yalnızca sen görürsün. Herkese açık listede veya takvim akışında yer almazlar.",
+    "privateReplays": "Gizli tekrarlar",
+    "privateReplaysHelp": "Gizli toplantılarının tekrarları. Yalnızca sen ve kanal yöneticileri görebilir.",
+    "replayNotFound": "Tekrar bulunamadı",
+    "replayUntitled": "Başlıksız tekrar",
+    "replayDescription": "PairUX'ta {channel} kanalından bir tekrar.",
+    "replayOn": "{date} tarihinde kaydedildi",
+    "replayPrivateNote": "Gizli tekrar: yalnızca sen ve kanal yöneticileri görebilir."
   },
   "checkoutPage": {
     "cta": "Ödemeye devam et",

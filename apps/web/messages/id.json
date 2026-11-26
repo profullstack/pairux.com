@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Panggilan ini sedang direkam oleh host untuk analisis AI. Tinggalkan panggilan jika Anda tidak ingin ikut serta.",
-      "recordedKept": "Panggilan ini sedang direkam oleh host untuk analisis AI, dan host akan menyimpan rekamannya. Tinggalkan panggilan jika Anda tidak ingin ikut serta."
+      "recordedKept": "Panggilan ini sedang direkam oleh host untuk analisis AI, dan host akan menyimpan rekamannya. Tinggalkan panggilan jika Anda tidak ingin ikut serta.",
+      "replayPublic": "Rapat ini sedang direkam. Tayangan ulang akan diterbitkan di halaman kanal host setelah selesai. Tinggalkan panggilan jika Anda tidak ingin ikut.",
+      "replayPrivate": "Rapat ini sedang direkam. Host akan menyimpan tayangan ulang di kanalnya, hanya terlihat olehnya. Tinggalkan panggilan jika Anda tidak ingin ikut."
     },
     "settingsPanel": {
       "title": "Pengaturan Sesi",
@@ -2750,7 +2752,23 @@
     "liveNow": "Sedang live",
     "upcomingStreams": "Siaran mendatang",
     "publicToggle": "Tampilkan publik",
-    "publicHelp": "Menampilkan rapat ini di halaman kanal dan di feed kalender yang bisa dilanggan."
+    "publicHelp": "Menampilkan rapat ini di halaman kanal dan di feed kalender yang bisa dilanggan.",
+    "replayLabel": "Tayangan ulang",
+    "replayOff": "Jangan rekam",
+    "replayPublic": "Rekam dan terbitkan tayangan ulang di kanal",
+    "replayPrivate": "Rekam dan simpan tayangan ulang secara privat di kanal",
+    "replayHelp": "Setiap sesi direkam. Setelah selesai, tayangan ulang muncul di halaman kanal: untuk semua orang, atau hanya untuk Anda dan pengelola kanal. Semua orang di panggilan diberi tahu bahwa sedang direkam.",
+    "replayBadgePublic": "Tayangan ulang publik",
+    "replayBadgePrivate": "Tayangan ulang privat",
+    "privateSchedule": "Jadwal privat",
+    "privateScheduleHelp": "Hanya Anda yang bisa melihatnya. Tidak tercantum publik atau di feed kalender.",
+    "privateReplays": "Tayangan ulang privat",
+    "privateReplaysHelp": "Tayangan ulang rapat privat Anda. Hanya Anda dan pengelola kanal yang bisa melihatnya.",
+    "replayNotFound": "Tayangan ulang tidak ditemukan",
+    "replayUntitled": "Tayangan ulang tanpa judul",
+    "replayDescription": "Tayangan ulang dari {channel} di PairUX.",
+    "replayOn": "Direkam {date}",
+    "replayPrivateNote": "Tayangan ulang privat: hanya Anda dan pengelola kanal yang bisa melihatnya."
   },
   "checkoutPage": {
     "cta": "Lanjutkan ke pembayaran",

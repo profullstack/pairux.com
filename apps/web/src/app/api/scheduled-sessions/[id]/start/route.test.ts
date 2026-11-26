@@ -92,6 +92,7 @@ const baseMeeting: {
   session_id: string | null;
   started_at: string | null;
   channel_id: string | null;
+  replay_visibility?: string;
 } = {
   id: MEETING_ID,
   host_user_id: mockUser.id,
@@ -300,5 +301,53 @@ describe('POST /api/scheduled-sessions/[id]/start', () => {
     const res = await call();
     expect(res.status).toBe(400);
     expect(mockSendStartNotices).not.toHaveBeenCalled();
+  });
+  it('opens a plain P2P room with no replay when the meeting keeps none', async () => {
+    setupService({ meeting: { channel_id: 'chan-1' } });
+
+    await call();
+    const args = mockRpc.mock.calls.find((c) => c[0] === 'create_session')?.[1] as {
+      p_mode: string;
+      p_settings: Record<string, unknown>;
+    };
+    expect(args.p_mode).toBe('p2p');
+    expect(args.p_settings.replay).toBeUndefined();
+  });
+
+  it('records a meeting that publishes replays: SFU room, everyone told, room linked to the meeting', async () => {
+    const mock = setupService({ meeting: { channel_id: 'chan-1', replay_visibility: 'public' } });
+
+    const res = await call();
+    expect(res.status).toBe(200);
+
+    const args = mockRpc.mock.calls.find((c) => c[0] === 'create_session')?.[1] as {
+      p_mode: string;
+      p_settings: Record<string, unknown>;
+    };
+    // Server-side recording (LiveKit egress) only exists for SFU rooms.
+    expect(args.p_mode).toBe('sfu');
+    expect(args.p_settings.replay).toBe('public');
+
+    // The lasting link a finished recording is matched to its meeting through.
+    const link = mock.calls.find(
+      (c) =>
+        c.table === 'sessions' &&
+        c.op === 'update' &&
+        (c.payload as { scheduled_session_id?: string }).scheduled_session_id !== undefined
+    );
+    expect(link?.payload).toEqual({ scheduled_session_id: MEETING_ID });
+    expect(link?.filters.id).toBe('session-1');
+  });
+
+  it('keeps a private replay private', async () => {
+    setupService({ meeting: { channel_id: 'chan-1', replay_visibility: 'private' } });
+
+    await call();
+    const args = mockRpc.mock.calls.find((c) => c[0] === 'create_session')?.[1] as {
+      p_mode: string;
+      p_settings: Record<string, unknown>;
+    };
+    expect(args.p_mode).toBe('sfu');
+    expect(args.p_settings.replay).toBe('private');
   });
 });

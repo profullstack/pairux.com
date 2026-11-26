@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { SITE_URL, clockDuration, escapeXml, liveUrl } from '@/lib/embed';
+import { replayPath } from '@/lib/live-events/replay';
 
 /**
  * Per-channel RSS feed of finished recordings.
@@ -23,7 +24,8 @@ interface ChannelRow {
 
 interface RecordingRow {
   id: string;
-  join_code: string;
+  /** Null for a scheduled meeting's replay, which links to its replay page instead. */
+  join_code: string | null;
   subject: string | null;
   banner_url: string | null;
   playback_url: string;
@@ -60,7 +62,9 @@ async function getRecordings(handle: string): Promise<RecordingRow[]> {
 
 function buildItem(channel: ChannelRow, r: RecordingRow): string {
   const title = r.subject ?? 'Untitled live';
-  const permalink = liveUrl(r.join_code);
+  const permalink = r.join_code
+    ? liveUrl(r.join_code)
+    : `${SITE_URL}${replayPath(channel.handle, r.id)}`;
   const image = r.banner_url ?? channel.banner_url ?? channel.avatar_url;
   const duration = clockDuration(r.duration_seconds);
 

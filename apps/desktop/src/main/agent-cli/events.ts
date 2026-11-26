@@ -6,6 +6,7 @@
  *   pairux events add "Weekly outreach" --at 2026-11-26T09:00 --channel chovy --weekly
  *   pairux events edit <id> --at 2026-11-27T10:00 [--title ...] [--weekly|--once ...]
  *   pairux events public|private <id>
+ *   pairux events add ... --replay public   record it and publish the replay on the channel
  *   pairux events rm <id>
  *
  * Every call is signed in with `pairux login`.
@@ -35,9 +36,21 @@ Options:
   --title <text>         New title (edit)
   --description <text>   Description
   --private              Create it unlisted (events are public by default)
+  --replay <setting>     Record each occurrence and show the replay on the channel page
+                         once it ends: public (everyone), private (you and channel
+                         managers) or off (default, not recorded)
   --json                 Machine-readable output`;
 
 const REPEATS = ['daily', 'weekly', 'monthly', 'once'] as const;
+const REPLAYS = ['off', 'private', 'public'] as const;
+type Replay = (typeof REPLAYS)[number];
+
+export function parseReplay(raw: string | undefined): Replay | undefined {
+  if (raw === undefined) return undefined;
+  const v = raw.trim().toLowerCase();
+  if ((REPLAYS as readonly string[]).includes(v)) return v as Replay;
+  throw new UsageError('--replay must be off, private or public.');
+}
 
 /** "2026-11-26T09:00" (local) or any ISO string -> ISO with offset; refuses junk. */
 export function parseWhen(raw: string, now: Date = new Date()): string {
@@ -70,7 +83,8 @@ function describe(e: LiveEvent): string {
     e.repeat === 'none' ? 'once' : e.every > 1 ? `every ${String(e.every)} ${e.repeat}` : e.repeat;
   const where = e.channel ? `@${e.channel.handle}` : 'no channel';
   const link = e.url ?? '(private)';
-  return `${e.id}  ${new Date(when).toLocaleString()}  ${e.title}  [${repeat}, ${e.visibility}, ${where}]  ${link}`;
+  const replay = e.replay && e.replay !== 'off' ? `, replay ${e.replay}` : '';
+  return `${e.id}  ${new Date(when).toLocaleString()}  ${e.title}  [${repeat}, ${e.visibility}${replay}, ${where}]  ${link}`;
 }
 
 export async function runEvents(args: string[], deps: Deps, client: PairuxClient): Promise<number> {
@@ -87,6 +101,7 @@ export async function runEvents(args: string[], deps: Deps, client: PairuxClient
       title: { type: 'string' },
       description: { type: 'string' },
       private: { type: 'boolean' },
+      replay: { type: 'string' },
       daily: { type: 'boolean' },
       weekly: { type: 'boolean' },
       monthly: { type: 'boolean' },
@@ -103,7 +118,9 @@ export async function runEvents(args: string[], deps: Deps, client: PairuxClient
   if (picked.length > 1) throw new UsageError('Pick one of --daily, --weekly, --monthly, --once.');
   const repeat: 'none' | 'daily' | 'weekly' | 'monthly' | undefined =
     picked.length === 0 ? undefined : picked[0] === 'once' ? 'none' : picked[0];
+  const replay = parseReplay(values.replay);
   const shared = {
+    ...(replay !== undefined && { replay }),
     ...(values.minutes !== undefined && { durationMinutes: int('minutes', values.minutes) }),
     ...(values.every !== undefined && { every: int('every', values.every) }),
     ...(values.times !== undefined && { times: int('times', values.times) }),

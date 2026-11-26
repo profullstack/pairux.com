@@ -158,6 +158,13 @@ const meetingVisibilityField = {
   visibility: z.enum(['private', 'public']).optional(),
 };
 
+// Record each occurrence and put the replay on the channel page: for everyone
+// ('public', needs a channel) or the channel's managers only ('private').
+const replaySetting = z.enum(['off', 'private', 'public']);
+const meetingReplayField = {
+  replay: replaySetting.optional(),
+};
+
 // Schedule a meeting
 export const scheduleMeetingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title must be less than 120 characters'),
@@ -171,6 +178,7 @@ export const scheduleMeetingSchema = z.object({
   ...recurrenceFields,
   ...meetingChannelField,
   ...meetingVisibilityField,
+  ...meetingReplayField,
 });
 
 // Edit a scheduled meeting. Accepts either the column names (scheduled_at) or the
@@ -202,6 +210,7 @@ export const updateScheduledMeetingSchema = z
     ...recurrenceFields,
     ...meetingChannelField,
     ...meetingVisibilityField,
+    ...meetingReplayField,
   })
   .transform((input) => {
     const scheduledAt = input.scheduled_at ?? input.scheduledAt;
@@ -236,6 +245,7 @@ export const updateScheduledMeetingSchema = z
       ...(inviteeEmails !== undefined && { inviteeEmails }),
       ...(input.channelId !== undefined && { channel_id: input.channelId }),
       ...(input.visibility !== undefined && { visibility: input.visibility }),
+      ...(input.replay !== undefined && { replay_visibility: input.replay }),
       ...recurrence,
     };
   });
@@ -256,6 +266,7 @@ export const liveEventCreateSchema = z.object({
   every: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL).default(1),
   times: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).default(0),
   visibility: z.enum(['private', 'public']).default('public'),
+  replay: replaySetting.default('off'),
 });
 export const liveEventUpdateSchema = z
   .object({
@@ -275,6 +286,7 @@ export const liveEventUpdateSchema = z
     every: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL).optional(),
     times: z.number().int().min(0).max(MAX_RECURRENCE_COUNT).optional(),
     visibility: z.enum(['private', 'public']).optional(),
+    replay: replaySetting.optional(),
   })
   .refine((v) => Object.values(v).some((x) => x !== undefined), 'Nothing to change');
 export type LiveEventCreate = z.infer<typeof liveEventCreateSchema>;

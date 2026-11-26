@@ -45,6 +45,10 @@ export async function POST(request: Request) {
     if (input.visibility === 'public' && !input.channelId) {
       return errorResponse('A public event needs a channel', 400);
     }
+    // A public replay is published on the channel page, so it needs one too.
+    if (input.replay === 'public' && !input.channelId) {
+      return errorResponse('A public replay needs a channel', 400);
+    }
 
     const svc = serviceClient();
 
@@ -71,6 +75,7 @@ export async function POST(request: Request) {
         join_code: joinCode,
         channel_id: input.channelId ?? null,
         visibility: input.visibility === 'public' && input.channelId ? 'public' : 'private',
+        replay_visibility: input.replay ?? 'off',
         // A recurring meeting is one row: scheduled_at tracks the next occurrence
         // and the anchor keeps the day of the month stable for monthly series.
         recurrence_freq: input.recurrenceFreq ?? null,

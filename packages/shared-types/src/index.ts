@@ -17,6 +17,7 @@ export type {
   CallAnalysisStatus,
   ControlState,
   SessionSettings,
+  ReplayVisibility,
   Plan,
   Profile,
   ProfileInsert,

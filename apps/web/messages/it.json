@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "L’host sta registrando questa chiamata per l’analisi con IA. Esci dalla chiamata se non vuoi partecipare.",
-      "recordedKept": "L’host sta registrando questa chiamata per l’analisi con IA e ne conserverà la registrazione. Esci dalla chiamata se non vuoi partecipare."
+      "recordedKept": "L’host sta registrando questa chiamata per l’analisi con IA e ne conserverà la registrazione. Esci dalla chiamata se non vuoi partecipare.",
+      "replayPublic": "Questa riunione viene registrata. La replica sarà pubblicata sulla pagina del canale dell'host al termine. Lascia la chiamata se non vuoi partecipare.",
+      "replayPrivate": "Questa riunione viene registrata. L'host terrà la replica sul suo canale, visibile solo a lui. Lascia la chiamata se non vuoi partecipare."
     },
     "settingsPanel": {
       "title": "Impostazioni della sessione",
@@ -2750,7 +2752,23 @@
     "liveNow": "In diretta",
     "upcomingStreams": "Prossimi stream",
     "publicToggle": "Rendi pubblico",
-    "publicHelp": "Mostra questa riunione nella pagina del canale e nel suo calendario a cui ci si può iscrivere."
+    "publicHelp": "Mostra questa riunione nella pagina del canale e nel suo calendario a cui ci si può iscrivere.",
+    "replayLabel": "Replica",
+    "replayOff": "Non registrare",
+    "replayPublic": "Registra e pubblica la replica sul canale",
+    "replayPrivate": "Registra e tieni privata la replica sul canale",
+    "replayHelp": "Ogni incontro viene registrato. Alla fine la replica compare sulla pagina del canale: per tutti, o solo per te e i gestori del canale. Tutti nella chiamata vengono avvisati della registrazione.",
+    "replayBadgePublic": "Replica pubblica",
+    "replayBadgePrivate": "Replica privata",
+    "privateSchedule": "Programma privato",
+    "privateScheduleHelp": "Solo tu puoi vederli. Non sono elencati pubblicamente né nel feed del calendario.",
+    "privateReplays": "Repliche private",
+    "privateReplaysHelp": "Repliche delle tue riunioni private. Solo tu e i gestori del canale potete vederle.",
+    "replayNotFound": "Replica non trovata",
+    "replayUntitled": "Replica senza titolo",
+    "replayDescription": "Una replica di {channel} su PairUX.",
+    "replayOn": "Registrato il {date}",
+    "replayPrivateNote": "Replica privata: solo tu e i gestori del canale potete vederla."
   },
   "checkoutPage": {
     "cta": "Continua al pagamento",

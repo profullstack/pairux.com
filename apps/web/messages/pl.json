@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Host nagrywa tę rozmowę do analizy AI. Jeśli nie chcesz brać w niej udziału, opuść rozmowę.",
-      "recordedKept": "Host nagrywa tę rozmowę do analizy AI i zachowa nagranie. Jeśli nie chcesz brać w niej udziału, opuść rozmowę."
+      "recordedKept": "Host nagrywa tę rozmowę do analizy AI i zachowa nagranie. Jeśli nie chcesz brać w niej udziału, opuść rozmowę.",
+      "replayPublic": "To spotkanie jest nagrywane. Powtórka zostanie opublikowana na stronie kanału gospodarza po zakończeniu. Opuść rozmowę, jeśli nie chcesz brać udziału.",
+      "replayPrivate": "To spotkanie jest nagrywane. Gospodarz zachowa powtórkę na swoim kanale, widoczną tylko dla siebie. Opuść rozmowę, jeśli nie chcesz brać udziału."
     },
     "settingsPanel": {
       "title": "Ustawienia sesji",
@@ -2750,7 +2752,23 @@
     "liveNow": "Teraz na żywo",
     "upcomingStreams": "Nadchodzące transmisje",
     "publicToggle": "Pokaż publicznie",
-    "publicHelp": "Pokazuje to spotkanie na stronie kanału i w jego subskrybowanym kalendarzu."
+    "publicHelp": "Pokazuje to spotkanie na stronie kanału i w jego subskrybowanym kalendarzu.",
+    "replayLabel": "Powtórka",
+    "replayOff": "Nie nagrywaj",
+    "replayPublic": "Nagraj i opublikuj powtórkę na kanale",
+    "replayPrivate": "Nagraj i zachowaj powtórkę prywatnie na kanale",
+    "replayHelp": "Każde spotkanie jest nagrywane. Po jego zakończeniu powtórka pojawia się na stronie kanału: dla wszystkich albo tylko dla Ciebie i administratorów kanału. Wszyscy uczestnicy są informowani o nagrywaniu.",
+    "replayBadgePublic": "Powtórka publiczna",
+    "replayBadgePrivate": "Powtórka prywatna",
+    "privateSchedule": "Prywatny harmonogram",
+    "privateScheduleHelp": "Widzisz je tylko Ty. Nie są publiczne ani w kanale kalendarza.",
+    "privateReplays": "Prywatne powtórki",
+    "privateReplaysHelp": "Powtórki Twoich prywatnych spotkań. Widzisz je tylko Ty i administratorzy kanału.",
+    "replayNotFound": "Nie znaleziono powtórki",
+    "replayUntitled": "Powtórka bez tytułu",
+    "replayDescription": "Powtórka z {channel} w PairUX.",
+    "replayOn": "Nagrano {date}",
+    "replayPrivateNote": "Prywatna powtórka: widzisz ją tylko Ty i administratorzy kanału."
   },
   "checkoutPage": {
     "cta": "Przejdź do płatności",

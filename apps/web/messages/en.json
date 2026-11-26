@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "This call is being recorded for AI analysis by the host. Leave the call if you do not want to take part.",
-      "recordedKept": "This call is being recorded for AI analysis by the host, who will keep the recording. Leave the call if you do not want to take part."
+      "recordedKept": "This call is being recorded for AI analysis by the host, who will keep the recording. Leave the call if you do not want to take part.",
+      "replayPublic": "This meeting is being recorded. The replay will be published on the host's channel page after it ends. Leave the call if you do not want to take part.",
+      "replayPrivate": "This meeting is being recorded. The host will keep the replay on their channel, visible only to them. Leave the call if you do not want to take part."
     },
     "settingsPanel": {
       "title": "Session Settings",
@@ -2750,7 +2752,23 @@
     "liveNow": "Live now",
     "upcomingStreams": "Upcoming streams",
     "publicToggle": "List publicly",
-    "publicHelp": "Shows this meeting on the channel page and in its subscribable calendar feed."
+    "publicHelp": "Shows this meeting on the channel page and in its subscribable calendar feed.",
+    "replayLabel": "Replay",
+    "replayOff": "Don't record",
+    "replayPublic": "Record and publish the replay on the channel",
+    "replayPrivate": "Record and keep the replay private on the channel",
+    "replayHelp": "Each occurrence is recorded. Once it ends, the replay appears on the channel page: for everyone, or only for you and the channel's managers. Everyone in the call is told it is being recorded.",
+    "replayBadgePublic": "Replay public",
+    "replayBadgePrivate": "Replay private",
+    "privateSchedule": "Private schedule",
+    "privateScheduleHelp": "Only you can see these. They are not listed publicly or in the calendar feed.",
+    "privateReplays": "Private replays",
+    "privateReplaysHelp": "Replays of your private meetings. Only you and the channel's managers can see them.",
+    "replayNotFound": "Replay not found",
+    "replayUntitled": "Untitled replay",
+    "replayDescription": "A replay from {channel} on PairUX.",
+    "replayOn": "Recorded {date}",
+    "replayPrivateNote": "Private replay: only you and the channel's managers can see it."
   },
   "checkoutPage": {
     "cta": "Continue to payment",

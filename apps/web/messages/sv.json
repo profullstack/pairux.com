@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Det här samtalet spelas in av värden för AI-analys. Lämna samtalet om du inte vill delta.",
-      "recordedKept": "Det här samtalet spelas in av värden för AI-analys, och värden behåller inspelningen. Lämna samtalet om du inte vill delta."
+      "recordedKept": "Det här samtalet spelas in av värden för AI-analys, och värden behåller inspelningen. Lämna samtalet om du inte vill delta.",
+      "replayPublic": "Det här mötet spelas in. Reprisen publiceras på värdens kanalsida när det är slut. Lämna samtalet om du inte vill delta.",
+      "replayPrivate": "Det här mötet spelas in. Värden behåller reprisen på sin kanal, synlig bara för värden. Lämna samtalet om du inte vill delta."
     },
     "settingsPanel": {
       "title": "Sessionsinställningar",
@@ -2750,7 +2752,23 @@
     "liveNow": "Live nu",
     "upcomingStreams": "Kommande sändningar",
     "publicToggle": "Visa offentligt",
-    "publicHelp": "Visar mötet på kanalsidan och i kanalens prenumerationsbara kalenderflöde."
+    "publicHelp": "Visar mötet på kanalsidan och i kanalens prenumerationsbara kalenderflöde.",
+    "replayLabel": "Repris",
+    "replayOff": "Spela inte in",
+    "replayPublic": "Spela in och publicera reprisen på kanalen",
+    "replayPrivate": "Spela in och håll reprisen privat på kanalen",
+    "replayHelp": "Varje tillfälle spelas in. Efteråt visas reprisen på kanalsidan: för alla, eller bara för dig och kanalens administratörer. Alla i samtalet får veta att det spelas in.",
+    "replayBadgePublic": "Repris offentlig",
+    "replayBadgePrivate": "Repris privat",
+    "privateSchedule": "Privat schema",
+    "privateScheduleHelp": "Bara du ser dessa. De listas inte offentligt eller i kalenderflödet.",
+    "privateReplays": "Privata repriser",
+    "privateReplaysHelp": "Repriser av dina privata möten. Bara du och kanalens administratörer ser dem.",
+    "replayNotFound": "Reprisen hittades inte",
+    "replayUntitled": "Repris utan titel",
+    "replayDescription": "En repris från {channel} på PairUX.",
+    "replayOn": "Inspelad {date}",
+    "replayPrivateNote": "Privat repris: bara du och kanalens administratörer ser den."
   },
   "checkoutPage": {
     "cta": "Fortsätt till betalning",

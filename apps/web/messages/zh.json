@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "主持人正在录制此通话以供 AI 分析。如果您不想参与，请离开通话。",
-      "recordedKept": "主持人正在录制此通话以供 AI 分析，并将保留录制内容。如果您不想参与，请离开通话。"
+      "recordedKept": "主持人正在录制此通话以供 AI 分析，并将保留录制内容。如果您不想参与，请离开通话。",
+      "replayPublic": "本次会议正在录制。结束后回放将发布在主持人的频道页面。如不想参与，请离开通话。",
+      "replayPrivate": "本次会议正在录制。主持人会把回放保留在自己的频道，仅自己可见。如不想参与，请离开通话。"
     },
     "settingsPanel": {
       "title": "会话设置",
@@ -2750,7 +2752,23 @@
     "liveNow": "正在直播",
     "upcomingStreams": "即将开始的直播",
     "publicToggle": "公开显示",
-    "publicHelp": "在频道页面和可订阅的日历中显示此会议。"
+    "publicHelp": "在频道页面和可订阅的日历中显示此会议。",
+    "replayLabel": "回放",
+    "replayOff": "不录制",
+    "replayPublic": "录制并在频道公开回放",
+    "replayPrivate": "录制并在频道私密保留回放",
+    "replayHelp": "每次会议都会录制。结束后回放会出现在频道页面：对所有人公开，或仅你和频道管理员可见。通话中的每个人都会被告知正在录制。",
+    "replayBadgePublic": "回放公开",
+    "replayBadgePrivate": "回放私密",
+    "privateSchedule": "私密日程",
+    "privateScheduleHelp": "只有你能看到。不会公开列出，也不在日历订阅中。",
+    "privateReplays": "私密回放",
+    "privateReplaysHelp": "你的私密会议回放。只有你和频道管理员能看到。",
+    "replayNotFound": "未找到回放",
+    "replayUntitled": "未命名回放",
+    "replayDescription": "{channel} 在 PairUX 上的回放。",
+    "replayOn": "录制于 {date}",
+    "replayPrivateNote": "私密回放：只有你和频道管理员能看到。"
   },
   "checkoutPage": {
     "cta": "继续付款",

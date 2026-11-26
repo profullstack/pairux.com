@@ -146,6 +146,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (fields.visibility === 'public' && !channelAfter) {
       return errorResponse('A public event needs a channel', 400);
     }
+    if (fields.replay_visibility === 'public' && !channelAfter) {
+      return errorResponse('A public replay needs a channel', 400);
+    }
 
     let updated = existing;
 

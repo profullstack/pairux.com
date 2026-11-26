@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import { canUseCallAnalysis, maxListeners, participantCap } from '@pairux/shared-types';
+import { replayOf } from '@/lib/live-events/replay';
 import { ANALYSIS_REQUIRES_PRO } from '@/lib/plans';
 import { createSessionSchema } from '@/lib/validations';
 import { resolveUserPlan } from '@/lib/orgs';
@@ -40,7 +41,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { data: meeting } = await (svc as any)
       .from('scheduled_sessions')
       .select(
-        'id, title, scheduled_at, duration_minutes, join_code, status, session_id, started_at, channel_id, scheduled_session_invitees(id, email, name, rsvp_status)'
+        'id, title, scheduled_at, duration_minutes, join_code, status, session_id, started_at, channel_id, replay_visibility, scheduled_session_invitees(id, email, name, rsvp_status)'
       )
       .eq('id', id)
       .eq('host_user_id', user.id)
@@ -54,6 +55,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const joinCode = meeting.join_code as string;
+
+    // A meeting that keeps replays is recorded server-side (LiveKit egress), which
+    // only exists for SFU rooms, and everyone in it is told (settings.replay).
+    const replay = replayOf(meeting.replay_visibility, meeting.channel_id);
 
     // `sessions.join_code` is globally unique and never released, so exactly one
     // room can be holding this meeting's code and it is worth knowing which.
@@ -108,8 +113,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           maxParticipants: participantCap(plan),
           maxListeners: maxListeners(plan),
           ...(analysis ? { analysis } : {}),
+          ...(replay ? { replay } : {}),
         },
-        p_mode: 'p2p',
+        p_mode: replay ? 'sfu' : 'p2p',
         p_join_code: joinCode,
       });
 
@@ -126,6 +132,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const sessionId = session.id as string | undefined;
     if (!sessionId) return errorResponse('Failed to start the meeting', 400);
+
+    // The lasting link from the room to its meeting: the meeting's own session_id
+    // is cleared when the series rolls forward, and the replay setting (and the
+    // channel page) is looked up through this one.
+    if (!session.scheduled_session_id) {
+      const { error: linkError } = await (svc as any)
+        .from('sessions')
+        .update({ scheduled_session_id: meeting.id as string })
+        .eq('id', sessionId);
+      if (linkError) console.error('Start meeting: could not link the room:', linkError);
+      else session = { ...session, scheduled_session_id: meeting.id as string };
+    }
 
     // The meeting's channel rides along with its room, so going live from it
     // (web or desktop) broadcasts there. A room that already has a channel keeps

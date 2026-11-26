@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Esta chamada está sendo gravada pelo anfitrião para análise por IA. Saia da chamada se não quiser participar.",
-      "recordedKept": "Esta chamada está sendo gravada pelo anfitrião para análise por IA, e ele manterá a gravação. Saia da chamada se não quiser participar."
+      "recordedKept": "Esta chamada está sendo gravada pelo anfitrião para análise por IA, e ele manterá a gravação. Saia da chamada se não quiser participar.",
+      "replayPublic": "Esta reunião está sendo gravada. O replay será publicado na página do canal do anfitrião ao terminar. Saia da chamada se não quiser participar.",
+      "replayPrivate": "Esta reunião está sendo gravada. O anfitrião vai guardar o replay no canal dele, visível só para ele. Saia da chamada se não quiser participar."
     },
     "settingsPanel": {
       "title": "Configurações da sessão",
@@ -2750,7 +2752,23 @@
     "liveNow": "Ao vivo",
     "upcomingStreams": "Próximas transmissões",
     "publicToggle": "Listar publicamente",
-    "publicHelp": "Mostra esta reunião na página do canal e no feed de calendário que pode ser assinado."
+    "publicHelp": "Mostra esta reunião na página do canal e no feed de calendário que pode ser assinado.",
+    "replayLabel": "Replay",
+    "replayOff": "Não gravar",
+    "replayPublic": "Gravar e publicar o replay no canal",
+    "replayPrivate": "Gravar e manter o replay privado no canal",
+    "replayHelp": "Cada ocorrência é gravada. Ao terminar, o replay aparece na página do canal: para todos, ou só para você e os gestores do canal. Todos na chamada são avisados da gravação.",
+    "replayBadgePublic": "Replay público",
+    "replayBadgePrivate": "Replay privado",
+    "privateSchedule": "Agenda privada",
+    "privateScheduleHelp": "Só você pode ver. Não aparecem publicamente nem no feed do calendário.",
+    "privateReplays": "Replays privados",
+    "privateReplaysHelp": "Replays das suas reuniões privadas. Só você e os gestores do canal podem ver.",
+    "replayNotFound": "Replay não encontrado",
+    "replayUntitled": "Replay sem título",
+    "replayDescription": "Um replay de {channel} no PairUX.",
+    "replayOn": "Gravado em {date}",
+    "replayPrivateNote": "Replay privado: só você e os gestores do canal podem ver."
   },
   "checkoutPage": {
     "cta": "Continuar para o pagamento",

@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "El anfitrión está grabando esta llamada para analizarla con IA. Sal de la llamada si no quieres participar.",
-      "recordedKept": "El anfitrión está grabando esta llamada para analizarla con IA y conservará la grabación. Sal de la llamada si no quieres participar."
+      "recordedKept": "El anfitrión está grabando esta llamada para analizarla con IA y conservará la grabación. Sal de la llamada si no quieres participar.",
+      "replayPublic": "Esta reunión se está grabando. La repetición se publicará en la página del canal del anfitrión cuando termine. Sal de la llamada si no quieres participar.",
+      "replayPrivate": "Esta reunión se está grabando. El anfitrión guardará la repetición en su canal, visible solo para él. Sal de la llamada si no quieres participar."
     },
     "settingsPanel": {
       "title": "Configuración de la sesión",
@@ -2750,7 +2752,23 @@
     "liveNow": "En directo",
     "upcomingStreams": "Próximas emisiones",
     "publicToggle": "Publicar",
-    "publicHelp": "Muestra esta reunión en la página del canal y en su calendario suscribible."
+    "publicHelp": "Muestra esta reunión en la página del canal y en su calendario suscribible.",
+    "replayLabel": "Repetición",
+    "replayOff": "No grabar",
+    "replayPublic": "Grabar y publicar la repetición en el canal",
+    "replayPrivate": "Grabar y mantener la repetición privada en el canal",
+    "replayHelp": "Cada sesión se graba. Al terminar, la repetición aparece en la página del canal: para todos, o solo para ti y los administradores del canal. Se avisa a todos en la llamada de que se está grabando.",
+    "replayBadgePublic": "Repetición pública",
+    "replayBadgePrivate": "Repetición privada",
+    "privateSchedule": "Agenda privada",
+    "privateScheduleHelp": "Solo tú puedes verlas. No se publican ni aparecen en el feed del calendario.",
+    "privateReplays": "Repeticiones privadas",
+    "privateReplaysHelp": "Repeticiones de tus reuniones privadas. Solo tú y los administradores del canal pueden verlas.",
+    "replayNotFound": "Repetición no encontrada",
+    "replayUntitled": "Repetición sin título",
+    "replayDescription": "Una repetición de {channel} en PairUX.",
+    "replayOn": "Grabado el {date}",
+    "replayPrivateNote": "Repetición privada: solo tú y los administradores del canal pueden verla."
   },
   "checkoutPage": {
     "cta": "Continuar al pago",

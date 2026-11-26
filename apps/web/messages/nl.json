@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "De host neemt dit gesprek op voor AI-analyse. Verlaat het gesprek als je niet wilt meedoen.",
-      "recordedKept": "De host neemt dit gesprek op voor AI-analyse en bewaart de opname. Verlaat het gesprek als je niet wilt meedoen."
+      "recordedKept": "De host neemt dit gesprek op voor AI-analyse en bewaart de opname. Verlaat het gesprek als je niet wilt meedoen.",
+      "replayPublic": "Deze meeting wordt opgenomen. De opname wordt na afloop op de kanaalpagina van de host gepubliceerd. Verlaat het gesprek als je niet wilt meedoen.",
+      "replayPrivate": "Deze meeting wordt opgenomen. De host bewaart de opname op zijn kanaal, alleen voor hem zichtbaar. Verlaat het gesprek als je niet wilt meedoen."
     },
     "settingsPanel": {
       "title": "Sessie-instellingen",
@@ -2750,7 +2752,23 @@
     "liveNow": "Nu live",
     "upcomingStreams": "Komende streams",
     "publicToggle": "Openbaar tonen",
-    "publicHelp": "Toont deze meeting op de kanaalpagina en in de agenda-feed waarop je kunt abonneren."
+    "publicHelp": "Toont deze meeting op de kanaalpagina en in de agenda-feed waarop je kunt abonneren.",
+    "replayLabel": "Terugkijken",
+    "replayOff": "Niet opnemen",
+    "replayPublic": "Opnemen en publiceren op het kanaal",
+    "replayPrivate": "Opnemen en privé houden op het kanaal",
+    "replayHelp": "Elke sessie wordt opgenomen. Daarna verschijnt de opname op de kanaalpagina: voor iedereen, of alleen voor jou en de kanaalbeheerders. Iedereen in het gesprek krijgt te zien dat er wordt opgenomen.",
+    "replayBadgePublic": "Opname openbaar",
+    "replayBadgePrivate": "Opname privé",
+    "privateSchedule": "Privéschema",
+    "privateScheduleHelp": "Alleen jij ziet deze. Ze staan niet openbaar of in de agendafeed.",
+    "privateReplays": "Privé-opnames",
+    "privateReplaysHelp": "Opnames van je privémeetings. Alleen jij en de kanaalbeheerders zien ze.",
+    "replayNotFound": "Opname niet gevonden",
+    "replayUntitled": "Opname zonder titel",
+    "replayDescription": "Een opname van {channel} op PairUX.",
+    "replayOn": "Opgenomen op {date}",
+    "replayPrivateNote": "Privé-opname: alleen jij en de kanaalbeheerders zien hem."
   },
   "checkoutPage": {
     "cta": "Doorgaan naar betaling",

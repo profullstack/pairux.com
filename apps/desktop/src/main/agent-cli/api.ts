@@ -307,6 +307,8 @@ export interface LiveEvent {
   every: number;
   times: number;
   visibility: 'private' | 'public';
+  /** Absent from servers older than v0.27. */
+  replay?: 'off' | 'private' | 'public';
   channel: { handle: string; name: string } | null;
   invitee_count: number;
   url: string | null;

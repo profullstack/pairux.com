@@ -40,6 +40,12 @@ const fields = {
     enum: ['public', 'private'],
     description: 'public (default) lists it on the channel page and in the channel calendar feed.',
   },
+  replay: {
+    type: 'string',
+    enum: ['off', 'private', 'public'],
+    description:
+      'Record each occurrence and, once it ends, show the replay on the channel page: public = everyone, private = channel managers only, off (default) = not recorded.',
+  },
 };
 
 const tool = (

@@ -1625,7 +1625,9 @@
     },
     "recordingNotice": {
       "recorded": "Dieser Anruf wird vom Host für eine KI-Analyse aufgezeichnet. Verlassen Sie den Anruf, wenn Sie nicht teilnehmen möchten.",
-      "recordedKept": "Dieser Anruf wird vom Host für eine KI-Analyse aufgezeichnet, und der Host behält die Aufzeichnung. Verlassen Sie den Anruf, wenn Sie nicht teilnehmen möchten."
+      "recordedKept": "Dieser Anruf wird vom Host für eine KI-Analyse aufgezeichnet, und der Host behält die Aufzeichnung. Verlassen Sie den Anruf, wenn Sie nicht teilnehmen möchten.",
+      "replayPublic": "Dieses Meeting wird aufgezeichnet. Die Aufzeichnung wird danach auf der Kanalseite des Gastgebers veröffentlicht. Verlasse den Anruf, wenn du nicht teilnehmen möchtest.",
+      "replayPrivate": "Dieses Meeting wird aufgezeichnet. Der Gastgeber behält die Aufzeichnung auf seinem Kanal, nur für ihn sichtbar. Verlasse den Anruf, wenn du nicht teilnehmen möchtest."
     },
     "settingsPanel": {
       "title": "Sitzungseinstellungen",
@@ -2750,7 +2752,23 @@
     "liveNow": "Jetzt live",
     "upcomingStreams": "Kommende Streams",
     "publicToggle": "Öffentlich anzeigen",
-    "publicHelp": "Zeigt dieses Meeting auf der Kanalseite und im abonnierbaren Kalender-Feed."
+    "publicHelp": "Zeigt dieses Meeting auf der Kanalseite und im abonnierbaren Kalender-Feed.",
+    "replayLabel": "Aufzeichnung",
+    "replayOff": "Nicht aufzeichnen",
+    "replayPublic": "Aufzeichnen und auf dem Kanal veröffentlichen",
+    "replayPrivate": "Aufzeichnen und auf dem Kanal privat behalten",
+    "replayHelp": "Jeder Termin wird aufgezeichnet. Danach erscheint die Aufzeichnung auf der Kanalseite: für alle oder nur für dich und die Kanalverwalter. Alle im Anruf werden informiert, dass aufgezeichnet wird.",
+    "replayBadgePublic": "Aufzeichnung öffentlich",
+    "replayBadgePrivate": "Aufzeichnung privat",
+    "privateSchedule": "Privater Zeitplan",
+    "privateScheduleHelp": "Nur du siehst diese Termine. Sie werden nicht öffentlich oder im Kalender-Feed gelistet.",
+    "privateReplays": "Private Aufzeichnungen",
+    "privateReplaysHelp": "Aufzeichnungen deiner privaten Meetings. Nur du und die Kanalverwalter sehen sie.",
+    "replayNotFound": "Aufzeichnung nicht gefunden",
+    "replayUntitled": "Aufzeichnung ohne Titel",
+    "replayDescription": "Eine Aufzeichnung von {channel} auf PairUX.",
+    "replayOn": "Aufgezeichnet am {date}",
+    "replayPrivateNote": "Private Aufzeichnung: nur du und die Kanalverwalter sehen sie."
   },
   "checkoutPage": {
     "cta": "Weiter zur Zahlung",

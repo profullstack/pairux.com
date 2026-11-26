@@ -8,6 +8,7 @@ import {
   guestJoinSchema,
   createSessionSchema,
   updateScheduledMeetingSchema,
+  scheduleMeetingSchema,
 } from './validations';
 
 describe('signupSchema', () => {
@@ -292,6 +293,33 @@ describe('createSessionSchema', () => {
       mode: 'invalid',
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('meeting replays', () => {
+  it('maps replay to the replay_visibility column on edit', () => {
+    const result = updateScheduledMeetingSchema.safeParse({ replay: 'public' });
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ replay_visibility: 'public' });
+  });
+
+  it('accepts off, private and public only', () => {
+    for (const replay of ['off', 'private', 'public']) {
+      expect(
+        scheduleMeetingSchema.safeParse({
+          title: 'Sync',
+          scheduledAt: '2030-01-02T09:00:00.000Z',
+          replay,
+        }).success
+      ).toBe(true);
+    }
+    expect(
+      scheduleMeetingSchema.safeParse({
+        title: 'Sync',
+        scheduledAt: '2030-01-02T09:00:00.000Z',
+        replay: 'everyone',
+      }).success
+    ).toBe(false);
   });
 });
 

@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Repeat,
   Radio,
+  PlayCircle,
 } from 'lucide-react';
 import { buildGoogleCalendarUrl, buildOutlookUrl, downloadIcs } from '@/lib/calendar';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
@@ -50,6 +51,8 @@ interface ScheduledSession {
   channel?: { handle: string; name: string } | null;
   /** public = listed on the channel page and its calendar feed (/e/<id>). */
   visibility?: string | null;
+  /** off | private | public: each occurrence is recorded and its replay put on the channel page. */
+  replay_visibility?: string | null;
 }
 
 interface ListResponse {
@@ -312,6 +315,16 @@ export function UpcomingMeetings({ onSchedule }: Props) {
                           {te('publicToggle')}
                         </a>
                       )}
+                      {session.channel &&
+                        (session.replay_visibility === 'public' ||
+                          session.replay_visibility === 'private') && (
+                          <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-700">
+                            <PlayCircle className="h-3 w-3" />
+                            {session.replay_visibility === 'public'
+                              ? te('replayBadgePublic')
+                              : te('replayBadgePrivate')}
+                          </span>
+                        )}
                       {session.invitee_count > 0 && (
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />

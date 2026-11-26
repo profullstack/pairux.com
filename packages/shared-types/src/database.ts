@@ -42,7 +42,17 @@ export interface SessionSettings {
    * a report is produced after the call. `keepRecording` defaults to true.
    */
   analysis?: CallAnalysisSettings;
+  /**
+   * The room was opened for a scheduled meeting that keeps replays: it is
+   * recorded server-side and the replay goes on the meeting's channel page,
+   * for everyone ('public') or the channel's managers only ('private').
+   * Everyone in the call is told for the whole call.
+   */
+  replay?: ReplayVisibility;
 }
+
+/** What happens to the recording of each occurrence of a scheduled meeting. */
+export type ReplayVisibility = 'private' | 'public';
 
 /** What the analysis report focuses on. */
 export type CallAnalysisKind = 'general' | 'interview' | 'team-sync' | 'presentation';
@@ -382,7 +392,8 @@ export interface PublicSessionDetail {
 // (from list_channel_recordings RPC) — powers "watch later" lists.
 export interface ChannelRecording {
   id: string;
-  join_code: string;
+  /** Null for a scheduled meeting's replay: its room code is the meeting's. Link to the replay page. */
+  join_code: string | null;
   subject: string | null;
   banner_url: string | null;
   playback_url: string;

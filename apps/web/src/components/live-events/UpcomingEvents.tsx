@@ -19,11 +19,17 @@ export function UpcomingEvents({
   locale,
   liveNowLabel,
   showChannel = false,
+  hrefFor = (row) => `/e/${row.id}`,
+  badgeFor,
 }: {
   items: UpcomingItem[];
   locale: string;
   liveNowLabel: string;
   showChannel?: boolean;
+  /** Where each row links; public events go to their /e/<id> page. */
+  hrefFor?: (row: PublicEventRow) => string;
+  /** Optional short label after the time (e.g. "Replay public"). */
+  badgeFor?: (row: PublicEventRow) => string | null;
 }) {
   return (
     <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -32,7 +38,7 @@ export function UpcomingEvents({
         const repeats = shortRecurrenceLabel(rule);
         return (
           <li key={row.id}>
-            <Link href={`/e/${row.id}`} className="flex items-start gap-4 p-4 hover:bg-gray-50">
+            <Link href={hrefFor(row)} className="flex items-start gap-4 p-4 hover:bg-gray-50">
               <div className="mt-0.5 rounded-lg bg-indigo-50 p-2 text-indigo-600">
                 {occ.liveNow ? (
                   <Radio className="h-5 w-5 text-red-500" />
@@ -51,6 +57,9 @@ export function UpcomingEvents({
                   {repeats ? <span className="text-gray-500"> · {repeats}</span> : null}
                   {showChannel ? (
                     <span className="text-gray-500"> · {row.channel_name}</span>
+                  ) : null}
+                  {badgeFor?.(row) ? (
+                    <span className="text-gray-500"> · {badgeFor(row)}</span>
                   ) : null}
                 </p>
               </div>

@@ -25,6 +25,7 @@ export interface EditableMeeting {
   recurrence_count?: number | null;
   channel_id?: string | null;
   visibility?: string | null;
+  replay_visibility?: string | null;
 }
 
 type ChannelOption = Pick<MyChannel, 'id' | 'handle' | 'name' | 'org_name' | 'team_name'>;
@@ -113,6 +114,11 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
   });
   const [channelId, setChannelId] = useState(meeting?.channel_id ?? '');
   const [isPublic, setIsPublic] = useState(meeting?.visibility === 'public');
+  const [replay, setReplay] = useState<'off' | 'private' | 'public'>(
+    meeting?.replay_visibility === 'public' || meeting?.replay_visibility === 'private'
+      ? meeting.replay_visibility
+      : 'off'
+  );
   const te = useTranslations('events');
   // Every channel the host can go live on: their own plus team and org ones.
   // undefined while loading.
@@ -218,6 +224,8 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
               : isEditing
                 ? { visibility: 'private' }
                 : {}),
+            // Replays live on the channel page, so without a channel there are none.
+            ...(channelId ? { replay } : isEditing ? { replay: 'off' } : {}),
             ...(repeatFreq
               ? {
                   recurrenceInterval: clamp(repeatInterval, 1, MAX_RECURRENCE_INTERVAL),
@@ -474,6 +482,30 @@ export function ScheduleMeetingModal({ onClose, onSaved, meeting }: Props) {
                   <span className="block text-xs text-gray-500">{te('publicHelp')}</span>
                 </span>
               </label>
+            )}
+            {channelId !== '' && (
+              <div className="mt-3">
+                <label
+                  htmlFor="meeting-replay"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {te('replayLabel')}
+                </label>
+                <select
+                  id="meeting-replay"
+                  value={replay}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setReplay(v === 'public' || v === 'private' ? v : 'off');
+                  }}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                >
+                  <option value="off">{te('replayOff')}</option>
+                  <option value="public">{te('replayPublic')}</option>
+                  <option value="private">{te('replayPrivate')}</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">{te('replayHelp')}</p>
+              </div>
             )}
           </div>
 
